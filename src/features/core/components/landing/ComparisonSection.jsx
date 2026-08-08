@@ -221,7 +221,7 @@ export default function ComparisonSection({ viewport, handlePrimaryCta }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewport}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-6 rounded-[22px] border border-[#e2e5fa] bg-linear-to-r/srgb from-white/95 via-[#faf9ff] to-[#f4f2ff] p-5 sm:p-6 shadow-[0_18px_40px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between"
+          className="mt-6 rounded-[22px] border border-[#e2e5fa] bg-linear-to-r/srgb from-white/95 via-[#faf9ff] to-[#f4f2ff] p-5 sm:p-6 shadow-[0_18px_40px_-22px_rgba(79,66,220,0.20)] backdrop-blur-md dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] dark:backdrop-blur-none flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left justify-between"
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#ded9ff] bg-[#f2f0ff] text-[#6256ef] shadow-sm dark:border-violet-500/20 dark:bg-violet-950/60 dark:text-violet-300">

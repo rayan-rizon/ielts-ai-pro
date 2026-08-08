@@ -338,6 +338,15 @@
   }
 }
 
+@utility animate-hero-drift {
+  animation: hero-drift 10s cubic-bezier(0.45, 0, 0.55, 1) var(--hero-float-delay, 0s) infinite;
+  will-change: translate;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
 @utility animate-fade-in {
   animation: fade-in 0.5s ease-out 0.2s both;
   @media (prefers-reduced-motion: reduce) {
@@ -800,6 +809,17 @@
 
     50% {
       transform: translate3d(0, 6px, 0);
+    }
+  }
+
+  @keyframes hero-drift {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+
+    50% {
+      translate: 0 -3px;
     }
   }
 

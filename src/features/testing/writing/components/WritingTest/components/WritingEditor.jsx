@@ -26,6 +26,19 @@ const EditorSkeleton = () => (
   </div>
 );
 
+function configureExamEditor(editor) {
+  const root = editor?.getEditor?.().root;
+  if (!root) return;
+
+  root.setAttribute('spellcheck', 'false');
+  root.setAttribute('autocorrect', 'off');
+  root.setAttribute('autocapitalize', 'off');
+  root.setAttribute('autocomplete', 'off');
+  root.setAttribute('data-gramm', 'false');
+  root.setAttribute('data-gramm_editor', 'false');
+  root.setAttribute('data-enable-grammarly', 'false');
+}
+
 /**
  * WritingEditor
  *
@@ -38,6 +51,7 @@ export function WritingEditor({
   wordCount: globalWordCount,
   targetLimit,
   isCompleted,
+  testMode = 'practice',
   isSidebarClosed,
   onToggleSidebar,
   title,
@@ -47,6 +61,7 @@ export function WritingEditor({
   const [localWordCount, setLocalWordCount] = React.useState(globalWordCount);
   const [isFocused, setIsFocused] = React.useState(false);
   const debounceTimerRef = React.useRef(null);
+  const isExamMode = testMode === 'exam' && !isCompleted;
 
   // Track the last value we synced to/from the parent to avoid self-updates
   const lastWritingRef = React.useRef(writing);
@@ -86,6 +101,13 @@ export function WritingEditor({
   };
 
   const isTargetMet = localWordCount >= (targetLimit || 150);
+
+  const setEditorRef = React.useCallback(
+    (editor) => {
+      if (isExamMode) configureExamEditor(editor);
+    },
+    [isExamMode]
+  );
 
   return (
     <div
@@ -167,12 +189,14 @@ export function WritingEditor({
         >
           <Suspense fallback={<EditorSkeleton data-oid=":m0npyd" />} data-oid="6d2awu9">
             <ReactQuill
+              ref={setEditorRef}
               theme="snow"
               value={localValue}
               onChange={handleChange}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               readOnly={isCompleted}
+              spellCheck={!isExamMode}
               placeholder="Start writing your essay here..."
               className="flex-1 flex flex-col h-full bg-transparent
                                [&_.ql-container]:flex-1

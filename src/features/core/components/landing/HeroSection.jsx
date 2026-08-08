@@ -21,8 +21,6 @@ import {
   Bar,
 } from '@/features/dashboard/components/primitives';
 
-const HeroMotionEffects = React.lazy(() => import('./HeroMotionEffects'));
-
 function FloatingCard({ className, delay = 0, children, label }) {
   return (
     <div
@@ -32,7 +30,7 @@ function FloatingCard({ className, delay = 0, children, label }) {
       className={cn(
         'hero-floating-card absolute z-30 p-3',
         PANEL,
-        'transition-shadow duration-300 hover:shadow-sm scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
+        'animate-hero-drift motion-reduce:animate-none transition-shadow duration-300 hover:shadow-sm scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
         className
       )}
     >
@@ -55,7 +53,7 @@ function PersonalizedAiCard() {
     <FloatingCard
       label="Personalized AI study plan preview"
       delay={0.72}
-      className="top-4 sm:top-5 right-[-6px] sm:right-2 w-[175px] sm:w-[195px] origin-top-right animate-float-slow motion-reduce:animate-none"
+      className="top-4 sm:top-5 right-[-6px] sm:right-2 w-[175px] sm:w-[195px] origin-top-right"
     >
       <CardHeading icon={Sparkles} title="Personalized AI Plan" tone="accent" />
 
@@ -105,7 +103,7 @@ function AiEvaluationCard() {
     <FloatingCard
       label="AI Evaluation preview"
       delay={0.55}
-      className="left-[-6px] sm:left-2 bottom-5 sm:bottom-8 w-[185px] sm:w-[205px] origin-bottom-left animate-float-delayed motion-reduce:animate-none"
+      className="left-[-6px] sm:left-2 bottom-5 sm:bottom-8 w-[185px] sm:w-[205px] origin-bottom-left"
     >
       <CardHeading icon={Mic} title="Instant AI Evaluation" tone="sky" />
 
@@ -240,41 +238,12 @@ function LearnerProof() {
 }
 
 export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedIn }) {
-  const [motionReady, setMotionReady] = React.useState(false);
-
-  React.useEffect(() => {
-    const enableMotion = () => setMotionReady(true);
-    let timer;
-
-    const scheduleMotion = () => {
-      timer = window.setTimeout(enableMotion, 8000);
-    };
-
-    if (document.readyState === 'complete') scheduleMotion();
-    else window.addEventListener('load', scheduleMotion, { once: true });
-
-    window.addEventListener('pointerdown', enableMotion, { once: true, passive: true });
-    window.addEventListener('keydown', enableMotion, { once: true });
-
-    return () => {
-      if (timer) window.clearTimeout(timer);
-      window.removeEventListener('load', scheduleMotion);
-      window.removeEventListener('pointerdown', enableMotion);
-      window.removeEventListener('keydown', enableMotion);
-    };
-  }, []);
-
   return (
     <section
       className="relative bg-linear-to-b/srgb from-[#f8f5fe]/80 via-[#fcfaff] to-white dark:from-[#08080a] dark:via-[#08080a] dark:to-[#08080a] pb-12 pt-24 sm:pb-16 sm:pt-28 lg:pb-20 lg:pt-32 overflow-hidden"
       aria-label="Hero"
       data-hero-root
     >
-      {motionReady ? (
-        <React.Suspense fallback={null}>
-          <HeroMotionEffects />
-        </React.Suspense>
-      ) : null}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 overflow-hidden dark:bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] dark:bg-size-[20px_20px] dark:opacity-[0.14]"

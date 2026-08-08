@@ -1707,7 +1707,7 @@ TargetBand3DIcon.displayName = 'TargetBand3DIcon';
 export const KIT_THEMES = {
   speaking: {
     panel:
-      'bg-linear-to-br/srgb from-[#f0fdf4] via-[#e6fcf0] to-[#d1fae5] dark:from-emerald-950/30 dark:to-teal-950/20',
+      'bg-linear-to-br/srgb from-[#f0fdf4] via-[#e6fcf0] to-[#d1fae5] dark:from-emerald-950/30 dark:via-emerald-950/25 dark:to-teal-950/20',
     border: 'border-[#a7f3d0] dark:border-emerald-800/40 hover:border-emerald-400',
     arrow: 'text-emerald-600 dark:text-emerald-400',
     iconBg:
@@ -1718,7 +1718,7 @@ export const KIT_THEMES = {
   },
   reading: {
     panel:
-      'bg-linear-to-br/srgb from-[#f0f9ff] via-[#e0f2fe] to-[#bae6fd] dark:from-sky-950/30 dark:to-blue-950/20',
+      'bg-linear-to-br/srgb from-[#f0f9ff] via-[#e0f2fe] to-[#bae6fd] dark:from-sky-950/30 dark:via-sky-950/25 dark:to-blue-950/20',
     border: 'border-[#7dd3fc] dark:border-sky-800/40 hover:border-sky-400',
     arrow: 'text-sky-600 dark:text-sky-400',
     iconBg:
@@ -1728,7 +1728,7 @@ export const KIT_THEMES = {
   },
   writing: {
     panel:
-      'bg-linear-to-br/srgb from-[#f5f3ff] via-[#ede9fe] to-[#ddd6fe] dark:from-violet-950/30 dark:to-purple-950/20',
+      'bg-linear-to-br/srgb from-[#f5f3ff] via-[#ede9fe] to-[#ddd6fe] dark:from-violet-950/30 dark:via-violet-950/25 dark:to-purple-950/20',
     border: 'border-[#c4b5fd] dark:border-violet-800/40 hover:border-violet-400',
     arrow: 'text-violet-600 dark:text-violet-400',
     iconBg:
@@ -1739,7 +1739,7 @@ export const KIT_THEMES = {
   },
   education: {
     panel:
-      'bg-linear-to-br/srgb from-[#faf8ff] via-[#f5edff] to-[#eeddff] dark:from-purple-950/30 dark:to-indigo-950/20',
+      'bg-linear-to-br/srgb from-[#faf8ff] via-[#f5edff] to-[#eeddff] dark:from-purple-950/30 dark:via-purple-950/25 dark:to-indigo-950/20',
     border: 'border-[#e4cdff] dark:border-purple-800/40 hover:border-purple-400',
     arrow: 'text-purple-600 dark:text-purple-400',
     iconBg:
@@ -1750,7 +1750,7 @@ export const KIT_THEMES = {
   },
   health: {
     panel:
-      'bg-linear-to-br/srgb from-[#fff5f7] via-[#ffeaf0] to-[#ffdce5] dark:from-pink-950/30 dark:to-rose-950/20',
+      'bg-linear-to-br/srgb from-[#fff5f7] via-[#ffeaf0] to-[#ffdce5] dark:from-pink-950/30 dark:via-pink-950/25 dark:to-rose-950/20',
     border: 'border-[#fcc2d0] dark:border-pink-800/40 hover:border-pink-400',
     arrow: 'text-pink-600 dark:text-pink-400',
     iconBg:
@@ -1760,7 +1760,7 @@ export const KIT_THEMES = {
   },
   work: {
     panel:
-      'bg-linear-to-br/srgb from-[#f0fdf4] via-[#e4fbf0] to-[#d1fae5] dark:from-emerald-950/30 dark:to-teal-950/20',
+      'bg-linear-to-br/srgb from-[#f0fdf4] via-[#e4fbf0] to-[#d1fae5] dark:from-emerald-950/30 dark:via-emerald-950/25 dark:to-teal-950/20',
     border: 'border-[#a7f3d0] dark:border-emerald-800/40 hover:border-emerald-400',
     arrow: 'text-emerald-600 dark:text-emerald-400',
     iconBg:
@@ -1771,7 +1771,7 @@ export const KIT_THEMES = {
   },
   government: {
     panel:
-      'bg-linear-to-br/srgb from-[#eff6ff] via-[#e0edff] to-[#c7dffff] dark:from-blue-950/30 dark:to-indigo-950/20',
+      'bg-linear-to-br/srgb from-[#eff6ff] via-[#e0edff] to-[#c7dffff] dark:from-blue-950/30 dark:via-blue-950/25 dark:to-indigo-950/20',
     border: 'border-[#b8d5ff] dark:border-blue-800/40 hover:border-blue-400',
     arrow: 'text-blue-600 dark:text-blue-400',
     iconBg:
@@ -1781,7 +1781,7 @@ export const KIT_THEMES = {
   },
   media: {
     panel:
-      'bg-linear-to-br/srgb from-[#fff7ed] via-[#ffedd5] to-[#ffe2bc] dark:from-amber-950/30 dark:to-orange-950/20',
+      'bg-linear-to-br/srgb from-[#fff7ed] via-[#ffedd5] to-[#ffe2bc] dark:from-amber-950/30 dark:via-amber-950/25 dark:to-orange-950/20',
     border: 'border-[#fccb96] dark:border-amber-800/40 hover:border-amber-400',
     arrow: 'text-amber-600 dark:text-amber-400',
     iconBg:
@@ -1791,7 +1791,7 @@ export const KIT_THEMES = {
   },
   travel: {
     panel:
-      'bg-linear-to-br/srgb from-[#f5f3ff] via-[#ede9fe] to-[#e0d7fe] dark:from-violet-950/30 dark:to-purple-950/20',
+      'bg-linear-to-br/srgb from-[#f5f3ff] via-[#ede9fe] to-[#e0d7fe] dark:from-violet-950/30 dark:via-violet-950/25 dark:to-purple-950/20',
     border: 'border-[#d4c7fe] dark:border-violet-800/40 hover:border-violet-400',
     arrow: 'text-violet-600 dark:text-violet-400',
     iconBg:
@@ -1802,7 +1802,7 @@ export const KIT_THEMES = {
   },
   crime: {
     panel:
-      'bg-linear-to-br/srgb from-[#fff1f2] via-[#ffe4e6] to-[#ffd4d8] dark:from-rose-950/30 dark:to-pink-950/20',
+      'bg-linear-to-br/srgb from-[#fff1f2] via-[#ffe4e6] to-[#ffd4d8] dark:from-rose-950/30 dark:via-rose-950/25 dark:to-pink-950/20',
     border: 'border-[#fbb6c2] dark:border-rose-800/40 hover:border-rose-400',
     arrow: 'text-rose-600 dark:text-rose-400',
     iconBg:
@@ -1812,7 +1812,7 @@ export const KIT_THEMES = {
   },
   cities: {
     panel:
-      'bg-linear-to-br/srgb from-[#f0f9ff] via-[#e0f2fe] to-[#bae6fd] dark:from-sky-950/30 dark:to-blue-950/20',
+      'bg-linear-to-br/srgb from-[#f0f9ff] via-[#e0f2fe] to-[#bae6fd] dark:from-sky-950/30 dark:via-sky-950/25 dark:to-blue-950/20',
     border: 'border-[#7dd3fc] dark:border-sky-800/40 hover:border-sky-400',
     arrow: 'text-sky-600 dark:text-sky-400',
     iconBg:
@@ -1822,7 +1822,7 @@ export const KIT_THEMES = {
   },
   globalisation: {
     panel:
-      'bg-linear-to-br/srgb from-[#fff7ed] via-[#ffedd5] to-[#fed7aa] dark:from-orange-950/30 dark:to-amber-950/20',
+      'bg-linear-to-br/srgb from-[#fff7ed] via-[#ffedd5] to-[#fed7aa] dark:from-orange-950/30 dark:via-orange-950/25 dark:to-amber-950/20',
     border: 'border-[#fdba74] dark:border-orange-800/40 hover:border-orange-400',
     arrow: 'text-orange-600 dark:text-orange-400',
     iconBg:
@@ -1833,7 +1833,7 @@ export const KIT_THEMES = {
   },
   art: {
     panel:
-      'bg-linear-to-br/srgb from-[#f0fdfa] via-[#ccfbf1] to-[#99f6e4] dark:from-teal-950/30 dark:to-emerald-950/20',
+      'bg-linear-to-br/srgb from-[#f0fdfa] via-[#ccfbf1] to-[#99f6e4] dark:from-teal-950/30 dark:via-teal-950/25 dark:to-emerald-950/20',
     border: 'border-[#5eead4] dark:border-teal-800/40 hover:border-teal-400',
     arrow: 'text-teal-600 dark:text-teal-400',
     iconBg:
@@ -1843,7 +1843,7 @@ export const KIT_THEMES = {
   },
   family: {
     panel:
-      'bg-linear-to-br/srgb from-[#fff1f2] via-[#ffe4e6] to-[#fecdd3] dark:from-pink-950/30 dark:to-rose-950/20',
+      'bg-linear-to-br/srgb from-[#fff1f2] via-[#ffe4e6] to-[#fecdd3] dark:from-pink-950/30 dark:via-pink-950/25 dark:to-rose-950/20',
     border: 'border-[#fda4af] dark:border-pink-800/40 hover:border-pink-400',
     arrow: 'text-pink-600 dark:text-pink-400',
     iconBg:
@@ -1853,7 +1853,7 @@ export const KIT_THEMES = {
   },
   economy: {
     panel:
-      'bg-linear-to-br/srgb from-[#eff6ff] via-[#dbeafe] to-[#bfdbfe] dark:from-blue-950/30 dark:to-indigo-950/20',
+      'bg-linear-to-br/srgb from-[#eff6ff] via-[#dbeafe] to-[#bfdbfe] dark:from-blue-950/30 dark:via-blue-950/25 dark:to-indigo-950/20',
     border: 'border-[#93c5fd] dark:border-blue-800/40 hover:border-blue-400',
     arrow: 'text-blue-600 dark:text-blue-400',
     iconBg:
@@ -1863,7 +1863,7 @@ export const KIT_THEMES = {
   },
   science: {
     panel:
-      'bg-linear-to-br/srgb from-[#faf5ff] via-[#f3e8ff] to-[#e9d5ff] dark:from-purple-950/30 dark:to-violet-950/20',
+      'bg-linear-to-br/srgb from-[#faf5ff] via-[#f3e8ff] to-[#e9d5ff] dark:from-purple-950/30 dark:via-purple-950/25 dark:to-violet-950/20',
     border: 'border-[#d8b4fe] dark:border-purple-800/40 hover:border-purple-400',
     arrow: 'text-purple-600 dark:text-purple-400',
     iconBg:
@@ -1874,7 +1874,7 @@ export const KIT_THEMES = {
   },
   sport: {
     panel:
-      'bg-linear-to-br/srgb from-[#fff7ed] via-[#ffedd5] to-[#fed7aa] dark:from-amber-950/30 dark:to-orange-950/20',
+      'bg-linear-to-br/srgb from-[#fff7ed] via-[#ffedd5] to-[#fed7aa] dark:from-amber-950/30 dark:via-amber-950/25 dark:to-orange-950/20',
     border: 'border-[#fdba74] dark:border-amber-800/40 hover:border-amber-400',
     arrow: 'text-amber-600 dark:text-amber-400',
     iconBg:
@@ -1884,7 +1884,7 @@ export const KIT_THEMES = {
   },
   language: {
     panel:
-      'bg-linear-to-br/srgb from-[#fdf2f8] via-[#fce7f3] to-[#fbcfe8] dark:from-pink-950/30 dark:to-rose-950/20',
+      'bg-linear-to-br/srgb from-[#fdf2f8] via-[#fce7f3] to-[#fbcfe8] dark:from-pink-950/30 dark:via-pink-950/25 dark:to-rose-950/20',
     border: 'border-[#f472b6] dark:border-pink-800/40 hover:border-pink-400',
     arrow: 'text-pink-600 dark:text-pink-400',
     iconBg:
@@ -1894,7 +1894,7 @@ export const KIT_THEMES = {
   },
   cohesion: {
     panel:
-      'bg-linear-to-br/srgb from-[#eff6ff] via-[#dbeafe] to-[#bfdbfe] dark:from-blue-950/30 dark:to-sky-950/20',
+      'bg-linear-to-br/srgb from-[#eff6ff] via-[#dbeafe] to-[#bfdbfe] dark:from-blue-950/30 dark:via-blue-950/25 dark:to-sky-950/20',
     border: 'border-[#93c5fd] dark:border-blue-800/40 hover:border-blue-400',
     arrow: 'text-blue-600 dark:text-blue-400',
     iconBg:
@@ -1904,7 +1904,7 @@ export const KIT_THEMES = {
   },
   paraphrase: {
     panel:
-      'bg-linear-to-br/srgb from-[#ecfdf5] via-[#d1fae5] to-[#a7f3d0] dark:from-teal-950/30 dark:to-emerald-950/20',
+      'bg-linear-to-br/srgb from-[#ecfdf5] via-[#d1fae5] to-[#a7f3d0] dark:from-teal-950/30 dark:via-teal-950/25 dark:to-emerald-950/20',
     border: 'border-[#6ee7b7] dark:border-teal-800/40 hover:border-teal-400',
     arrow: 'text-teal-600 dark:text-teal-400',
     iconBg:
@@ -1914,7 +1914,7 @@ export const KIT_THEMES = {
   },
   environment: {
     panel:
-      'bg-linear-to-br/srgb from-[#f0fdf4] via-[#dcfce7] to-[#bbf7d0] dark:from-emerald-950/30 dark:to-green-950/20',
+      'bg-linear-to-br/srgb from-[#f0fdf4] via-[#dcfce7] to-[#bbf7d0] dark:from-emerald-950/30 dark:via-emerald-950/25 dark:to-green-950/20',
     border: 'border-[#86efac] dark:border-emerald-800/40 hover:border-emerald-400',
     arrow: 'text-emerald-600 dark:text-emerald-400',
     iconBg:
@@ -1925,7 +1925,7 @@ export const KIT_THEMES = {
   },
   technology: {
     panel:
-      'bg-linear-to-br/srgb from-[#ecfeff] via-[#cffaff] to-[#a5f3fc] dark:from-cyan-950/30 dark:to-sky-950/20',
+      'bg-linear-to-br/srgb from-[#ecfeff] via-[#cffaff] to-[#a5f3fc] dark:from-cyan-950/30 dark:via-cyan-950/25 dark:to-sky-950/20',
     border: 'border-[#67e8f9] dark:border-cyan-800/40 hover:border-cyan-400',
     arrow: 'text-cyan-600 dark:text-cyan-400',
     iconBg:
@@ -1935,7 +1935,7 @@ export const KIT_THEMES = {
   },
   targetBand: {
     panel:
-      'bg-linear-to-br/srgb from-[#fffbeb] via-[#fef3c7] to-[#fde68a] dark:from-amber-950/30 dark:to-yellow-950/20',
+      'bg-linear-to-br/srgb from-[#fffbeb] via-[#fef3c7] to-[#fde68a] dark:from-amber-950/30 dark:via-amber-950/25 dark:to-yellow-950/20',
     border: 'border-[#fcd34d] dark:border-amber-800/40 hover:border-amber-400',
     arrow: 'text-amber-600 dark:text-amber-400',
     iconBg:

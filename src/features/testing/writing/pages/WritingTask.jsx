@@ -209,6 +209,7 @@ function WritingTaskContent() {
 
         <MemoizedWritingEditorPane
           task={task}
+          testMode={testMode}
           isSidebarClosed={!showTaskPanel}
           onToggleSidebar={() => setShowTask((prev) => !prev)}
           hasFeedback={hasFeedbackPane}
@@ -346,6 +347,7 @@ function WritingPaneBody({
   wordCount,
   isCompleted,
   isAnalyzing,
+  testMode,
   isSidebarClosed,
   onToggleSidebar,
   focusAnnotation,
@@ -380,6 +382,7 @@ function WritingPaneBody({
         wordCount={wordCount}
         targetLimit={activeType === 'Task 2' ? 250 : 150}
         isCompleted={isCompleted}
+        testMode={testMode}
         isAnalyzing={isAnalyzing}
         currentFeedback={currentFeedback}
         isSidebarClosed={isSidebarClosed}
@@ -411,6 +414,7 @@ function WritingPaneBody({
 
 function WritingEditorPane({
   task,
+  testMode,
   isSidebarClosed,
   onToggleSidebar,
   hasFeedback,
@@ -463,6 +467,7 @@ function WritingEditorPane({
           wordCount={wordCount}
           isCompleted={isCompleted}
           isAnalyzing={isAnalyzing}
+          testMode={testMode}
           isSidebarClosed={isSidebarClosed}
           onToggleSidebar={onToggleSidebar}
           focusAnnotation={focusAnnotation}

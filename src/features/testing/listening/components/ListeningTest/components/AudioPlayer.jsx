@@ -195,7 +195,7 @@ const AudioPlayer = React.forwardRef(
         data-oid="gf2zoyb"
       >
         <div
-          className="absolute inset-0 bg-linear-to-r/srgb from-[#5a63df]/4 via-transparent to-[#5a63df]/4 dark:from-[#5a63df]/10 dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
+          className="absolute inset-0 bg-linear-to-r/srgb from-[#5a63df]/4 via-transparent to-[#5a63df]/4 dark:from-[#5a63df]/10 dark:via-transparent dark:to-[#5a63df]/10 opacity-100 pointer-events-none"
           data-oid="_gx.skv"
         />
 

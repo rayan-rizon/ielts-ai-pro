@@ -26,7 +26,7 @@ const reveal = {
 
 function TrustedLearnersCard() {
   return (
-    <GlassPanel className="relative overflow-hidden isolate transform-gpu mask-[linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 border border-violet-200/80 bg-linear-to-br/srgb from-white via-violet-50/30 to-purple-50/40 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/40">
+    <GlassPanel className="relative overflow-hidden isolate transform-gpu mask-[linear-gradient(white,white)] rounded-[22px] p-4 sm:p-4.5 border border-violet-200/80 bg-linear-to-br/srgb from-white via-violet-50/30 to-purple-50/40 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] shadow-[0_12px_32px_-15px_rgba(109,85,238,0.12)] dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none transition-all duration-300 hover:border-violet-300 hover:shadow-[0_16px_38px_-12px_rgba(109,85,238,0.18)] dark:hover:border-violet-400/40">
       <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-violet-400/10 blur-2xl dark:bg-[#5a63df]/10" />
 
       <div className="relative z-10 flex items-center gap-3">

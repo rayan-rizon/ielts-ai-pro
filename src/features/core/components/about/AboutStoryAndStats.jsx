@@ -76,7 +76,7 @@ function FeatureList() {
       {FEATURE_ITEMS.map((item, i) => (
         <li
           key={i}
-          className="group relative flex items-start gap-4 rounded-2xl border border-slate-200/70 bg-linear-to-r/srgb from-white via-slate-50/50 to-white dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] p-4 transition-all duration-300 hover:scale-[1.015] hover:shadow-md dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 backdrop-blur-md dark:backdrop-blur-none"
+          className="group relative flex items-start gap-4 rounded-2xl border border-slate-200/70 bg-linear-to-r/srgb from-white via-slate-50/50 to-white dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] p-4 transition-all duration-300 hover:scale-[1.015] hover:shadow-md dark:hover:shadow-none hover:border-indigo-500/30 dark:hover:border-[#5a63df]/30 backdrop-blur-md dark:backdrop-blur-none"
         >
           <div
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${item.color} group-hover:scale-110 transition-transform duration-300 shadow-sm`}
@@ -112,7 +112,7 @@ function StatsGrid() {
       className="grid grid-cols-1 sm:grid-cols-2 gap-4"
     >
       {/* Card 1: Reach */}
-      <div className="col-span-1 sm:col-span-2 rounded-[24px] border border-indigo-200/70 bg-linear-to-br/srgb from-white via-indigo-50/30 to-slate-50 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] p-6 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
+      <div className="col-span-1 sm:col-span-2 rounded-[24px] border border-indigo-200/70 bg-linear-to-br/srgb from-white via-indigo-50/30 to-slate-50 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] p-6 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
         <CardGridBackground />
         <div className="absolute -right-16 -top-16 h-36 w-36 rounded-full bg-indigo-500/10 blur-3xl dark:bg-[#5a63df]/10 group-hover:bg-indigo-500/20 dark:group-hover:bg-[#5a63df]/15 transition-all duration-500" />
 
@@ -149,7 +149,7 @@ function StatsGrid() {
       </div>
 
       {/* Card 2: Impact */}
-      <div className="rounded-[24px] border border-emerald-200/70 bg-linear-to-br/srgb from-white via-emerald-50/25 to-slate-50 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] p-5 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
+      <div className="rounded-[24px] border border-emerald-200/70 bg-linear-to-br/srgb from-white via-emerald-50/25 to-slate-50 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] p-5 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
         <CardGridBackground />
         <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl group-hover:bg-emerald-500/20 transition-all duration-500" />
 
@@ -191,7 +191,7 @@ function StatsGrid() {
       </div>
 
       {/* Card 3: Accuracy */}
-      <div className="rounded-[24px] border border-violet-200/70 bg-linear-to-br/srgb from-white via-violet-50/25 to-slate-50 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] p-5 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
+      <div className="rounded-[24px] border border-violet-200/70 bg-linear-to-br/srgb from-white via-violet-50/25 to-slate-50 dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:via-[#131315] dark:to-[#131315] p-5 shadow-sm dark:shadow-none backdrop-blur-xl dark:backdrop-blur-none hover:scale-[1.015] transition-all duration-300 relative overflow-hidden group">
         <CardGridBackground />
         <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-violet-500/10 blur-2xl group-hover:bg-violet-500/20 transition-all duration-500" />
 
