@@ -91,6 +91,12 @@ describe('Meta event allowlist', () => {
 
     const pixelEvents = window.fbq.mock.calls.map((call) => call[1]);
     expect(pixelEvents).toEqual(['CompleteRegistration']);
+    expect(window.fbq).toHaveBeenCalledWith(
+      'track',
+      'CompleteRegistration',
+      expect.objectContaining({ value: 1, currency: 'USD' }),
+      expect.anything()
+    );
   });
 
   it('keeps non-Meta events in the dataLayer for GTM', async () => {
@@ -136,6 +142,7 @@ describe('Conversions API mirroring', () => {
     expect(window.fetch.mock.calls[0][0]).toBe('/api/meta-capi');
     expect(capiBody.event_name).toBe('CompleteRegistration');
     expect(capiBody.event_id).toBe(pixelEventId);
+    expect(capiBody).toMatchObject({ value: 1, currency: 'USD' });
   });
 
   it('still reports server-side when the Pixel is blocked', async () => {

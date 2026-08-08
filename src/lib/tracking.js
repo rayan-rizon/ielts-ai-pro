@@ -8,7 +8,13 @@ const DEFAULT_IDS = {
 
 const FBC_BACKUP_KEY = '_fbc_backup';
 const SIGNUP_TRACKED_KEY = 'signup_tracked_for';
+const PURCHASE_TRACKED_PREFIX = 'meta_purchase_tracked:';
 const CAPI_ENDPOINT = '/api/meta-capi';
+const COMMERCE_CURRENCIES = new Set(['USD', 'BDT']);
+// This is deliberately an optimisation proxy, not revenue. Purchases continue
+// to carry the exact settled USD/BDT charge and are the only ROAS source.
+const REGISTRATION_PROXY_VALUE = 1;
+const REGISTRATION_PROXY_CURRENCY = 'USD';
 
 /**
  * Events forwarded to the Meta Pixel.
@@ -159,20 +165,22 @@ const normalizeValue = (value) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-const hasInvalidPurchaseValue = (value) => value === undefined || value < 0;
-const hasInvalidCurrency = (currency) => !/^[A-Z]{3}$/.test(currency);
+const hasInvalidPurchaseValue = (value) => value === undefined || value <= 0;
+const hasInvalidCurrency = (currency) => !COMMERCE_CURRENCIES.has(currency);
 const isCommercePixelEvent = (pixelEvent) =>
   pixelEvent === 'Purchase' || pixelEvent === 'InitiateCheckout';
+const isValuePixelEvent = (pixelEvent) =>
+  isCommercePixelEvent(pixelEvent) || pixelEvent === 'CompleteRegistration';
 const purchasePayloadIsInvalid = (value, currency) =>
   hasInvalidPurchaseValue(value) || hasInvalidCurrency(currency);
 
 const buildEnrichedPayload = ({ eventName, pixelEvent, payload, value, currency, eventId }) => {
-  const commerceData = isCommercePixelEvent(pixelEvent) ? { currency } : {};
+  const valueData = isValuePixelEvent(pixelEvent) ? { currency } : {};
 
   return {
     ...payload,
     ...(value !== undefined ? { value } : {}),
-    ...commerceData,
+    ...valueData,
     ...(eventId ? { event_id: String(eventId) } : {}),
     event_name: eventName,
     event_time: new Date().toISOString(),
@@ -197,7 +205,15 @@ const sendToConversionsApi = (pixelEvent, { eventId, value, currency, payload })
     fbp: getFbp(),
     fbc: getFbc(),
     ...(value !== undefined ? { value } : {}),
-    ...(isCommercePixelEvent(pixelEvent) ? { currency } : {}),
+    ...(isValuePixelEvent(pixelEvent) ? { currency } : {}),
+    ...(isCommercePixelEvent(pixelEvent)
+      ? {
+          content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
+          content_name: payload.plan_tier || payload.plan_name || 'subscription',
+          content_type: 'product',
+          num_items: 1,
+        }
+      : {}),
     user: {
       email: payload.email || null,
       external_id: payload.user_id || null,
@@ -226,6 +242,9 @@ const trackPurchase = (payload, value, currency, eventId) => {
     value,
     currency,
     content_name: payload.plan_tier || payload.plan_name || 'subscription',
+    content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
+    content_type: 'product',
+    num_items: 1,
     transaction_id: payload.transaction_id || eventId,
     fbc: getFbc(),
     fbp: getFbp(),
@@ -262,16 +281,33 @@ export const trackAppEvent = (eventName, payload = {}) => {
   if (DROPPED_EVENTS.has(eventName)) return;
 
   const pixelEvent = PIXEL_EVENT_MAP[eventName];
-  const normalizedValue = normalizeValue(payload.value);
-  const normalizedCurrency = normalizeCurrency(payload.currency);
+  const normalizedValue =
+    pixelEvent === 'CompleteRegistration' && payload.value === undefined
+      ? REGISTRATION_PROXY_VALUE
+      : normalizeValue(payload.value);
+  const normalizedCurrency = normalizeCurrency(
+    pixelEvent === 'CompleteRegistration' && !payload.currency
+      ? REGISTRATION_PROXY_CURRENCY
+      : payload.currency
+  );
   const eventId = payload.event_id || payload.transaction_id || createEventId();
 
-  // Never send a Purchase with a fabricated zero or malformed currency.
-  // Meta uses these fields for ROAS and flags missing/invalid price data.
-  if (pixelEvent === 'Purchase' && purchasePayloadIsInvalid(normalizedValue, normalizedCurrency)) {
-    console.warn('[Tracking] Suppressed Purchase with invalid value or currency');
+  // Never send commercial events with fabricated zero prices, a display-only
+  // rate, or a currency the checkout provider cannot charge. Meta uses these
+  // fields for ROAS and flags missing or malformed commerce data.
+  if (
+    isCommercePixelEvent(pixelEvent) &&
+    purchasePayloadIsInvalid(normalizedValue, normalizedCurrency)
+  ) {
+    console.warn(`[Tracking] Suppressed ${pixelEvent} with invalid value or currency`);
     return;
   }
+
+  const purchaseMarker =
+    pixelEvent === 'Purchase' && payload.transaction_id
+      ? `${PURCHASE_TRACKED_PREFIX}${String(payload.transaction_id)}`
+      : null;
+  if (purchaseMarker && readStorage(purchaseMarker)) return;
 
   const enrichedPayload = buildEnrichedPayload({
     eventName,
@@ -283,6 +319,8 @@ export const trackAppEvent = (eventName, payload = {}) => {
   });
 
   pushDataLayer({ event: eventName, ...enrichedPayload });
+
+  if (purchaseMarker) writeStorage(purchaseMarker, '1');
 
   // Everything not in PIXEL_EVENT_MAP stays in the dataLayer for GTM/GA and is
   // never forwarded to Meta, so the optimisation signal stays clean.
@@ -312,6 +350,9 @@ export const trackAppEvent = (eventName, payload = {}) => {
         value: normalizedValue,
         currency: normalizedCurrency,
         content_name: payload.plan_tier || payload.plan_name || 'subscription',
+        content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
+        content_type: 'product',
+        num_items: 1,
         fbc: getFbc(),
         fbp: getFbp(),
       },
@@ -325,6 +366,8 @@ export const trackAppEvent = (eventName, payload = {}) => {
     pixelEvent,
     {
       ...payload,
+      ...(normalizedValue !== undefined ? { value: normalizedValue } : {}),
+      ...(isValuePixelEvent(pixelEvent) ? { currency: normalizedCurrency } : {}),
       fbc: getFbc(),
       fbp: getFbp(),
     },

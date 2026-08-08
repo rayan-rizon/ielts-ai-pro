@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
-import { calculatePrice } from '@/lib/pricingUtils';
+import { calculateCheckoutAmount, calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
@@ -62,10 +62,10 @@ const createStripeCheckout = async (sessionToken, planTier, interval, currency) 
   if (!response.ok) {
     throw new Error(data.error || 'Failed to create checkout session');
   }
-  if (!data.url) {
+  if (!data.url || !data.session_id || !Number.isFinite(Number(data.amount))) {
     throw new Error('No checkout URL returned');
   }
-  return data.url;
+  return data;
 };
 
 const getCountryIdentifier = (detectedCountry) => {
@@ -77,9 +77,10 @@ const getPlanPriceAndMeta = ({ plans, planTier, billingInterval, promoDiscount, 
   const plan = plans.find((p) => p.tier === planTier);
   const basePrice = plan ? plan.basePrice : 0;
   const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount);
+  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, promoDiscount);
   const currency = plan?.currency || 'USD';
   const tier = currentTier || 'free';
-  return { plan, displayPrice, currency, tier };
+  return { plan, displayPrice, chargeAmount, currency, tier };
 };
 
 export default function Pricing() {
@@ -161,12 +162,12 @@ export default function Pricing() {
     }
   };
 
-  const startManualBdCheckout = (planTier, selectedPlanData, displayPrice) => {
+  const startManualBdCheckout = (planTier, selectedPlanData, chargeAmount) => {
     trackAppEvent('manual_checkout_started', {
       path: '/pricing',
       plan_tier: planTier,
       billing_interval: billingInterval,
-      value: displayPrice,
+      value: chargeAmount,
       currency: selectedPlanData?.currency || 'BDT',
     });
 
@@ -174,13 +175,13 @@ export default function Pricing() {
       tier: planTier,
       interval: billingInterval,
       planName: selectedPlanData.name,
-      price: displayPrice,
+      price: chargeAmount,
       currencySymbol: selectedPlanData.currencySymbol || '৳',
     });
     setShowManualPayment(true);
   };
 
-  const startStripeCheckoutSession = async (planTier, selectedPlanData, displayPrice) => {
+  const startStripeCheckoutSession = async (planTier, selectedPlanData) => {
     setIsLoading(true);
     try {
       const {
@@ -194,20 +195,25 @@ export default function Pricing() {
 
       const planCurrency = selectedPlanData?.currency || 'USD';
 
-      trackAppEvent('checkout_started', {
-        path: '/pricing',
-        plan_tier: planTier,
-        billing_interval: billingInterval,
-        value: displayPrice,
-        currency: planCurrency,
-      });
-
-      const checkoutUrl = await createStripeCheckout(
+      const checkout = await createStripeCheckout(
         session.access_token,
         planTier,
         billingInterval,
         planCurrency
       );
+
+      // Stripe returns the authoritative first charge after applying its
+      // server-validated price and promo rules. Reporting this rather than the
+      // display rate keeps Meta value optimisation and revenue in agreement.
+      trackAppEvent('checkout_started', {
+        path: '/pricing',
+        plan_tier: planTier,
+        billing_interval: billingInterval,
+        value: checkout.amount,
+        currency: checkout.currency,
+        transaction_id: checkout.session_id,
+        event_id: checkout.session_id,
+      });
 
       trackAppEvent('checkout_redirected', {
         path: '/pricing',
@@ -216,7 +222,7 @@ export default function Pricing() {
         currency: planCurrency,
       });
 
-      window.location.href = checkoutUrl;
+      window.location.href = checkout.url;
     } catch (error) {
       trackAppEvent('checkout_failed', {
         path: '/pricing',
@@ -272,11 +278,11 @@ export default function Pricing() {
     }
 
     if (useManualBdPayment) {
-      startManualBdCheckout(planTier, meta.plan, meta.displayPrice);
+      startManualBdCheckout(planTier, meta.plan, meta.chargeAmount);
       return;
     }
 
-    await startStripeCheckoutSession(planTier, meta.plan, meta.displayPrice);
+    await startStripeCheckoutSession(planTier, meta.plan);
   };
 
   return (

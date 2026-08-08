@@ -109,12 +109,13 @@ export const getCurrencySymbol = (currency) => {
   return symbols[currency] || currency || '$';
 };
 
-export const calculatePrice = (basePrice, interval, discount) => {
+const calculateDiscountedCheckoutAmount = (basePrice, interval, discount) => {
   if (basePrice === null || basePrice === undefined) return null;
   if (basePrice === 0) return 0;
-  let price = basePrice;
+  const months = interval === 'quarterly' ? 3 : 1;
+  let price = basePrice * months;
   if (interval === 'quarterly') {
-    price = price * 0.85; // 15% OFF
+    price = price * 0.85; // 15% OFF across the quarterly charge
   }
   if (discount) {
     if (discount.discount_type === 'percentage') {
@@ -123,7 +124,28 @@ export const calculatePrice = (basePrice, interval, discount) => {
       price = Math.max(0, price - discount.discount_value);
     }
   }
-  return Number(price).toFixed(2).replace(/\.00$/, '');
+  return Number(price.toFixed(2));
+};
+
+export const calculatePrice = (basePrice, interval, discount) => {
+  const chargedAmount = calculateDiscountedCheckoutAmount(basePrice, interval, discount);
+  if (chargedAmount === null) return null;
+
+  const months = interval === 'quarterly' ? 3 : 1;
+  return Number(chargedAmount / months)
+    .toFixed(2)
+    .replace(/\.00$/, '');
+};
+
+/**
+ * Amount collected for one checkout.
+ *
+ * Cards deliberately show the effective monthly rate for quarterly billing,
+ * while payment providers collect all three months in one transaction. Event
+ * value must always describe the latter so ad reporting and revenue agree.
+ */
+export const calculateCheckoutAmount = (basePrice, interval, discount) => {
+  return calculateDiscountedCheckoutAmount(basePrice, interval, discount);
 };
 
 export const detectLocation = async () => {
@@ -197,11 +219,15 @@ export const getPriceData = (planTier, defaultPrice, defaultOldPrice, settings, 
   let currency = baseCurrency;
   let symbol = baseSymbol;
 
-  // 2. Handle regional formatting / overrides
+  // 2. Handle the actual supported regional price books.
+  //
+  // Checkout supports the global USD book and the Bangladesh BDT book. Do not
+  // show an automatically converted currency for another country: Stripe would
+  // still collect USD, which creates a misleading price and invalid Meta ROAS
+  // data. New currencies must be configured as an admin regional override and
+  // added to the checkout provider together.
   if (userCountry) {
     const countryIdentifier = userCountry.trim().toUpperCase();
-    const userCurrencyInfo = getUserCurrencyInfo(countryIdentifier);
-    const isBD = countryIdentifier === 'BD' || countryIdentifier === 'BANGLADESH';
 
     // Check for manual regional override from admin panel
     let regionalOverride = null;
@@ -220,44 +246,8 @@ export const getPriceData = (planTier, defaultPrice, defaultOldPrice, settings, 
       if (baseOldPrice && basePrice) {
         oldPrice = Math.round((baseOldPrice / basePrice) * price);
       }
-    } else if (userCurrencyInfo.currency !== 'USD') {
-      // Priority 2: Automatic Conversion
-      const rate = userCurrencyInfo.rate;
-      const convertedPrice = basePrice * rate;
-
-      // Round to charm pricing numbers based on currency magnitude
-      if (basePrice === 0) {
-        price = 0;
-      } else if (rate >= 100) {
-        let roundedStr =
-          rate >= 1000
-            ? Math.round(convertedPrice / 1000) * 1000
-            : Math.round(convertedPrice / 100) * 100;
-        price = Math.max(0, roundedStr - 10);
-      } else if (rate >= 10) {
-        price = Math.max(0, Math.round(convertedPrice / 10) * 10 - 1);
-      } else {
-        price = Math.floor(convertedPrice) + 0.99;
-      }
-
-      currency = userCurrencyInfo.currency;
-      symbol = userCurrencyInfo.symbol;
-
-      if (baseOldPrice) {
-        const convertedOldPrice = baseOldPrice * rate;
-        if (rate >= 100) {
-          oldPrice =
-            rate >= 1000
-              ? Math.round(convertedOldPrice / 1000) * 1000
-              : Math.round(convertedOldPrice / 100) * 100;
-        } else if (rate >= 10) {
-          oldPrice = Math.round(convertedOldPrice / 10) * 10;
-        } else {
-          oldPrice = Math.floor(convertedOldPrice) + 0.99;
-        }
-      }
     } else {
-      // Fallback: Already USD or same as base
+      // Global price book (USD unless the global admin setting changes).
       price = basePrice;
       oldPrice = baseOldPrice;
       currency = baseCurrency;

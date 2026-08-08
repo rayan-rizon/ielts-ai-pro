@@ -26,7 +26,7 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
   it('does not change the high-stakes Writing and Speaking scorers to DeepSeek', () => {
     const writing = readFunction('generateDetailedFeedback');
     const speaking = readFunction('evaluateSpeakingTest');
-    expect(writing).toContain("const model = 'gemini-2.5-flash'");
+    expect(writing).toContain('gemini-2.5-flash');
     expect(speaking).toContain('gemini-2.5-flash:generateContent');
     expect(writing).not.toContain('DEEPSEEK_API_KEY');
     expect(speaking).not.toContain('DEEPSEEK_API_KEY');

@@ -1,5 +1,6 @@
 import { formatBand, calculateImprovement } from '../utils';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
+import { reconcileObjectiveResultEvidence } from '@/features/testing/shared/utils/resultEvidence';
 
 export const MODULES = ['reading', 'writing', 'listening', 'speaking'];
 export const MAX_REASONABLE_TEST_SECONDS = 4 * 60 * 60;
@@ -50,6 +51,8 @@ export const ABANDON_MAX_SECONDS = 5 * 60;
 
 export function isAbandonedSession(session) {
   if (!session) return false;
+  const module = String(session.test_type || '').toLowerCase();
+  if (!['reading', 'listening'].includes(module)) return false;
   const score = Number(session.score);
   if (!Number.isFinite(score) || score > 0) return false;
 
@@ -505,9 +508,19 @@ function processModuleEfficiency(s, type, aggState) {
 
 function processSessionContent(s, aggState) {
   if (!s) return;
-  const content = s.content_data || {};
   const type = String(s.test_type || '').toLowerCase();
+  const content = reconcileObjectiveResultEvidence(s.content_data || {}, type);
   const ep = content.errorPatterns || {};
+
+  if (['reading', 'listening'].includes(type)) {
+    aggState.evidenceCoverage.objectiveSessions += 1;
+    if (content.typeStats && Object.keys(content.typeStats).length > 0) {
+      aggState.evidenceCoverage.typeSessions += 1;
+    }
+    if (Array.isArray(content.sectionStats) && content.sectionStats.length > 0) {
+      aggState.evidenceCoverage.sectionSessions += 1;
+    }
+  }
 
   const sessionBrief = {
     id: s.id,
@@ -658,6 +671,7 @@ function buildInitialAggState() {
       revised: { correct: 0, total: 0 },
       firstAnswer: { correct: 0, total: 0 },
     },
+    evidenceCoverage: { objectiveSessions: 0, typeSessions: 0, sectionSessions: 0 },
 
     writingCriteriaAgg: {
       taskAchievement: { sum: 0, count: 0 },
@@ -736,7 +750,7 @@ function computeEfficiency(aggState) {
 }
 
 export function getSessionAccuracy(content) {
-  const c = content || {};
+  const c = reconcileObjectiveResultEvidence(content || {});
   const correct = Number(c.correct ?? c.correctAnswers);
   const total = Number(c.total ?? c.totalQuestions);
   if (!hasValidAccuracyCounts(correct, total)) return null;
@@ -832,7 +846,7 @@ function getCriteriaAverages(aggState) {
 export function computeAdvancedMetrics(filteredSessions) {
   const aggState = buildInitialAggState();
 
-  filteredSessions.forEach((s) => {
+  getMeasuredSessions(filteredSessions).forEach((s) => {
     processSessionContent(s, aggState);
     processCriteriaScores(s, aggState);
   });
@@ -850,6 +864,7 @@ export function computeAdvancedMetrics(filteredSessions) {
     enhancedMetrics,
     writingCriteria,
     speakingCriteria,
+    evidenceCoverage: aggState.evidenceCoverage,
   };
 }
 
@@ -1005,11 +1020,12 @@ export function computeRecentPractice(filteredSessions) {
     const durationSeconds = getRecordedDurationSeconds(session);
     const durationMinutes =
       durationSeconds === null ? null : Math.max(1, Math.round(durationSeconds / 60));
-    const content = session.content_data || {};
+    const type = String(session.test_type || '').toLowerCase();
+    const content = reconcileObjectiveResultEvidence(session.content_data || {}, type);
     const score = toValidBandScore(session.score);
     return {
       id: session.id,
-      type: String(session.test_type || '').toLowerCase(),
+      type,
       title: getPracticeTitle(session),
       score,
       accuracy: getSessionAccuracy(content),

@@ -1,4 +1,5 @@
 import { calculateTestBandScore } from '@/lib/ieltsBandScore';
+import { reconcileObjectiveResultEvidence } from '@/features/testing/shared/utils/resultEvidence';
 
 const toSafeCount = (value, fallback = 0) => {
   const number = Number(value);
@@ -19,26 +20,28 @@ const normalizeStat = (stat) => {
 export function normalizeTestResults(testResults, testType = 'reading') {
   if (!testResults) return testResults;
 
-  const totalQuestions = toSafeCount(testResults.totalQuestions);
-  const correctAnswers = Math.min(totalQuestions, toSafeCount(testResults.correctAnswers));
+  const reconciled = reconcileObjectiveResultEvidence(testResults, testType);
+
+  const totalQuestions = toSafeCount(reconciled.totalQuestions);
+  const correctAnswers = Math.min(totalQuestions, toSafeCount(reconciled.correctAnswers));
   const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   const bandScore = calculateTestBandScore(correctAnswers, totalQuestions, testType);
   const requestedUnanswered =
-    testResults.unanswered ?? testResults.errorPatterns?.unansweredCount ?? 0;
+    reconciled.unanswered ?? reconciled.errorPatterns?.unansweredCount ?? 0;
   const unanswered = Math.min(
     Math.max(0, totalQuestions - correctAnswers),
     toSafeCount(requestedUnanswered)
   );
 
   const typeStats = Object.fromEntries(
-    Object.entries(testResults.typeStats || {}).map(([type, stat]) => [type, normalizeStat(stat)])
+    Object.entries(reconciled.typeStats || {}).map(([type, stat]) => [type, normalizeStat(stat)])
   );
-  const sectionStats = Array.isArray(testResults.sectionStats)
-    ? testResults.sectionStats.map(normalizeStat)
+  const sectionStats = Array.isArray(reconciled.sectionStats)
+    ? reconciled.sectionStats.map(normalizeStat)
     : [];
 
   return {
-    ...testResults,
+    ...reconciled,
     totalQuestions,
     correctAnswers,
     percentage,

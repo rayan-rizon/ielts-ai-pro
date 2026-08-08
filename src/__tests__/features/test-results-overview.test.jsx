@@ -5,6 +5,10 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AnswerKeySection } from '@/components/results/test-results-modal/AnswerKeySection';
 import { TargetMilestoneCard } from '@/components/results/test-results-modal/TargetMilestoneCard';
 import { normalizeTestResults } from '@/components/results/test-results-modal/normalizeTestResults';
+import {
+  normalizePersistedAnswers,
+  reconcileObjectiveResultEvidence,
+} from '@/features/testing/shared/utils/resultEvidence';
 import { calculateListeningBandScore, calculateReadingBandScore } from '@/lib/ieltsBandScore';
 
 describe('test result overview', () => {
@@ -78,5 +82,63 @@ describe('test result overview', () => {
     expect(calculateListeningBandScore(31, 40)).toBe(7);
     expect(calculateReadingBandScore(0, 40)).toBe(0);
     expect(calculateListeningBandScore(0, 40)).toBe(0);
+  });
+
+  it('rehydrates both current answer maps and historical response arrays', () => {
+    expect(normalizePersistedAnswers({ q1: 'A', q2: 'B' })).toEqual({ q1: 'A', q2: 'B' });
+    expect(
+      normalizePersistedAnswers([
+        { question_id: 'q1', user_answer: 'A' },
+        { questionId: 'q2', userAnswer: 'B' },
+      ])
+    ).toEqual({ q1: 'A', q2: 'B' });
+  });
+
+  it('repairs exact duplicated aggregates from a complete 40-question evidence set', () => {
+    const responseDetails = Array.from({ length: 40 }, (_, index) => ({
+      questionNumber: index + 1,
+      questionType: index < 20 ? 'multiple_choice' : 'gap_fill',
+      sectionIndex: Math.floor(index / 14),
+      userAnswer: 'answer',
+      isCorrect: index < 29,
+    }));
+
+    const normalized = normalizeTestResults(
+      {
+        bandScore: 6.5,
+        correctAnswers: 58,
+        totalQuestions: 80,
+        responseDetails,
+        typeStats: { multiple_choice: { correct: 58, total: 80 } },
+        sectionStats: [{ correct: 58, total: 80 }],
+        errorPatterns: { unansweredCount: 22 },
+      },
+      'reading'
+    );
+
+    expect(normalized).toMatchObject({
+      correctAnswers: 29,
+      totalQuestions: 40,
+      percentage: 73,
+      bandScore: 6.5,
+      unanswered: 0,
+      errorPatterns: { unansweredCount: 0 },
+    });
+    expect(Object.values(normalized.typeStats).reduce((sum, stat) => sum + stat.total, 0)).toBe(40);
+    expect(normalized.sectionStats.reduce((sum, stat) => sum + stat.total, 0)).toBe(40);
+  });
+
+  it('does not guess from incomplete legacy response evidence', () => {
+    const result = {
+      correctAnswers: 58,
+      totalQuestions: 80,
+      responseDetails: Array.from({ length: 39 }, (_, index) => ({
+        questionNumber: index + 1,
+        userAnswer: 'answer',
+        isCorrect: index < 29,
+      })),
+    };
+
+    expect(reconcileObjectiveResultEvidence(result, 'reading')).toBe(result);
   });
 });

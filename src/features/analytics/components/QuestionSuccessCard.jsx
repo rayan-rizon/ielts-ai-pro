@@ -27,6 +27,9 @@ const EMPTY = [];
 export default function QuestionSuccessCard({ stats }) {
   const data = stats?.typeAccuracy || EMPTY;
   const summary = getQuestionSuccessSummary(data);
+  const coverage = stats?.evidenceCoverage;
+  const hasPartialCoverage =
+    coverage?.objectiveSessions > 0 && coverage.typeSessions < coverage.objectiveSessions;
 
   // The format bleeding the most marks — the one row worth acting on, and the
   // same ordering the grid itself uses.
@@ -41,7 +44,7 @@ export default function QuestionSuccessCard({ stats }) {
         <PanelTitle
           label="Question types"
           accent
-          tip="Accuracy per IELTS question format across every graded test in this period, ordered by how many marks each one is costing you."
+          tip="Accuracy per IELTS question format across tests that recorded question-type breakdowns in this period, ordered by how many marks each one is costing you."
           action={
             summary.total ? (
               <span className={cn(MICRO, MUTED)}>
@@ -65,7 +68,14 @@ export default function QuestionSuccessCard({ stats }) {
         </div>
 
         <PanelFootnote>
-          {summary.total && costliest ? (
+          {hasPartialCoverage ? (
+            <>
+              Breakdown available for{' '}
+              <span className={cn(NUM, 'font-bold')}>{coverage.typeSessions}</span> of{' '}
+              <span className={cn(NUM, 'font-bold')}>{coverage.objectiveSessions}</span> graded
+              Reading/Listening tests in this period.
+            </>
+          ) : summary.total && costliest ? (
             <>
               <span className="font-bold capitalize">{costliest.type.replace(/_/g, ' ')}</span> is
               costing you the most —{' '}

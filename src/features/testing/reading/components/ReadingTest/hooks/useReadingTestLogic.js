@@ -12,7 +12,10 @@ import { removeFromCache } from '@/lib/apiCache';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
 import { calculateErrorPatterns, calculatePassageProficiency } from '@/services/testMetricsService';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
-import { ANALYSIS_SCHEMA_VERSION } from '@/features/testing/shared/utils/resultEvidence';
+import {
+  ANALYSIS_SCHEMA_VERSION,
+  normalizePersistedAnswers,
+} from '@/features/testing/shared/utils/resultEvidence';
 import { supabase } from '@/lib/supabase';
 import {
   EXAM_DURATION_SECONDS,
@@ -165,6 +168,7 @@ export function useReadingTestLogic(
               const contentData = existingSession.content_data || {};
               const rawResponses = existingSession.user_responses;
               const userResponses = Array.isArray(rawResponses) ? rawResponses : [];
+              const persistedAnswers = normalizePersistedAnswers(rawResponses);
 
               // Reconstruct or Recalculate test results
               let results;
@@ -195,23 +199,14 @@ export function useReadingTestLogic(
                 console.log('Recalculating stats for legacy/incomplete session...');
 
                 // Rehydrate answers map
-                const answersMap = {};
-                userResponses.forEach((r) => {
-                  const qId = r.question_id || r.questionId;
-                  const uAns = r.user_answer !== undefined ? r.user_answer : r.userAnswer;
-                  if (qId) {
-                    answersMap[qId] = uAns;
-                  }
-                });
-
                 results = calculateTestResults(
                   questions, // from initializeTest
-                  answersMap,
+                  persistedAnswers,
                   passage.sections || [] // from initializeTest
                 );
 
                 // Ensure bandScore matches session even if recalc differs slightly (truth is db)
-                results.bandScore = existingSession.score || results.bandScore;
+                results.bandScore = existingSession.score ?? results.bandScore;
               }
 
               setTestResults(results);
@@ -229,19 +224,10 @@ export function useReadingTestLogic(
                 console.log('[ReadingTest] correctAnswersMap missing, recalculating...');
 
                 // Build answers map from userResponses
-                const answersMap = {};
-                userResponses.forEach((r) => {
-                  const qId = r.question_id || r.questionId;
-                  const uAns = r.user_answer !== undefined ? r.user_answer : r.userAnswer;
-                  if (qId) {
-                    answersMap[qId] = uAns;
-                  }
-                });
-
                 // Recalculate to get fresh correctAnswersMap
                 const recalcResults = calculateTestResults(
                   questions,
-                  answersMap,
+                  persistedAnswers,
                   passage.sections || []
                 );
 

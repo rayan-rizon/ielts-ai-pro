@@ -30,6 +30,9 @@ const ALLOWED_EVENTS = new Set([
   'Purchase',
   'ViewContent',
 ]);
+const COMMERCE_EVENTS = new Set(['InitiateCheckout', 'Purchase']);
+const VALUE_EVENTS = new Set(['CompleteRegistration', 'InitiateCheckout', 'Purchase']);
+const COMMERCE_CURRENCIES = new Set(['USD', 'BDT']);
 
 const sha256 = (value) =>
   crypto.createHash('sha256').update(String(value).trim().toLowerCase()).digest('hex');
@@ -108,10 +111,27 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'event_id is required for deduplication' });
   }
 
+  const isCommerceEvent = COMMERCE_EVENTS.has(eventName);
+  const isValueEvent = VALUE_EVENTS.has(eventName);
+  const value = Number(body.value);
+  const currency = typeof body.currency === 'string' ? body.currency.trim().toUpperCase() : '';
+  if (
+    isValueEvent &&
+    (!Number.isFinite(value) || value <= 0 || !COMMERCE_CURRENCIES.has(currency))
+  ) {
+    return res.status(400).json({ error: 'Valid value and supported currency are required' });
+  }
+
   const customData = {};
-  if (typeof body.value === 'number' && Number.isFinite(body.value)) {
-    customData.value = body.value;
-    customData.currency = body.currency || 'USD';
+  if (isValueEvent) {
+    customData.value = value;
+    customData.currency = currency;
+    if (isCommerceEvent) {
+      if (Array.isArray(body.content_ids)) customData.content_ids = body.content_ids.map(String);
+      if (body.content_name) customData.content_name = String(body.content_name);
+      if (body.content_type) customData.content_type = String(body.content_type);
+      if (Number.isFinite(Number(body.num_items))) customData.num_items = Number(body.num_items);
+    }
   }
 
   const payload = {

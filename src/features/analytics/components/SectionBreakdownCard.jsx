@@ -133,8 +133,10 @@ function PositionColumns({ groups }) {
   );
 }
 
-export default function SectionBreakdownCard({ sectionPerformance = [], efficiency }) {
+export default function SectionBreakdownCard({ sectionPerformance = [], efficiency, coverage }) {
   const pace = useMemo(() => buildPacingSummary(efficiency || {})[0], [efficiency]);
+  const hasPartialCoverage =
+    coverage?.objectiveSessions > 0 && coverage.sectionSessions < coverage.objectiveSessions;
 
   const { groups, worst } = useMemo(() => {
     const rows = [...sectionPerformance];
@@ -179,7 +181,14 @@ export default function SectionBreakdownCard({ sectionPerformance = [], efficien
         )}
 
         <PanelFootnote>
-          {worst ? (
+          {hasPartialCoverage ? (
+            <>
+              Breakdown available for{' '}
+              <span className={cn(NUM, 'font-bold')}>{coverage.sectionSessions}</span> of{' '}
+              <span className={cn(NUM, 'font-bold')}>{coverage.objectiveSessions}</span> graded
+              Reading/Listening tests in this period.
+            </>
+          ) : worst ? (
             <>
               Weakest is{' '}
               <span className="font-bold capitalize">

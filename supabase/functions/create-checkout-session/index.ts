@@ -114,7 +114,8 @@ async function stripeRequest(endpoint: string, method: string, body?: Record<str
 
 async function getAdminPricing(
   supabase: ReturnType<typeof createClient>,
-  tier: string
+  tier: string,
+  currency: string
 ): Promise<{ price: number; originalPrice: number } | null> {
   try {
     const { data, error } = await supabase
@@ -125,11 +126,27 @@ async function getAdminPricing(
 
     if (error || !data?.value) return null;
 
-    const pricingTiers = data.value as Record<string, { price: number; originalPrice: number }>;
-    if (pricingTiers[tier]?.price) {
+    const pricingTiers = data.value as Record<
+      string,
+      {
+        price: number;
+        originalPrice: number;
+        currency?: string;
+        regional?: Array<{ currency?: string; price?: number }>;
+      }
+    >;
+    const tierPricing = pricingTiers[tier];
+    if (!tierPricing) return null;
+
+    const regionalPrice = tierPricing.regional?.find(
+      (regional) => regional?.currency?.trim().toLowerCase() === currency
+    );
+    const configuredPrice = regionalPrice?.price ?? tierPricing.price;
+
+    if (Number(configuredPrice) > 0) {
       return {
-        price: Number(pricingTiers[tier].price),
-        originalPrice: Number(pricingTiers[tier].originalPrice) || 0,
+        price: Number(configuredPrice),
+        originalPrice: Number(tierPricing.originalPrice) || 0,
       };
     }
     return null;
@@ -348,7 +365,7 @@ Deno.serve(async (req: Request) => {
     // =====================================================================
     // Pricing Calculation (server-side only)
     // =====================================================================
-    const adminPricing = await getAdminPricing(supabase, tier);
+    const adminPricing = await getAdminPricing(supabase, tier, validatedCurrency);
 
     let finalPriceInCents: number | null = null;
 
@@ -526,7 +543,21 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    return successResponse({ url: sessionData.url }, corsHeaders);
+    const amountInMinorUnits = Number(sessionData.amount_total ?? finalPriceInCents);
+    if (!sessionData.url || !sessionData.id || !Number.isFinite(amountInMinorUnits)) {
+      console.error('[Checkout] Stripe returned an incomplete checkout session');
+      return errorResponse('Failed to initialize payment. Please try again.', 500, corsHeaders);
+    }
+
+    return successResponse(
+      {
+        url: sessionData.url,
+        session_id: sessionData.id,
+        amount: amountInMinorUnits / 100,
+        currency: String(sessionData.currency || validatedCurrency).toUpperCase(),
+      },
+      corsHeaders
+    );
   } catch (error) {
     console.error('[Checkout] Unexpected error:', error);
     // SECURITY: Generic error message — never leak stack traces or internal details

@@ -172,6 +172,7 @@ export default function AnalyticsReport({
               <SectionBreakdownCard
                 sectionPerformance={stats?.sectionPerformance || []}
                 efficiency={stats?.efficiency}
+                coverage={stats?.evidenceCoverage}
               />
             </PaidFeatureGate>
           </div>

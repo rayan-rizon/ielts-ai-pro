@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { configurePricingPlans } from '@/features/subscription/hooks/usePricing';
+import { calculateCheckoutAmount, getPriceData } from '@/lib/pricingUtils';
 
 describe('pricing plan configuration', () => {
   it('only advertises learner features that are available in the product', () => {
@@ -58,5 +59,40 @@ describe('pricing plan configuration', () => {
     expect(plans.find(({ tier }) => tier === 'premium').features).toContain(
       '50 AI Speaking Sessions/month'
     );
+  });
+
+  it('uses the BDT regional price only for Bangladesh and retains the global USD book elsewhere', () => {
+    const settings = {
+      pricing_tiers: {
+        pro: {
+          price: 9.99,
+          originalPrice: 15,
+          currency: 'USD',
+          regional: [{ country: 'BD', price: 999, currency: 'BDT', symbol: '৳' }],
+        },
+      },
+    };
+
+    expect(getPriceData('pro', 9.99, 15, settings, 'BD')).toMatchObject({
+      price: 999,
+      currency: 'BDT',
+      symbol: '৳',
+    });
+    expect(getPriceData('pro', 9.99, 15, settings, 'CA')).toMatchObject({
+      price: 9.99,
+      currency: 'USD',
+      symbol: '$',
+    });
+  });
+
+  it('reports the amount charged rather than the monthly display rate for quarterly checkout', () => {
+    expect(calculateCheckoutAmount(9.99, 'quarterly')).toBe(25.47);
+    expect(calculateCheckoutAmount(999, 'quarterly')).toBe(2547.45);
+    expect(
+      calculateCheckoutAmount(9.99, 'quarterly', {
+        discount_type: 'fixed',
+        discount_value: 5,
+      })
+    ).toBe(20.47);
   });
 });

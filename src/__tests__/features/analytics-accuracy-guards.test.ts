@@ -3,6 +3,7 @@ import {
   computeAdvancedMetrics,
   computeExamReadiness,
   computeStats,
+  isAbandonedSession,
 } from '@/features/analytics/hooks/analyticsCalculations';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
@@ -60,5 +61,50 @@ describe('Analytics accuracy guards', () => {
       sampleCounts: { taskAchievement: 1 },
       hasData: true,
     });
+  });
+
+  it('excludes abandoned objective sessions from detailed averages and reports evidence coverage', () => {
+    const metrics = computeAdvancedMetrics([
+      {
+        test_type: 'reading',
+        score: 0,
+        actual_duration_seconds: 120,
+        content_data: {
+          totalQuestions: 40,
+          correctAnswers: 0,
+          typeStats: { matching_headings: { correct: 0, total: 40 } },
+          sectionStats: [{ correct: 0, total: 40 }],
+        },
+      },
+      {
+        test_type: 'listening',
+        score: 7,
+        actual_duration_seconds: 1800,
+        content_data: {
+          totalQuestions: 40,
+          correctAnswers: 30,
+          typeStats: { gap_fill: { correct: 15, total: 20 } },
+        },
+      },
+    ]);
+
+    expect(metrics.typeAccuracy).toEqual([
+      expect.objectContaining({ module: 'listening', type: 'Gap Fill', correct: 15, total: 20 }),
+    ]);
+    expect(metrics.sectionPerformance).toEqual([]);
+    expect(metrics.evidenceCoverage).toEqual({
+      objectiveSessions: 1,
+      typeSessions: 1,
+      sectionSessions: 0,
+    });
+  });
+
+  it('never classifies short Writing or Speaking evaluations as abandoned objective tests', () => {
+    expect(
+      isAbandonedSession({ test_type: 'writing', score: 0, actual_duration_seconds: 120 })
+    ).toBe(false);
+    expect(
+      isAbandonedSession({ test_type: 'speaking', score: 0, actual_duration_seconds: 120 })
+    ).toBe(false);
   });
 });

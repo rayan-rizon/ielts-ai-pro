@@ -8,9 +8,9 @@ export default function useAnalyticsData(selectedTimeframe) {
   const { user: authUser, loading: authLoading } = useAuth();
   const userId = authUser?.id;
   const hasAdvancedAccess = hasPaidAccess(authUser);
-  const queries = useAnalyticsQueries(userId, hasAdvancedAccess);
   const effectiveTimeframe =
     hasAdvancedAccess || selectedTimeframe === '7d' ? selectedTimeframe : '30d';
+  const queries = useAnalyticsQueries(userId, hasAdvancedAccess, effectiveTimeframe);
   const viewModel = useMemo(
     () =>
       buildAnalyticsViewModel({
