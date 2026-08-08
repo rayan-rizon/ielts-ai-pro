@@ -184,7 +184,14 @@ const LimitsFields = ({ promo, onChange }) => (
   </>
 );
 
-export const PromoCodeDialog = ({ open, onOpenChange, promo, onPromoChange, onCreate }) => (
+export const PromoCodeDialog = ({
+  open,
+  onOpenChange,
+  promo,
+  onPromoChange,
+  onCreate,
+  campaigns = [],
+}) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5">
       <DialogHeader className="space-y-0.5">
@@ -208,6 +215,41 @@ export const PromoCodeDialog = ({ open, onOpenChange, promo, onPromoChange, onCr
               placeholder="SUMMER25"
               className={cn(FIELD_INPUT, 'pl-8 font-mono font-bold uppercase tracking-widest')}
             />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className={FIELD_LABEL}>Internal label</Label>
+            <Input
+              value={promo.label || ''}
+              onChange={(event) => onPromoChange({ ...promo, label: event.target.value })}
+              placeholder="August upgrade offer"
+              className={FIELD_INPUT}
+            />
+          </div>
+          <div>
+            <Label className={FIELD_LABEL}>Campaign owner</Label>
+            <Select
+              value={promo.marketing_campaign_id || 'none'}
+              onValueChange={(value) =>
+                onPromoChange({
+                  ...promo,
+                  marketing_campaign_id: value === 'none' ? '' : value,
+                })
+              }
+            >
+              <SelectTrigger className={FIELD_INPUT}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {campaigns.map((campaign) => (
+                  <SelectItem key={campaign.id} value={campaign.id}>
+                    {campaign.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <SchemeFields promo={promo} onChange={onPromoChange} />

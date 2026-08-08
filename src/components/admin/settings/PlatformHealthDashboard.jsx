@@ -156,6 +156,8 @@ const METRIC_LABEL = {
   directDeepseekCalls: 'Direct DeepSeek',
   geminiCalls: 'Gemini calls',
   unknownProviderCalls: 'Unknown provider',
+  upstreamFailures: 'Provider failures',
+  recoveredFallbacks: 'Recovered',
   estimatedCostUsd: 'Est. cost',
 };
 
@@ -171,6 +173,7 @@ const ALARM_KEYS = new Set([
   'stuckEvaluations',
   'failedDispatches',
   'lastRunFailed',
+  'upstreamFailures',
 ]);
 
 const PERCENT_METRICS = new Set([
@@ -209,7 +212,7 @@ const HEADLINE_KEY = {
   speech_transcription: 'errorRate',
   pronunciation_assessment: 'completionRate',
   ai_feedback: 'errorRate',
-  ai_text_providers: 'openrouterCalls',
+  ai_text_providers: 'errorRate',
   ai_quota_reservations: 'stuck',
   speech_synthesis: 'errorRate',
   payments_stripe: 'eventFailureRate',
@@ -245,6 +248,29 @@ const statusBucketFor = (status) => {
 };
 const occurrenceCount = (incident) => Number(incident.occurrences || 1);
 
+const exactTimestamp = (value) => {
+  if (!value) return 'Time unavailable';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Time unavailable';
+
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    fractionalSecondDigits: 3,
+    timeZoneName: 'short',
+  }).format(date);
+};
+
+const ExactTime = ({ value }) => (
+  <time dateTime={value || undefined} title={value || undefined}>
+    {exactTimestamp(value)}
+  </time>
+);
+
 const summarizeHealth = (health, incidents) => {
   const services = health?.services || [];
   const counts = { down: 0, degraded: 0, operational: 0, idle: 0 };
@@ -254,9 +280,29 @@ const summarizeHealth = (health, incidents) => {
   });
 
   const incidentCounts = {};
+  const incidentSummaries = {};
   incidents.forEach((incident) => {
     incidentCounts[incident.service] =
       (incidentCounts[incident.service] || 0) + occurrenceCount(incident);
+    const summary = incidentSummaries[incident.service] || {
+      firstSeen: null,
+      lastSeen: null,
+      occurrences: 0,
+    };
+    if (
+      incident.first_seen &&
+      (!summary.firstSeen || new Date(incident.first_seen) < new Date(summary.firstSeen))
+    ) {
+      summary.firstSeen = incident.first_seen;
+    }
+    if (
+      incident.last_seen &&
+      (!summary.lastSeen || new Date(incident.last_seen) > new Date(summary.lastSeen))
+    ) {
+      summary.lastSeen = incident.last_seen;
+    }
+    summary.occurrences += occurrenceCount(incident);
+    incidentSummaries[incident.service] = summary;
   });
 
   return {
@@ -268,6 +314,7 @@ const summarizeHealth = (health, incidents) => {
     total: services.length,
     serviceLabels: Object.fromEntries(services.map((service) => [service.key, service.label])),
     incidentCounts,
+    incidentSummaries,
   };
 };
 
@@ -345,6 +392,9 @@ const REPAIRS = {
   },
   ai_feedback: {
     how: 'Use the incident list to separate rate limits, provider authentication, malformed output and application errors. Restore the failing dependency, then run one real learner-shaped scoring request before considering the service recovered.',
+  },
+  ai_text_providers: {
+    how: 'Provider failures that returned a deterministic or routed fallback are degraded, not learner-blocking. Investigate the recorded provider and fallback reason; only treat “Errors” as lost learner results. After correcting credentials, routing, or rate limits, verify one real request through the normal learner flow.',
   },
   speech_transcription: {
     how: 'Cloudflare returned no speech for some valid clips. Speaking tests now retry Whisper without voice-activity detection before using Gemini, then preserve a reliable browser transcript when both providers reject the clip. If fallback use stays high, inspect the recorded audio type, attempt count and recovery flags, then test the learner’s microphone input. Any “Lost” count above zero is a scoring failure that needs immediate investigation.',
@@ -463,7 +513,7 @@ const RepairButton = ({ repair, onRepaired }) => {
 };
 
 /* Prioritised read-out, shown only for services that need the admin to act. */
-const ProblemPanel = ({ service, index, incidentCount = 0, onRepaired }) => {
+const ProblemPanel = ({ service, index, incidentCount = 0, incidentSummary, onRepaired }) => {
   const signal = SIGNAL[service.status] || SIGNAL.idle;
   const { Icon } = signal;
   const metrics = metricsFor(service);
@@ -538,6 +588,34 @@ const ProblemPanel = ({ service, index, incidentCount = 0, onRepaired }) => {
           </span>
         </div>
 
+        {incidentSummary?.lastSeen && (
+          <div className="mt-2 grid gap-1 rounded-md border border-stone-200 bg-stone-50/70 px-2.5 py-2 dark:border-white/[0.07] dark:bg-black/10">
+            {incidentSummary.firstSeen && incidentSummary.firstSeen !== incidentSummary.lastSeen ? (
+              <>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  First observed{' '}
+                  <strong className="text-stone-700 dark:text-stone-200">
+                    <ExactTime value={incidentSummary.firstSeen} />
+                  </strong>
+                </p>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                  Latest observed{' '}
+                  <strong className="text-stone-700 dark:text-stone-200">
+                    <ExactTime value={incidentSummary.lastSeen} />
+                  </strong>
+                </p>
+              </>
+            ) : (
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                Occurred{' '}
+                <strong className="text-stone-700 dark:text-stone-200">
+                  <ExactTime value={incidentSummary.lastSeen} />
+                </strong>
+              </p>
+            )}
+          </div>
+        )}
+
         <details className="group mt-2.5 rounded-md border border-stone-200 dark:border-white/8 bg-white dark:bg-white/2">
           <summary
             className={cn(
@@ -560,7 +638,7 @@ const ProblemPanel = ({ service, index, incidentCount = 0, onRepaired }) => {
   );
 };
 
-const ServiceDetails = ({ service, metrics }) => (
+const ServiceDetails = ({ service, metrics, incidentSummary }) => (
   <div className="border-t border-stone-200 dark:border-white/[0.07] bg-stone-50/50 dark:bg-black/10 px-4 py-4">
     <p className="sm:hidden text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed mb-3">
       {service.impact}
@@ -583,12 +661,22 @@ const ServiceDetails = ({ service, metrics }) => (
         <p className="font-semibold wrap-break-word">{evidenceFor(service)}</p>
         <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-3 mb-1')}>Owner</p>
         <p className="font-semibold">{ownerFor(service)}</p>
+        {incidentSummary?.lastSeen && (
+          <>
+            <p className={cn(MICRO, 'mt-3 mb-1 text-stone-500 dark:text-stone-400')}>
+              Latest incident
+            </p>
+            <p className={cn(NUM, 'font-semibold')}>
+              <ExactTime value={incidentSummary.lastSeen} />
+            </p>
+          </>
+        )}
       </div>
     </div>
   </div>
 );
 
-const ServiceRow = ({ service }) => {
+const ServiceRow = ({ service, incidentSummary }) => {
   const [expanded, setExpanded] = useState(false);
   const signal = SIGNAL[service.status] || SIGNAL.idle;
   const { Icon } = signal;
@@ -646,7 +734,9 @@ const ServiceRow = ({ service }) => {
         </div>
       </button>
 
-      {expanded && <ServiceDetails service={service} metrics={metrics} />}
+      {expanded && (
+        <ServiceDetails service={service} metrics={metrics} incidentSummary={incidentSummary} />
+      )}
     </div>
   );
 };
@@ -664,6 +754,7 @@ const ServiceDirectory = ({
   serviceFilter,
   serviceQuery,
   filteredServices,
+  incidentSummaries,
   onFilterChange,
   onQueryChange,
 }) => (
@@ -714,7 +805,13 @@ const ServiceDirectory = ({
 
     <div className="space-y-2">
       {filteredServices.length > 0 ? (
-        filteredServices.map((service) => <ServiceRow key={service.key} service={service} />)
+        filteredServices.map((service) => (
+          <ServiceRow
+            key={service.key}
+            service={service}
+            incidentSummary={incidentSummaries[service.key]}
+          />
+        ))
       ) : (
         <div className={cn(PANEL, 'px-4 py-10 text-center')}>
           <p className="text-xs font-bold text-stone-700 dark:text-stone-200">No services match</p>
@@ -848,10 +945,8 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
     };
   }, [load]);
 
-  const { services, problems, counts, total, serviceLabels, incidentCounts } = useMemo(
-    () => summarizeHealth(health, incidents),
-    [health, incidents]
-  );
+  const { services, problems, counts, total, serviceLabels, incidentCounts, incidentSummaries } =
+    useMemo(() => summarizeHealth(health, incidents), [health, incidents]);
   const filteredServices = useMemo(
     () => filterServices(services, serviceFilter, serviceQuery),
     [serviceFilter, serviceQuery, services]
@@ -986,9 +1081,11 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
                 </span>
               </span>
             ))}
-            <span className={cn(MICRO, 'text-stone-500 dark:text-stone-600 ml-auto')}>
-              {health?.generatedAt && new Date(health.generatedAt).toLocaleTimeString()}
-            </span>
+            {health?.generatedAt && (
+              <span className={cn(MICRO, 'ml-auto text-stone-500 dark:text-stone-600')}>
+                Updated <ExactTime value={health.generatedAt} />
+              </span>
+            )}
           </div>
 
           <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-200 dark:bg-white/[0.07]">
@@ -1043,6 +1140,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
                   service={service}
                   index={i}
                   incidentCount={incidentCounts[service.key] || 0}
+                  incidentSummary={incidentSummaries[service.key]}
                   onRepaired={() => load({ silent: true })}
                 />
               ))}
@@ -1057,6 +1155,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
           serviceFilter={serviceFilter}
           serviceQuery={serviceQuery}
           filteredServices={filteredServices}
+          incidentSummaries={incidentSummaries}
           onFilterChange={setServiceFilter}
           onQueryChange={setServiceQuery}
         />
@@ -1099,10 +1198,22 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
                     <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 wrap-break-word leading-snug">
                       {incident.message}
                     </p>
-                    <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>
-                      {serviceLabels[incident.service] || incident.service} ·{' '}
-                      {new Date(incident.last_seen).toLocaleString()}
+                    <p className={cn(MICRO, 'mt-1 text-stone-500 dark:text-stone-400')}>
+                      {serviceLabels[incident.service] || incident.service}
                     </p>
+                    <div className="mt-1 flex flex-col gap-0.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400">
+                      {incident.first_seen && incident.first_seen !== incident.last_seen && (
+                        <span>
+                          First observed <ExactTime value={incident.first_seen} />
+                        </span>
+                      )}
+                      <span>
+                        {incident.first_seen === incident.last_seen
+                          ? 'Occurred'
+                          : 'Latest observed'}{' '}
+                        <ExactTime value={incident.last_seen} />
+                      </span>
+                    </div>
                   </div>
                   <span
                     className={cn(

@@ -2,7 +2,17 @@ const ADMIN_ACCESS_USER_KEY = 'admin_access_user_id';
 
 export const getAuthUserId = (user) => user?.auth_id || user?.id || null;
 
-const getSessionStorage = () => {
+const getPersistentStorage = () => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+};
+
+const getLegacySessionStorage = () => {
   if (typeof window === 'undefined') return null;
 
   try {
@@ -13,7 +23,10 @@ const getSessionStorage = () => {
 };
 
 export const grantAdminAccess = (userId) => {
-  const storage = getSessionStorage();
+  // Keep this marker alongside Supabase's persisted browser session. It is
+  // only a UX gate: ProtectedRoute still requires a current Supabase session
+  // and a freshly checked database admin role before rendering admin content.
+  const storage = getPersistentStorage() || getLegacySessionStorage();
   if (!storage || typeof userId !== 'string' || !userId.trim()) return false;
 
   storage.setItem(ADMIN_ACCESS_USER_KEY, userId);
@@ -21,12 +34,23 @@ export const grantAdminAccess = (userId) => {
 };
 
 export const clearAdminAccess = () => {
-  getSessionStorage()?.removeItem(ADMIN_ACCESS_USER_KEY);
+  getPersistentStorage()?.removeItem(ADMIN_ACCESS_USER_KEY);
+  // Clear the old, tab-only marker too while users move to persistent access.
+  getLegacySessionStorage()?.removeItem(ADMIN_ACCESS_USER_KEY);
 };
 
 export const hasAdminAccess = (userId) => {
-  const storage = getSessionStorage();
-  if (!storage || typeof userId !== 'string' || !userId.trim()) return false;
+  if (typeof userId !== 'string' || !userId.trim()) return false;
 
-  return storage.getItem(ADMIN_ACCESS_USER_KEY) === userId;
+  const persistentStorage = getPersistentStorage();
+  if (persistentStorage?.getItem(ADMIN_ACCESS_USER_KEY) === userId) return true;
+
+  // Promote an existing in-tab marker on the first post-upgrade page load, so
+  // an admin who was already signed in is not forced through one extra login.
+  const legacyStorage = getLegacySessionStorage();
+  if (legacyStorage?.getItem(ADMIN_ACCESS_USER_KEY) !== userId) return false;
+
+  persistentStorage?.setItem(ADMIN_ACCESS_USER_KEY, userId);
+  legacyStorage.removeItem(ADMIN_ACCESS_USER_KEY);
+  return true;
 };

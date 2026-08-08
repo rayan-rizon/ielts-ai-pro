@@ -12,6 +12,7 @@ import {
   Cpu,
   CreditCard,
   Gift,
+  Target,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
@@ -31,6 +32,7 @@ const PaymentManagement = lazy(() => import('@/components/admin/PaymentManagemen
 const CommunicationsCenter = lazy(() => import('@/components/admin/communications'));
 const AIUsageManagement = lazy(() => import('@/components/admin/AIUsageManagement'));
 const ReferralManagement = lazy(() => import('@/components/admin/ReferralManagement'));
+const MarketingHub = lazy(() => import('@/components/admin/marketing/MarketingHub'));
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -40,6 +42,7 @@ const TABS = [
   { id: 'ai-usage', label: 'AI Usage', icon: Cpu },
   { id: 'promo', label: 'Promos', icon: Tag },
   { id: 'referrals', label: 'Referrals', icon: Gift },
+  { id: 'marketing', label: 'Marketing', icon: Target },
   { id: 'payments', label: 'Payments', icon: CreditCard },
   // Tab id stays `notifications` so existing bookmarks and deep links keep working.
   { id: 'notifications', label: 'Communications', icon: Megaphone },
@@ -253,6 +256,8 @@ export default function AdminPanel() {
         return <AIUsageManagement data-oid="_ai6za2" />;
       case 'referrals':
         return <ReferralManagement data-oid="zxyjtkd" />;
+      case 'marketing':
+        return <MarketingHub />;
       case 'user-analytics':
         return <UserAnalyticsWrapper data-oid="sqk1gt_" />;
       case 'revenue-analytics':

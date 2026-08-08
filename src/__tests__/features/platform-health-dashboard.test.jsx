@@ -95,6 +95,7 @@ describe('PlatformHealthDashboard operations console', () => {
         service: 'speech_transcription',
         message: 'Cloudflare returned no intelligible speech; Gemini recovered the transcript.',
         occurrences: 2,
+        first_seen: '2026-08-02T00:15:00.123Z',
         last_seen: '2026-08-02T00:30:00.000Z',
       },
     ]);
@@ -135,5 +136,16 @@ describe('PlatformHealthDashboard operations console', () => {
     await waitFor(() => expect(mocks.get).toHaveBeenCalledWith(24));
     expect(mocks.incidents).toHaveBeenCalledWith(24);
     await waitFor(() => expect(onLoadingChange).toHaveBeenLastCalledWith(false));
+  });
+
+  it('shows exact generated, first-observed and latest-observed timestamps', async () => {
+    render(<PlatformHealthDashboard />);
+
+    expect(await screen.findByText(/Updated/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/First observed/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Latest observed/i).length).toBeGreaterThan(0);
+    expect(document.querySelector('time[datetime="2026-08-02T01:00:00.000Z"]')).toBeTruthy();
+    expect(document.querySelector('time[datetime="2026-08-02T00:15:00.123Z"]')).toBeTruthy();
+    expect(document.querySelector('time[datetime="2026-08-02T00:30:00.000Z"]')).toBeTruthy();
   });
 });

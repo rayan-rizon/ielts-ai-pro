@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
+import LearnerMarketingSurface from '@/features/marketing/components/LearnerMarketingSurface';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { isAnnouncementLive } from '@/lib/communications';
 import { cn } from '@/lib/cn';
@@ -207,6 +208,10 @@ export default function Layout({ children, currentPageName }) {
           <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl">
             <AnnouncementBanner announcement={announcement} data-oid="z:9x0:g" />
           </div>
+        )}
+
+        {!isAdminView && user && (
+          <LearnerMarketingSurface user={user} dashboardOnly={isDashboardPage} />
         )}
 
         <SidebarProvider

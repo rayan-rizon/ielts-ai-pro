@@ -22,11 +22,13 @@ import {
   PenLine,
   Plus,
   Save,
+  ShieldAlert,
   Trash2,
   TrendingUp,
   Users,
 } from 'lucide-react';
 import { ReferralSettings } from '@/features/admin/services/ReferralSettings';
+import MarketingService from '@/features/admin/services/MarketingService';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { NUM, MICRO, PANEL, Kpi, AdminButton, AdminPageHeader } from './ui/primitives';
@@ -59,6 +61,7 @@ const RANK_TONE = [
 export default function ReferralManagement() {
   const [tiers, setTiers] = useState([]);
   const [stats, setStats] = useState(null);
+  const [conversion, setConversion] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -77,12 +80,14 @@ export default function ReferralManagement() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [tiersData, statsData] = await Promise.all([
+      const [tiersData, statsData, offerData] = await Promise.all([
         ReferralSettings.list(),
         ReferralSettings.getStats(),
+        MarketingService.getOfferIntelligence(),
       ]);
       setTiers(tiersData || []);
       setStats(statsData);
+      setConversion(offerData?.referrals || []);
     } catch (error) {
       toast.error('Failed to load referral data', { description: error.message });
     } finally {
@@ -189,8 +194,16 @@ export default function ReferralManagement() {
         </AdminButton>
       </AdminPageHeader>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Kpi label="Total referrals" value={(stats?.totalReferrals || 0).toLocaleString()} />
+        <Kpi
+          label="Activated learners"
+          value={conversion.reduce((total, row) => total + Number(row.activated || 0), 0)}
+        />
+        <Kpi
+          label="Paid subscribers"
+          value={conversion.reduce((total, row) => total + Number(row.paid || 0), 0)}
+        />
         <Kpi
           label="Active tiers"
           value={tiers.filter((t) => t.is_active).length}
@@ -202,6 +215,16 @@ export default function ReferralManagement() {
           sub="referrals by #1"
         />
       </div>
+
+      {conversion.some((row) => row.risk_flags?.length) && (
+        <div className={cn(PANEL, 'flex items-center gap-3 p-3')}>
+          <ShieldAlert className="h-4 w-4 text-[rgb(var(--signal-warn))]" />
+          <p className="text-xs font-bold text-stone-700 dark:text-stone-200">
+            {conversion.filter((row) => row.risk_flags?.length).length} advocate account(s) need
+            referral-pattern review.
+          </p>
+        </div>
+      )}
 
       {/* Reward tiers */}
       <div className={cn(PANEL, 'overflow-hidden')}>
@@ -327,43 +350,56 @@ export default function ReferralManagement() {
             <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Top advocates</h3>
           </div>
           <div className="space-y-1.5">
-            {stats.topReferrers.slice(0, 5).map((referrer, idx) => (
-              <div
-                key={referrer.id}
-                className="flex items-center justify-between p-2.5 rounded-lg bg-stone-50/70 dark:bg-white/2 border border-stone-200/60 dark:border-white/5"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <span
-                    className={cn(
-                      NUM,
-                      'w-6 h-6 rounded-md grid place-items-center font-black text-[11px] shrink-0',
-                      RANK_TONE[idx] ||
-                        'bg-stone-200 dark:bg-white/6 text-stone-600 dark:text-stone-300'
-                    )}
+            {stats.topReferrers.slice(0, 5).map((referrer, idx) =>
+              (() => {
+                const funnel = conversion.find((row) => row.referrer_id === referrer.id);
+                return (
+                  <div
+                    key={referrer.id}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-stone-50/70 dark:bg-white/2 border border-stone-200/60 dark:border-white/5"
                   >
-                    {idx + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
-                      {referrer.name}
-                    </p>
-                    <p
-                      className={cn(NUM, 'text-[10px] text-stone-500 dark:text-stone-400 truncate')}
-                    >
-                      {referrer.email}
-                    </p>
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <span
+                        className={cn(
+                          NUM,
+                          'w-6 h-6 rounded-md grid place-items-center font-black text-[11px] shrink-0',
+                          RANK_TONE[idx] ||
+                            'bg-stone-200 dark:bg-white/6 text-stone-600 dark:text-stone-300'
+                        )}
+                      >
+                        {idx + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
+                          {referrer.name}
+                        </p>
+                        <p
+                          className={cn(
+                            NUM,
+                            'text-[10px] text-stone-500 dark:text-stone-400 truncate'
+                          )}
+                        >
+                          {referrer.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span
+                        className={cn(
+                          NUM,
+                          'block text-[11px] font-bold text-stone-700 dark:text-stone-200'
+                        )}
+                      >
+                        {referrer.count} referrals
+                      </span>
+                      <span className="text-[9px] font-bold text-stone-500 dark:text-stone-400">
+                        {funnel?.activated || 0} activated · {funnel?.paid || 0} paid
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <span
-                  className={cn(
-                    NUM,
-                    'text-[11px] font-bold text-stone-700 dark:text-stone-200 shrink-0'
-                  )}
-                >
-                  {referrer.count} referrals
-                </span>
-              </div>
-            ))}
+                );
+              })()
+            )}
           </div>
         </div>
       )}

@@ -6,6 +6,8 @@ import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
 import { trackAppEvent } from '@/lib/tracking';
+import { getMarketingAttribution } from '@/lib/marketingAttribution';
+import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 
 // Extracted Components
 import PricingCard from '../components/PricingCard';
@@ -43,7 +45,7 @@ const requestCustomerPortal = async (sessionToken) => {
   return data;
 };
 
-const createStripeCheckout = async (sessionToken, planTier, interval, currency) => {
+const createStripeCheckout = async (sessionToken, planTier, interval, currency, attribution) => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout-session`, {
     method: 'POST',
@@ -56,6 +58,8 @@ const createStripeCheckout = async (sessionToken, planTier, interval, currency) 
       tier: planTier,
       interval,
       currency: currency.toLowerCase(),
+      marketing_campaign_id: attribution?.campaign_id || null,
+      marketing_delivery_id: attribution?.delivery_id || null,
     }),
   });
   const data = await response.json();
@@ -163,12 +167,26 @@ export default function Pricing() {
   };
 
   const startManualBdCheckout = (planTier, selectedPlanData, chargeAmount) => {
+    const marketingAttribution = getMarketingAttribution();
+    if (marketingAttribution && user?.id) {
+      MarketingDelivery.record(
+        {
+          id: marketingAttribution.delivery_id,
+          campaign_id: marketingAttribution.campaign_id,
+          user_id: user.id,
+          channel: 'checkout',
+        },
+        'checkout_started',
+        { plan_tier: planTier, billing_interval: billingInterval, payment_method: 'manual' }
+      ).catch(() => {});
+    }
     trackAppEvent('manual_checkout_started', {
       path: '/pricing',
       plan_tier: planTier,
       billing_interval: billingInterval,
       value: chargeAmount,
       currency: selectedPlanData?.currency || 'BDT',
+      campaign_id: marketingAttribution?.campaign_id || null,
     });
 
     setManualPaymentData({
@@ -177,6 +195,8 @@ export default function Pricing() {
       planName: selectedPlanData.name,
       price: chargeAmount,
       currencySymbol: selectedPlanData.currencySymbol || '৳',
+      marketingCampaignId: marketingAttribution?.campaign_id || null,
+      marketingDeliveryId: marketingAttribution?.delivery_id || null,
     });
     setShowManualPayment(true);
   };
@@ -195,12 +215,31 @@ export default function Pricing() {
 
       const planCurrency = selectedPlanData?.currency || 'USD';
 
+      const marketingAttribution = getMarketingAttribution();
       const checkout = await createStripeCheckout(
         session.access_token,
         planTier,
         billingInterval,
-        planCurrency
+        planCurrency,
+        marketingAttribution
       );
+
+      if (marketingAttribution && user?.id) {
+        MarketingDelivery.record(
+          {
+            id: marketingAttribution.delivery_id,
+            campaign_id: marketingAttribution.campaign_id,
+            user_id: user.id,
+            channel: 'checkout',
+          },
+          'checkout_started',
+          {
+            plan_tier: planTier,
+            billing_interval: billingInterval,
+            session_id: checkout.session_id,
+          }
+        ).catch(() => {});
+      }
 
       // Stripe returns the authoritative first charge after applying its
       // server-validated price and promo rules. Reporting this rather than the
@@ -213,6 +252,7 @@ export default function Pricing() {
         currency: checkout.currency,
         transaction_id: checkout.session_id,
         event_id: checkout.session_id,
+        campaign_id: marketingAttribution?.campaign_id || null,
       });
 
       trackAppEvent('checkout_redirected', {

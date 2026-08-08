@@ -18,6 +18,7 @@ import { User } from '@/entities';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { trackAppEvent } from '@/lib/tracking';
+import { clearMarketingAttribution } from '@/lib/marketingAttribution';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL = 2000;
@@ -127,6 +128,7 @@ export default function SubscriptionSuccess() {
           event_id: sessionId,
           source: 'stripe_checkout',
         });
+        clearMarketingAttribution();
         return;
       }
 
@@ -162,6 +164,7 @@ export default function SubscriptionSuccess() {
               event_id: sessionId,
               source: 'stripe_checkout',
             });
+            clearMarketingAttribution();
             setSubscriptionData(subData);
             setStatus('success');
           }

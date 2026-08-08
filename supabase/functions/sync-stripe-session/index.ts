@@ -83,6 +83,8 @@ Deno.serve(async (req: Request) => {
     const authId = session.metadata?.supabase_auth_id;
     const tier = session.metadata?.tier;
     const interval = session.metadata?.interval || 'monthly';
+    const marketingCampaignId = session.metadata?.marketing_campaign_id || null;
+    const marketingDeliveryId = session.metadata?.marketing_delivery_id || null;
 
     if (!userId || !authId || !tier) {
       console.error('[Sync] Missing metadata in session:', session.id);
@@ -123,7 +125,13 @@ Deno.serve(async (req: Request) => {
           ? session.subscription
           : session.subscription?.id || null,
       p_end_date: endDate.toISOString(),
-      p_metadata: { source: 'sync', session_id: session.id },
+      p_metadata: {
+        source: 'sync',
+        session_id: session.id,
+        marketing_campaign_id: marketingCampaignId,
+        marketing_delivery_id: marketingDeliveryId,
+        promo_code: session.metadata?.promo_code || null,
+      },
     });
 
     if (error) {
@@ -132,6 +140,33 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(`[Sync] ✅ User ${authId} synced to tier: ${tier}`);
+
+    if (marketingCampaignId && marketingDeliveryId) {
+      await serviceClient
+        .from('billing_history')
+        .update({
+          marketing_campaign_id: marketingCampaignId,
+          marketing_delivery_id: marketingDeliveryId,
+          promo_code: session.metadata?.promo_code || null,
+          gross_amount: (session.amount_subtotal || session.amount_total || 0) / 100,
+          discount_amount: (session.total_details?.amount_discount || 0) / 100,
+        })
+        .eq('transaction_id', session.id);
+      await serviceClient.from('marketing_events').insert({
+        campaign_id: marketingCampaignId,
+        delivery_id: marketingDeliveryId,
+        user_id: userId,
+        event_type: 'purchased',
+        channel: 'stripe',
+        dedupe_key: `${session.id}:purchased`,
+        metadata: {
+          transaction_id: session.id,
+          amount: (session.amount_total || 0) / 100,
+          currency: (session.currency || 'usd').toUpperCase(),
+          source: 'sync',
+        },
+      });
+    }
 
     return new Response(
       JSON.stringify({

@@ -264,6 +264,10 @@ export const refreshTrackingBootstrap = () => {
 export const trackPageView = (pathname = '/') => {
   if (!isBrowser()) return;
 
+  import('@/lib/marketingAttribution')
+    .then(({ captureMarketingAttribution }) => captureMarketingAttribution())
+    .catch(() => {});
+
   // PageView to Meta is owned entirely by GTM's FB-Base-Tag (All Pages
   // trigger, with its own browser+server pairing). Sending it again here
   // duplicated every single PageView, since this call shares no event ID

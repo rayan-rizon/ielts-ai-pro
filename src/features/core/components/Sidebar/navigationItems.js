@@ -21,6 +21,7 @@ import {
   Wallet,
   Gift,
   FlaskConical,
+  Target,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
@@ -55,6 +56,7 @@ export const adminNavigationItems = [
   { title: 'AI Usage', url: createPageUrl('AdminPanel') + '?tab=ai-usage', icon: Cpu },
   { title: 'Promo Codes', url: createPageUrl('AdminPanel') + '?tab=promo', icon: Crown },
   { title: 'Referrals', url: createPageUrl('AdminPanel') + '?tab=referrals', icon: Gift },
+  { title: 'Marketing', url: createPageUrl('AdminPanel') + '?tab=marketing', icon: Target },
   { title: 'Payments', url: createPageUrl('AdminPanel') + '?tab=payments', icon: CreditCard },
   {
     title: 'Communications',

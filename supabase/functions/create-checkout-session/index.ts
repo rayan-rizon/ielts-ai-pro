@@ -221,7 +221,8 @@ Deno.serve(async (req: Request) => {
     // =====================================================================
     // Input Validation (strict whitelist)
     // =====================================================================
-    const { tier, interval, currency } = await req.json();
+    const { tier, interval, currency, marketing_campaign_id, marketing_delivery_id } =
+      await req.json();
     // NOTE: priceAmount is intentionally NOT destructured — it is IGNORED
 
     if (!tier || !interval) {
@@ -235,6 +236,10 @@ Deno.serve(async (req: Request) => {
     if (!VALID_INTERVALS.has(interval)) {
       return errorResponse('Invalid interval', 400, corsHeaders);
     }
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    let marketingAttribution: { campaignId: string; deliveryId: string } | null = null;
 
     // SECURITY: Validate currency against whitelist
     const validatedCurrency =
@@ -255,6 +260,29 @@ Deno.serve(async (req: Request) => {
 
     if (userError || !userData) {
       return errorResponse('User not found', 404, corsHeaders);
+    }
+
+    // Campaign attribution is accepted only when the delivery belongs to the
+    // authenticated profile. A copied URL must never credit another learner's
+    // delivery or expose whether that delivery exists.
+    if (
+      uuidPattern.test(marketing_campaign_id || '') &&
+      uuidPattern.test(marketing_delivery_id || '')
+    ) {
+      const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: attributedDelivery } = await serviceClient
+        .from('marketing_deliveries')
+        .select('id,campaign_id,user_id')
+        .eq('id', marketing_delivery_id)
+        .eq('campaign_id', marketing_campaign_id)
+        .eq('user_id', userData.id)
+        .single();
+      if (attributedDelivery) {
+        marketingAttribution = {
+          campaignId: attributedDelivery.campaign_id,
+          deliveryId: attributedDelivery.id,
+        };
+      }
     }
 
     // SECURITY: Prevent overlapping subscriptions
@@ -518,6 +546,10 @@ Deno.serve(async (req: Request) => {
     checkoutBody['metadata[supabase_auth_id]'] = user.id;
     checkoutBody['metadata[tier]'] = tier;
     checkoutBody['metadata[interval]'] = interval;
+    if (marketingAttribution) {
+      checkoutBody['metadata[marketing_campaign_id]'] = marketingAttribution.campaignId;
+      checkoutBody['metadata[marketing_delivery_id]'] = marketingAttribution.deliveryId;
+    }
     if (validatedDiscount) {
       checkoutBody['metadata[promo_code]'] = validatedDiscount.code;
       checkoutBody['metadata[promo_discount_type]'] = validatedDiscount.discount_type;
@@ -527,6 +559,12 @@ Deno.serve(async (req: Request) => {
     checkoutBody['subscription_data[metadata][supabase_auth_id]'] = user.id;
     checkoutBody['subscription_data[metadata][tier]'] = tier;
     checkoutBody['subscription_data[metadata][interval]'] = interval;
+    if (marketingAttribution) {
+      checkoutBody['subscription_data[metadata][marketing_campaign_id]'] =
+        marketingAttribution.campaignId;
+      checkoutBody['subscription_data[metadata][marketing_delivery_id]'] =
+        marketingAttribution.deliveryId;
+    }
 
     // =====================================================================
     // Create Checkout Session

@@ -239,10 +239,11 @@ serve(async (req: Request) => {
       );
     }
 
-    // SECURITY: Cap input sizes to prevent token-draining attacks
-    // IELTS standards: Task 1 target = 150 words, Task 2 target = 250 words
-    // Generous buffers: Task 1 ≤ 1500 chars (~250 words), Task 2 ≤ 2500 chars (~400 words)
-    const MAX_WRITING_CHARS = taskType === 'Task 1' ? 1500 : 2500;
+    // SECURITY: Keep bounded inputs without rejecting legitimate IELTS work.
+    // Character count varies materially by language and formatting; the former
+    // 1,500-character Task 1 limit rejected a real 1,601-character response.
+    // These caps still bound prompt cost while allowing substantial over-writing.
+    const MAX_WRITING_CHARS = taskType === 'Task 1' ? 5000 : 8000;
     const MAX_PROMPT_CHARS = 1500; // Task prompts are typically < 200 chars
     if (writingText.length > MAX_WRITING_CHARS) {
       return new Response(

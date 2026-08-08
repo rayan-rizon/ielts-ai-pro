@@ -7,7 +7,8 @@ export type EmailType =
   | 'quota_conversion'
   | 'renewal_reminder'
   | 'trial_expiry'
-  | 'inactivity_warning';
+  | 'inactivity_warning'
+  | 'marketing_campaign';
 
 interface SendEmailParams {
   to: string;

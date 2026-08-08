@@ -43,6 +43,17 @@ const ttsCacheMigration = readFileSync(
   ),
   'utf8'
 );
+const correctedHealthMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260808155732_correct_platform_health_classification_and_timestamps.sql'
+  ),
+  'utf8'
+);
+const writingFeedbackSource = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/generateDetailedFeedback/index.ts'),
+  'utf8'
+);
 const synthesizeSpeechSource = readFileSync(
   resolve(process.cwd(), 'supabase/functions/synthesizeSpeech/index.ts'),
   'utf8'
@@ -159,5 +170,22 @@ describe('platform health database contracts', () => {
     expect(ttsCacheMigration).toContain('does not mean the examiner voice was silent');
     expect(synthesizeSpeechSource).toContain('cached: true');
     expect(synthesizeSpeechSource).not.toMatch(/finalizeApiUsage\([^)]*,\s*true,/);
+  });
+
+  it('separates scoring failures from recovered text-provider fallbacks', () => {
+    expect(correctedHealthMigration).toContain("'generateDetailedFeedback'");
+    expect(correctedHealthMigration).toContain("'generateAdaptiveLearningPath'");
+    expect(correctedHealthMigration).toContain("'recoveredFallbacks', v_recovered");
+    expect(correctedHealthMigration).toContain("'deterministicFallback' = 'true'");
+    expect(correctedHealthMigration).toContain("THEN 'ai_text_providers'");
+    expect(correctedHealthMigration).toContain("'{contractVersion}', '8'::jsonb");
+  });
+
+  it('preserves exact incident timestamps and accepts legitimate IELTS response lengths', () => {
+    expect(correctedHealthMigration).toContain('max(created_at)');
+    expect(correctedHealthMigration).toContain('min(created_at)');
+    expect(correctedHealthMigration).toContain('first_seen timestamptz');
+    expect(correctedHealthMigration).toContain('last_seen timestamptz');
+    expect(writingFeedbackSource).toContain("taskType === 'Task 1' ? 5000 : 8000");
   });
 });

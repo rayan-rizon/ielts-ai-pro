@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Kpi, AdminButton, AdminPageHeader, STAGGER_CONTAINER, FADE_UP } from './ui/primitives';
 import { PromoCodeDialog } from './promo/PromoCodeDialog';
 import { PromoCodeGrid } from './promo/PromoCodeGrid';
+import MarketingService from '@/features/admin/services/MarketingService';
 
 const emptyPromo = () => ({
   code: '',
@@ -17,6 +18,8 @@ const emptyPromo = () => ({
   applicable_plans: ['pro'],
   grants_subscription: null,
   subscription_duration_days: 30,
+  label: '',
+  marketing_campaign_id: '',
 });
 
 const validatePromo = (promo, promoCodes) => {
@@ -40,14 +43,24 @@ const PromoManagement = () => {
   const [loading, setLoading] = useState(true);
   const [isAddingPromo, setIsAddingPromo] = useState(false);
   const [newPromo, setNewPromo] = useState(emptyPromo());
+  const [campaigns, setCampaigns] = useState([]);
+  const [intelligence, setIntelligence] = useState([]);
   const requestId = useRef(0);
 
   const fetchPromoCodes = useCallback(async () => {
     const currentRequest = ++requestId.current;
     try {
       setLoading(true);
-      const promoData = await PromoCode.list();
-      if (currentRequest === requestId.current) setPromoCodes(promoData || []);
+      const [promoData, campaignData, offerData] = await Promise.all([
+        PromoCode.list(),
+        MarketingService.listCampaigns(),
+        MarketingService.getOfferIntelligence(),
+      ]);
+      if (currentRequest === requestId.current) {
+        setPromoCodes(promoData || []);
+        setCampaigns(campaignData || []);
+        setIntelligence(offerData?.promos || []);
+      }
     } catch (error) {
       if (currentRequest !== requestId.current) return;
       console.error('Error fetching promo codes:', error);
@@ -67,6 +80,8 @@ const PromoManagement = () => {
     try {
       await PromoCode.create({
         ...newPromo,
+        marketing_campaign_id: newPromo.marketing_campaign_id || null,
+        label: newPromo.label.trim() || null,
         code: newPromo.code.trim().toUpperCase(),
         is_active: true,
         current_uses: 0,
@@ -141,6 +156,7 @@ const PromoManagement = () => {
           promo={newPromo}
           onPromoChange={setNewPromo}
           onCreate={handleAddPromo}
+          campaigns={campaigns}
         />
       </m.div>
       <m.div variants={FADE_UP} className="grid grid-cols-3 gap-3">
@@ -155,6 +171,7 @@ const PromoManagement = () => {
           onCreate={() => setIsAddingPromo(true)}
           onToggle={togglePromoStatus}
           onDelete={handleDeletePromo}
+          intelligence={intelligence}
         />
       </m.div>
     </m.div>

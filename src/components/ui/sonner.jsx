@@ -3,21 +3,23 @@ import { useTheme } from 'next-themes';
 import { Toaster as Sonner } from 'sonner';
 
 const Toaster = ({ ...props }) => {
-  const { theme = 'system' } = useTheme();
+  // Resolve the actual app theme before handing it to Sonner. Passing `system`
+  // through can produce a dark toast over this app's light theme tokens.
+  const { resolvedTheme = 'light' } = useTheme();
 
   return (
     <Sonner
-      theme={theme}
+      theme={resolvedTheme}
       className="toaster group"
       toastOptions={{
         classNames: {
           toast:
-            'group toast group-[.toaster]:bg-white/95 dark:group-[.toaster]:bg-slate-900/95 group-[.toaster]:backdrop-blur-xl group-[.toaster]:text-slate-900 dark:group-[.toaster]:text-white group-[.toaster]:border-slate-200/90 dark:group-[.toaster]:border-slate-800 group-[.toaster]:shadow-2xl group-[.toaster]:rounded-2xl group-[.toaster]:p-4',
-          title: 'text-slate-900! dark:text-white! font-bold! text-sm',
-          description: 'text-slate-600! dark:text-slate-300! font-medium! text-xs opacity-100!',
-          actionButton: 'group-[.toast]:bg-indigo-600 group-[.toast]:text-white font-bold',
+            'group toast !rounded-xl !border !border-stone-200 !bg-white !p-4 !text-stone-900 dark:!border-white/10 dark:!bg-[#18171d] dark:!text-white',
+          title: '!text-sm !font-bold !text-stone-900 dark:!text-white',
+          description: '!text-xs !font-medium !text-stone-600 !opacity-100 dark:!text-stone-300',
+          actionButton: 'group-[.toast]:!bg-[#5a63df] group-[.toast]:!text-white !font-bold',
           cancelButton:
-            'group-[.toast]:bg-slate-100 dark:group-[.toast]:bg-slate-800 group-[.toast]:text-slate-600 dark:group-[.toast]:text-slate-300 font-medium',
+            'group-[.toast]:!bg-stone-100 group-[.toast]:!text-stone-700 dark:group-[.toast]:!bg-white/10 dark:group-[.toast]:!text-stone-200 !font-medium',
         },
       }}
       {...props}

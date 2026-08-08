@@ -46,6 +46,48 @@ async function recordServerConversion(
   }
 }
 
+async function recordMarketingPurchase(session: Stripe.Checkout.Session, userId: string) {
+  const campaignId = session.metadata?.marketing_campaign_id;
+  const deliveryId = session.metadata?.marketing_delivery_id;
+  const promoCode = session.metadata?.promo_code || null;
+  const grossAmount = (session.amount_subtotal || session.amount_total || 0) / 100;
+  const discountAmount = (session.total_details?.amount_discount || 0) / 100;
+  if (!campaignId || !deliveryId) return;
+
+  const { error: billingError } = await supabase
+    .from('billing_history')
+    .update({
+      marketing_campaign_id: campaignId,
+      marketing_delivery_id: deliveryId,
+      promo_code: promoCode,
+      gross_amount: grossAmount,
+      discount_amount: discountAmount,
+    })
+    .eq('transaction_id', session.id);
+  if (billingError)
+    console.warn('[Webhook] Marketing billing attribution failed:', billingError.message);
+
+  const { error: eventError } = await supabase.from('marketing_events').insert({
+    campaign_id: campaignId,
+    delivery_id: deliveryId,
+    user_id: userId,
+    event_type: 'purchased',
+    channel: 'stripe',
+    dedupe_key: `${session.id}:purchased`,
+    metadata: {
+      transaction_id: session.id,
+      amount: (session.amount_total || 0) / 100,
+      gross_amount: grossAmount,
+      discount_amount: discountAmount,
+      currency: (session.currency || 'usd').toUpperCase(),
+      promo_code: promoCode,
+    },
+  });
+  if (eventError && eventError.code !== '23505') {
+    console.warn('[Webhook] Marketing purchase event failed:', eventError.message);
+  }
+}
+
 // Tier mapping from price IDs
 const PRICE_TO_TIER: Record<string, string> = {
   [Deno.env.get('STRIPE_PRO_MONTHLY_PRICE_ID') || '']: 'pro',
@@ -230,7 +272,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
         ? session.subscription
         : (session.subscription as any)?.id || null,
     p_end_date: endDate.toISOString(),
-    p_metadata: { session_id: session.id, customer: session.customer },
+    p_metadata: {
+      session_id: session.id,
+      customer: session.customer,
+      marketing_campaign_id: session.metadata?.marketing_campaign_id || null,
+      marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
+      promo_code: session.metadata?.promo_code || null,
+    },
   });
 
   if (error) {
@@ -240,6 +288,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
 
   if (data?.success) {
     console.log(`[Webhook] ✅ User ${authId} upgraded to ${tier} successfully`);
+    await recordMarketingPurchase(session, userId);
     // promo_discount is cleared atomically inside the RPC — no need for a separate update
 
     // Fetch user email for the welcome email
@@ -269,6 +318,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       interval: interval || 'monthly',
       amount: (session.amount_total || 0) / 100,
       currency: (session.currency || 'usd').toUpperCase(),
+      marketing_campaign_id: session.metadata?.marketing_campaign_id || null,
+      marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
     });
   } else {
     console.warn('[Webhook] RPC returned:', data);

@@ -79,6 +79,8 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
         transaction_id: txnId,
         sender_phone: phone,
         status: 'pending',
+        marketing_campaign_id: data.marketingCampaignId || null,
+        marketing_delivery_id: data.marketingDeliveryId || null,
       });
 
       if (error) throw error;
@@ -90,6 +92,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
         value: data.price,
         currency: 'BDT',
         payment_method: selectedMethod.id,
+        campaign_id: data.marketingCampaignId || null,
       });
 
       setIsSuccess(true);

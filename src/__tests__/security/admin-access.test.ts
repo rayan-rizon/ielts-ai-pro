@@ -10,6 +10,7 @@ import {
 
 describe('admin access context', () => {
   beforeEach(() => {
+    window.localStorage.clear();
     window.sessionStorage.clear();
   });
 
@@ -24,6 +25,24 @@ describe('admin access context', () => {
     grantAdminAccess('admin-1');
 
     expect(hasAdminAccess('admin-2')).toBe(false);
+  });
+
+  it('survives a browser restart on the same device', () => {
+    grantAdminAccess('admin-1');
+
+    // Closing a browser clears tab session storage but retains persistent
+    // browser storage, where Supabase also keeps its refreshable session.
+    window.sessionStorage.clear();
+
+    expect(hasAdminAccess('admin-1')).toBe(true);
+  });
+
+  it('promotes an existing tab-only marker during the upgrade', () => {
+    window.sessionStorage.setItem('admin_access_user_id', 'admin-1');
+
+    expect(hasAdminAccess('admin-1')).toBe(true);
+    expect(window.localStorage.getItem('admin_access_user_id')).toBe('admin-1');
+    expect(window.sessionStorage.getItem('admin_access_user_id')).toBeNull();
   });
 
   it('uses the Supabase Auth ID from a merged public profile', () => {

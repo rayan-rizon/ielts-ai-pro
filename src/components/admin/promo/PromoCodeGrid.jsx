@@ -11,7 +11,12 @@ const PromoTypeIcon = ({ promo }) => {
   return <Tag className="w-3 h-3" />;
 };
 
-const PromoCard = ({ promo, index, onToggle, onDelete }) => {
+const formatRevenue = (revenue = {}) =>
+  Object.entries(revenue)
+    .map(([currency, amount]) => `${currency} ${Number(amount).toFixed(2)}`)
+    .join(' · ') || 'No revenue';
+
+const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
   const isExpired = new Date(promo.valid_until) < new Date();
   const status = isExpired ? 'expired' : promo.is_active ? 'active' : 'paused';
   const usagePercentage = Math.min(((promo.current_uses || 0) / (promo.max_uses || 1)) * 100, 100);
@@ -47,6 +52,11 @@ const PromoCard = ({ promo, index, onToggle, onDelete }) => {
         </div>
       </div>
       <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status]))}>{status}</span>
+      {(promo.label || promo.marketing_campaign_id) && (
+        <p className="truncate text-[10px] font-bold text-stone-500 dark:text-stone-400">
+          {promo.label || 'Campaign-owned offer'}
+        </p>
+      )}
       <div className="p-2 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6 flex items-center gap-2">
         <div
           className={cn(
@@ -103,11 +113,26 @@ const PromoCard = ({ promo, index, onToggle, onDelete }) => {
           />
         </div>
       </div>
+      {metrics && (
+        <div className="border-t border-stone-100 pt-2 dark:border-white/6">
+          <p className={cn(NUM, 'text-[10px] font-bold text-stone-700 dark:text-stone-200')}>
+            {metrics.purchasers || 0} purchasers · {formatRevenue(metrics.net_revenue)}
+          </p>
+        </div>
+      )}
     </m.div>
   );
 };
 
-export const PromoCodeGrid = ({ loading, promoCodes, onCreate, onToggle, onDelete }) => {
+export const PromoCodeGrid = ({
+  loading,
+  promoCodes,
+  intelligence = [],
+  onCreate,
+  onToggle,
+  onDelete,
+}) => {
+  const metricsById = new Map(intelligence.map((row) => [row.id, row]));
   if (!loading && promoCodes.length === 0) {
     return (
       <div className={cn(PANEL, 'py-20 flex flex-col items-center justify-center text-center')}>
@@ -135,6 +160,7 @@ export const PromoCodeGrid = ({ loading, promoCodes, onCreate, onToggle, onDelet
               <PromoCard
                 key={promo.id}
                 promo={promo}
+                metrics={metricsById.get(promo.id)}
                 index={index}
                 onToggle={onToggle}
                 onDelete={onDelete}

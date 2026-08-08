@@ -1,0 +1,193 @@
+import { supabase } from '@/lib/supabase';
+
+const CAMPAIGN_SELECT = `
+  *,
+  segment:marketing_segments(id,name,description,rules),
+  // Both directions are linked in the schema: a campaign can select a promo
+  // and a promo can record its owning campaign. Pin this embedded relation to
+  // the campaign's promo_code_id FK so PostgREST never has to guess.
+  promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,label,discount_type,discount_value)
+`;
+
+const normalizeCampaign = (campaign) => ({
+  ...campaign,
+  channels: Array.isArray(campaign.channels) ? campaign.channels : ['in_app'],
+  starts_at: campaign.starts_at || null,
+  ends_at: campaign.ends_at || null,
+  segment_id: campaign.segment_id || null,
+  promo_code_id: campaign.promo_code_id || null,
+});
+
+export const MarketingService = {
+  async listCampaigns() {
+    const { data, error } = await supabase
+      .from('marketing_campaigns')
+      .select(CAMPAIGN_SELECT)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createCampaign(campaign) {
+    const { data, error } = await supabase
+      .from('marketing_campaigns')
+      .insert(normalizeCampaign(campaign))
+      .select(CAMPAIGN_SELECT)
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateCampaign(id, campaign) {
+    const { data, error } = await supabase
+      .from('marketing_campaigns')
+      .update({ ...campaign, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select(CAMPAIGN_SELECT)
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async setCampaignStatus(id, status) {
+    return this.updateCampaign(id, {
+      status,
+      ...(status === 'active' ? { activated_at: new Date().toISOString() } : {}),
+      ...(status === 'completed' ? { completed_at: new Date().toISOString() } : {}),
+    });
+  },
+
+  async deleteCampaign(id) {
+    const { error } = await supabase.from('marketing_campaigns').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  async dispatchCampaign(id) {
+    const { data, error } = await supabase.functions.invoke('marketing-campaign-dispatch', {
+      body: { campaign_id: id },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
+
+  async listSegments() {
+    const { data, error } = await supabase.from('marketing_segments').select('*').order('name');
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createSegment(segment) {
+    const { data, error } = await supabase
+      .from('marketing_segments')
+      .insert(segment)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateSegment(id, patch) {
+    const { data, error } = await supabase
+      .from('marketing_segments')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteSegment(id) {
+    const { error } = await supabase.from('marketing_segments').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  async listTemplates() {
+    const { data, error } = await supabase
+      .from('marketing_campaign_templates')
+      .select('*')
+      .order('name');
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createTemplate(template) {
+    const { data, error } = await supabase
+      .from('marketing_campaign_templates')
+      .insert(template)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateTemplate(id, patch) {
+    const { data, error } = await supabase
+      .from('marketing_campaign_templates')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async estimateSegment(id) {
+    const { data, error } = await supabase.rpc('estimate_marketing_segment', {
+      p_segment_id: id,
+    });
+    if (error) throw error;
+    return data || { total: 0, email_eligible: 0, email_suppressed: 0 };
+  },
+
+  async getDashboard(days = 30) {
+    const { data, error } = await supabase.rpc('get_marketing_dashboard', { p_days: days });
+    if (error) throw error;
+    return data || { campaigns: [], revenue: [], totals: {} };
+  },
+
+  async getOfferIntelligence() {
+    const { data, error } = await supabase.rpc('get_marketing_offer_intelligence');
+    if (error) throw error;
+    return data || { promos: [], referrals: [] };
+  },
+
+  async getBreakdowns(days = 30) {
+    const { data, error } = await supabase.rpc('get_marketing_breakdowns', { p_days: days });
+    if (error) throw error;
+    return data || { delivery_channels: [], acquisition_sources: [], plans: [], first_touch: [] };
+  },
+
+  async getJourneyMetrics(days = 30) {
+    const { data, error } = await supabase.rpc('get_marketing_journey_metrics', { p_days: days });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async listJourneys() {
+    const { data, error } = await supabase
+      .from('marketing_journeys')
+      .select(
+        '*, segment:marketing_segments(id,name), campaign:marketing_campaigns(id,name,status)'
+      )
+      .order('created_at');
+    if (error) throw error;
+    return data || [];
+  },
+
+  async updateJourney(id, patch) {
+    const { data, error } = await supabase
+      .from('marketing_journeys')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select(
+        '*, segment:marketing_segments(id,name), campaign:marketing_campaigns(id,name,status)'
+      )
+      .single();
+    if (error) throw error;
+    return data;
+  },
+};
+
+export default MarketingService;
