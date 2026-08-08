@@ -2,6 +2,50 @@ export const BLOG_COVER_WIDTH = 1200;
 export const BLOG_COVER_HEIGHT = 675;
 
 const COVER_ALT_BY_SLUG = {
+  '7-places-to-get-free-full-ielts-mock-exams-online':
+    'IELTS learner studying 7 places to get free full ielts mock exams online with a laptop and notebook',
+  'ai-ielts-feedback-vs-human-tutors-which-to-trust':
+    'IELTS learner studying ai ielts feedback vs human tutors: which to trust? with a laptop and notebook',
+  'ai-ielts-prep-the-complete-beginner-s-guide-for-2026':
+    "IELTS learner studying AI IELTS prep: the complete beginner's guide for 2026 with a laptop and notebook",
+  'ai-ielts-preparation-tools-that-raise-your-band-score':
+    'IELTS learner using AI feedback tools for focused Writing and Speaking practice',
+  'best-free-cambridge-style-ielts-mock-tests-in-2026':
+    'IELTS learner preparing for a four-skill mock test with practice papers, headphones, and a timer',
+  'best-free-ielts-practice-tests-online-2026-picks':
+    'IELTS learner taking a full online IELTS practice test with headphones and a timer',
+  'best-online-ielts-prep-platforms-in-australia-2026':
+    'IELTS learner studying best online ielts prep platforms in australia with a laptop and notebook',
+  'best-online-platforms-for-ielts-speaking-practice-in-2026':
+    'IELTS learner studying the best online platforms for IELTS speaking practice in 2026 with a laptop and notebook',
+  'how-an-ai-ielts-platform-can-fast-track-your-band-score':
+    'IELTS learner studying how an ai ielts platform can fast-track your band score with a laptop and notebook',
+  'how-to-monitor-ielts-improvement-and-hit-your-target-band':
+    'IELTS learner reviewing weekly IELTS progress charts beside a study calendar',
+  'how-to-track-ielts-score-improvement-week-by-week':
+    'IELTS learner studying how to track ielts score improvement week by week with a laptop and notebook',
+  'ielts-band-score-explained-from-raw-marks-to-overall-band':
+    'IELTS learner studying ielts band score explained: from raw marks to overall band with a laptop and notebook',
+  'ielts-speaking-topics-questions-cue-cards-tips':
+    'IELTS learner rehearsing cue-card answers with question cards, a microphone, and a laptop',
+  'ielts-vs-toefl-for-us-admission-which-test-is-easier':
+    'IELTS learner studying ielts vs toefl for us admission: which test is easier? with a laptop and notebook',
+  'ielts-vs-toefl-for-us-universities-an-australian-guide':
+    'IELTS learner studying ielts vs toefl for us universities: an australian guide with a laptop and notebook',
+  'ielts-writing-task-2-tips-for-a-reliable-band-7-score':
+    'IELTS learner studying ielts writing task 2 tips for a reliable band 7+ score with a laptop and notebook',
+  'improve-your-ielts-essay-score-the-10-step-guide':
+    'IELTS learner studying improve your ielts essay score: the 10-step guide with a laptop and notebook',
+  'improve-your-ielts-writing-score-by-one-full-band':
+    'IELTS learner studying improve your ielts writing score by one full band with a laptop and notebook',
+  'is-ai-ielts-practice-actually-as-good-as-a-real-tutor':
+    'IELTS learner studying is ai ielts practice actually as good as a real tutor? with a laptop and notebook',
+  'minimum-ielts-scores-for-us-university-admission-2026-guide':
+    'IELTS learner studying minimum ielts scores for us university admission: 2026 guide with a laptop and notebook',
+  'track-your-ielts-progress-online-and-improve-faster':
+    'IELTS learner studying track your ielts progress online and improve faster with a laptop and notebook',
+  'ielts-academic-vs-general-test':
+    'IELTS learner comparing an Academic data report and a General Training letter at a study desk',
   'ielts-writing-coherence-cohesion-band-7':
     'IELTS learner reviewing an essay with connected paragraph notes on a bright study desk',
   'ielts-speaking-band-7-to-8-grammar-vocabulary':
