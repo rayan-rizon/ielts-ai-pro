@@ -72,6 +72,8 @@ export default function ListeningTestMainContent({
             examMode={isExamMode}
             isAwaitingStart={isAwaitingStart}
             examReview={examReview}
+            isFinished={isFinished}
+            correctAnswersMap={correctAnswersMap}
             onAudioEnded={onExamAudioEnded}
             onAudioDurationChange={(d) => {
               if (isExamMode || isAwaitingStart) return;
@@ -127,10 +129,10 @@ export default function ListeningTestMainContent({
                 variant="outline"
                 size="sm"
                 onClick={() => setLeftPanelWidth(100)}
-                className="w-full justify-start gap-2 h-9 text-xs font-bold border-slate-200 dark:border-white/[0.07] bg-white/50 dark:bg-white/4 backdrop-blur-sm rounded-xl"
+                className="h-9 w-full justify-start gap-2 rounded-xl border-slate-200 bg-white text-xs font-bold dark:border-white/[0.07] dark:bg-[#141319]"
               >
                 <Lightbulb className="w-4 h-4 text-[#5a63df]" />
-                {isExamMode ? 'Show Audio' : 'Show Transcript & Audio'}
+                {isExamMode && !isFinished ? 'Show Audio' : 'Show Transcript & Audio'}
               </Button>
             </div>
           )}
@@ -213,7 +215,7 @@ export default function ListeningTestMainContent({
                 }
               }}
               onTimeUpdate={(t) => dispatch({ type: ACTIONS.UPDATE_AUDIO_TIME, payload: t })}
-              examMode={isExamMode}
+              examMode={isExamMode && !isFinished}
               isAwaitingStart={isAwaitingStart}
               examReview={examReview}
               onEnded={onExamAudioEnded}

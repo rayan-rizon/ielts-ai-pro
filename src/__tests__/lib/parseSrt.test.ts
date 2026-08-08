@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { findActiveSegment, normalizeSrtContent, parseSrt } from '@/utils/parseSrt';
+import {
+  findActiveSegment,
+  isSilenceSegment,
+  normalizeSrtContent,
+  parsePlainTranscript,
+  parseSrt,
+  resolveTranscriptSpeakers,
+} from '@/utils/parseSrt';
 
 describe('parseSrt', () => {
   it('repairs split end timestamps without displaying them as transcript text', () => {
@@ -118,6 +125,42 @@ describe('parseSrt', () => {
     expect(findActiveSegment(segments, 62.5)).toBe(6);
   });
 
+  it('treats a third colon field over 59 as milliseconds, not seconds', () => {
+    const srt = [
+      '1',
+      '00:01:400 --> 00:02:200',
+      'Part one.',
+      '',
+      '2',
+      '00:58:700 --> 01:02:400',
+      'The conversation begins.',
+      '',
+      '3',
+      '10:02:400 --> 10:05:900',
+      'The compact minute field continues correctly.',
+    ].join('\n');
+
+    const segments = parseSrt(srt);
+
+    expect(segments).toEqual([
+      { id: 1, start: 1.4, end: 2.2, speaker: null, text: 'Part one.' },
+      {
+        id: 2,
+        start: 58.7,
+        end: 62.4,
+        speaker: null,
+        text: 'The conversation begins.',
+      },
+      {
+        id: 3,
+        start: 62.4,
+        end: 65.9,
+        speaker: null,
+        text: 'The compact minute field continues correctly.',
+      },
+    ]);
+  });
+
   it('clamps malformed two-part end timestamps like the provided part 2 transcript', () => {
     const srt = [
       '1',
@@ -180,6 +223,70 @@ describe('parseSrt', () => {
 
     expect(segments[1].start).toBe(5);
     expect(segments[1].end).toBe(8);
+  });
+
+  it('parses blankless SRT with mixed two-part and three-part timestamps', () => {
+    const srt = [
+      '1',
+      '00:00:04,90 --> 00:07,90',
+      'You will hear a university lecture.',
+      '2',
+      '00:07,90 --> 00:10,700',
+      'known as the Spirit Bear.',
+      '3',
+      '00:12,10 --> 00:16,600',
+      'First, you have some time to look at questions 31 to 40.',
+    ].join('\n');
+
+    const segments = parseSrt(srt);
+
+    expect(segments).toHaveLength(3);
+    expect(segments.map((segment) => segment.text)).toEqual([
+      'You will hear a university lecture.',
+      'known as the Spirit Bear.',
+      'First, you have some time to look at questions 31 to 40.',
+    ]);
+    expect(segments[2].start).toBeCloseTo(12.1, 3);
+  });
+
+  it('parses image-style transcripts without inventing timestamps', () => {
+    const transcript = [
+      'Job Details',
+      '',
+      'ANNOUNCER: Part 1. You will hear a telephone conversation.',
+      '',
+      'JULIE: Hello?',
+      'GREG: Is that Julie Davison?',
+    ].join('\n');
+
+    expect(parsePlainTranscript(transcript)).toEqual([
+      {
+        id: 1,
+        start: null,
+        end: null,
+        speaker: 'ANNOUNCER',
+        text: 'Part 1. You will hear a telephone conversation.',
+      },
+      { id: 2, start: null, end: null, speaker: 'JULIE', text: 'Hello?' },
+      { id: 3, start: null, end: null, speaker: 'GREG', text: 'Is that Julie Davison?' },
+    ]);
+  });
+
+  it('recognizes silence placeholders and propagates explicit speakers safely', () => {
+    const segments = [
+      { id: 1, start: 1, end: 2, speaker: null, text: 'You will hear two students.' },
+      { id: 2, start: 2.2, end: 3, speaker: null, text: 'First, you have some time.' },
+      { id: 3, start: 8, end: 9, speaker: 'MIA', text: 'Are we ready?' },
+      { id: 4, start: 9.1, end: 10, speaker: null, text: 'We should begin.' },
+    ];
+
+    expect(isSilenceSegment('[Silence]')).toBe(true);
+    expect(resolveTranscriptSpeakers(segments).map((segment) => segment.speaker)).toEqual([
+      'ANNOUNCER',
+      'ANNOUNCER',
+      'MIA',
+      'MIA',
+    ]);
   });
 });
 

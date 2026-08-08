@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, AlertCircle } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import SyncedTranscript from './SyncedTranscript';
-import { sanitizeHtml } from '@/lib/security';
+import { MICRO, PANEL, TITLE } from '@/features/dashboard/components/primitives.jsx';
 import {
   useListeningTestDispatch,
   useListeningTestState,
@@ -13,11 +13,14 @@ import {
 const TranscriptPanel = ({
   audioPlayerRef,
   currentSection,
+  sectionQuestions = [],
   onAudioDurationChange,
   isMobile,
   examMode = false,
   isAwaitingStart = false,
   examReview = false,
+  isFinished = false,
+  correctAnswersMap = {},
   onAudioEnded,
 }) => {
   const { showTranscript } = useListeningTestState();
@@ -26,6 +29,27 @@ const TranscriptPanel = ({
   const audioCurrentTime = useListeningAudioTime();
 
   const { dispatch, setAudioTimeRef, ACTIONS } = useListeningTestDispatch();
+  const canShowAudioscript = !examMode || isFinished;
+  const sourceHighlights = Array.isArray(currentSection.transcript_highlights)
+    ? currentSection.transcript_highlights
+    : [];
+  const sectionCorrectAnswersMap = React.useMemo(() => {
+    const questionNumbers = new Set();
+    sectionQuestions.forEach((question) => {
+      const start = Number(question._displayStartNumber || question.question_number || 0);
+      const end = Number(question._displayEndNumber || start);
+      for (let number = start; number <= end; number++) questionNumbers.add(number);
+    });
+
+    return Object.fromEntries(
+      Object.entries(correctAnswersMap).filter(([, answer]) =>
+        questionNumbers.has(Number.parseInt(answer?.questionNumber, 10))
+      )
+    );
+  }, [correctAnswersMap, sectionQuestions]);
+  const hasAnswerEvidence =
+    sourceHighlights.length > 0 || Object.keys(sectionCorrectAnswersMap).length > 0;
+  const shouldShowAnswerHighlights = isFinished || (!examMode && hasAnswerEvidence);
 
   return (
     <div
@@ -41,7 +65,7 @@ const TranscriptPanel = ({
               src={currentSection.audio_url}
               onDurationChange={onAudioDurationChange}
               onTimeUpdate={setAudioTimeRef}
-              examMode={examMode}
+              examMode={examMode && !isFinished}
               isAwaitingStart={isAwaitingStart}
               examReview={examReview}
               onEnded={onAudioEnded}
@@ -59,11 +83,8 @@ const TranscriptPanel = ({
       )}
 
       {/* Synchronized Transcript Section - Integrated Panel */}
-      {!examMode ? (
-        <div
-          className="flex-1 flex flex-col min-h-0 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] overflow-hidden shadow-2xs"
-          data-oid="qpvv9b:"
-        >
+      {canShowAudioscript ? (
+        <div className={`${PANEL} flex min-h-0 flex-1 flex-col overflow-hidden`} data-oid="qpvv9b:">
           {/* Header */}
           <div
             className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb]/60 dark:bg-white/4 shrink-0"
@@ -80,17 +101,23 @@ const TranscriptPanel = ({
                 />
               </div>
               <div data-oid="u_ye_06">
-                <h3
-                  className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm leading-tight"
-                  data-oid="6.0lfsc"
-                >
+                <h3 className={TITLE} data-oid="6.0lfsc">
                   Audioscript
                 </h3>
+                {currentSection.title && (
+                  <p className="mt-1 text-[15px] font-black leading-snug text-slate-900 dark:text-slate-100 sm:text-base">
+                    {currentSection.title}
+                  </p>
+                )}
                 <p
-                  className="text-[10px] text-slate-500 dark:text-slate-400 font-medium"
+                  className={`${MICRO} mt-0.5 normal-case tracking-normal text-slate-500 dark:text-slate-400`}
                   data-oid="3:e_l1s"
                 >
-                  Click sentences to jump to audio
+                  {sourceHighlights.length
+                    ? 'Official answer evidence is highlighted in green'
+                    : hasAnswerEvidence
+                      ? 'Correct answer phrases are highlighted in green'
+                      : 'Click sentences to jump to audio'}
                 </p>
               </div>
             </div>
@@ -108,10 +135,14 @@ const TranscriptPanel = ({
           {showTranscript && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden" data-oid="r:.vey5">
               <div className="flex-1 overflow-y-auto custom-scrollbar p-2" data-oid="e.ho-eb">
-                {currentSection.srt_content ? (
+                {currentSection.srt_content || currentSection.transcript ? (
                   <SyncedTranscript
-                    srtContent={currentSection.srt_content}
+                    srtContent={currentSection.srt_content || ''}
+                    plainTranscript={currentSection.transcript || ''}
                     currentTime={audioCurrentTime}
+                    correctAnswersMap={sectionCorrectAnswersMap}
+                    sourceHighlights={sourceHighlights}
+                    showAnswerHighlights={shouldShowAnswerHighlights}
                     onSegmentClick={(time) => {
                       if (audioPlayerRef.current) {
                         audioPlayerRef.current.seek(time);
@@ -120,14 +151,6 @@ const TranscriptPanel = ({
                     }}
                     data-oid="tr-83sc"
                   />
-                ) : currentSection.transcript ? (
-                  <div className="p-4" data-oid="unnwl9n">
-                    <div
-                      className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed font-normal"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentSection.transcript) }}
-                      data-oid="2o8:mg3"
-                    />
-                  </div>
                 ) : (
                   <div
                     className="flex flex-col items-center justify-center h-40 text-center p-6"

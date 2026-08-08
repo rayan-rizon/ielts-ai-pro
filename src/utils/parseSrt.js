@@ -13,6 +13,28 @@ const SPLIT_END_TIMESTAMP_PATTERN = new RegExp(
   String.raw`^([ \t]*${TIMESTAMP_TOKEN}[ \t]*-->)[ \t]*\d+[ \t]*\n[ \t]*(${TIMESTAMP_TOKEN})[ \t]*$`,
   'gm'
 );
+const CUE_PATTERN = new RegExp(
+  String.raw`(?:^|\n)[ \t]*(?:(\d+)[ \t]*\n[ \t]*)?(${TIMESTAMP_TOKEN})[ \t]*-->[ \t]*(${TIMESTAMP_TOKEN})[ \t]*\n([\s\S]*?)(?=(?:\n[ \t]*(?:\d+[ \t]*\n[ \t]*)?${TIMESTAMP_TOKEN}[ \t]*-->)|$)`,
+  'g'
+);
+
+const ANNOUNCER_PATTERNS = [
+  /^(?:section|part)\s+(?:\d+|one|two|three|four)\b/i,
+  /^you will hear\b/i,
+  /^first,? you have some time\b/i,
+  /^before you hear\b/i,
+  /^now listen(?: carefully)?\b/i,
+  /^listen carefully\b/i,
+  /^you should answer the questions\b/i,
+  /^you will see that there is an example\b/i,
+  /^on this occasion only\b/i,
+  /^now we shall begin\b/i,
+  /^that is the end of\b/i,
+  /^you now have\b/i,
+  /^the customer(?:'s|s') name\b/i,
+];
+
+const SILENCE_PATTERN = /^(?:\[|\()?\s*(?:silence|no speech|inaudible)\s*(?:\]|\))?[.!]?$/i;
 
 /**
  * Repairs a narrowly defined malformed SRT shape produced by some AI responses:
@@ -95,9 +117,26 @@ function buildTimestampCandidates(timestamp) {
 
     const asHMS = v1 * 3600 + v2 * 60 + v3 + ms;
     const asMinuteSecondMilliseconds = v1 * 60 + v2 + v3 / 1000;
+    // A third, colon-delimited field over 59 cannot be seconds. Some source
+    // exports write milliseconds as `MM:SS:mmm` (for example `00:01:400`).
+    // Prefer that unambiguous interpretation before the usual H:M:S form;
+    // otherwise a 1.4-second cue is incorrectly placed at 7:40.
+    const isColonDelimitedMilliseconds = msFrac === undefined && v3 > 59;
 
-    pushCandidate(candidates, asHMS, asHMS <= MAX_REASONABLE_TIMESTAMP ? 0 : 3);
-    pushCandidate(candidates, asMinuteSecondMilliseconds, 1);
+    pushCandidate(
+      candidates,
+      asHMS,
+      isColonDelimitedMilliseconds ? 3 : asHMS <= MAX_REASONABLE_TIMESTAMP ? 0 : 3
+    );
+    pushCandidate(candidates, asMinuteSecondMilliseconds, isColonDelimitedMilliseconds ? 0 : 1);
+
+    // A second corruption seen in the same export family prefixes the minute
+    // field with a trailing zero: `10:02:400` represents 1:02.400, not ten
+    // minutes. Keep the normal interpretation as a candidate, but prefer the
+    // compact form when the milliseconds field makes the format unambiguous.
+    if (isColonDelimitedMilliseconds && v1 >= 10 && v1 % 10 === 0) {
+      pushCandidate(candidates, (v1 / 10) * 60 + v2 + v3 / 1000, 0);
+    }
 
     if (msFrac !== undefined) {
       // Some imported files encode the third group as whole seconds.
@@ -257,6 +296,27 @@ function repairNonMonotonicSegments(segments) {
   return repaired;
 }
 
+function repairIsolatedHourSentinels(segments) {
+  return segments.map((segment, index) => {
+    const previous = segments[index - 1];
+    const isHourSentinel = /^\d{1,2}:00:00(?:[,.]0{1,3})?$/.test(segment.startRaw);
+
+    if (
+      previous &&
+      isHourSentinel &&
+      segment.start < previous.end &&
+      segment.end > previous.end + START_ORDER_TOLERANCE
+    ) {
+      return {
+        ...segment,
+        start: Math.min(segment.end - 0.05, previous.end + 0.1),
+      };
+    }
+
+    return segment;
+  });
+}
+
 /**
  * Extracts speaker label from text (e.g., "SPEAKER 1: Hello" -> { speaker: "SPEAKER 1", text: "Hello" })
  * @param {string} text - Raw subtitle text
@@ -278,6 +338,78 @@ export function extractSpeaker(text) {
   return { speaker: null, text: text.trim() };
 }
 
+export function isSilenceSegment(segmentOrText) {
+  const text =
+    typeof segmentOrText === 'string' ? segmentOrText : String(segmentOrText?.text || '');
+  return SILENCE_PATTERN.test(text.trim());
+}
+
+export function isAnnouncerText(text) {
+  const normalized = String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return ANNOUNCER_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+/**
+ * Adds presentation-only speaker continuity without changing cue timing.
+ * Explicit labels remain authoritative. Announcer copy is recognized from the
+ * fixed IELTS instructions, and dialogue cues inherit the last explicit
+ * speaker until another label appears.
+ */
+export function resolveTranscriptSpeakers(segments) {
+  let activeSpeaker = null;
+  let previous = null;
+
+  return segments.map((segment) => {
+    let speaker = segment.speaker;
+
+    if (speaker) {
+      activeSpeaker = speaker;
+    } else if (isAnnouncerText(segment.text)) {
+      speaker = 'ANNOUNCER';
+      activeSpeaker = speaker;
+    } else if (activeSpeaker === 'ANNOUNCER') {
+      const gap = previous ? segment.start - previous.end : Number.POSITIVE_INFINITY;
+      speaker = gap <= 2 ? activeSpeaker : null;
+      if (!speaker) activeSpeaker = null;
+    } else if (activeSpeaker) {
+      speaker = activeSpeaker;
+    }
+
+    const resolved = { ...segment, speaker };
+    previous = resolved;
+    return resolved;
+  });
+}
+
+/**
+ * Parses image-style/plain audioscripts that have speaker labels but no time
+ * codes. These entries are deliberately unsynchronised: callers must not
+ * invent seek positions for source text that has no timing evidence.
+ */
+export function parsePlainTranscript(transcript) {
+  if (!transcript || typeof transcript !== 'string') return [];
+
+  const content = transcript.replace(/\r\n?/g, '\n').trim();
+  const labelPattern = /(?:^|\n)\s*[‘'"“]?([A-Z][A-Z0-9 .&'’-]{1,48}):\s*/g;
+  const matches = [...content.matchAll(labelPattern)];
+
+  return matches
+    .map((match, index) => {
+      const start = match.index + match[0].length;
+      const end = matches[index + 1]?.index ?? content.length;
+      return {
+        id: index + 1,
+        start: null,
+        end: null,
+        speaker: match[1].trim(),
+        text: content.slice(start, end).replace(/\s+/g, ' ').trim(),
+      };
+    })
+    .filter((segment) => segment.text && !isSilenceSegment(segment));
+}
+
 /**
  * Parses SRT content into structured array of segments
  * Supports pattern-based splitting for robustness
@@ -289,57 +421,33 @@ export function parseSrt(srtContent) {
 
   const content = normalizeSrtContent(srtContent);
 
-  // Split by double newlines first (standard SRT)
-  let chunks = content.split(/\n\n+/);
+  const cueMatches = [...content.matchAll(CUE_PATTERN)];
 
-  // Fallback: splitting by regex pattern if chunks are too few (pasted without blank lines)
-  if (chunks.length < 2 && content.length > 50) {
-    // Look for pattern: Newline + Number + Newline + Timestamp
-    // matches \n1\n00:00:00 or similar
-    const splitPattern = /\n(?=\d+\n\d{2}:\d{2}:\d{2})/;
-    chunks = content.split(splitPattern);
-  }
-
-  const segments = chunks
-    .map((chunk) => {
-      const lines = chunk.trim().split('\n');
-      if (lines.length < 2) return null;
-
-      // Find line with '-->'
-      let timeLineIndex = lines.findIndex((l) => l.includes('-->'));
-      if (timeLineIndex === -1) return null;
-
-      const timeLine = lines[timeLineIndex];
-      const times = timeLine.split('-->');
-      if (times.length !== 2) return null;
-
-      const startRaw = times[0].trim();
-      const endRaw = times[1].trim();
+  const segments = cueMatches
+    .map((match, cueIndex) => {
+      const [, idRaw, startRaw, endRaw, rawText] = match;
       const start = parseTimestamp(startRaw);
       const end = parseTimestamp(endRaw);
-
-      // Text is everything after the timestamp line
-      const textLines = lines.slice(timeLineIndex + 1);
-      const fullText = textLines.join(' ').trim();
+      const fullText = rawText.replace(/\n\s*(?=\S)/g, ' ').trim();
 
       const { speaker, text } = extractSpeaker(fullText);
-
-      let id = 0;
-      if (timeLineIndex > 0) {
-        const idStr = lines[timeLineIndex - 1].trim();
-        id = parseInt(idStr) || 0;
-      }
+      const id = parseInt(idRaw, 10) || cueIndex + 1;
 
       return { id, startRaw, endRaw, start, end, speaker, text };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((segment) => !isSilenceSegment(segment));
 
-  const hasNonMonotonicStart = segments.some(
+  const sentinelRepairedSegments = repairIsolatedHourSentinels(segments);
+
+  const hasNonMonotonicStart = sentinelRepairedSegments.some(
     (segment, index) =>
-      index > 0 && segment.start < segments[index - 1].start - START_ORDER_TOLERANCE
+      index > 0 && segment.start < sentinelRepairedSegments[index - 1].start - START_ORDER_TOLERANCE
   );
 
-  let normalizedSegments = hasNonMonotonicStart ? repairNonMonotonicSegments(segments) : segments;
+  let normalizedSegments = hasNonMonotonicStart
+    ? repairNonMonotonicSegments(sentinelRepairedSegments)
+    : sentinelRepairedSegments;
 
   // ── Post-parse sanitization ──────────────────────────────────────────
   // Repair malformed windows and clamp cues so each segment stays within
