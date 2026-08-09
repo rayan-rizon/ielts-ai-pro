@@ -317,6 +317,12 @@ verify_jwt = false
 [functions.marketing-track]
 verify_jwt = false
 
+# Reached from an email footer and from the mail client's own one-click
+# unsubscribe POST, neither of which carries a JWT. The delivery's
+# tracking_token in the URL is what authenticates the request.
+[functions.marketing-unsubscribe]
+verify_jwt = false
+
 [functions.resend-marketing-webhook]
 verify_jwt = false
 

@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Ban,
-  Edit3,
   Eye,
   Megaphone,
   MoreHorizontal,
   Pause,
+  Pencil,
   Play,
   Plus,
   Send,
@@ -30,7 +30,6 @@ import {
   PANEL,
   Pill,
   SIGNAL_BG,
-  TITLE,
   Tip,
   WELL,
 } from '@/components/admin/ui/primitives';
@@ -69,84 +68,108 @@ const CampaignCard = ({
   const isCore = campaign.objective === 'paid_conversion';
 
   return (
-    <div className={cn(PANEL, 'relative flex flex-col overflow-hidden')}>
-      {/* Status rail — the card's state is readable before any text is. */}
+    <div className={cn(PANEL, 'relative flex flex-col overflow-hidden text-xs')}>
+      {/* Status rail */}
       <span
         className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}
       />
 
-      <div className="flex items-start justify-between gap-3 p-4 pl-5">
+      <div className="flex items-start justify-between gap-1.5 p-2.5 pl-3.5 pb-1.5">
         <div className="min-w-0">
-          <h3 className={cn(TITLE, 'truncate')}>{campaign.name}</h3>
-          <p className={cn('mt-1 truncate text-[11px] font-medium', MUTED)}>
+          <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+            {campaign.name}
+          </h3>
+          <p className={cn('truncate text-[10px] font-medium leading-tight', MUTED)}>
             {campaign.segment?.name || 'No audience'} · {campaign.objective.replaceAll('_', ' ')}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <Pill tone={tone}>{campaign.status}</Pill>
-          {isCore && <Pill tone="accent">core</Pill>}
+        <div className="flex shrink-0 items-center gap-1">
+          <Pill tone={tone} className="px-1.5 py-0 text-[9px]">
+            {campaign.status}
+          </Pill>
+          {isCore && (
+            <Pill tone="accent" className="px-1.5 py-0 text-[9px]">
+              core
+            </Pill>
+          )}
         </div>
       </div>
 
-      <div className="px-4 pl-5">
-        <div className={cn(WELL, 'rounded-lg p-3')}>
-          <p className="text-xs font-extrabold leading-snug text-stone-800 dark:text-stone-100">
+      <div className="space-y-1.5 px-2.5 pl-3.5">
+        <div className={cn(WELL, 'rounded-md p-2')}>
+          <p className="truncate text-[11px] font-bold leading-tight text-stone-800 dark:text-stone-100">
             {campaign.title}
           </p>
-          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <p className="mt-0.5 line-clamp-1 text-[10px] leading-snug text-stone-600 dark:text-stone-300">
             {campaign.message}
           </p>
         </div>
-        <div className="mt-2.5 flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1">
           {campaign.channels.map((channel) => (
-            <Pill key={channel} tone="neutral">
+            <Pill key={channel} tone="neutral" className="px-1.5 py-0 text-[9px]">
               {CHANNEL_SHORT[channel] || channel.replace('_', ' ')}
             </Pill>
           ))}
-          {campaign.promo?.code && <Pill tone="warn">{campaign.promo.code}</Pill>}
+          {campaign.promo?.code && (
+            <Pill tone="warn" className="px-1.5 py-0 text-[9px]">
+              {campaign.promo.code}
+            </Pill>
+          )}
         </div>
       </div>
 
       {issue && (
-        <div className="ml-5 mr-4 mt-3 flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2.5 py-1.5">
-          <AlertTriangle className="h-3 w-3 shrink-0 text-[rgb(var(--signal-warn))]" />
-          <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>{issue}</span>
+        <div className="ml-3.5 mr-2.5 mt-1.5 flex items-center gap-1 rounded border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2 py-1">
+          <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-[rgb(var(--signal-warn))]" />
+          <span
+            className={cn(
+              MICRO,
+              'truncate text-[9px] leading-tight text-[rgb(var(--signal-warn))]'
+            )}
+          >
+            {issue}
+          </span>
         </div>
       )}
 
-      {/* Audience read-out sits on its own line so the action row stays short. */}
-      <div className="mt-auto px-4 pl-5 pt-3">
+      {/* Audience estimation */}
+      <div className="mt-auto px-2.5 pl-3.5 pt-2">
         <button
           type="button"
           onClick={estimate}
           disabled={estimating || !campaign.segment_id}
           className={cn(
-            'flex w-full items-center justify-between rounded-md border border-dashed border-stone-200 px-2.5 py-1.5 transition-colors hover:border-stone-300 disabled:cursor-default disabled:opacity-60 dark:border-white/10 dark:hover:border-white/20'
+            'flex w-full items-center justify-between rounded border border-dashed border-stone-200 px-2 py-1 transition-colors hover:border-stone-300 disabled:cursor-default disabled:opacity-60 dark:border-white/10 dark:hover:border-white/20'
           )}
         >
-          <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
-            <Users className="h-3 w-3" />
+          <span className={cn(MICRO, MUTED, 'flex items-center gap-1 text-[9px]')}>
+            <Users className="h-2.5 w-2.5" />
             Audience
           </span>
-          <span className={cn(NUM, 'text-[11px] font-bold text-stone-700 dark:text-stone-200')}>
+          <span
+            className={cn(
+              NUM,
+              'ml-1 truncate text-[10px] font-bold text-stone-700 dark:text-stone-200'
+            )}
+          >
             {estimating
               ? 'estimating…'
               : campaign.estimate
-                ? `${campaign.estimate.total.toLocaleString()} · ${campaign.estimate.email_eligible.toLocaleString()} email-ready`
+                ? `${campaign.estimate.total.toLocaleString()} · ${campaign.estimate.email_eligible.toLocaleString()} email`
                 : 'tap to estimate'}
           </span>
         </button>
       </div>
 
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-stone-200/80 p-3 pl-5 dark:border-white/[0.07]">
-        <span className={cn(NUM, 'text-[10px] font-bold', MUTED)}>
-          {campaign.cooldown_hours}h cooldown · cap {campaign.frequency_cap}
+      <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-stone-200/80 p-2 pl-3.5 dark:border-white/[0.07]">
+        <span className={cn(NUM, 'truncate text-[9px] font-medium', MUTED)}>
+          {campaign.cooldown_hours}h · cap {campaign.frequency_cap}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {campaign.channels.includes('email') && (
             <IconAction icon={Eye} label="Preview email" onClick={onPreview} />
           )}
-          <IconAction icon={Edit3} label="Edit campaign" onClick={onEdit} />
+          <IconAction icon={Pencil} label="Edit campaign" onClick={onEdit} />
 
           {action === 'activate' && (
             <AdminButton
@@ -159,14 +182,20 @@ const CampaignCard = ({
                     : 'active'
                 )
               }
+              className="h-7 px-2 text-[11px]"
             >
-              <Play className="h-3 w-3" />
+              <Play className="mr-0.5 h-2.5 w-2.5" />
               Activate
             </AdminButton>
           )}
           {action === 'dispatch' && (
-            <AdminButton size="sm" loading={dispatching} onClick={onDispatch}>
-              <Send className="h-3 w-3" />
+            <AdminButton
+              size="sm"
+              loading={dispatching}
+              onClick={onDispatch}
+              className="h-7 px-2 text-[11px]"
+            >
+              <Send className="mr-0.5 h-2.5 w-2.5" />
               Dispatch
             </AdminButton>
           )}
@@ -174,8 +203,13 @@ const CampaignCard = ({
           {!['completed', 'cancelled'].includes(campaign.status) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <AdminButton variant="ghost" size="sm" aria-label="More actions">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
+                <AdminButton
+                  variant="ghost"
+                  size="sm"
+                  aria-label="More actions"
+                  className="h-7 w-7 p-0"
+                >
+                  <MoreHorizontal className="h-3 w-3" />
                 </AdminButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
@@ -337,7 +371,7 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
           </Empty>
         </div>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visible.map((campaign) => (
             <CampaignCard
               key={campaign.id}

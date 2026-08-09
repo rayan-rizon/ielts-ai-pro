@@ -1,6 +1,13 @@
 import { AlertTriangle, Workflow } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
 import {
@@ -16,7 +23,7 @@ import {
   TITLE,
   WELL,
 } from '@/components/admin/ui/primitives';
-import { JOURNEY_STATE_TONE, journeyState } from './shared';
+import { JOURNEY_STATE_TONE, journeyState, STATUS_TONE } from './shared';
 
 /**
  * Journeys are automations, so the question a card must answer is "is this
@@ -66,7 +73,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
   }
 
   return (
-    <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+    <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {journeys.map((journey) => {
         const metric = metrics.find((row) => row.id === journey.id) || {};
         const state = journeyState(journey, campaigns);
@@ -75,21 +82,25 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
         return (
           <div
             key={journey.id}
-            className={cn(PANEL, 'relative flex flex-col overflow-hidden p-4 pl-5')}
+            className={cn(PANEL, 'relative flex flex-col overflow-hidden p-2.5 pl-3.5 text-xs')}
           >
             <span
               className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}
             />
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-1.5">
               <div className="min-w-0">
-                <h3 className={cn(TITLE, 'truncate')}>{journey.name}</h3>
-                <p className={cn('mt-1 truncate text-[11px] font-medium', MUTED)}>
+                <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+                  {journey.name}
+                </h3>
+                <p className={cn('truncate text-[10px] font-medium leading-tight', MUTED)}>
                   {journey.trigger_type.replaceAll('_', ' ')} ·{' '}
                   {journey.segment?.name || 'no segment'} · {journey.cooldown_hours}h cooldown
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Pill tone={tone}>{state}</Pill>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Pill tone={tone} className="px-1.5 py-0 text-[9px]">
+                  {state}
+                </Pill>
                 <Switch
                   aria-label={`Toggle ${journey.name}`}
                   checked={journey.is_active}
@@ -99,59 +110,83 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
               </div>
             </div>
 
-            <label className="mt-3 block">
-              <FieldLabel>Campaign</FieldLabel>
-              <select
-                className={cn(FIELD, 'w-full px-3')}
-                value={journey.campaign_id || ''}
-                onChange={(event) => assign(journey, event.target.value)}
+            <div className="mt-2 block">
+              <FieldLabel className="text-[10px]">Campaign</FieldLabel>
+              <Select
+                value={journey.campaign_id || 'none'}
+                onValueChange={(val) => assign(journey, val === 'none' ? '' : val)}
               >
-                <option value="">Choose campaign…</option>
-                {campaigns.map((campaign) => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name} · {campaign.status}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <SelectTrigger className="h-7 w-full px-2 text-[11px] bg-stone-50 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 rounded-md focus:ring-1 focus:ring-[#5a63df]/50">
+                  <SelectValue placeholder="Choose campaign…" />
+                </SelectTrigger>
+                <SelectContent className="dark:bg-[#16151a] dark:border-white/10 text-xs z-50">
+                  <SelectItem value="none" className="text-[11px] text-stone-400">
+                    Choose campaign…
+                  </SelectItem>
+                  {campaigns.map((campaign) => (
+                    <SelectItem
+                      key={campaign.id}
+                      value={campaign.id}
+                      className="text-[11px] py-1.5 cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between gap-3 w-full pr-2">
+                        <span className="truncate font-medium">{campaign.name}</span>
+                        <Pill
+                          tone={STATUS_TONE[campaign.status] || 'neutral'}
+                          className="px-1.5 py-0 text-[8px] shrink-0"
+                        >
+                          {campaign.status}
+                        </Pill>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {state === 'unarmed' && (
-              <div className="mt-2 flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2.5 py-1.5">
-                <AlertTriangle className="h-3 w-3 shrink-0 text-[rgb(var(--signal-warn))]" />
-                <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
-                  Assign a campaign to arm this journey
+              <div className="mt-1.5 flex items-center gap-1 rounded border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2 py-1">
+                <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-[rgb(var(--signal-warn))]" />
+                <span
+                  className={cn(
+                    MICRO,
+                    'text-[9px] leading-tight text-[rgb(var(--signal-warn))] truncate'
+                  )}
+                >
+                  Assign campaign to arm journey
                 </span>
               </div>
             )}
 
-            {/* The silent-failure case: switched on, scheduled every fifteen
-                minutes, and rejected by the dispatcher every time because the
-                campaign behind it is not active. */}
             {state === 'stalled' && (
-              <div className="mt-2 rounded-md border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-2.5 py-2">
-                <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="h-3 w-3 shrink-0 text-[rgb(var(--signal-fault))]" />
-                  <span className={cn(MICRO, 'text-[rgb(var(--signal-fault))]')}>
+              <div className="mt-1.5 rounded border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-2 py-1">
+                <div className="flex items-center gap-1">
+                  <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-[rgb(var(--signal-fault))]" />
+                  <span
+                    className={cn(
+                      MICRO,
+                      'text-[9px] leading-tight text-[rgb(var(--signal-fault))]'
+                    )}
+                  >
                     Switched on but sending nothing
                   </span>
                 </div>
-                <p className={cn('mt-1 text-[10px] font-medium leading-snug', MUTED)}>
-                  “{assigned?.name}” is {assigned?.status}. Activate that campaign under Campaigns,
-                  or switch this journey off.
+                <p className={cn('mt-0.5 text-[9px] font-medium leading-snug truncate', MUTED)}>
+                  “{assigned?.name}” is {assigned?.status}. Activate campaign or switch off.
                 </p>
               </div>
             )}
 
-            <div className={cn(WELL, 'mt-auto grid grid-cols-5 gap-2 rounded-lg p-3')}>
+            <div className={cn(WELL, 'mt-auto grid grid-cols-5 gap-1 rounded-md p-2 mt-2')}>
               {METRIC_ROW.map(([label, key, tone]) => {
                 const value = Number(metric[key] || 0);
                 return (
                   <div key={key}>
-                    <p className={cn(MICRO, MUTED)}>{label}</p>
+                    <p className={cn(MICRO, MUTED, 'text-[8px] truncate')}>{label}</p>
                     <p
                       className={cn(
                         NUM,
-                        'mt-1 text-sm font-bold',
+                        'mt-0.5 text-xs font-bold',
                         tone === 'fault' && value > 0
                           ? 'text-[rgb(var(--signal-fault))]'
                           : tone === 'ok' && value > 0
@@ -165,7 +200,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
                 );
               })}
             </div>
-            <p className={cn(MICRO, MUTED, 'mt-2')}>Last 30 days</p>
+            <p className={cn(MICRO, MUTED, 'mt-1 text-[9px]')}>Last 30 days</p>
           </div>
         );
       })}

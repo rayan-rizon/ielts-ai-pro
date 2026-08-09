@@ -22,7 +22,23 @@ interface SendEmailParams {
    * is a long-standing spam heuristic.
    */
   text?: string;
+  /**
+   * Extra SMTP headers. Marketing sends pass List-Unsubscribe and
+   * List-Unsubscribe-Post here so the mail client shows its own native
+   * unsubscribe control — Gmail and Yahoo require one-click opt-out from bulk
+   * senders, and without it they push recipients toward "report spam" instead.
+   */
+  headers?: Record<string, string>;
 }
+
+/**
+ * RFC 8058 one-click unsubscribe headers for a specific delivery.
+ * The mailto: fallback covers clients that predate one-click.
+ */
+export const unsubscribeHeaders = (unsubscribeUrl: string) => ({
+  'List-Unsubscribe': `<mailto:unsubscribe@ieltsai.pro>, <${unsubscribeUrl}>`,
+  'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+});
 
 const resendApiKey = Deno.env.get('RESEND_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -87,7 +103,7 @@ function providerErrorMessage(result: unknown): string {
   );
 }
 
-export async function sendEmail({ to, subject, html, text, type }: SendEmailParams) {
+export async function sendEmail({ to, subject, html, text, headers, type }: SendEmailParams) {
   if (!resendApiKey) {
     console.error('Missing RESEND_API_KEY');
     await recordDispatch({ to, type, status: 'failed', errorMessage: 'RESEND_API_KEY is missing' });
@@ -137,6 +153,7 @@ export async function sendEmail({ to, subject, html, text, type }: SendEmailPara
         subject,
         html,
         ...(text ? { text } : {}),
+        ...(headers && Object.keys(headers).length ? { headers } : {}),
       }),
     });
 

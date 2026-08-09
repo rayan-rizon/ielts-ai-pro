@@ -26,6 +26,7 @@ import {
   Crown,
   Gift,
   BarChart3,
+  Mail,
 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -46,6 +47,9 @@ const SecuritySection = lazy(() => import('../components/Sections/SecuritySectio
 const PrivacySection = lazy(() => import('../components/Sections/PrivacySection'));
 const UsageStatsSection = lazy(() => import('@/features/settings/components/UsageStatsSection'));
 const ReferralSection = lazy(() => import('@/features/settings/components/ReferralSection'));
+const EmailPreferencesSection = lazy(
+  () => import('../components/Sections/EmailPreferencesSection')
+);
 
 const loadUserService = () => import('@/features/auth/services/User').then((module) => module.User);
 const loadSupabaseClient = () => import('@/lib/supabase').then((module) => module.supabase);
@@ -75,6 +79,7 @@ const navItems = [
   { id: 'referrals', label: 'Referrals', icon: Gift },
   { id: 'subscription', label: 'Plan & Billing', icon: Crown },
   { id: 'account', label: 'Security', icon: Shield },
+  { id: 'preferences', label: 'Email', icon: Mail },
   { id: 'privacy', label: 'Privacy', icon: Shield },
 ];
 
@@ -446,6 +451,7 @@ export default function Settings() {
                   )}
                   {activeTab === 'usage' && <UsageStatsSection key="usage" />}
                   {activeTab === 'referrals' && <ReferralSection key="referrals" />}
+                  {activeTab === 'preferences' && <EmailPreferencesSection key="preferences" />}
                   {activeTab === 'privacy' && <PrivacySection key="privacy" />}
                 </Suspense>
               )}

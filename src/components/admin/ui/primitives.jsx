@@ -127,10 +127,14 @@ export const InfoTip = ({ children, className }) => (
 /** Section heading with the hairline rule used across admin pages. */
 export const SectionLabel = ({ children, accent = 'idle', className }) => (
   <h3
-    className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5', className)}
+    className={cn(
+      MICRO,
+      'text-stone-500 dark:text-stone-400 flex items-center gap-1.5 leading-none',
+      className
+    )}
   >
-    <span className={cn('w-4 h-px', SIGNAL_BG[accent])} />
-    {children}
+    <span className={cn('w-3.5 h-[1.5px] rounded-full shrink-0', SIGNAL_BG[accent])} />
+    <span className="leading-none">{children}</span>
   </h3>
 );
 

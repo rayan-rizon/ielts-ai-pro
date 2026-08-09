@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit3, Plus, Users } from 'lucide-react';
+import { Pencil, Plus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
@@ -137,20 +137,25 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
           </Empty>
         </div>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {segments.map((segment) => {
             const chips = describeRules(segment.rules);
             return (
-              <div key={segment.id} className={cn(PANEL, 'flex flex-col p-4')}>
-                <div className="flex items-start justify-between gap-3">
+              <div key={segment.id} className={cn(PANEL, 'flex flex-col p-2.5 pl-3.5 text-xs')}>
+                <div className="flex items-start justify-between gap-1.5">
                   <div className="min-w-0">
-                    <h3 className={cn(TITLE, 'truncate')}>{segment.name}</h3>
-                    <p className={cn('mt-1 text-[11px] font-medium', MUTED)}>
+                    <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+                      {segment.name}
+                    </h3>
+                    <p className={cn('truncate text-[10px] font-medium leading-tight', MUTED)}>
                       {segment.description || 'Reusable dynamic audience'}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Pill tone={segment.is_active ? 'ok' : 'neutral'}>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Pill
+                      tone={segment.is_active ? 'ok' : 'neutral'}
+                      className="px-1.5 py-0 text-[9px]"
+                    >
                       {segment.is_active ? 'active' : 'paused'}
                     </Pill>
                     <Switch
@@ -162,41 +167,51 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
                   </div>
                 </div>
 
-                <div className={cn(WELL, 'mt-3 rounded-lg p-3')}>
+                <div className={cn(WELL, 'mt-2 rounded-md p-2')}>
                   <SectionLabel accent={chips.length ? 'ok' : 'warn'}>
                     {chips.length ? 'Matches learners who are' : 'Matches everyone'}
                   </SectionLabel>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
+                  <div className="mt-1 flex flex-wrap gap-1">
                     {chips.length ? (
                       chips.map((chip) => (
-                        <Pill key={chip} tone="neutral" className="normal-case tracking-normal">
+                        <Pill
+                          key={chip}
+                          tone="neutral"
+                          className="px-1.5 py-0 text-[9px] normal-case tracking-normal"
+                        >
                           {chip}
                         </Pill>
                       ))
                     ) : (
-                      <p className={cn('text-[11px] font-medium', MUTED)}>
-                        No rules set — every learner matches this audience.
+                      <p className={cn('text-[10px] font-medium', MUTED)}>
+                        No rules set — every learner matches.
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="mt-3 min-h-[46px]">
+                <div className="mt-2 min-h-[36px]">
                   <EstimateReadout estimate={estimates[segment.id]} />
                 </div>
 
-                <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
+                <div className="mt-2 flex items-center justify-end gap-1 border-t border-stone-200/80 pt-2 dark:border-white/[0.07]">
                   <AdminButton
                     size="sm"
                     variant="outline"
                     loading={estimates[segment.id]?.loading}
                     onClick={() => estimate(segment)}
+                    className="h-7 px-2 text-[11px]"
                   >
-                    <Users className="h-3 w-3" />
+                    <Users className="mr-0.5 h-2.5 w-2.5" />
                     Estimate
                   </AdminButton>
-                  <AdminButton size="sm" variant="outline" onClick={() => setEditor(segment)}>
-                    <Edit3 className="h-3 w-3" />
+                  <AdminButton
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditor(segment)}
+                    className="h-7 px-2 text-[11px]"
+                  >
+                    <Pencil className="mr-0.5 h-2.5 w-2.5" />
                     Edit
                   </AdminButton>
                 </div>

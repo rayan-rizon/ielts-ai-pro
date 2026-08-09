@@ -84,6 +84,18 @@ const customerPortal = readFileSync(
   'utf8'
 );
 const resend = readFileSync(resolve(process.cwd(), 'supabase/functions/_shared/resend.ts'), 'utf8');
+const unsubscribeFn = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/marketing-unsubscribe/index.ts'),
+  'utf8'
+);
+const optOutMigration = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260809140000_marketing_email_opt_out.sql'),
+  'utf8'
+);
+const settingsPage = readFileSync(
+  resolve(process.cwd(), 'src/features/settings/pages/Settings.jsx'),
+  'utf8'
+);
 const scheduledEmails = readFileSync(
   resolve(process.cwd(), 'supabase/functions/scheduled-emails/index.ts'),
   'utf8'
@@ -186,11 +198,13 @@ describe('Admin Marketing Hub contracts', () => {
     expect(conversionSetupMigration).toContain('automatic discount');
   });
 
-  it('uses a three-column desktop layout for dense marketing card views', () => {
-    // Card grids widened from `xl` to `2xl`: at xl the third column left cards
-    // too narrow for the campaign action row. Every card-grid panel must still
-    // reach three columns on a wide desktop.
-    const denseGrids = marketingPanels.flatMap((source) => source.match(/2xl:grid-cols-3/g) || []);
+  it('uses a progressively denser desktop layout for marketing card views', () => {
+    // Card grids step 1/2/3/4 columns at sm/lg/xl so a wide desktop reaches
+    // four cards per row instead of stalling at three. Every card-grid panel
+    // must follow the same stepping — an outlier reads as a layout bug.
+    const denseGrids = marketingPanels.flatMap(
+      (source) => source.match(/grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4/g) || []
+    );
     expect(denseGrids.length).toBeGreaterThanOrEqual(4);
   });
 
@@ -271,6 +285,31 @@ describe('Admin Marketing Hub contracts', () => {
     expect(checkoutSession).toContain('assigned_user_id === userData.id');
     expect(pricing).toContain("params.get('promo')");
     expect(pricing).toContain("supabase.rpc('redeem_promo_code'");
+  });
+
+  it('gives every marketing email a working, token-authenticated unsubscribe', () => {
+    // The footer used to link to `/settings?tab=preferences`, which matched no
+    // Settings tab — the page fell back to Profile and opting out was
+    // impossible. Both halves of that must stay fixed: a real endpoint, and a
+    // real tab for the link to land on.
+    expect(unsubscribeFn).toContain('unsubscribe_marketing_email');
+    expect(unsubscribeFn).toContain("req.method === 'POST'");
+    expect(optOutMigration).toContain('marketing_email_unsubscribed_at');
+    expect(optOutMigration).toContain(
+      'AND (NOT p_require_marketing_consent OR u.marketing_email_unsubscribed_at IS NULL)'
+    );
+    expect(settingsPage).toContain("id: 'preferences'");
+    expect(settingsPage).toContain("activeTab === 'preferences'");
+
+    // Marketing mail must carry the per-delivery URL, not the generic page,
+    // and the RFC 8058 headers Gmail/Yahoo require of bulk senders.
+    expect(dispatcher).toContain('unsubscribeEndpoint(delivery.id, delivery.tracking_token)');
+    expect(dispatcher).toContain('headers: unsubscribeHeaders(unsubscribeUrl)');
+    expect(resend).toContain("'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'");
+    expect(emailTemplates).toContain('unsubscribeUrl');
+
+    // Email eligibility must never read the cookie banner's toggle again.
+    expect(optOutMigration).not.toContain('COALESCE(u.consent_marketing, false))');
   });
 
   it('puts the live checkout recovery snapshot in analytics', () => {

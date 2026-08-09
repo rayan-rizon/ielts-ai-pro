@@ -1,12 +1,24 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-import { sendEmail } from '../_shared/resend.ts';
+import { sendEmail, unsubscribeHeaders } from '../_shared/resend.ts';
 import { getCampaignTemplate } from '../_shared/templates.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const admin = createClient(supabaseUrl, serviceKey);
+
+/**
+ * Token-authenticated opt-out for one delivery. Marketing mail must carry this:
+ * it is the learner's only working unsubscribe, and the URL the mail client
+ * uses for its own one-click control.
+ */
+const unsubscribeEndpoint = (deliveryId: string, token: string) => {
+  const url = new URL(`${supabaseUrl}/functions/v1/marketing-unsubscribe`);
+  url.searchParams.set('delivery_id', deliveryId);
+  url.searchParams.set('token', token);
+  return url.toString();
+};
 
 const trackingEndpoint = (deliveryId: string, token: string, event: string, target?: string) => {
   const url = new URL(`${supabaseUrl}/functions/v1/marketing-track`);
@@ -34,7 +46,8 @@ const campaignEmail = (
   recipient: Record<string, any>,
   offer: CampaignOffer | null,
   clickUrl: string,
-  openUrl: string
+  openUrl: string,
+  unsubscribeUrl: string
 ) =>
   getCampaignTemplate({
     title: campaign.title,
@@ -49,6 +62,7 @@ const campaignEmail = (
       'there',
     clickUrl,
     openUrl,
+    unsubscribeUrl,
     offer,
   });
 
@@ -317,18 +331,21 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           },
         })
         .eq('id', delivery.id);
+      const unsubscribeUrl = unsubscribeEndpoint(delivery.id, delivery.tracking_token);
       const email = campaignEmail(
         campaign,
         recipient,
         offer,
         trackingEndpoint(delivery.id, delivery.tracking_token, 'click', destination.toString()),
-        trackingEndpoint(delivery.id, delivery.tracking_token, 'view')
+        trackingEndpoint(delivery.id, delivery.tracking_token, 'view'),
+        unsubscribeUrl
       );
       const result = await sendEmail({
         to: member.email,
         subject: email.subject,
         html: email.html,
         text: email.text,
+        headers: unsubscribeHeaders(unsubscribeUrl),
         type: 'marketing_campaign',
       });
       if ('error' in result && result.error) {

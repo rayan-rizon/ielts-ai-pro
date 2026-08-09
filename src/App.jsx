@@ -167,6 +167,11 @@ const IeltsWritingChecker = lazyWithRetry(
   () => import('@/features/core/pages/IeltsWritingChecker.jsx')
 );
 const IeltsSeoLanding = lazyWithRetry(() => import('@/features/core/pages/IeltsSeoLanding.jsx'));
+// Public by design: the unsubscribe link in every marketing email lands here,
+// and someone opting out is often not signed in.
+const UnsubscribeConfirmation = lazyWithRetry(
+  () => import('@/features/marketing/pages/UnsubscribeConfirmation.jsx')
+);
 const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
@@ -764,6 +769,14 @@ const router = createBrowserRouter(
       element: (
         <LazyPage data-oid="sreucji">
           <TermsOfService data-oid="m4_kqjl" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/email/unsubscribed',
+      element: (
+        <LazyPage>
+          <UnsubscribeConfirmation />
         </LazyPage>
       ),
     },

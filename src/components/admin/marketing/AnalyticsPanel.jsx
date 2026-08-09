@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Activity, BarChart3, Clock3, Gift, Target, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
@@ -111,7 +111,14 @@ const RecoveryPanel = ({ recovery }) => {
 };
 
 const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
+  const [statusFilter, setStatusFilter] = useState('active');
   const campaignRows = useMemo(() => dashboard.campaigns || [], [dashboard.campaigns]);
+
+  const filteredCampaignRows = useMemo(() => {
+    if (statusFilter === 'active') return campaignRows.filter((r) => r.status === 'active');
+    if (statusFilter === 'paused') return campaignRows.filter((r) => r.status === 'paused');
+    return campaignRows;
+  }, [campaignRows, statusFilter]);
 
   // The funnel is built from campaign rows when they exist and falls back to
   // the dashboard's reach total, so an operator never sees an all-zero funnel
@@ -186,8 +193,39 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
           label="Campaign drill-down"
           title="Conversion quality per campaign"
           description="Last 30 days"
-        />
-        {campaignRows.length ? (
+        >
+          <div className="flex items-center gap-1 rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
+            {[
+              ['all', 'All'],
+              ['active', 'Active only'],
+              ['paused', 'Paused only'],
+            ].map(([val, label]) => {
+              const count =
+                val === 'all'
+                  ? campaignRows.length
+                  : campaignRows.filter((r) => r.status === val).length;
+              const isActive = statusFilter === val;
+              return (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setStatusFilter(val)}
+                  className={cn(
+                    'flex items-center gap-1 rounded-md px-2.5 py-1 transition-all active:scale-[0.97]',
+                    MICRO,
+                    isActive
+                      ? 'bg-white text-stone-900 shadow-2xs dark:bg-[#131315] dark:text-stone-50 font-bold'
+                      : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
+                  )}
+                >
+                  {label}
+                  <span className={cn(NUM, 'text-[10px] opacity-60')}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </PanelHeader>
+        {filteredCampaignRows.length ? (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left">
               <thead>
@@ -219,7 +257,7 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
                 </tr>
               </thead>
               <tbody>
-                {campaignRows.map((row) => {
+                {filteredCampaignRows.map((row) => {
                   const failed = Number(row.failed || 0);
                   return (
                     <tr
@@ -291,8 +329,17 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
             </table>
           </div>
         ) : (
-          <Empty icon={Activity} title="No campaign activity in the last 30 days">
-            Each campaign appears here after its first dispatch.
+          <Empty
+            icon={Activity}
+            title={
+              statusFilter === 'all'
+                ? 'No campaign activity in the last 30 days'
+                : `No ${statusFilter} campaigns match this view`
+            }
+          >
+            {statusFilter === 'all'
+              ? 'Each campaign appears here after its first dispatch.'
+              : `There are currently no ${statusFilter} campaigns.`}
           </Empty>
         )}
       </div>

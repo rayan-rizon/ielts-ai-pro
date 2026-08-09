@@ -200,7 +200,13 @@ export const wrapTemplate = (
    * marketing mail is sent on consent, and saying so is a compliance
    * requirement rather than a nicety — so the campaign renderer overrides it.
    */
-  footerReason = `You are receiving this because of activity on your ${BRAND_NAME} account.`
+  footerReason = `You are receiving this because of activity on your ${BRAND_NAME} account.`,
+  /**
+   * Where "Unsubscribe" points. Marketing mail passes a token-authenticated
+   * one-click URL that works without signing in; transactional mail falls back
+   * to the Settings tab, where the same toggle lives for logged-in learners.
+   */
+  unsubscribeUrl = `${baseUrl}/settings?tab=preferences`
 ) => `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
@@ -274,7 +280,7 @@ export const wrapTemplate = (
                 <span style="color:#c3c0bb">&middot;</span>
                 <a href="${baseUrl}/terms" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:none;font-weight:600">Terms</a>
                 <span style="color:#c3c0bb">&middot;</span>
-                <a href="${baseUrl}/settings?tab=preferences" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:underline;font-weight:600">Unsubscribe</a>
+                <a href="${unsubscribeUrl}" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:underline;font-weight:600">Unsubscribe</a>
               </p>
               <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:${MUTED_TEXT};text-align:center">${footerReason}</p>
               <p style="margin:0;font-size:11px;line-height:1.6;color:#a1a1aa;text-align:center">&copy; ${CURRENT_YEAR} ${BRAND_NAME} &middot; <a href="mailto:${SUPPORT_EMAIL}" style="color:#a1a1aa;text-decoration:none;font-weight:600">${SUPPORT_EMAIL}</a></p>
@@ -293,14 +299,15 @@ export const wrapTemplate = (
 const wrapText = (
   body: string,
   baseUrl: string,
-  footerReason = `You are receiving this because of activity on your ${BRAND_NAME} account.`
+  footerReason = `You are receiving this because of activity on your ${BRAND_NAME} account.`,
+  unsubscribeUrl = `${baseUrl}/settings?tab=preferences`
 ) =>
   `${body.trim()}
 
 —
 ${BRAND_NAME}
 Manage your subscription: ${baseUrl}/settings?tab=subscription
-Email preferences / unsubscribe: ${baseUrl}/settings?tab=preferences
+Unsubscribe: ${unsubscribeUrl}
 Questions? ${SUPPORT_EMAIL}
 
 ${footerReason}
@@ -583,6 +590,12 @@ export function getCampaignTemplate(input: {
   recipientName: string;
   clickUrl: string;
   openUrl?: string;
+  /**
+   * Token-authenticated one-click unsubscribe for this specific delivery.
+   * Required for marketing mail: it is both the learner's only working opt-out
+   * and the URL used in the List-Unsubscribe header.
+   */
+  unsubscribeUrl?: string;
   offer?: { code: string; discountPercent?: number | null; expiresAt?: string | null } | null;
 }): EmailTemplate {
   const baseUrl = BASE_URL;
@@ -647,10 +660,10 @@ Your progress and practice history stay saved in your account, so you can return
 
   return {
     subject: input.subject || input.title,
-    html: wrapTemplate(html, input.message, baseUrl, consentLine).replace(
+    html: wrapTemplate(html, input.message, baseUrl, consentLine, input.unsubscribeUrl).replace(
       '</body>',
       `${trackingPixel}</body>`
     ),
-    text: wrapText(text, baseUrl, consentLine),
+    text: wrapText(text, baseUrl, consentLine, input.unsubscribeUrl),
   };
 }
