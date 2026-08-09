@@ -10,6 +10,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/cn';
 import {
   AdminButton,
@@ -42,25 +49,21 @@ export const INITIAL_CAMPAIGN = {
   cooldown_hours: 72,
 };
 
-/**
- * The campaign editor is grouped into three named steps — who it reaches, what
- * it says, and when it may send. The previous flat two-column grid put the
- * delivery cadence next to the headline, so the fields that decide whether a
- * learner gets spammed sat in the same visual weight as the CTA label.
- */
 const Step = ({ index, label, description, children }) => (
-  <section className="space-y-3">
-    <div className="flex items-baseline gap-2">
+  <section className="space-y-2.5">
+    <div className="flex items-center gap-2">
       <span
         className={cn(
           MICRO,
-          'grid h-4 w-4 place-items-center rounded-full bg-stone-200 text-stone-600 dark:bg-white/10 dark:text-stone-300'
+          'grid h-4 w-4 place-items-center rounded-full bg-stone-200 text-[10px] font-bold text-stone-700 dark:bg-white/10 dark:text-stone-300'
         )}
       >
         {index}
       </span>
       <SectionLabel>{label}</SectionLabel>
-      {description && <span className={cn('text-[10px] font-medium', MUTED)}>· {description}</span>}
+      {description && (
+        <span className={cn('text-[10px] font-medium leading-none', MUTED)}>· {description}</span>
+      )}
     </div>
     {children}
   </section>
@@ -141,7 +144,7 @@ const CampaignDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[96vw] max-w-3xl overflow-y-auto border-stone-200 bg-white p-5 dark:border-white/10 dark:bg-[#131315]">
+      <DialogContent className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto border-stone-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#121115] shadow-2xl">
         <DialogHeader>
           <DialogTitle>{campaign ? 'Edit campaign' : 'New campaign'}</DialogTitle>
           <DialogDescription>
@@ -149,31 +152,37 @@ const CampaignDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-2">
+        <div className="space-y-5 py-1">
           {!campaign && activeTemplates.length > 0 && (
-            <div className={cn(WELL, 'rounded-lg p-3')}>
-              <label className="block">
+            <div className={cn(WELL, 'rounded-lg p-2.5')}>
+              <div className="block">
                 <FieldLabel hint="prefills this draft only">Start from a template</FieldLabel>
-                <select
-                  className={cn(FIELD, 'w-full px-3')}
-                  value={templateId}
-                  onChange={(event) => applyTemplate(event.target.value)}
+                <Select
+                  value={templateId || 'none'}
+                  onValueChange={(val) => applyTemplate(val === 'none' ? '' : val)}
                 >
-                  <option value="">Blank campaign draft</option>
-                  {activeTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.name}
-                      {template.description ? ` · ${template.description}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <SelectTrigger className="h-8 w-full px-3 text-xs bg-stone-50 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 rounded-md">
+                    <SelectValue placeholder="Blank campaign draft" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-[#16151a] dark:border-white/10 text-xs z-50">
+                    <SelectItem value="none" className="text-xs text-stone-400">
+                      Blank campaign draft
+                    </SelectItem>
+                    {activeTemplates.map((template) => (
+                      <SelectItem key={template.id} value={template.id} className="text-xs">
+                        {template.name}
+                        {template.description ? ` · ${template.description}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
           <Step index="1" label="Audience" description="who receives it">
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="block">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="block">
                 <FieldLabel>Campaign name</FieldLabel>
                 <Input
                   className={FIELD}
@@ -181,57 +190,70 @@ const CampaignDialog = ({
                   onChange={(event) => set({ name: event.target.value })}
                   placeholder="Free learner upgrade · August"
                 />
-              </label>
-              <label className="block">
+              </div>
+              <div className="block">
                 <FieldLabel>Objective</FieldLabel>
-                <select
-                  className={cn(FIELD, 'w-full px-3')}
-                  value={form.objective}
-                  onChange={(event) => set({ objective: event.target.value })}
-                >
-                  {OBJECTIVES.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
+                <Select value={form.objective} onValueChange={(val) => set({ objective: val })}>
+                  <SelectTrigger className="h-8 w-full px-3 text-xs bg-stone-50 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 rounded-md">
+                    <SelectValue placeholder="Choose objective" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-[#16151a] dark:border-white/10 text-xs z-50">
+                    {OBJECTIVES.map(([value, label]) => (
+                      <SelectItem key={value} value={value} className="text-xs">
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="block">
                 <FieldLabel>Segment</FieldLabel>
-                <select
-                  className={cn(FIELD, 'w-full px-3')}
-                  value={form.segment_id}
-                  onChange={(event) => set({ segment_id: event.target.value })}
+                <Select
+                  value={form.segment_id || 'none'}
+                  onValueChange={(val) => set({ segment_id: val === 'none' ? '' : val })}
                 >
-                  <option value="">Choose segment…</option>
-                  {activeSegments.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-8 w-full px-3 text-xs bg-stone-50 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 rounded-md">
+                    <SelectValue placeholder="Choose segment…" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-[#16151a] dark:border-white/10 text-xs z-50">
+                    <SelectItem value="none" className="text-xs text-stone-400">
+                      Choose segment…
+                    </SelectItem>
+                    {activeSegments.map((item) => (
+                      <SelectItem key={item.id} value={item.id} className="text-xs">
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {!activeSegments.length && (
-                  <span className={cn('mt-1.5 block text-[10px] font-medium', MUTED)}>
+                  <span className={cn('mt-1 block text-[10px] font-medium', MUTED)}>
                     No active segments yet — create one under Audiences first.
                   </span>
                 )}
-              </label>
-              <label className="block">
+              </div>
+              <div className="block">
                 <FieldLabel>Offer code</FieldLabel>
-                <select
-                  className={cn(FIELD, 'w-full px-3')}
-                  value={form.promo_code_id}
-                  onChange={(event) => set({ promo_code_id: event.target.value })}
+                <Select
+                  value={form.promo_code_id || 'none'}
+                  onValueChange={(val) => set({ promo_code_id: val === 'none' ? '' : val })}
                 >
-                  <option value="">No offer attached</option>
-                  {activePromos.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.code}
-                      {item.label ? ` · ${item.label}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <SelectTrigger className="h-8 w-full px-3 text-xs bg-stone-50 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 rounded-md">
+                    <SelectValue placeholder="No offer attached" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-[#16151a] dark:border-white/10 text-xs z-50">
+                    <SelectItem value="none" className="text-xs text-stone-400">
+                      No offer attached
+                    </SelectItem>
+                    {activePromos.map((item) => (
+                      <SelectItem key={item.id} value={item.id} className="text-xs">
+                        {item.code}
+                        {item.label ? ` · ${item.label}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </Step>
 
@@ -239,7 +261,7 @@ const CampaignDialog = ({
             <div className="space-y-3">
               <div>
                 <FieldLabel>Channels</FieldLabel>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {CHANNELS.map(([id, label]) => (
                     <ToggleChip
                       key={id}
@@ -274,13 +296,13 @@ const CampaignDialog = ({
               <label className="block">
                 <FieldLabel>Message</FieldLabel>
                 <Textarea
-                  className="min-h-24 border-stone-300 text-xs dark:border-white/15 dark:bg-[#131315]"
+                  className="min-h-20 border-stone-300 text-xs dark:border-white/15 dark:bg-[#131315]"
                   value={form.message}
                   onChange={(event) => set({ message: event.target.value })}
                   placeholder="Explain the next useful action in one or two sentences."
                 />
               </label>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block">
                   <FieldLabel>CTA label</FieldLabel>
                   <Input
@@ -299,14 +321,16 @@ const CampaignDialog = ({
                   />
                 </label>
               </div>
-              <div className={cn(WELL, 'rounded-lg p-3.5')}>
+              <div className={cn(WELL, 'rounded-lg p-3')}>
                 <SectionLabel accent="ok">Learner preview</SectionLabel>
-                <p className={cn(TITLE, 'mt-2 text-sm')}>{form.title || 'Campaign headline'}</p>
-                <p className="mt-1.5 text-xs leading-relaxed text-stone-600 dark:text-stone-300">
+                <p className={cn(TITLE, 'mt-1.5 text-xs font-bold')}>
+                  {form.title || 'Campaign headline'}
+                </p>
+                <p className="mt-1 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
                   {form.message || 'Campaign message preview.'}
                 </p>
                 {form.cta_label && (
-                  <span className="mt-3 inline-flex rounded-md bg-indigo-600 px-2.5 py-1.5 text-[10px] font-extrabold text-white">
+                  <span className="mt-2.5 inline-flex rounded-md bg-indigo-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-2xs">
                     {form.cta_label}
                   </span>
                 )}
@@ -315,46 +339,50 @@ const CampaignDialog = ({
           </Step>
 
           <Step index="3" label="Delivery" description="when and how often">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <label className="block">
-                <FieldLabel>Starts</FieldLabel>
-                <Input
-                  type="datetime-local"
-                  className={FIELD}
-                  value={form.starts_at}
-                  onChange={(event) => set({ starts_at: event.target.value })}
-                />
-              </label>
-              <label className="block">
-                <FieldLabel>Ends</FieldLabel>
-                <Input
-                  type="datetime-local"
-                  className={FIELD}
-                  value={form.ends_at}
-                  onChange={(event) => set({ ends_at: event.target.value })}
-                />
-              </label>
-              <label className="block">
-                <FieldLabel hint="sends per learner">Frequency cap</FieldLabel>
-                <Input
-                  type="number"
-                  min="1"
-                  max="20"
-                  className={FIELD}
-                  value={form.frequency_cap}
-                  onChange={(event) => set({ frequency_cap: event.target.value })}
-                />
-              </label>
-              <label className="block">
-                <FieldLabel hint="quiet period">Cooldown hours</FieldLabel>
-                <Input
-                  type="number"
-                  min="0"
-                  className={FIELD}
-                  value={form.cooldown_hours}
-                  onChange={(event) => set({ cooldown_hours: event.target.value })}
-                />
-              </label>
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <FieldLabel>Starts</FieldLabel>
+                  <Input
+                    type="datetime-local"
+                    className={cn(FIELD, 'w-full text-xs')}
+                    value={form.starts_at}
+                    onChange={(event) => set({ starts_at: event.target.value })}
+                  />
+                </label>
+                <label className="block">
+                  <FieldLabel>Ends</FieldLabel>
+                  <Input
+                    type="datetime-local"
+                    className={cn(FIELD, 'w-full text-xs')}
+                    value={form.ends_at}
+                    onChange={(event) => set({ ends_at: event.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <FieldLabel hint="sends per learner">Frequency cap</FieldLabel>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="20"
+                    className={FIELD}
+                    value={form.frequency_cap}
+                    onChange={(event) => set({ frequency_cap: event.target.value })}
+                  />
+                </label>
+                <label className="block">
+                  <FieldLabel hint="quiet period">Cooldown hours</FieldLabel>
+                  <Input
+                    type="number"
+                    min="0"
+                    className={FIELD}
+                    value={form.cooldown_hours}
+                    onChange={(event) => set({ cooldown_hours: event.target.value })}
+                  />
+                </label>
+              </div>
             </div>
           </Step>
         </div>
