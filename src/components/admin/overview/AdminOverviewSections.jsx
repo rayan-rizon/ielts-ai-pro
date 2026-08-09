@@ -9,7 +9,20 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, ChevronRight, Clock, ShieldCheck } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronRight,
+  CircleHelp,
+  Clock,
+  Compass,
+  Link2,
+  Mail,
+  MousePointer2,
+  Search,
+  Share2,
+  ShieldCheck,
+} from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -33,6 +46,51 @@ const WINDOWS = [
   { label: 'Last 30 days', days: 30 },
   { label: 'Last 90 days', days: 90 },
 ];
+
+const SIGNUP_SOURCES = {
+  paid_search: { label: 'Google Ads', icon: MousePointer2, tone: 'text-[#4285f4] bg-[#4285f4]/10' },
+  paid_social: { label: 'Social ad', icon: MousePointer2, tone: 'text-[#1877f2] bg-[#1877f2]/10' },
+  organic_search: { label: 'Organic search', icon: Search, tone: 'text-[#34a853] bg-[#34a853]/10' },
+  organic_social: { label: 'Organic social', icon: Share2, tone: 'text-[#e1306c] bg-[#e1306c]/10' },
+  email: { label: 'Email', icon: Mail, tone: 'text-[#b7791f] bg-[#b7791f]/10' },
+  referral: { label: 'Referral', icon: Link2, tone: 'text-[#5a63df] bg-[#5a63df]/10' },
+  direct: {
+    label: 'Direct visit',
+    icon: Compass,
+    tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
+  },
+  other: {
+    label: 'Other source',
+    icon: Compass,
+    tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
+  },
+  unknown: {
+    label: 'Source not captured',
+    icon: CircleHelp,
+    tone: 'text-stone-400 bg-stone-100 dark:text-stone-500 dark:bg-white/[0.06]',
+  },
+};
+
+const SignupSourceMark = ({ channel, source }) => {
+  const meta = SIGNUP_SOURCES[channel] || SIGNUP_SOURCES.unknown;
+  const Icon = meta.icon;
+  const sourceName = source?.trim();
+  const description = sourceName ? `${meta.label} · ${sourceName}` : meta.label;
+
+  return (
+    <Tip content={description}>
+      <span
+        aria-label={description}
+        className={cn(
+          'inline-grid h-4 w-4 shrink-0 place-items-center rounded-[5px] ring-1 ring-black/[0.04] dark:ring-white/[0.06]',
+          meta.tone
+        )}
+      >
+        <Icon aria-hidden="true" className="h-2.5 w-2.5 stroke-[2.35]" />
+      </span>
+    </Tip>
+  );
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -454,8 +512,9 @@ const RecentSignupsPanel = ({ users }) => (
                 {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 truncate leading-tight">
-                  {user.full_name || user.email?.split('@')[0]}
+                <p className="flex min-w-0 items-center gap-1.5 text-[11px] font-extrabold text-stone-900 dark:text-stone-50 leading-tight">
+                  <span className="truncate">{user.full_name || user.email?.split('@')[0]}</span>
+                  <SignupSourceMark channel={user.signup_channel} source={user.signup_utm_source} />
                 </p>
                 <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
                   {user.onboarding_completed ? 'Onboarded' : 'Not onboarded'}

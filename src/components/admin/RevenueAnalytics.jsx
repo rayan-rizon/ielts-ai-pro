@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, DollarSign } from 'lucide-react';
+import { CreditCard, DollarSign, ShieldAlert } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -24,30 +24,37 @@ import {
   STAGGER_CONTAINER,
   FADE_UP,
   WELL,
+  PILL_BASE,
+  pillTone,
 } from './ui/primitives';
 
 const AXIS = { fill: '#a8a29e', fontSize: 10, fontWeight: 700 };
 const GRID = 'rgba(168,162,158,0.22)';
 const USD = '#16966c';
 const BDT = '#6366f1';
-
+const RANGES = ['30D', '90D', '1Y'];
 const bdt = (value) => `৳${Number(value || 0).toLocaleString()}`;
 const usd = (value) =>
-  `$${Number(value || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  `$${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions = [] }) => {
-  const monthly = analyticsData.monthlyRevenue || [];
-  const subscribers = (stats.proCount || 0) + (stats.premiumCount || 0);
-
-  const mix = useMemo(() => {
-    const pro = Number(stats.proCount || 0);
-    const premium = Number(stats.premiumCount || 0);
-    const total = pro + premium;
-    return { pro, premium, proShare: total ? (100 * pro) / total : 0 };
-  }, [stats.proCount, stats.premiumCount]);
+const RevenueAnalytics = ({
+  analyticsData = {},
+  stats = {},
+  recentTransactions = [],
+  selectedRange = '30D',
+  onRangeChange,
+}) => {
+  const trend = analyticsData.trend || [];
+  const subscribers = Number(stats.activeSubscribers || 0);
+  const risk = useMemo(() => {
+    const cancelling = Number(stats.cancellingSubscribers || 0);
+    const expiring = Number(stats.expiringSubscribers || 0);
+    return {
+      cancelling,
+      expiring,
+      share: subscribers ? (100 * (cancelling + expiring)) / subscribers : 0,
+    };
+  }, [stats.cancellingSubscribers, stats.expiringSubscribers, subscribers]);
 
   return (
     <motion.div
@@ -59,50 +66,69 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
       <motion.div variants={FADE_UP}>
         <AdminPageHeader
           title="Revenue Intelligence"
-          description="Recorded payments across Stripe (USD) and local BKash/Nagad (BDT)"
-          tip="Every figure comes from recorded billing history. Nothing here is projected or estimated."
-        />
+          description="Settled payments, payment mix, and renewal risk — never currency-converted or projected."
+          tip="Every figure comes from settled billing records or the current subscription state."
+        >
+          <div className="flex items-center gap-1 rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
+            {RANGES.map((range) => (
+              <button
+                key={range}
+                onClick={() => onRangeChange?.(range)}
+                className={cn(
+                  'rounded-md px-2.5 py-1',
+                  MICRO,
+                  range === selectedRange
+                    ? 'bg-white text-stone-900 dark:bg-[#131315] dark:text-stone-50'
+                    : 'text-stone-500 dark:text-stone-400'
+                )}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
+        </AdminPageHeader>
       </motion.div>
 
-      {/* Currency pairs are stacked side by side rather than crammed into one
-          "৳x | $y" string, where the pipe read as part of a number and both
-          amounts truncated on a narrow tile. */}
-      <motion.div variants={FADE_UP} className="grid gap-3 lg:grid-cols-3">
+      <motion.div variants={FADE_UP} className="grid gap-3 lg:grid-cols-4">
         <div className={cn(PANEL, 'px-3.5 py-2.5')}>
-          <p className={cn(MICRO, MUTED)}>Revenue recorded</p>
+          <p className={cn(MICRO, MUTED)}>Settled revenue · {selectedRange}</p>
           <div className="mt-2">
             <DualValue
-              primary={bdt(analyticsData.manualRevenue)}
+              primary={bdt(analyticsData.revenueBdt)}
               primaryLabel="Local · BDT"
-              secondary={usd(analyticsData.stripeRevenue)}
+              secondary={usd(analyticsData.revenueUsd)}
               secondaryLabel="Global · USD"
             />
           </div>
         </div>
-
         <div className={cn(PANEL, 'px-3.5 py-2.5')}>
-          <p className={cn(MICRO, MUTED)}>Avg. revenue per user</p>
+          <p className={cn(MICRO, MUTED)}>Previous equal period</p>
           <div className="mt-2">
             <DualValue
-              primary={bdt(analyticsData.arpuBdt)}
-              primaryLabel={`LTV ${bdt(analyticsData.ltvBdt)}`}
-              secondary={usd(analyticsData.arpuUsd)}
-              secondaryLabel={`LTV ${usd(analyticsData.ltvUsd)}`}
+              primary={bdt(analyticsData.previousBdt)}
+              primaryLabel="Local · BDT"
+              secondary={usd(analyticsData.previousUsd)}
+              secondaryLabel="Global · USD"
             />
           </div>
         </div>
-
+        <Kpi
+          label="Settled transactions"
+          value={Number(stats.transactions || 0).toLocaleString()}
+          sub={`${stats.previousTransactions || 0} in prior period`}
+          tip="Approved manual payments and paid billing records after de-duplication."
+        />
         <Kpi
           label="Active subscribers"
           value={subscribers.toLocaleString()}
-          sub={`Pro ${mix.pro.toLocaleString()} · Premium ${mix.premium.toLocaleString()}`}
-          tip="Accounts currently on a paid tier."
+          sub={`${risk.cancelling} cancelling · ${risk.expiring} expiring in 7d`}
+          tip="Current paid accounts, with renewal-risk flags kept visible."
         />
       </motion.div>
 
       <motion.div variants={FADE_UP} className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
         <div className={cn(PANEL, 'flex flex-col overflow-hidden')}>
-          <PanelHeader label="Monthly trajectory" title="Revenue by settlement currency">
+          <PanelHeader label="Settlement trajectory" title="Revenue by currency">
             <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
               <span className="h-0.5 w-2.5 rounded-full" style={{ background: USD }} />
               USD
@@ -112,12 +138,11 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
               BDT
             </span>
           </PanelHeader>
-
           <div className="flex-1 p-4">
-            {monthly.length ? (
+            {trend.length ? (
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthly} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
+                  <AreaChart data={trend} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
                     <defs>
                       <linearGradient id="revUsd" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={USD} stopOpacity={0.28} />
@@ -130,15 +155,15 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
                     <XAxis
-                      dataKey="label"
+                      dataKey="date"
                       tick={AXIS}
                       tickLine={false}
                       axisLine={false}
                       tickMargin={10}
+                      minTickGap={28}
                     />
                     <YAxis
                       yAxisId="usd"
-                      orientation="left"
                       tick={AXIS}
                       tickLine={false}
                       axisLine={false}
@@ -154,9 +179,8 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                     />
                     <Tooltip
                       cursor={{ stroke: 'rgba(120,113,108,0.35)' }}
-                      content={({ active, payload, label }) => {
-                        if (!active || !payload?.length) return null;
-                        return (
+                      content={({ active, payload, label }) =>
+                        active && payload?.length ? (
                           <div className={cn(PANEL, 'min-w-[160px] p-3 shadow-xl')}>
                             <p className={cn(MICRO, MUTED, 'mb-1.5')}>{label}</p>
                             {payload.map((entry) => (
@@ -164,12 +188,8 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                                 key={entry.dataKey}
                                 className="mt-0.5 flex items-center justify-between gap-3 text-[11px]"
                               >
-                                <span className={cn('flex items-center gap-1.5', MUTED)}>
-                                  <span
-                                    className="h-1.5 w-1.5 rounded-full"
-                                    style={{ background: entry.stroke }}
-                                  />
-                                  {entry.dataKey === 'revenue_usd' ? 'Global' : 'Local'}
+                                <span className={MUTED}>
+                                  {entry.dataKey === 'revenueUsd' ? 'Global' : 'Local'}
                                 </span>
                                 <span
                                   className={cn(
@@ -177,20 +197,20 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                                     'font-bold text-stone-800 dark:text-stone-100'
                                   )}
                                 >
-                                  {entry.dataKey === 'revenue_usd'
+                                  {entry.dataKey === 'revenueUsd'
                                     ? usd(entry.value)
                                     : bdt(entry.value)}
                                 </span>
                               </div>
                             ))}
                           </div>
-                        );
-                      }}
+                        ) : null
+                      }
                     />
                     <Area
                       yAxisId="usd"
                       type="monotone"
-                      dataKey="revenue_usd"
+                      dataKey="revenueUsd"
                       stroke={USD}
                       strokeWidth={2.5}
                       fill="url(#revUsd)"
@@ -198,7 +218,7 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
                     <Area
                       yAxisId="bdt"
                       type="monotone"
-                      dataKey="revenue_bdt"
+                      dataKey="revenueBdt"
                       stroke={BDT}
                       strokeWidth={2.5}
                       fill="url(#revBdt)"
@@ -216,74 +236,96 @@ const RevenueAnalytics = ({ analyticsData = {}, stats = {}, recentTransactions =
               </Empty>
             )}
           </div>
-
-          {/* Subscriber mix reads as a footnote to revenue rather than its own
-              full-width band — it is context for the chart above it. */}
           {subscribers > 0 && (
             <div className="border-t border-stone-200/80 p-4 dark:border-white/[0.07]">
               <div className="flex items-center justify-between gap-2">
-                <p className={cn(MICRO, MUTED)}>Subscriber mix</p>
+                <p className={cn(MICRO, MUTED)}>Renewal risk</p>
                 <p className={cn(NUM, 'text-[10px] font-bold', MUTED)}>
-                  {mix.proShare.toFixed(0)}% Pro · {(100 - mix.proShare).toFixed(0)}% Premium
+                  {risk.share.toFixed(0)}% flagged · {stats.failedPayments || 0} failed payments in
+                  7d
                 </p>
               </div>
               <div className={cn('mt-2 flex h-2 overflow-hidden rounded-full', WELL)}>
                 <span
-                  className="bg-indigo-500/70 transition-[width] duration-700"
-                  style={{ width: `${mix.proShare}%` }}
+                  className="bg-[rgb(var(--signal-warn))]/70 transition-[width] duration-700"
+                  style={{ width: `${risk.share}%` }}
                 />
-                <span className="flex-1 bg-[rgb(var(--signal-ok))]/70" />
+                <span className="flex-1 bg-[rgb(var(--signal-ok))]/45" />
               </div>
             </div>
           )}
         </div>
-
         <div className={cn(PANEL, 'flex flex-col overflow-hidden')}>
-          <PanelHeader label="Recent transactions" title="Latest settled payments" />
+          <PanelHeader label="Payment mix" title="Settlement methods" />
           <div className="max-h-[420px] flex-1 divide-y divide-stone-100 overflow-y-auto dark:divide-white/5">
-            {recentTransactions.length ? (
-              recentTransactions.map((tx) => (
+            {(analyticsData.paymentMethods || []).length ? (
+              analyticsData.paymentMethods.map((method) => (
                 <div
-                  key={tx.id}
-                  className="flex items-center justify-between gap-2 px-3.5 py-2.5 transition-colors hover:bg-stone-50/60 dark:hover:bg-white/[0.02]"
+                  key={`${method.method}-${method.currency}`}
+                  className="flex items-center justify-between gap-2 px-3.5 py-2.5"
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-stone-200/80 bg-stone-100 dark:border-white/[0.07] dark:bg-white/[0.06]">
                       <span className={cn(MICRO, 'text-stone-600 dark:text-stone-300')}>
-                        {(tx.full_name || tx.email || '?').charAt(0).toUpperCase()}
+                        {String(method.method || '?')
+                          .charAt(0)
+                          .toUpperCase()}
                       </span>
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-xs font-bold text-stone-900 dark:text-stone-50">
-                        {tx.full_name || tx.email || 'Unknown user'}
+                        {method.method || 'Unknown method'}
                       </p>
-                      <p className={cn(NUM, 'truncate text-[10px] font-medium', MUTED)}>
-                        {tx.tier || '—'} · {tx.billing_interval || '—'} · {tx.payment_method}
+                      <p className={cn(NUM, 'text-[10px] font-medium', MUTED)}>
+                        {Number(method.transactions || 0).toLocaleString()} settled payments
                       </p>
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className={cn(NUM, 'text-xs font-bold text-stone-900 dark:text-stone-50')}>
-                      {String(tx.currency).toUpperCase() === 'BDT'
-                        ? bdt(tx.amount)
-                        : usd(tx.amount)}
+                      {String(method.currency).toUpperCase() === 'BDT'
+                        ? bdt(method.amount)
+                        : usd(method.amount)}
                     </p>
-                    <p className={cn(NUM, 'text-[10px] font-medium', MUTED)}>
-                      {new Date(tx.created_at).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </p>
+                    <span className={cn(PILL_BASE, pillTone('neutral'))}>{method.currency}</span>
                   </div>
                 </div>
               ))
             ) : (
-              <Empty icon={CreditCard} title="No payments yet">
-                Recorded transactions from Stripe and local methods appear here.
+              <Empty icon={CreditCard} title="No settled payments yet">
+                Settlement methods appear after the first approved or paid transaction.
               </Empty>
             )}
           </div>
         </div>
+      </motion.div>
+
+      <motion.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
+        <PanelHeader label="Latest settlement" title="Recent payments" />
+        {recentTransactions.length ? (
+          <div className="divide-y divide-stone-100 dark:divide-white/5">
+            {recentTransactions.slice(0, 5).map((tx) => (
+              <div
+                key={tx.id}
+                className="flex items-center justify-between gap-3 px-4 py-2.5 text-xs"
+              >
+                <span className="min-w-0 truncate font-bold text-stone-800 dark:text-stone-100">
+                  {tx.full_name || tx.email || 'Unknown user'}{' '}
+                  <span className={cn(NUM, 'font-medium', MUTED)}>
+                    · {tx.tier || '—'} · {tx.payment_method || '—'}
+                  </span>
+                </span>
+                <span className={cn(NUM, 'shrink-0 font-bold')}>
+                  {String(tx.currency).toUpperCase() === 'BDT' ? bdt(tx.amount) : usd(tx.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Empty icon={ShieldAlert} title="No payment history yet">
+            Settled transactions will appear here.
+          </Empty>
+        )}
       </motion.div>
     </motion.div>
   );

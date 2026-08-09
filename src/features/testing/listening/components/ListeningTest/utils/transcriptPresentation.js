@@ -85,6 +85,7 @@ export function buildSourceTranscriptHighlights(sourceHighlights = []) {
     const phrases = Array.isArray(highlight?.phrases)
       ? highlight.phrases
       : [highlight?.phrase ?? highlight?.text];
+    const sourceIndex = Number.parseInt(highlight?.source_index ?? highlight?.sourceIndex, 10);
 
     if (!questionNumbers.length) return [];
 
@@ -104,6 +105,7 @@ export function buildSourceTranscriptHighlights(sourceHighlights = []) {
           ...(questionNumbers.length > 1 ? { questionNumbers } : {}),
           variations: [normalizedPhrase],
           showBadge: highlight?.show_badge ?? highlight?.showBadge ?? true,
+          ...(Number.isFinite(sourceIndex) ? { sourceIndex } : {}),
         },
       ];
     });
@@ -219,24 +221,33 @@ function resolveSourceHighlightSegments(segments, highlights) {
         Math.max(...b.variations.map((variation) => variation.length)) -
         Math.max(...a.variations.map((variation) => variation.length))
     )[0];
-    const anchorCandidates = segments.flatMap((segment, segmentIndex) =>
-      findAllHighlightMatches(segment.text, anchor).map((match) => ({
+    const anchorCandidates = segments.flatMap((segment, segmentIndex) => {
+      if (Number.isFinite(anchor.sourceIndex) && segment.sourceIndex !== anchor.sourceIndex) {
+        return [];
+      }
+      return findAllHighlightMatches(segment.text, anchor).map((match) => ({
         ...match,
         segmentIndex,
-      }))
-    );
+      }));
+    });
     if (!anchorCandidates.length) continue;
 
     const anchorMatch = anchorCandidates[0];
     const groupPlacements = [];
 
     for (const highlight of group) {
-      const candidates = segments.flatMap((segment, segmentIndex) =>
-        findAllHighlightMatches(segment.text, highlight).map((match) => ({
+      const candidates = segments.flatMap((segment, segmentIndex) => {
+        if (
+          Number.isFinite(highlight.sourceIndex) &&
+          segment.sourceIndex !== highlight.sourceIndex
+        ) {
+          return [];
+        }
+        return findAllHighlightMatches(segment.text, highlight).map((match) => ({
           ...match,
           segmentIndex,
-        }))
-      );
+        }));
+      });
       const rankedCandidates = candidates.sort((a, b) => {
         const aDistance =
           Math.abs(a.segmentIndex - anchorMatch.segmentIndex) * 1_000_000 +

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, LineChart, UserCheck } from 'lucide-react';
+import { Activity, LineChart, UserCheck, UserRoundCheck } from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -20,6 +20,7 @@ import {
   NUM,
   PANEL,
   PILL_BASE,
+  FunnelStep,
   PanelHeader,
   STAGGER_CONTAINER,
   FADE_UP,
@@ -44,7 +45,7 @@ const UserAnalytics = ({
   onRangeChange,
   isDataLoading = false,
 }) => {
-  const { userGrowthData = [], recentSignups = [] } = analyticsData;
+  const { userGrowthData = [], recentSignups = [], funnel = [] } = analyticsData;
 
   // The RPC returns new signups per period; the running total is the more
   // useful "is the community growing" read, so it is derived here rather than
@@ -52,13 +53,13 @@ const UserAnalytics = ({
   const growth = useMemo(() => {
     let running = 0;
     return userGrowthData.map((point) => {
-      running += Number(point.users) || 0;
+      running += Number(point.signups) || 0;
       return { ...point, cumulative: running };
     });
   }, [userGrowthData]);
 
   const newInPeriod = useMemo(
-    () => userGrowthData.reduce((total, point) => total + (Number(point.users) || 0), 0),
+    () => userGrowthData.reduce((total, point) => total + (Number(point.signups) || 0), 0),
     [userGrowthData]
   );
 
@@ -72,7 +73,7 @@ const UserAnalytics = ({
       <motion.div variants={FADE_UP}>
         <AdminPageHeader
           title="User Analytics"
-          description="Registration volume and community growth. Learner scores are deliberately not shown here."
+          description="Acquisition, activation, practice, and conversion — with one consistent time window."
         >
           {/* The range drives every figure on the page, so it belongs beside the
               page title rather than inside one chart's header. */}
@@ -116,22 +117,22 @@ const UserAnalytics = ({
           tip="All registered accounts, active or not."
         />
         <Kpi
-          label={`New · ${selectedRange}`}
+          label={`New signups · ${selectedRange}`}
           value={newInPeriod.toLocaleString()}
           sub={`Signups in the ${RANGE_LABEL[selectedRange]}`}
           tip="Sum of the growth series below, not a projection."
         />
         <Kpi
-          label="Premium conversion"
-          value={(stats.premiumUsers || 0).toLocaleString()}
-          sub={`${stats.conversionRate || 0}% of all users`}
-          tip="Pro and Premium accounts as a share of all registered users."
+          label="Activation rate"
+          value={`${stats.activationRate || 0}%`}
+          sub="New signups who finished onboarding"
+          tip="Current onboarding status of learners who registered in this selected period."
         />
         <Kpi
-          label="Completed sessions"
-          value={(stats.completedTests || 0).toLocaleString()}
-          sub="Finished test sessions"
-          tip="Session volume and completion — not band scores."
+          label="Practice reach"
+          value={(stats.testers || 0).toLocaleString()}
+          sub={`${(stats.completedTests || 0).toLocaleString()} completed sessions`}
+          tip="Distinct learners who started practice during the selected period, plus completed sessions."
         />
       </motion.div>
 
@@ -142,7 +143,7 @@ const UserAnalytics = ({
           <PanelHeader label="Growth trajectory" title={`Signups · ${RANGE_LABEL[selectedRange]}`}>
             <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
               <span className="h-0.5 w-2.5 rounded-full bg-indigo-500" />
-              New
+              Signups
             </span>
             <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
               <span className="h-0.5 w-2.5 rounded-full bg-stone-400 dark:bg-stone-500" />
@@ -194,7 +195,11 @@ const UserAnalytics = ({
                       content={({ active, payload, label }) => {
                         if (!active || !payload?.length) return null;
                         const rows = [
-                          ['New', payload.find((p) => p.dataKey === 'users')?.value ?? 0, INK],
+                          [
+                            'Signups',
+                            payload.find((p) => p.dataKey === 'signups')?.value ?? 0,
+                            INK,
+                          ],
                           [
                             'Cumulative',
                             payload.find((p) => p.dataKey === 'cumulative')?.value ?? 0,
@@ -233,7 +238,7 @@ const UserAnalytics = ({
                     <Area
                       yAxisId="new"
                       type="monotone"
-                      dataKey="users"
+                      dataKey="signups"
                       stroke={INK}
                       strokeWidth={2.5}
                       fillOpacity={1}
@@ -317,6 +322,65 @@ const UserAnalytics = ({
                 New signups appear here as soon as an account is created.
               </Empty>
             )}
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div variants={FADE_UP} className="grid gap-4 xl:grid-cols-[1.1fr_1fr]">
+        <div className={cn(PANEL, 'overflow-hidden')}>
+          <PanelHeader
+            label="Activation funnel"
+            title={`New users · ${RANGE_LABEL[selectedRange]}`}
+            description="Each step shows what learners who signed up in this period have done so far."
+          />
+          <div className="space-y-2.5 p-4">
+            {funnel.length ? (
+              funnel.map((step, index) => {
+                const first = Number(funnel[0]?.users || 0);
+                const previous = Number(funnel[index - 1]?.users || first);
+                const value = Number(step.users || 0);
+                return (
+                  <FunnelStep
+                    key={step.label}
+                    label={step.label}
+                    value={value.toLocaleString()}
+                    share={first ? (value / first) * 100 : 0}
+                    drop={index ? (previous ? ((previous - value) / previous) * 100 : 0) : 0}
+                    isFirst={index === 0}
+                  />
+                );
+              })
+            ) : (
+              <Empty icon={UserRoundCheck} title="No new users yet">
+                The activation funnel appears after the first registration in this period.
+              </Empty>
+            )}
+          </div>
+          <div className="border-t border-stone-200/80 px-4 py-2.5 dark:border-white/[0.07]">
+            <p className={cn(MICRO, MUTED)}>
+              All-time paid conversion ·{' '}
+              <span className={cn(NUM, 'text-stone-800 dark:text-stone-100')}>
+                {stats.conversionRate || 0}%
+              </span>
+            </p>
+          </div>
+        </div>
+        <div className={cn(PANEL, 'p-4')}>
+          <PanelHeader label="Operator read" title="What to act on" />
+          <div className="space-y-3 pt-4 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
+            <p>
+              <span className="font-bold text-stone-900 dark:text-stone-50">Activation</span> shows
+              whether new registrations reach a usable account state.
+            </p>
+            <p>
+              <span className="font-bold text-stone-900 dark:text-stone-50">Practice reach</span>{' '}
+              distinguishes signups from learners actually experiencing the product.
+            </p>
+            <p>
+              <span className="font-bold text-stone-900 dark:text-stone-50">Paid users</span> is
+              deliberately not projected; it counts only the current paid status of people who
+              signed up in this period.
+            </p>
           </div>
         </div>
       </motion.div>

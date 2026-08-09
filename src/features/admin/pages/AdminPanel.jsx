@@ -62,21 +62,26 @@ const UserAnalyticsWrapper = () => {
     async (range) => {
       try {
         setLoading(true);
-        // Map UI range to RPC parameter: '30D' -> '30d', '1Y' -> '1y'
+        // The RPC owns range-specific aggregation, so every KPI and chart
+        // changes together instead of mixing windowed and lifetime values.
         const rpcRange = (range || selectedRange).toLowerCase();
-        const data = await AnalyticsService.getDashboardStats(rpcRange);
+        const data = await AnalyticsService.getUserIntelligence(rpcRange);
 
         setStats({
           totalUsers: data.totalUsers,
-          premiumUsers: data.premiumUsers,
+          activeUsers: data.activeUsers,
+          testers: data.testers,
+          payingUsers: data.payingUsers,
           completedTests: data.completedTests,
-          conversionRate:
-            data.totalUsers > 0 ? ((data.premiumUsers / data.totalUsers) * 100).toFixed(1) : 0,
+          conversionRate: data.conversionRate,
+          activationRate: data.activationRate,
+          newUsers: data.newUsers,
         });
 
         setAnalyticsData({
-          userGrowthData: data.userGrowthData,
+          userGrowthData: data.trend,
           recentSignups: data.recentSignups,
+          funnel: data.funnel,
         });
       } catch (error) {
         console.error('Error loading analytics data:', error);
@@ -114,41 +119,46 @@ const RevenueAnalyticsWrapper = () => {
   const [analyticsData, setAnalyticsData] = useState({});
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRange, setSelectedRange] = useState('30D');
 
-  const loadAnalyticsData = async () => {
-    try {
-      setLoading(true);
+  const loadAnalyticsData = useCallback(
+    async (range = selectedRange) => {
+      try {
+        setLoading(true);
 
-      // Fetch actual revenue data from billing_history
-      const revenueData = await AnalyticsService.getRevenueAnalytics();
+        const revenueData = await AnalyticsService.getRevenueIntelligence(range.toLowerCase());
 
-      setStats({
-        proCount: revenueData.proCount,
-        premiumCount: revenueData.premiumCount,
-      });
+        setStats({
+          activeSubscribers: revenueData.activeSubscribers,
+          cancellingSubscribers: revenueData.cancellingSubscribers,
+          expiringSubscribers: revenueData.expiringSubscribers,
+          failedPayments: revenueData.failedPayments,
+          transactions: revenueData.transactions,
+          previousTransactions: revenueData.previousTransactions,
+        });
 
-      setAnalyticsData({
-        stripeRevenue: revenueData.stripeRevenue,
-        manualRevenue: revenueData.manualRevenue,
-        monthlyRevenue: revenueData.monthlyRevenue || [],
-        revenueByTier: revenueData.revenueByTier || [],
-        arpuUsd: revenueData.arpuUsd || 0,
-        arpuBdt: revenueData.arpuBdt || 0,
-        ltvUsd: revenueData.ltvUsd || 0,
-        ltvBdt: revenueData.ltvBdt || 0,
-      });
+        setAnalyticsData({
+          revenueUsd: revenueData.revenueUsd,
+          revenueBdt: revenueData.revenueBdt,
+          previousUsd: revenueData.previousUsd,
+          previousBdt: revenueData.previousBdt,
+          trend: revenueData.trend || [],
+          paymentMethods: revenueData.paymentMethods || [],
+        });
 
-      setRecentTransactions(revenueData.recentTransactions || []);
-    } catch (error) {
-      console.error('Error loading revenue analytics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setRecentTransactions(revenueData.recentTransactions || []);
+      } catch (error) {
+        console.error('Error loading revenue analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedRange]
+  );
 
   useEffect(() => {
-    loadAnalyticsData();
-  }, []);
+    loadAnalyticsData(selectedRange);
+  }, [selectedRange, loadAnalyticsData]);
 
   if (loading) {
     return <AdminPageSkeleton kpis={3} panels={1} />;
@@ -160,6 +170,8 @@ const RevenueAnalyticsWrapper = () => {
         analyticsData={analyticsData}
         stats={stats}
         recentTransactions={recentTransactions}
+        selectedRange={selectedRange}
+        onRangeChange={setSelectedRange}
         data-oid="i8.:9ec"
       />
     </div>

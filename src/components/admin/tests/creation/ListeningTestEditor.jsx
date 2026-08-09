@@ -24,8 +24,10 @@ import {
   LayoutGrid,
   FileText,
   ListChecks,
-  Minimize2,
-  Maximize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
   CheckCircle2,
   Headphones,
   Sparkles,
@@ -43,6 +45,8 @@ import GapFillBuilder from '../builders/GapFillBuilder';
 import StaticTextBuilder from '../builders/StaticTextBuilder';
 import FlowchartBuilder from '../builders/FlowchartBuilder';
 import BulkImportModal from '../BulkImportModal';
+import ListeningTranscriptHighlighter from './ListeningTranscriptHighlighter';
+import { serializeListeningSections } from './listeningEditorSerialization';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -609,6 +613,8 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         title: `Part ${i + 1}`,
         audio_url: '',
         transcript: '',
+        srt_content: '',
+        transcript_highlights: [],
         groups: [],
       }));
   };
@@ -630,8 +636,19 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   });
   const [saving, setSaving] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showQuestions, setShowQuestions] = useState(true);
   const [transcribing, setTranscribing] = useState(false);
   const [bulkImportConfig, setBulkImportConfig] = useState({ isOpen: false, mode: 'full' });
+
+  const toggleSidebar = () => {
+    if (showSidebar && !showQuestions) setShowQuestions(true);
+    setShowSidebar((visible) => !visible);
+  };
+
+  const toggleQuestions = () => {
+    if (showQuestions && !showSidebar) setShowSidebar(true);
+    setShowQuestions((visible) => !visible);
+  };
 
   // Auto-title: Book number = year - 2005 (e.g., 2015 = IELTS 10)
   useEffect(() => {
@@ -701,17 +718,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     try {
       let allQuestions = [];
       let qCounter = 1;
-      const content = sections.map((s, sIdx) => ({
-        section_number: sIdx + 1,
-        title: s.title,
-        audio_url: s.audio_url,
-        transcript: sanitizeHtml(s.transcript),
-        srt_content: sanitizeHtml(s.srt_content || ''),
-        question_groups: (s.groups || []).map((g) => ({
-          ...g,
-          instructions: sanitizeHtml(g.instructions),
-        })),
-      }));
+      const content = serializeListeningSections(sections);
 
       sections.forEach((s, sIdx) => {
         s.groups.forEach((g) => {
@@ -1092,19 +1099,36 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         isSaving={saving}
         lastSaved={null}
       >
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto h-8 w-8 p-0 rounded-full border-dashed hidden md:flex shrink-0 hover:bg-stone-100 dark:hover:bg-stone-800"
-          onClick={() => setShowSidebar(!showSidebar)}
-          title={showSidebar ? 'Hide Audio' : 'Show Audio'}
-        >
-          {showSidebar ? (
-            <Minimize2 className="w-4 h-4 text-stone-500" />
-          ) : (
-            <Maximize2 className="w-4 h-4 text-stone-500" />
-          )}
-        </Button>
+        <div className="ml-auto hidden items-center gap-1.5 md:flex">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 shrink-0 rounded-full border-dashed p-0 hover:bg-stone-100 dark:hover:bg-stone-800"
+            onClick={toggleSidebar}
+            title={showSidebar ? 'Hide audio and transcript' : 'Show audio and transcript'}
+            aria-label={showSidebar ? 'Hide audio and transcript' : 'Show audio and transcript'}
+          >
+            {showSidebar ? (
+              <PanelLeftClose className="h-4 w-4 text-stone-500" />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4 text-stone-500" />
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 shrink-0 rounded-full border-dashed p-0 hover:bg-stone-100 dark:hover:bg-stone-800"
+            onClick={toggleQuestions}
+            title={showQuestions ? 'Hide question panel' : 'Show question panel'}
+            aria-label={showQuestions ? 'Hide question panel' : 'Show question panel'}
+          >
+            {showQuestions ? (
+              <PanelRightClose className="h-4 w-4 text-stone-500" />
+            ) : (
+              <PanelRightOpen className="h-4 w-4 text-stone-500" />
+            )}
+          </Button>
+        </div>
       </TestEditorHeader>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
@@ -1112,10 +1136,14 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         <AnimatePresence mode="wait">
           {showSidebar && (
             <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 400, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              className="w-full md:w-[400px] h-full bg-white dark:bg-[#131315] border-r border-stone-200/80 dark:border-white/[0.07] flex flex-col z-10"
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={cn(
+                'h-full w-full bg-white dark:bg-[#131315] border-r border-stone-200/80 dark:border-white/[0.07] flex flex-col z-10',
+                showQuestions ? 'md:w-[400px] md:shrink-0' : 'flex-1'
+              )}
             >
               <Tabs
                 value={activeTab}
@@ -1187,19 +1215,19 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                       </Button>
                     </div>
 
-                    <div className="relative flex-1 flex flex-col">
-                      <p className="text-[10px] text-stone-400 mb-2 font-medium">
-                        SRT subtitle format recommended for syncing.
-                      </p>
-                      <Textarea
-                        value={sections[activeTab].srt_content || ''}
-                        onChange={(e) =>
-                          updateSection(Number(activeTab), 'srt_content', e.target.value)
-                        }
-                        placeholder={`1\n00:00:00,000 --> 00:00:05,000\nSPEAKER 1: Welcome...`}
-                        className="flex-1 font-mono text-xs min-h-[200px] bg-white dark:bg-stone-950 rounded-xl border-stone-200/60 dark:border-stone-800 focus:border-stone-500 focus: transition-all resize-none"
-                      />
-                    </div>
+                    <ListeningTranscriptHighlighter
+                      srtContent={sections[activeTab].srt_content || ''}
+                      plainTranscript={sections[activeTab].transcript || ''}
+                      highlights={sections[activeTab].transcript_highlights || []}
+                      onSrtChange={(value) =>
+                        updateSection(Number(activeTab), 'srt_content', value)
+                      }
+                      onHighlightsChange={(value) =>
+                        updateSection(Number(activeTab), 'transcript_highlights', value)
+                      }
+                      questionStart={Number(activeTab) * 10 + 1}
+                      questionEnd={Number(activeTab) * 10 + 10}
+                    />
 
                     {/* Quick Tip */}
                     <div className="p-4 bg-linear-to-br/srgb from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
@@ -1210,8 +1238,8 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                         </span>
                       </div>
                       <p className="text-[10px] text-stone-500 leading-relaxed font-medium">
-                        Paste SRT subtitle content or use AI transcription. Format: Number →
-                        Timestamp → Speaker: Text
+                        Highlight view hides timestamps without changing synchronization. Select the
+                        spoken evidence, enter its question number, then save the test.
                       </p>
                     </div>
                   </div>
@@ -1222,135 +1250,137 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         </AnimatePresence>
 
         {/* Main Question Builder Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-stone-950 overflow-hidden">
-          {/* Sub-header with Tabs and Actions */}
-          <div className="px-4 sm:px-6 py-4 border-b bg-white dark:bg-stone-950 sticky top-0 z-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center flex-wrap gap-4 overflow-hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowSidebar(!showSidebar)}
-                  className={`h-9 w-9 shrink-0 rounded-xl border transition-all ${showSidebar ? 'bg-stone-50 dark:bg-white/8 border-stone-200 dark:border-white/15 text-stone-700 dark:text-stone-200' : 'bg-white dark:bg-[#18181b] border-stone-200 dark:border-white/10 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'}`}
-                  title={showSidebar ? 'Hide Settings' : 'Show Settings'}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </Button>
-
-                <div className="flex items-center gap-3 px-3 py-1.5 bg-stone-50 dark:bg-stone-900/50 rounded-xl border dark:border-stone-800 shrink-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-stone-600">
-                      {sections[activeTab]?.groups.length || 0}
-                    </span>
-                    <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
-                      groups
-                    </span>
-                  </div>
-                  <div className="w-px h-3 bg-stone-200 dark:bg-stone-800" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black text-stone-600">
-                      {sections[activeTab]?.groups.reduce(
-                        (acc, g) => acc + g.questions.length,
-                        0
-                      ) || 0}
-                    </span>
-                    <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
-                      items
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center flex-wrap md:justify-end gap-2">
-                <div className="flex items-center bg-stone-100 dark:bg-stone-900 rounded-xl p-1 border dark:border-stone-800">
+        {showQuestions && (
+          <div className="flex-1 flex flex-col bg-white dark:bg-stone-950 overflow-hidden">
+            {/* Sub-header with Tabs and Actions */}
+            <div className="px-4 sm:px-6 py-4 border-b bg-white dark:bg-stone-950 sticky top-0 z-10">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center flex-wrap gap-4 overflow-hidden">
                   <Button
-                    onClick={() => setBulkImportConfig({ isOpen: true, mode: 'answers_only' })}
                     variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 sm:px-3 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-600 font-black text-[9px] uppercase tracking-widest transition-all"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    className={`h-9 w-9 shrink-0 rounded-xl border transition-all ${showSidebar ? 'bg-stone-50 dark:bg-white/8 border-stone-200 dark:border-white/15 text-stone-700 dark:text-stone-200' : 'bg-white dark:bg-[#18181b] border-stone-200 dark:border-white/10 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'}`}
+                    title={showSidebar ? 'Hide Settings' : 'Show Settings'}
                   >
-                    <ListChecks className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
-                    <span className="hidden sm:inline">Answers</span>
+                    <LayoutGrid className="w-4 h-4" />
                   </Button>
-                  <Button
-                    onClick={() => setBulkImportConfig({ isOpen: true, mode: 'full' })}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 sm:px-3 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-600 font-black text-[9px] uppercase tracking-widest transition-all"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 mr-1 sm:mr-1.5 text-stone-500" />
-                    <span className="hidden sm:inline">Questions</span>
-                  </Button>
-                </div>
 
-                <Button
-                  onClick={() => addGroup(Number(activeTab))}
-                  size="sm"
-                  className="h-9 px-4 sm:px-5 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:-translate-y-0.5 shrink-0"
-                >
-                  <Plus className="w-4 h-4 mr-1 sm:mr-1.5" />
-                  Add Group
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Questions List/Editor Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar bg-stone-50/30 dark:bg-stone-950">
-            <div className="max-w-4xl mx-auto">
-              <Reorder.Group
-                axis="y"
-                values={sections[activeTab]?.groups || []}
-                onReorder={handleGroupReorder}
-                className="space-y-6 pb-20"
-              >
-                {(sections[activeTab]?.groups || []).map((group, gIdx) => (
-                  <QuestionGroupItem
-                    key={group.id}
-                    group={group}
-                    index={gIdx}
-                    activeTab={activeTab}
-                    startNumbers={startNumbers}
-                    updateGroup={updateGroup}
-                    removeGroup={removeGroup}
-                    addQuestion={addQuestion}
-                    effectiveTheme={effectiveTheme}
-                  />
-                ))}
-              </Reorder.Group>
-
-              {/* Empty State */}
-              {sections[activeTab]?.groups.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="relative"
-                >
-                  <div className="absolute inset-0 bg-linear-to-br/srgb from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
-                  <div className="bg-white/70 dark:bg-stone-900/70 border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-stone-50 dark:bg-stone-900/30 flex items-center justify-center mx-auto mb-4 border border-stone-100 dark:border-stone-800">
-                      <FileText className="w-8 h-8 text-stone-600 dark:text-stone-400" />
+                  <div className="flex items-center gap-3 px-3 py-1.5 bg-stone-50 dark:bg-stone-900/50 rounded-xl border dark:border-stone-800 shrink-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black text-stone-600">
+                        {sections[activeTab]?.groups.length || 0}
+                      </span>
+                      <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
+                        groups
+                      </span>
                     </div>
-                    <h3 className="text-lg font-black text-stone-800 dark:text-white uppercase tracking-tight">
-                      Build your test context
-                    </h3>
-                    <p className="text-xs text-muted-foreground mb-6 max-w-sm mx-auto font-medium">
-                      Add your first question group to start structuring Part{' '}
-                      {Number(activeTab) + 1} of your IELTS Listening test.
-                    </p>
+                    <div className="w-px h-3 bg-stone-200 dark:bg-stone-800" />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black text-stone-600">
+                        {sections[activeTab]?.groups.reduce(
+                          (acc, g) => acc + g.questions.length,
+                          0
+                        ) || 0}
+                      </span>
+                      <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">
+                        items
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center flex-wrap md:justify-end gap-2">
+                  <div className="flex items-center bg-stone-100 dark:bg-stone-900 rounded-xl p-1 border dark:border-stone-800">
                     <Button
-                      onClick={() => addGroup(Number(activeTab))}
-                      className="h-10 px-8 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[11px] uppercase tracking-widest transition-all active:scale-95"
+                      onClick={() => setBulkImportConfig({ isOpen: true, mode: 'answers_only' })}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 sm:px-3 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-600 font-black text-[9px] uppercase tracking-widest transition-all"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add First Group
+                      <ListChecks className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                      <span className="hidden sm:inline">Answers</span>
+                    </Button>
+                    <Button
+                      onClick={() => setBulkImportConfig({ isOpen: true, mode: 'full' })}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 sm:px-3 rounded-lg text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-600 font-black text-[9px] uppercase tracking-widest transition-all"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 mr-1 sm:mr-1.5 text-stone-500" />
+                      <span className="hidden sm:inline">Questions</span>
                     </Button>
                   </div>
-                </motion.div>
-              )}
+
+                  <Button
+                    onClick={() => addGroup(Number(activeTab))}
+                    size="sm"
+                    className="h-9 px-4 sm:px-5 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest transition-all hover:-translate-y-0.5 shrink-0"
+                  >
+                    <Plus className="w-4 h-4 mr-1 sm:mr-1.5" />
+                    Add Group
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Questions List/Editor Area */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar bg-stone-50/30 dark:bg-stone-950">
+              <div className="max-w-4xl mx-auto">
+                <Reorder.Group
+                  axis="y"
+                  values={sections[activeTab]?.groups || []}
+                  onReorder={handleGroupReorder}
+                  className="space-y-6 pb-20"
+                >
+                  {(sections[activeTab]?.groups || []).map((group, gIdx) => (
+                    <QuestionGroupItem
+                      key={group.id}
+                      group={group}
+                      index={gIdx}
+                      activeTab={activeTab}
+                      startNumbers={startNumbers}
+                      updateGroup={updateGroup}
+                      removeGroup={removeGroup}
+                      addQuestion={addQuestion}
+                      effectiveTheme={effectiveTheme}
+                    />
+                  ))}
+                </Reorder.Group>
+
+                {/* Empty State */}
+                {sections[activeTab]?.groups.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative"
+                  >
+                    <div className="absolute inset-0 bg-linear-to-br/srgb from-stone-50/50 to-stone-50/30 dark:from-stone-950/20 dark:to-stone-950/10 rounded-2xl -z-10" />
+                    <div className="bg-white/70 dark:bg-stone-900/70 border border-stone-200/50 dark:border-stone-800/30 rounded-2xl p-12 text-center">
+                      <div className="w-16 h-16 rounded-2xl bg-stone-50 dark:bg-stone-900/30 flex items-center justify-center mx-auto mb-4 border border-stone-100 dark:border-stone-800">
+                        <FileText className="w-8 h-8 text-stone-600 dark:text-stone-400" />
+                      </div>
+                      <h3 className="text-lg font-black text-stone-800 dark:text-white uppercase tracking-tight">
+                        Build your test context
+                      </h3>
+                      <p className="text-xs text-muted-foreground mb-6 max-w-sm mx-auto font-medium">
+                        Add your first question group to start structuring Part{' '}
+                        {Number(activeTab) + 1} of your IELTS Listening test.
+                      </p>
+                      <Button
+                        onClick={() => addGroup(Number(activeTab))}
+                        className="h-10 px-8 rounded-xl bg-stone-600 hover:bg-stone-700 text-white font-black text-[11px] uppercase tracking-widest transition-all active:scale-95"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add First Group
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <BulkImportModal

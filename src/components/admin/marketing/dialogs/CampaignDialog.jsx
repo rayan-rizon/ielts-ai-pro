@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/cn';
+import { ThemedDateTimePicker } from '@/components/admin/ui/ThemedDateTimePicker';
 import {
   AdminButton,
   FIELD,
@@ -341,24 +342,22 @@ const CampaignDialog = ({
           <Step index="3" label="Delivery" description="when and how often">
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block">
+                <div className="block">
                   <FieldLabel>Starts</FieldLabel>
-                  <Input
-                    type="datetime-local"
-                    className={cn(FIELD, 'w-full text-xs')}
+                  <ThemedDateTimePicker
                     value={form.starts_at}
-                    onChange={(event) => set({ starts_at: event.target.value })}
+                    onChange={(val) => set({ starts_at: val })}
+                    placeholder="Select start date & time"
                   />
-                </label>
-                <label className="block">
+                </div>
+                <div className="block">
                   <FieldLabel>Ends</FieldLabel>
-                  <Input
-                    type="datetime-local"
-                    className={cn(FIELD, 'w-full text-xs')}
+                  <ThemedDateTimePicker
                     value={form.ends_at}
-                    onChange={(event) => set({ ends_at: event.target.value })}
+                    onChange={(val) => set({ ends_at: val })}
+                    placeholder="Select end date & time"
                   />
-                </label>
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block">

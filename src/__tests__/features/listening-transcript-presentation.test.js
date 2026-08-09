@@ -105,6 +105,24 @@ describe('Listening transcript answer presentation', () => {
     });
   });
 
+  it('uses the manually selected transcript segment when evidence text repeats', () => {
+    const highlighted = buildHighlightedTranscript(
+      [
+        { id: 1, sourceIndex: 0, text: 'That is the answer.' },
+        { id: 2, sourceIndex: 1, text: 'That is the answer.' },
+      ],
+      {},
+      [{ question_number: 8, phrase: 'That is the answer.', source_index: 1 }]
+    );
+
+    expect(highlighted[0].displayParts.every((part) => part.questionNumber === null)).toBe(true);
+    expect(highlighted[1].displayParts).toContainEqual({
+      text: 'That is the answer',
+      questionNumber: 8,
+      showBadge: true,
+    });
+  });
+
   it('renders grouped source-image question badges as one evidence mark', () => {
     const sourceHighlights = [
       {

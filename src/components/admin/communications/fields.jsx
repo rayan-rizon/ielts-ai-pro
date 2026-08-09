@@ -3,7 +3,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
 import { MICRO, PANEL } from '@/components/admin/ui/primitives';
-import { toLocalInputValue, fromLocalInputValue } from '@/lib/communications';
 
 /**
  * Form furniture shared by the three Communications panels, so a schedule
@@ -54,28 +53,17 @@ export const TextAreaField = ({ label, hint, rows = 4, className, ...props }) =>
   </Field>
 );
 
-/** A `datetime-local` control that reads and writes ISO strings. */
-export const DateTimeField = ({ label, hint, value, onChange, min, className, id }) => (
+import { ThemedDateTimePicker } from '@/components/admin/ui/ThemedDateTimePicker';
+
+/** A themed date/time picker control that reads and writes ISO strings. */
+export const DateTimeField = ({ label, hint, value, onChange, className, id }) => (
   <Field label={label} hint={hint} className={className} htmlFor={id}>
-    <div className="flex items-center gap-1.5">
-      <Input
-        id={id}
-        type="datetime-local"
-        value={toLocalInputValue(value)}
-        min={min ? toLocalInputValue(min) : undefined}
-        onChange={(event) => onChange(fromLocalInputValue(event.target.value))}
-        className={cn(FIELD_INPUT, 'w-full')}
-      />
-      {value && (
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className="h-9 shrink-0 rounded-md border border-stone-300 px-2 text-[10px] font-bold text-stone-500 transition-colors hover:bg-stone-50 dark:border-white/15 dark:text-stone-400 dark:hover:bg-white/5"
-        >
-          Clear
-        </button>
-      )}
-    </div>
+    <ThemedDateTimePicker
+      id={id}
+      value={value}
+      onChange={(val) => onChange(val || null)}
+      placeholder="Select date & time"
+    />
   </Field>
 );
 
