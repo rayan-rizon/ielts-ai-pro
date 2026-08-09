@@ -1,9 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   DEEPSEEK_TEXT_MODEL,
+  GEMINI_SCORING_MODEL,
   GEMINI_TEXT_FALLBACK_MODEL,
   OPENROUTER_DEEPSEEK_MODEL,
+  OPENROUTER_LUNA_MODEL,
+  VERCEL_GATEWAY_LUNA_MODEL,
   requestJsonWithGeminiFallback,
+  requestGeminiJson,
+  requestOpenRouterLunaJson,
+  requestVercelGatewayLunaJson,
 } from '../../../supabase/functions/_shared/textAiProvider';
 
 function jsonResponse(body: any, status = 200) {
@@ -14,6 +20,86 @@ function jsonResponse(body: any, status = 200) {
 }
 
 describe('text AI provider routing', () => {
+  it('requests Luna through the Vercel AI Gateway OpenAI-compatible endpoint', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        model: VERCEL_GATEWAY_LUNA_MODEL,
+        choices: [{ message: { content: '{"fluency":7}' } }],
+        usage: {
+          prompt_tokens: 1000,
+          completion_tokens: 500,
+          total_tokens: 1500,
+          cost: 0.0004,
+        },
+      })
+    );
+
+    const result = await requestVercelGatewayLunaJson({
+      prompt: 'Score this speaking test.',
+      apiKey: 'vercel-gateway-test-key',
+      maxOutputTokens: 4096,
+      fetchImpl,
+    });
+
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe('https://ai-gateway.vercel.sh/v1/chat/completions');
+    expect(init.headers.Authorization).toBe('Bearer vercel-gateway-test-key');
+    expect(JSON.parse(init.body)).toMatchObject({
+      model: VERCEL_GATEWAY_LUNA_MODEL,
+      messages: [{ role: 'user', content: 'Score this speaking test.' }],
+      reasoning: { effort: 'none', exclude: true },
+      max_tokens: 4096,
+    });
+    expect(JSON.parse(init.body)).not.toHaveProperty('response_format');
+    expect(result).toMatchObject({
+      provider: 'vercel-ai-gateway-luna',
+      model: VERCEL_GATEWAY_LUNA_MODEL,
+      parsed: { fluency: 7 },
+      usage: { estimatedProviderCostUsd: 0.0004 },
+    });
+  });
+
+  it('requests Luna through OpenRouter in latency-sorted non-reasoning JSON mode', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        model: OPENROUTER_LUNA_MODEL,
+        choices: [{ message: { content: '{"fluency":7}' } }],
+        usage: {
+          prompt_tokens: 1000,
+          completion_tokens: 500,
+          total_tokens: 1500,
+          cost: 0.0004,
+        },
+      })
+    );
+
+    const result = await requestOpenRouterLunaJson({
+      prompt: 'Score this speaking test.',
+      apiKey: 'openrouter-test-key',
+      maxOutputTokens: 4096,
+      fetchImpl,
+    });
+
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(init.headers.Authorization).toBe('Bearer openrouter-test-key');
+    expect(JSON.parse(init.body)).toMatchObject({
+      model: OPENROUTER_LUNA_MODEL,
+      messages: [{ role: 'user', content: 'Score this speaking test.' }],
+      response_format: { type: 'json_object' },
+      reasoning: { effort: 'none', exclude: true },
+      provider: { sort: 'latency', require_parameters: true },
+      max_tokens: 4096,
+    });
+    expect(JSON.parse(init.body)).not.toHaveProperty('temperature');
+    expect(result).toMatchObject({
+      provider: 'openrouter-luna',
+      model: OPENROUTER_LUNA_MODEL,
+      parsed: { fluency: 7 },
+      usage: { estimatedProviderCostUsd: 0.0004 },
+    });
+  });
+
   it('uses OpenRouter DeepSeek V4 Flash 0731 first with reasoning disabled and no exposed reasoning text', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       jsonResponse({
@@ -156,6 +242,29 @@ describe('text AI provider routing', () => {
       fallbackReason: 'deepseek_http_error_http_503',
       parsed: { headline: 'Gemini fallback' },
     });
+  });
+
+  it('uses Gemini Flash scoring rates when the scoring model is requested', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        candidates: [{ content: { parts: [{ text: '{"ok":true}' }] } }],
+        usageMetadata: {
+          promptTokenCount: 1000,
+          candidatesTokenCount: 500,
+          totalTokenCount: 1500,
+        },
+      })
+    );
+
+    const result = await requestGeminiJson({
+      prompt: 'Return JSON.',
+      apiKey: 'gemini-test-key',
+      geminiModel: GEMINI_SCORING_MODEL,
+      maxOutputTokens: 300,
+      fetchImpl,
+    });
+
+    expect(result.usage.estimatedProviderCostUsd).toBeCloseTo(0.00155, 10);
   });
 
   it('falls back to Gemini when DeepSeek returns malformed JSON', async () => {

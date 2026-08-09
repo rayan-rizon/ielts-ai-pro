@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 
 import {
   getPlaybackAudio,
@@ -8,6 +7,7 @@ import {
   releasePlaybackAudio,
   unlockSpeechPlayback,
 } from '../utils/speechPlayback';
+import { normalizeSpeakingTtsText, requestSpeakingTts } from '../utils/speakingTtsPrefetch';
 
 /**
  * useSpeechSynthesis
@@ -219,11 +219,7 @@ export default function useSpeechSynthesis() {
       const myRequestId = ++requestIdRef.current;
 
       // Clean text for speech (handle IELTS-specific notation)
-      const cleanText = text
-        .replace(/\[\s*Why\s*\/\s*Why\s*not\s*\?*\]/gi, 'Why, or why not?')
-        .replace(/\(\s*Why\s*\/\s*Why\s*not\s*\?*\)/gi, 'Why, or why not?')
-        .replace(/Why\s*\/\s*Why\s*not/gi, 'Why or why not')
-        .trim();
+      const cleanText = normalizeSpeakingTtsText(text);
 
       // ── 1. Show loading state ──────────────────────────────────────────────
       setActiveSpeechText(String(text).trim());
@@ -237,9 +233,7 @@ export default function useSpeechSynthesis() {
       let shouldUseFallback = false; // only true for real errors, not graceful fallbacks
 
       try {
-        const { data, error } = await supabase.functions.invoke('synthesizeSpeech', {
-          body: { text: cleanText, voice: 'en-GB-Neural2-B' },
-        });
+        const { data, error } = await requestSpeakingTts(cleanText);
 
         // Bail if superseded or unmounted
         if (requestIdRef.current !== myRequestId || !isMountedRef.current) return;

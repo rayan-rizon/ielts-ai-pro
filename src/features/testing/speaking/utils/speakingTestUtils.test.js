@@ -11,6 +11,7 @@ import {
   buildSpeakingResumeState,
   formatIeltsQuestion,
   getQuestionLines,
+  isSilentSpeechMetadata,
   isTranscriptError,
 } from './speakingTestUtils';
 
@@ -297,5 +298,14 @@ describe('speakingTestUtils', () => {
     expect(isTranscriptError('(Unable to transcribe - please try again)')).toBe(true);
     expect(isTranscriptError('(Inaudible)')).toBe(true);
     expect(isTranscriptError('I usually study in the evening.')).toBe(false);
+  });
+
+  it('recognizes silent recording metadata before uploading audio', () => {
+    expect(isSilentSpeechMetadata({ speechDetected: false })).toBe(true);
+    expect(isSilentSpeechMetadata({ speechDetected: false, liveTranscript: 'hello there' })).toBe(
+      false
+    );
+    expect(isSilentSpeechMetadata({ speechDetected: true })).toBe(false);
+    expect(isSilentSpeechMetadata({ speechDetected: null })).toBe(false);
   });
 });

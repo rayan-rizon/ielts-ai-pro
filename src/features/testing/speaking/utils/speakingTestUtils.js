@@ -223,6 +223,14 @@ export function isTranscriptError(transcript) {
   );
 }
 
+/**
+ * MediaRecorder can emit a sizeable blob for room noise alone. Do not send
+ * that blob to a speech model: Whisper may turn silence into a fluent answer.
+ */
+export function isSilentSpeechMetadata(metadata = {}) {
+  return metadata?.speechDetected === false && !String(metadata?.liveTranscript || '').trim();
+}
+
 export function buildPartContexts(allParts = {}) {
   return Object.fromEntries(
     Object.entries(allParts).map(([part, data]) => [

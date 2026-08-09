@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { callEdgeFunction } from '@/utils/api';
-import { supabase } from '@/lib/supabase';
 
 import {
   buildConversationHistory,
@@ -10,6 +9,7 @@ import {
   buildLocalDevSpeakingResponse,
   formatIeltsQuestion,
   getQuestionLines,
+  isSilentSpeechMetadata,
   isTranscriptError,
 } from '../utils/speakingTestUtils';
 import {
@@ -17,6 +17,7 @@ import {
   convertAudioBlobToWav16kMono,
   shouldRequestPronunciationSample,
 } from '../utils/audioProcessing';
+import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
 
 export default function useSpeakingRecordingProcessor({
   allParts,
@@ -53,6 +54,17 @@ export default function useSpeakingRecordingProcessor({
       }
 
       if (!audioBlob || audioBlob.size < 5000) {
+        setConversation((prev) => prev.filter((entry) => !entry.isLoading));
+        const message = "I didn't hear anything. I'll reopen the microphone—please speak clearly.";
+        setConversation((prev) => [...prev, { speaker: 'ai', text: message }]);
+        Promise.resolve(speakText(message)).finally(() => requestAutoStart?.());
+        return;
+      }
+
+      // A silent/noise-only recording can still be a large, valid media blob.
+      // Stop before upload so a transcription provider cannot hallucinate an
+      // answer. The Edge Function enforces the same rule as a backstop.
+      if (isSilentSpeechMetadata(metadata)) {
         setConversation((prev) => prev.filter((entry) => !entry.isLoading));
         const message = "I didn't hear anything. I'll reopen the microphone—please speak clearly.";
         setConversation((prev) => [...prev, { speaker: 'ai', text: message }]);
@@ -184,11 +196,7 @@ function prefetchExpectedExaminerSpeech({
   });
   if (!text) return;
 
-  supabase.functions
-    .invoke('synthesizeSpeech', {
-      body: { text, voice: 'en-GB-Neural2-B' },
-    })
-    .catch(() => {});
+  prefetchSpeakingTts(text);
 }
 
 function preparePronunciationAudio({

@@ -61,6 +61,25 @@ export function buildBrowserTranscriptHint(value: unknown): {
   };
 }
 
+export function canRecoverFromBrowserTranscript(
+  hint: { transcript: string; confidence: number } | null
+): hint is { transcript: string; confidence: number } {
+  return Boolean(
+    hint && hint.confidence >= 0.82 && hint.transcript.trim().split(/\s+/).length >= 3
+  );
+}
+
+/**
+ * Treat a recorder-confirmed no-speech turn as inaudible unless a high-
+ * confidence, multi-word live caption independently corroborates speech.
+ */
+export function shouldGuardSilentSpeech(
+  speechDetected: unknown,
+  browserTranscriptHint: { transcript: string; confidence: number } | null
+): boolean {
+  return speechDetected === false && !canRecoverFromBrowserTranscript(browserTranscriptHint);
+}
+
 export function getTranscriptVerificationReason(params: {
   cloudflareTranscript: string;
   browserHint?: { transcript: string; confidence: number } | null;

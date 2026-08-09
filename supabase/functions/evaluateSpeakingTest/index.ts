@@ -18,8 +18,9 @@ import {
   aggregatePronunciationEvidence,
   buildSpeakingTranscript,
   normalizeSpeakingEvaluation,
-  parseStructuredJson,
 } from '../_shared/evaluationUtils.ts';
+import { requestSpeakingEvaluation } from '../_shared/speakingEvaluationProvider.ts';
+import { SPEAKING_EVALUATION_RESPONSE_SCHEMA } from '../_shared/speakingEvaluationSchema.ts';
 
 declare const Deno: any;
 
@@ -43,6 +44,10 @@ serve(async (req: Request) => {
   );
   let quotaReservationId: string | undefined;
   let authenticatedUserId: string | undefined;
+  let tokensUsed = 0;
+  let promptTokens = 0;
+  let outputTokens = 0;
+  let providerCalls = 0;
 
   try {
     // Authenticate user
@@ -175,11 +180,6 @@ serve(async (req: Request) => {
       );
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
-    }
-
     const transcriptEvidence = buildSpeakingTranscript(allPartsConversation, partContexts);
     const pronunciationEvidence = aggregatePronunciationEvidence(allPartsPronunciation);
     let pronunciationSummary = '';
@@ -204,146 +204,29 @@ serve(async (req: Request) => {
       transcriptEvidence.transcript + pronunciationSummary,
       'full'
     );
-    const speakingResponseSchema = {
-      type: 'OBJECT',
-      properties: {
-        fluency: { type: 'NUMBER' },
-        lexical: { type: 'NUMBER' },
-        grammar: { type: 'NUMBER' },
-        pronunciation: { type: 'NUMBER', nullable: true },
-        feedback: { type: 'STRING' },
-        partScores: {
-          type: 'OBJECT',
-          properties: {
-            part1: {
-              type: 'OBJECT',
-              properties: {
-                band: { type: 'NUMBER', nullable: true },
-                keyObservation: { type: 'STRING' },
-              },
-              required: ['band', 'keyObservation'],
-            },
-            part2: {
-              type: 'OBJECT',
-              properties: {
-                band: { type: 'NUMBER', nullable: true },
-                keyObservation: { type: 'STRING' },
-              },
-              required: ['band', 'keyObservation'],
-            },
-            part3: {
-              type: 'OBJECT',
-              properties: {
-                band: { type: 'NUMBER', nullable: true },
-                keyObservation: { type: 'STRING' },
-              },
-              required: ['band', 'keyObservation'],
-            },
-          },
-          required: ['part1', 'part2', 'part3'],
-        },
-        criterionNotes: {
-          type: 'OBJECT',
-          properties: {
-            fluency: { type: 'STRING' },
-            lexical: { type: 'STRING' },
-            grammar: { type: 'STRING' },
-            pronunciation: { type: 'STRING' },
-          },
-          required: ['fluency', 'lexical', 'grammar', 'pronunciation'],
-        },
-        strengths: { type: 'ARRAY', items: { type: 'STRING' } },
-        improvements: {
-          type: 'ARRAY',
-          items: {
-            type: 'OBJECT',
-            properties: {
-              area: { type: 'STRING' },
-              tip: { type: 'STRING' },
-            },
-            required: ['area', 'tip'],
-          },
-        },
-        targetBandTips: { type: 'STRING' },
-      },
-      required: [
-        'fluency',
-        'lexical',
-        'grammar',
-        'pronunciation',
-        'feedback',
-        'partScores',
-        'criterionNotes',
-        'strengths',
-        'improvements',
-        'targetBandTips',
-      ],
-    };
-
-    const requestGeminiEvaluation = async (temperature: number) => {
-      const response = await fetch(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: evaluationPrompt }] }],
-            generationConfig: {
-              temperature,
-              maxOutputTokens: 4096,
-              responseMimeType: 'application/json',
-              responseSchema: speakingResponseSchema,
-              thinkingConfig: { thinkingBudget: 0 },
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      const usage = data.usageMetadata || {};
-      return {
-        data,
-        text: data.candidates?.[0]?.content?.parts?.[0]?.text || '',
-        tokens: usage.totalTokenCount || 0,
-        promptTokens: usage.promptTokenCount || 0,
-        outputTokens: (usage.candidatesTokenCount || 0) + (usage.thoughtsTokenCount || 0),
-      };
-    };
-
-    let providerResult = await requestGeminiEvaluation(0.2);
-    let tokensUsed = providerResult.tokens;
-    let promptTokens = providerResult.promptTokens;
-    let outputTokens = providerResult.outputTokens;
-    let providerCalls = 1;
+    const providerResult = await requestSpeakingEvaluation({
+      prompt: evaluationPrompt,
+      responseSchema: SPEAKING_EVALUATION_RESPONSE_SCHEMA,
+      hasPronunciationEvidence: pronunciationEvidence.score !== null,
+      openRouterApiKey: Deno.env.get('OPENROUTER_API_KEY'),
+      geminiApiKey: Deno.env.get('GEMINI_API_KEY'),
+      timeoutMs: 15_000,
+    });
+    tokensUsed = providerResult.usage.tokensUsed;
+    promptTokens = providerResult.usage.promptTokens;
+    outputTokens = providerResult.usage.outputTokens;
+    providerCalls = providerResult.providerCalls;
     let evaluation;
 
     try {
-      let parsed;
-      try {
-        parsed = parseStructuredJson(providerResult.text);
-      } catch (firstParseError) {
-        console.warn('Gemini returned invalid speaking JSON; retrying once:', firstParseError);
-        providerResult = await requestGeminiEvaluation(0);
-        tokensUsed += providerResult.tokens;
-        promptTokens += providerResult.promptTokens;
-        outputTokens += providerResult.outputTokens;
-        providerCalls += 1;
-        parsed = parseStructuredJson(providerResult.text);
-      }
-
       evaluation = normalizeSpeakingEvaluation(
-        parsed,
+        providerResult.parsed,
         transcriptEvidence.partStats,
         pronunciationEvidence
       );
       evaluation = {
         ...evaluation,
-        model: 'gemini-2.5-flash',
+        model: providerResult.model,
         generatedAt: new Date().toISOString(),
         speakingSessionId,
       };
@@ -351,7 +234,8 @@ serve(async (req: Request) => {
       console.error('Failed to parse evaluation:', parseError);
       console.error('Speaking evaluation response could not be parsed', {
         responseLength: providerResult.text?.length || 0,
-        finishReason: providerResult.data?.candidates?.[0]?.finishReason || 'unknown',
+        provider: providerResult.provider,
+        model: providerResult.model,
       });
 
       await finalizeApiUsage(
@@ -378,8 +262,8 @@ serve(async (req: Request) => {
           message: 'AI evaluation could not be parsed. Please retry.',
           debug: {
             evalTextLength: providerResult.text?.length || 0,
-            finishReason: providerResult.data?.candidates?.[0]?.finishReason || 'unknown',
-            candidatesCount: providerResult.data?.candidates?.length || 0,
+            provider: providerResult.provider,
+            model: providerResult.model,
           },
         }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -387,13 +271,18 @@ serve(async (req: Request) => {
     }
 
     // Log successful usage
-    const estimatedProviderCostUsd = promptTokens * 0.0000003 + outputTokens * 0.0000025;
+    const estimatedProviderCostUsd = providerResult.usage.estimatedProviderCostUsd;
     await finalizeApiUsage(supabase, quotaReservationId, tokensUsed, false, {
       testId,
       speakingSessionId,
       promptTokens,
       outputTokens,
       providerCalls,
+      provider: providerResult.provider,
+      model: providerResult.model,
+      fallbackUsed: providerResult.fallbackUsed,
+      fallbackReason: providerResult.fallbackReason,
+      routingReason: providerResult.routingReason,
       estimatedProviderCostUsd,
     });
     quotaReservationId = undefined;
@@ -401,10 +290,14 @@ serve(async (req: Request) => {
       testId,
       speakingSessionId,
       partsCompleted: Object.keys(allPartsConversation).length,
-      model: 'gemini-2.5-flash',
+      provider: providerResult.provider,
+      model: providerResult.model,
       promptTokens,
       outputTokens,
       providerCalls,
+      fallbackUsed: providerResult.fallbackUsed,
+      fallbackReason: providerResult.fallbackReason,
+      routingReason: providerResult.routingReason,
       estimatedProviderCostUsd,
     });
 

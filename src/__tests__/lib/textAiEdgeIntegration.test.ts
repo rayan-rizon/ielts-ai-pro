@@ -23,13 +23,16 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(source).toContain('estimatedProviderCostUsd');
   });
 
-  it('does not change the high-stakes Writing and Speaking scorers to DeepSeek', () => {
+  it('keeps Writing on Gemini and uses OpenRouter DeepSeek with Gemini fallback for Speaking', () => {
     const writing = readFunction('generateDetailedFeedback');
     const speaking = readFunction('evaluateSpeakingTest');
     expect(writing).toContain('gemini-2.5-flash');
-    expect(speaking).toContain('gemini-2.5-flash:generateContent');
+    expect(speaking).toContain('requestSpeakingEvaluation');
+    expect(speaking).toContain("Deno.env.get('OPENROUTER_API_KEY')");
+    expect(speaking).toContain("Deno.env.get('GEMINI_API_KEY')");
     expect(writing).not.toContain('DEEPSEEK_API_KEY');
     expect(speaking).not.toContain('DEEPSEEK_API_KEY');
+    expect(speaking).not.toContain('AI_GATEWAY_API_KEY');
   });
 
   it('keeps provider credentials out of request URLs and client code', () => {
@@ -42,5 +45,13 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     for (const name of providerFunctions) {
       expect(readFunction(name)).not.toContain('generateContent?key=');
     }
+  });
+
+  it('refuses silent audio before calling Whisper or Gemini transcription', () => {
+    const speaking = readFunction('processSpeakingSession');
+    expect(speaking).toContain('shouldGuardSilentSpeech');
+    expect(speaking).toContain("transcriptionProvider = 'silence-guard'");
+    expect(speaking).toContain('if (audioBase64 && !transcript && !silenceGuarded)');
+    expect(speaking).toContain("transcriptionError = 'No speech detected by browser'");
   });
 });

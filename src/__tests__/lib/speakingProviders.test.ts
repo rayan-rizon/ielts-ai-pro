@@ -3,12 +3,14 @@ import {
   buildBrowserTranscriptHint,
   buildAzurePronunciationUrl,
   buildDeterministicExaminerResponse,
+  canRecoverFromBrowserTranscript,
   chooseVerifiedTranscript,
   cleanSpeakingQuestion,
   getTranscriptVerificationReason,
   isImplausiblyFastTranscript,
   mapAzureScoreToProvisionalIeltsBand,
   resolveAzurePronunciationAssessment,
+  shouldGuardSilentSpeech,
   transcribeWithCloudflare,
 } from '../../../supabase/functions/_shared/speakingProviders';
 
@@ -93,6 +95,20 @@ describe('speaking provider helpers', () => {
       transcript: 'I live in Dhaka',
       confidence: 0.91,
     });
+  });
+
+  it('guards a recorder-confirmed silent turn from transcription providers', () => {
+    expect(shouldGuardSilentSpeech(false, null)).toBe(true);
+    expect(
+      shouldGuardSilentSpeech(false, { transcript: 'one uncertain word', confidence: 0.81 })
+    ).toBe(true);
+    expect(
+      canRecoverFromBrowserTranscript({ transcript: 'I live in Dhaka', confidence: 0.91 })
+    ).toBe(true);
+    expect(
+      shouldGuardSilentSpeech(false, { transcript: 'I live in Dhaka', confidence: 0.91 })
+    ).toBe(false);
+    expect(shouldGuardSilentSpeech(null, null)).toBe(false);
   });
 
   it('verifies an unexpectedly short transcript from a longer answer', () => {

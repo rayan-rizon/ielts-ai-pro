@@ -1,5 +1,7 @@
 export const DEEPSEEK_TEXT_MODEL = 'deepseek-v4-flash';
 export const OPENROUTER_DEEPSEEK_MODEL = 'deepseek/deepseek-v4-flash-0731';
+export const OPENROUTER_LUNA_MODEL = 'openai/gpt-5.6-luna';
+export const VERCEL_GATEWAY_LUNA_MODEL = 'openai/gpt-5.6-luna';
 export const GEMINI_TEXT_FALLBACK_MODEL = 'gemini-2.5-flash-lite';
 export const GEMINI_SCORING_MODEL = 'gemini-2.5-flash';
 
@@ -8,7 +10,12 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const DEFAULT_TIMEOUT_MS = 20_000;
 
-type ProviderName = 'openrouter-deepseek' | 'deepseek' | 'gemini';
+type ProviderName =
+  | 'openrouter-deepseek'
+  | 'openrouter-luna'
+  | 'vercel-ai-gateway-luna'
+  | 'deepseek'
+  | 'gemini';
 
 export type TextAiUsage = {
   promptTokens: number;
@@ -42,6 +49,7 @@ type TextAiRequest = {
   fetchImpl?: typeof fetch;
   validateJson?: (value: any) => boolean;
   geminiModel?: string;
+  responseSchema?: Record<string, unknown>;
 };
 
 type ProviderRequest = Omit<
@@ -313,6 +321,154 @@ export async function requestOpenRouterDeepSeekJson(
   }
 }
 
+export async function requestOpenRouterLunaJson(request: ProviderRequest): Promise<TextAiResult> {
+  const fetchImpl = request.fetchImpl || fetch;
+  try {
+    const response = await fetchWithTimeout(
+      fetchImpl,
+      OPENROUTER_URL,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${request.apiKey}`,
+          'Content-Type': 'application/json',
+          'X-Title': 'IELTS Ai Pro',
+        },
+        body: JSON.stringify({
+          model: OPENROUTER_LUNA_MODEL,
+          messages: [{ role: 'user', content: request.prompt }],
+          response_format: { type: 'json_object' },
+          reasoning: { effort: 'none', exclude: true },
+          provider: { sort: 'latency', require_parameters: true },
+          max_tokens: request.maxOutputTokens,
+          stream: false,
+        }),
+      },
+      request.timeoutMs || DEFAULT_TIMEOUT_MS
+    );
+    if (!response.ok) {
+      throw new TextAiProviderError(`OpenRouter returned HTTP ${response.status}`, {
+        provider: 'openrouter-luna',
+        status: response.status,
+        code: 'http_error',
+      });
+    }
+
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content;
+    const parsed = parseJsonText(text);
+    assertValidJsonShape('openrouter-luna', parsed, request.validateJson);
+    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
+    const cachedPromptTokens = Math.min(
+      promptTokens,
+      positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
+    );
+    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
+    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
+    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+    const uncachedPromptTokens = Math.max(0, promptTokens - cachedPromptTokens);
+
+    return {
+      parsed,
+      text,
+      provider: 'openrouter-luna',
+      model: data?.model || OPENROUTER_LUNA_MODEL,
+      mode: 'non-thinking',
+      fallbackUsed: false,
+      fallbackReason: null,
+      usage: {
+        promptTokens,
+        cachedPromptTokens,
+        outputTokens,
+        tokensUsed,
+        // Prefer OpenRouter's billed cost. These catalog rates are only a
+        // fallback for responses that omit cost metadata and may change.
+        estimatedProviderCostUsd:
+          reportedCost ||
+          cachedPromptTokens * 0.00000001 +
+            uncachedPromptTokens * 0.0000001 +
+            outputTokens * 0.0000006,
+      },
+    };
+  } catch (error) {
+    throw providerFailure('openrouter-luna', error);
+  }
+}
+
+export async function requestVercelGatewayLunaJson(
+  request: ProviderRequest
+): Promise<TextAiResult> {
+  const fetchImpl = request.fetchImpl || fetch;
+  try {
+    const response = await fetchWithTimeout(
+      fetchImpl,
+      'https://ai-gateway.vercel.sh/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${request.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: VERCEL_GATEWAY_LUNA_MODEL,
+          messages: [{ role: 'user', content: request.prompt }],
+          // Gateway's Luna access currently rejects response_format on free
+          // keys. The production prompt still requires JSON, and the shared
+          // shape validator prevents accepting an incomplete response.
+          reasoning: { effort: 'none', exclude: true },
+          max_tokens: request.maxOutputTokens,
+          stream: false,
+        }),
+      },
+      request.timeoutMs || DEFAULT_TIMEOUT_MS
+    );
+    if (!response.ok) {
+      throw new TextAiProviderError(`Vercel AI Gateway returned HTTP ${response.status}`, {
+        provider: 'vercel-ai-gateway-luna',
+        status: response.status,
+        code: 'http_error',
+      });
+    }
+
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content;
+    const parsed = parseJsonText(text);
+    assertValidJsonShape('vercel-ai-gateway-luna', parsed, request.validateJson);
+    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
+    const cachedPromptTokens = Math.min(
+      promptTokens,
+      positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
+    );
+    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
+    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
+    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+    const uncachedPromptTokens = Math.max(0, promptTokens - cachedPromptTokens);
+
+    return {
+      parsed,
+      text,
+      provider: 'vercel-ai-gateway-luna',
+      model: data?.model || VERCEL_GATEWAY_LUNA_MODEL,
+      mode: 'non-thinking',
+      fallbackUsed: false,
+      fallbackReason: null,
+      usage: {
+        promptTokens,
+        cachedPromptTokens,
+        outputTokens,
+        tokensUsed,
+        estimatedProviderCostUsd:
+          reportedCost ||
+          cachedPromptTokens * 0.00000001 +
+            uncachedPromptTokens * 0.0000001 +
+            outputTokens * 0.0000006,
+      },
+    };
+  } catch (error) {
+    throw providerFailure('vercel-ai-gateway-luna', error);
+  }
+}
+
 export async function requestGeminiJson(request: ProviderRequest): Promise<TextAiResult> {
   const fetchImpl = request.fetchImpl || fetch;
   try {
@@ -333,6 +489,7 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
             ...(request.topP === undefined ? {} : { topP: request.topP }),
             maxOutputTokens: request.maxOutputTokens,
             responseMimeType: 'application/json',
+            ...(request.responseSchema ? { responseSchema: request.responseSchema } : {}),
             thinkingConfig: { thinkingBudget: 0 },
           },
         }),
@@ -357,12 +514,15 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
       positiveNumber(data?.usageMetadata?.thoughtsTokenCount);
     const tokensUsed =
       positiveNumber(data?.usageMetadata?.totalTokenCount) || promptTokens + outputTokens;
+    const model = request.geminiModel || GEMINI_TEXT_FALLBACK_MODEL;
+    const inputCostPerToken = model === GEMINI_SCORING_MODEL ? 0.0000003 : 0.0000001;
+    const outputCostPerToken = model === GEMINI_SCORING_MODEL ? 0.0000025 : 0.0000004;
 
     return {
       parsed,
       text,
       provider: 'gemini',
-      model: request.geminiModel || GEMINI_TEXT_FALLBACK_MODEL,
+      model,
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
@@ -371,7 +531,8 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
         cachedPromptTokens: 0,
         outputTokens,
         tokensUsed,
-        estimatedProviderCostUsd: promptTokens * 0.0000001 + outputTokens * 0.0000004,
+        estimatedProviderCostUsd:
+          promptTokens * inputCostPerToken + outputTokens * outputCostPerToken,
       },
     };
   } catch (error) {

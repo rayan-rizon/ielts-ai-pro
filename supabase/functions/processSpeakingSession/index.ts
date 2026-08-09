@@ -16,9 +16,11 @@ import {
   assessPronunciationWithAzure,
   buildBrowserTranscriptHint,
   buildDeterministicExaminerResponse,
+  canRecoverFromBrowserTranscript,
   chooseVerifiedTranscript,
   CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD,
   getTranscriptVerificationReason,
+  shouldGuardSilentSpeech,
   transcribeWithCloudflare,
   transcribeWithGeminiFallback,
 } from '../_shared/speakingProviders.ts';
@@ -93,14 +95,6 @@ function isFailedTranscript(value: string): boolean {
     clean === '(Inaudible)' ||
     clean.includes('(Unable to transcribe') ||
     clean.includes('(Audio received but transcription failed)')
-  );
-}
-
-function canRecoverFromBrowserTranscript(
-  hint: { transcript: string; confidence: number } | null
-): hint is { transcript: string; confidence: number } {
-  return Boolean(
-    hint && hint.confidence >= 0.82 && hint.transcript.trim().split(/\s+/).length >= 3
   );
 }
 
@@ -267,7 +261,16 @@ serve(async (req: Request) => {
     sessionQuery = requestedSpeakingSessionId
       ? sessionQuery.eq('id', requestedSpeakingSessionId)
       : sessionQuery.eq('passage_id', testId).order('created_at', { ascending: false }).limit(1);
-    const { data: ownedSession, error: sessionError } = await sessionQuery.maybeSingle();
+    const questionsQuery = supabase
+      .from('questions')
+      .select('id, question_text, correct_answer, question_number')
+      .eq('passage_id', testId)
+      .eq('question_number', partNumber)
+      .order('id', { ascending: true });
+    const [
+      { data: ownedSession, error: sessionError },
+      { data: questionRows, error: questionsError },
+    ] = await Promise.all([sessionQuery.maybeSingle(), questionsQuery]);
     if (sessionError || !ownedSession) {
       return jsonResponse({ error: 'Speaking session not found' }, 404, corsHeaders);
     }
@@ -289,13 +292,16 @@ serve(async (req: Request) => {
 
     // This row charges the session start, not the provider work for an answer.
     // Settle it immediately so a slow transcription or a later early return
-    // cannot leave the learner's session reservation stranded.
-    const sessionFinalized = await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
-      testId,
-      speakingSessionId,
-      sessionStarted: true,
-    });
-    if (!sessionFinalized) throw new Error('Failed to finalize speaking session reservation');
+    // cannot leave the learner's session reservation stranded. Reused sessions
+    // are already settled, so avoid an unnecessary database round trip per turn.
+    if (!sessionReservation.alreadyReserved) {
+      const sessionFinalized = await finalizeApiUsage(supabase, sessionReservationId, 0, false, {
+        testId,
+        speakingSessionId,
+        sessionStarted: true,
+      });
+      if (!sessionFinalized) throw new Error('Failed to finalize speaking session reservation');
+    }
     sessionReservationId = undefined;
 
     const userTurnsInHistory = conversationHistory.filter(
@@ -316,12 +322,6 @@ serve(async (req: Request) => {
       );
     }
 
-    const { data: questionRows, error: questionsError } = await supabase
-      .from('questions')
-      .select('id, question_text, correct_answer, question_number')
-      .eq('passage_id', testId)
-      .eq('question_number', partNumber)
-      .order('id', { ascending: true });
     if (questionsError) throw new Error(`Failed to fetch questions: ${questionsError.message}`);
 
     let questions = parseSpeakingQuestions(questionRows || [], partNumber);
@@ -373,7 +373,9 @@ serve(async (req: Request) => {
     // answer. When it saw neither, a second transcription provider has nothing
     // real to recover and can only make something up, so we do not ask it.
     // `null` means an older client that never reported — assume speech.
-    const learnerSpokeThisTurn = speechDetected !== false || Boolean(browserTranscriptHint);
+    const silenceGuarded = shouldGuardSilentSpeech(speechDetected, browserTranscriptHint);
+    const learnerSpokeThisTurn =
+      speechDetected !== false || canRecoverFromBrowserTranscript(browserTranscriptHint);
     const pronunciationDuration = Number(pronunciationDurationMs);
     const pronunciationEligible =
       requestPronunciation === true &&
@@ -404,7 +406,14 @@ serve(async (req: Request) => {
         })
       : null;
 
-    if (audioBase64 && !transcript) {
+    if (silenceGuarded) {
+      transcript = '(Inaudible)';
+      transcriptionProvider = 'silence-guard';
+      transcriptionModel = 'browser-vad';
+      transcriptionError = 'No speech detected by browser';
+    }
+
+    if (audioBase64 && !transcript && !silenceGuarded) {
       const geminiApiKey = Deno.env.get('GEMINI_API_KEY') || '';
       try {
         if (!Deno.env.get('CLOUDFLARE_ACCOUNT_ID') || !Deno.env.get('CLOUDFLARE_AI_API_TOKEN')) {
