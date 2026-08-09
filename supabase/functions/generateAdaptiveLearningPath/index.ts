@@ -342,6 +342,9 @@ ${JSON.stringify({
       false,
       {
         ...metadata,
+        // Record which provider actually failed. Without it the row is
+        // unattributable and platform health cannot say whose outage this was.
+        provider: error?.provider || 'unknown',
         deterministicFallback: true,
         fallbackReason: error?.message || 'provider_failure',
       },

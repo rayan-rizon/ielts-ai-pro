@@ -35,8 +35,14 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
     [deliveries, dismissed]
   );
   const banner = dashboardOnly ? visible.find((delivery) => delivery.channel === 'banner') : null;
+  // A campaign configured for both `banner` and `in_app` produces one delivery
+  // row per channel, and both used to render at once — the same headline as a
+  // bar across the top and again as a card in the corner. One campaign gets one
+  // surface; the banner wins because it is the less interruptive of the two.
   const notification = dashboardOnly
-    ? visible.find((delivery) => delivery.channel === 'in_app')
+    ? visible.find(
+        (delivery) => delivery.channel === 'in_app' && delivery.campaign_id !== banner?.campaign_id
+      )
     : null;
 
   useEffect(() => {

@@ -4,7 +4,6 @@ import { cn } from '@/lib/cn';
 import {
   Empty,
   FunnelStep,
-  Kpi,
   MICRO,
   MUTED,
   NUM,
@@ -114,17 +113,6 @@ const RecoveryPanel = ({ recovery }) => {
 const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
   const campaignRows = useMemo(() => dashboard.campaigns || [], [dashboard.campaigns]);
 
-  // Currencies get one line each. Joined onto a single line they overflowed the
-  // tile the moment a second currency appeared, and "USD 2210.50 · BDT 48200.00"
-  // reads as one long number rather than two totals.
-  const revenueByCurrency = useMemo(() => {
-    const totals = {};
-    (dashboard.revenue || []).forEach((row) => {
-      totals[row.currency] = (totals[row.currency] || 0) + Number(row.net || 0);
-    });
-    return Object.entries(totals).sort((a, b) => b[1] - a[1]);
-  }, [dashboard.revenue]);
-
   // The funnel is built from campaign rows when they exist and falls back to
   // the dashboard's reach total, so an operator never sees an all-zero funnel
   // while the totals row above it shows traffic.
@@ -153,54 +141,9 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
 
   return (
     <div className="space-y-3">
-      {/* Totals */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Kpi
-          label="Live campaigns"
-          value={Number(dashboard.totals?.active || 0).toLocaleString()}
-          sub="Currently sending"
-          tip="Campaigns with status 'active' — these can dispatch."
-        />
-        <Kpi
-          label="Reach"
-          value={Number(dashboard.totals?.reach || 0).toLocaleString()}
-          sub="Learners addressed · 30d"
-        />
-        <Kpi
-          label="Clicks"
-          value={Number(dashboard.totals?.clicks || 0).toLocaleString()}
-          sub="Tracked CTA opens · 30d"
-        />
-        <Kpi
-          label="Purchases"
-          value={Number(dashboard.totals?.purchases || 0).toLocaleString()}
-          sub="Attributed · 30d"
-          tip="Counted only after a server-confirmed payment."
-        />
-        <div className={cn(PANEL, 'col-span-2 px-3.5 py-2.5 lg:col-span-1')}>
-          <p className={cn(MICRO, MUTED)}>Attributed revenue</p>
-          {revenueByCurrency.length ? (
-            <div className="mt-1.5 space-y-0.5">
-              {revenueByCurrency.map(([currency, value]) => (
-                <p key={currency} className="flex items-baseline justify-between gap-2">
-                  <span className={cn(MICRO, MUTED)}>{currency}</span>
-                  <span
-                    className={cn(NUM, 'text-base font-bold text-stone-900 dark:text-stone-50')}
-                  >
-                    {value.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p className={cn(NUM, 'mt-1 text-xl font-bold text-stone-900 dark:text-stone-50')}>—</p>
-          )}
-          <p className={cn(MICRO, MUTED, 'mt-1.5')}>Net · 30d</p>
-        </div>
-      </div>
+      {/* The headline totals live once, in the hub's command strip above the
+          tabs — repeating them here put the same figures on screen twice
+          under two different labels. Overview starts at the funnel. */}
 
       {/* Funnel + recovery */}
       <div className="grid gap-3 xl:grid-cols-[1.5fr_1fr]">

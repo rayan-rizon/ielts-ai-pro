@@ -583,9 +583,12 @@ Register and tone:
       .single();
 
     if (cachedEntry && cachedEntry.feedback_json) {
+      // A cache hit calls no provider, so it must not be attributed to one —
+      // health counts provider attempts, not requests served.
       await finalizeApiUsage(supabase, quotaReservation.reservationId, 0, true, {
         taskType,
         cached: true,
+        provider: 'cache',
       });
       quotaReservationId = undefined;
       return new Response(
@@ -685,6 +688,8 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
           false,
           {
             taskType,
+            provider: 'gemini',
+            model: modelUsed,
             providerStatus: status,
             failureReason: providerMessage || 'Gemini provider request failed',
           },
@@ -767,9 +772,15 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
       generatedAt: new Date().toISOString(),
     };
 
+    // `provider` is what platform health attributes calls by. Without it every
+    // row lands in the "unknown provider" bucket and the provider breakdown is
+    // meaningless — which is exactly what it showed before this was added.
     await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,
       model: modelUsed,
+      provider: modelUsed === LUNA_MODEL ? 'openrouter-luna' : 'gemini',
+      fallbackUsed: modelUsed !== LUNA_MODEL,
+      fallbackReason: modelUsed !== LUNA_MODEL ? 'luna_no_parsable_feedback' : null,
     });
     quotaReservationId = undefined;
 

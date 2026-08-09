@@ -152,10 +152,12 @@ const METRIC_LABEL = {
   lastRunAgeHours: 'Last app run',
   lastRunAccepted: 'Accepted',
   lastRunFailed: 'Failed',
-  openrouterCalls: 'OpenRouter calls',
+  openrouterCalls: 'OpenRouter DeepSeek',
+  openrouterLunaCalls: 'OpenRouter Luna',
   directDeepseekCalls: 'Direct DeepSeek',
   geminiCalls: 'Gemini calls',
-  unknownProviderCalls: 'Unknown provider',
+  cachedResponses: 'Served from cache',
+  unknownProviderCalls: 'Unattributed',
   upstreamFailures: 'Provider failures',
   recoveredFallbacks: 'Recovered',
   estimatedCostUsd: 'Est. cost',
@@ -173,7 +175,10 @@ const ALARM_KEYS = new Set([
   'stuckEvaluations',
   'failedDispatches',
   'lastRunFailed',
-  'upstreamFailures',
+  // `upstreamFailures` is deliberately not an alarm. It counts provider calls
+  // that failed *and then recovered* — the fallback chain doing its job. The
+  // alarm belongs on `errors`, which counts failures the learner actually felt.
+  // Flagging both made a self-healed blip read as an incident.
 ]);
 
 const PERCENT_METRICS = new Set([

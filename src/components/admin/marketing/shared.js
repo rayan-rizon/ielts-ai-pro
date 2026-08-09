@@ -114,6 +114,36 @@ export const primaryAction = (campaign) => {
   return null;
 };
 
+/**
+ * What a journey is actually doing, judged against its campaign.
+ *
+ * A journey's own `is_active` flag is not enough to say it is running. The
+ * dispatcher refuses any campaign that is not `active` or `scheduled`, so a
+ * journey switched on and pointed at a paused campaign is picked up by the
+ * fifteen-minute scheduler and throws every single time. The panel used to
+ * render that as "running", which is the most misleading state in the hub:
+ * switched on, sending nothing, reporting healthy.
+ *
+ *   running  — armed, enabled, and its campaign can dispatch
+ *   stalled  — enabled, but its campaign is paused/draft/cancelled
+ *   unarmed  — no campaign assigned at all
+ *   paused   — deliberately switched off
+ */
+export const journeyState = (journey, campaigns = []) => {
+  if (!journey.campaign_id) return 'unarmed';
+  if (!journey.is_active) return 'paused';
+  const campaign = campaigns.find((item) => item.id === journey.campaign_id);
+  if (!campaign || !['active', 'scheduled'].includes(campaign.status)) return 'stalled';
+  return 'running';
+};
+
+export const JOURNEY_STATE_TONE = {
+  running: 'ok',
+  stalled: 'fault',
+  unarmed: 'warn',
+  paused: 'neutral',
+};
+
 /** Campaigns that are written but cannot send — the hub surfaces these first. */
 export const blockingIssue = (campaign) => {
   if (!campaign.segment_id) return 'No audience selected';

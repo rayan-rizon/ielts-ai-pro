@@ -16,6 +16,7 @@ import {
   TITLE,
   WELL,
 } from '@/components/admin/ui/primitives';
+import { JOURNEY_STATE_TONE, journeyState } from './shared';
 
 /**
  * Journeys are automations, so the question a card must answer is "is this
@@ -68,18 +69,16 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
     <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
       {journeys.map((journey) => {
         const metric = metrics.find((row) => row.id === journey.id) || {};
-        const unarmed = !journey.campaign_id;
-        const running = journey.is_active && !unarmed;
+        const state = journeyState(journey, campaigns);
+        const assigned = campaigns.find((item) => item.id === journey.campaign_id);
+        const tone = JOURNEY_STATE_TONE[state];
         return (
           <div
             key={journey.id}
             className={cn(PANEL, 'relative flex flex-col overflow-hidden p-4 pl-5')}
           >
             <span
-              className={cn(
-                'absolute inset-y-0 left-0 w-[3px]',
-                running ? SIGNAL_BG.ok : unarmed ? SIGNAL_BG.warn : SIGNAL_BG.idle
-              )}
+              className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}
             />
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -90,13 +89,11 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Pill tone={running ? 'ok' : unarmed ? 'warn' : 'neutral'}>
-                  {running ? 'running' : unarmed ? 'unarmed' : 'paused'}
-                </Pill>
+                <Pill tone={tone}>{state}</Pill>
                 <Switch
                   aria-label={`Toggle ${journey.name}`}
                   checked={journey.is_active}
-                  disabled={unarmed}
+                  disabled={state === 'unarmed'}
                   onCheckedChange={(checked) => toggle(journey, checked)}
                 />
               </div>
@@ -118,12 +115,30 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
               </select>
             </label>
 
-            {unarmed && (
+            {state === 'unarmed' && (
               <div className="mt-2 flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2.5 py-1.5">
                 <AlertTriangle className="h-3 w-3 shrink-0 text-[rgb(var(--signal-warn))]" />
                 <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
                   Assign a campaign to arm this journey
                 </span>
+              </div>
+            )}
+
+            {/* The silent-failure case: switched on, scheduled every fifteen
+                minutes, and rejected by the dispatcher every time because the
+                campaign behind it is not active. */}
+            {state === 'stalled' && (
+              <div className="mt-2 rounded-md border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-2.5 py-2">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3 shrink-0 text-[rgb(var(--signal-fault))]" />
+                  <span className={cn(MICRO, 'text-[rgb(var(--signal-fault))]')}>
+                    Switched on but sending nothing
+                  </span>
+                </div>
+                <p className={cn('mt-1 text-[10px] font-medium leading-snug', MUTED)}>
+                  “{assigned?.name}” is {assigned?.status}. Activate that campaign under Campaigns,
+                  or switch this journey off.
+                </p>
               </div>
             )}
 
