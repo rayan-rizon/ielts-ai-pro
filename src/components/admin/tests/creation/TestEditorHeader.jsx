@@ -41,7 +41,7 @@ const TestEditorHeader = ({
   const ModuleIcon = theme?.icon || ShieldCheck;
 
   return (
-    <div className="px-4 sm:px-6 py-3 bg-white dark:bg-[#131315] border-b border-stone-200/80 dark:border-white/[0.07] sticky top-0 z-50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4 rounded-t-xl sm:rounded-t-2xl">
+    <div className="px-4 sm:px-6 py-3 bg-white dark:bg-[#131315] border-b border-stone-200/80 dark:border-white/[0.07] sticky top-0 z-50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4 rounded-2xl">
       <div className="flex items-center gap-3 sm:gap-4 flex-1 w-full min-w-0">
         <button
           type="button"
@@ -62,7 +62,7 @@ const TestEditorHeader = ({
               <Input
                 value={title}
                 onChange={(e) => onTitleChange(e.target.value)}
-                className="font-extrabold text-lg border-transparent px-0 hover:px-2 hover:bg-stone-50 dark:hover:bg-white/3 focus:bg-white dark:focus:bg-white/3 border-b-2 border-b-transparent focus:border-b-stone-400 dark:focus:border-b-white/20 transition-all h-9 w-full focus-visible:ring-0 bg-transparent text-stone-900 dark:text-stone-50 placeholder:text-stone-400 dark:placeholder:text-stone-600 tracking-tight rounded-none"
+                className="font-extrabold text-lg border-transparent px-2.5 hover:bg-stone-100 dark:hover:bg-white/5 focus:bg-stone-100 dark:focus:bg-white/5 transition-all h-9 w-full focus-visible:ring-0 bg-transparent text-stone-900 dark:text-stone-50 placeholder:text-stone-400 dark:placeholder:text-stone-600 tracking-tight rounded-lg"
                 placeholder="Untitled Test"
               />
             </div>

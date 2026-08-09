@@ -223,6 +223,17 @@ const TARGET_CATALOG = [
   },
   {
     year: 2026,
+    test: 3,
+    partNumber: 1,
+    speakers: ['TAMMY', 'PAUL'],
+    // The saved SRT starts at 01:40 even though the authoritative audioscript
+    // contains the opening announcer and dialogue. Force alignment repairs the
+    // complete timeline without changing the source text.
+    prefix: '',
+    transcriptSource: 'plain',
+  },
+  {
+    year: 2026,
     test: 4,
     partNumber: 3,
     speakers: ['MIA', 'LEO'],
@@ -253,6 +264,26 @@ function requireEnvironment(name) {
   return value;
 }
 
+function formatSrtTimestamp(value) {
+  const milliseconds = Math.max(0, Math.round(Number(value || 0) * 1000));
+  const hours = Math.floor(milliseconds / 3_600_000);
+  const minutes = Math.floor((milliseconds % 3_600_000) / 60_000);
+  const seconds = Math.floor((milliseconds % 60_000) / 1000);
+  const fraction = milliseconds % 1000;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${String(fraction).padStart(3, '0')}`;
+}
+
+function serializeCanonicalSrt(segments) {
+  return segments
+    .map(
+      (segment, index) =>
+        `${index + 1}\n${formatSrtTimestamp(segment.start)} --> ${formatSrtTimestamp(
+          segment.end
+        )}\n${segment.speaker ? `${segment.speaker}: ` : ''}${segment.text}`
+    )
+    .join('\n\n');
+}
+
 function normalizeGeneratedSrt(value) {
   const normalized = String(value || '')
     .replace(/^\s*```(?:srt)?\s*/i, '')
@@ -260,18 +291,12 @@ function normalizeGeneratedSrt(value) {
     .replace(/\r\n?/g, '\n')
     .trim();
 
-  // Do not reinterpret already valid SRT. Several loose-format detectors also
-  // resemble SRT timestamp lines and are intended only as fallbacks.
-  if (parseSrt(normalized).length >= 10) return normalized;
+  // Canonicalize parseable SRT so permissive timestamp variants emitted by a
+  // model are stored as standard HH:MM:SS,mmm values.
+  const parsedSrt = parseSrt(normalized);
+  if (parsedSrt.length >= 10) return serializeCanonicalSrt(parsedSrt);
 
-  const formatTimestamp = (value) => {
-    const milliseconds = Math.max(0, Math.round(value * 1000));
-    const hours = Math.floor(milliseconds / 3_600_000);
-    const minutes = Math.floor((milliseconds % 3_600_000) / 60_000);
-    const seconds = Math.floor((milliseconds % 60_000) / 1000);
-    const fraction = milliseconds % 1000;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${String(fraction).padStart(3, '0')}`;
-  };
+  const formatTimestamp = formatSrtTimestamp;
 
   const parseLooseTimestamp = (value) => {
     const numbers = String(value).match(/\d+/g)?.map(Number) || [];
@@ -494,9 +519,9 @@ function sequentialSimilarity(reference, candidate) {
   return (2 * previous[right.length]) / (left.length + right.length);
 }
 
-function sourceTranscript(part, prefix = '') {
+function sourceTranscript(part, prefix = '', transcriptSource = 'auto') {
   const timed = parseSrt(part.srt_content || '');
-  if (timed.length) {
+  if (timed.length && transcriptSource !== 'plain') {
     const body = timed
       .filter((segment) => !isSilenceSegment(segment))
       .map((segment) => (segment.speaker ? `${segment.speaker}: ${segment.text}` : segment.text))
@@ -688,7 +713,10 @@ async function main() {
 
     const parts = JSON.parse(row.content);
     const part = parts[partNumber - 1];
-    const reference = target.mode === 'full_transcription' ? '' : sourceTranscript(part, prefix);
+    const reference =
+      target.mode === 'full_transcription'
+        ? ''
+        : sourceTranscript(part, prefix, target.transcriptSource);
     const audioResponse = await fetch(part.audio_url);
     if (!audioResponse.ok) throw new Error(`Audio download failed: ${part.audio_url}`);
     const audioBuffer = Buffer.from(await audioResponse.arrayBuffer());
