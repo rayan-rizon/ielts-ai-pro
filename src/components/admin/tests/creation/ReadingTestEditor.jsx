@@ -1894,7 +1894,7 @@ const QuestionGroupEditor = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`bg-white dark:bg-[#131315] rounded-xl border shadow-sm transition-all hover:shadow-md ${group.isCollapsed ? 'border-stone-200/80 dark:border-white/[0.07]' : t.ring + ' ring-1 border-stone-300 dark:border-white/20'}`}
+      className={`bg-white dark:bg-[#131315] rounded-xl border border-stone-200/80 dark:border-white/[0.07] transition-all ${group.isCollapsed ? 'shadow-xs' : 'shadow-md'}`}
       data-oid="h64_h:t"
     >
       <div

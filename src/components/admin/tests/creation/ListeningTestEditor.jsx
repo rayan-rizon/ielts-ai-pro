@@ -131,8 +131,13 @@ const AudioUploader = ({ url, onUrlChange }) => {
               </div>
             </div>
 
-            <div className="bg-[#f4f3fb] dark:bg-white/4 rounded-xl p-2.5 border border-[#ebeaf7] dark:border-white/10 mb-4">
-              <audio key={url} controls src={url} className="w-full h-9 rounded-lg" />
+            <div className="bg-stone-100 dark:bg-[#18181b] rounded-xl p-2.5 border border-stone-200/80 dark:border-white/10 mb-4">
+              <audio
+                key={url}
+                controls
+                src={url}
+                className="w-full h-9 rounded-lg dark:[color-scheme:dark] accent-[#5a63df]"
+              />
             </div>
 
             <div className="flex gap-2 justify-center">
@@ -1075,7 +1080,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 overflow-hidden">
+    <div className="flex flex-col h-full bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 rounded-2xl border border-stone-200/80 dark:border-white/[0.07] overflow-hidden">
       <TestEditorHeader
         title={meta.title}
         theme={effectiveTheme}
@@ -1439,7 +1444,7 @@ const QuestionGroupEditor = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`bg-white dark:bg-stone-900 rounded-2xl border shadow-sm transition-all duration-300 overflow-hidden ${group.isCollapsed ? 'border-stone-200 dark:border-stone-800' : 'ring-2 border-stone-200 dark:border-stone-900 shadow-xl '}`}
+      className={`bg-white dark:bg-[#131315] rounded-2xl border border-stone-200/80 dark:border-white/[0.07] transition-all duration-300 overflow-hidden ${group.isCollapsed ? 'shadow-xs' : 'shadow-md'}`}
       data-oid="x:by8mt"
     >
       <div

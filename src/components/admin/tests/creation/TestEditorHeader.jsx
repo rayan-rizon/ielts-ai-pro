@@ -41,7 +41,7 @@ const TestEditorHeader = ({
   const ModuleIcon = theme?.icon || ShieldCheck;
 
   return (
-    <div className="px-4 sm:px-6 py-3 bg-white dark:bg-[#131315] border-b border-stone-200/80 dark:border-white/[0.07] sticky top-0 z-50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4">
+    <div className="px-4 sm:px-6 py-3 bg-white dark:bg-[#131315] border-b border-stone-200/80 dark:border-white/[0.07] sticky top-0 z-50 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4 rounded-t-xl sm:rounded-t-2xl">
       <div className="flex items-center gap-3 sm:gap-4 flex-1 w-full min-w-0">
         <button
           type="button"
