@@ -57,7 +57,11 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 // SECURITY: Hardcoded frontend URL prevents open redirect attacks
 // The Origin header is user-controlled and MUST NOT be used for redirect URLs
-const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://ieltsai.pro';
+//
+// The fallback must stay on `www`. The apex `ieltsai.pro` has DNS records but
+// nothing answering on it, so a missing FRONTEND_URL sent a learner who had
+// just paid to a host that times out.
+const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro';
 
 // SECURITY: Whitelist of accepted currencies (prevents injection of invalid currencies)
 const ALLOWED_CURRENCIES = new Set(['usd', 'bdt']);

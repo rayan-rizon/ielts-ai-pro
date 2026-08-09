@@ -31,7 +31,11 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 // SECURITY: Hardcoded frontend URL prevents open redirect attacks
-const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://ieltsai.pro';
+//
+// The fallback must stay on `www`. The apex `ieltsai.pro` has DNS records but
+// nothing answering on it, so a missing FRONTEND_URL returned a learner from
+// the Stripe portal to a host that times out.
+const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro';
 
 /**
  * Helper to call Stripe API directly

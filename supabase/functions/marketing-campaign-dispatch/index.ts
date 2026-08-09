@@ -1,19 +1,12 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { sendEmail } from '../_shared/resend.ts';
+import { getCampaignTemplate } from '../_shared/templates.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const admin = createClient(supabaseUrl, serviceKey);
-
-const escapeHtml = (value: unknown) =>
-  String(value || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
 
 const trackingEndpoint = (deliveryId: string, token: string, event: string, target?: string) => {
   const url = new URL(`${supabaseUrl}/functions/v1/marketing-track`);
@@ -30,25 +23,34 @@ type CampaignOffer = {
   expiresAt?: string | null;
 };
 
+/**
+ * Marketing emails now render through the same shell as every transactional
+ * email (`_shared/templates.ts`). This used to be a full inline copy of the
+ * document, which is how the two drifted: a fix to the footer, the button
+ * treatment or the Outlook fallbacks only ever landed on one of them.
+ */
 const campaignEmail = (
   campaign: Record<string, any>,
   recipient: Record<string, any>,
   offer: CampaignOffer | null,
   clickUrl: string,
   openUrl: string
-) => {
-  const name = escapeHtml(
-    recipient.username ||
+) =>
+  getCampaignTemplate({
+    title: campaign.title,
+    message: campaign.message,
+    subject: campaign.subject || campaign.title,
+    objective: campaign.objective,
+    ctaLabel: campaign.cta_label,
+    recipientName:
+      recipient.username ||
       recipient.full_name?.split(' ')[0] ||
       recipient.email?.split('@')[0] ||
-      'there'
-  );
-  const offerBlock = offer
-    ? `<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:24px 0;border:1px dashed #c9c5f4;border-radius:10px;background:#f7f6ff"><tr><td style="padding:16px;text-align:center;color:#4c43a8;font-size:14px;line-height:1.5"><strong>${offer.discountPercent ? `${escapeHtml(offer.discountPercent)}% offer code` : 'Offer code'}: ${escapeHtml(offer.code)}</strong><br /><span style="font-size:13px;color:#625d82">${offer.expiresAt ? `Use it within seven days when you choose your next plan.` : 'Use it when you choose your next plan.'}</span></td></tr></table>`
-    : '';
-  const baseUrl = 'https://ieltsai.pro';
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>${escapeHtml(campaign.subject || campaign.title)}</title></head><body style="margin:0;padding:0;min-width:100%;background-color:#f6f5f3;font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#18181b;-webkit-font-smoothing:antialiased"><div style="display:none;font-size:1px;color:#f8fafc;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">${escapeHtml(campaign.message)}</div><table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-spacing:0;border-collapse:collapse;background-color:#f6f5f3"><tr><td align="center" valign="top" style="padding:36px 16px"><table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;border-spacing:0;border-collapse:collapse;background-color:#fff;border-radius:20px;overflow:hidden;border:1px solid #e9e7e3"><tr><td align="center" style="padding:20px 40px;background:#111113"><a href="${baseUrl}" aria-label="IELTS AI Pro" style="display:inline-block;text-decoration:none"><img src="${baseUrl}/footer.svg" width="176" height="42" alt="IELTS AI Pro" style="display:block;width:176px;height:auto;margin:0 auto;border:0" /></a></td></tr><tr><td style="padding:36px 40px 28px"><h1 style="margin:0 0 16px;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#18181b;line-height:1.22">${escapeHtml(campaign.title)}</h1><p style="margin:0 0 18px;font-size:18px;line-height:1.5;color:#3f3f46">Hi ${name},</p><p style="margin:0 0 18px;font-size:16px;line-height:1.55;color:#52525b">${escapeHtml(campaign.message)}</p><p style="margin:0 0 18px;font-size:16px;line-height:1.55;color:#52525b">A focused next step can make your preparation more consistent. Use your dashboard to continue from where you left off, review your recent feedback, and decide what will help you move closer to your target band.</p>${offerBlock}<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:28px auto"><tr><td><a href="${escapeHtml(clickUrl)}" style="display:inline-block;padding:13px 22px;background:#6c4cff;color:#fff;text-decoration:none;border-radius:9px;font-weight:800;font-size:15px">${escapeHtml(campaign.cta_label || 'Learn more')}</a></td></tr></table><p style="margin:0;font-size:14px;line-height:1.6;color:#64748b">Your progress and practice history are saved in your account, so you can return whenever you are ready.</p></td></tr><tr><td align="center" style="padding:28px 40px 32px;background-color:#faf9f7;border-top:1px solid #ebe9e5"><p style="margin:0 0 16px;font-size:12px;line-height:1.6;text-align:center"><a href="${baseUrl}/settings?tab=subscription" style="display:inline-block;margin:0 7px;font-size:12px;color:#52525b;text-decoration:none">Manage</a><span style="color:#a1a1aa">•</span><a href="${baseUrl}/privacy" style="display:inline-block;margin:0 7px;font-size:12px;color:#52525b;text-decoration:none">Privacy</a><span style="color:#a1a1aa">•</span><a href="${baseUrl}/terms" style="display:inline-block;margin:0 7px;font-size:12px;color:#52525b;text-decoration:none">Terms</a><span style="color:#a1a1aa">•</span><a href="${baseUrl}/settings?tab=preferences" style="display:inline-block;margin:0 7px;font-size:12px;color:#52525b;text-decoration:none">Unsubscribe</a></p><p style="margin:0 0 10px;font-size:12px;color:#71717a;line-height:1.6;text-align:center">You are receiving this because you enabled marketing communications.</p><p style="margin:12px 0 0;font-size:11px;color:#71717a;line-height:1.6;text-align:center">&copy; ${new Date().getFullYear()} IELTS AI Pro · <a href="mailto:support@ieltsai.pro" style="color:#71717a;text-decoration:none;font-weight:600">support@ieltsai.pro</a></p></td></tr></table></td></tr></table><img src="${escapeHtml(openUrl)}" width="1" height="1" alt="" style="display:none" /></body></html>`;
-};
+      'there',
+    clickUrl,
+    openUrl,
+    offer,
+  });
 
 async function requireAdmin(req: Request) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -315,16 +317,18 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           },
         })
         .eq('id', delivery.id);
+      const email = campaignEmail(
+        campaign,
+        recipient,
+        offer,
+        trackingEndpoint(delivery.id, delivery.tracking_token, 'click', destination.toString()),
+        trackingEndpoint(delivery.id, delivery.tracking_token, 'view')
+      );
       const result = await sendEmail({
         to: member.email,
-        subject: campaign.subject || campaign.title,
-        html: campaignEmail(
-          campaign,
-          recipient,
-          offer,
-          trackingEndpoint(delivery.id, delivery.tracking_token, 'click', destination.toString()),
-          trackingEndpoint(delivery.id, delivery.tracking_token, 'view')
-        ),
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
         type: 'marketing_campaign',
       });
       if ('error' in result && result.error) {

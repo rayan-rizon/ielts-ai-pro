@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { Slot } from '@radix-ui/react-slot';
-import { Info, Loader2 } from 'lucide-react';
+import { ChevronRight, Info, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 
@@ -16,6 +16,20 @@ export const NUM = 'font-mono tabular-nums tracking-tight';
 export const MICRO = 'text-[9px] font-bold uppercase tracking-[0.14em]';
 export const PANEL =
   'rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315]';
+
+/**
+ * Inset surface *inside* a PANEL — a quoted message, a rules summary, a nested
+ * metric. One step darker than the panel in light mode and one step lighter in
+ * dark, so nesting reads without a second border.
+ */
+export const WELL = 'bg-stone-100/70 dark:bg-white/[0.045]';
+
+/** Panel/card title. Legible on its own — distinct from MICRO meta labels. */
+export const TITLE = 'text-[13px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50';
+
+/** Body copy inside a panel, at the density this system uses. */
+export const BODY = 'text-[11px] leading-relaxed text-stone-600 dark:text-stone-300';
+export const MUTED = 'text-stone-500 dark:text-stone-400';
 
 /**
  * Compact status/category chip for dense contexts — table rows, list rows.
@@ -38,10 +52,24 @@ export const pillTone = (tone) =>
     neutral: 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10',
   })[tone] || pillTone('neutral');
 
+/** Ready-made chip. Prefer this over hand-composing PILL_BASE + pillTone. */
+export const Pill = ({ tone = 'neutral', className, children }) => (
+  <span className={cn(PILL_BASE, pillTone(tone), className)}>{children}</span>
+);
+
+/**
+ * `accent` is not a status — it is "noteworthy, but nothing is wrong", the same
+ * tone `pillTone` uses. It belongs in these maps because callers key both from
+ * one tone value (a scheduled campaign's status rail, an informational
+ * attention row); without it those lookups returned undefined and the element
+ * rendered with no colour at all rather than falling back to neutral.
+ */
 export const SIGNAL_BG = {
   ok: 'bg-[rgb(var(--signal-ok))]',
   warn: 'bg-[rgb(var(--signal-warn))]',
   fault: 'bg-[rgb(var(--signal-fault))]',
+  accent: 'bg-indigo-500 dark:bg-indigo-400',
+  neutral: 'bg-[rgb(var(--signal-idle))]',
   idle: 'bg-[rgb(var(--signal-idle))]',
 };
 
@@ -49,6 +77,8 @@ export const SIGNAL_TEXT = {
   ok: 'text-[rgb(var(--signal-ok))]',
   warn: 'text-[rgb(var(--signal-warn))]',
   fault: 'text-[rgb(var(--signal-fault))]',
+  accent: 'text-indigo-600 dark:text-indigo-400',
+  neutral: 'text-stone-500 dark:text-stone-400',
   idle: 'text-stone-500 dark:text-stone-400',
 };
 
@@ -158,6 +188,207 @@ export const AdminPageHeader = ({ title, description, tip, children }) => (
       )}
     </div>
     {children && <div className="flex items-center gap-2 shrink-0">{children}</div>}
+  </div>
+);
+
+/** Shared form-control sizing for admin dialogs — inputs, selects, textareas. */
+export const FIELD =
+  'h-9 rounded-md border-stone-300 bg-white text-xs font-medium dark:border-white/15 dark:bg-[#131315]';
+
+export const FieldLabel = ({ children, hint }) => (
+  <span className="mb-1.5 flex items-baseline gap-1.5">
+    <span className={cn(MICRO, MUTED)}>{children}</span>
+    {hint && (
+      <span className={cn('text-[10px] font-medium normal-case tracking-normal', MUTED)}>
+        {hint}
+      </span>
+    )}
+  </span>
+);
+
+/**
+ * Header strip for a PANEL — the hairline-ruled row that names the panel and
+ * parks its controls. Pages kept re-writing this `p-4 border-b` row by hand and
+ * drifting on padding and label size; this fixes both.
+ */
+export const PanelHeader = ({ label, title, description, accent = 'idle', children }) => (
+  <div className="flex items-start justify-between gap-3 border-b border-stone-200/80 px-4 py-3 dark:border-white/[0.07]">
+    <div className="min-w-0">
+      {label && <SectionLabel accent={accent}>{label}</SectionLabel>}
+      {title && <p className={cn(TITLE, label && 'mt-1')}>{title}</p>}
+      {description && (
+        <p
+          className={cn(MICRO, MUTED, 'mt-0.5 normal-case tracking-normal text-[10px] font-medium')}
+        >
+          {description}
+        </p>
+      )}
+    </div>
+    {children && <div className="flex shrink-0 items-center gap-1.5">{children}</div>}
+  </div>
+);
+
+/**
+ * Honest empty state. The admin panel must never let "no data yet" read as a
+ * broken panel, so this always says what would appear here and why it hasn't.
+ */
+export const Empty = ({ icon: Icon, title, children, className, action }) => (
+  <div className={cn('flex flex-col items-center gap-1.5 px-6 py-12 text-center', className)}>
+    {Icon && <Icon className="h-6 w-6 text-stone-300 dark:text-stone-600" strokeWidth={1.75} />}
+    {title && <p className="text-xs font-bold text-stone-700 dark:text-stone-200">{title}</p>}
+    <p className={cn('max-w-sm text-[11px] font-medium leading-relaxed', MUTED)}>{children}</p>
+    {action && <div className="mt-2">{action}</div>}
+  </div>
+);
+
+/**
+ * Horizontal meter with the label riding inside the track — the densest way to
+ * show "name + share + exact value" in a single row.
+ */
+export const Meter = ({ label, pct, value, tone = 'accent', trailing, className }) => {
+  const width = Math.max(0, Math.min(100, Number(pct) || 0));
+  return (
+    <div className={cn('flex items-center gap-2.5', className)}>
+      <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
+        <div
+          className={cn(
+            'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700 ease-out',
+            tone === 'accent'
+              ? 'bg-indigo-500/16 dark:bg-indigo-400/22'
+              : `${SIGNAL_BG[tone] || SIGNAL_BG.idle} opacity-[0.18]`
+          )}
+          style={{ width: `${width}%` }}
+        />
+        <div className="relative flex h-full items-center justify-between gap-2 px-3">
+          <span className="truncate text-[11px] font-extrabold text-stone-800 dark:text-stone-100">
+            {label}
+          </span>
+          {trailing}
+        </div>
+      </div>
+      <span
+        className={cn(
+          NUM,
+          'w-12 shrink-0 text-right text-sm font-bold text-stone-900 dark:text-stone-50'
+        )}
+      >
+        {value}
+      </span>
+    </div>
+  );
+};
+
+/**
+ * One rung of a conversion funnel. Unlike a plain Meter this also carries the
+ * *drop-off from the previous step*, which is the number that actually tells
+ * the operator where the funnel is leaking — a share-of-total bar alone hides
+ * that a stage lost 90% of what reached it.
+ */
+export const FunnelStep = ({ label, value, share, drop, isFirst }) => (
+  <div className="flex items-center gap-2.5">
+    <div className={cn('relative h-9 flex-1 overflow-hidden rounded-md', WELL)}>
+      <div
+        className="absolute inset-y-0 left-0 rounded-md bg-indigo-500/16 transition-[width] duration-700 ease-out dark:bg-indigo-400/22"
+        style={{ width: `${Math.max(0, Math.min(100, share || 0))}%` }}
+      />
+      <div className="relative flex h-full items-center justify-between gap-2 px-3">
+        <span className="truncate text-[11px] font-extrabold text-stone-800 dark:text-stone-100">
+          {label}
+        </span>
+        <span className={cn(NUM, 'shrink-0 text-[10px] font-bold', MUTED)}>
+          {Number.isFinite(share) ? `${share.toFixed(1)}%` : '—'}
+        </span>
+      </div>
+    </div>
+    <div className="w-16 shrink-0 text-right">
+      <p className={cn(NUM, 'text-sm font-bold leading-none text-stone-900 dark:text-stone-50')}>
+        {Number(value || 0).toLocaleString()}
+      </p>
+      {!isFirst && (
+        <p className={cn(NUM, 'mt-0.5 text-[9px] font-bold leading-none', MUTED)}>
+          {Number.isFinite(drop) ? `−${drop.toFixed(0)}%` : '—'}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+/** Multi-select chip used across the admin forms (channels, tiers, rules). */
+export const ToggleChip = ({ active, onClick, children, className }) => (
+  <button
+    type="button"
+    aria-pressed={active}
+    onClick={onClick}
+    className={cn(
+      'rounded-md border px-2.5 py-1.5 text-[10px] font-extrabold capitalize transition-colors active:scale-[0.97]',
+      active
+        ? 'border-indigo-400/50 bg-indigo-500/8 text-indigo-600 dark:border-indigo-500/50 dark:text-indigo-300'
+        : 'border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:border-white/10 dark:text-stone-400 dark:hover:text-stone-200',
+      className
+    )}
+  >
+    {children}
+  </button>
+);
+
+/**
+ * A single "this needs your attention" line. The admin panel leads with these
+ * rather than burying a problem several tabs deep, so they are always a link
+ * or a button — an alert you cannot act on is just noise.
+ */
+export const AttentionRow = ({ tone = 'warn', label, detail, onClick, action }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={!onClick}
+    className="group flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-stone-50 disabled:cursor-default disabled:hover:bg-transparent dark:hover:bg-white/[0.03] dark:disabled:hover:bg-transparent"
+  >
+    <span className={cn('h-4 w-0.5 shrink-0 rounded-full', SIGNAL_BG[tone])} />
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-[11px] font-bold text-stone-800 dark:text-stone-100">
+        {label}
+      </span>
+      {detail && (
+        <span className={cn('block truncate text-[10px] font-medium', MUTED)}>{detail}</span>
+      )}
+    </span>
+    {action && <span className={cn(MICRO, 'shrink-0', SIGNAL_TEXT[tone])}>{action}</span>}
+    {onClick && (
+      <ChevronRight className="h-3 w-3 shrink-0 text-stone-300 transition-transform group-hover:translate-x-0.5 dark:text-stone-600" />
+    )}
+  </button>
+);
+
+/**
+ * Two currencies, two lines. The revenue tiles used to cram "৳12,400 | $310"
+ * onto one line, where the pipe reads as part of a number and both figures get
+ * truncated on narrow tiles; stacking them keeps each amount scannable.
+ */
+export const DualValue = ({ primary, primaryLabel, secondary, secondaryLabel }) => (
+  <div className="flex items-baseline gap-3">
+    <span className="min-w-0">
+      <span
+        className={cn(
+          NUM,
+          'block text-lg font-bold leading-none text-stone-900 dark:text-stone-50'
+        )}
+      >
+        {primary}
+      </span>
+      {primaryLabel && <span className={cn(MICRO, MUTED, 'mt-1 block')}>{primaryLabel}</span>}
+    </span>
+    <span className="h-6 w-px shrink-0 bg-stone-200 dark:bg-white/10" />
+    <span className="min-w-0">
+      <span
+        className={cn(
+          NUM,
+          'block text-lg font-bold leading-none text-stone-900 dark:text-stone-50'
+        )}
+      >
+        {secondary}
+      </span>
+      {secondaryLabel && <span className={cn(MICRO, MUTED, 'mt-1 block')}>{secondaryLabel}</span>}
+    </span>
   </div>
 );
 

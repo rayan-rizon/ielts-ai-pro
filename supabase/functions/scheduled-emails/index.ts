@@ -104,6 +104,7 @@ serve(async (req) => {
             subject: template.subject,
             type: 'renewal_reminder',
             html: template.html,
+            text: template.text,
           })
         );
       }
@@ -131,6 +132,7 @@ serve(async (req) => {
             subject: template.subject,
             type: 'trial_expiry',
             html: template.html,
+            text: template.text,
           })
         );
       }
@@ -156,6 +158,7 @@ serve(async (req) => {
             subject: template.subject,
             type: 'inactivity_warning',
             html: template.html,
+            text: template.text,
           })
         );
       }

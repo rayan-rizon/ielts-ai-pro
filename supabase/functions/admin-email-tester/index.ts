@@ -107,6 +107,7 @@ serve(async (req) => {
         subject: `[TEST] ${template.subject}`,
         type: type as EmailType,
         html: template.html,
+        text: template.text,
       });
 
       if (result.error) {

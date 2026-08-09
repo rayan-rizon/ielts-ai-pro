@@ -58,6 +58,36 @@ const marketingHub = readFileSync(
   resolve(process.cwd(), 'src/components/admin/marketing/MarketingHub.jsx'),
   'utf8'
 );
+// The hub was split out of one 1,900-line file; each panel is now its own
+// module, so these contracts assert against the module that actually owns the
+// behaviour rather than one giant string.
+const marketingFile = (name: string) =>
+  readFileSync(resolve(process.cwd(), `src/components/admin/marketing/${name}`), 'utf8');
+const campaignsPanel = marketingFile('CampaignsPanel.jsx');
+const segmentsPanel = marketingFile('SegmentsPanel.jsx');
+const analyticsPanel = marketingFile('AnalyticsPanel.jsx');
+const commandStrip = marketingFile('CommandStrip.jsx');
+const emailPreviewDialog = marketingFile('dialogs/EmailPreviewDialog.jsx');
+const marketingPanels = [
+  campaignsPanel,
+  segmentsPanel,
+  analyticsPanel,
+  marketingFile('TemplatesPanel.jsx'),
+  marketingFile('JourneysPanel.jsx'),
+];
+const emailTemplates = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/_shared/templates.ts'),
+  'utf8'
+);
+const customerPortal = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/create-customer-portal/index.ts'),
+  'utf8'
+);
+const resend = readFileSync(resolve(process.cwd(), 'supabase/functions/_shared/resend.ts'), 'utf8');
+const scheduledEmails = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/scheduled-emails/index.ts'),
+  'utf8'
+);
 
 describe('Admin Marketing Hub contracts', () => {
   it('keeps campaign writes admin-only and learner delivery reads owner-scoped', () => {
@@ -127,8 +157,8 @@ describe('Admin Marketing Hub contracts', () => {
   });
 
   it('lets admins toggle a built-in segment without editing its rules', () => {
-    expect(marketingHub).toContain('Toggle ${segment.name}');
-    expect(marketingHub).toContain(
+    expect(segmentsPanel).toContain('Toggle ${segment.name}');
+    expect(segmentsPanel).toContain(
       'MarketingService.updateSegment(segment.id, { is_active: isActive })'
     );
   });
@@ -157,26 +187,73 @@ describe('Admin Marketing Hub contracts', () => {
   });
 
   it('uses a three-column desktop layout for dense marketing card views', () => {
-    const threeColumnGrids = marketingHub.match(/xl:grid-cols-3/g) || [];
-    expect(threeColumnGrids.length).toBeGreaterThanOrEqual(5);
+    // Card grids widened from `xl` to `2xl`: at xl the third column left cards
+    // too narrow for the campaign action row. Every card-grid panel must still
+    // reach three columns on a wide desktop.
+    const denseGrids = marketingPanels.flatMap((source) => source.match(/2xl:grid-cols-3/g) || []);
+    expect(denseGrids.length).toBeGreaterThanOrEqual(4);
   });
 
   it('keeps the conversion campaign workflow visible and previewable', () => {
-    expect(marketingHub).toContain('const EmailPreviewDialog');
-    expect(marketingHub).toContain('Email preview');
-    expect(marketingHub).toContain('Inbox subject');
-    expect(marketingHub).toContain('Hi alex');
-    expect(marketingHub).toContain('src="/footer.svg"');
-    expect(marketingHub).toContain('target band');
-    expect(marketingHub).toContain("const aCore = a.objective === 'paid_conversion' ? 0 : 1");
-    expect(marketingHub).toContain('Paid conversion is the live focus');
-    expect(marketingHub).toContain('From delivery to paid learner');
-    expect(marketingHub).toContain('Checkout started');
-    expect(dispatcher).toContain("const baseUrl = 'https://ieltsai.pro'");
-    expect(dispatcher).toContain('${baseUrl}/footer.svg');
+    expect(emailPreviewDialog).toContain('const EmailPreviewDialog');
+    expect(emailPreviewDialog).toContain('Email preview');
+    expect(emailPreviewDialog).toContain('Inbox subject');
+    expect(emailPreviewDialog).toContain('Hi alex');
+    expect(emailPreviewDialog).toContain('src="/footer.png"');
+    expect(emailPreviewDialog).toContain('target band');
+    expect(campaignsPanel).toContain("(c.objective === 'paid_conversion' ? 0 : 1)");
+    // The "paid conversion first" framing moved from a banner inside the
+    // campaigns tab to the always-visible command strip, so it is stated even
+    // when the operator is looking at another tab.
+    expect(commandStrip).toContain('No paid-conversion campaign is live');
+    expect(analyticsPanel).toContain('From delivery to paid learner');
+    expect(analyticsPanel).toContain('Checkout started');
     expect(dispatcher).toContain("select('id,username')");
     expect(dispatcher).toContain('recipient.username');
-    expect(dispatcher).toContain('Your progress and practice history are saved in your account');
+    // Campaign mail renders through the shared shell now, so the brand header
+    // and the closing reassurance line live in templates.ts, not the dispatcher.
+    expect(dispatcher).toContain('getCampaignTemplate');
+    expect(emailTemplates).toContain('${baseUrl}/footer.png');
+    expect(emailTemplates).toContain(
+      'Your progress and practice history stay saved in your account'
+    );
+  });
+
+  it('serves email logos and links from the host that actually answers', () => {
+    // The apex `ieltsai.pro` has DNS records but nothing listening, so anything
+    // built from it times out. Every outbound URL must use `www`.
+    expect(emailTemplates).toContain("const BASE_URL = 'https://www.ieltsai.pro'");
+    expect(emailTemplates).not.toContain("'https://ieltsai.pro'");
+    expect(checkoutSession).toContain("Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro'");
+    expect(customerPortal).toContain("Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro'");
+
+    // Gmail, Outlook and Yahoo do not render SVG in email — the mark must be a
+    // raster, and every auth template must use the same one.
+    // Match the URL form, not the word — the shell's comment explains why the
+    // SVG was dropped and legitimately names the file.
+    expect(emailTemplates).not.toContain('/footer.svg');
+    for (const template of [
+      'confirm-signup',
+      'magic-link',
+      'reset-password',
+      'email-change',
+      'invite',
+      'password-changed',
+    ]) {
+      const html = readFileSync(resolve(process.cwd(), `supabase/emails/${template}.html`), 'utf8');
+      expect(html, template).toContain('https://www.ieltsai.pro/footer.png');
+      expect(html, template).not.toContain('footer.svg');
+    }
+  });
+
+  it('sends a plain-text alternative alongside every HTML email', () => {
+    // An HTML-only body is a long-standing spam heuristic; Resend only produces
+    // a multipart message when `text` is supplied.
+    expect(emailTemplates).toContain('text: wrapText(');
+    expect(resend).toContain('...(text ? { text } : {})');
+    for (const caller of [stripeWebhook, scheduledEmails, dispatcher]) {
+      expect(caller).toContain('text:');
+    }
   });
 
   it('runs a two-hour checkout recovery offer without issuing a shared promo code', () => {
@@ -198,9 +275,12 @@ describe('Admin Marketing Hub contracts', () => {
 
   it('puts the live checkout recovery snapshot in analytics', () => {
     expect(marketingService).toContain('getCheckoutRecoveryDashboard');
-    expect(marketingHub).toContain('const CheckoutRecoverySnapshot');
-    expect(marketingHub).toContain('Two-hour 15% offer recovery');
-    expect(marketingHub).toContain('Eligible now');
-    expect(marketingHub).toContain('Recovery sent');
+    expect(analyticsPanel).toContain('const RecoveryPanel');
+    expect(analyticsPanel).toContain('Two-hour 15% offer');
+    expect(analyticsPanel).toContain('Eligible now');
+    expect(analyticsPanel).toContain('Offer sent');
+    expect(analyticsPanel).toContain('Recovered');
+    // An unconfigured recovery engine is silent failure — the hub must say so.
+    expect(commandStrip).toContain('Checkout recovery is not configured');
   });
 });

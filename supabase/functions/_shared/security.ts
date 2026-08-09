@@ -431,6 +431,7 @@ export async function checkDatabaseQuota(
         subject: template.subject,
         type: 'quota_conversion',
         html: template.html,
+        text: template.text,
       }).catch((err) => console.error('Failed to send quota email:', err));
     }
 

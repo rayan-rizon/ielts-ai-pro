@@ -15,6 +15,13 @@ interface SendEmailParams {
   subject: string;
   html: string;
   type: EmailType;
+  /**
+   * Plain-text alternative. Optional so existing callers keep working, but
+   * always pass it when the template provides one — a multipart message is
+   * what plain-text clients and text previews render, and an HTML-only body
+   * is a long-standing spam heuristic.
+   */
+  text?: string;
 }
 
 const resendApiKey = Deno.env.get('RESEND_API_KEY');
@@ -80,7 +87,7 @@ function providerErrorMessage(result: unknown): string {
   );
 }
 
-export async function sendEmail({ to, subject, html, type }: SendEmailParams) {
+export async function sendEmail({ to, subject, html, text, type }: SendEmailParams) {
   if (!resendApiKey) {
     console.error('Missing RESEND_API_KEY');
     await recordDispatch({ to, type, status: 'failed', errorMessage: 'RESEND_API_KEY is missing' });
@@ -129,6 +136,7 @@ export async function sendEmail({ to, subject, html, type }: SendEmailParams) {
         to,
         subject,
         html,
+        ...(text ? { text } : {}),
       }),
     });
 

@@ -304,6 +304,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
         subject: template.subject,
         type: 'welcome',
         html: template.html,
+        text: template.text,
       });
     }
 
@@ -404,6 +405,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
       subject: template.subject,
       type: 'renewal_confirmation',
       html: template.html,
+      text: template.text,
     });
   }
 
@@ -626,6 +628,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
       subject: template.subject,
       type: 'payment_failed',
       html: template.html,
+      text: template.text,
     });
   }
 
