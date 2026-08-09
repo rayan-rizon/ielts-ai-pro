@@ -38,8 +38,8 @@ export default function AboutHero() {
           </h1>
 
           <p className="text-base sm:text-lg font-medium leading-relaxed text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Stop waiting days for essay feedback. Get instant, examiner-grade scoring for Writing,
-            Speaking, Reading, and Listening—giving you a clear roadmap to Band 7.5+.
+            Stop waiting days for essay feedback. Get instant, criterion-based practice feedback for
+            Writing, Speaking, Reading, and Listening—giving you a clearer roadmap for improvement.
           </p>
 
           {/* Quick highlight feature badges */}

@@ -20,6 +20,8 @@ export function calculateWeightedWritingBand(task1Band, task2Band) {
 
 export function isCurrentWritingFeedbackCache({ feedback, response, prompt, imageUrl = null }) {
   if (!feedback || feedback.evaluationVersion !== CURRENT_EVALUATION_VERSION) return false;
+  if (feedback.writingCalibrationRevision !== 2) return false;
+  if (feedback.taskType === 'Task 1' && !feedback.taskAnalysis) return false;
   if (feedback.originalSource == null) return false;
   const hasScore = [
     feedback.overallBand,

@@ -39,33 +39,11 @@ import {
   getAuthRateLimitWaitSeconds,
   isAuthRateLimitError,
 } from '@/features/auth/utils/authRateLimit';
-
-const AUTH_DESTINATION_KEY = 'auth_destination';
-
-function isSafeInternalDestination(destination) {
-  return (
-    typeof destination === 'string' &&
-    destination.startsWith('/') &&
-    !destination.startsWith('//') &&
-    destination !== '/admin' &&
-    !destination.startsWith('/admin/')
-  );
-}
-
-function getRequestedDestination(location, fallback = createPageUrl('Dashboard')) {
-  const from = location.state?.from;
-  const stateDestination = from?.pathname
-    ? `${from.pathname}${from.search || ''}${from.hash || ''}`
-    : null;
-  const storedDestination = window.sessionStorage.getItem(AUTH_DESTINATION_KEY);
-  if (isSafeInternalDestination(stateDestination)) return stateDestination;
-  if (isSafeInternalDestination(storedDestination)) return storedDestination;
-  return fallback;
-}
-
-function clearRequestedDestination() {
-  window.sessionStorage.removeItem(AUTH_DESTINATION_KEY);
-}
+import {
+  clearRequestedDestination,
+  getRequestedDestination,
+  saveRequestedDestination,
+} from '@/features/auth/utils/authDestination';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -122,10 +100,7 @@ export default function Login() {
 
         User.signInWithGoogle(idToken, nonce)
           .then(() => {
-            const storedDestination = sessionStorage.getItem(AUTH_DESTINATION_KEY);
-            const dest = isSafeInternalDestination(storedDestination)
-              ? storedDestination
-              : '/dashboard';
+            const dest = getRequestedDestination(null, '/dashboard');
             clearRequestedDestination();
             sessionStorage.removeItem('google_oauth_nonce');
             navigate(dest, { replace: true });
@@ -239,7 +214,7 @@ export default function Login() {
         setError('Authentication failed. Please verify your email and password.');
       } else {
         const requestedDestination = getRequestedDestination(location);
-        window.sessionStorage.setItem(AUTH_DESTINATION_KEY, requestedDestination);
+        saveRequestedDestination(requestedDestination);
         const referralCode = localStorage.getItem('referral_code');
         const data = await signUp(email, password, username, referralCode);
         if (data?.session) {
@@ -312,7 +287,7 @@ export default function Login() {
 
     // Save destination so we can redirect appropriately after login
     const destination = getRequestedDestination(location);
-    sessionStorage.setItem(AUTH_DESTINATION_KEY, destination);
+    saveRequestedDestination(destination);
 
     trackAppEvent('signin_started', {
       method: 'google',

@@ -1,9 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { trackAppEvent } from '@/lib/tracking';
+import { saveRequestedDestination } from '@/features/auth/utils/authDestination';
 import { countWords } from './checkerUtils';
-import { TASKS, DEMO_ESSAYS, DRAFT_STORAGE_KEY, CHECKER_PATH } from './checkerConstants';
+import { TASKS, DEMO_ESSAYS, CHECKER_PATH } from './checkerConstants';
 import { runAnalysis } from './analyseHelper';
+import {
+  clearCheckerDraft,
+  loadCheckerDraft,
+  loadPendingTaskImage,
+  saveCheckerDraft,
+  savePendingTaskImage,
+} from './checkerDraftStorage';
 import WritingForm from './WritingForm';
 import DemoResultPanel from './DemoResultPanel';
 
@@ -25,6 +33,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
   const [taskImageFile, setTaskImageFile] = useState(null);
   const autoSubmitRef = useRef(false);
   const restoredSubmissionRef = useRef(null);
+  const [restorationComplete, setRestorationComplete] = useState(false);
 
   const task = TASKS[activeTask];
   const currentDraft = drafts[activeTask];
@@ -43,21 +52,29 @@ export default function CheckerWorkspace({ user, authLoading }) {
   const persistDraft = useCallback(
     (pendingAnalysis) => {
       const payload = { activeTask, drafts, pendingAnalysis, savedAt: Date.now() };
-      window.sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(payload));
+      saveCheckerDraft(payload, { pendingAuth: pendingAnalysis });
       return payload;
     },
     [activeTask, drafts]
   );
 
-  const requestSignup = useCallback(() => {
-    persistDraft(true);
-    window.sessionStorage.setItem('auth_destination', CHECKER_PATH);
-    trackAppEvent('writing_checker_signup_gate_viewed', {
-      task_type: activeTask,
-      word_count: wordCount,
-    });
-    navigate('/signup', { state: { from: location } });
-  }, [activeTask, location, navigate, persistDraft, wordCount]);
+  const requestSignup = useCallback(async () => {
+    try {
+      if (activeTask === 'Task 1') await savePendingTaskImage(taskImageFile);
+      persistDraft(true);
+      saveRequestedDestination(CHECKER_PATH, { crossTab: true });
+      trackAppEvent('writing_checker_signup_gate_viewed', {
+        task_type: activeTask,
+        word_count: wordCount,
+      });
+      navigate('/signup', { state: { from: location } });
+    } catch (storageError) {
+      setError(
+        storageError?.message ||
+          'We could not preserve this draft across signup. Keep this tab open and try again.'
+      );
+    }
+  }, [activeTask, location, navigate, persistDraft, taskImageFile, wordCount]);
 
   // Stable setter bag — useState setters are referentially stable; object is memoised to satisfy exhaustive-deps.
   const setters = React.useMemo(
@@ -81,26 +98,43 @@ export default function CheckerWorkspace({ user, authLoading }) {
     [activeTask, drafts, taskImageFile, user, setters]
   );
 
-  // Restore draft from sessionStorage on mount
+  // Restore the pending draft and Task 1 File across OAuth redirects and email
+  // verification links, including when verification opens in a new tab.
   useEffect(() => {
-    try {
-      const saved = JSON.parse(window.sessionStorage.getItem(DRAFT_STORAGE_KEY) || 'null');
-      if (!saved?.drafts || !TASKS[saved.activeTask]) return;
-      restoredSubmissionRef.current = saved;
-      setActiveTask(saved.activeTask);
-      setDrafts(saved.drafts);
-    } catch {
-      window.sessionStorage.removeItem(DRAFT_STORAGE_KEY);
-    }
+    let cancelled = false;
+    const restore = async () => {
+      const saved = loadCheckerDraft();
+      if (saved?.drafts && TASKS[saved.activeTask]) {
+        restoredSubmissionRef.current = saved;
+        setActiveTask(saved.activeTask);
+        setDrafts(saved.drafts);
+        if (saved.activeTask === 'Task 1') {
+          const savedImage = await loadPendingTaskImage();
+          if (!cancelled && savedImage) setTaskImageFile(savedImage);
+        }
+      }
+      if (!cancelled) setRestorationComplete(true);
+    };
+    restore();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Auto-submit after auth redirect
   useEffect(() => {
     const saved = restoredSubmissionRef.current;
-    if (!saved?.pendingAnalysis || !user || authLoading || autoSubmitRef.current) return;
+    if (
+      !restorationComplete ||
+      !saved?.pendingAnalysis ||
+      !user ||
+      authLoading ||
+      autoSubmitRef.current
+    )
+      return;
     autoSubmitRef.current = true;
     analyse(saved);
-  }, [analyse, authLoading, user]);
+  }, [analyse, authLoading, restorationComplete, user]);
 
   const handleTabChange = (taskType) => {
     setActiveTask(taskType);
@@ -117,6 +151,20 @@ export default function CheckerWorkspace({ user, authLoading }) {
       setError(`Write at least ${task.feedbackMinimum} words to request useful feedback.`);
       return;
     }
+    if (!currentDraft.prompt.trim()) {
+      setShowPromptField(true);
+      setError(
+        `Paste the original ${activeTask} instructions so ${activeTask === 'Task 1' ? 'Task Achievement' : 'Task Response'} can be scored accurately.`
+      );
+      return;
+    }
+    if (activeTask === 'Task 1' && !taskImageFile) {
+      setShowTaskImageField(true);
+      setError(
+        'Add the original Task 1 chart, graph, table, map or diagram so Task Achievement can be scored accurately.'
+      );
+      return;
+    }
     if (!user) {
       persistDraft(false);
       setShowSignupGate(true);
@@ -125,22 +173,11 @@ export default function CheckerWorkspace({ user, authLoading }) {
         word_count: wordCount,
       });
       window.setTimeout(() => {
-        document
-          .querySelector('#checker-results')
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const results = document.querySelector('#checker-results');
+        if (typeof results?.scrollIntoView === 'function') {
+          results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 80);
-      return;
-    }
-    if (!currentDraft.prompt.trim()) {
-      setShowPromptField(true);
-      setError('Paste the original Task 2 instructions so Task Response can be scored accurately.');
-      return;
-    }
-    if (activeTask === 'Task 1' && !taskImageFile) {
-      setShowTaskImageField(true);
-      setError(
-        'Add the original Task 1 chart, graph, table, map or diagram so Task Achievement can be scored accurately.'
-      );
       return;
     }
     analyse();
@@ -163,7 +200,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
 
   const handleClearEssay = () => {
     updateDraft('essay', '');
-    window.sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+    clearCheckerDraft();
   };
 
   const handlePaste = async () => {

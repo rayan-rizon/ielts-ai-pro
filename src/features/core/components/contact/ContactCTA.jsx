@@ -38,8 +38,8 @@ export default function ContactCTA({ onSignup, onPricing }) {
           </h2>
 
           <p className="text-white/85 text-xs sm:text-sm font-medium mb-6 max-w-md mx-auto relative z-10 leading-relaxed">
-            Join candidates worldwide using IELTS AI Pro to get instant, examiner-grade writing and
-            speaking feedback.
+            Join candidates worldwide using IELTS AI Pro to get instant, criterion-based writing and
+            speaking practice feedback.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center relative z-10">

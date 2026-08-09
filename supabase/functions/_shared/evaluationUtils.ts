@@ -1,4 +1,5 @@
 export const FEEDBACK_EVALUATOR_VERSION = '2026-07-29-v5';
+export const WRITING_CALIBRATION_REVISION = 2;
 
 const VALID_ANNOTATION_TYPES = new Set([
   'grammar',
@@ -18,6 +19,18 @@ const VALID_WRITING_CRITERIA = new Set([
   'Lexical Resource',
   'Grammar',
 ]);
+
+const VALID_TASK_1_VISUAL_TYPES = new Set([
+  'line graph',
+  'bar chart',
+  'pie chart',
+  'table',
+  'map',
+  'process diagram',
+  'mixed visuals',
+  'not identifiable',
+]);
+const VALID_TASK_1_ALIGNMENTS = new Set(['aligned', 'partial', 'mismatched', 'uncertain']);
 
 const INVALID_SPEAKING_RESPONSES = [
   /^\s*$/,
@@ -336,6 +349,32 @@ export function normalizeWritingEvaluation(
 
   const wordCount = countWords(sourceText);
 
+  const rawTaskAnalysis = isPlainObject(raw.taskAnalysis) ? raw.taskAnalysis : null;
+  const taskAnalysis =
+    taskType === 'Task 1' && rawTaskAnalysis
+      ? {
+          visualType: VALID_TASK_1_VISUAL_TYPES.has(rawTaskAnalysis.visualType)
+            ? rawTaskAnalysis.visualType
+            : 'not identifiable',
+          responseVisualType: VALID_TASK_1_VISUAL_TYPES.has(rawTaskAnalysis.responseVisualType)
+            ? rawTaskAnalysis.responseVisualType
+            : 'not identifiable',
+          alignment: VALID_TASK_1_ALIGNMENTS.has(rawTaskAnalysis.alignment)
+            ? rawTaskAnalysis.alignment
+            : 'uncertain',
+          visualReadable: rawTaskAnalysis.visualReadable === true,
+          observedFeatures: compactFeedbackList(rawTaskAnalysis.observedFeatures, 3, 140),
+          limitations: compactFeedbackText(rawTaskAnalysis.limitations, 1, 180),
+        }
+      : null;
+
+  // The public Task 1 descriptor places a response that does not address the
+  // required data/diagram at Band 3. Band 2 is reserved for barely related
+  // content, so a wrong visual must not be automatically forced below Band 3.
+  if (taskAnalysis?.alignment === 'mismatched') {
+    criteriaScores[taskCriterionKey] = Math.min(3, criteriaScores[taskCriterionKey]);
+  }
+
   // Official 2023 public descriptors: responses of 20 words or fewer are rated
   // Band 1 on every criterion. Enforce deterministically — the model sometimes
   // second-guesses this rule.
@@ -375,6 +414,8 @@ export function normalizeWritingEvaluation(
     vocabularyEnhancements,
     wordCount,
     taskType,
+    taskAnalysis,
+    writingCalibrationRevision: WRITING_CALIBRATION_REVISION,
     evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
   };
 }

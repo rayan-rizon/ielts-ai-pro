@@ -111,7 +111,13 @@ async function requestLunaWritingFeedback(
         'LexicalResource',
         'GrammaticalRangeAndAccuracy',
       ].every((key) => Number.isFinite(Number(criteria[key])));
-    if (!hasRequiredScores) {
+    const hasRequiredTaskAnalysis =
+      requiredCriterionKey !== 'TaskAchievement' ||
+      (parsedFeedback?.taskAnalysis &&
+        typeof parsedFeedback.taskAnalysis.visualType === 'string' &&
+        typeof parsedFeedback.taskAnalysis.visualReadable === 'boolean' &&
+        Array.isArray(parsedFeedback.taskAnalysis.observedFeatures));
+    if (!hasRequiredScores || !hasRequiredTaskAnalysis) {
       console.warn('Luna writing response failed schema validation; falling back to Gemini');
       return null;
     }
@@ -359,6 +365,56 @@ serve(async (req: Request) => {
             required: ['original', 'alternatives', 'context'],
           },
         },
+        ...(taskType === 'Task 1'
+          ? {
+              taskAnalysis: {
+                type: 'OBJECT',
+                properties: {
+                  visualType: {
+                    type: 'STRING',
+                    enum: [
+                      'line graph',
+                      'bar chart',
+                      'pie chart',
+                      'table',
+                      'map',
+                      'process diagram',
+                      'mixed visuals',
+                      'not identifiable',
+                    ],
+                  },
+                  responseVisualType: {
+                    type: 'STRING',
+                    enum: [
+                      'line graph',
+                      'bar chart',
+                      'pie chart',
+                      'table',
+                      'map',
+                      'process diagram',
+                      'mixed visuals',
+                      'not identifiable',
+                    ],
+                  },
+                  alignment: {
+                    type: 'STRING',
+                    enum: ['aligned', 'partial', 'mismatched', 'uncertain'],
+                  },
+                  visualReadable: { type: 'BOOLEAN' },
+                  observedFeatures: { type: 'ARRAY', items: { type: 'STRING' } },
+                  limitations: { type: 'STRING' },
+                },
+                required: [
+                  'visualType',
+                  'responseVisualType',
+                  'alignment',
+                  'visualReadable',
+                  'observedFeatures',
+                  'limitations',
+                ],
+              },
+            }
+          : {}),
       },
       required: [
         'criteriaScores',
@@ -367,6 +423,7 @@ serve(async (req: Request) => {
         'strengths',
         'priorities',
         'vocabularyEnhancements',
+        ...(taskType === 'Task 1' ? ['taskAnalysis'] : []),
       ],
     };
 
@@ -396,11 +453,15 @@ COMPACT FEEDBACK CONTRACT
       systemInstruction += `
 Task type: IELTS Academic Writing Task 1 (visual report).
 
-STEP 1 — Visual classification (MUST do before scoring):
+	STEP 1 — Visual classification (MUST do before scoring):
 - Identify the visual type required by the task prompt. Use exactly one of: [line graph | bar chart | pie chart | table | map | process diagram | mixed visuals].
 - Identify the visual type the candidate actually described in their answer.
-- MISMATCH detected (they differ):
-  * Set TaskAchievement to 2.0 or below.
+	- Return taskAnalysis with the actual visual type, the type described by the candidate,
+	  alignment, whether the image is readable, 1–3 short observable features, and any limitation.
+	- MISMATCH detected (they differ):
+	  * TaskAchievement cannot exceed 3.0: the public Band 3 descriptor covers a response
+	    that does not address the task because the data or diagram was misunderstood.
+	  * Use 2.0 only when the content is barely related, and 1.0 only when wholly unrelated.
   * Continue judging LexicalResource and GrammaticalRangeAndAccuracy independently from the language actually demonstrated. Do not cap language criteria merely because the content is off-task.
   * Add an annotation on a short exact phrase: type='clarity', severity='warning', explaining that it describes the wrong visual type.
   * Make the mismatch the first priority.
@@ -471,6 +532,12 @@ IELTS Examiner Rule — Overview requirement:
           if (!imageResp.ok) throw new Error(`Failed to fetch image: ${imageResp.status}`);
 
           const imageBlob = await imageResp.blob();
+          if (!['image/png', 'image/jpeg', 'image/webp'].includes(imageBlob.type)) {
+            throw new Error(`Unsupported Task 1 image type: ${imageBlob.type || 'unknown'}`);
+          }
+          if (imageBlob.size > 8 * 1024 * 1024) {
+            throw new Error('Task 1 image exceeds the 8 MB limit');
+          }
           const arrayBuffer = await imageBlob.arrayBuffer();
           const base64Image = btoa(
             new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
@@ -556,7 +623,7 @@ Register and tone:
       taskPrompt: normalizeText(taskPrompt),
       taskType,
       imageUrl,
-      priorityEvidenceRevision: 1,
+      writingCalibrationRevision: 2,
     });
     const encode = new TextEncoder().encode(hashInput);
     const hashBuffer = await crypto.subtle.digest('SHA-256', encode);
@@ -607,7 +674,11 @@ REQUIRED JSON SHAPE (all keys required):
   "annotations": [{"originalText": string, "type": "grammar"|"spelling"|"style"|"vocabulary"|"clarity"|"positive", "suggestion": string, "explanation": string, "severity": "error"|"warning"|"suggestion"|"positive"}],
   "strengths": [string],
   "priorities": [{"criterion": "${taskCriterionLabel}"|"Coherence & Cohesion"|"Lexical Resource"|"Grammar", "issue": string, "action": string, "evidenceText": string}],
-  "vocabularyEnhancements": [{"original": string, "alternatives": [string], "context": string}]
+  "vocabularyEnhancements": [{"original": string, "alternatives": [string], "context": string}]${
+    taskType === 'Task 1'
+      ? ',\n  "taskAnalysis": {"visualType": "line graph"|"bar chart"|"pie chart"|"table"|"map"|"process diagram"|"mixed visuals"|"not identifiable", "responseVisualType": same enum, "alignment": "aligned"|"partial"|"mismatched"|"uncertain", "visualReadable": boolean, "observedFeatures": [string], "limitations": string}'
+      : ''
+  }
 }
 Output JSON only, matching this shape exactly. No markdown or bold markers.
 `;

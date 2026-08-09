@@ -174,6 +174,41 @@ describe('evaluationUtils', () => {
     ]);
   });
 
+  it('preserves Task 1 visual evidence and applies the official Band 3 mismatch boundary', () => {
+    const result = normalizeWritingEvaluation(
+      {
+        criteriaScores: {
+          TaskAchievement: 6,
+          CoherenceAndCohesion: 6.5,
+          LexicalResource: 6,
+          GrammaticalRangeAndAccuracy: 6,
+        },
+        summary: 'The language is clear, but the response describes the wrong visual.',
+        taskAnalysis: {
+          visualType: 'map',
+          responseVisualType: 'bar chart',
+          alignment: 'mismatched',
+          visualReadable: true,
+          observedFeatures: [
+            'Two site plans show changes over time.',
+            'The later plan adds transport infrastructure.',
+          ],
+          limitations: '',
+        },
+      },
+      'Task 1',
+      'The bar chart rises steadily across the period and reaches a final peak after several years. The figures show a clear upward trend in every category, with the largest value at the end.'
+    );
+
+    expect(result.criteriaScores.TaskAchievement).toBe(3);
+    expect(result.overallBand).toBe(5.5);
+    expect(result.taskAnalysis).toEqual(
+      expect.objectContaining({ visualType: 'map', alignment: 'mismatched', visualReadable: true })
+    );
+    expect(result.taskAnalysis?.observedFeatures).toHaveLength(2);
+    expect(result.writingCalibrationRevision).toBe(2);
+  });
+
   it('does not turn missing pronunciation evidence into a zero speaking score', () => {
     const transcript = buildSpeakingTranscript({
       1: [

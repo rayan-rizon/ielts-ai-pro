@@ -18,7 +18,7 @@ const faqs = [
   {
     question: 'How accurate is the AI grading?',
     answer:
-      'Our AI is trained on thousands of official IELTS exams and is calibrated to score within 0.5 bands of official examiners. It provides detailed feedback on grammar, vocabulary, coherence, and task response.',
+      'The score is an AI-assisted practice estimate based on the public IELTS assessment criteria. It provides feedback on task achievement or response, coherence and cohesion, lexical resource, and grammatical range and accuracy. It is not an official IELTS result or a replacement for a qualified examiner.',
   },
   {
     question: 'Are the Cambridge IELTS tests free?',

@@ -2,7 +2,8 @@ import { uploadFile } from '@/lib/supabase';
 import { trackAppEvent } from '@/lib/tracking';
 import { generateDetailedFeedback } from '@/utils/api';
 import { stripHtml, countWords, normalizeFeedback } from './checkerUtils';
-import { TASKS, ANALYSIS_STAGES, DRAFT_STORAGE_KEY } from './checkerConstants';
+import { TASKS, ANALYSIS_STAGES } from './checkerConstants';
+import { clearPendingCheckerDraft, saveCheckerDraft } from './checkerDraftStorage';
 
 /**
  * Validate the submission before sending to the API.
@@ -52,15 +53,12 @@ async function executeAnalysis(selectedTask, selectedDrafts, taskImageFile) {
     imageUrl = uploaded.file_url;
   }
 
-  window.sessionStorage.setItem(
-    DRAFT_STORAGE_KEY,
-    JSON.stringify({
-      activeTask: selectedTask,
-      drafts: selectedDrafts,
-      pendingAnalysis: false,
-      savedAt: Date.now(),
-    })
-  );
+  saveCheckerDraft({
+    activeTask: selectedTask,
+    drafts: selectedDrafts,
+    pendingAnalysis: false,
+    savedAt: Date.now(),
+  });
 
   const selectedDraft = selectedDrafts[selectedTask];
   return generateDetailedFeedback({
@@ -121,15 +119,17 @@ export async function runAnalysis({
     }
 
     setters.setFeedback(normalized);
+    await clearPendingCheckerDraft();
     trackAppEvent('writing_checker_feedback_revealed', {
       task_type: selectedTask,
       word_count: countWords(selectedDraft.essay),
     });
 
     window.setTimeout(() => {
-      document
-        .querySelector('#checker-results')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const resultsPanel = document.querySelector('#checker-results');
+      if (typeof resultsPanel?.scrollIntoView === 'function') {
+        resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }, 80);
   } catch (analysisError) {
     const quotaExceeded =

@@ -26,7 +26,7 @@ export default function About() {
     <div className="relative min-h-screen bg-[#fcfdff] dark:bg-[#08080a] text-foreground transition-colors duration-300 overflow-x-hidden">
       <DocumentHead
         title="About IELTS Ai Pro - AI-Powered IELTS Preparation Platform"
-        description="Get instant, examiner-grade AI feedback for IELTS Writing Task 1 & 2, Speaking Parts 1-3, Reading, and Listening. Achieve Band 7.5+ faster."
+        description="Get instant, criterion-based AI practice feedback for IELTS Writing Task 1 & 2, Speaking Parts 1-3, Reading, and Listening."
         canonicalUrl="https://www.ieltsai.pro/about"
         keywords="about IELTS Ai Pro, IELTS AI evaluation, IELTS writing checker, IELTS speaking coach, IELTS mock test, band score calculator"
         structuredData={{
@@ -34,7 +34,7 @@ export default function About() {
           '@type': 'AboutPage',
           name: 'About IELTS Ai Pro',
           description:
-            'IELTS Ai Pro provides instant AI feedback for Writing, Speaking, Reading, and Listening using official Cambridge rubrics.',
+            'IELTS Ai Pro provides instant AI-assisted practice feedback for Writing, Speaking, Reading, and Listening using public IELTS assessment criteria.',
           url: 'https://www.ieltsai.pro/about',
           // An AboutPage is about the organisation, not a SoftwareApplication -
           // which would additionally require an aggregateRating we have not collected.

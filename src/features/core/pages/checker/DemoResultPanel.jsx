@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Loader2,
   LockKeyhole,
+  ScanSearch,
   Sparkles,
   Target,
 } from 'lucide-react';
@@ -242,6 +243,10 @@ function FeedbackResult({ feedback, activeTask }) {
         </div>
       </div>
 
+      {activeTask === 'Task 1' && feedback.taskAnalysis && (
+        <VisualGroundingPanel taskAnalysis={feedback.taskAnalysis} />
+      )}
+
       {/* Strengths & Weaknesses */}
       <div className="grid gap-3.5 border-t border-[#e4e2f0] dark:border-white/[0.07] pt-5 sm:grid-cols-2">
         <div className={cn(TILE, 'p-4')}>
@@ -352,6 +357,71 @@ function FeedbackResult({ feedback, activeTask }) {
         This is an AI-assisted practice estimate, not an official IELTS result.
       </p>
     </section>
+  );
+}
+
+function VisualGroundingPanel({ taskAnalysis }) {
+  const alignmentLabels = {
+    aligned: 'Response aligned',
+    partial: 'Partly aligned',
+    mismatched: 'Visual mismatch',
+    uncertain: 'Needs review',
+  };
+  const alignmentTone =
+    taskAnalysis.alignment === 'aligned'
+      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+      : taskAnalysis.alignment === 'mismatched'
+        ? 'border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+        : 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300';
+
+  return (
+    <div className="border-t border-[#e4e2f0] py-5 dark:border-white/[0.07]">
+      <div className={cn(TILE, 'p-4')}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] text-[#5a63df] dark:border-white/10 dark:bg-white/6 dark:text-[#afb5ff]">
+              <ScanSearch className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className={TITLE}>Task 1 visual evidence</h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                The vision model classified the image as a{' '}
+                <span className="font-bold text-slate-700 dark:text-slate-200">
+                  {taskAnalysis.visualType}
+                </span>
+                .
+              </p>
+            </div>
+          </div>
+          <span className={cn(MICRO, 'rounded-md border px-2.5 py-1', alignmentTone)}>
+            {alignmentLabels[taskAnalysis.alignment] || 'Needs review'}
+          </span>
+        </div>
+
+        {taskAnalysis.observedFeatures?.length > 0 && (
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {taskAnalysis.observedFeatures.map((feature, index) => (
+              <p
+                key={`${index}-${feature}`}
+                className={cn(
+                  WELL,
+                  'rounded-lg px-3 py-2 text-xs leading-5 text-slate-700 dark:text-slate-300'
+                )}
+              >
+                {stripHtml(feature)}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {(!taskAnalysis.visualReadable || taskAnalysis.limitations) && (
+          <p className="mt-3 border-l-2 border-amber-400 pl-3 text-xs leading-5 text-amber-800 dark:text-amber-300">
+            {taskAnalysis.limitations ||
+              'Some visual details were not readable, so Task Achievement evidence is limited.'}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 

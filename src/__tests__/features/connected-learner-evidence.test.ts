@@ -22,6 +22,7 @@ const speakingCardSources = [
 const writingFeedback = (band: number, grammar: number) => ({
   overallBand: band,
   evaluationVersion: CURRENT_EVALUATION_VERSION,
+  writingCalibrationRevision: 2,
   originalSource: '<p>A learner response.</p>',
   taskPrompt: 'Discuss both views.',
   imageUrl: null,
@@ -62,6 +63,13 @@ describe('connected learner evidence', () => {
     expect(
       isCurrentWritingFeedbackCache({
         feedback: { ...feedback, evaluationVersion: 'legacy' },
+        response: 'A learner response.',
+        prompt: 'Discuss both views.',
+      })
+    ).toBe(false);
+    expect(
+      isCurrentWritingFeedbackCache({
+        feedback: { ...feedback, writingCalibrationRevision: 1 },
         response: 'A learner response.',
         prompt: 'Discuss both views.',
       })

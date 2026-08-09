@@ -35,6 +35,14 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(speaking).not.toContain('AI_GATEWAY_API_KEY');
   });
 
+  it('requires grounded Task 1 visual evidence and uses the public Band 3 mismatch boundary', () => {
+    const writing = readFunction('generateDetailedFeedback');
+    expect(writing).toContain('taskAnalysis');
+    expect(writing).toContain('TaskAchievement cannot exceed 3.0');
+    expect(writing).toContain("['image/png', 'image/jpeg', 'image/webp']");
+    expect(writing).toContain('imageBlob.size > 8 * 1024 * 1024');
+  });
+
   it('keeps provider credentials out of request URLs and client code', () => {
     const providerFunctions = [
       'generateDetailedFeedback',
