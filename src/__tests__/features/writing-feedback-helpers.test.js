@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   getWritingFeedbacks,
+  getWritingEvaluationCreditMessage,
   hasValidAiFeedback,
   isStalePendingWritingEvaluation,
+  resolveWritingSessionState,
+  summarizeWritingEvaluationFailure,
 } from '@/features/testing/writing/writingFeedbackHelpers';
 
 describe('writing feedback session helpers', () => {
@@ -25,5 +28,34 @@ describe('writing feedback session helpers', () => {
     expect(
       isStalePendingWritingEvaluation({ ...session, evaluation_status: 'complete' }, now)
     ).toBe(false);
+  });
+
+  it('keeps a failed partial evaluation resumable instead of presenting it as a result', () => {
+    const session = {
+      is_completed: true,
+      evaluation_status: 'failed',
+      score: null,
+      content_data: { ai_feedbacks: { 'Task 1': { overallBand: 6.5 } } },
+    };
+
+    expect(resolveWritingSessionState(session)).toMatchObject({
+      activeSession: session,
+      completedSession: undefined,
+      isEffectivelyCompleted: false,
+    });
+  });
+
+  it('explains a multi-task quota shortfall before evaluating either task', () => {
+    expect(
+      getWritingEvaluationCreditMessage(2, { daily_remaining: 1, monthly_remaining: 3 })
+    ).toContain('needs 2 feedback credits, but you have 1 credit remaining');
+  });
+
+  it('stores safe, actionable evaluation failure evidence', () => {
+    expect(summarizeWritingEvaluationFailure({ status: 429 }, ['Task 1', 'Task 2'])).toMatchObject({
+      category: 'quota',
+      status: 429,
+      attemptedTasks: ['Task 1', 'Task 2'],
+    });
   });
 });

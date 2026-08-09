@@ -227,7 +227,12 @@ function restoreWritingSessionState(store, existingSession, initialActiveType) {
   const feedbacks = existingSession.content_data?.ai_feedbacks;
   const hasValidFeedback =
     feedbacks && (isValidFeedback(feedbacks['Task 1']) || isValidFeedback(feedbacks['Task 2']));
-  store.setCompleted(existingSession.is_completed || Boolean(hasValidFeedback));
+  // Failed evaluations can contain a recoverable Task 1 or Task 2 response.
+  // Keep those sessions active so retry only evaluates the missing task.
+  store.setCompleted(
+    existingSession.evaluation_status !== 'failed' &&
+      (existingSession.is_completed || Boolean(hasValidFeedback))
+  );
 
   restoreUserResponses(store, existingSession, initialActiveType);
 

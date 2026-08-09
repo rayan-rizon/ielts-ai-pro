@@ -59,11 +59,42 @@ export function resolveWritingSessionState(session) {
   }
   const hasFeedback = hasValidAiFeedback(session.content_data);
   const hasScore = session.score !== undefined && session.score !== null;
-  const isEffectivelyCompleted = !!(session.is_completed || hasFeedback || hasScore);
+  // A submitted Writing test can be marked is_completed before its AI evaluation
+  // has finished. A failed evaluation must remain resumable, even if one parallel
+  // task returned feedback, otherwise the learner is sent to an incomplete result.
+  const evaluationFailed = session.evaluation_status === 'failed';
+  const isEffectivelyCompleted =
+    !evaluationFailed && !!(session.is_completed || hasFeedback || hasScore);
 
   return {
     activeSession: !isEffectivelyCompleted ? session : undefined,
     completedSession: isEffectivelyCompleted ? session : undefined,
     isEffectivelyCompleted,
+  };
+}
+
+export function getWritingEvaluationCreditMessage(required, quota) {
+  const dailyRemaining = Number(quota?.daily_remaining);
+  const monthlyRemaining = Number(quota?.monthly_remaining);
+  const remaining = Math.max(
+    0,
+    Math.min(
+      Number.isFinite(dailyRemaining) ? dailyRemaining : Number.POSITIVE_INFINITY,
+      Number.isFinite(monthlyRemaining) ? monthlyRemaining : Number.POSITIVE_INFINITY
+    )
+  );
+  const requiredLabel = `${required} feedback credit${required === 1 ? '' : 's'}`;
+  const remainingLabel = `${remaining} credit${remaining === 1 ? '' : 's'} remaining`;
+  return `This complete Writing test needs ${requiredLabel}, but you have ${remainingLabel}. Upgrade or wait for your credits to reset before starting the evaluation.`;
+}
+
+export function summarizeWritingEvaluationFailure(error, attemptedTasks) {
+  const status = Number(error?.status);
+  const category = status === 429 ? 'quota' : status >= 500 ? 'provider' : 'request';
+  return {
+    occurredAt: new Date().toISOString(),
+    category,
+    status: Number.isFinite(status) ? status : null,
+    attemptedTasks,
   };
 }

@@ -16,8 +16,10 @@ import {
 } from '@/features/testing/writing/utils/evaluationEvidence';
 import {
   getWritingFeedbacks,
+  getWritingEvaluationCreditMessage,
   isStalePendingWritingEvaluation,
   isValidFeedback,
+  summarizeWritingEvaluationFailure,
 } from '@/features/testing/writing/writingFeedbackHelpers';
 
 /**
@@ -41,6 +43,7 @@ export function useWritingFeedback(awardXP) {
   const analyzingRef = useRef(false);
 
   const restoreSavedFeedback = useCallback((store, session) => {
+    if (session?.evaluation_status !== 'complete') return false;
     const feedbacks = getWritingFeedbacks(session?.content_data);
     if (!feedbacks) return false;
 
@@ -168,6 +171,36 @@ export function useWritingFeedback(awardXP) {
       return;
     }
 
+    // Plan before the quota check. A full Cambridge Writing test submits both
+    // Task 1 and Task 2, so do not start either provider request unless the
+    // learner has enough credits for every uncached task.
+    const analysisPlan = tasksToAnalyze.map((type) => {
+      const currentTextRaw = normalizeWritingSource(store.drafts[type]);
+      const wordCount = type === 'Task 1' ? task1Words : task2Words;
+      const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
+      const taskConfig = store.compositeTasks[type] || store.task;
+      const prompt = taskConfig?.prompt || '';
+      const imageUrl = type === 'Task 1' ? taskConfig?.image_url || null : null;
+      const savedFeedback = store.feedbacks[type];
+
+      if (
+        isCurrentWritingFeedbackCache({
+          feedback: savedFeedback,
+          response: currentTextRaw,
+          prompt,
+          imageUrl,
+        })
+      ) {
+        return {
+          type,
+          cached: true,
+          feedback: { ...savedFeedback, isBelowMinimumWordCount: isBelowMinimum },
+        };
+      }
+      return { type, cached: false, text: currentTextRaw, isBelowMinimum, prompt, imageUrl };
+    });
+    const requiredCredits = analysisPlan.filter((item) => !item.cached).length;
+
     // Pre-flight quota check: verify limit BEFORE showing analysis UI
     // This prevents the "AI Analysis In Progress" animation from flashing
     // when the user has already hit their limit.
@@ -190,7 +223,14 @@ export function useWritingFeedback(awardXP) {
           });
 
           const quota = quotaData?.[0] || quotaData;
-          if (quota && quota.allowed === false) {
+          const dailyRemaining = Number(quota?.daily_remaining);
+          const monthlyRemaining = Number(quota?.monthly_remaining);
+          const hasEnoughCredits =
+            quota &&
+            (!Number.isFinite(dailyRemaining) || dailyRemaining >= requiredCredits) &&
+            (!Number.isFinite(monthlyRemaining) || monthlyRemaining >= requiredCredits);
+          if (requiredCredits > 0 && quota && (quota.allowed === false || !hasEnoughCredits)) {
+            store.setFeedbackError(getWritingEvaluationCreditMessage(requiredCredits, quota));
             store.setShowUpgradeDialog(true);
             return;
           }
@@ -220,41 +260,6 @@ export function useWritingFeedback(awardXP) {
       let overallScore = null;
 
       if (!(await claimEvaluation(store))) return;
-
-      // Prepare analysis plan: check cache first for all tasks
-      const analysisPlan = tasksToAnalyze.map((type) => {
-        const currentTextRaw = normalizeWritingSource(store.drafts[type]);
-
-        const wordCount = type === 'Task 1' ? task1Words : task2Words;
-        const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
-        const taskConfig = store.compositeTasks[type] || store.task;
-        const prompt = taskConfig?.prompt || '';
-        const imageUrl = type === 'Task 1' ? taskConfig?.image_url || null : null;
-
-        const savedFeedback = store.feedbacks[type];
-        if (
-          isCurrentWritingFeedbackCache({
-            feedback: savedFeedback,
-            response: currentTextRaw,
-            prompt,
-            imageUrl,
-          })
-        ) {
-          return {
-            type,
-            cached: true,
-            feedback: { ...savedFeedback, isBelowMinimumWordCount: isBelowMinimum },
-          };
-        }
-        return {
-          type,
-          cached: false,
-          text: currentTextRaw,
-          isBelowMinimum,
-          prompt,
-          imageUrl,
-        };
-      });
 
       // Execute parallel analysis for non-cached tasks
       const analysisPromises = analysisPlan.map(async (item) => {
@@ -334,13 +339,47 @@ export function useWritingFeedback(awardXP) {
         return { type: item.type, feedback: null };
       });
 
-      const results = await Promise.all(analysisPromises);
+      const settledResults = await Promise.allSettled(analysisPromises);
+      const results = settledResults
+        .filter((result) => result.status === 'fulfilled')
+        .map((result) => result.value);
 
       results.forEach(({ type, feedback }) => {
         if (feedback) {
           newFeedbacks[type] = feedback;
         }
       });
+
+      const failedResult = settledResults.find((result) => result.status === 'rejected');
+      if (failedResult) {
+        const failure = summarizeWritingEvaluationFailure(failedResult.reason, tasksToAnalyze);
+        const currentSession = useWritingTestStore.getState().session;
+        if (currentSession?.id && currentSession.evaluation_status === 'pending') {
+          const failedAt = new Date().toISOString();
+          const failedContent = {
+            ...currentSession.content_data,
+            ai_feedbacks: newFeedbacks,
+            evaluationFailure: failure,
+          };
+          await supabase
+            .from('test_sessions')
+            .update({
+              evaluation_status: 'failed',
+              content_data: failedContent,
+              updated_at: failedAt,
+            })
+            .eq('id', currentSession.id)
+            .eq('evaluation_status', 'pending');
+          store.setSession({
+            ...currentSession,
+            evaluation_status: 'failed',
+            content_data: failedContent,
+            updated_at: failedAt,
+          });
+          store.setFeedbacksBulk(newFeedbacks);
+        }
+        throw failedResult.reason;
+      }
 
       const scoredTask1Band = newFeedbacks['Task 1']?.overallBand;
       const scoredTask2Band = newFeedbacks['Task 2']?.overallBand;
@@ -380,7 +419,11 @@ export function useWritingFeedback(awardXP) {
             },
           ],
           content_data: {
-            ...store.session.content_data,
+            ...Object.fromEntries(
+              Object.entries(store.session.content_data || {}).filter(
+                ([key]) => key !== 'evaluationFailure'
+              )
+            ),
             time_remaining: store.timeRemaining,
             ai_feedbacks: newFeedbacks,
             // Criteria scores for analytics dashboard
@@ -471,14 +514,23 @@ export function useWritingFeedback(awardXP) {
       const currentSession = useWritingTestStore.getState().session;
       if (currentSession?.id && currentSession.evaluation_status === 'pending') {
         const failedAt = new Date().toISOString();
+        const failedContent = {
+          ...currentSession.content_data,
+          evaluationFailure: summarizeWritingEvaluationFailure(err, tasksToAnalyze),
+        };
         await supabase
           .from('test_sessions')
-          .update({ evaluation_status: 'failed', updated_at: failedAt })
+          .update({
+            evaluation_status: 'failed',
+            content_data: failedContent,
+            updated_at: failedAt,
+          })
           .eq('id', currentSession.id)
           .eq('evaluation_status', 'pending');
         store.setSession({
           ...currentSession,
           evaluation_status: 'failed',
+          content_data: failedContent,
           updated_at: failedAt,
         });
       }
