@@ -5,6 +5,7 @@ import {
   Ban,
   BarChart3,
   CheckCircle2,
+  Clock3,
   Edit3,
   Eye,
   Gift,
@@ -1460,7 +1461,53 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
   );
 };
 
-const AnalyticsPanel = ({ dashboard, intelligence, breakdowns }) => {
+const CheckoutRecoverySnapshot = ({ recovery }) => {
+  const metrics = [
+    ['Waiting', recovery.waiting, 'Under two hours'],
+    ['Eligible now', recovery.eligible, 'Consent still required'],
+    ['Recovery sent', recovery.sent, 'One-use 15% offers'],
+    [
+      'Recovered',
+      recovery.recovered,
+      `${Number(recovery.conversion_rate || 0).toFixed(1)}% of sent`,
+    ],
+  ];
+  return (
+    <div className={cn(PANEL, 'p-4')}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className={cn(MICRO, 'text-[#5a63df]')}>Checkout recovery engine</p>
+          <h3 className={cn(TITLE, 'mt-1')}>Two-hour 15% offer recovery</h3>
+          <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
+            Only recognized free learners with marketing consent receive one assigned offer after
+            their latest unfinished checkout. Each code expires after seven days.
+          </p>
+        </div>
+        <Pill tone={recovery.campaign_id ? 'ok' : 'neutral'}>
+          {recovery.campaign_id ? 'active' : 'not configured'}
+        </Pill>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(([label, value, detail]) => (
+          <div key={label} className={cn(WELL, 'rounded-lg p-3')}>
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{label}</p>
+            <p className={cn(NUM, 'mt-1 text-xl font-extrabold')}>{Number(value || 0)}</p>
+            <p className="mt-1 text-[10px] font-medium text-stone-500 dark:text-stone-400">
+              {detail}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold text-stone-500 dark:text-stone-400">
+        <Clock3 className="h-3.5 w-3.5 text-[#5a63df]" />
+        Scheduler checks the journey every fifteen minutes; delivery, redemption, and purchase
+        attribution refresh with the next admin reload.
+      </div>
+    </div>
+  );
+};
+
+const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
   const revenueByCurrency = useMemo(() => {
     const totals = {};
     (dashboard.revenue || []).forEach((row) => {
@@ -1489,6 +1536,7 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns }) => {
   );
   return (
     <div className="space-y-4">
+      <CheckoutRecoverySnapshot recovery={recovery} />
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
         <Stat
           size="sm"
@@ -1743,6 +1791,7 @@ export default function MarketingHub() {
     intelligence: { promos: [], referrals: [] },
     breakdowns: { delivery_channels: [], acquisition_sources: [], plans: [], first_touch: [] },
     journeyMetrics: [],
+    recovery: { waiting: 0, eligible: 0, sent: 0, recovered: 0, conversion_rate: 0 },
   });
   const load = useCallback(async () => {
     setLoading(true);
@@ -1757,6 +1806,7 @@ export default function MarketingHub() {
         intelligence,
         breakdowns,
         journeyMetrics,
+        recovery,
       ] = await Promise.all([
         MarketingService.listCampaigns(),
         MarketingService.listSegments(),
@@ -1767,6 +1817,7 @@ export default function MarketingHub() {
         MarketingService.getOfferIntelligence(),
         MarketingService.getBreakdowns(30),
         MarketingService.getJourneyMetrics(30),
+        MarketingService.getCheckoutRecoveryDashboard(),
       ]);
       setData({
         campaigns,
@@ -1778,6 +1829,7 @@ export default function MarketingHub() {
         intelligence,
         breakdowns,
         journeyMetrics,
+        recovery,
       });
     } catch (error) {
       console.error('Marketing hub load failed:', error);
@@ -1854,6 +1906,7 @@ export default function MarketingHub() {
             dashboard={data.dashboard}
             intelligence={data.intelligence}
             breakdowns={data.breakdowns}
+            recovery={data.recovery}
           />
         </TabsContent>
       </Tabs>

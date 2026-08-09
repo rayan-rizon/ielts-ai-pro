@@ -21,6 +21,18 @@ const conversionSetupMigration = readFileSync(
   ),
   'utf8'
 );
+const checkoutRecoveryMigration = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260809042731_checkout_recovery_engine.sql'),
+  'utf8'
+);
+const checkoutSession = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/create-checkout-session/index.ts'),
+  'utf8'
+);
+const pricing = readFileSync(
+  resolve(process.cwd(), 'src/features/subscription/pages/Pricing.jsx'),
+  'utf8'
+);
 const toaster = readFileSync(resolve(process.cwd(), 'src/components/ui/sonner.jsx'), 'utf8');
 const dispatcher = readFileSync(
   resolve(process.cwd(), 'supabase/functions/marketing-campaign-dispatch/index.ts'),
@@ -165,5 +177,30 @@ describe('Admin Marketing Hub contracts', () => {
     expect(dispatcher).toContain("select('id,username')");
     expect(dispatcher).toContain('recipient.username');
     expect(dispatcher).toContain('Your progress and practice history are saved in your account');
+  });
+
+  it('runs a two-hour checkout recovery offer without issuing a shared promo code', () => {
+    expect(checkoutRecoveryMigration).toContain('checkout_abandoned_hours_min":2');
+    expect(checkoutRecoveryMigration).toContain('checkout_recovery_offer_percent');
+    expect(checkoutRecoveryMigration).toContain("'quarter-hour-marketing-journeys'");
+    expect(checkoutRecoveryMigration).toContain('provision_checkout_recovery_offer');
+    expect(checkoutRecoveryMigration).toContain('assigned_user_id');
+    expect(checkoutRecoveryMigration).toContain("interval '7 days'");
+    expect(checkoutRecoveryMigration).toContain("'automatic_discount', true");
+    expect(checkoutRecoveryMigration).toContain('latest checkout event');
+    expect(dispatcher).toContain('issuesCheckoutRecoveryOffer');
+    expect(dispatcher).toContain('p_campaign_id: campaign.id');
+    expect(dispatcher).toContain("destination.searchParams.set('promo', offer.code)");
+    expect(checkoutSession).toContain('assigned_user_id === userData.id');
+    expect(pricing).toContain("params.get('promo')");
+    expect(pricing).toContain("supabase.rpc('redeem_promo_code'");
+  });
+
+  it('puts the live checkout recovery snapshot in analytics', () => {
+    expect(marketingService).toContain('getCheckoutRecoveryDashboard');
+    expect(marketingHub).toContain('const CheckoutRecoverySnapshot');
+    expect(marketingHub).toContain('Two-hour 15% offer recovery');
+    expect(marketingHub).toContain('Eligible now');
+    expect(marketingHub).toContain('Recovery sent');
   });
 });

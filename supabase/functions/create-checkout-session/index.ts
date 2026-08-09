@@ -353,7 +353,7 @@ Deno.serve(async (req: Request) => {
         const { data: promoData } = await serviceClient
           .from('promo_codes')
           .select(
-            'id, code, discount_type, discount_value, is_active, valid_until, max_uses, current_uses'
+            'id, code, discount_type, discount_value, is_active, valid_until, offer_expires_at, assigned_user_id, max_uses, current_uses'
           )
           .ilike('code', userPromoDiscount.code)
           .eq('is_active', true)
@@ -361,11 +361,14 @@ Deno.serve(async (req: Request) => {
 
         if (promoData) {
           const isNotExpired =
-            !promoData.valid_until || new Date(promoData.valid_until) > new Date();
+            (!promoData.valid_until || new Date(promoData.valid_until) > new Date()) &&
+            (!promoData.offer_expires_at || new Date(promoData.offer_expires_at) > new Date());
           const isNotMaxedOut =
             !promoData.max_uses || (promoData.current_uses || 0) < promoData.max_uses;
+          const isAssignedToUser =
+            !promoData.assigned_user_id || promoData.assigned_user_id === userData.id;
 
-          if (isNotExpired && isNotMaxedOut) {
+          if (isNotExpired && isNotMaxedOut && isAssignedToUser) {
             validatedDiscount = {
               code: promoData.code,
               discount_type: promoData.discount_type,

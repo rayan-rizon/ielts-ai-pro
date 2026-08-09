@@ -147,6 +147,12 @@ export const MarketingService = {
     return data || { campaigns: [], revenue: [], totals: {} };
   },
 
+  async getCheckoutRecoveryDashboard() {
+    const { data, error } = await supabase.rpc('get_checkout_recovery_dashboard');
+    if (error) throw error;
+    return data || { waiting: 0, eligible: 0, sent: 0, recovered: 0, conversion_rate: 0 };
+  },
+
   async getOfferIntelligence() {
     const { data, error } = await supabase.rpc('get_marketing_offer_intelligence');
     if (error) throw error;

@@ -134,6 +134,55 @@ export default function Pricing() {
     await refetchUser();
   };
 
+  // Recovery emails carry a one-use code in the signed-in learner's pricing
+  // link. Apply it through the same server-side redemption RPC used by the
+  // manual promo field, then remove it from the browser URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('promo')?.trim().toUpperCase();
+    if (!code) return;
+
+    params.delete('promo');
+    const nextSearch = params.toString();
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`
+    );
+
+    if (!user || !/^[A-Z0-9-]{6,64}$/.test(code) || user.promo_discount?.code) return;
+
+    let cancelled = false;
+    const applyRecoveryOffer = async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase');
+        const { data, error } = await supabase.rpc('redeem_promo_code', { code_lookup: code });
+        if (error) throw error;
+        if (data?.success === false)
+          throw new Error(data.error || 'This offer is no longer available');
+        if (cancelled) return;
+
+        setPromoDiscount({
+          code: data.code,
+          discount_type: data.discount_type,
+          discount_value: data.discount_value,
+        });
+        await refetchUser();
+        const { toast } = await import('sonner');
+        toast.success(data.message || 'Your recovery offer is ready.');
+      } catch (error) {
+        if (cancelled) return;
+        console.warn('[Checkout recovery] Promo link could not be applied:', error);
+        const { toast } = await import('sonner');
+        toast.error(error.message || 'This recovery offer is no longer available.');
+      }
+    };
+    applyRecoveryOffer();
+    return () => {
+      cancelled = true;
+    };
+  }, [refetchUser, user]);
+
   const handleOpenPortal = async () => {
     if (!user?.stripe_subscription_id) {
       return false;
