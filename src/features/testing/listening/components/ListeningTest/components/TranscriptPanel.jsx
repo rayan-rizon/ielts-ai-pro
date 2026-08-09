@@ -104,11 +104,6 @@ const TranscriptPanel = ({
                 <h3 className={TITLE} data-oid="6.0lfsc">
                   Audioscript
                 </h3>
-                {currentSection.title && (
-                  <p className="mt-1 text-[15px] font-black leading-snug text-slate-900 dark:text-slate-100 sm:text-base">
-                    {currentSection.title}
-                  </p>
-                )}
                 <p
                   className={`${MICRO} mt-0.5 normal-case tracking-normal text-slate-500 dark:text-slate-400`}
                   data-oid="3:e_l1s"
@@ -134,7 +129,18 @@ const TranscriptPanel = ({
 
           {showTranscript && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden" data-oid="r:.vey5">
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-2" data-oid="e.ho-eb">
+              <div
+                className="flex-1 overflow-y-auto custom-scrollbar p-2.5 sm:p-3 space-y-2.5"
+                data-oid="e.ho-eb"
+              >
+                {currentSection.title && (
+                  <h2
+                    className="px-2 pt-1 pb-2.5 text-center text-base sm:text-lg font-black leading-snug tracking-tight text-slate-900 dark:text-slate-100 border-b border-[#e4e2f0] dark:border-white/[0.07]"
+                    data-oid="trans-headline"
+                  >
+                    {currentSection.title}
+                  </h2>
+                )}
                 {currentSection.srt_content || currentSection.transcript ? (
                   <SyncedTranscript
                     srtContent={currentSection.srt_content || ''}
