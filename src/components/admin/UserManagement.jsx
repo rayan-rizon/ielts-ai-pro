@@ -27,6 +27,10 @@ const DEFAULT_FILTERS = {
   role: 'all',
   search: '',
   inactiveDays: 'all',
+  dateRange: 'all',
+  dateField: 'created_at',
+  startDate: '',
+  endDate: '',
 };
 
 const createUserAccount = async (user) => {
@@ -101,6 +105,10 @@ const UserManagement = () => {
     userFilters.subscriptionStatus,
     userFilters.role,
     userFilters.inactiveDays,
+    userFilters.dateRange,
+    userFilters.dateField,
+    userFilters.startDate,
+    userFilters.endDate,
   ]);
 
   const fetchUsers = useCallback(async () => {
@@ -113,6 +121,10 @@ const UserManagement = () => {
         role: userFilters.role,
         search: debouncedSearch,
         inactiveDays: userFilters.inactiveDays,
+        dateRange: userFilters.dateRange,
+        dateField: userFilters.dateField,
+        startDate: userFilters.startDate,
+        endDate: userFilters.endDate,
       };
       const orderBy = sortDirection === 'desc' ? `-${sortField}` : sortField;
       const result = await User.list({ orderBy, page: currentPage, pageSize, filters });
@@ -136,6 +148,10 @@ const UserManagement = () => {
     userFilters.subscriptionStatus,
     userFilters.role,
     userFilters.inactiveDays,
+    userFilters.dateRange,
+    userFilters.dateField,
+    userFilters.startDate,
+    userFilters.endDate,
     sortField,
     sortDirection,
   ]);

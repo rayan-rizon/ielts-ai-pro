@@ -713,6 +713,61 @@ export const User = {
       }
     }
 
+    // Date Range / Custom Date filter
+    const dateTarget = filters.dateField || 'created_at';
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const now = new Date();
+      if (filters.dateRange === 'today') {
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        query = query.gte(dateTarget, startOfDay);
+      } else if (filters.dateRange === '7d') {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        query = query.gte(dateTarget, d.toISOString());
+      } else if (filters.dateRange === '30d') {
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+        query = query.gte(dateTarget, d.toISOString());
+      } else if (filters.dateRange === 'this_month') {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        query = query.gte(dateTarget, startOfMonth);
+      } else if (filters.dateRange === 'last_month') {
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+        const endOfLastMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          0,
+          23,
+          59,
+          59,
+          999
+        ).toISOString();
+        query = query.gte(dateTarget, startOfLastMonth).lte(dateTarget, endOfLastMonth);
+      } else if (filters.dateRange === 'custom') {
+        if (filters.startDate) {
+          const start = new Date(filters.startDate);
+          start.setHours(0, 0, 0, 0);
+          query = query.gte(dateTarget, start.toISOString());
+        }
+        if (filters.endDate) {
+          const end = new Date(filters.endDate);
+          end.setHours(23, 59, 59, 999);
+          query = query.lte(dateTarget, end.toISOString());
+        }
+      }
+    } else {
+      if (filters.startDate) {
+        const start = new Date(filters.startDate);
+        start.setHours(0, 0, 0, 0);
+        query = query.gte(dateTarget, start.toISOString());
+      }
+      if (filters.endDate) {
+        const end = new Date(filters.endDate);
+        end.setHours(23, 59, 59, 999);
+        query = query.lte(dateTarget, end.toISOString());
+      }
+    }
+
     // Apply sorting
     const isAsc = !orderBy.startsWith('-');
     const column = orderBy.replace('-', '');
