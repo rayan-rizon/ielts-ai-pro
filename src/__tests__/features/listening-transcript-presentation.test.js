@@ -69,6 +69,42 @@ describe('Listening transcript answer presentation', () => {
     });
   });
 
+  it('matches repeated short source phrases in transcript order', () => {
+    const highlighted = buildHighlightedTranscript(
+      [
+        { id: 1, text: "Well, actually, I don't have loads of time, so." },
+        { id: 2, text: 'There are too many of them.' },
+        { id: 3, text: 'Well,' },
+        {
+          id: 4,
+          text: "I think we have enough clothing shops, but there's only one place that sells books at the moment.",
+        },
+      ],
+      {},
+      [
+        { question_number: 7, phrase: 'There are too many of them.' },
+        { question_number: 8, phrase: 'Well,', show_badge: false },
+        {
+          question_number: 8,
+          phrase:
+            "I think we have enough clothing shops, but there's only one place that sells books at the moment.",
+        },
+      ]
+    );
+
+    expect(highlighted[0].displayParts.every((part) => part.questionNumber === null)).toBe(true);
+    expect(highlighted[2].displayParts).toContainEqual({
+      text: 'Well',
+      questionNumber: 8,
+      showBadge: false,
+    });
+    expect(highlighted[3].displayParts).toContainEqual({
+      text: "I think we have enough clothing shops, but there's only one place that sells books at the moment",
+      questionNumber: 8,
+      showBadge: true,
+    });
+  });
+
   it('renders grouped source-image question badges as one evidence mark', () => {
     const sourceHighlights = [
       {
