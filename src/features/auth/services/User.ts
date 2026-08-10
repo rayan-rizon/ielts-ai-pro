@@ -4,6 +4,7 @@ import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
 import { trackSignupCompleted } from '@/lib/tracking';
 import { getSignupAttribution } from '@/lib/attribution';
+import { resolveSignupCountry } from '@/lib/geo';
 
 // Admin list options interface
 interface ListOptions {
@@ -169,6 +170,11 @@ export const User = {
 
     // No profile found, create a new one
     console.log('[User.me] No existing profile, creating new one');
+    // Country comes from the edge, not from a form field. It is normally
+    // already cached from the visit that led here, so this resolves instantly;
+    // when it does not, it fails to null rather than delaying account creation.
+    const country = await resolveSignupCountry();
+
     const defaultProfile = {
       auth_id: user.id,
       email: user.email!,
@@ -177,6 +183,7 @@ export const User = {
       subscription_tier: 'free',
       onboarding_completed: false,
       ...getSignupAttribution(),
+      ...(country ? { country } : {}),
     };
 
     const { data: insertedProfile, error: insertError } = await supabase

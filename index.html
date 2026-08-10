@@ -15,6 +15,24 @@
           pixelId: pixelId,
         };
 
+        // Measurement runs on the production site only.
+        //
+        // Local dev and preview deployments also loaded GTM, and GTM owns the
+        // Meta Pixel tag — so every `npm run dev` session sent PageViews to the
+        // live dataset. That registered `localhost` as a sending domain and
+        // inflated PageView to ~37.7K against ~78 real registrations, which is
+        // what Meta flags as low data quality and then discounts the ad spend
+        // the dataset informs. Gate the loader rather than the individual tags:
+        // one check here covers the Pixel, GA, and anything added to GTM later.
+        var MEASURED_HOSTS = ['ieltsai.pro', 'www.ieltsai.pro'];
+        var trackingEnabled = false;
+        try {
+          trackingEnabled = MEASURED_HOSTS.indexOf(window.location.hostname) !== -1;
+        } catch (e) {
+          trackingEnabled = false;
+        }
+        window.__TRACKING_ENABLED__ = trackingEnabled;
+
         window.dataLayer = window.dataLayer || [];
         window.gtag =
           window.gtag ||
@@ -33,7 +51,7 @@
         });
 
         var loadGtm = function () {
-          if (window.__gtmLoaded || !gtmId) return;
+          if (window.__gtmLoaded || !gtmId || !trackingEnabled) return;
           window.dataLayer.push({
             'gtm.start': new Date().getTime(),
             event: 'gtm.js',

@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "facebook-ads": {
+      "type": "http",
+      "url": "https://mcp.facebook.com/ads"
+    },
     "sentry": {
       "type": "http",
       "url": "https://mcp.sentry.dev/mcp"

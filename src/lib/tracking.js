@@ -70,6 +70,24 @@ const DROPPED_EVENTS = new Set([
 
 const isBrowser = () => typeof window !== 'undefined';
 
+/** Hosts whose traffic is real. Must stay in sync with index.html. */
+const MEASURED_HOSTS = new Set(['ieltsai.pro', 'www.ieltsai.pro']);
+
+/**
+ * Whether this page may report to Meta at all.
+ *
+ * index.html decides this before GTM loads and publishes the result, but the
+ * Conversions API relay is called directly from here and would otherwise still
+ * deliver dev and preview events server-side even with the Pixel blocked. The
+ * hostname fallback keeps the check correct if this module somehow evaluates
+ * before the bootstrap script.
+ */
+const measurementEnabled = () => {
+  if (!isBrowser()) return false;
+  if (typeof window.__TRACKING_ENABLED__ === 'boolean') return window.__TRACKING_ENABLED__;
+  return MEASURED_HOSTS.has(window.location?.hostname);
+};
+
 const isPlaceholder = (value) =>
   typeof value === 'string' && /^%VITE_[A-Z0-9_]+%$/i.test(value.trim());
 
@@ -197,6 +215,7 @@ const buildEnrichedPayload = ({ eventName, pixelEvent, payload, value, currency,
  */
 const sendToConversionsApi = (pixelEvent, { eventId, value, currency, payload }) => {
   if (!isBrowser() || !CAPI_EVENTS.has(pixelEvent)) return;
+  if (!measurementEnabled()) return;
 
   const body = JSON.stringify({
     event_name: pixelEvent,
@@ -267,6 +286,10 @@ export const trackPageView = (pathname = '/') => {
   import('@/lib/marketingAttribution')
     .then(({ captureMarketingAttribution }) => captureMarketingAttribution())
     .catch(() => {});
+
+  // Resolve the visitor's country while they browse, so the signup that may
+  // follow can write it without waiting on a request.
+  import('@/lib/geo').then(({ primeSignupCountry }) => primeSignupCountry()).catch(() => {});
 
   // PageView to Meta is owned entirely by GTM's FB-Base-Tag (All Pages
   // trigger, with its own browser+server pairing). Sending it again here

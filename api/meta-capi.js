@@ -30,6 +30,32 @@ const ALLOWED_EVENTS = new Set([
   'Purchase',
   'ViewContent',
 ]);
+/**
+ * Only the production site may write to the dataset.
+ *
+ * The browser already refuses to call this relay off production, but that check
+ * lives in code a developer can bypass with a stale build or a hand-rolled
+ * request. Dev and preview events are what put `localhost` on the dataset as a
+ * sending domain and drove the PageView/registration ratio far enough out of
+ * range for Meta to flag the data quality, so the rule is enforced on both
+ * sides.
+ */
+const MEASURED_HOSTS = new Set(['ieltsai.pro', 'www.ieltsai.pro']);
+
+const requestHost = (req, body) => {
+  const sourceUrl = body?.event_source_url;
+  if (typeof sourceUrl === 'string' && sourceUrl.length > 0) {
+    try {
+      return new URL(sourceUrl).hostname;
+    } catch {
+      /* fall through to the request headers */
+    }
+  }
+  const forwarded = req.headers['x-forwarded-host'] || req.headers.host;
+  if (typeof forwarded !== 'string') return null;
+  return forwarded.split(',')[0].trim().split(':')[0];
+};
+
 const COMMERCE_EVENTS = new Set(['InitiateCheckout', 'Purchase']);
 const VALUE_EVENTS = new Set(['CompleteRegistration', 'InitiateCheckout', 'Purchase']);
 const COMMERCE_CURRENCIES = new Set(['USD', 'BDT']);
@@ -98,6 +124,13 @@ export default async function handler(req, res) {
     body = await readJsonBody(req);
   } catch {
     return res.status(400).json({ error: 'Invalid JSON body' });
+  }
+
+  const host = requestHost(req, body);
+  if (!MEASURED_HOSTS.has(host)) {
+    // Not an error the caller should retry or surface — the event is simply not
+    // real traffic. 204 keeps dev consoles quiet.
+    return res.status(204).end();
   }
 
   const eventName = body.event_name;

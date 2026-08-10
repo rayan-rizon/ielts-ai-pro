@@ -24,6 +24,11 @@ describe('Meta click attribution', () => {
     window.dataLayer = [];
     window.fbq = vi.fn();
     window.fetch = vi.fn(() => Promise.resolve({ ok: true }));
+    // jsdom serves these tests from localhost, which production code treats as
+    // unmeasurable. These cases are about event shape and deduplication, so
+    // they opt into the measured path explicitly; the gate itself is covered in
+    // tracking-host-gate.test.js.
+    window.__TRACKING_ENABLED__ = true;
     window.localStorage.clear();
     clearCookies();
   });
@@ -79,6 +84,11 @@ describe('Meta event allowlist', () => {
     window.dataLayer = [];
     window.fbq = vi.fn();
     window.fetch = vi.fn(() => Promise.resolve({ ok: true }));
+    // jsdom serves these tests from localhost, which production code treats as
+    // unmeasurable. These cases are about event shape and deduplication, so
+    // they opt into the measured path explicitly; the gate itself is covered in
+    // tracking-host-gate.test.js.
+    window.__TRACKING_ENABLED__ = true;
     window.localStorage.clear();
     clearCookies();
   });
@@ -127,6 +137,11 @@ describe('Conversions API mirroring', () => {
     window.dataLayer = [];
     window.fbq = vi.fn();
     window.fetch = vi.fn(() => Promise.resolve({ ok: true }));
+    // jsdom serves these tests from localhost, which production code treats as
+    // unmeasurable. These cases are about event shape and deduplication, so
+    // they opt into the measured path explicitly; the gate itself is covered in
+    // tracking-host-gate.test.js.
+    window.__TRACKING_ENABLED__ = true;
     window.localStorage.clear();
     clearCookies();
   });
@@ -175,6 +190,11 @@ describe('Signup reporting', () => {
     window.dataLayer = [];
     window.fbq = vi.fn();
     window.fetch = vi.fn(() => Promise.resolve({ ok: true }));
+    // jsdom serves these tests from localhost, which production code treats as
+    // unmeasurable. These cases are about event shape and deduplication, so
+    // they opt into the measured path explicitly; the gate itself is covered in
+    // tracking-host-gate.test.js.
+    window.__TRACKING_ENABLED__ = true;
     window.localStorage.clear();
     clearCookies();
   });

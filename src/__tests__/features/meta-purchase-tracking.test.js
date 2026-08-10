@@ -7,6 +7,9 @@ describe('Meta Purchase tracking', () => {
   beforeEach(() => {
     window.dataLayer = [];
     window.fbq = vi.fn();
+    // See meta-attribution-tracking.test.js: jsdom runs on localhost, which is
+    // deliberately unmeasurable in production code.
+    window.__TRACKING_ENABLED__ = true;
   });
 
   it('sends the exact numeric value, ISO currency, and stable event ID', () => {
