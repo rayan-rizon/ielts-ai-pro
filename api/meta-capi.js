@@ -29,6 +29,10 @@ const ALLOWED_EVENTS = new Set([
   'InitiateCheckout',
   'Purchase',
   'ViewContent',
+  // Fired alongside Purchase for a new subscription — see COMPANION_PIXEL_EVENT
+  // in src/lib/tracking.js for why it always represents a genuine new signup,
+  // never a renewal.
+  'Subscribe',
 ]);
 /**
  * Only the production site may write to the dataset.
@@ -56,8 +60,8 @@ const requestHost = (req, body) => {
   return forwarded.split(',')[0].trim().split(':')[0];
 };
 
-const COMMERCE_EVENTS = new Set(['InitiateCheckout', 'Purchase']);
-const VALUE_EVENTS = new Set(['CompleteRegistration', 'InitiateCheckout', 'Purchase']);
+const COMMERCE_EVENTS = new Set(['InitiateCheckout', 'Purchase', 'Subscribe']);
+const VALUE_EVENTS = new Set(['CompleteRegistration', 'InitiateCheckout', 'Purchase', 'Subscribe']);
 const COMMERCE_CURRENCIES = new Set(['USD', 'BDT']);
 
 const sha256 = (value) =>

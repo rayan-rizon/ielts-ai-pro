@@ -121,3 +121,56 @@ describe('POST /api/meta-capi host gate', () => {
     expect(res.statusCode).toBe(204);
   });
 });
+
+describe('POST /api/meta-capi Subscribe event', () => {
+  // Subscribe is fired alongside Purchase for a new subscription — see
+  // COMPANION_PIXEL_EVENT in src/lib/tracking.js. It needs the same value/
+  // currency validation as Purchase, since it carries the same subscription
+  // amount and is meaningless to Meta's ROAS calc without it.
+  beforeEach(() => {
+    process.env.META_CAPI_ACCESS_TOKEN = 'test-token';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: true, text: () => Promise.resolve('') }))
+    );
+  });
+
+  afterEach(() => {
+    delete process.env.META_CAPI_ACCESS_TOKEN;
+    vi.unstubAllGlobals();
+  });
+
+  const post = (body) =>
+    capiHandler({ method: 'POST', headers: { host: 'www.ieltsai.pro' }, body }, makeRes());
+
+  it('accepts and forwards Subscribe with a valid value and currency', async () => {
+    const res = await post({
+      event_name: 'Subscribe',
+      event_id: 'cs_live_sub_1',
+      value: 14.99,
+      currency: 'USD',
+      event_source_url: 'https://www.ieltsai.pro/subscription/success',
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    const payload = JSON.parse(globalThis.fetch.mock.calls[0][1].body);
+    expect(payload.data[0]).toEqual(
+      expect.objectContaining({ event_name: 'Subscribe', event_id: 'cs_live_sub_1' })
+    );
+    expect(payload.data[0].custom_data).toEqual(
+      expect.objectContaining({ value: 14.99, currency: 'USD' })
+    );
+    expect(res.statusCode).toBe(202);
+  });
+
+  it('rejects Subscribe with missing value/currency, same as Purchase', async () => {
+    const res = await post({
+      event_name: 'Subscribe',
+      event_id: 'cs_live_sub_2',
+      event_source_url: 'https://www.ieltsai.pro/subscription/success',
+    });
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(400);
+  });
+});

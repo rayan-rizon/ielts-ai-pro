@@ -35,8 +35,31 @@ const PIXEL_EVENT_MAP = {
   writing_checker_signup_gate_viewed: 'ViewContent',
 };
 
+/**
+ * A second standard event fired alongside the primary one, for a signal Meta
+ * cannot infer from the primary event alone.
+ *
+ * `subscription_purchase` only ever fires for a brand-new subscription — it's
+ * reported once from the Stripe-checkout-return page and the upgrade-detection
+ * effect, never on renewal (recurring charges happen silently via webhook with
+ * no page visit). That makes it safe to mirror as Subscribe: every Purchase
+ * sent from this event genuinely is a new subscription start. Meta's own
+ * guidance for subscription businesses is to send both — Purchase alone reads
+ * as a one-off sale and never lets the algorithm learn to optimise for
+ * recurring revenue specifically.
+ */
+const COMPANION_PIXEL_EVENT = {
+  subscription_purchase: 'Subscribe',
+};
+
 /** Meta events also mirrored server-side via the Conversions API. */
-const CAPI_EVENTS = new Set(['CompleteRegistration', 'Lead', 'InitiateCheckout', 'Purchase']);
+const CAPI_EVENTS = new Set([
+  'CompleteRegistration',
+  'Lead',
+  'InitiateCheckout',
+  'Purchase',
+  'Subscribe',
+]);
 
 /**
  * Events dropped entirely — not sent to the Pixel, GTM, or the dataLayer.
@@ -186,7 +209,7 @@ const normalizeValue = (value) => {
 const hasInvalidPurchaseValue = (value) => value === undefined || value <= 0;
 const hasInvalidCurrency = (currency) => !COMMERCE_CURRENCIES.has(currency);
 const isCommercePixelEvent = (pixelEvent) =>
-  pixelEvent === 'Purchase' || pixelEvent === 'InitiateCheckout';
+  pixelEvent === 'Purchase' || pixelEvent === 'InitiateCheckout' || pixelEvent === 'Subscribe';
 const isValuePixelEvent = (pixelEvent) =>
   isCommercePixelEvent(pixelEvent) || pixelEvent === 'CompleteRegistration';
 const purchasePayloadIsInvalid = (value, currency) =>
@@ -256,7 +279,8 @@ const sendToConversionsApi = (pixelEvent, { eventId, value, currency, payload })
   }
 };
 
-const trackPurchase = (payload, value, currency, eventId) => {
+/** Shared by Purchase and its Subscribe companion — same commerce parameter shape. */
+const trackCommerceEvent = (pixelEvent, payload, value, currency, eventId) => {
   const parameters = {
     value,
     currency,
@@ -269,7 +293,7 @@ const trackPurchase = (payload, value, currency, eventId) => {
     fbp: getFbp(),
   };
   const options = eventId ? { eventID: String(eventId) } : undefined;
-  window.fbq('track', 'Purchase', parameters, options);
+  window.fbq('track', pixelEvent, parameters, options);
 };
 
 export const refreshTrackingBootstrap = () => {
@@ -353,53 +377,64 @@ export const trackAppEvent = (eventName, payload = {}) => {
   // never forwarded to Meta, so the optimisation signal stays clean.
   if (!pixelEvent) return;
 
-  // Server-side delivery is independent of the Pixel: it must still fire when
-  // fbevents.js is blocked or has not loaded yet.
-  sendToConversionsApi(pixelEvent, {
-    eventId,
-    value: normalizedValue,
-    currency: normalizedCurrency,
-    payload,
-  });
+  // Dispatches one Meta standard event (CAPI + Pixel). Called once for the
+  // primary event, and again for a companion standard event when one exists
+  // (e.g. Subscribe alongside Purchase) — same underlying conversion, same
+  // value/currency/eventId, just a second name Meta can optimise against.
+  const dispatchToMeta = (targetPixelEvent) => {
+    // Server-side delivery is independent of the Pixel: it must still fire
+    // when fbevents.js is blocked or has not loaded yet.
+    sendToConversionsApi(targetPixelEvent, {
+      eventId,
+      value: normalizedValue,
+      currency: normalizedCurrency,
+      payload,
+    });
 
-  if (typeof window.fbq !== 'function') return;
+    if (typeof window.fbq !== 'function') return;
 
-  if (pixelEvent === 'Purchase') {
-    trackPurchase(payload, normalizedValue, normalizedCurrency, eventId);
-    return;
-  }
+    if (targetPixelEvent === 'Purchase' || targetPixelEvent === 'Subscribe') {
+      trackCommerceEvent(targetPixelEvent, payload, normalizedValue, normalizedCurrency, eventId);
+      return;
+    }
 
-  if (pixelEvent === 'InitiateCheckout') {
+    if (targetPixelEvent === 'InitiateCheckout') {
+      window.fbq(
+        'track',
+        targetPixelEvent,
+        {
+          value: normalizedValue,
+          currency: normalizedCurrency,
+          content_name: payload.plan_tier || payload.plan_name || 'subscription',
+          content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
+          content_type: 'product',
+          num_items: 1,
+          fbc: getFbc(),
+          fbp: getFbp(),
+        },
+        { eventID: String(eventId) }
+      );
+      return;
+    }
+
     window.fbq(
       'track',
-      pixelEvent,
+      targetPixelEvent,
       {
-        value: normalizedValue,
-        currency: normalizedCurrency,
-        content_name: payload.plan_tier || payload.plan_name || 'subscription',
-        content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
-        content_type: 'product',
-        num_items: 1,
+        ...payload,
+        ...(normalizedValue !== undefined ? { value: normalizedValue } : {}),
+        ...(isValuePixelEvent(targetPixelEvent) ? { currency: normalizedCurrency } : {}),
         fbc: getFbc(),
         fbp: getFbp(),
       },
       { eventID: String(eventId) }
     );
-    return;
-  }
+  };
 
-  window.fbq(
-    'track',
-    pixelEvent,
-    {
-      ...payload,
-      ...(normalizedValue !== undefined ? { value: normalizedValue } : {}),
-      ...(isValuePixelEvent(pixelEvent) ? { currency: normalizedCurrency } : {}),
-      fbc: getFbc(),
-      fbp: getFbp(),
-    },
-    { eventID: String(eventId) }
-  );
+  dispatchToMeta(pixelEvent);
+
+  const companionPixelEvent = COMPANION_PIXEL_EVENT[eventName];
+  if (companionPixelEvent) dispatchToMeta(companionPixelEvent);
 };
 
 /**

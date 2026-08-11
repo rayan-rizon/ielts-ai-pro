@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { signUpSchema } from '@/lib/validations';
 import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
-import { trackSignupCompleted } from '@/lib/tracking';
+import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
 import { getSignupAttribution } from '@/lib/attribution';
 import { resolveSignupCountry } from '@/lib/geo';
 
@@ -208,6 +208,18 @@ export const User = {
     }
 
     console.log('[User.me] Created new profile');
+
+    // Set Advanced Matching (hashed email/external_id via fbq('init', ...))
+    // before the CompleteRegistration pixel call below. Callers of User.me()
+    // also call pushUserIdentity(profile) themselves once this resolves, but
+    // that is too late for THIS event: it fires while the pixel is still
+    // running on the identity of an anonymous visitor, so the browser-side
+    // CompleteRegistration carried no hashed matching data at all. The
+    // server-side CAPI mirror already includes it (email/user_id travel in
+    // trackSignupCompleted's payload independent of fbq state), which is why
+    // match quality was still non-zero, just short of what both channels
+    // together can deliver.
+    if (insertedProfile) pushUserIdentity(insertedProfile);
 
     // The only point in the app where a brand-new account definitively comes
     // into existence, regardless of provider. Reporting the registration here
