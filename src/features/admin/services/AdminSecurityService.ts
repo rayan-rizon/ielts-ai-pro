@@ -41,6 +41,8 @@ export type AdminSecuritySnapshot = {
     created_at: string;
     last_used_at?: string;
   }>;
+  passkeysAvailable: boolean;
+  passkeysError: string | null;
   sessions: AdminSecuritySession[];
   events: AdminSecurityEvent[];
 };
@@ -96,24 +98,34 @@ export const AdminSecurityService = {
     ]);
 
     throwOnError(statusResult.error);
-    throwOnError(factorsResult.error);
-    throwOnError(fallbackFactorsResult.error);
-    throwOnError(passkeysResult.error);
+    // Auth factors are the authority. The database inventory is only a
+    // just-verified fallback, so one successful source is enough to render the
+    // security console. Likewise, passkey availability must never hide MFA or
+    // observed-session data.
+    if (factorsResult.error && fallbackFactorsResult.error) {
+      throwOnError(factorsResult.error);
+    }
     throwOnError(sessionsResult.error);
     throwOnError(eventsResult.error);
 
     const status = statusResult.data as AdminSecurityStatus | null;
     if (!status) throw new Error('Your administrator role could not be confirmed.');
 
-    const authFactors = [...(factorsResult.data?.totp || []), ...(factorsResult.data?.phone || [])];
-    const fallbackFactors = (fallbackFactorsResult.data || []) as AdminSecuritySnapshot['factors'];
+    const authFactors = factorsResult.error
+      ? []
+      : [...(factorsResult.data?.totp || []), ...(factorsResult.data?.phone || [])];
+    const fallbackFactors = fallbackFactorsResult.error
+      ? []
+      : ((fallbackFactorsResult.data || []) as AdminSecuritySnapshot['factors']);
 
     return {
       status,
       // The Auth endpoint remains primary. The database-backed inventory only
       // covers the rare just-verified-session race where it returns no factors.
       factors: authFactors.length ? authFactors : fallbackFactors,
-      passkeys: passkeysResult.data || [],
+      passkeys: passkeysResult.error ? [] : passkeysResult.data || [],
+      passkeysAvailable: !passkeysResult.error,
+      passkeysError: passkeysResult.error?.message || null,
       sessions: (sessionsResult.data || []) as AdminSecuritySession[],
       events: (eventsResult.data || []) as AdminSecurityEvent[],
     };

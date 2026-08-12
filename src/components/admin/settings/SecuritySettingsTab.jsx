@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { m } from 'framer-motion';
 import {
+  CircleAlert,
   Clock3,
   Copy,
   Fingerprint,
@@ -75,13 +76,17 @@ export default function SecuritySettingsTab({
   const [stepUpCode, setStepUpCode] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState([]);
+  const [loadError, setLoadError] = useState('');
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       setSnapshot(await AdminSecurityService.getSnapshot());
     } catch (error) {
-      toast.error(error.message || 'Failed to load security controls');
+      const message = error.message || 'Failed to load security controls';
+      setLoadError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -93,6 +98,7 @@ export default function SecuritySettingsTab({
 
   const canManagePasskeys = useMemo(
     () =>
+      snapshot?.passkeysAvailable !== false &&
       snapshot?.status?.aal === 'aal2' &&
       hasRecentPassword(snapshot?.status?.authentication_methods),
     [snapshot]
@@ -167,6 +173,26 @@ export default function SecuritySettingsTab({
     );
   }
 
+  if (loadError && !snapshot) {
+    return (
+      <section className={cn(PANEL, 'max-w-6xl overflow-hidden')}>
+        <PanelHeader
+          label="Admin security"
+          title="Security controls could not be loaded"
+          description="No authenticator or session totals are shown until the live security state can be verified."
+          accent="fault"
+        />
+        <div className="flex flex-wrap items-center gap-3 p-4">
+          <CircleAlert className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-300" />
+          <p className={cn(BODY, 'min-w-0 flex-1 text-rose-700 dark:text-rose-200')}>{loadError}</p>
+          <AdminButton onClick={refresh} loading={loading}>
+            <RefreshCw className="h-3.5 w-3.5" /> Retry
+          </AdminButton>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <m.div variants={FADE_UP} className="grid max-w-6xl grid-cols-12 gap-3">
       <section className={cn(PANEL, 'col-span-12 overflow-hidden')}>
@@ -214,7 +240,20 @@ export default function SecuritySettingsTab({
           accent="accent"
         />
         <div className="space-y-3 p-4">
-          {snapshot?.passkeys?.length ? (
+          {snapshot?.passkeysAvailable === false ? (
+            <div className={cn(TILE, 'flex items-start gap-3 p-3')}>
+              <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+              <div>
+                <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+                  Passkeys are unavailable for this project
+                </p>
+                <p className={cn(BODY, 'mt-1')}>
+                  Supabase Auth rejected the passkey request. MFA authenticators and session records
+                  remain available while the project setting is corrected.
+                </p>
+              </div>
+            </div>
+          ) : snapshot?.passkeys?.length ? (
             snapshot.passkeys.map((passkey) => (
               <div key={passkey.id} className={cn(TILE, 'flex items-center gap-3 p-3')}>
                 <Fingerprint className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-300" />
