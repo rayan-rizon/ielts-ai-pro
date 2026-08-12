@@ -8,7 +8,6 @@ const testState = vi.hoisted(() => ({
   startPasskeyRegistration: vi.fn(),
   verifyPasskeyRegistration: vi.fn(),
   challengeAndVerify: vi.fn(),
-  setSession: vi.fn(),
   getAssuranceLevel: vi.fn(),
   from: vi.fn(),
 }));
@@ -23,7 +22,6 @@ vi.mock('@/lib/supabase', () => ({
         challengeAndVerify: testState.challengeAndVerify,
         getAuthenticatorAssuranceLevel: testState.getAssuranceLevel,
       },
-      setSession: testState.setSession,
       passkey: {
         list: testState.listPasskeys,
         startRegistration: testState.startPasskeyRegistration,
@@ -51,7 +49,6 @@ describe('AdminSecurityService.getSnapshot', () => {
     testState.startPasskeyRegistration.mockReset();
     testState.verifyPasskeyRegistration.mockReset();
     testState.challengeAndVerify.mockReset();
-    testState.setSession.mockReset();
     testState.getAssuranceLevel.mockReset();
     testState.from.mockReset();
   });
@@ -200,7 +197,6 @@ describe('AdminSecurityService.getSnapshot', () => {
       data: { access_token: 'aal2-token', refresh_token: 'refresh-token' },
       error: null,
     });
-    testState.setSession.mockResolvedValue({ error: null });
     testState.getAssuranceLevel.mockResolvedValue({
       data: { currentLevel: 'aal2', nextLevel: 'aal2' },
       error: null,
@@ -213,6 +209,5 @@ describe('AdminSecurityService.getSnapshot', () => {
       factorId: 'factor-1',
       code: '123456',
     });
-    expect(testState.setSession).toHaveBeenCalledOnce();
   });
 });

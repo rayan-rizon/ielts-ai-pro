@@ -35,6 +35,10 @@ import {
 } from '@/components/admin/ui/primitives';
 import { AdminSecurityService } from '@/features/admin/services/AdminSecurityService';
 import { getPasswordStrength } from '@/lib/validations';
+import {
+  hasRecentAuthenticatorVerification,
+  mfaEnforcementLabel,
+} from '@/features/admin/utils/adminSecurityState';
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
@@ -153,6 +157,7 @@ export default function SecuritySettingsTab({
     typeof window === 'undefined' || window.location.hostname === 'www.ieltsai.pro';
   const passwordStrength = getPasswordStrength(passwordData.newPassword);
   const activeSessions = snapshot?.sessions?.filter((session) => !session.revoked_at) || [];
+  const hasRecentPasskeyStepUp = hasRecentAuthenticatorVerification(snapshot?.status);
 
   const run = async (name, action, successMessage) => {
     setWorking(name);
@@ -201,6 +206,23 @@ export default function SecuritySettingsTab({
       },
       'This administrator session is now AAL2.'
     );
+
+  const beginPasskeyAdd = async () => {
+    if (!hasRecentPasskeyStepUp) {
+      setPasskeyAction({ type: 'add', stage: 'verify' });
+      return;
+    }
+
+    setWorking('prepare-passkey');
+    try {
+      const registration = await AdminSecurityService.preparePasskeyRegistration();
+      setPasskeyAction({ type: 'add', stage: 'register', registration });
+    } catch (error) {
+      toast.error(error.message || 'Passkey registration could not be prepared.');
+    } finally {
+      setWorking('');
+    }
+  };
 
   const copyRecoveryCodes = async () => {
     try {
@@ -258,7 +280,7 @@ export default function SecuritySettingsTab({
           <div className="bg-white px-4 py-3 dark:bg-[#131315]">
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>MFA enforcement</p>
             <p className="mt-1 text-xs font-extrabold text-stone-900 dark:text-stone-50">
-              {snapshot?.status?.mfa_required ? 'Required for admin work' : 'Setup pending'}
+              {mfaEnforcementLabel(Boolean(snapshot?.status?.mfa_required), verifiedFactors.length)}
             </p>
           </div>
           <div className="bg-white px-4 py-3 dark:bg-[#131315]">
@@ -348,14 +370,19 @@ export default function SecuritySettingsTab({
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
             <p className={cn(BODY, 'max-w-md')}>
-              Confirm with your authenticator before changing passkeys.
+              {hasRecentPasskeyStepUp
+                ? 'This session was recently verified and is ready to add a passkey.'
+                : 'Confirm with your authenticator before changing passkeys.'}
             </p>
             <AdminButton
               disabled={
-                !canManagePasskeys || !isCanonicalPasskeyOrigin || working === 'add-passkey'
+                !canManagePasskeys ||
+                !isCanonicalPasskeyOrigin ||
+                working === 'prepare-passkey' ||
+                working === 'add-passkey'
               }
-              loading={working === 'add-passkey'}
-              onClick={() => setPasskeyAction({ type: 'add' })}
+              loading={working === 'prepare-passkey'}
+              onClick={beginPasskeyAdd}
             >
               <Plus className="h-3.5 w-3.5" /> Add passkey
             </AdminButton>

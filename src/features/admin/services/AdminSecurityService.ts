@@ -215,19 +215,15 @@ export const AdminSecurityService = {
   },
 
   async verifyTotp(factorId: string, code: string) {
-    const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+    const { error } = await supabase.auth.mfa.challengeAndVerify({
       factorId,
       code: code.trim(),
     });
     throwOnError(error);
 
-    // Challenge verification returns an AAL2 token. Save it explicitly before
-    // any security RPC runs so no request can reuse the pre-MFA AAL1 token.
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-    });
-    throwOnError(sessionError);
+    // challengeAndVerify already saves the returned AAL2 session and notifies
+    // auth subscribers. Calling setSession again produces a second auth-state
+    // transition and can remount the security UI mid-action.
 
     const { data: assurance, error: assuranceError } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
