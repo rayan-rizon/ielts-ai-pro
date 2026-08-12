@@ -99,6 +99,7 @@ export default function SecuritySettingsTab({
   );
   const isRecoverySession = Boolean(snapshot?.status?.recovery_session_expires_at);
   const passwordStrength = getPasswordStrength(passwordData.newPassword);
+  const activeSessions = snapshot?.sessions?.filter((session) => !session.revoked_at) || [];
 
   const run = async (name, action, successMessage) => {
     setWorking(name);
@@ -298,7 +299,7 @@ export default function SecuritySettingsTab({
               <Plus className="h-3.5 w-3.5" /> Add passkey
             </AdminButton>
           </div>
-          {passkeyAction && (
+          {passkeyAction && passkeyAction.stage !== 'register' && (
             <div className={cn(TILE, 'space-y-3 p-3')}>
               <SectionLabel accent="accent">
                 {passkeyAction.type === 'add'
@@ -344,11 +345,14 @@ export default function SecuritySettingsTab({
                       'add-passkey',
                       async () => {
                         if (passkeyAction.type === 'add') {
-                          await AdminSecurityService.reverifyAndRegisterPasskey(
+                          await AdminSecurityService.reverifySensitiveAction(
                             passkeyPassword,
                             verifiedFactors[0].id,
                             passkeyCode
                           );
+                          setPasskeyPassword('');
+                          setPasskeyCode('');
+                          setPasskeyAction({ type: 'add', stage: 'register' });
                         } else {
                           await AdminSecurityService.reverifySensitiveAction(
                             passkeyPassword,
@@ -356,19 +360,46 @@ export default function SecuritySettingsTab({
                             passkeyCode
                           );
                           await AdminSecurityService.removePasskey(passkeyAction.passkey.id);
+                          setPasskeyPassword('');
+                          setPasskeyCode('');
+                          setPasskeyAction(null);
                         }
-                        setPasskeyPassword('');
-                        setPasskeyCode('');
-                        setPasskeyAction(null);
                       },
-                      passkeyAction.type === 'add' ? 'Passkey added.' : 'Passkey removed.'
+                      passkeyAction.type === 'add'
+                        ? 'Identity verified. Start passkey registration in this active window.'
+                        : 'Passkey removed.'
                     )
                   }
                 >
                   <Fingerprint className="h-3.5 w-3.5" />
-                  {passkeyAction.type === 'add' ? 'Verify and add' : 'Verify and remove'}
+                  {passkeyAction.type === 'add' ? 'Verify identity' : 'Verify and remove'}
                 </AdminButton>
               </div>
+            </div>
+          )}
+          {passkeyAction?.type === 'add' && passkeyAction.stage === 'register' && (
+            <div className={cn(TILE, 'flex flex-wrap items-center justify-between gap-3 p-3')}>
+              <div>
+                <SectionLabel accent="accent">Ready to add a passkey</SectionLabel>
+                <p className={cn(BODY, 'mt-1')}>
+                  Keep this window active, then start the device prompt.
+                </p>
+              </div>
+              <AdminButton
+                loading={working === 'add-passkey'}
+                onClick={() =>
+                  run(
+                    'add-passkey',
+                    async () => {
+                      await AdminSecurityService.registerPasskey();
+                      setPasskeyAction(null);
+                    },
+                    'Passkey added.'
+                  )
+                }
+              >
+                <Fingerprint className="h-3.5 w-3.5" /> Start passkey registration
+              </AdminButton>
             </div>
           )}
         </div>
@@ -730,8 +761,8 @@ export default function SecuritySettingsTab({
           </button>
         </PanelHeader>
         <div className="divide-y divide-stone-100 dark:divide-white/[0.07]">
-          {snapshot?.sessions?.length ? (
-            snapshot.sessions.map((session) => {
+          {activeSessions.length ? (
+            activeSessions.map((session) => {
               const isCurrent = session.session_id === snapshot.status.session_id;
               return (
                 <div key={session.session_id} className="flex items-center gap-3 px-4 py-3">
@@ -742,7 +773,6 @@ export default function SecuritySettingsTab({
                         {authMethodsLabel(session.authentication_methods)}
                       </p>
                       {isCurrent && <Pill tone="ok">Current</Pill>}
-                      {session.revoked_at && <Pill tone="neutral">Signed out</Pill>}
                     </div>
                     <p
                       className={cn(
@@ -762,7 +792,7 @@ export default function SecuritySettingsTab({
                   >
                     {session.session_id.slice(0, 8)}
                   </span>
-                  {!isCurrent && !session.revoked_at && (
+                  {!isCurrent && (
                     <button
                       type="button"
                       disabled={working === `signout-session-${session.session_id}`}
@@ -788,8 +818,8 @@ export default function SecuritySettingsTab({
               );
             })
           ) : (
-            <Empty icon={Clock3} title="No admin session has been observed yet">
-              The current session will appear after the next refresh.
+            <Empty icon={Clock3} title="No active administrator devices">
+              Signed-out devices remain only in the security audit history.
             </Empty>
           )}
         </div>

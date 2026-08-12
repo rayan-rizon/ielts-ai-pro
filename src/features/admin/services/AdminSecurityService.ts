@@ -173,7 +173,21 @@ export const AdminSecurityService = {
   },
 
   async registerPasskey() {
+    // Safari checks focus at the point the WebAuthn ceremony starts. Registration
+    // must therefore be started from its own explicit click, after—not during—an
+    // asynchronous password and TOTP verification sequence.
+    if (typeof window !== 'undefined') window.focus();
+    if (typeof document !== 'undefined' && !document.hasFocus()) {
+      throw new Error(
+        'Keep this browser window active, then click Start passkey registration again.'
+      );
+    }
     const { data, error } = await supabase.auth.registerPasskey();
+    if (error?.message && /document is not focused/i.test(error.message)) {
+      throw new Error(
+        'Keep this browser window active, then click Start passkey registration again.'
+      );
+    }
     throwOnError(error);
     await this.record('passkey_registered', { passkey_id: data?.id || null });
     return data;
@@ -199,11 +213,6 @@ export const AdminSecurityService = {
     }
 
     await this.verifyTotp(factorId, code);
-  },
-
-  async reverifyAndRegisterPasskey(password: string, factorId: string, code: string) {
-    await this.reverifySensitiveAction(password, factorId, code);
-    return this.registerPasskey();
   },
 
   async removePasskey(passkeyId: string) {

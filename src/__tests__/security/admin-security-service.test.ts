@@ -4,6 +4,7 @@ const testState = vi.hoisted(() => ({
   rpc: vi.fn(),
   listFactors: vi.fn(),
   listPasskeys: vi.fn(),
+  registerPasskey: vi.fn(),
   from: vi.fn(),
 }));
 
@@ -11,6 +12,7 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     rpc: testState.rpc,
     auth: {
+      registerPasskey: testState.registerPasskey,
       mfa: { listFactors: testState.listFactors },
       passkey: { list: testState.listPasskeys },
     },
@@ -31,6 +33,7 @@ describe('AdminSecurityService.getSnapshot', () => {
     testState.rpc.mockReset();
     testState.listFactors.mockReset();
     testState.listPasskeys.mockReset();
+    testState.registerPasskey.mockReset();
     testState.from.mockReset();
   });
 
@@ -96,5 +99,16 @@ describe('AdminSecurityService.getSnapshot', () => {
     expect(testState.rpc).toHaveBeenCalledWith('revoke_admin_security_session', {
       p_session_id: 'device-session',
     });
+  });
+
+  it('starts the passkey ceremony only while the document is focused', async () => {
+    vi.spyOn(window, 'focus').mockImplementation(() => {});
+    vi.spyOn(document, 'hasFocus').mockReturnValue(true);
+    testState.registerPasskey.mockResolvedValue({ data: { id: 'passkey-1' }, error: null });
+    testState.rpc.mockResolvedValue({ error: null });
+
+    await AdminSecurityService.registerPasskey();
+
+    expect(testState.registerPasskey).toHaveBeenCalledOnce();
   });
 });
