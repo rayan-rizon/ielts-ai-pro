@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { getPasskeyErrorMessage } from '@/features/auth/utils/passkeyErrors';
 
 export type AdminSecuritySession = {
   session_id: string;
@@ -162,13 +163,7 @@ export const AdminSecurityService = {
       supabase.auth.mfa.listFactors(),
       supabase.rpc('get_admin_security_factors'),
       supabase.auth.passkey.list(),
-      supabase
-        .from('admin_security_sessions')
-        .select(
-          'session_id, first_seen_at, last_seen_at, last_event, authentication_methods, user_agent, revoked_at'
-        )
-        .order('last_seen_at', { ascending: false })
-        .limit(12),
+      supabase.rpc('get_admin_active_security_sessions'),
       supabase
         .from('admin_security_events')
         .select('id, session_id, event_type, metadata, created_at')
@@ -309,7 +304,7 @@ export const AdminSecurityService = {
       if (error instanceof Error && /document is not focused|not focused/i.test(error.message)) {
         throw passkeyFocusError();
       }
-      throw error;
+      throw new Error(getPasskeyErrorMessage(error, 'registration'));
     }
 
     if (!credential || credential.type !== 'public-key' || !('response' in credential)) {
@@ -328,25 +323,9 @@ export const AdminSecurityService = {
     return data;
   },
 
-  async reverifySensitiveAction(password: string, factorId: string, code: string) {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    throwOnError(userError);
-    if (!user?.email) throw new Error('Your administrator identity could not be verified.');
-
-    // A passkey can become a first factor, so require a fresh password and TOTP
-    // verification in this same interaction rather than trusting an old tab.
-    const { data: passwordSession, error: passwordError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password,
-    });
-    throwOnError(passwordError);
-    if (passwordSession.user?.id !== user.id) {
-      throw new Error('The password belongs to a different account.');
-    }
-
+  async verifySensitiveAction(factorId: string, code: string) {
+    // Upgrade the existing session to AAL2. Password sign-in here creates a
+    // second Auth session and makes one browser appear multiple times.
     await this.verifyTotp(factorId, code);
   },
 

@@ -37,12 +37,16 @@ export default function AdminLogin() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [mfaFactor, setMfaFactor] = useState(null);
   const [mfaCode, setMfaCode] = useState('');
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
   const [authMethod, setAuthMethod] = useState('password');
   const navigate = useNavigate();
   const { user, signIn, signInWithPasskey, isAdmin, loading, adminCheckComplete, checkIsAdmin } =
     useAuth();
   const hasActiveAdminAccess = isAdmin && hasAdminAccess(getAuthUserId(user));
   const isLoading = Boolean(loadingAction);
+  const isPasskeyOrigin =
+    typeof window === 'undefined' || window.location.hostname === 'www.ieltsai.pro';
 
   useEffect(() => {
     // Only redirect once loading is finished and we have a definitive auth state
@@ -102,6 +106,8 @@ export default function AdminLogin() {
     );
     if (assurance?.nextLevel === 'aal2' && assurance.currentLevel !== 'aal2' && factors.length) {
       setMfaFactor(factors[0]);
+      setUseRecoveryCode(false);
+      setRecoveryCode('');
       setAuthMethod(method);
       setLoadingAction(null);
       return;
@@ -167,6 +173,26 @@ export default function AdminLogin() {
       await completeAdminEntry(data.user, authMethod);
     } catch (err) {
       setError(err.message || 'The verification code was not accepted.');
+      setLoadingAction(null);
+    }
+  };
+
+  const handleRecoveryVerification = async (e) => {
+    e.preventDefault();
+    if (!recoveryCode.trim()) return;
+    setError('');
+    setLoadingAction('recovery');
+    try {
+      await AdminSecurityService.redeemRecoveryCode(recoveryCode);
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) throw new Error('The session expired before recovery could be completed.');
+      await completeAdminEntry(
+        data.user,
+        'recovery',
+        `${createPageUrl('AdminPanel')}?tab=settings&section=security`
+      );
+    } catch (err) {
+      setError(err.message || 'That recovery code was not accepted.');
       setLoadingAction(null);
     }
   };
@@ -299,7 +325,7 @@ export default function AdminLogin() {
 
             {mfaFactor ? (
               <form
-                onSubmit={handleMfaVerification}
+                onSubmit={useRecoveryCode ? handleRecoveryVerification : handleMfaVerification}
                 className="space-y-4"
                 data-oid="admin-mfa-form"
               >
@@ -308,51 +334,74 @@ export default function AdminLogin() {
                     <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-300" />
                     <div>
                       <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
-                        Verify your authenticator
+                        {useRecoveryCode ? 'Use a recovery code' : 'Verify your authenticator'}
                       </p>
                       <p className="mt-0.5 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
-                        Enter the current code from{' '}
-                        {mfaFactor.friendly_name || 'your authenticator app'}.
+                        {useRecoveryCode
+                          ? 'Enter one unused backup code. It will be consumed after verification.'
+                          : `Enter the current code from ${
+                              mfaFactor.friendly_name || 'your authenticator app'
+                            }.`}
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label
-                    htmlFor="admin-mfa-code"
+                    htmlFor={useRecoveryCode ? 'admin-recovery-code' : 'admin-mfa-code'}
                     className="ml-1 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400"
                   >
-                    Verification code
+                    {useRecoveryCode ? 'Recovery code' : 'Verification code'}
                   </Label>
                   <Input
-                    id="admin-mfa-code"
-                    inputMode="numeric"
+                    id={useRecoveryCode ? 'admin-recovery-code' : 'admin-mfa-code'}
+                    inputMode={useRecoveryCode ? 'text' : 'numeric'}
                     autoComplete="one-time-code"
-                    maxLength={8}
-                    value={mfaCode}
-                    onChange={(event) => setMfaCode(event.target.value.replace(/\s/g, ''))}
-                    placeholder="123456"
+                    maxLength={useRecoveryCode ? 27 : 8}
+                    value={useRecoveryCode ? recoveryCode : mfaCode}
+                    onChange={(event) =>
+                      useRecoveryCode
+                        ? setRecoveryCode(
+                            event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '')
+                          )
+                        : setMfaCode(event.target.value.replace(/\s/g, ''))
+                    }
+                    placeholder={useRecoveryCode ? 'XXXXXX-XXXXXX-XXXXXX-XXXXXX' : '123456'}
                     className="h-11 rounded-lg border-stone-200 bg-stone-50 font-mono text-center text-lg tracking-[0.32em] dark:border-white/10 dark:bg-white/3"
                     autoFocus
                   />
                 </div>
                 <Button
                   type="submit"
-                  disabled={isLoading || !mfaCode.trim()}
+                  disabled={isLoading || !(useRecoveryCode ? recoveryCode : mfaCode).trim()}
                   className="mt-2 h-11 w-full rounded-lg bg-[#5a63df] font-extrabold text-white hover:bg-[#4d56ce] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
                 >
-                  {loadingAction === 'mfa' ? (
+                  {loadingAction === (useRecoveryCode ? 'recovery' : 'mfa') ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Shield className="mr-2 h-4 w-4" />
                   )}
-                  Verify and enter
+                  {useRecoveryCode ? 'Recover and continue' : 'Verify and enter'}
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError('');
+                    setUseRecoveryCode((current) => !current);
+                  }}
+                  className="w-full text-center text-[11px] font-bold text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-300 dark:hover:text-indigo-200"
+                >
+                  {useRecoveryCode
+                    ? 'Use authenticator code instead'
+                    : 'Authenticator unavailable? Use a recovery code'}
+                </button>
                 <button
                   type="button"
                   onClick={() => {
                     setMfaFactor(null);
                     setMfaCode('');
+                    setRecoveryCode('');
+                    setUseRecoveryCode(false);
                     setLoadingAction(null);
                     setIsLoggingIn(false);
                   }}
@@ -467,7 +516,7 @@ export default function AdminLogin() {
                 <Button
                   type="button"
                   onClick={handlePasskeyLogin}
-                  disabled={isLoading}
+                  disabled={isLoading || !isPasskeyOrigin}
                   variant="outline"
                   className="h-11 w-full rounded-lg border-stone-200 bg-white font-extrabold text-stone-800 hover:bg-stone-50 dark:border-white/10 dark:bg-[#131315] dark:text-stone-100 dark:hover:bg-white/5"
                 >
@@ -478,6 +527,11 @@ export default function AdminLogin() {
                   )}
                   Use a passkey
                 </Button>
+                {!isPasskeyOrigin && (
+                  <p className="text-center text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+                    Passkeys are available at www.ieltsai.pro.
+                  </p>
+                )}
               </>
             )}
 

@@ -84,6 +84,29 @@ const authMethodsLabel = (methods) => {
   return labels.length ? labels.join(' + ') : 'Session observed';
 };
 
+const browserSessionLabel = (userAgent) => {
+  if (!userAgent) return 'Unknown browser';
+  const browser = /Edg\//.test(userAgent)
+    ? 'Edge'
+    : /Chrome\//.test(userAgent)
+      ? 'Chrome'
+      : /Safari\//.test(userAgent)
+        ? 'Safari'
+        : /Firefox\//.test(userAgent)
+          ? 'Firefox'
+          : 'Browser';
+  const platform = /Macintosh|Mac OS X/.test(userAgent)
+    ? 'macOS'
+    : /Windows/.test(userAgent)
+      ? 'Windows'
+      : /Android/.test(userAgent)
+        ? 'Android'
+        : /iPhone|iPad/.test(userAgent)
+          ? 'iOS'
+          : null;
+  return platform ? `${browser} on ${platform}` : browser;
+};
+
 export default function SecuritySettingsTab({
   passwordData,
   onChangePasswordData,
@@ -97,11 +120,9 @@ export default function SecuritySettingsTab({
   const [pendingTotp, setPendingTotp] = useState(null);
   const [totpCode, setTotpCode] = useState('');
   const [stepUpCode, setStepUpCode] = useState('');
-  const [recoveryCode, setRecoveryCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState([]);
   const [loadError, setLoadError] = useState('');
   const [passkeyAction, setPasskeyAction] = useState(null);
-  const [passkeyPassword, setPasskeyPassword] = useState('');
   const [passkeyCode, setPasskeyCode] = useState('');
 
   const refresh = useCallback(async () => {
@@ -128,6 +149,8 @@ export default function SecuritySettingsTab({
     [snapshot, verifiedFactors.length]
   );
   const isRecoverySession = Boolean(snapshot?.status?.recovery_session_expires_at);
+  const isCanonicalPasskeyOrigin =
+    typeof window === 'undefined' || window.location.hostname === 'www.ieltsai.pro';
   const passwordStrength = getPasswordStrength(passwordData.newPassword);
   const activeSessions = snapshot?.sessions?.filter((session) => !session.revoked_at) || [];
 
@@ -265,6 +288,12 @@ export default function SecuritySettingsTab({
           accent="accent"
         />
         <div className="space-y-3 p-4">
+          {!isCanonicalPasskeyOrigin && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/8 dark:text-amber-200">
+              Add and use passkeys at www.ieltsai.pro. WebAuthn intentionally rejects preview and
+              alternate domains.
+            </div>
+          )}
           {snapshot?.passkeysAvailable === false ? (
             <div className={cn(TILE, 'flex items-start gap-3 p-3')}>
               <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
@@ -319,10 +348,12 @@ export default function SecuritySettingsTab({
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
             <p className={cn(BODY, 'max-w-md')}>
-              Verify your password and authenticator code before adding a passkey.
+              Confirm with your authenticator before changing passkeys.
             </p>
             <AdminButton
-              disabled={!canManagePasskeys || working === 'add-passkey'}
+              disabled={
+                !canManagePasskeys || !isCanonicalPasskeyOrigin || working === 'add-passkey'
+              }
               loading={working === 'add-passkey'}
               onClick={() => setPasskeyAction({ type: 'add' })}
             >
@@ -336,20 +367,7 @@ export default function SecuritySettingsTab({
                   ? 'Verify to add a passkey'
                   : 'Verify to remove a passkey'}
               </SectionLabel>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <Label className={FIELD_LABEL} htmlFor="passkey-password">
-                    Current password
-                  </Label>
-                  <Input
-                    id="passkey-password"
-                    type="password"
-                    value={passkeyPassword}
-                    onChange={(event) => setPasskeyPassword(event.target.value)}
-                    className={FIELD_INPUT}
-                    autoComplete="current-password"
-                  />
-                </div>
+              <div className="max-w-sm">
                 <div>
                   <Label className={FIELD_LABEL} htmlFor="passkey-code">
                     Authenticator code
@@ -368,31 +386,27 @@ export default function SecuritySettingsTab({
               </div>
               <div className="flex justify-end">
                 <AdminButton
-                  disabled={!passkeyPassword || !passkeyCode}
+                  disabled={!passkeyCode}
                   loading={working === 'add-passkey'}
                   onClick={() =>
                     run(
                       'add-passkey',
                       async () => {
                         if (passkeyAction.type === 'add') {
-                          await AdminSecurityService.reverifySensitiveAction(
-                            passkeyPassword,
+                          await AdminSecurityService.verifySensitiveAction(
                             verifiedFactors[0].id,
                             passkeyCode
                           );
-                          setPasskeyPassword('');
                           setPasskeyCode('');
                           const registration =
                             await AdminSecurityService.preparePasskeyRegistration();
                           setPasskeyAction({ type: 'add', stage: 'register', registration });
                         } else {
-                          await AdminSecurityService.reverifySensitiveAction(
-                            passkeyPassword,
+                          await AdminSecurityService.verifySensitiveAction(
                             verifiedFactors[0].id,
                             passkeyCode
                           );
                           await AdminSecurityService.removePasskey(passkeyAction.passkey.id);
-                          setPasskeyPassword('');
                           setPasskeyCode('');
                           setPasskeyAction(null);
                         }
@@ -588,8 +602,8 @@ export default function SecuritySettingsTab({
       <section className={cn(PANEL, 'col-span-12 overflow-hidden lg:col-span-7')}>
         <PanelHeader
           label="Recovery"
-          title="One-time offline recovery codes"
-          description="Backup codes for a lost authenticator."
+          title="Backup recovery codes"
+          description="Use one at sign-in if your authenticator is unavailable."
           accent="warn"
         />
         <div className="space-y-3 p-4">
@@ -624,8 +638,7 @@ export default function SecuritySettingsTab({
           ) : (
             <div className={cn(TILE, 'p-3')}>
               <p className={cn(BODY, 'mb-3')}>
-                Generate a new set only after verifying AAL2. Generating a set immediately
-                invalidates any unused prior codes.
+                Each code works once. Creating a new set invalidates every unused old code.
               </p>
               <AdminButton
                 disabled={snapshot?.status?.aal !== 'aal2'}
@@ -642,53 +655,6 @@ export default function SecuritySettingsTab({
               </AdminButton>
             </div>
           )}
-
-          <div className="border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
-            <Label htmlFor="recovery-code" className={FIELD_LABEL}>
-              Use a recovery code
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="recovery-code"
-                name="recovery-code"
-                type="text"
-                inputMode="text"
-                autoComplete="one-time-code"
-                autoCapitalize="characters"
-                autoCorrect="off"
-                spellCheck={false}
-                data-form-type="other"
-                data-lpignore="true"
-                value={recoveryCode}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value.includes('@')) {
-                    setRecoveryCode('');
-                    return;
-                  }
-                  setRecoveryCode(value.toUpperCase().replace(/[^A-Z0-9-]/g, ''));
-                }}
-                placeholder="XXXXXX-XXXXXX-XXXXXX-XXXXXX"
-                className={cn(FIELD_INPUT, NUM, 'min-w-0')}
-              />
-              <AdminButton
-                disabled={!recoveryCode.trim()}
-                loading={working === 'redeem-recovery'}
-                onClick={() =>
-                  run(
-                    'redeem-recovery',
-                    async () => {
-                      await AdminSecurityService.redeemRecoveryCode(recoveryCode);
-                      setRecoveryCode('');
-                    },
-                    'Recovery session granted for 15 minutes. Add and verify a new authenticator now.'
-                  )
-                }
-              >
-                Use
-              </AdminButton>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -790,9 +756,9 @@ export default function SecuritySettingsTab({
 
       <section className={cn(PANEL, 'col-span-12 overflow-hidden')}>
         <PanelHeader
-          label="Observed sessions"
-          title="Active devices"
-          description="Manage active administrator devices."
+          label="Sessions"
+          title="Active sessions"
+          description="Review and revoke administrator sign-ins."
           accent="ok"
         >
           <button
@@ -818,7 +784,7 @@ export default function SecuritySettingsTab({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
-                        {authMethodsLabel(session.authentication_methods)}
+                        {browserSessionLabel(session.user_agent)}
                       </p>
                       {isCurrent && <Pill tone="ok">Current</Pill>}
                     </div>
@@ -828,8 +794,8 @@ export default function SecuritySettingsTab({
                         'mt-0.5 truncate normal-case tracking-normal text-stone-500 dark:text-stone-400'
                       )}
                     >
-                      Last observed {formatDate(session.last_seen_at)} ·{' '}
-                      {session.user_agent || 'Browser details unavailable'}
+                      {authMethodsLabel(session.authentication_methods)} · Last active{' '}
+                      {formatDate(session.last_seen_at)}
                     </p>
                   </div>
                   <span
@@ -846,12 +812,12 @@ export default function SecuritySettingsTab({
                       disabled={working === `signout-session-${session.session_id}`}
                       onClick={() => {
                         if (
-                          window.confirm('Sign out this device? It will need to sign in again.')
+                          window.confirm('Sign out this session? It will need to sign in again.')
                         ) {
                           run(
                             `signout-session-${session.session_id}`,
                             () => AdminSecurityService.signOutSession(session.session_id),
-                            'Device signed out.'
+                            'Session signed out.'
                           );
                         }
                       }}
@@ -866,14 +832,14 @@ export default function SecuritySettingsTab({
               );
             })
           ) : (
-            <Empty icon={Clock3} title="No active administrator devices">
-              Signed-out devices remain only in the security audit history.
+            <Empty icon={Clock3} title="No active administrator sessions">
+              New sign-ins will appear here.
             </Empty>
           )}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 px-4 py-3 dark:border-white/[0.07]">
           <p className={cn(BODY, 'max-w-2xl')}>
-            Sign out every device if your account may be compromised.
+            Sign out every session if your account may be compromised.
           </p>
           <AdminButton
             variant="destructive"

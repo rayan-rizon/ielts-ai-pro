@@ -7,6 +7,9 @@ const testState = vi.hoisted(() => ({
   registerPasskey: vi.fn(),
   startPasskeyRegistration: vi.fn(),
   verifyPasskeyRegistration: vi.fn(),
+  challengeAndVerify: vi.fn(),
+  setSession: vi.fn(),
+  getAssuranceLevel: vi.fn(),
   from: vi.fn(),
 }));
 
@@ -15,7 +18,12 @@ vi.mock('@/lib/supabase', () => ({
     rpc: testState.rpc,
     auth: {
       registerPasskey: testState.registerPasskey,
-      mfa: { listFactors: testState.listFactors },
+      mfa: {
+        listFactors: testState.listFactors,
+        challengeAndVerify: testState.challengeAndVerify,
+        getAuthenticatorAssuranceLevel: testState.getAssuranceLevel,
+      },
+      setSession: testState.setSession,
       passkey: {
         list: testState.listPasskeys,
         startRegistration: testState.startPasskeyRegistration,
@@ -42,6 +50,9 @@ describe('AdminSecurityService.getSnapshot', () => {
     testState.registerPasskey.mockReset();
     testState.startPasskeyRegistration.mockReset();
     testState.verifyPasskeyRegistration.mockReset();
+    testState.challengeAndVerify.mockReset();
+    testState.setSession.mockReset();
+    testState.getAssuranceLevel.mockReset();
     testState.from.mockReset();
   });
 
@@ -78,6 +89,9 @@ describe('AdminSecurityService.getSnapshot', () => {
       if (name === 'get_admin_security_factors') {
         return Promise.resolve({ data: [factor], error: null });
       }
+      if (name === 'get_admin_active_security_sessions') {
+        return Promise.resolve({ data: [session], error: null });
+      }
       throw new Error(`Unexpected RPC: ${name}`);
     });
     testState.listFactors.mockResolvedValue({ data: { totp: [factor], phone: [] }, error: null });
@@ -85,9 +99,7 @@ describe('AdminSecurityService.getSnapshot', () => {
       data: null,
       error: { message: 'Passkeys are disabled', code: 'passkey_disabled' },
     });
-    testState.from.mockImplementation((table: string) =>
-      queryResult(table === 'admin_security_sessions' ? [session] : [])
-    );
+    testState.from.mockImplementation(() => queryResult([]));
 
     const snapshot = await AdminSecurityService.getSnapshot();
 
@@ -181,5 +193,26 @@ describe('AdminSecurityService.getSnapshot', () => {
     expect(testState.verifyPasskeyRegistration).toHaveBeenCalledWith(
       expect.objectContaining({ challengeId: 'challenge-1' })
     );
+  });
+
+  it('reverifies a sensitive action in the current session without signing in again', async () => {
+    testState.challengeAndVerify.mockResolvedValue({
+      data: { access_token: 'aal2-token', refresh_token: 'refresh-token' },
+      error: null,
+    });
+    testState.setSession.mockResolvedValue({ error: null });
+    testState.getAssuranceLevel.mockResolvedValue({
+      data: { currentLevel: 'aal2', nextLevel: 'aal2' },
+      error: null,
+    });
+    testState.rpc.mockResolvedValue({ error: null });
+
+    await AdminSecurityService.verifySensitiveAction('factor-1', '123456');
+
+    expect(testState.challengeAndVerify).toHaveBeenCalledWith({
+      factorId: 'factor-1',
+      code: '123456',
+    });
+    expect(testState.setSession).toHaveBeenCalledOnce();
   });
 });

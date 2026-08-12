@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
+import { getPasskeyErrorMessage } from '@/features/auth/utils/passkeyErrors';
 import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
 import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
 import { normalizeAnnouncement, normalizeMaintenance } from '@/lib/communications';
@@ -699,7 +700,7 @@ export const AuthProvider = ({ children }) => {
       return data?.user || null;
     } catch (error) {
       console.error('Passkey sign-in failed:', error);
-      throw error;
+      throw new Error(getPasskeyErrorMessage(error, 'sign-in'));
     }
   }, []);
 

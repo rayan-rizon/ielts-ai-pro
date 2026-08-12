@@ -21,6 +21,7 @@ const testState = vi.hoisted(() => ({
   },
   recordSecurityEvent: vi.fn(),
   verifyTotp: vi.fn(),
+  redeemRecoveryCode: vi.fn(),
   getUser: vi.fn(),
 }));
 
@@ -49,6 +50,7 @@ vi.mock('@/features/admin/services/AdminSecurityService', () => ({
   AdminSecurityService: {
     record: testState.recordSecurityEvent,
     verifyTotp: testState.verifyTotp,
+    redeemRecoveryCode: testState.redeemRecoveryCode,
   },
 }));
 
@@ -71,6 +73,8 @@ describe('admin login transition', () => {
     testState.recordSecurityEvent.mockResolvedValue(undefined);
     testState.verifyTotp.mockReset();
     testState.verifyTotp.mockResolvedValue(undefined);
+    testState.redeemRecoveryCode.mockReset();
+    testState.redeemRecoveryCode.mockResolvedValue('2026-08-12T12:15:00Z');
     testState.getUser.mockReset();
   });
 
@@ -172,6 +176,57 @@ describe('admin login transition', () => {
     await waitFor(() => expect(testState.verifyTotp).toHaveBeenCalledWith('factor-1', '123456'));
     await waitFor(() =>
       expect(testState.navigate).toHaveBeenCalledWith('/admin/panel', { replace: true })
+    );
+  });
+
+  it('accepts a one-time recovery code at the MFA challenge', async () => {
+    testState.auth.signIn.mockResolvedValue({
+      id: 'supabase-admin-auth',
+      email: 'admin@example.com',
+    });
+    testState.auth.checkIsAdmin.mockResolvedValue(true);
+    testState.mfa.getAuthenticatorAssuranceLevel.mockResolvedValue({
+      data: { currentLevel: 'aal1', nextLevel: 'aal2' },
+      error: null,
+    });
+    testState.mfa.listFactors.mockResolvedValue({
+      data: { totp: [{ id: 'factor-1', status: 'verified' }], phone: [] },
+      error: null,
+    });
+    testState.getUser.mockResolvedValue({
+      data: { user: { id: 'supabase-admin-auth', email: 'admin@example.com' } },
+    });
+
+    render(
+      <MemoryRouter>
+        <AdminLogin />
+      </MemoryRouter>
+    );
+    fireEvent.change(screen.getByLabelText('Admin Email'), {
+      target: { value: 'admin@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Access Password'), {
+      target: { value: 'correct-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enter Command Center' }));
+
+    await screen.findByLabelText('Verification code');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Authenticator unavailable? Use a recovery code' })
+    );
+    fireEvent.change(screen.getByLabelText('Recovery code'), {
+      target: { value: 'ABCDEF-GHIJKL-MNOPQR-STUVWX' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Recover and continue' }));
+
+    await waitFor(() =>
+      expect(testState.redeemRecoveryCode).toHaveBeenCalledWith('ABCDEF-GHIJKL-MNOPQR-STUVWX')
+    );
+    await waitFor(() =>
+      expect(testState.navigate).toHaveBeenCalledWith(
+        '/admin/panel?tab=settings&section=security',
+        { replace: true }
+      )
     );
   });
 });
