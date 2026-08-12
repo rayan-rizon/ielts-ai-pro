@@ -215,29 +215,13 @@ export function useReadingTestLogic(
                 setShowResults(true);
               }
 
-              // Use results.correctAnswersMap to derive validationMap
-              // If correctAnswersMap is empty, RECALCULATE it from questions and answers
-              let caMap = results.correctAnswersMap;
-
-              if (!caMap || Object.keys(caMap).length === 0) {
-                // correctAnswersMap is missing - recalculate validation
-                console.log('[ReadingTest] correctAnswersMap missing, recalculating...');
-
-                // Build answers map from userResponses
-                // Recalculate to get fresh correctAnswersMap
-                const recalcResults = calculateTestResults(
-                  questions,
-                  persistedAnswers,
-                  passage.sections || []
-                );
-
-                caMap = recalcResults.correctAnswersMap;
-                console.log(
-                  '[ReadingTest] Recalculated correctAnswersMap with',
-                  Object.keys(caMap).length,
-                  'entries'
-                );
-              }
+              // Recalculate answer validation from the current question bank. Stored maps can
+              // contain stale imported keys after a content correction, even for completed tests.
+              const caMap = calculateTestResults(
+                questions,
+                persistedAnswers,
+                passage.sections || []
+              ).correctAnswersMap;
 
               if (caMap && Object.keys(caMap).length > 0) {
                 setCorrectAnswersMap(caMap);

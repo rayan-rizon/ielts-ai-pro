@@ -466,7 +466,13 @@ function scoreSentenceCompletionQuestion(q, answers, result) {
 
 function parseMultiAnswers(rawAnswer) {
   if (!rawAnswer) return [];
-  if (Array.isArray(rawAnswer)) return rawAnswer.map((a) => normalizeAnswer(a));
+  const normalizeMultiChoiceAnswer = (answer) => {
+    const normalized = normalizeAnswer(answer);
+    const letter = normalized.match(/^([a-e])(?:[.)]|\s|$)/i)?.[1];
+    return letter ? letter.toUpperCase() : normalized;
+  };
+
+  if (Array.isArray(rawAnswer)) return rawAnswer.map(normalizeMultiChoiceAnswer);
 
   let parsed = rawAnswer;
   try {
@@ -477,11 +483,8 @@ function parseMultiAnswers(rawAnswer) {
     // Keep as string
   }
 
-  if (Array.isArray(parsed)) return parsed.map((a) => normalizeAnswer(a));
-  return String(rawAnswer)
-    .split(/[,;]/)
-    .map((a) => normalizeAnswer(a.trim()))
-    .filter(Boolean);
+  if (Array.isArray(parsed)) return parsed.map(normalizeMultiChoiceAnswer);
+  return String(rawAnswer).split(/[,;]/).map(normalizeMultiChoiceAnswer).filter(Boolean);
 }
 
 function getMcqQuestionCount(q) {
@@ -497,8 +500,7 @@ function getMcqQuestionCount(q) {
 }
 
 function scoreMultiSelectMCQItem(opts) {
-  const { userAns, correctAns, baseNum, i, qId, result } = opts;
-  const isCorrect = Boolean(userAns && correctAns && userAns === correctAns);
+  const { userAns, correctAns, baseNum, i, qId, result, isCorrect } = opts;
 
   if (isCorrect) result.correct++;
   result.details.push({
@@ -510,6 +512,18 @@ function scoreMultiSelectMCQItem(opts) {
   });
 }
 
+function matchUnorderedMultiSelectAnswers(userAnswers, correctAnswers) {
+  const unmatchedCorrectAnswers = [...correctAnswers];
+
+  return userAnswers.map((userAnswer) => {
+    const correctIndex = unmatchedCorrectAnswers.indexOf(userAnswer);
+    if (correctIndex === -1) return false;
+
+    unmatchedCorrectAnswers.splice(correctIndex, 1);
+    return true;
+  });
+}
+
 function scoreMultiSelectMCQQuestion(q, answers, result) {
   const questionCount = getMcqQuestionCount(q);
   if (questionCount <= 1) return null;
@@ -517,6 +531,7 @@ function scoreMultiSelectMCQQuestion(q, answers, result) {
   result.total += questionCount;
   const userAnswers = parseMultiAnswers(answers[q.id]);
   const correctAnswers = parseMultiAnswers(q.correct_answer);
+  const matchedAnswers = matchUnorderedMultiSelectAnswers(userAnswers, correctAnswers);
   const baseNum = q.question_number
     ? parseInt(String(q.question_number).match(/\d+/)?.[0], 10) || 1
     : 1;
@@ -529,6 +544,7 @@ function scoreMultiSelectMCQQuestion(q, answers, result) {
       i,
       qId: q.id,
       result,
+      isCorrect: Boolean(userAnswers[i] && matchedAnswers[i]),
     });
   }
   return result;

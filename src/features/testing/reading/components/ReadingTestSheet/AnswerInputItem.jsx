@@ -2,6 +2,24 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { checkAnswer, resolveCorrectAnswer, formatAnswerValue } from './answerSheetUtils';
 
+function getMultiSelectAnswers(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== 'string') return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Legacy answers may be comma-separated rather than JSON arrays.
+  }
+
+  return value.split(',').map((answer) => answer.trim());
+}
+
+function isMultiSelectEntry(question, subId) {
+  return question.type === 'multiple_choice' && question.allow_multiple && Number.isInteger(subId);
+}
+
 function getItemContainerStyle(isFinished, isCorrect, value) {
   if (!isFinished) return 'border-border/60 hover:border-primary/40 hover:shadow-sm';
   if (isCorrect) return 'answer-correct shadow-sm';
@@ -36,13 +54,26 @@ export default function AnswerInputItem({
 }) {
   const questionId = q.id;
   const answerKey = subId !== null && subId !== undefined ? `${questionId}_${subId}` : questionId;
-  const value = answers[answerKey] || '';
+  const isMultiSelect = isMultiSelectEntry(q, subId);
+  const groupAnswers = isMultiSelect ? getMultiSelectAnswers(answers[questionId]) : [];
+  const value = answers[answerKey] || groupAnswers[subId] || '';
 
   const cAnswer = resolveCorrectAnswer(q, subId, correctAnswer);
   const isCorrect = isFinished ? checkAnswer(value, cAnswer) : false;
 
   const formattedUserValue = formatAnswerValue(value);
   const formattedCorrectValue = formatAnswerValue(cAnswer);
+
+  const handleChange = (nextValue) => {
+    if (!isMultiSelect) {
+      handleAnswerChange(answerKey, nextValue);
+      return;
+    }
+
+    const updatedAnswers = [...groupAnswers];
+    updatedAnswers[subId] = nextValue.trim();
+    handleAnswerChange(questionId, updatedAnswers.filter(Boolean).join(', '));
+  };
 
   return (
     <div
@@ -110,7 +141,7 @@ export default function AnswerInputItem({
       ) : (
         <Input
           value={value}
-          onChange={(e) => handleAnswerChange(answerKey, e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder=""
           className="flex-1 h-8 min-w-0 px-2 text-sm bg-background/60 border-border/70 focus:ring-1 focus:ring-primary rounded-md font-medium text-center"
           data-oid="7.8qgbt"
