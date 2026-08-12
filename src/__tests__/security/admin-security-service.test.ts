@@ -5,6 +5,8 @@ const testState = vi.hoisted(() => ({
   listFactors: vi.fn(),
   listPasskeys: vi.fn(),
   registerPasskey: vi.fn(),
+  startPasskeyRegistration: vi.fn(),
+  verifyPasskeyRegistration: vi.fn(),
   from: vi.fn(),
 }));
 
@@ -14,7 +16,11 @@ vi.mock('@/lib/supabase', () => ({
     auth: {
       registerPasskey: testState.registerPasskey,
       mfa: { listFactors: testState.listFactors },
-      passkey: { list: testState.listPasskeys },
+      passkey: {
+        list: testState.listPasskeys,
+        startRegistration: testState.startPasskeyRegistration,
+        verifyRegistration: testState.verifyPasskeyRegistration,
+      },
     },
     from: testState.from,
   },
@@ -34,6 +40,8 @@ describe('AdminSecurityService.getSnapshot', () => {
     testState.listFactors.mockReset();
     testState.listPasskeys.mockReset();
     testState.registerPasskey.mockReset();
+    testState.startPasskeyRegistration.mockReset();
+    testState.verifyPasskeyRegistration.mockReset();
     testState.from.mockReset();
   });
 
@@ -110,5 +118,68 @@ describe('AdminSecurityService.getSnapshot', () => {
     await AdminSecurityService.registerPasskey();
 
     expect(testState.registerPasskey).toHaveBeenCalledOnce();
+  });
+
+  it('prepares a passkey challenge before the focused browser ceremony', async () => {
+    const registration = {
+      challenge_id: 'challenge-1',
+      options: {
+        challenge: 'AQ',
+        rp: { name: 'IELTS Ai Pro', id: 'ieltsai.pro' },
+        user: { id: 'Ag', name: 'admin@example.com', displayName: 'Admin' },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+      },
+      expires_at: Date.now() + 60_000,
+    };
+    testState.startPasskeyRegistration.mockResolvedValue({ data: registration, error: null });
+
+    await expect(AdminSecurityService.preparePasskeyRegistration()).resolves.toEqual(registration);
+    expect(testState.startPasskeyRegistration).toHaveBeenCalledOnce();
+  });
+
+  it('opens the native registration prompt before verifying the prepared challenge', async () => {
+    const createCredential = vi.fn().mockResolvedValue({
+      id: 'credential-1',
+      type: 'public-key',
+      response: {
+        attestationObject: new Uint8Array([1, 2]).buffer,
+        clientDataJSON: new Uint8Array([3, 4]).buffer,
+      },
+      getClientExtensionResults: () => ({}),
+    });
+    const previousCredentials = navigator.credentials;
+    Object.defineProperty(navigator, 'credentials', {
+      configurable: true,
+      value: { create: createCredential },
+    });
+    vi.spyOn(document, 'hasFocus').mockReturnValue(true);
+    testState.verifyPasskeyRegistration.mockResolvedValue({
+      data: { id: 'passkey-1' },
+      error: null,
+    });
+    testState.rpc.mockResolvedValue({ error: null });
+
+    try {
+      await AdminSecurityService.registerPreparedPasskey({
+        challenge_id: 'challenge-1',
+        options: {
+          challenge: 'AQ',
+          rp: { name: 'IELTS Ai Pro', id: 'ieltsai.pro' },
+          user: { id: 'Ag', name: 'admin@example.com', displayName: 'Admin' },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+        },
+        expires_at: Date.now() + 60_000,
+      });
+    } finally {
+      Object.defineProperty(navigator, 'credentials', {
+        configurable: true,
+        value: previousCredentials,
+      });
+    }
+
+    expect(createCredential).toHaveBeenCalledOnce();
+    expect(testState.verifyPasskeyRegistration).toHaveBeenCalledWith(
+      expect.objectContaining({ challengeId: 'challenge-1' })
+    );
   });
 });

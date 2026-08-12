@@ -47,11 +47,41 @@ const formatDate = (value) => {
   );
 };
 
+const SESSION_METHOD_LABELS = {
+  password: 'Password',
+  totp: 'Authenticator',
+  phone: 'Phone',
+  passkey: 'Passkey',
+  recovery: 'Recovery code',
+};
+
+const SESSION_METHOD_ORDER = ['password', 'totp', 'phone', 'passkey', 'recovery'];
+
 const authMethodsLabel = (methods) => {
   const values = (methods || [])
-    .map((entry) => (typeof entry === 'string' ? entry : entry?.method))
+    .flatMap((entry) => {
+      const value = typeof entry === 'string' ? entry : entry?.method;
+      return value ? String(value).split('+') : [];
+    })
+    .map((value) =>
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]+/g, '')
+    )
     .filter(Boolean);
-  return values.length ? [...new Set(values)].join(' + ') : 'Session observed';
+  const uniqueValues = [...new Set(values)].sort((left, right) => {
+    const leftIndex = SESSION_METHOD_ORDER.indexOf(left);
+    const rightIndex = SESSION_METHOD_ORDER.indexOf(right);
+    return (
+      (leftIndex === -1 ? SESSION_METHOD_ORDER.length : leftIndex) -
+      (rightIndex === -1 ? SESSION_METHOD_ORDER.length : rightIndex)
+    );
+  });
+  const labels = uniqueValues.map(
+    (value) => SESSION_METHOD_LABELS[value] || `${value.charAt(0).toUpperCase()}${value.slice(1)}`
+  );
+  return labels.length ? labels.join(' + ') : 'Session observed';
 };
 
 export default function SecuritySettingsTab({
@@ -352,7 +382,9 @@ export default function SecuritySettingsTab({
                           );
                           setPasskeyPassword('');
                           setPasskeyCode('');
-                          setPasskeyAction({ type: 'add', stage: 'register' });
+                          const registration =
+                            await AdminSecurityService.preparePasskeyRegistration();
+                          setPasskeyAction({ type: 'add', stage: 'register', registration });
                         } else {
                           await AdminSecurityService.reverifySensitiveAction(
                             passkeyPassword,
@@ -365,9 +397,7 @@ export default function SecuritySettingsTab({
                           setPasskeyAction(null);
                         }
                       },
-                      passkeyAction.type === 'add'
-                        ? 'Identity verified. Start passkey registration in this active window.'
-                        : 'Passkey removed.'
+                      passkeyAction.type === 'add' ? undefined : 'Passkey removed.'
                     )
                   }
                 >
@@ -391,7 +421,9 @@ export default function SecuritySettingsTab({
                   run(
                     'add-passkey',
                     async () => {
-                      await AdminSecurityService.registerPasskey();
+                      await AdminSecurityService.registerPreparedPasskey(
+                        passkeyAction.registration
+                      );
                       setPasskeyAction(null);
                     },
                     'Passkey added.'
@@ -618,8 +650,24 @@ export default function SecuritySettingsTab({
             <div className="flex gap-2">
               <Input
                 id="recovery-code"
+                name="recovery-code"
+                type="text"
+                inputMode="text"
+                autoComplete="one-time-code"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                data-form-type="other"
+                data-lpignore="true"
                 value={recoveryCode}
-                onChange={(event) => setRecoveryCode(event.target.value.toUpperCase())}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value.includes('@')) {
+                    setRecoveryCode('');
+                    return;
+                  }
+                  setRecoveryCode(value.toUpperCase().replace(/[^A-Z0-9-]/g, ''));
+                }}
                 placeholder="XXXXXX-XXXXXX-XXXXXX-XXXXXX"
                 className={cn(FIELD_INPUT, NUM, 'min-w-0')}
               />

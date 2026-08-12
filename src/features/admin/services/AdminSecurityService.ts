@@ -56,6 +56,85 @@ const throwOnError = (error: { message?: string } | null) => {
   if (error) throw new Error(error.message || 'The security request could not be completed.');
 };
 
+type PreparedPasskeyRegistration = NonNullable<
+  Awaited<ReturnType<typeof supabase.auth.passkey.startRegistration>>['data']
+>;
+type PasskeyRegistrationOptions = PreparedPasskeyRegistration['options'];
+type SerializedPasskeyCredential = Parameters<
+  typeof supabase.auth.passkey.verifyRegistration
+>[0]['credential'];
+
+const base64UrlToBytes = (value: string) => {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='));
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+};
+
+const bytesToBase64Url = (value: ArrayBuffer | ArrayBufferView) => {
+  const bytes =
+    value instanceof ArrayBuffer
+      ? new Uint8Array(value)
+      : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  let binary = '';
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+};
+
+const deserializePasskeyCreationOptions = (options: PasskeyRegistrationOptions) => {
+  const credentialApi = globalThis.PublicKeyCredential as typeof PublicKeyCredential & {
+    parseCreationOptionsFromJSON?: (
+      value: PasskeyRegistrationOptions
+    ) => PublicKeyCredentialCreationOptions;
+  };
+  if (typeof credentialApi?.parseCreationOptionsFromJSON === 'function') {
+    return credentialApi.parseCreationOptionsFromJSON(options);
+  }
+
+  return {
+    ...options,
+    challenge: base64UrlToBytes(options.challenge).buffer,
+    user: {
+      ...options.user,
+      id: base64UrlToBytes(options.user.id).buffer,
+    },
+    excludeCredentials: options.excludeCredentials?.map((credential) => ({
+      ...credential,
+      id: base64UrlToBytes(credential.id).buffer,
+      type: credential.type || 'public-key',
+    })),
+  } as PublicKeyCredentialCreationOptions;
+};
+
+const serializePasskeyCredential = (
+  credential: PublicKeyCredential
+): SerializedPasskeyCredential => {
+  const credentialWithJson = credential as PublicKeyCredential & {
+    toJSON?: () => unknown;
+    authenticatorAttachment?: string | null;
+  };
+  if (typeof credentialWithJson.toJSON === 'function') {
+    return credentialWithJson.toJSON() as SerializedPasskeyCredential;
+  }
+
+  const response = credential.response as AuthenticatorAttestationResponse;
+  return {
+    id: credential.id,
+    rawId: credential.id,
+    response: {
+      attestationObject: bytesToBase64Url(response.attestationObject),
+      clientDataJSON: bytesToBase64Url(response.clientDataJSON),
+    },
+    type: 'public-key',
+    clientExtensionResults: credential.getClientExtensionResults(),
+    authenticatorAttachment: credentialWithJson.authenticatorAttachment ?? undefined,
+  } as SerializedPasskeyCredential;
+};
+
+const passkeyFocusError = () =>
+  new Error('Keep this browser window active, then click Start passkey registration again.');
+
 export const AdminSecurityService = {
   async record(eventType: string, metadata: Record<string, unknown> = {}) {
     const { error } = await supabase.rpc('record_admin_security_event', {
@@ -187,6 +266,62 @@ export const AdminSecurityService = {
       throw new Error(
         'Keep this browser window active, then click Start passkey registration again.'
       );
+    }
+    throwOnError(error);
+    await this.record('passkey_registered', { passkey_id: data?.id || null });
+    return data;
+  },
+
+  /**
+   * Fetch the server challenge separately from the browser ceremony. The
+   * challenge request may be asynchronous; the actual credentials.create call
+   * must happen from a fresh, focused user click to preserve Safari activation.
+   */
+  async preparePasskeyRegistration(): Promise<PreparedPasskeyRegistration> {
+    const { data, error } = await supabase.auth.passkey.startRegistration();
+    throwOnError(error);
+    if (!data?.challenge_id || !data.options) {
+      throw new Error('The passkey registration challenge could not be prepared. Try again.');
+    }
+    return data;
+  },
+
+  /**
+   * Run the native WebAuthn ceremony after the user has explicitly clicked the
+   * registration button, then verify the credential with Supabase Auth.
+   */
+  async registerPreparedPasskey(prepared: PreparedPasskeyRegistration) {
+    if (typeof navigator === 'undefined' || !navigator.credentials?.create) {
+      throw new Error('This browser does not support passkeys. Try Safari, Chrome, or Edge.');
+    }
+    if (typeof document !== 'undefined' && !document.hasFocus()) {
+      throw passkeyFocusError();
+    }
+
+    let credential: Credential | null;
+    try {
+      // Do not await anything before this call. It must retain the click's user
+      // activation while the browser opens the platform/security-key prompt.
+      credential = await navigator.credentials.create({
+        publicKey: deserializePasskeyCreationOptions(prepared.options),
+      });
+    } catch (error) {
+      if (error instanceof Error && /document is not focused|not focused/i.test(error.message)) {
+        throw passkeyFocusError();
+      }
+      throw error;
+    }
+
+    if (!credential || credential.type !== 'public-key' || !('response' in credential)) {
+      throw new Error('The passkey prompt did not return a usable credential. Try again.');
+    }
+
+    const { data, error } = await supabase.auth.passkey.verifyRegistration({
+      challengeId: prepared.challenge_id,
+      credential: serializePasskeyCredential(credential as PublicKeyCredential),
+    });
+    if (error?.message && /document is not focused/i.test(error.message)) {
+      throw passkeyFocusError();
     }
     throwOnError(error);
     await this.record('passkey_registered', { passkey_id: data?.id || null });

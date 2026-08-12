@@ -99,6 +99,9 @@ describe('admin login transition', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enter Command Center' }));
 
     expect(screen.getByRole('button', { name: 'Authenticating...' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Use a passkey' }).querySelector('.animate-spin')
+    ).toBeNull();
 
     testState.auth.user = {
       id: 'public-admin-profile',

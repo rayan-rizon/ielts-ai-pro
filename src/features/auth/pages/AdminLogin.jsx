@@ -31,7 +31,7 @@ import { supabase } from '@/lib/supabase';
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState(null);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -42,6 +42,7 @@ export default function AdminLogin() {
   const { user, signIn, signInWithPasskey, isAdmin, loading, adminCheckComplete, checkIsAdmin } =
     useAuth();
   const hasActiveAdminAccess = isAdmin && hasAdminAccess(getAuthUserId(user));
+  const isLoading = Boolean(loadingAction);
 
   useEffect(() => {
     // Only redirect once loading is finished and we have a definitive auth state
@@ -102,7 +103,7 @@ export default function AdminLogin() {
     if (assurance?.nextLevel === 'aal2' && assurance.currentLevel !== 'aal2' && factors.length) {
       setMfaFactor(factors[0]);
       setAuthMethod(method);
-      setIsLoading(false);
+      setLoadingAction(null);
       return;
     }
 
@@ -122,7 +123,7 @@ export default function AdminLogin() {
       return;
     }
 
-    setIsLoading(true);
+    setLoadingAction('password');
     setIsLoggingIn(true); // Prevent useEffect redirect
     clearAdminAccess();
     try {
@@ -132,14 +133,14 @@ export default function AdminLogin() {
       clearAdminAccess();
       console.error('Admin sign-in failed:', err);
       setError(err.message || 'Authentication failed. Please check your credentials.');
-      setIsLoading(false);
+      setLoadingAction(null);
       setIsLoggingIn(false);
     }
   };
 
   const handlePasskeyLogin = async () => {
     setError('');
-    setIsLoading(true);
+    setLoadingAction('passkey');
     setIsLoggingIn(true);
     clearAdminAccess();
     try {
@@ -149,7 +150,7 @@ export default function AdminLogin() {
     } catch (err) {
       clearAdminAccess();
       setError(err.message || 'Passkey authentication failed.');
-      setIsLoading(false);
+      setLoadingAction(null);
       setIsLoggingIn(false);
     }
   };
@@ -158,7 +159,7 @@ export default function AdminLogin() {
     e.preventDefault();
     if (!mfaFactor || !mfaCode.trim()) return;
     setError('');
-    setIsLoading(true);
+    setLoadingAction('mfa');
     try {
       await AdminSecurityService.verifyTotp(mfaFactor.id, mfaCode);
       const { data } = await supabase.auth.getUser();
@@ -166,7 +167,7 @@ export default function AdminLogin() {
       await completeAdminEntry(data.user, authMethod);
     } catch (err) {
       setError(err.message || 'The verification code was not accepted.');
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -340,7 +341,7 @@ export default function AdminLogin() {
                   disabled={isLoading || !mfaCode.trim()}
                   className="mt-2 h-11 w-full rounded-lg bg-[#5a63df] font-extrabold text-white hover:bg-[#4d56ce] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
                 >
-                  {isLoading ? (
+                  {loadingAction === 'mfa' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Shield className="mr-2 h-4 w-4" />
@@ -352,6 +353,7 @@ export default function AdminLogin() {
                   onClick={() => {
                     setMfaFactor(null);
                     setMfaCode('');
+                    setLoadingAction(null);
                     setIsLoggingIn(false);
                   }}
                   className="w-full text-center text-[11px] font-bold text-stone-500 transition-colors hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
@@ -435,7 +437,7 @@ export default function AdminLogin() {
                   className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-extrabold rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none mt-2"
                   data-oid="j74tubc"
                 >
-                  {isLoading ? (
+                  {loadingAction === 'password' ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" data-oid="dljqh_v" />
                       Authenticating...
@@ -469,7 +471,7 @@ export default function AdminLogin() {
                   variant="outline"
                   className="h-11 w-full rounded-lg border-stone-200 bg-white font-extrabold text-stone-800 hover:bg-stone-50 dark:border-white/10 dark:bg-[#131315] dark:text-stone-100 dark:hover:bg-white/5"
                 >
-                  {isLoading ? (
+                  {loadingAction === 'passkey' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Fingerprint className="mr-2 h-4 w-4" />
