@@ -6,7 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Loader2, AlertCircle, Eye, EyeOff, Mail, ArrowLeft, Lock } from 'lucide-react';
+import {
+  Shield,
+  Loader2,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Mail,
+  ArrowLeft,
+  Lock,
+  Fingerprint,
+  KeyRound,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   clearAdminAccess,
@@ -14,6 +25,8 @@ import {
   grantAdminAccess,
   hasAdminAccess,
 } from '@/features/auth/utils/adminAccess';
+import { AdminSecurityService } from '@/features/admin/services/AdminSecurityService';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -22,8 +35,12 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [mfaFactor, setMfaFactor] = useState(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [authMethod, setAuthMethod] = useState('password');
   const navigate = useNavigate();
-  const { user, signIn, isAdmin, loading, adminCheckComplete, checkIsAdmin } = useAuth();
+  const { user, signIn, signInWithPasskey, isAdmin, loading, adminCheckComplete, checkIsAdmin } =
+    useAuth();
   const hasActiveAdminAccess = isAdmin && hasAdminAccess(getAuthUserId(user));
 
   useEffect(() => {
@@ -40,6 +57,62 @@ export default function AdminLogin() {
     }
   }, [user, isAdmin, hasActiveAdminAccess, navigate, loading, adminCheckComplete, isLoggingIn]);
 
+  const completeAdminEntry = async (
+    signedInUser,
+    method,
+    destination = createPageUrl('AdminPanel')
+  ) => {
+    const isUserAdmin = await checkIsAdmin(getAuthUserId(signedInUser));
+    if (!isUserAdmin) {
+      clearAdminAccess();
+      setError('Access denied. You do not have administrator privileges.');
+      navigate(createPageUrl('Dashboard'), { replace: true });
+      return;
+    }
+
+    grantAdminAccess(getAuthUserId(signedInUser));
+    await AdminSecurityService.record(
+      method === 'passkey' ? 'admin_passkey_sign_in' : 'admin_sign_in'
+    ).catch((auditError) =>
+      console.warn('Admin security audit event could not be recorded:', auditError)
+    );
+    navigate(destination, { replace: true });
+  };
+
+  const continueAfterFirstFactor = async (signedInUser, method) => {
+    const isUserAdmin = await checkIsAdmin(getAuthUserId(signedInUser));
+    if (!isUserAdmin) {
+      clearAdminAccess();
+      setError('Access denied. You do not have administrator privileges.');
+      navigate(createPageUrl('Dashboard'), { replace: true });
+      return;
+    }
+
+    const [{ data: assurance, error: assuranceError }, { data: factorData, error: factorsError }] =
+      await Promise.all([
+        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+        supabase.auth.mfa.listFactors(),
+      ]);
+    if (assuranceError) throw assuranceError;
+    if (factorsError) throw factorsError;
+
+    const factors = [...(factorData?.totp || []), ...(factorData?.phone || [])].filter(
+      (factor) => factor.status === 'verified'
+    );
+    if (assurance?.nextLevel === 'aal2' && assurance.currentLevel !== 'aal2' && factors.length) {
+      setMfaFactor(factors[0]);
+      setAuthMethod(method);
+      setIsLoading(false);
+      return;
+    }
+
+    const securitySetupDestination =
+      factors.length === 0
+        ? `${createPageUrl('AdminPanel')}?tab=settings&section=security`
+        : createPageUrl('AdminPanel');
+    await completeAdminEntry(signedInUser, method, securitySetupDestination);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -54,25 +127,46 @@ export default function AdminLogin() {
     clearAdminAccess();
     try {
       const signedInUser = await signIn(email, password);
-
-      // Explicitly check admin status for the new user locally
-      // This avoids the race condition where the context might lag
-      const isUserAdmin = await checkIsAdmin(getAuthUserId(signedInUser));
-
-      if (isUserAdmin) {
-        grantAdminAccess(getAuthUserId(signedInUser));
-        navigate(createPageUrl('AdminPanel'), { replace: true });
-      } else {
-        clearAdminAccess();
-        setError('Access denied. You do not have administrator privileges.');
-        navigate(createPageUrl('Dashboard'), { replace: true });
-      }
+      await continueAfterFirstFactor(signedInUser, 'password');
     } catch (err) {
       clearAdminAccess();
       console.error('Admin sign-in failed:', err);
       setError(err.message || 'Authentication failed. Please check your credentials.');
       setIsLoading(false);
       setIsLoggingIn(false);
+    }
+  };
+
+  const handlePasskeyLogin = async () => {
+    setError('');
+    setIsLoading(true);
+    setIsLoggingIn(true);
+    clearAdminAccess();
+    try {
+      const signedInUser = await signInWithPasskey();
+      if (!signedInUser) throw new Error('No passkey session was created.');
+      await continueAfterFirstFactor(signedInUser, 'passkey');
+    } catch (err) {
+      clearAdminAccess();
+      setError(err.message || 'Passkey authentication failed.');
+      setIsLoading(false);
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleMfaVerification = async (e) => {
+    e.preventDefault();
+    if (!mfaFactor || !mfaCode.trim()) return;
+    setError('');
+    setIsLoading(true);
+    try {
+      await AdminSecurityService.verifyTotp(mfaFactor.id, mfaCode);
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) throw new Error('The session expired before MFA could be verified.');
+      await completeAdminEntry(data.user, authMethod);
+    } catch (err) {
+      setError(err.message || 'The verification code was not accepted.');
+      setIsLoading(false);
     }
   };
 
@@ -133,7 +227,7 @@ export default function AdminLogin() {
         </Link>
 
         <Card
-          className="rounded-2xl border border-stone-200/80 dark:border-white/8 bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl shadow-xl dark:shadow-2xl overflow-hidden"
+          className="rounded-xl border border-stone-200/80 dark:border-white/[0.07] bg-white dark:bg-[#131315] overflow-hidden"
           data-oid="4ya:7w_"
         >
           {/* Header */}
@@ -202,94 +296,188 @@ export default function AdminLogin() {
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleLogin} className="space-y-4" data-oid=".otl2sq">
-              <div className="space-y-1.5" data-oid="qgk0:na">
-                <Label
-                  htmlFor="email"
-                  className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400 ml-1"
-                  data-oid="zgivt-o"
-                >
-                  Admin Email
-                </Label>
-                <div className="relative" data-oid="a6u.yjr">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="admin@ieltsai.pro"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-11 bg-stone-50/50 dark:bg-white/3 border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
-                    autoComplete="email"
-                    data-oid="dpc2i50"
-                  />
-
-                  <Mail
-                    className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2"
-                    data-oid="cg-_afw"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5" data-oid="pom2q.4">
-                <Label
-                  htmlFor="password"
-                  title="password"
-                  className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400 ml-1"
-                  data-oid="sryvhm3"
-                >
-                  Access Password
-                </Label>
-                <div className="relative" data-oid="w5jcx07">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-11 bg-stone-50/50 dark:bg-white/3 border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
-                    autoComplete="current-password"
-                    data-oid="9g-e7lo"
-                  />
-
-                  <Lock
-                    className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2"
-                    data-oid="rjq794t"
-                  />
-
-                  <button
-                    type="button"
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-800 dark:text-stone-500 dark:hover:text-stone-200 transition-colors p-0.5 rounded"
-                    onClick={() => setShowPassword(!showPassword)}
-                    data-oid="5au2s18"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" data-oid="2t10rj8" />
-                    ) : (
-                      <Eye className="w-4 h-4" data-oid="q74h3-h" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading || !email.trim() || !password.trim()}
-                className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-extrabold rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none mt-2"
-                data-oid="j74tubc"
+            {mfaFactor ? (
+              <form
+                onSubmit={handleMfaVerification}
+                className="space-y-4"
+                data-oid="admin-mfa-form"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" data-oid="dljqh_v" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    <Shield className="w-4 h-4 mr-2" data-oid=":5x2jor" />
-                    Enter Command Center
-                  </>
-                )}
-              </Button>
-            </form>
+                <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 dark:border-indigo-400/20 dark:bg-indigo-400/8">
+                  <div className="flex items-start gap-2.5">
+                    <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-300" />
+                    <div>
+                      <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+                        Verify your authenticator
+                      </p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
+                        Enter the current code from{' '}
+                        {mfaFactor.friendly_name || 'your authenticator app'}.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="admin-mfa-code"
+                    className="ml-1 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400"
+                  >
+                    Verification code
+                  </Label>
+                  <Input
+                    id="admin-mfa-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={8}
+                    value={mfaCode}
+                    onChange={(event) => setMfaCode(event.target.value.replace(/\s/g, ''))}
+                    placeholder="123456"
+                    className="h-11 rounded-lg border-stone-200 bg-stone-50 font-mono text-center text-lg tracking-[0.32em] dark:border-white/10 dark:bg-white/3"
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading || !mfaCode.trim()}
+                  className="mt-2 h-11 w-full rounded-lg bg-[#5a63df] font-extrabold text-white hover:bg-[#4d56ce] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Shield className="mr-2 h-4 w-4" />
+                  )}
+                  Verify and enter
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMfaFactor(null);
+                    setMfaCode('');
+                    setIsLoggingIn(false);
+                  }}
+                  className="w-full text-center text-[11px] font-bold text-stone-500 transition-colors hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+                >
+                  Use a different sign-in method
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-4" data-oid=".otl2sq">
+                <div className="space-y-1.5" data-oid="qgk0:na">
+                  <Label
+                    htmlFor="email"
+                    className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400 ml-1"
+                    data-oid="zgivt-o"
+                  >
+                    Admin Email
+                  </Label>
+                  <div className="relative" data-oid="a6u.yjr">
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@ieltsai.pro"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-11 bg-stone-50/50 dark:bg-white/3 border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
+                      autoComplete="email"
+                      data-oid="dpc2i50"
+                    />
+
+                    <Mail
+                      className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2"
+                      data-oid="cg-_afw"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5" data-oid="pom2q.4">
+                  <Label
+                    htmlFor="password"
+                    title="password"
+                    className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400 ml-1"
+                    data-oid="sryvhm3"
+                  >
+                    Access Password
+                  </Label>
+                  <div className="relative" data-oid="w5jcx07">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10 h-11 bg-stone-50/50 dark:bg-white/3 border-stone-200 dark:border-white/10 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus-visible:ring-stone-400/20 dark:focus-visible:ring-white/10 rounded-xl text-sm transition-all"
+                      autoComplete="current-password"
+                      data-oid="9g-e7lo"
+                    />
+
+                    <Lock
+                      className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2"
+                      data-oid="rjq794t"
+                    />
+
+                    <button
+                      type="button"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-800 dark:text-stone-500 dark:hover:text-stone-200 transition-colors p-0.5 rounded"
+                      onClick={() => setShowPassword(!showPassword)}
+                      data-oid="5au2s18"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" data-oid="2t10rj8" />
+                      ) : (
+                        <Eye className="w-4 h-4" data-oid="q74h3-h" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || !email.trim() || !password.trim()}
+                  className="w-full h-11 bg-stone-900 hover:bg-stone-800 dark:bg-stone-50 dark:hover:bg-stone-200 text-white dark:text-stone-900 font-extrabold rounded-xl shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none mt-2"
+                  data-oid="j74tubc"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" data-oid="dljqh_v" />
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" data-oid=":5x2jor" />
+                      Enter Command Center
+                    </>
+                  )}
+                </Button>
+              </form>
+            )}
+
+            {!mfaFactor && (
+              <>
+                <div className="relative py-0.5">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-stone-200 dark:border-white/[0.07]" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-2 text-[9px] font-bold uppercase tracking-[0.14em] text-stone-400 dark:bg-[#131315] dark:text-stone-500">
+                      or
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handlePasskeyLogin}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="h-11 w-full rounded-lg border-stone-200 bg-white font-extrabold text-stone-800 hover:bg-stone-50 dark:border-white/10 dark:bg-[#131315] dark:text-stone-100 dark:hover:bg-white/5"
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Fingerprint className="mr-2 h-4 w-4" />
+                  )}
+                  Use a passkey
+                </Button>
+              </>
+            )}
 
             <div
               className="bg-stone-50 dark:bg-white/3 p-3.5 rounded-xl border border-stone-200/70 dark:border-white/6 text-center"

@@ -22,6 +22,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    // Passkeys are currently an opt-in Supabase Auth experimental API. Keeping
+    // this explicit makes an accidental SDK downgrade fail loudly in tests.
+    experimental: { passkey: true },
   },
 });
 

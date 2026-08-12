@@ -24,6 +24,10 @@ export const PANEL =
  */
 export const WELL = 'bg-stone-100/70 dark:bg-white/[0.045]';
 
+/** One-level nested control surface inside a panel. */
+export const TILE =
+  'rounded-lg border border-stone-200/80 bg-stone-50/70 transition-colors duration-150 dark:border-white/[0.10] dark:bg-white/[0.045]';
+
 /** Panel/card title. Legible on its own — distinct from MICRO meta labels. */
 export const TITLE = 'text-[13px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50';
 

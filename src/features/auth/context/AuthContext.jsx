@@ -50,6 +50,7 @@ const fallbackAuthContext = Object.freeze({
   isAdmin: false,
   signUp: async () => null,
   signIn: async () => null,
+  signInWithPasskey: async () => null,
   signOut: async () => null,
   refreshProfile: async () => null,
   checkIsAdmin: async () => false,
@@ -678,6 +679,30 @@ export const AuthProvider = ({ children }) => {
     [refreshProfile]
   );
 
+  const signInWithPasskey = useCallback(async () => {
+    try {
+      const { supabase, User } = await loadAuthDependencies();
+      const { data, error } = await supabase.auth.signInWithPasskey();
+      if (error) throw error;
+
+      if (data?.user) {
+        setUser(data.user);
+        await User.me().then((profile) => {
+          if (!isMountedRef.current) return;
+          setUserProfile(profile);
+          setIsAdmin(profile?.role === 'admin');
+          setAdminCheckComplete(true);
+          setAuthCheckComplete(true);
+        });
+      }
+
+      return data?.user || null;
+    } catch (error) {
+      console.error('Passkey sign-in failed:', error);
+      throw error;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       const { User } = await loadAuthDependencies();
@@ -738,6 +763,7 @@ export const AuthProvider = ({ children }) => {
       isAdmin,
       signUp,
       signIn,
+      signInWithPasskey,
       signOut,
       refreshProfile,
       checkIsAdmin,
@@ -761,6 +787,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     signUp,
     signIn,
+    signInWithPasskey,
     signOut,
     refreshProfile,
     checkIsAdmin,

@@ -1,0 +1,169 @@
+import { supabase } from '@/lib/supabase';
+
+export type AdminSecuritySession = {
+  session_id: string;
+  first_seen_at: string;
+  last_seen_at: string;
+  last_event: string;
+  authentication_methods: Array<{ method?: string; timestamp?: number }> | string[];
+  user_agent: string | null;
+  revoked_at: string | null;
+};
+
+export type AdminSecurityEvent = {
+  id: string;
+  session_id: string | null;
+  event_type: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type AdminSecurityStatus = {
+  mfa_required: boolean;
+  recovery_session_expires_at: string | null;
+  session_id: string | null;
+  aal: 'aal1' | 'aal2';
+  authentication_methods: Array<{ method?: string; timestamp?: number }> | string[];
+};
+
+export type AdminSecuritySnapshot = {
+  status: AdminSecurityStatus;
+  factors: Array<{
+    id: string;
+    factor_type: string;
+    friendly_name?: string;
+    status: string;
+    created_at: string;
+  }>;
+  passkeys: Array<{
+    id: string;
+    friendly_name?: string;
+    created_at: string;
+    last_used_at?: string;
+  }>;
+  sessions: AdminSecuritySession[];
+  events: AdminSecurityEvent[];
+};
+
+const browserLabel = () => {
+  if (typeof navigator === 'undefined') return null;
+  return navigator.userAgent || null;
+};
+
+const throwOnError = (error: { message?: string } | null) => {
+  if (error) throw new Error(error.message || 'The security request could not be completed.');
+};
+
+export const AdminSecurityService = {
+  async record(eventType: string, metadata: Record<string, unknown> = {}) {
+    const { error } = await supabase.rpc('record_admin_security_event', {
+      p_event_type: eventType,
+      p_metadata: metadata,
+      p_user_agent: browserLabel(),
+    });
+    throwOnError(error);
+  },
+
+  async getSnapshot(): Promise<AdminSecuritySnapshot> {
+    // A current session is logged before it is displayed. These are observed
+    // admin sessions, not an assertion that Auth has every session still live.
+    await this.record('admin_session_observed').catch(() => {});
+
+    const [statusResult, factorsResult, passkeysResult, sessionsResult, eventsResult] =
+      await Promise.all([
+        supabase.rpc('get_admin_security_status'),
+        supabase.auth.mfa.listFactors(),
+        supabase.auth.passkey.list(),
+        supabase
+          .from('admin_security_sessions')
+          .select(
+            'session_id, first_seen_at, last_seen_at, last_event, authentication_methods, user_agent, revoked_at'
+          )
+          .order('last_seen_at', { ascending: false })
+          .limit(12),
+        supabase
+          .from('admin_security_events')
+          .select('id, session_id, event_type, metadata, created_at')
+          .order('created_at', { ascending: false })
+          .limit(24),
+      ]);
+
+    throwOnError(statusResult.error);
+    throwOnError(factorsResult.error);
+    throwOnError(passkeysResult.error);
+    throwOnError(sessionsResult.error);
+    throwOnError(eventsResult.error);
+
+    const status = statusResult.data as AdminSecurityStatus | null;
+    if (!status) throw new Error('Your administrator role could not be confirmed.');
+
+    return {
+      status,
+      factors: [...(factorsResult.data?.totp || []), ...(factorsResult.data?.phone || [])],
+      passkeys: passkeysResult.data || [],
+      sessions: (sessionsResult.data || []) as AdminSecuritySession[],
+      events: (eventsResult.data || []) as AdminSecurityEvent[],
+    };
+  },
+
+  async enrollTotp(friendlyName: string) {
+    const { data, error } = await supabase.auth.mfa.enroll({
+      factorType: 'totp',
+      friendlyName: friendlyName.trim() || 'Authenticator app',
+    });
+    throwOnError(error);
+    return data;
+  },
+
+  async verifyTotp(factorId: string, code: string) {
+    const { error } = await supabase.auth.mfa.challengeAndVerify({
+      factorId,
+      code: code.trim(),
+    });
+    throwOnError(error);
+    await this.record('mfa_verified');
+  },
+
+  async removeFactor(factorId: string) {
+    const { error } = await supabase.auth.mfa.unenroll({ factorId });
+    throwOnError(error);
+  },
+
+  async registerPasskey() {
+    const { data, error } = await supabase.auth.registerPasskey();
+    throwOnError(error);
+    await this.record('passkey_registered', { passkey_id: data?.id || null });
+    return data;
+  },
+
+  async removePasskey(passkeyId: string) {
+    const { error } = await supabase.auth.passkey.delete({ passkeyId });
+    throwOnError(error);
+    await this.record('passkey_removed', { passkey_id: passkeyId });
+  },
+
+  async enableMfaEnforcement() {
+    const { error } = await supabase.rpc('enable_admin_mfa_enforcement');
+    throwOnError(error);
+  },
+
+  async rotateRecoveryCodes(): Promise<string[]> {
+    const { data, error } = await supabase.rpc('rotate_admin_recovery_codes');
+    throwOnError(error);
+    return (data || []) as string[];
+  },
+
+  async redeemRecoveryCode(code: string): Promise<string> {
+    const { data, error } = await supabase.rpc('redeem_admin_recovery_code', { p_code: code });
+    throwOnError(error);
+    if (!data) throw new Error('Invalid recovery code, or recovery is temporarily locked.');
+    return String(data);
+  },
+
+  async signOutEverywhere() {
+    const { error: auditError } = await supabase.rpc('end_all_admin_sessions');
+    throwOnError(auditError);
+    const { error } = await supabase.auth.signOut({ scope: 'global' });
+    throwOnError(error);
+  },
+};

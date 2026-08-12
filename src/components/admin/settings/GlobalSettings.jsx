@@ -17,6 +17,7 @@ import {
   performPasswordUpdate,
 } from './settingsHelpers';
 import { toast } from 'sonner';
+import { AdminSecurityService } from '@/features/admin/services/AdminSecurityService';
 
 import { Activity, CreditCard, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
 import { AdminPageHeader } from '@/components/admin/ui/primitives';
@@ -148,6 +149,9 @@ export default function GlobalSettings() {
     try {
       setChangingPassword(true);
       await performPasswordUpdate(passwordData.currentPassword, passwordData.newPassword);
+      await AdminSecurityService.record('password_changed').catch((auditError) =>
+        console.warn('Password change audit event could not be recorded:', auditError)
+      );
       toast.success('Password changed successfully');
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
