@@ -5,9 +5,9 @@ import { cn } from '@/lib/cn';
 
 // Lazy load ReactQuill to reduce initial bundle size (~200KB)
 const ReactQuill = React.lazy(() =>
-  import('react-quill').then((module) => {
+  import('react-quill-new').then((module) => {
     // Import styles after module is loaded
-    import('react-quill/dist/quill.snow.css');
+    import('react-quill-new/dist/quill.snow.css');
     import('@/styles/quill-custom.css');
     return module;
   })
