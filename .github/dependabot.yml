@@ -13,6 +13,12 @@ updates:
     groups:
       dependencies:
         applies-to: version-updates
+        # Keep broad updates limited to compatible minor and patch releases.
+        # Major upgrades need an isolated review because they can change the
+        # React/Vite/ESLint toolchain contract and break CI before Vercel builds.
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "*"
 
@@ -28,6 +34,9 @@ updates:
     groups:
       dependencies:
         applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "*"
 
