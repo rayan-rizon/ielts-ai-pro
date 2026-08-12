@@ -69,27 +69,35 @@ export const AdminSecurityService = {
     // admin sessions, not an assertion that Auth has every session still live.
     await this.record('admin_session_observed').catch(() => {});
 
-    const [statusResult, factorsResult, passkeysResult, sessionsResult, eventsResult] =
-      await Promise.all([
-        supabase.rpc('get_admin_security_status'),
-        supabase.auth.mfa.listFactors(),
-        supabase.auth.passkey.list(),
-        supabase
-          .from('admin_security_sessions')
-          .select(
-            'session_id, first_seen_at, last_seen_at, last_event, authentication_methods, user_agent, revoked_at'
-          )
-          .order('last_seen_at', { ascending: false })
-          .limit(12),
-        supabase
-          .from('admin_security_events')
-          .select('id, session_id, event_type, metadata, created_at')
-          .order('created_at', { ascending: false })
-          .limit(24),
-      ]);
+    const [
+      statusResult,
+      factorsResult,
+      fallbackFactorsResult,
+      passkeysResult,
+      sessionsResult,
+      eventsResult,
+    ] = await Promise.all([
+      supabase.rpc('get_admin_security_status'),
+      supabase.auth.mfa.listFactors(),
+      supabase.rpc('get_admin_security_factors'),
+      supabase.auth.passkey.list(),
+      supabase
+        .from('admin_security_sessions')
+        .select(
+          'session_id, first_seen_at, last_seen_at, last_event, authentication_methods, user_agent, revoked_at'
+        )
+        .order('last_seen_at', { ascending: false })
+        .limit(12),
+      supabase
+        .from('admin_security_events')
+        .select('id, session_id, event_type, metadata, created_at')
+        .order('created_at', { ascending: false })
+        .limit(24),
+    ]);
 
     throwOnError(statusResult.error);
     throwOnError(factorsResult.error);
+    throwOnError(fallbackFactorsResult.error);
     throwOnError(passkeysResult.error);
     throwOnError(sessionsResult.error);
     throwOnError(eventsResult.error);
@@ -97,9 +105,14 @@ export const AdminSecurityService = {
     const status = statusResult.data as AdminSecurityStatus | null;
     if (!status) throw new Error('Your administrator role could not be confirmed.');
 
+    const authFactors = [...(factorsResult.data?.totp || []), ...(factorsResult.data?.phone || [])];
+    const fallbackFactors = (fallbackFactorsResult.data || []) as AdminSecuritySnapshot['factors'];
+
     return {
       status,
-      factors: [...(factorsResult.data?.totp || []), ...(factorsResult.data?.phone || [])],
+      // The Auth endpoint remains primary. The database-backed inventory only
+      // covers the rare just-verified-session race where it returns no factors.
+      factors: authFactors.length ? authFactors : fallbackFactors,
       passkeys: passkeysResult.data || [],
       sessions: (sessionsResult.data || []) as AdminSecuritySession[],
       events: (eventsResult.data || []) as AdminSecurityEvent[],
@@ -116,12 +129,30 @@ export const AdminSecurityService = {
   },
 
   async verifyTotp(factorId: string, code: string) {
-    const { error } = await supabase.auth.mfa.challengeAndVerify({
+    const { data, error } = await supabase.auth.mfa.challengeAndVerify({
       factorId,
       code: code.trim(),
     });
     throwOnError(error);
+
+    // Challenge verification returns an AAL2 token. Save it explicitly before
+    // any security RPC runs so no request can reuse the pre-MFA AAL1 token.
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    throwOnError(sessionError);
+
+    const { data: assurance, error: assuranceError } =
+      await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    throwOnError(assuranceError);
+    if (assurance?.currentLevel !== 'aal2') {
+      throw new Error(
+        'Authenticator verification succeeded, but the AAL2 session was not established. Try again.'
+      );
+    }
     await this.record('mfa_verified');
+    return assurance;
   },
 
   async removeFactor(factorId: string) {

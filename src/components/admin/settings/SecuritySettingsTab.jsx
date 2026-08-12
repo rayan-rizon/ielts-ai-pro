@@ -72,6 +72,7 @@ export default function SecuritySettingsTab({
   const [factorName, setFactorName] = useState('Authenticator app');
   const [pendingTotp, setPendingTotp] = useState(null);
   const [totpCode, setTotpCode] = useState('');
+  const [stepUpCode, setStepUpCode] = useState('');
   const [recoveryCode, setRecoveryCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState([]);
 
@@ -134,6 +135,17 @@ export default function SecuritySettingsTab({
         setTotpCode('');
       },
       'Authenticator verified. This session is now AAL2.'
+    );
+
+  const verifyCurrentSession = (factorId) =>
+    run(
+      `verify-session-${factorId}`,
+      async () => {
+        if (!stepUpCode.trim()) throw new Error('Enter the current authenticator code.');
+        await AdminSecurityService.verifyTotp(factorId, stepUpCode);
+        setStepUpCode('');
+      },
+      'This administrator session is now AAL2.'
     );
 
   const copyRecoveryCodes = async () => {
@@ -343,23 +355,50 @@ export default function SecuritySettingsTab({
               </AdminButton>
             </div>
           ) : (
-            <div className="flex items-end gap-2">
-              <div className="min-w-0 flex-1">
-                <Label htmlFor="factor-name" className={FIELD_LABEL}>
-                  New authenticator name
-                </Label>
-                <Input
-                  id="factor-name"
-                  value={factorName}
-                  onChange={(event) => setFactorName(event.target.value)}
-                  className={FIELD_INPUT}
-                  maxLength={80}
-                />
+            <>
+              {verifiedFactors.length > 0 && snapshot?.status?.aal !== 'aal2' && (
+                <div className={cn(TILE, 'mb-3 p-3')}>
+                  <p className={cn(BODY, 'mb-2')}>
+                    You already have a verified authenticator. Enter its current code to upgrade
+                    this session to AAL2 and unlock passkeys and recovery codes.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      aria-label="Current authenticator code"
+                      value={stepUpCode}
+                      onChange={(event) => setStepUpCode(event.target.value.replace(/\s/g, ''))}
+                      className={cn(FIELD_INPUT, 'font-mono tracking-[0.22em]')}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="123456"
+                    />
+                    <AdminButton
+                      loading={working === `verify-session-${verifiedFactors[0].id}`}
+                      onClick={() => verifyCurrentSession(verifiedFactors[0].id)}
+                    >
+                      Verify
+                    </AdminButton>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-end gap-2">
+                <div className="min-w-0 flex-1">
+                  <Label htmlFor="factor-name" className={FIELD_LABEL}>
+                    New authenticator name
+                  </Label>
+                  <Input
+                    id="factor-name"
+                    value={factorName}
+                    onChange={(event) => setFactorName(event.target.value)}
+                    className={FIELD_INPUT}
+                    maxLength={80}
+                  />
+                </div>
+                <AdminButton loading={working === 'enroll-totp'} onClick={beginTotpEnrollment}>
+                  <Plus className="h-3.5 w-3.5" /> Add
+                </AdminButton>
               </div>
-              <AdminButton loading={working === 'enroll-totp'} onClick={beginTotpEnrollment}>
-                <Plus className="h-3.5 w-3.5" /> Add
-              </AdminButton>
-            </div>
+            </>
           )}
 
           {!snapshot?.status?.mfa_required && verifiedFactors.length > 0 && (
