@@ -212,6 +212,9 @@ describe('server-rendered IELTS blog', () => {
     expect(canonicals[2]).toBe('https://www.ieltsai.pro/blog?category=Writing');
     // Internal search results are not listings worth indexing.
     expect(rendered[4]).toContain('<meta name="robots" content="noindex, follow">');
+    // Deeper archive pages are navigation aids, not thin search landing pages.
+    expect(rendered[1]).toContain('<meta name="robots" content="noindex, follow">');
+    expect(rendered[3]).toContain('<meta name="robots" content="noindex, follow">');
     expect(rendered[0]).not.toContain('rel="nofollow"');
     // Blocked routes must not receive internal links from a crawlable page.
     for (const blocked of ['/analytics', '/pricing', '/resources', '/vocabulary']) {
@@ -307,7 +310,44 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('aria-expanded');
     expect(BLOG_CSS).toContain('html.dark .article table');
     expect(response.body).not.toContain('Turn the strategy into a score');
-    expect(response.body).toContain('<title>IELTS Reading Strategy | IELTS Ai Pro</title>');
+    expect(response.body).toContain(
+      '<title>IELTS Reading Strategy | IELTS Guide | IELTS Ai Pro</title>'
+    );
+  });
+
+  it('keeps the article title distinct from its H1 and repairs audited legacy citations', async () => {
+    const legacyCitationArticle = {
+      ...article,
+      title: 'IELTS Writing Task 2 Tips for a Reliable Band 7+ Score',
+      content:
+        '<p><a href="https://www.hss.iitb.ac.in/sites/default/files/2023-10/Coherence_Linking_Words%20(RMIT%20University" target="_blank">cohesive device</a>.pdf)</p><p><a href="https://careerwiseenglish.com.au/ielts-writing-task-2-time-management/">the 40-minute routine</a></p><p><a href="https://ielts5to6.com/grammar/ielts-writing-task-2-collocations-list-pdf-friendly/">accurate collocations</a></p><p><a href="https://ieltsimmigration.ir/wp-content/uploads/2020/03/Band-Descriptors-Task-2.pdf">official band descriptors</a></p>',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => [legacyCitationArticle] })
+    );
+    const response = createResponse();
+
+    await blogHandler({ query: { slug: legacyCitationArticle.slug } }, response);
+
+    const title = response.body.match(/<title>(.*?)<\/title>/)?.[1];
+    const h1 = response.body.match(/<h1>(.*?)<\/h1>/)?.[1];
+    expect(title).not.toBe(h1);
+    expect(title).toContain('IELTS Guide | IELTS Ai Pro');
+    expect(response.body).toContain(
+      'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing'
+    );
+    expect(response.body).toContain(
+      'https://www.ieltsai.pro/blog/ielts-writing-task-2-time-management-20-minutes'
+    );
+    for (const brokenUrl of [
+      'www.hss.iitb.ac.in',
+      'careerwiseenglish.com.au',
+      'ielts5to6.com',
+      'ieltsimmigration.ir',
+    ]) {
+      expect(response.body).not.toContain(brokenUrl);
+    }
   });
 
   it('keeps long article titles within the audit threshold', async () => {
@@ -325,12 +365,9 @@ describe('server-rendered IELTS blog', () => {
     await blogHandler({ query: { slug: longTitleArticle.slug } }, response);
 
     expect(response.statusCode).toBe(200);
-    expect(response.body).toContain(
-      '<title>IELTS Reading Multiple Choice: A Complete Evidence-Based Practice Guide</title>'
-    );
-    expect(response.body).not.toContain(
-      '<title>IELTS Reading Multiple Choice: A Complete Evidence-Based Practice Guide | IELTS Ai Pro</title>'
-    );
+    const title = response.body.match(/<title>(.*?)<\/title>/)?.[1] || '';
+    expect(title).toContain('IELTS Guide | IELTS Ai Pro');
+    expect(title).not.toBe(longTitleArticle.title);
   });
 
   it('provides descriptive cover alt text for each new daily guide', () => {

@@ -419,6 +419,34 @@ function coverAlt(post) {
 const SERP_TITLE_MAX_PIXELS = 560;
 const NARROW_TITLE_CHARS = new Set([...` .,:;!|'"()[]{}ijltfrI-`]);
 const WIDE_TITLE_CHARS = new Set([...'mwMW@%']);
+const ARTICLE_TITLE_SUFFIX = ' | IELTS Guide | IELTS Ai Pro';
+const OFFICIAL_WRITING_FORMAT_URL =
+  'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing';
+
+/*
+ * These citations were published before the editorial link audit. Keeping the
+ * repair at render time protects existing production rows immediately; the
+ * companion data migration fixes the stored source for future renders too.
+ */
+function repairKnownContentLinks(content = '') {
+  return String(content)
+    .replace(
+      /<a href="https:\/\/www\.hss\.iitb\.ac\.in\/sites\/default\/files\/2023-10\/Coherence_Linking_Words%20\(RMIT%20University"([^>]*)>([\s\S]*?)<\/a>\.pdf\)/gi,
+      `<a href="${OFFICIAL_WRITING_FORMAT_URL}"$1>$2</a>.`
+    )
+    .replaceAll(
+      'https://careerwiseenglish.com.au/ielts-writing-task-2-time-management/',
+      `${SITE_URL}/blog/ielts-writing-task-2-time-management-20-minutes`
+    )
+    .replaceAll(
+      'https://ielts5to6.com/grammar/ielts-writing-task-2-collocations-list-pdf-friendly/',
+      OFFICIAL_WRITING_FORMAT_URL
+    )
+    .replaceAll(
+      'https://ieltsimmigration.ir/wp-content/uploads/2020/03/Band-Descriptors-Task-2.pdf',
+      OFFICIAL_WRITING_FORMAT_URL
+    );
+}
 
 function estimateTitleWidth(value) {
   let width = 0;
@@ -430,6 +458,23 @@ function estimateTitleWidth(value) {
     else width += 10.2;
   }
   return width;
+}
+
+function trimTitleToWidth(value, maxWidth) {
+  if (estimateTitleWidth(value) <= maxWidth) return value;
+  const words = String(value).trim().split(/\s+/);
+  let trimmed = '';
+  for (const word of words) {
+    const candidate = trimmed ? `${trimmed} ${word}` : word;
+    if (estimateTitleWidth(`${candidate}…`) > maxWidth) break;
+    trimmed = candidate;
+  }
+  return trimmed ? `${trimmed}…` : String(value).slice(0, 36).trimEnd() + '…';
+}
+
+function articleSearchTitle(title) {
+  const suffixWidth = estimateTitleWidth(ARTICLE_TITLE_SUFFIX);
+  return `${trimTitleToWidth(title, SERP_TITLE_MAX_PIXELS - suffixWidth)}${ARTICLE_TITLE_SUFFIX}`;
 }
 
 function layout({
@@ -716,7 +761,9 @@ function renderIndex(posts, requestQuery = {}) {
     title: `${viewTitle}${pageSuffix}`,
     description,
     canonical,
-    ...(query ? { robots: 'noindex, follow' } : {}),
+    // Search results and thin pagination are useful navigation for people but
+    // should not become standalone landing pages in the search index.
+    ...(query || currentPage > 1 ? { robots: 'noindex, follow' } : {}),
     structuredData: [
       {
         '@context': 'https://schema.org',
@@ -752,7 +799,7 @@ function renderArticle(post, allPosts = []) {
   const canonical = `${SITE_URL}/blog/${post.slug}`;
   const description = post.meta_description || post.description;
   const publishedAt = post.published_at || post.created_at;
-  const prepared = prepareArticle(post.content);
+  const prepared = prepareArticle(repairKnownContentLinks(post.content));
   const tags = (post.seo_tags || [])
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join('');
@@ -819,7 +866,9 @@ function renderArticle(post, allPosts = []) {
     ],
   };
   return layout({
-    title: post.title,
+    // A page title must add useful context rather than repeat the visible H1.
+    // The width guard preserves the most important leading query terms.
+    title: articleSearchTitle(post.title),
     description,
     canonical,
     type: 'article',

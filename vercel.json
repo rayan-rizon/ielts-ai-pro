@@ -236,6 +236,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/email/unsubscribed",
+      "destination": "/index.html"
+    },
+    {
       "source": "/about",
       "destination": "/about/index.html"
     },
