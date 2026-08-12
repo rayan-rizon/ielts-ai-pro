@@ -87,4 +87,14 @@ describe('AdminSecurityService.getSnapshot', () => {
     expect(snapshot.passkeysAvailable).toBe(false);
     expect(snapshot.passkeysError).toBe('Passkeys are disabled');
   });
+
+  it('uses the AAL2-protected revocation RPC for an individual device', async () => {
+    testState.rpc.mockResolvedValue({ error: null });
+
+    await AdminSecurityService.signOutSession('device-session');
+
+    expect(testState.rpc).toHaveBeenCalledWith('revoke_admin_security_session', {
+      p_session_id: 'device-session',
+    });
+  });
 });

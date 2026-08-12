@@ -34,6 +34,7 @@ import {
   FADE_UP,
 } from '@/components/admin/ui/primitives';
 import { AdminSecurityService } from '@/features/admin/services/AdminSecurityService';
+import { getPasswordStrength } from '@/lib/validations';
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
@@ -53,14 +54,6 @@ const authMethodsLabel = (methods) => {
   return values.length ? [...new Set(values)].join(' + ') : 'Session observed';
 };
 
-const hasRecentPassword = (methods) =>
-  (methods || []).some(
-    (entry) =>
-      typeof entry === 'object' &&
-      entry?.method === 'password' &&
-      Number(entry.timestamp) * 1000 > Date.now() - 10 * 60 * 1000
-  );
-
 export default function SecuritySettingsTab({
   passwordData,
   onChangePasswordData,
@@ -77,6 +70,9 @@ export default function SecuritySettingsTab({
   const [recoveryCode, setRecoveryCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState([]);
   const [loadError, setLoadError] = useState('');
+  const [passkeyAction, setPasskeyAction] = useState(null);
+  const [passkeyPassword, setPasskeyPassword] = useState('');
+  const [passkeyCode, setPasskeyCode] = useState('');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -96,15 +92,13 @@ export default function SecuritySettingsTab({
     refresh();
   }, [refresh]);
 
+  const verifiedFactors = snapshot?.factors?.filter((factor) => factor.status === 'verified') || [];
   const canManagePasskeys = useMemo(
-    () =>
-      snapshot?.passkeysAvailable !== false &&
-      snapshot?.status?.aal === 'aal2' &&
-      hasRecentPassword(snapshot?.status?.authentication_methods),
-    [snapshot]
+    () => snapshot?.passkeysAvailable !== false && verifiedFactors.length > 0,
+    [snapshot, verifiedFactors.length]
   );
   const isRecoverySession = Boolean(snapshot?.status?.recovery_session_expires_at);
-  const verifiedFactors = snapshot?.factors?.filter((factor) => factor.status === 'verified') || [];
+  const passwordStrength = getPasswordStrength(passwordData.newPassword);
 
   const run = async (name, action, successMessage) => {
     setWorking(name);
@@ -199,7 +193,7 @@ export default function SecuritySettingsTab({
         <PanelHeader
           label="Admin security"
           title="Protected administrator access"
-          description="Passkeys are your phishing-resistant first factor. A verified authenticator is required to reach AAL2 after enforcement."
+          description="Passkeys and MFA protect administrator access."
           accent={snapshot?.status?.aal === 'aal2' ? 'ok' : 'warn'}
         >
           <Pill tone={snapshot?.status?.aal === 'aal2' ? 'ok' : 'warn'}>
@@ -236,7 +230,7 @@ export default function SecuritySettingsTab({
         <PanelHeader
           label="Passkeys"
           title="Phishing-resistant sign-in"
-          description="Use a device passkey, password manager, or hardware security key. Keep at least two separate authenticators."
+          description="Add a passkey for phishing-resistant sign-in."
           accent="accent"
         />
         <div className="space-y-3 p-4">
@@ -274,13 +268,7 @@ export default function SecuritySettingsTab({
                 <button
                   type="button"
                   disabled={!canManagePasskeys || working === `delete-passkey-${passkey.id}`}
-                  onClick={() =>
-                    run(
-                      `delete-passkey-${passkey.id}`,
-                      () => AdminSecurityService.removePasskey(passkey.id),
-                      'Passkey removed.'
-                    )
-                  }
+                  onClick={() => setPasskeyAction({ type: 'remove', passkey })}
                   className="rounded-md p-1.5 text-stone-400 transition-colors hover:bg-rose-500/10 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40 dark:text-stone-500 dark:hover:text-rose-300"
                   aria-label={`Remove ${passkey.friendly_name || 'passkey'}`}
                 >
@@ -294,26 +282,95 @@ export default function SecuritySettingsTab({
             ))
           ) : (
             <Empty icon={Fingerprint} title="No passkey enrolled yet" className="py-7">
-              Add a passkey after completing a password sign-in and MFA verification.
+              Add one to this device or password manager.
             </Empty>
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
             <p className={cn(BODY, 'max-w-md')}>
-              {canManagePasskeys
-                ? 'This session has recent password verification and AAL2. You may add or remove passkeys.'
-                : 'To change passkeys, sign in with your password and complete MFA. Passkey-only sessions cannot alter passkeys.'}
+              Verify your password and authenticator code before adding a passkey.
             </p>
             <AdminButton
               disabled={!canManagePasskeys || working === 'add-passkey'}
               loading={working === 'add-passkey'}
-              onClick={() =>
-                run('add-passkey', () => AdminSecurityService.registerPasskey(), 'Passkey added.')
-              }
+              onClick={() => setPasskeyAction({ type: 'add' })}
             >
               <Plus className="h-3.5 w-3.5" /> Add passkey
             </AdminButton>
           </div>
+          {passkeyAction && (
+            <div className={cn(TILE, 'space-y-3 p-3')}>
+              <SectionLabel accent="accent">
+                {passkeyAction.type === 'add'
+                  ? 'Verify to add a passkey'
+                  : 'Verify to remove a passkey'}
+              </SectionLabel>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label className={FIELD_LABEL} htmlFor="passkey-password">
+                    Current password
+                  </Label>
+                  <Input
+                    id="passkey-password"
+                    type="password"
+                    value={passkeyPassword}
+                    onChange={(event) => setPasskeyPassword(event.target.value)}
+                    className={FIELD_INPUT}
+                    autoComplete="current-password"
+                  />
+                </div>
+                <div>
+                  <Label className={FIELD_LABEL} htmlFor="passkey-code">
+                    Authenticator code
+                  </Label>
+                  <Input
+                    id="passkey-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={8}
+                    value={passkeyCode}
+                    onChange={(event) => setPasskeyCode(event.target.value.replace(/\s/g, ''))}
+                    className={cn(FIELD_INPUT, 'font-mono tracking-[0.22em]')}
+                    placeholder="123456"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <AdminButton
+                  disabled={!passkeyPassword || !passkeyCode}
+                  loading={working === 'add-passkey'}
+                  onClick={() =>
+                    run(
+                      'add-passkey',
+                      async () => {
+                        if (passkeyAction.type === 'add') {
+                          await AdminSecurityService.reverifyAndRegisterPasskey(
+                            passkeyPassword,
+                            verifiedFactors[0].id,
+                            passkeyCode
+                          );
+                        } else {
+                          await AdminSecurityService.reverifySensitiveAction(
+                            passkeyPassword,
+                            verifiedFactors[0].id,
+                            passkeyCode
+                          );
+                          await AdminSecurityService.removePasskey(passkeyAction.passkey.id);
+                        }
+                        setPasskeyPassword('');
+                        setPasskeyCode('');
+                        setPasskeyAction(null);
+                      },
+                      passkeyAction.type === 'add' ? 'Passkey added.' : 'Passkey removed.'
+                    )
+                  }
+                >
+                  <Fingerprint className="h-3.5 w-3.5" />
+                  {passkeyAction.type === 'add' ? 'Verify and add' : 'Verify and remove'}
+                </AdminButton>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -321,7 +378,7 @@ export default function SecuritySettingsTab({
         <PanelHeader
           label="Authenticator"
           title="Second factor"
-          description="A verified TOTP authenticator upgrades this session to AAL2."
+          description="Use an authenticator to verify sensitive actions."
           accent={verifiedFactors.length ? 'ok' : 'warn'}
         />
         <div className="space-y-3 p-4">
@@ -469,7 +526,7 @@ export default function SecuritySettingsTab({
         <PanelHeader
           label="Recovery"
           title="One-time offline recovery codes"
-          description="Codes are shown only when generated, stored as hashes, and grant a 15-minute session to restore an authenticator."
+          description="Backup codes for a lost authenticator."
           accent="warn"
         />
         <div className="space-y-3 p-4">
@@ -560,7 +617,7 @@ export default function SecuritySettingsTab({
         <PanelHeader
           label="Password"
           title="Change password"
-          description="Changing your password ends other Auth sessions. Reverify MFA after any password change."
+          description="Use a unique 12-character password."
           accent="idle"
         />
         <div className="space-y-3 p-4">
@@ -611,6 +668,35 @@ export default function SecuritySettingsTab({
               />
             </div>
           </div>
+          {passwordData.newPassword && (
+            <div className={cn(TILE, 'p-3')}>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <span className={FIELD_LABEL}>Password strength</span>
+                <span className="text-[11px] font-extrabold text-stone-700 dark:text-stone-200">
+                  {passwordStrength.label}
+                </span>
+              </div>
+              <div
+                className="grid grid-cols-5 gap-1"
+                aria-label={`Password strength: ${passwordStrength.label}`}
+              >
+                {Array.from({ length: 5 }, (_, index) => (
+                  <span
+                    key={index}
+                    className={cn(
+                      'h-1.5 rounded-full',
+                      index < passwordStrength.score
+                        ? passwordStrength.color
+                        : 'bg-stone-200 dark:bg-white/10'
+                    )}
+                  />
+                ))}
+              </div>
+              <p className={cn(BODY, 'mt-2')}>
+                Use upper- and lowercase letters, a number, and a symbol.
+              </p>
+            </div>
+          )}
           <div className="flex justify-end pt-1">
             <AdminButton
               onClick={onPasswordChange}
@@ -626,8 +712,8 @@ export default function SecuritySettingsTab({
       <section className={cn(PANEL, 'col-span-12 overflow-hidden')}>
         <PanelHeader
           label="Observed sessions"
-          title="Administrator session record"
-          description="Shown after an admin sign-in or security-console visit. Supabase Auth, not this log, remains the source of live session validity."
+          title="Active devices"
+          description="Manage active administrator devices."
           accent="ok"
         >
           <button
@@ -676,6 +762,28 @@ export default function SecuritySettingsTab({
                   >
                     {session.session_id.slice(0, 8)}
                   </span>
+                  {!isCurrent && !session.revoked_at && (
+                    <button
+                      type="button"
+                      disabled={working === `signout-session-${session.session_id}`}
+                      onClick={() => {
+                        if (
+                          window.confirm('Sign out this device? It will need to sign in again.')
+                        ) {
+                          run(
+                            `signout-session-${session.session_id}`,
+                            () => AdminSecurityService.signOutSession(session.session_id),
+                            'Device signed out.'
+                          );
+                        }
+                      }}
+                      className="rounded-md border border-stone-200 px-2 py-1 text-[10px] font-extrabold text-stone-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50 dark:border-white/[0.1] dark:text-stone-300 dark:hover:border-rose-500/30 dark:hover:bg-rose-500/10 dark:hover:text-rose-200"
+                    >
+                      {working === `signout-session-${session.session_id}`
+                        ? 'Signing out…'
+                        : 'Sign out'}
+                    </button>
+                  )}
                 </div>
               );
             })
@@ -687,8 +795,7 @@ export default function SecuritySettingsTab({
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 px-4 py-3 dark:border-white/[0.07]">
           <p className={cn(BODY, 'max-w-2xl')}>
-            Use this if a device is lost or you suspect an account compromise. It invalidates all
-            current Auth sessions for this administrator.
+            Sign out every device if your account may be compromised.
           </p>
           <AdminButton
             variant="destructive"

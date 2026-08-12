@@ -179,6 +179,33 @@ export const AdminSecurityService = {
     return data;
   },
 
+  async reverifySensitiveAction(password: string, factorId: string, code: string) {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    throwOnError(userError);
+    if (!user?.email) throw new Error('Your administrator identity could not be verified.');
+
+    // A passkey can become a first factor, so require a fresh password and TOTP
+    // verification in this same interaction rather than trusting an old tab.
+    const { data: passwordSession, error: passwordError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password,
+    });
+    throwOnError(passwordError);
+    if (passwordSession.user?.id !== user.id) {
+      throw new Error('The password belongs to a different account.');
+    }
+
+    await this.verifyTotp(factorId, code);
+  },
+
+  async reverifyAndRegisterPasskey(password: string, factorId: string, code: string) {
+    await this.reverifySensitiveAction(password, factorId, code);
+    return this.registerPasskey();
+  },
+
   async removePasskey(passkeyId: string) {
     const { error } = await supabase.auth.passkey.delete({ passkeyId });
     throwOnError(error);
@@ -207,6 +234,13 @@ export const AdminSecurityService = {
     const { error: auditError } = await supabase.rpc('end_all_admin_sessions');
     throwOnError(auditError);
     const { error } = await supabase.auth.signOut({ scope: 'global' });
+    throwOnError(error);
+  },
+
+  async signOutSession(sessionId: string) {
+    const { error } = await supabase.rpc('revoke_admin_security_session', {
+      p_session_id: sessionId,
+    });
     throwOnError(error);
   },
 };
