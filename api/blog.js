@@ -932,26 +932,45 @@ function sendError(response) {
   );
 }
 
+/*
+ * Everything that can throw - header setup, query parsing, the fetch, and the
+ * render itself - now lives inside the try block. Previously the query.slug
+ * read sat above it: a malformed request without a populated `query` object
+ * (a bare function invocation, an unusual rewrite) threw before the try/catch
+ * ever ran, which crashed the function outright and surfaced Vercel's raw
+ * "500: INTERNAL_SERVER_ERROR" instead of the branded fallback page below.
+ * The inner try/catch around sendError is a second safety net: if rendering
+ * the fallback page itself throws, we still answer with something instead of
+ * crashing the function a second time.
+ */
 export default async function handler(request, response) {
-  response.setHeader('Content-Type', 'text/html; charset=utf-8');
-  response.setHeader('Content-Language', 'en');
-  response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
-  response.setHeader(
-    'Link',
-    `<${SITE_URL}/blog/feed.xml>; rel="alternate"; type="application/rss+xml"`
-  );
-  response.setHeader('X-Content-Type-Options', 'nosniff');
-
-  const slug = Array.isArray(request.query.slug) ? request.query.slug[0] : request.query.slug;
   try {
+    response.setHeader('Content-Type', 'text/html; charset=utf-8');
+    response.setHeader('Content-Language', 'en');
+    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
+    response.setHeader(
+      'Link',
+      `<${SITE_URL}/blog/feed.xml>; rel="alternate"; type="application/rss+xml"`
+    );
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+
+    const query = request.query || {};
+    const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
     const posts = await fetchPosts(slug);
     if (slug && posts.length === 0) return sendNotFound(response);
     const allPosts = slug ? await fetchPosts() : posts;
-    response
-      .status(200)
-      .send(slug ? renderArticle(posts[0], allPosts) : renderIndex(posts, request.query));
+    response.status(200).send(slug ? renderArticle(posts[0], allPosts) : renderIndex(posts, query));
   } catch (error) {
     console.error('[blog-render]', error);
-    sendError(response);
+    try {
+      sendError(response);
+    } catch (renderError) {
+      console.error('[blog-render-fallback]', renderError);
+      if (!response.headersSent) {
+        response
+          .status(503)
+          .send('The IELTS blog is temporarily unavailable. Please try again shortly.');
+      }
+    }
   }
 }
