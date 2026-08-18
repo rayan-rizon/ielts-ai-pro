@@ -10,6 +10,7 @@ import { skillLabel } from '../constants';
 import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
 import { MUTED } from '@/features/dashboard/components/primitives';
+import RecommendationBadge from '@/features/recommendations/RecommendationBadge';
 
 const SKILL_VISUALS = {
   grammar_sentence_boundaries: {
@@ -44,9 +45,43 @@ export default function GrammarGuidesPanel({
   user,
   completedGuideSlugs = [],
   recommendedSkill,
+  recommendations = [],
+  resultEvidenceCount = 0,
 }) {
   const [category, setCategory] = useState('All guides');
   const [query, setQuery] = useState('');
+  const recommendationMap = useMemo(() => {
+    const map = new Map(
+      recommendations.map((item, index) => [item.slug, { ...item, rank: index }])
+    );
+
+    // Cross-test recommendations are more specific, so they always win. When one is
+    // unavailable, the dashboard's existing selected Grammar skill must still have a
+    // visible, actionable destination instead of only changing the sort order.
+    if (map.size || !recommendedSkill?.skillCode) return map;
+
+    const nextGuide = GRAMMAR_GUIDES.find(
+      (guide) =>
+        guide.skill_code === recommendedSkill.skillCode && !completedGuideSlugs.includes(guide.slug)
+    );
+    if (!nextGuide) return map;
+
+    const mastery = Number(recommendedSkill.mastery);
+    const observations = Number(recommendedSkill.observations || 0);
+    const hasObservedResult = observations > 0 && Number.isFinite(mastery);
+    map.set(nextGuide.slug, {
+      slug: nextGuide.slug,
+      rank: 0,
+      reason: hasObservedResult
+        ? `Your Grammar Lab result shows ${Math.round(mastery * 100)}% mastery in ${String(recommendedSkill.label || nextGuide.kit).toLowerCase()}.`
+        : 'Start here, then complete the Grammar Lab diagnostic for a result-based recommendation.',
+      sources: [hasObservedResult ? 'grammar-lab' : 'grammar-lab-diagnostic'],
+    });
+    return map;
+  }, [completedGuideSlugs, recommendations, recommendedSkill]);
+  const hasObservedRecommendedSkill =
+    Number(recommendedSkill?.observations || 0) > 0 &&
+    Number.isFinite(Number(recommendedSkill?.mastery));
   const visibleGuides = useMemo(() => {
     const sourceGuides = GRAMMAR_GUIDES.length ? GRAMMAR_GUIDES : resources || [];
     const normalizedQuery = query.trim().toLowerCase();
@@ -59,15 +94,21 @@ export default function GrammarGuidesPanel({
           .includes(normalizedQuery);
       return categoryMatches && queryMatches;
     });
-    if (category !== 'All guides' || normalizedQuery || !recommendedSkill?.skillCode) {
+    if (category !== 'All guides' || normalizedQuery) {
       return filtered;
     }
-    return [...filtered].sort(
-      (a, b) =>
-        Number(b.skill_code === recommendedSkill.skillCode) -
-        Number(a.skill_code === recommendedSkill.skillCode)
-    );
-  }, [category, query, recommendedSkill?.skillCode, resources]);
+    return [...filtered].sort((a, b) => {
+      const aRank = recommendationMap.get(a.slug)?.rank;
+      const bRank = recommendationMap.get(b.slug)?.rank;
+      if (aRank !== undefined || bRank !== undefined) {
+        return (aRank ?? Number.MAX_SAFE_INTEGER) - (bRank ?? Number.MAX_SAFE_INTEGER);
+      }
+      return (
+        Number(b.skill_code === recommendedSkill?.skillCode) -
+        Number(a.skill_code === recommendedSkill?.skillCode)
+      );
+    });
+  }, [category, query, recommendationMap, recommendedSkill?.skillCode, resources]);
 
   return (
     <section id="grammar-guides" className="scroll-mt-6 p-4 sm:p-5">
@@ -81,9 +122,13 @@ export default function GrammarGuidesPanel({
             IELTS grammar guides
           </h2>
           <p className={cn('mt-1 max-w-2xl text-xs font-medium leading-5', MUTED)}>
-            {recommendedSkill?.skillCode
-              ? `Guides for ${skillLabel(recommendedSkill.skillCode).toLowerCase()} appear first, based on your saved evidence.`
-              : 'Follow all 18 units in order, or choose the exact rule you need before a practice set.'}
+            {recommendations.length
+              ? `${recommendations.length} focused guides appear first, based on ${resultEvidenceCount || 'your'} completed result${resultEvidenceCount === 1 ? '' : 's'} and Grammar Lab evidence.`
+              : recommendationMap.size && hasObservedRecommendedSkill
+                ? `Guides for ${skillLabel(recommendedSkill.skillCode).toLowerCase()} appear first, based on your saved evidence.`
+                : recommendationMap.size
+                  ? 'Start with the tagged foundation, then complete a Grammar Lab diagnostic for a result-based recommendation.'
+                  : 'Follow all 18 units in order, or choose the exact rule you need before a practice set.'}
           </p>
         </div>
         <div className="text-right">
@@ -152,7 +197,7 @@ export default function GrammarGuidesPanel({
             const visual = SKILL_VISUALS[resource.skill_code] || SKILL_VISUALS.grammar_word_forms;
             const isLocked = !hasContentAccess(user, resource.access_tier);
             const isCompleted = completedGuideSlugs.includes(resource.slug);
-            const isRecommended = resource.skill_code === recommendedSkill?.skillCode;
+            const recommendation = recommendationMap.get(resource.slug);
             return (
               <Link
                 key={resource.id}
@@ -171,14 +216,16 @@ export default function GrammarGuidesPanel({
                       slug={resource.slug}
                       compact
                     />
-                    <ContentStatusBadge
-                      user={user}
-                      requiredTier={resource.access_tier}
-                      completed={isCompleted}
-                    />
+                    <div className="flex flex-col items-end gap-1">
+                      <ContentStatusBadge
+                        user={user}
+                        requiredTier={resource.access_tier}
+                        completed={isCompleted}
+                      />
+                      <RecommendationBadge recommendation={recommendation} />
+                    </div>
                   </div>
                   <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
-                    {isRecommended ? 'Recommended · ' : ''}
                     {skillLabel(resource.skill_code)}
                   </div>
                   <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">

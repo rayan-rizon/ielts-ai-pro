@@ -1,5 +1,11 @@
-export const CONSENT_STORAGE_KEY = 'ielts_cookie_consent';
-export const CONSENT_VERSION = '1.0';
+import {
+  captureProductEvent,
+  captureProductPageView,
+  identifyProductUser,
+  syncProductAnalyticsConsent,
+} from '@/lib/posthog';
+
+export { CONSENT_STORAGE_KEY, CONSENT_VERSION } from '@/lib/trackingConfig';
 
 const DEFAULT_IDS = {
   gtmId: 'GTM-TR6XQ2R3',
@@ -302,10 +308,13 @@ export const refreshTrackingBootstrap = () => {
   // Keep a stable compatibility hook for consent flows that
   // expect a tracking refresh signal after preference changes.
   window.dispatchEvent(new Event('cookie-consent-updated'));
+  void syncProductAnalyticsConsent();
 };
 
 export const trackPageView = (pathname = '/') => {
   if (!isBrowser()) return;
+
+  void captureProductPageView(pathname);
 
   import('@/lib/marketingAttribution')
     .then(({ captureMarketingAttribution }) => captureMarketingAttribution())
@@ -329,6 +338,7 @@ export const trackPageView = (pathname = '/') => {
 
 export const trackAppEvent = (eventName, payload = {}) => {
   if (!isBrowser() || !eventName) return;
+  void captureProductEvent(eventName, payload);
   if (DROPPED_EVENTS.has(eventName)) return;
 
   const pixelEvent = PIXEL_EVENT_MAP[eventName];
@@ -477,6 +487,7 @@ export const trackSignupCompleted = ({
 
 export const pushUserIdentity = (profile) => {
   if (!isBrowser() || !profile) return;
+  void identifyProductUser(profile);
   pushDataLayer({
     event: 'user_identified',
     user_id: profile.id || null,

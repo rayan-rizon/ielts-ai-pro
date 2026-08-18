@@ -2,7 +2,9 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { useResultRecommendations } from '@/features/recommendations/useResultRecommendations';
 import { generateAdaptiveLearningPath } from '@/utils/api';
+import { GRAMMAR_GUIDES } from '../data/grammarGuideCatalog';
 import {
   completeGrammarAttempt,
   getGrammarAttempt,
@@ -112,6 +114,12 @@ export function useGrammarLab() {
   });
 
   const dashboard = dashboardQuery.data;
+  const resultRecommendations = useResultRecommendations({
+    user,
+    grammarSkills: dashboard?.skills,
+    completedGrammarSlugs: dashboard?.completedGuideSlugs,
+    grammarGuides: GRAMMAR_GUIDES,
+  });
   const recommendedSkill = useMemo(() => {
     const skills = dashboard?.skills || [];
     const measured = skills
@@ -140,6 +148,7 @@ export function useGrammarLab() {
     error: dashboardQuery.error,
     refetch: dashboardQuery.refetch,
     recommendedSkill,
+    resultRecommendations,
     criterionDiagnosticNeeded,
     activeAttempt,
     setActiveAttempt,

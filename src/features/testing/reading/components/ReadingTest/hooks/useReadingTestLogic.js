@@ -24,6 +24,7 @@ import {
   resolveNewAttemptMode,
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
+import { trackAppEvent } from '@/lib/tracking';
 
 export function useReadingTestLogic(
   initialId,
@@ -481,6 +482,11 @@ export function useReadingTestLogic(
         dispatch({ type: 'FINISH_TEST' });
 
         if (didComplete) {
+          trackAppEvent('test_completed', {
+            test_type: 'reading',
+            test_mode: getSessionTestMode(session),
+            overall_band: results.bandScore,
+          });
           refreshLearningPathAfterTest(
             session.user_id || user?.id,
             'reading',

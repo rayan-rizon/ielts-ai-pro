@@ -14,6 +14,7 @@ export default function GrammarDashboard({
   dashboard,
   user,
   recommendedSkill,
+  resultRecommendations,
   criterionDiagnosticNeeded,
   defaultMode,
   defaultSkill,
@@ -128,6 +129,8 @@ export default function GrammarDashboard({
           user={user}
           completedGuideSlugs={dashboard?.completedGuideSlugs}
           recommendedSkill={recommended}
+          recommendations={resultRecommendations?.grammar}
+          resultEvidenceCount={resultRecommendations?.evidence?.resultCount}
         />
       </div>
     </div>

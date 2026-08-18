@@ -42,54 +42,6 @@ const scheduleDeferredTelemetry = (callback: () => void, delay = 8000) => {
   else window.addEventListener('load', schedule, { once: true });
 };
 
-// New Relic Initialization
-const initNewRelic = () => {
-  import('@newrelic/browser-agent/loaders/browser-agent')
-    .then(({ BrowserAgent }) => {
-      const options = {
-        info: {
-          applicationID: String(import.meta.env.VITE_NEWRELIC_APP_ID || ''),
-          beacon: 'bam.nr-data.net',
-          errorBeacon: 'bam.nr-data.net',
-          licenseKey: String(import.meta.env.VITE_NEWRELIC_LICENSE_KEY || ''),
-          sa: 1,
-        },
-        init: {
-          ajax: { deny_list: ['bam.nr-data.net'] },
-          browser_consent_mode: { enabled: false },
-          distributed_tracing: { enabled: true },
-          performance: { capture_detail: false, capture_marks: false, capture_measures: true },
-          privacy: { cookies_enabled: true },
-        },
-        loader_config: {
-          accountID: String(import.meta.env.VITE_NEWRELIC_ACCOUNT_ID || ''),
-          agentID: String(import.meta.env.VITE_NEWRELIC_AGENT_ID || ''),
-          applicationID: String(import.meta.env.VITE_NEWRELIC_APP_ID || ''),
-          licenseKey: String(import.meta.env.VITE_NEWRELIC_LICENSE_KEY || ''),
-          trustKey: String(import.meta.env.VITE_NEWRELIC_TRUST_KEY || ''),
-        },
-      };
-
-      try {
-        // Clear NREUM if it's set to a primitive (like false) to prevent 'Cannot create property NREUM on boolean false' during HMR or re-initialization
-        if (typeof (window as any).NREUM !== 'object') {
-          delete (window as any).NREUM;
-        }
-        const agent = new BrowserAgent(options);
-        console.log('[New Relic] Browser agent initialized successfully');
-      } catch (err) {
-        console.error('[New Relic] Failed to create browser agent instance', err);
-      }
-    })
-    .catch((err) => {
-      console.error('[New Relic] Failed to load browser agent module', err);
-    });
-};
-
-if (isLiveProduction && typeof window !== 'undefined') {
-  scheduleDeferredTelemetry(initNewRelic);
-}
-
 // PERFORMANCE: Defer Sentry initialization to idle time.
 // Browser tracing, replay, and profiling are heavy modules (~100-150ms).
 // Using requestIdleCallback ensures they load after First Contentful Paint.
@@ -125,7 +77,7 @@ const initSentry = () => {
       profileSessionSampleRate: isLiveProduction ? 0.1 : 0,
       replaysSessionSampleRate: isLiveProduction ? 0.1 : 0,
       replaysOnErrorSampleRate: isLiveProduction ? 1.0 : 0,
-      sendDefaultPii: true,
+      sendDefaultPii: false,
       beforeSend(event, hint) {
         // Temporarily commented out to allow testing and verification in local development
         /*

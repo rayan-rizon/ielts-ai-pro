@@ -304,6 +304,7 @@ export default function GrammarLab() {
               dashboard={grammar.dashboard}
               user={grammar.user}
               recommendedSkill={recommendedSkill}
+              resultRecommendations={grammar.resultRecommendations}
               criterionDiagnosticNeeded={grammar.criterionDiagnosticNeeded}
               defaultMode={requestedMode}
               defaultSkill={requestedSkill}

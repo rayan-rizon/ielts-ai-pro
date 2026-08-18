@@ -29,6 +29,17 @@ describe('scored completion learning-path refresh contract', () => {
     );
   });
 
+  it.each([
+    ['Reading', readingSource],
+    ['Listening', listeningSource],
+  ])('%s tracks completion only after persistence succeeds', (_module, source) => {
+    const completionGuard = source.indexOf('if (didComplete)');
+    const analyticsEvent = source.indexOf("trackAppEvent('test_completed'", completionGuard);
+
+    expect(completionGuard).toBeGreaterThan(-1);
+    expect(analyticsEvent).toBeGreaterThan(completionGuard);
+  });
+
   it('does not refresh an unscored Writing submission', () => {
     expect(writingSubmitSource).not.toContain('refreshLearningPathAfterTest');
   });

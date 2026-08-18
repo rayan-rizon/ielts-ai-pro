@@ -23,6 +23,7 @@ import {
   toPersistedTestMode,
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
+import { trackAppEvent } from '@/lib/tracking';
 
 function loadAudioDuration(src) {
   return new Promise((resolve, reject) => {
@@ -413,6 +414,11 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage } = {}) => {
         removeFromCache('listening-tests-list');
 
         if (didComplete) {
+          trackAppEvent('test_completed', {
+            test_type: 'listening',
+            test_mode: getSessionTestMode(session),
+            overall_band: results.bandScore,
+          });
           try {
             await awardXP(results.correctAnswers, questions.length, { updateStreak: false });
           } catch (e) {

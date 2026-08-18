@@ -7,8 +7,15 @@ import ContentStatusBadge from '@/features/subscription/components/ContentStatus
 import { getContentStatus } from '@/features/subscription/config/contentAccess';
 import { getVocabularyKitProgress } from '@/features/vocabulary/utils/kitProgress';
 import { cn } from '@/lib/cn';
+import RecommendationBadge from '@/features/recommendations/RecommendationBadge';
 
-const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = [] }) {
+const KitCard = memo(function KitCard({
+  kit,
+  index = 0,
+  user,
+  allVocabulary = [],
+  recommendation,
+}) {
   const theme = useMemo(() => getKitTheme(kit), [kit]);
   const itemCount = kit.word_count || kit.words?.length || 10;
   const estimatedTime = useMemo(() => Math.max(5, Math.ceil(itemCount * 0.55)), [itemCount]);
@@ -39,7 +46,7 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
     >
       <Link
         to={`/vocabulary/kits/${kit.slug || kit.id}`}
-        aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}`}
+        aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}${recommendation ? ', recommended from your results' : ''}`}
         className={cn(
           'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
           theme.panel,
@@ -55,11 +62,14 @@ const KitCard = memo(function KitCard({ kit, index = 0, user, allVocabulary = []
                 <Kit3DIcon kit={kit} />
               </div>
             </span>
-            <ContentStatusBadge
-              user={user}
-              requiredTier={kit.access_tier}
-              completed={progress.isComplete}
-            />
+            <div className="flex flex-col items-end gap-1">
+              <ContentStatusBadge
+                user={user}
+                requiredTier={kit.access_tier}
+                completed={progress.isComplete}
+              />
+              <RecommendationBadge recommendation={recommendation} />
+            </div>
           </div>
 
           {/* Category Tag */}

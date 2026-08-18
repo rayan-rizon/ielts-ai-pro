@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { configurePricingPlans } from '@/features/subscription/hooks/usePricing';
-import { calculateCheckoutAmount, getPriceData } from '@/lib/pricingUtils';
+import { calculateCheckoutAmount, getPlanPriceAndMeta, getPriceData } from '@/lib/pricingUtils';
 
 describe('pricing plan configuration', () => {
   it('only advertises learner features that are available in the product', () => {
@@ -94,5 +94,23 @@ describe('pricing plan configuration', () => {
         discount_value: 5,
       })
     ).toBe(20.47);
+  });
+
+  it('keeps plan-selection tracking safe while prices are still loading', () => {
+    expect(
+      getPlanPriceAndMeta({
+        plans: undefined,
+        planTier: 'pro',
+        billingInterval: 'monthly',
+        promoDiscount: null,
+        currentTier: undefined,
+      })
+    ).toMatchObject({
+      plan: undefined,
+      displayPrice: '0',
+      chargeAmount: 0,
+      currency: 'USD',
+      tier: 'free',
+    });
   });
 });

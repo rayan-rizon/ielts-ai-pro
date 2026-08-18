@@ -24,6 +24,8 @@ import {
 } from '@/features/vocabulary/data/vocabularyKits';
 import { cn } from '@/lib/cn';
 import KitCard from '@/features/vocabulary/components/KitCard';
+import { getVocabularyKitProgress } from '@/features/vocabulary/utils/kitProgress';
+import { useResultRecommendations } from '@/features/recommendations/useResultRecommendations';
 import {
   IconChip,
   MUTED,
@@ -51,17 +53,42 @@ function KitsLibrary() {
   const vocabulary = useVocabularyData(user);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All kits');
+  const completedVocabularySlugs = useMemo(
+    () =>
+      VOCABULARY_KITS.filter(
+        (kit) => getVocabularyKitProgress(kit, vocabulary.allVocabulary || []).isComplete
+      ).map((kit) => kit.slug),
+    [vocabulary.allVocabulary]
+  );
+  const resultRecommendations = useResultRecommendations({
+    user,
+    completedVocabularySlugs,
+    vocabularyKits: VOCABULARY_KITS,
+  });
+  const recommendationMap = useMemo(
+    () =>
+      new Map(
+        resultRecommendations.vocabulary.map((item, index) => [item.slug, { ...item, rank: index }])
+      ),
+    [resultRecommendations.vocabulary]
+  );
 
   const visibleKits = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return VOCABULARY_KITS.filter((kit) => {
+    const filtered = VOCABULARY_KITS.filter((kit) => {
       const categoryMatches = category === 'All kits' || kit.category === category;
       const queryMatches =
         !normalizedQuery ||
         `${kit.title} ${kit.description} ${kit.category}`.toLowerCase().includes(normalizedQuery);
       return categoryMatches && queryMatches;
     });
-  }, [category, query]);
+    if (category !== 'All kits' || normalizedQuery) return filtered;
+    return [...filtered].sort((a, b) => {
+      const aRank = recommendationMap.get(a.slug)?.rank;
+      const bRank = recommendationMap.get(b.slug)?.rank;
+      return (aRank ?? Number.MAX_SAFE_INTEGER) - (bRank ?? Number.MAX_SAFE_INTEGER);
+    });
+  }, [category, query, recommendationMap]);
 
   return (
     <>
@@ -171,6 +198,8 @@ function KitsLibrary() {
                 </h2>
                 <p className={cn('mt-0.5 text-xs font-semibold', MUTED)}>
                   {visibleKits.length} {visibleKits.length === 1 ? 'kit' : 'kits'} available
+                  {resultRecommendations.vocabulary.length > 0 &&
+                    ` · ${resultRecommendations.vocabulary.length} recommended from ${resultRecommendations.evidence.resultCount} recent result${resultRecommendations.evidence.resultCount === 1 ? '' : 's'}`}
                 </p>
               </div>
             </div>
@@ -192,6 +221,7 @@ function KitsLibrary() {
                       index={index}
                       user={user}
                       allVocabulary={vocabulary.allVocabulary}
+                      recommendation={recommendationMap.get(kit.slug)}
                     />
                   ))}
                 </m.div>

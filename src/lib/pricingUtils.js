@@ -148,6 +148,22 @@ export const calculateCheckoutAmount = (basePrice, interval, discount) => {
   return calculateDiscountedCheckoutAmount(basePrice, interval, discount);
 };
 
+export const getPlanPriceAndMeta = ({
+  plans,
+  planTier,
+  billingInterval,
+  promoDiscount,
+  currentTier,
+}) => {
+  const plan = Array.isArray(plans) ? plans.find((entry) => entry.tier === planTier) : undefined;
+  const basePrice = plan ? plan.basePrice : 0;
+  const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount);
+  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, promoDiscount);
+  const currency = plan?.currency || 'USD';
+  const tier = currentTier || 'free';
+  return { plan, displayPrice, chargeAmount, currency, tier };
+};
+
 export const detectLocation = async () => {
   const params = new URLSearchParams(window.location.search);
   const countryParam = params.get('country');
@@ -176,7 +192,7 @@ export const detectLocation = async () => {
           localStorage.setItem('user_country', userCountry);
         }
       }
-    } catch (e) {
+    } catch {
       try {
         const response = await fetch('https://api.country.is');
         if (response.ok) {

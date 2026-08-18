@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
-import { calculateCheckoutAmount, calculatePrice } from '@/lib/pricingUtils';
+import { getPlanPriceAndMeta, calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
@@ -75,16 +75,6 @@ const createStripeCheckout = async (sessionToken, planTier, interval, currency, 
 const getCountryIdentifier = (detectedCountry) => {
   const raw = detectedCountry || localStorage.getItem('user_country') || '';
   return raw.trim().toUpperCase();
-};
-
-const getPlanPriceAndMeta = ({ plans, planTier, billingInterval, promoDiscount, currentTier }) => {
-  const plan = plans.find((p) => p.tier === planTier);
-  const basePrice = plan ? plan.basePrice : 0;
-  const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount);
-  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, promoDiscount);
-  const currency = plan?.currency || 'USD';
-  const tier = currentTier || 'free';
-  return { plan, displayPrice, chargeAmount, currency, tier };
 };
 
 export default function Pricing() {

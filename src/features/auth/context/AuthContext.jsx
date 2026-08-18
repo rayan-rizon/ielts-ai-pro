@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { getPasskeyErrorMessage } from '@/features/auth/utils/passkeyErrors';
 import { pushUserIdentity, trackAppEvent } from '@/lib/tracking';
+import { resetProductIdentity } from '@/lib/posthog';
 import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
 import { normalizeAnnouncement, normalizeMaintenance } from '@/lib/communications';
 
@@ -712,6 +713,7 @@ export const AuthProvider = ({ children }) => {
       console.warn('Logout error:', error);
     } finally {
       // Always clear local state
+      resetProductIdentity();
       clearAdminAccess();
       setUser(null);
       setUserProfile(null);
