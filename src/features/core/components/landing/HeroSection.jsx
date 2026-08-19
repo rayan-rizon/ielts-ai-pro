@@ -30,7 +30,7 @@ function FloatingCard({ className, delay = 0, children, label }) {
       className={cn(
         'hero-floating-card absolute z-30 p-3',
         PANEL,
-        'animate-hero-drift motion-reduce:animate-none transition-shadow duration-300 hover:shadow-sm scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
+        'animate-hero-drift motion-reduce:animate-none transition-shadow [transition-duration:300ms] hover:shadow-sm scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
         className
       )}
     >

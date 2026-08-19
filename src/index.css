@@ -339,7 +339,7 @@
 }
 
 @utility animate-hero-drift {
-  animation: hero-drift 10s cubic-bezier(0.45, 0, 0.55, 1) var(--hero-float-delay, 0s) infinite;
+  animation: hero-drift 5s ease-in-out calc(var(--hero-float-delay, 0s) * -1) infinite;
   will-change: translate;
 
   @media (prefers-reduced-motion: reduce) {
@@ -819,7 +819,7 @@
     }
 
     50% {
-      translate: 0 -3px;
+      translate: 0 -8px;
     }
   }
 
