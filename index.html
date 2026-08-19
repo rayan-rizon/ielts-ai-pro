@@ -138,6 +138,33 @@
 
         captureAttribution();
 
+        // Offer code carried by an ad or email link (?promo=FIRST30).
+        //
+        // Captured on first paint for the same reason as _fbc and the
+        // attribution snapshot above: the SPA router rewrites the URL before
+        // any React code runs. It also has to survive a *logged-out* landing —
+        // an ad click arrives anonymous, signs up, and only reaches /pricing
+        // several screens later. Previously the code was read on /pricing
+        // only, stripped from the URL immediately, and then discarded whenever
+        // no user was signed in yet, so every ad visitor lost the discount the
+        // ad had just promised them and saw full price at checkout.
+        var capturePromoCode = function () {
+          try {
+            var match = window.location.search.match(/[?&]promo=([^&#]+)/);
+            if (!match) return;
+
+            var code = decodeURIComponent(match[1]).trim().toUpperCase();
+            // Same shape the redemption RPC accepts; anything else is noise.
+            if (!/^[A-Z0-9-]{6,64}$/.test(code)) return;
+
+            window.localStorage.setItem('pending_promo_code', code);
+          } catch (e) {
+            /* the offer is best-effort and must never break the page */
+          }
+        };
+
+        capturePromoCode();
+
         var scheduleGtm = function () {
           if (window.__gtmLoaded || window.__gtmScheduled) return;
           window.__gtmScheduled = true;

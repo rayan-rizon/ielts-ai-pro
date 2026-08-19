@@ -7,6 +7,7 @@ import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPla
 import ManualPayment from '../components/ManualPayment';
 import { trackAppEvent } from '@/lib/tracking';
 import { getMarketingAttribution } from '@/lib/marketingAttribution';
+import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/lib/promoOffer';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 
 // Extracted Components
@@ -124,26 +125,47 @@ export default function Pricing() {
     await refetchUser();
   };
 
-  // Recovery emails carry a one-use code in the signed-in learner's pricing
-  // link. Apply it through the same server-side redemption RPC used by the
-  // manual promo field, then remove it from the browser URL.
+  // Apply an offer code that arrived on a link — a recovery email for a
+  // signed-in learner, or an ad that promised a discount to an anonymous
+  // visitor.
+  //
+  // The code is read from the pending store rather than the URL. index.html
+  // captures `?promo=` on first paint and keeps it there until it is redeemed,
+  // which is what makes the ad case work: that visitor lands logged out, signs
+  // up, and only reaches this page afterwards. Reading the URL here instead
+  // meant the code was stripped on the anonymous landing and then dropped by
+  // the `!user` guard, so ad traffic was promised a discount and then shown
+  // full price — a silent conversion leak, not a visible error.
   useEffect(() => {
+    // Late-arriving `?promo=` (client-side navigation) still gets captured.
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('promo')?.trim().toUpperCase();
+    const urlCode = params.get('promo');
+    if (urlCode) {
+      capturePromoCode(urlCode);
+      params.delete('promo');
+      const nextSearch = params.toString();
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`
+      );
+    }
+
+    const code = getPendingPromoCode();
     if (!code) return;
 
-    params.delete('promo');
-    const nextSearch = params.toString();
-    window.history.replaceState(
-      window.history.state,
-      '',
-      `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`
-    );
+    // Not signed in yet is the normal state for an ad visitor mid-signup, so
+    // hold the code rather than discarding it.
+    if (!user) return;
 
-    if (!user || !/^[A-Z0-9-]{6,64}$/.test(code) || user.promo_discount?.code) return;
+    // Already discounted — the offer has served its purpose.
+    if (user.promo_discount?.code) {
+      clearPendingPromoCode();
+      return;
+    }
 
     let cancelled = false;
-    const applyRecoveryOffer = async () => {
+    const applyPendingOffer = async () => {
       try {
         const { supabase } = await import('@/lib/supabase');
         const { data, error } = await supabase.rpc('redeem_promo_code', { code_lookup: code });
@@ -152,6 +174,7 @@ export default function Pricing() {
           throw new Error(data.error || 'This offer is no longer available');
         if (cancelled) return;
 
+        clearPendingPromoCode();
         setPromoDiscount({
           code: data.code,
           discount_type: data.discount_type,
@@ -159,15 +182,18 @@ export default function Pricing() {
         });
         await refetchUser();
         const { toast } = await import('sonner');
-        toast.success(data.message || 'Your recovery offer is ready.');
+        toast.success(data.message || 'Your offer has been applied.');
       } catch (error) {
         if (cancelled) return;
-        console.warn('[Checkout recovery] Promo link could not be applied:', error);
+        // The server rejected it (expired, already used, unknown). Retrying on
+        // every visit would re-show the same error forever.
+        clearPendingPromoCode();
+        console.warn('[Promo link] Offer could not be applied:', error);
         const { toast } = await import('sonner');
-        toast.error(error.message || 'This recovery offer is no longer available.');
+        toast.error(error.message || 'This offer is no longer available.');
       }
     };
-    applyRecoveryOffer();
+    applyPendingOffer();
     return () => {
       cancelled = true;
     };
