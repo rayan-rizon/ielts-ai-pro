@@ -50,6 +50,13 @@ const correctedHealthMigration = readFileSync(
   ),
   'utf8'
 );
+const recoveredProviderQueueMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260819135225_reconcile_recovered_ai_provider_action_queue.sql'
+  ),
+  'utf8'
+);
 const writingFeedbackSource = readFileSync(
   resolve(process.cwd(), 'supabase/functions/generateDetailedFeedback/index.ts'),
   'utf8'
@@ -179,6 +186,27 @@ describe('platform health database contracts', () => {
     expect(correctedHealthMigration).toContain("'deterministicFallback' = 'true'");
     expect(correctedHealthMigration).toContain("THEN 'ai_text_providers'");
     expect(correctedHealthMigration).toContain("'{contractVersion}', '8'::jsonb");
+  });
+
+  it('keeps a small number of recovered provider events out of the action queue', () => {
+    expect(recoveredProviderQueueMigration).toContain(
+      'v_errors = 0 AND v_upstream_failures >= 3 AND v_upstream_rate >= 10'
+    );
+    expect(recoveredProviderQueueMigration).not.toContain(
+      "WHEN v_upstream_failures > 0 AND v_upstream_rate >= 10 THEN 'attention'"
+    );
+    expect(recoveredProviderQueueMigration).toContain(
+      "WHEN v_recovery_needs_review THEN 'attention'"
+    );
+    expect(recoveredProviderQueueMigration).toContain(
+      'WHEN v_recovery_needs_review THEN\n                    v_upstream_failures'
+    );
+    expect(recoveredProviderQueueMigration).toContain(
+      'No learner was blocked and no action is required.'
+    );
+    expect(recoveredProviderQueueMigration).toContain(
+      'No learner was blocked, but provider reliability needs review.'
+    );
   });
 
   it('preserves exact incident timestamps and accepts legitimate IELTS response lengths', () => {

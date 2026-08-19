@@ -113,6 +113,41 @@ describe('PlatformHealthDashboard operations console', () => {
     expect(screen.getByText(/retry Whisper without voice-activity detection/i)).toBeInTheDocument();
   });
 
+  it('keeps recovered provider evidence out of the action queue when the service is operational', async () => {
+    mocks.get.mockResolvedValueOnce({
+      ...health,
+      services: [
+        {
+          key: 'ai_text_providers',
+          label: 'Text AI Providers',
+          category: 'ai',
+          provider: 'OpenRouter (Luna, DeepSeek) → Direct DeepSeek → Gemini',
+          status: 'operational',
+          source: 'ai_api_usage provider and recovery outcomes',
+          impact:
+            '2 request(s) recovered automatically. No learner was blocked and no action is required.',
+          metrics: { attempts: 7, errors: 0, recoveredFallbacks: 2 },
+        },
+      ],
+    });
+    mocks.incidents.mockResolvedValueOnce([
+      {
+        service: 'ai_text_providers',
+        message: 'Two text AI requests recovered automatically.',
+        occurrences: 2,
+        first_seen: '2026-08-19T13:10:54.938Z',
+        last_seen: '2026-08-19T13:39:27.647Z',
+      },
+    ]);
+
+    render(<PlatformHealthDashboard />);
+
+    expect(await screen.findByText('Service directory')).toBeInTheDocument();
+    expect(screen.queryByText('Action queue')).not.toBeInTheDocument();
+    expect(screen.getByText('Incident evidence')).toBeInTheDocument();
+    expect(screen.getByText('Two text AI requests recovered automatically.')).toBeInTheDocument();
+  });
+
   it('filters and searches the full provider directory without hiding incident context', async () => {
     render(<PlatformHealthDashboard />);
 
