@@ -204,6 +204,29 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
     expect(__testing.detectVoice(0.11, noisyFloor)).toBe(true);
   });
 
+  it('does not treat brief ambient spikes as learner speech', () => {
+    const quietFloor = __testing.measureNoiseFloor(Array.from({ length: 60 }, () => 0.002));
+    let voiceFrames = 0;
+
+    [0.04, 0.045, 0.003, 0.05, 0.048, 0.004].forEach((rms) => {
+      voiceFrames = __testing.getNextVoiceFrameCount(rms, quietFloor, voiceFrames);
+    });
+
+    expect(voiceFrames).toBe(0);
+    expect(voiceFrames).toBeLessThan(__testing.requiredConsecutiveVoiceFrames);
+  });
+
+  it('still confirms sustained speech promptly', () => {
+    const quietFloor = __testing.measureNoiseFloor(Array.from({ length: 60 }, () => 0.002));
+    let voiceFrames = 0;
+
+    Array.from({ length: __testing.requiredConsecutiveVoiceFrames }, () => 0.05).forEach((rms) => {
+      voiceFrames = __testing.getNextVoiceFrameCount(rms, quietFloor, voiceFrames);
+    });
+
+    expect(voiceFrames).toBe(__testing.requiredConsecutiveVoiceFrames);
+  });
+
   it('stays sensitive to a quiet voice in a silent room', () => {
     const quietRoom = Array.from({ length: 60 }, () => 0.0015);
     const quietFloor = __testing.measureNoiseFloor(quietRoom);

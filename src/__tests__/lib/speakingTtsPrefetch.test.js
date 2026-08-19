@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import process from 'node:process';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
@@ -63,5 +67,19 @@ describe('speaking TTS prefetch cache', () => {
     await requestSpeakingTts('Retry me.');
 
     expect(invoke).toHaveBeenCalledTimes(2);
+  });
+
+  it('routes initial greeting and question prefetches through the shared request cache', () => {
+    const initializationSource = readFileSync(
+      resolve(
+        process.cwd(),
+        'src/features/testing/speaking/hooks/useSpeakingTestInitialization.js'
+      ),
+      'utf8'
+    );
+
+    expect(initializationSource).toContain('prefetchSpeakingTts(greeting)');
+    expect(initializationSource).toContain('prefetchSpeakingTts(firstQuestion)');
+    expect(initializationSource).not.toContain("functions.invoke('synthesizeSpeech'");
   });
 });

@@ -11,6 +11,7 @@ import {
   buildSpeakingResumeState,
   getQuestionLines,
 } from '../utils/speakingTestUtils';
+import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
 
 export default function useSpeakingTestInitialization({
   testId,
@@ -229,12 +230,10 @@ export default function useSpeakingTestInitialization({
       };
 
       try {
-        supabase.functions.invoke('synthesizeSpeech', { body: { text: greeting } }).catch(() => {});
+        prefetchSpeakingTts(greeting);
         const questionLines = getQuestionLines(firstPart.questions);
         const firstQuestion = questionLines[0] || "Let's begin. Can you tell me about yourself?";
-        supabase.functions
-          .invoke('synthesizeSpeech', { body: { text: firstQuestion } })
-          .catch(() => {});
+        prefetchSpeakingTts(firstQuestion);
       } catch (error) {
         console.warn('[TTS] Silent pre-cache warning:', error?.message || error);
       }

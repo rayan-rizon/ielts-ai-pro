@@ -5,6 +5,10 @@ export const MIN_VOICE_THRESHOLD = 0.018;
 // Ceiling on the learned threshold, so an extreme room can still be spoken over.
 export const MAX_VOICE_THRESHOLD = 0.12;
 const ANALYSIS_INTERVAL_MS = 50;
+// A couple of loud frames can be a keyboard tap, examiner-audio echo, or a
+// brief fan spike. Require a short, continuous voice-shaped run before
+// declaring that the learner spoke; browser captions still count instantly.
+const REQUIRED_CONSECUTIVE_VOICE_FRAMES = 6;
 // Three seconds of history: long enough that every natural pause in speech
 // lands inside it, short enough to follow a fan being switched on or off.
 const NOISE_WINDOW_FRAMES = 60;
@@ -50,6 +54,9 @@ export function resetCaptureAudioContextForTests() {
 /** Test seam — exposes the loudness classifier without a live microphone. */
 export const __testing = {
   detectVoice: (rms, noiseFloor) => detectVoice(rms, noiseFloor),
+  getNextVoiceFrameCount: (rms, noiseFloor, currentFrames = 0) =>
+    getNextVoiceFrameCount(rms, noiseFloor, currentFrames),
+  requiredConsecutiveVoiceFrames: REQUIRED_CONSECUTIVE_VOICE_FRAMES,
   measureNoiseFloor: (samples) => {
     const refs = { noiseWindow: { current: [] }, noiseFloor: { current: 0 } };
     samples.forEach((rms) => updateNoiseFloor(refs, rms));
@@ -101,6 +108,10 @@ function detectVoice(rms, noiseFloor) {
     Math.min(MAX_VOICE_THRESHOLD, noiseFloor * 1.6 + 0.005)
   );
   return rms > threshold;
+}
+
+function getNextVoiceFrameCount(rms, noiseFloor, currentFrames) {
+  return detectVoice(rms, noiseFloor) ? currentFrames + 1 : 0;
 }
 
 function markVoiceDetected(runtime, now) {
@@ -160,11 +171,13 @@ function createAnalysisLoop(runtime, samples) {
 
     updateNoiseFloor(refs, rms);
 
-    if (detectVoice(rms, refs.noiseFloor.current)) {
-      refs.voiceFrames.current += 1;
-      if (refs.voiceFrames.current >= 2) markVoiceDetected(runtime, now);
-    } else {
-      refs.voiceFrames.current = 0;
+    refs.voiceFrames.current = getNextVoiceFrameCount(
+      rms,
+      refs.noiseFloor.current,
+      refs.voiceFrames.current
+    );
+    if (refs.voiceFrames.current >= REQUIRED_CONSECUTIVE_VOICE_FRAMES) {
+      markVoiceDetected(runtime, now);
     }
   };
 }
