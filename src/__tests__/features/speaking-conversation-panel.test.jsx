@@ -34,6 +34,7 @@ function buildProps(overrides = {}) {
     autoFinishCountdown: null,
     autoSubmitPaused: false,
     handsFreeEnabled: false,
+    timeExpired: false,
     timerExpiredRef: { current: false },
     startListening: vi.fn(),
     stopListening: vi.fn(),
@@ -179,5 +180,26 @@ describe('speaking conversation panel examiner streaming', () => {
 
     expect(screen.getByText(examinerQuestion)).toBeInTheDocument();
     expect(screen.queryByText('Preparing examiner audio')).not.toBeInTheDocument();
+  });
+
+  it("shows a clear time's-up transition before the final report starts", () => {
+    render(
+      <SpeakingConversationPanel
+        {...buildProps({
+          currentPartNumber: 3,
+          allParts: { 1: {}, 2: {}, 3: {} },
+          timeExpired: true,
+        })}
+      />
+    );
+
+    expect(screen.getAllByText("Time's up").length).toBeGreaterThan(0);
+    expect(screen.getByText('Part 3 has finished')).toBeInTheDocument();
+    expect(
+      screen.getByText('Your answer is saved. Preparing your speaking report now.')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Start recording answer' })
+    ).not.toBeInTheDocument();
   });
 });

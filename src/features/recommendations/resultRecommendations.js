@@ -1,3 +1,5 @@
+import { normalizeSpeakingDeepDive } from '@/features/testing/speaking/utils/speakingDeepDive';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RESULT_AGE_DAYS = 180;
 const MAX_RECOMMENDATIONS = 3;
@@ -327,13 +329,9 @@ function grammarEvidenceRecords(content, testType) {
     ]);
   }
 
-  const detailed = content?.detailedFeedback;
-  const detailedErrors = [];
-  if (detailed && typeof detailed === 'object') {
-    Object.values(detailed).forEach((item) => {
-      if (Array.isArray(item?.grammaticalErrors)) detailedErrors.push(...item.grammaticalErrors);
-    });
-  }
+  const detailedErrors = (normalizeSpeakingDeepDive(content?.detailedFeedback) || []).flatMap(
+    (item) => (Array.isArray(item.grammaticalErrors) ? item.grammaticalErrors : [])
+  );
   return [
     ...detailedErrors,
     ...(content?.finalEvaluation?.improvements || []).filter((item) =>

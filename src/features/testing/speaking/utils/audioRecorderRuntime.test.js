@@ -204,6 +204,31 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
     expect(__testing.detectVoice(0.11, noisyFloor)).toBe(true);
   });
 
+  it('does not let one fan trough collapse the learned room baseline', () => {
+    const variableFan = Array.from({ length: 60 }, (_, index) =>
+      index === 0 ? 0.002 : 0.029 + (index % 5) * 0.002
+    );
+    const noisyFloor = __testing.measureNoiseFloor(variableFan);
+
+    expect(noisyFloor).toBeGreaterThan(0.025);
+    expect(__testing.detectVoice(0.04, noisyFloor)).toBe(false);
+    expect(__testing.detectVoice(0.055, noisyFloor)).toBe(true);
+  });
+
+  it('ends an unanswered hands-free capture without waiting for the safety limit', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+
+    await startRecorderCapture(runtime);
+    await vi.advanceTimersByTimeAsync(runtime.refs.captureConfig.current.noSpeechTimeoutMs + 200);
+
+    expect(processRecording).toHaveBeenCalledOnce();
+    expect(processRecording.mock.calls[0][1]).toMatchObject({
+      speechDetected: false,
+      stopReason: 'no-speech-timeout',
+    });
+  });
+
   it('does not treat brief ambient spikes as learner speech', () => {
     const quietFloor = __testing.measureNoiseFloor(Array.from({ length: 60 }, () => 0.002));
     let voiceFrames = 0;

@@ -573,6 +573,7 @@ export default function SpeakingTest() {
           speechProgress,
           processingStatus,
           handsFreeEnabled,
+          timeExpired: testStarted && timeLeft === 0,
           timerExpiredRef,
           handleStartTest,
         },

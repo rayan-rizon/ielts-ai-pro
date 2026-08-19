@@ -14,6 +14,7 @@ describe('speakingCaptureUtils', () => {
 
     expect(partTwo.minimumAnswerMs).toBeGreaterThan(partOne.minimumAnswerMs);
     expect(partTwo.silenceBeforeGraceMs).toBeGreaterThan(partOne.silenceBeforeGraceMs);
+    expect(partTwo.noSpeechTimeoutMs).toBeGreaterThan(partOne.noSpeechTimeoutMs);
   });
 
   it('waits until speech, minimum duration, and a real pause are all present', () => {

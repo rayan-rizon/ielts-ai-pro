@@ -305,12 +305,12 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
       if (cleanText.endsWith('```')) {
         cleanText = cleanText.substring(0, cleanText.length - 3);
       }
-      detailedAnalysis = normalizeDetailedSpeakingEvaluation(
+      const detailedQuestions = normalizeDetailedSpeakingEvaluation(
         JSON.parse(cleanText.trim()),
         transcriptEvidence.candidateSource
       );
       detailedAnalysis = {
-        ...detailedAnalysis,
+        questions: detailedQuestions,
         evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
         generatedAt: new Date().toISOString(),
         model: 'gemini-2.5-flash',

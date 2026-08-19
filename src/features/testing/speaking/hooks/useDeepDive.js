@@ -4,6 +4,7 @@ import { callEdgeFunction } from '@/utils/api';
 import { supabase } from '@/lib/supabase';
 
 import { buildPartContexts } from '../utils/speakingTestUtils';
+import { normalizeSpeakingDeepDive } from '../utils/speakingDeepDive';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
 function canFireDeepDive(testId, sessionId, conversations, isAlreadyGenerating) {
@@ -90,7 +91,7 @@ async function executeDeepDive({
     });
     if (isMountedRef.current) {
       await persistDeepDiveAnalysis(session, analysis);
-      setDetailedFeedback(analysis);
+      setDetailedFeedback(normalizeSpeakingDeepDive(analysis));
     }
   } catch (error) {
     if (isMountedRef.current) {
@@ -103,14 +104,14 @@ async function executeDeepDive({
 }
 
 export default function useDeepDive({ testId, session, allParts, isMountedRef }) {
-  const [detailedFeedback, setDetailedFeedback] = useState(
-    session?.content_data?.detailedFeedback ?? null
+  const [detailedFeedback, setDetailedFeedback] = useState(() =>
+    normalizeSpeakingDeepDive(session?.content_data?.detailedFeedback)
   );
   const [isGeneratingDetailed, setIsGeneratingDetailed] = useState(false);
   const [deepDiveError, setDeepDiveError] = useState(null);
 
   useEffect(() => {
-    setDetailedFeedback(session?.content_data?.detailedFeedback ?? null);
+    setDetailedFeedback(normalizeSpeakingDeepDive(session?.content_data?.detailedFeedback));
     setDeepDiveError(null);
     setIsGeneratingDetailed(false);
   }, [session?.id, session?.content_data?.detailedFeedback]);

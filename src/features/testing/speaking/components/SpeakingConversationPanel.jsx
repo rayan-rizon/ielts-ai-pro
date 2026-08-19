@@ -11,6 +11,7 @@ import InitialWelcomeScreen from './InitialWelcomeScreen';
 import Part2CueCard from './Part2CueCard';
 import PartCompleteCard from './PartCompleteCard';
 import RecordingControls from './RecordingControls';
+import TimeUpTransition from './TimeUpTransition';
 
 function Part2PreparationControls({ prepTimeLeft, onStartSpeaking }) {
   const minutes = Math.floor(prepTimeLeft / 60);
@@ -70,6 +71,7 @@ export default function SpeakingConversationPanel({
   autoFinishCountdown,
   autoSubmitPaused,
   handsFreeEnabled,
+  timeExpired,
   timerExpiredRef,
   startListening,
   stopListening,
@@ -205,16 +207,19 @@ export default function SpeakingConversationPanel({
     ? 'Ready when you are'
     : isPart2Prep
       ? 'Preparation window'
-      : isListening
-        ? 'Listening live'
-        : isProcessing
-          ? 'Processing response'
-          : isSpeaking || isTTSLoading
-            ? 'Examiner speaking'
-            : 'Your turn';
+      : timeExpired
+        ? "Time's up"
+        : isListening
+          ? 'Listening live'
+          : isProcessing
+            ? 'Processing response'
+            : isSpeaking || isTTSLoading
+              ? 'Examiner speaking'
+              : 'Your turn';
 
   const roomStatusIsActive =
-    testStarted && (isListening || isProcessing || isSpeaking || isTTSLoading || isPart2Prep);
+    testStarted &&
+    (timeExpired || isListening || isProcessing || isSpeaking || isTTSLoading || isPart2Prep);
 
   return (
     <div
@@ -316,7 +321,12 @@ export default function SpeakingConversationPanel({
 
         {!isPartComplete && (
           <div className="isolate shrink-0 transform-gpu border-t border-[#e4e2f0] px-3 py-2.5 dark:border-white/[0.07] sm:px-5 sm:py-4">
-            {testStarted && isPart2Prep ? (
+            {timeExpired ? (
+              <TimeUpTransition
+                currentPartNumber={currentPartNumber}
+                isFinalPart={!allParts[currentPartNumber + 1]}
+              />
+            ) : testStarted && isPart2Prep ? (
               <Part2PreparationControls
                 prepTimeLeft={prepTimeLeft}
                 onStartSpeaking={handleStartPart2Speaking}

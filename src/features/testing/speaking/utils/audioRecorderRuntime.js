@@ -9,9 +9,13 @@ const ANALYSIS_INTERVAL_MS = 50;
 // brief fan spike. Require a short, continuous voice-shaped run before
 // declaring that the learner spoke; browser captions still count instantly.
 const REQUIRED_CONSECUTIVE_VOICE_FRAMES = 6;
+// Learn the room before accepting analyser-only speech evidence. Browser
+// captions remain active immediately, so an eager learner is never muted.
+const NOISE_CALIBRATION_MS = 1000;
 // Three seconds of history: long enough that every natural pause in speech
 // lands inside it, short enough to follow a fan being switched on or off.
 const NOISE_WINDOW_FRAMES = 60;
+const NOISE_BASELINE_PERCENTILE = 0.2;
 const MAX_NOISE_FLOOR = 0.06;
 // The quietest frame slightly understates steady noise; lift it a little so a
 // dip between fan revolutions does not read as the true floor.
@@ -57,6 +61,7 @@ export const __testing = {
   getNextVoiceFrameCount: (rms, noiseFloor, currentFrames = 0) =>
     getNextVoiceFrameCount(rms, noiseFloor, currentFrames),
   requiredConsecutiveVoiceFrames: REQUIRED_CONSECUTIVE_VOICE_FRAMES,
+  noiseCalibrationMs: NOISE_CALIBRATION_MS,
   measureNoiseFloor: (samples) => {
     const refs = { noiseWindow: { current: [] }, noiseFloor: { current: 0 } };
     samples.forEach((rms) => updateNoiseFloor(refs, rms));
@@ -74,7 +79,7 @@ function calculateRms(samples) {
 }
 
 /**
- * Estimates room noise as the quietest moment in the last few seconds.
+ * Estimates room noise from the quieter fifth of the last few seconds.
  *
  * The previous estimator could not represent a noisy room at all: it clamped
  * the floor to MIN_VOICE_THRESHOLD, refused to learn from any frame above it,
@@ -84,20 +89,20 @@ function calculateRms(samples) {
  * never start — the answer only ended at the 2-minute cap. Switching the fan
  * off made it work, which is exactly the shape of that bug.
  *
- * A rolling minimum tracks steady noise correctly: continuous sound sets the
- * minimum, while speech — which is louder and always has gaps — never does.
+ * A single minimum is too fragile for a fan: one trough makes every later fan
+ * pulse look like speech. A lower percentile still ignores speech peaks while
+ * resisting those isolated dips.
  */
 function updateNoiseFloor(refs, rms) {
   const samples = refs.noiseWindow.current;
   samples.push(rms);
   if (samples.length > NOISE_WINDOW_FRAMES) samples.shift();
 
-  let quietest = Infinity;
-  for (let index = 0; index < samples.length; index += 1) {
-    if (samples[index] < quietest) quietest = samples[index];
-  }
+  const sorted = [...samples].sort((left, right) => left - right);
+  const baselineIndex = Math.floor((sorted.length - 1) * NOISE_BASELINE_PERCENTILE);
+  const baseline = sorted[baselineIndex] ?? rms;
 
-  refs.noiseFloor.current = Math.min(MAX_NOISE_FLOOR, quietest * NOISE_FLOOR_BIAS);
+  refs.noiseFloor.current = Math.min(MAX_NOISE_FLOOR, baseline * NOISE_FLOOR_BIAS);
 }
 
 function detectVoice(rms, noiseFloor) {
@@ -105,7 +110,7 @@ function detectVoice(rms, noiseFloor) {
   // in a noisy room stops registering.
   const threshold = Math.max(
     MIN_VOICE_THRESHOLD,
-    Math.min(MAX_VOICE_THRESHOLD, noiseFloor * 1.6 + 0.005)
+    Math.min(MAX_VOICE_THRESHOLD, noiseFloor * 1.35 + 0.004)
   );
   return rms > threshold;
 }
@@ -170,6 +175,11 @@ function createAnalysisLoop(runtime, samples) {
     if (!refs.analyserReady.current && rms > 0) refs.analyserReady.current = true;
 
     updateNoiseFloor(refs, rms);
+
+    if (now - refs.startTime.current < NOISE_CALIBRATION_MS) {
+      refs.voiceFrames.current = 0;
+      return;
+    }
 
     refs.voiceFrames.current = getNextVoiceFrameCount(
       rms,
@@ -265,10 +275,15 @@ function startSilenceMonitor(runtime) {
     if (!refs.isListening.current) return;
     if (!refs.smartFinishEnabled.current) return;
     if (refs.autoSubmitPaused.current) return;
-    if (!hasSpeechEvidence(refs)) return;
-
     const now = Date.now();
     const elapsedMs = now - refs.startTime.current;
+    if (!hasSpeechEvidence(refs)) {
+      if (elapsedMs >= refs.captureConfig.current.noSpeechTimeoutMs) {
+        stopRecorderCapture(runtime, 'no-speech-timeout');
+      }
+      return;
+    }
+
     if (shouldFinishAfterSilence(runtime, now, elapsedMs)) {
       stopRecorderCapture(runtime, 'smart-finish');
     }

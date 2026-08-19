@@ -74,4 +74,34 @@ describe('speaking report', () => {
       screen.getByText('Individual part scores were not saved for this completed test.')
     ).toBeInTheDocument();
   });
+
+  it('renders a historical deep dive saved as an object with numeric question keys', () => {
+    render(
+      <MemoryRouter>
+        <SpeakingReport
+          finalEvaluation={finalEvaluation}
+          isEvaluating={false}
+          showConfetti={false}
+          showXPNotification={false}
+          testTitle="Historical Speaking Test"
+          detailedFeedback={{
+            0: {
+              part: 1,
+              question: 'Where did you grow up?',
+              candidateAnswer: 'I grew up in Dhaka.',
+              grammaticalErrors: [],
+              topicDrift: 'null',
+              suggestedAnswer: 'Well, I grew up in Dhaka, and it was a lively place.',
+              feedback: 'You answered directly and added a relevant detail.',
+            },
+            model: 'gemini-2.5-flash',
+          }}
+          allPartsPronunciation={{}}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Where did you grow up?')).toBeInTheDocument();
+    expect(screen.getByText('Part 1: Introduction')).toBeInTheDocument();
+  });
 });

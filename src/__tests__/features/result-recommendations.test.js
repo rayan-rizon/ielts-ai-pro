@@ -80,6 +80,38 @@ describe('result-based learning recommendations', () => {
     expect(model.grammar).toEqual([]);
   });
 
+  it('reads speaking grammar evidence from the normalized deep-dive envelope', () => {
+    const model = recommendations({
+      now: NOW,
+      targetBand: 7,
+      sessions: [
+        session({
+          test_type: 'speaking',
+          content_data: {
+            criteriaScores: { grammar: 5.5 },
+            detailedFeedback: {
+              questions: [
+                {
+                  part: 1,
+                  question: 'Tell me about your neighbourhood.',
+                  grammaticalErrors: [
+                    {
+                      originalText: 'My neighbourhood have many parks.',
+                      suggestion: 'My neighbourhood has many parks.',
+                    },
+                  ],
+                },
+              ],
+              model: 'gemini-test',
+            },
+          },
+        }),
+      ],
+    });
+
+    expect(model.grammar.map((item) => item.slug)).toContain('subject-verb-agreement');
+  });
+
   it('uses measured Grammar Lab results and advances past a completed guide', () => {
     const model = recommendations({
       now: NOW,

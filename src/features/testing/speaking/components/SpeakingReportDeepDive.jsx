@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DeepDiveLoading from './DeepDiveLoading';
 import DeepDivePartSection from './DeepDivePartSection';
 import { DeepDiveHeader, DeepDiveErrorState, DeepDiveEmptyPrompt } from './DeepDiveStatusSections';
+import { normalizeSpeakingDeepDive } from '../utils/speakingDeepDive';
 
 function useDeepDiveExpansion() {
   const [expandedQuestion, setExpandedQuestion] = useState(0);
@@ -49,27 +50,28 @@ export default function SpeakingReportDeepDive({
   deepDiveError,
   handleRetryDeepDive,
 }) {
+  const normalizedFeedback = normalizeSpeakingDeepDive(detailedFeedback);
   const { expandedQuestion, isAllExpanded, toggleExpandAll, toggleQuestion } =
     useDeepDiveExpansion();
 
-  const showError = deepDiveError && !isGeneratingDetailed && !detailedFeedback;
-  const showEmptyPrompt = !deepDiveError && !isGeneratingDetailed && !detailedFeedback;
+  const showError = deepDiveError && !isGeneratingDetailed && !normalizedFeedback;
+  const showEmptyPrompt = !deepDiveError && !isGeneratingDetailed && !normalizedFeedback;
 
   return (
     <div className="mb-3 mt-5">
       <DeepDiveHeader
-        detailedFeedback={detailedFeedback}
+        detailedFeedback={normalizedFeedback}
         isAllExpanded={isAllExpanded}
-        onToggleExpandAll={() => toggleExpandAll(!!detailedFeedback)}
+        onToggleExpandAll={() => toggleExpandAll(!!normalizedFeedback)}
       />
 
       {isGeneratingDetailed && <DeepDiveLoading />}
       {showError && <DeepDiveErrorState onRetry={handleRetryDeepDive} />}
       {showEmptyPrompt && <DeepDiveEmptyPrompt onGenerate={handleRetryDeepDive} />}
 
-      {detailedFeedback && (
+      {normalizedFeedback && (
         <DeepDiveContent
-          detailedFeedback={detailedFeedback}
+          detailedFeedback={normalizedFeedback}
           isAllExpanded={isAllExpanded}
           expandedQuestion={expandedQuestion}
           onToggleQuestion={toggleQuestion}
