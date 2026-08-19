@@ -11,32 +11,30 @@ export function getRecommendation(score) {
   if (score >= 8.0) {
     return {
       level: 'Expert User',
-      desc: 'You have a fully operational command of the English language, demonstrating high fluency, flow, and precision. Keep your skills sharp with regular practice.',
+      desc: 'Fully operational command of English — fluent, precise, and consistent.',
       hours: '20–30 hours of targeted practice',
-      focus: 'Refine nuance in Writing Task 2 essays and maintain speed/accuracy in Reading.',
+      focus: 'Refine nuance in Task 2 essays and hold Reading speed under time pressure.',
     };
   } else if (score >= 7.0) {
     return {
       level: 'Good User',
-      desc: 'You have an operational command of the language with only occasional inaccuracies. You are well-positioned to achieve your target band with slight refinements.',
+      desc: 'Operational command with only occasional inaccuracies. Your target is within reach.',
       hours: '40–60 hours of structured study',
-      focus: 'Expand your advanced lexical resource and refine Speaking coherence under pressure.',
+      focus: 'Widen advanced vocabulary and steady Speaking coherence under pressure.',
     };
   } else if (score >= 6.0) {
     return {
       level: 'Competent User',
-      desc: 'You have a generally effective command of the language. You handle complex structures well, though minor inaccuracies remain.',
+      desc: 'Generally effective command. Complex structures work, minor inaccuracies remain.',
       hours: '80–100 hours of focused practice',
-      focus:
-        'Eliminate grammatical errors in Writing and develop complex sentence structures in Speaking.',
+      focus: 'Cut grammar errors in Writing and build complex sentences in Speaking.',
     };
   }
   return {
     level: 'Modest User',
-    desc: 'You have a partial command of the language. Focus on strengthening your core skills, grammar, paragraph structure, and academic vocabulary.',
+    desc: 'Partial command. Core grammar, structure, and academic vocabulary need work.',
     hours: '120+ hours of foundational study',
-    focus:
-      'Master basic IELTS essay templates, practice listening for details, and build grammar confidence.',
+    focus: 'Learn essay templates, practise listening for detail, and rebuild grammar basics.',
   };
 }
 
@@ -82,7 +80,7 @@ export const RAW_SCORE_TABLES = {
   },
   readingGeneral: {
     label: 'Reading · General Training',
-    note: 'GT Reading needs more correct answers for the same band.',
+    note: 'GT Reading needs more correct answers per band.',
     thresholds: [
       [40, 9],
       [39, 8.5],

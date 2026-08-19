@@ -160,7 +160,7 @@ export default function CTABanner({ handlePrimaryCta, viewport }) {
           viewport={viewport}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="relative overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-2xl dark:shadow-none backdrop-blur-2xl dark:backdrop-blur-none">
+          <div className="relative isolate overflow-hidden rounded-[24px] border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#131315] px-5 py-6 text-left sm:px-7 sm:py-7 md:rounded-[32px] md:px-8 lg:px-10 lg:py-8 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.18)] dark:shadow-none [mask-image:radial-gradient(white,white)] transform-gpu">
             <div className="pointer-events-none absolute -left-24 -top-32 h-80 w-80 rounded-full bg-indigo-400/20 dark:bg-[#5a63df]/10 blur-[90px]" />
             <div className="pointer-events-none absolute -bottom-36 right-[8%] h-112 w-112 rounded-full bg-purple-400/20 dark:bg-[#5a63df]/8 blur-[100px]" />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,.3),transparent_48%,rgba(130,112,255,.05))] dark:bg-none" />

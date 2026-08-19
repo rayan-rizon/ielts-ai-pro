@@ -347,6 +347,33 @@
   }
 }
 
+@utility animate-hero-enter {
+  animation: hero-enter 650ms cubic-bezier(0.2, 0, 0, 1) var(--hero-enter-delay, 0ms) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-landing-orb {
+  animation: landing-orb 20s ease-in-out var(--landing-orb-delay, 0s) infinite;
+  will-change: translate;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-hero-sheen {
+  animation: hero-sheen 8.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
 @utility animate-fade-in {
   animation: fade-in 0.5s ease-out 0.2s both;
   @media (prefers-reduced-motion: reduce) {
@@ -823,6 +850,47 @@
     }
   }
 
+  @keyframes hero-enter {
+    from {
+      opacity: 0;
+      translate: 0 18px;
+    }
+
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  @keyframes landing-orb {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+
+    50% {
+      translate: 18px -12px;
+    }
+  }
+
+  @keyframes hero-sheen {
+    0%,
+    60%,
+    100% {
+      opacity: 0;
+      transform: translate3d(-160%, 0, 0);
+    }
+
+    8% {
+      opacity: 0.18;
+    }
+
+    22% {
+      opacity: 0;
+      transform: translate3d(320%, 0, 0);
+    }
+  }
+
   @keyframes fade-in {
     from {
       opacity: 0;
@@ -938,4 +1006,57 @@
   background-color: rgba(255, 255, 255, 0.05) !important;
   border-style: solid !important;
   color: #e4e4e7 !important;
+}
+
+/* Band score calculator sliders — flat track, single accent thumb. */
+.calc-range {
+  --calc-track: #e9ebf6;
+
+  background-color: var(--calc-track);
+  outline-offset: 4px;
+}
+
+.dark .calc-range {
+  --calc-track: rgba(255, 255, 255, 0.1);
+}
+
+.calc-range::-webkit-slider-thumb {
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid #6256ef;
+  box-shadow: 0 2px 8px -2px rgba(98, 86, 239, 0.7);
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.calc-range::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+  box-shadow: 0 3px 12px -2px rgba(98, 86, 239, 0.85);
+}
+
+.calc-range::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid #6256ef;
+  box-shadow: 0 2px 8px -2px rgba(98, 86, 239, 0.7);
+  cursor: pointer;
+}
+
+.dark .calc-range::-webkit-slider-thumb,
+.dark .calc-range::-moz-range-thumb {
+  background: #111114;
+  border-color: #8b7dff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calc-range::-webkit-slider-thumb {
+    transition: none;
+  }
 }

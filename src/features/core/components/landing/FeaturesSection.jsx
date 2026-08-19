@@ -4,7 +4,7 @@ import { ArrowRight, BookOpen, FileText, Mic, PenTool, TrendingUp, Volume2 } fro
 import { SectionHeading, SoftSection, landingReveal, landingStagger } from './LandingSection';
 
 const cardClass =
-  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:border-[#6256ef]/40 hover:shadow-[0_30px_65px_-24px_rgba(82,98,239,0.38)] dark:border-white/8 dark:bg-[#111114] dark:shadow-none dark:backdrop-blur-none dark:hover:-translate-y-0.5 dark:hover:border-violet-400/20 dark:hover:shadow-none';
+  'group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e2e5fa] bg-white/95 p-5 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-[#6256ef]/20 hover:shadow-[0_22px_45px_-25px_rgba(79,66,220,0.26)] dark:border-white/8 dark:bg-[#111114] dark:shadow-none dark:backdrop-blur-none dark:hover:-translate-y-0.5 dark:hover:border-violet-400/20 dark:hover:shadow-none';
 const canvasClass =
   'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-linear-to-b/srgb from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/[0.07] dark:bg-white/2 dark:bg-none';
 const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
@@ -144,15 +144,14 @@ function SpeakingCard({ reduceMotion }) {
         className={`${canvasClass} relative flex flex-1 flex-col justify-between overflow-hidden p-5`}
       >
         {/* Soft center ambient glow */}
-        <div className="pointer-events-none absolute left-1/2 top-[42%] h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7c5cff]/15 blur-3xl dark:bg-[#7c5cff]/6" />
+        <div className="pointer-events-none absolute left-1/2 top-[42%] h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#7c5cff]/15 blur-3xl dark:bg-[#7c5cff]/6" />
 
         {/* Main Audio Visualizer Hub (Single center anchor for everything) */}
         <div className="relative flex flex-1 items-center justify-center">
-          {/* Concentric subtle aura rings */}
+          {/* Concentric subtle aura rings - clean and spaced */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-[220px] w-[220px] rounded-full border border-[#7d6cf4]/12 dark:border-indigo-400/10" />
-            <div className="absolute h-[170px] w-[170px] rounded-full border border-[#7d6cf4]/18 dark:border-indigo-400/14" />
-            <div className="absolute h-[124px] w-[124px] rounded-full border border-[#7d6cf4]/24 dark:border-indigo-400/18" />
+            <div className="h-[210px] w-[210px] rounded-full border border-[#7d6cf4]/10 dark:border-indigo-400/8" />
+            <div className="absolute h-[140px] w-[140px] rounded-full border border-[#7d6cf4]/14 dark:border-indigo-400/10" />
           </div>
 
           {/* Audio Waveform Bars (Flanking Left & Right of center mic) */}
@@ -224,18 +223,18 @@ function SpeakingCard({ reduceMotion }) {
             </div>
           </div>
 
-          {/* Central Microphone Button with Ripple Waves */}
-          <div className="relative z-10 flex h-[90px] w-[90px] items-center justify-center">
-            {[0, 0.38, 0.76].map((delay) => (
+          {/* Central Microphone Button with Smooth Ripple Waves */}
+          <div className="relative z-10 flex h-[76px] w-[76px] items-center justify-center">
+            {[0, 1.2].map((delay) => (
               <m.span
                 key={delay}
-                className="absolute inset-0 rounded-full border border-[#7d6cf4]/35 bg-[#7d6cf4]/5 dark:border-indigo-400/25 dark:bg-indigo-400/2"
-                animate={reduceMotion ? undefined : { scale: [0.85, 1.75], opacity: [0.7, 0] }}
-                transition={{ duration: 2.8, repeat: Infinity, delay, ease: 'easeOut' }}
+                className="absolute inset-0 rounded-full border border-[#7d6cf4]/30 bg-[#7d6cf4]/[0.03] dark:border-indigo-400/20 dark:bg-indigo-400/[0.02]"
+                animate={reduceMotion ? undefined : { scale: [1, 1.6], opacity: [0.45, 0] }}
+                transition={{ duration: 2.4, repeat: Infinity, delay, ease: 'easeOut' }}
               />
             ))}
             <m.div
-              className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-linear-to-br/srgb from-[#7e69ff] via-[#6852ff] to-[#5136f5] text-white shadow-[0_12px_30px_rgba(95,73,255,0.45),0_0_18px_rgba(124,92,255,0.22)] border border-white/20"
+              className="relative flex h-full w-full items-center justify-center rounded-full bg-linear-to-br/srgb from-[#7e69ff] via-[#6852ff] to-[#5136f5] text-white shadow-[0_10px_25px_rgba(95,73,255,0.45),0_0_18px_rgba(124,92,255,0.22)] border border-white/20"
               animate={reduceMotion ? undefined : { y: [0, -3, 0], scale: [1, 1.02, 1] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             >
@@ -268,6 +267,7 @@ function TestsCard({ reduceMotion }) {
     ['IELTS Academic Test 11', '7.0'],
     ['IELTS Academic Test 10', '6.5'],
     ['IELTS Academic Test 9', '7.0'],
+    ['IELTS Academic Test 8', '6.5'],
   ];
   return (
     <article className={`${cardClass} min-h-[390px]`}>
@@ -283,18 +283,18 @@ function TestsCard({ reduceMotion }) {
         </div>
         <div className="relative h-[164px] overflow-hidden">
           <m.div
-            className="space-y-1.5"
-            animate={reduceMotion ? { y: 0 } : { y: [0, -194] }}
+            className="space-y-1"
+            animate={reduceMotion ? { y: 0 } : { y: [0, -190] }}
             transition={{ duration: 9, repeat: Infinity, repeatType: 'loop', ease: 'linear' }}
           >
             {[...tests, ...tests].map(([title, score], index) => (
               <div
                 key={`${title}-${index}`}
                 aria-hidden={index >= tests.length}
-                className="flex h-[43px] items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition hover:border-[#e2ddff] hover:bg-[#faf9ff] dark:hover:bg-white/3"
+                className="flex h-[34px] items-center gap-2 rounded-lg border border-transparent px-1.5 py-0.5 transition hover:border-[#e2ddff] hover:bg-[#faf9ff] dark:hover:bg-white/3"
               >
                 <m.div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#f1efff] text-[#6256ef] dark:bg-indigo-500/15 dark:text-indigo-300"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-[#f1efff] text-[#6256ef] dark:bg-indigo-500/15 dark:text-indigo-300"
                   animate={reduceMotion ? undefined : { rotate: [0, -6, 0] }}
                   transition={{
                     duration: 2.6,
@@ -303,13 +303,13 @@ function TestsCard({ reduceMotion }) {
                     ...smoothLoop,
                   }}
                 >
-                  <FileText className="h-3.5 w-3.5" />
+                  <FileText className="h-2.5 w-2.5" />
                 </m.div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-bold text-[#283252] dark:text-slate-200">
+                  <p className="truncate text-[10px] font-bold text-[#283252] dark:text-slate-200">
                     {title}
                   </p>
-                  <p className="text-[10px] font-medium text-[#77809d] dark:text-slate-500">
+                  <p className="text-[9px] font-medium text-[#77809d] dark:text-slate-500">
                     Completed just now
                   </p>
                 </div>

@@ -5,12 +5,11 @@ import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export const landingReveal = {
-  hidden: { opacity: 0, y: 24, filter: 'blur(6px)' },
+  hidden: { opacity: 0, y: 20 },
   show: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.55, ease: [0.2, 0, 0, 1] },
   },
 };
 

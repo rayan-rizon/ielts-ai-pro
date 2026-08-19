@@ -11,12 +11,26 @@ import Layers from 'lucide-react/icons/layers';
 import BookOpen from 'lucide-react/icons/book-open';
 import SparklesIcon from 'lucide-react/icons/sparkles';
 import Building2 from 'lucide-react/icons/building-2';
-import Twitter from 'lucide-react/icons/twitter';
 import Youtube from 'lucide-react/icons/youtube';
 import Linkedin from 'lucide-react/icons/linkedin';
 import Facebook from 'lucide-react/icons/facebook';
 import Instagram from 'lucide-react/icons/instagram';
 import { toast } from 'sonner';
+
+function XIcon({ size = 16, className }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 const footerLinks = {
   'Core Features': {
@@ -63,20 +77,20 @@ const socialLinks = [
   {
     icon: Facebook,
     label: 'Facebook',
-    href: 'https://facebook.com',
+    href: 'https://www.facebook.com/ieltsaipro',
     hoverClass: 'hover:text-[#1877F2] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/10',
   },
   {
     icon: Instagram,
     label: 'Instagram',
-    href: 'https://instagram.com',
+    href: 'https://www.instagram.com/ieltsaipro/',
     hoverClass: 'hover:text-[#E4405F] hover:border-[#E4405F]/40 hover:bg-[#E4405F]/10',
   },
   {
-    icon: Twitter,
-    label: 'X (Twitter)',
-    href: 'https://x.com',
-    hoverClass: 'hover:text-[#1DA1F2] hover:border-[#1DA1F2]/40 hover:bg-[#1DA1F2]/10',
+    icon: XIcon,
+    label: 'X',
+    href: 'https://x.com/IELTSAiPro',
+    hoverClass: 'hover:text-white hover:border-white/40 hover:bg-white/10',
   },
   {
     icon: Youtube,

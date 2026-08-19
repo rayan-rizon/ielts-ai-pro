@@ -61,17 +61,17 @@ const PrimaryGlow = () => {
       data-oid="psa390_"
     >
       <div
-        className="absolute -left-24 top-[-140px] h-[420px] w-[420px] rounded-full bg-primary/10 blur-[80px] transform-gpu"
+        className="animate-landing-orb absolute -left-24 top-[-140px] h-[420px] w-[420px] rounded-full bg-primary/10 blur-[80px] transform-gpu"
         data-oid="nfg8_-1"
       />
 
       <div
-        className="absolute right-[-180px] top-[140px] h-[520px] w-[520px] rounded-full bg-indigo-500/10 blur-[90px] transform-gpu"
+        className="animate-landing-orb absolute right-[-180px] top-[140px] h-[520px] w-[520px] rounded-full bg-indigo-500/10 blur-[90px] transform-gpu [--landing-orb-delay:-9s]"
         data-oid="anvd_8w"
       />
 
       <div
-        className="absolute left-[30%] bottom-[-240px] h-[520px] w-[520px] rounded-full bg-blue-500/5 blur-[100px] transform-gpu"
+        className="animate-landing-orb absolute left-[30%] bottom-[-240px] h-[520px] w-[520px] rounded-full bg-blue-500/5 blur-[100px] transform-gpu [--landing-orb-delay:-15s]"
         data-oid="a92tn3j"
       />
     </div>
@@ -143,6 +143,11 @@ const getStructuredData = () => ({
       '@id': 'https://www.ieltsai.pro/#organization',
       name: 'IELTS Ai Pro',
       url: 'https://www.ieltsai.pro/',
+      sameAs: [
+        'https://www.facebook.com/ieltsaipro',
+        'https://www.instagram.com/ieltsaipro/',
+        'https://x.com/IELTSAiPro',
+      ],
       logo: {
         '@type': 'ImageObject',
         url: 'https://www.ieltsai.pro/logo.svg',

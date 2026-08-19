@@ -1,9 +1,31 @@
 import React, { useState } from 'react';
-import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import Minus from 'lucide-react/icons/minus';
+import Plus from 'lucide-react/icons/plus';
 import Info from 'lucide-react/icons/info';
 import { RAW_SCORE_TABLES, rawScoreToBand, tableRows } from './calculatorData';
+import {
+  panelClass,
+  railLabelClass,
+  segmentActiveClass,
+  segmentBaseClass,
+  segmentIdleClass,
+} from './calculatorStyles';
 
 const TEST_KEYS = ['listening', 'readingAcademic', 'readingGeneral'];
+
+function StepButton({ label, icon: Icon, onClick, disabled }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#e3e5f5] bg-white text-[#5c6687] transition-colors duration-150 hover:border-[#c9c6f7] hover:text-[#6256ef] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:border-violet-400/30 dark:hover:text-violet-300"
+    >
+      <Icon className="h-3.5 w-3.5 stroke-[2.5]" />
+    </button>
+  );
+}
 
 export default function RawScoreConverter() {
   const [testKey, setTestKey] = useState('listening');
@@ -12,120 +34,129 @@ export default function RawScoreConverter() {
   const band = rawScoreToBand(testKey, raw);
   const rows = tableRows(testKey);
   const active = RAW_SCORE_TABLES[testKey];
+  const clamp = (n) => Math.max(0, Math.min(40, n));
 
   return (
-    <div className="grid items-stretch gap-6 lg:grid-cols-12">
-      <div className="lg:col-span-7">
-        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none">
-          {/* Test selector */}
-          <div
-            className="flex flex-wrap gap-2.5"
-            role="group"
-            aria-label="Select test section for conversion"
-          >
-            {TEST_KEYS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setTestKey(key)}
-                className={`h-10 rounded-xl px-4 text-xs font-black transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  testKey === key
-                    ? 'bg-linear-to-r/srgb from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
-                    : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
-                }`}
-              >
-                {RAW_SCORE_TABLES[key].label}
-              </button>
-            ))}
-          </div>
+    <div className="grid items-start gap-4 lg:grid-cols-12 lg:gap-5">
+      <section className={`${panelClass} lg:col-span-7`}>
+        <header
+          className="flex flex-wrap gap-1.5 border-b border-[#eceef8] px-4 py-3 dark:border-white/8 sm:px-5"
+          role="group"
+          aria-label="Select test section for conversion"
+        >
+          {TEST_KEYS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={testKey === key}
+              onClick={() => setTestKey(key)}
+              className={`${segmentBaseClass} ${testKey === key ? segmentActiveClass : segmentIdleClass}`}
+            >
+              {RAW_SCORE_TABLES[key].label}
+            </button>
+          ))}
+        </header>
 
-          <div className="mt-8">
-            <div className="mb-3 flex items-end justify-between">
-              <label
-                htmlFor="raw-score-slider"
-                className="text-[15px] font-extrabold text-slate-950 dark:text-white"
-              >
-                Correct answers
-              </label>
-              <span className="text-2xl font-black text-slate-950 dark:text-white">
+        <div className="px-4 py-4 sm:px-5">
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="raw-score-slider" className={railLabelClass}>
+              Correct answers
+            </label>
+            <div className="flex items-center gap-2">
+              <StepButton
+                label="One fewer correct answer"
+                icon={Minus}
+                onClick={() => setRaw((n) => clamp(n - 1))}
+                disabled={raw <= 0}
+              />
+              <span className="w-[62px] text-center text-[22px] font-black leading-none tabular-nums tracking-[-0.045em] text-[#0b1230] dark:text-white">
                 {raw}
-                <span className="text-sm font-bold text-slate-400 dark:text-slate-500"> / 40</span>
+                <span className="text-[13px] font-bold text-[#9aa2ba] dark:text-slate-500">
+                  /40
+                </span>
               </span>
-            </div>
-            <input
-              id="raw-score-slider"
-              type="range"
-              min="0"
-              max="40"
-              step="1"
-              value={raw}
-              onChange={(e) => setRaw(parseInt(e.target.value, 10))}
-              className="h-2.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-indigo-600 dark:bg-white/8"
-              style={{
-                background: `linear-gradient(to right, #5262ef 0%, #5262ef ${(raw / 40) * 100}%, #e2e8f0 ${(raw / 40) * 100}%)`,
-              }}
-            />
-            <div className="mt-2.5 flex justify-between px-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-              <span>0</span>
-              <span>20</span>
-              <span>40</span>
+              <StepButton
+                label="One more correct answer"
+                icon={Plus}
+                onClick={() => setRaw((n) => clamp(n + 1))}
+                disabled={raw >= 40}
+              />
             </div>
           </div>
 
-          <div
-            className="mt-7 flex items-center gap-5 rounded-2xl border border-indigo-200/80 bg-linear-to-r/srgb from-indigo-50/90 via-purple-50/80 to-white/90 p-5 dark:border-indigo-500/30 dark:from-indigo-950/80 dark:via-purple-950/60 dark:to-slate-900/90 backdrop-blur-xl shadow-sm"
-            aria-live="polite"
-          >
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br/srgb from-indigo-600 via-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/25">
-              <strong className="text-2xl font-black text-white">{band.toFixed(1)}</strong>
-            </div>
-            <div>
-              <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                Estimated band · {active.label}
-              </span>
-              <p className="mt-1 text-xs sm:text-[13px] font-bold leading-relaxed text-slate-800 dark:text-slate-200">
-                {raw} correct answers converts to approximately Band {band.toFixed(1)}.
-              </p>
-            </div>
+          <input
+            id="raw-score-slider"
+            type="range"
+            min="0"
+            max="40"
+            step="1"
+            value={raw}
+            onChange={(e) => setRaw(parseInt(e.target.value, 10))}
+            className="calc-range mt-3.5 h-1.5 w-full cursor-pointer appearance-none rounded-full"
+            style={{
+              background: `linear-gradient(to right, #6256ef 0%, #6256ef ${(raw / 40) * 100}%, var(--calc-track) ${(raw / 40) * 100}%)`,
+            }}
+          />
+          <div className="mt-2 flex justify-between text-[10px] font-black tabular-nums tracking-[0.1em] text-[#a3aabf] dark:text-slate-600">
+            <span>0</span>
+            <span>20</span>
+            <span>40</span>
           </div>
-
-          <p className="mt-5 flex items-start gap-2 text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-500">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-            {active.note} Conversion tables are typical values; exact thresholds vary slightly
-            between test versions.
-          </p>
         </div>
-      </div>
+
+        <div
+          className="flex items-center gap-4 border-t border-[#f1f2f9] bg-[#f8f8fe] px-4 py-3.5 dark:border-white/6 dark:bg-white/[0.03] sm:px-5"
+          aria-live="polite"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[13px] bg-[#6256ef]">
+            <strong className="text-[19px] font-black tabular-nums tracking-[-0.04em] text-white">
+              {band.toFixed(1)}
+            </strong>
+          </div>
+          <div className="min-w-0">
+            <span className={railLabelClass}>Estimated band · {active.label}</span>
+            <p className="mt-1 text-[12.5px] font-semibold leading-5 text-[#2c3757] dark:text-slate-300">
+              {raw} of 40 correct ≈ Band {band.toFixed(1)}.
+            </p>
+          </div>
+        </div>
+
+        <p className="flex items-start gap-2 px-4 py-3 text-[11.5px] font-medium leading-5 text-[#7b84a1] dark:text-slate-500 sm:px-5">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 stroke-2 text-[#6256ef] dark:text-violet-400" />
+          <span>
+            {active.note} Typical values — thresholds vary slightly between test versions.
+          </span>
+        </p>
+      </section>
 
       {/* Reference table */}
-      <div className="lg:col-span-5">
-        <div className="h-full rounded-[24px] border border-slate-200/90 bg-white/90 p-5 sm:p-6 shadow-[0_12px_35px_-12px_rgba(15,23,42,0.05)] backdrop-blur-xl dark:border-white/10 dark:bg-linear-to-b/srgb dark:from-[#131315] dark:to-[#131315] dark:backdrop-blur-none dark:shadow-none">
-          <h3 className="text-[15px] font-extrabold text-slate-950 dark:text-white">
-            {active.label}: score to band
+      <section className={`${panelClass} lg:col-span-5`}>
+        <header className="flex items-baseline justify-between gap-3 border-b border-[#eceef8] px-4 py-3 dark:border-white/8 sm:px-5">
+          <h3 className="text-[13px] font-extrabold tracking-[-0.015em] text-[#0b1230] dark:text-white">
+            {active.label}
           </h3>
-          <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2">
-            {rows.map((row) => {
-              const isActive = row.band === band.toFixed(1);
-              return (
-                <li
-                  key={row.band}
-                  className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs sm:text-[13px] font-extrabold transition-all duration-200 ${
-                    isActive
-                      ? 'bg-linear-to-r/srgb from-indigo-500/15 to-purple-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <span className="tabular-nums">{row.range}</span>
-                  <span className="flex items-center gap-1.5 tabular-nums">
-                    {isActive && <CheckCircle2 className="h-3.5 w-3.5 text-indigo-500" />}
-                    {row.band}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
+          <span className={railLabelClass}>Correct → band</span>
+        </header>
+        <ul className="grid grid-flow-col grid-cols-2 grid-rows-6 gap-x-3 px-4 py-2 sm:px-5">
+          {rows.map((row) => {
+            const isActive = row.band === band.toFixed(1);
+            return (
+              <li
+                key={row.band}
+                aria-current={isActive ? 'true' : undefined}
+                className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12.5px] font-bold tabular-nums transition-colors duration-150 ${
+                  isActive
+                    ? 'bg-[#f2f0ff] text-[#5e50ee] dark:bg-violet-500/[0.12] dark:text-violet-300'
+                    : 'text-[#5c6687] hover:bg-[#f6f7fc] dark:text-slate-400 dark:hover:bg-white/[0.04]'
+                }`}
+              >
+                <span>{row.range}</span>
+                <span className={isActive ? 'font-black' : 'font-extrabold'}>{row.band}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </div>
   );
 }

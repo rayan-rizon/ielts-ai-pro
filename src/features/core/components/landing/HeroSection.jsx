@@ -21,6 +21,8 @@ import {
   Bar,
 } from '@/features/dashboard/components/primitives';
 
+const highPriorityImageProps = { fetchpriority: 'high' };
+
 function FloatingCard({ className, delay = 0, children, label }) {
   return (
     <div
@@ -153,8 +155,10 @@ function AiEvaluationCard() {
 function StudentVisual() {
   return (
     <div
-      className="relative mx-auto min-h-[480px] w-full max-w-[720px] overflow-visible sm:min-h-[540px] lg:min-h-[580px] transform-gpu"
+      className="animate-hero-enter relative mx-auto min-h-[480px] w-full max-w-[720px] overflow-visible sm:min-h-[540px] lg:min-h-[580px] transform-gpu"
+      style={{ '--hero-enter-delay': '120ms' }}
       aria-label="IELTS AI Pro learning experience preview"
+      data-motion-entry="hero-visual"
     >
       <div className="absolute bottom-6 left-4 right-4 top-6 overflow-hidden rounded-4xl border border-violet-200/80 bg-[#eef2ff] shadow-[0_30px_75px_-20px_rgba(109,85,238,0.22)] dark:border-violet-500/30 dark:bg-slate-900 sm:bottom-6 sm:left-8 sm:right-8 sm:top-6 transform-gpu">
         <picture className="block h-full w-full">
@@ -172,11 +176,15 @@ function StudentVisual() {
             height="900"
             loading="eager"
             decoding="async"
-            fetchPriority="high"
+            {...highPriorityImageProps}
             data-oid="hero-student-img"
           />
         </picture>
         <div className="pointer-events-none absolute inset-0 bg-linear-to-tr/srgb from-[#6c79ef]/10 via-transparent to-white/15" />
+        <div
+          aria-hidden
+          className="animate-hero-sheen pointer-events-none absolute inset-[-35%] w-1/3 skew-x-[-16deg] bg-linear-to-r/srgb from-transparent via-white/30 to-transparent"
+        />
       </div>
 
       <AiEvaluationCard />
@@ -203,7 +211,7 @@ function LearnerProof() {
                 className="h-10 w-10 rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-slate-900 ring-1 ring-slate-900/5 transform-gpu transition-all duration-200 hover:scale-110 hover:z-20 cursor-pointer"
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
+                {...highPriorityImageProps}
               />
             ))}
           </div>
@@ -249,15 +257,19 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
         className="pointer-events-none absolute inset-0 overflow-hidden dark:bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] dark:bg-size-[20px_20px] dark:opacity-[0.14]"
       />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 top-6 h-152 w-152 rounded-full bg-violet-200/20 blur-[140px] dark:bg-[#5a63df]/10 transform-gpu" />
-        <div className="absolute -right-32 top-2 h-168 w-168 rounded-full bg-purple-200/15 blur-[150px] dark:bg-[#5a63df]/8 transform-gpu" />
-        <div className="absolute left-1/3 top-1/4 h-96 w-96 rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-transparent transform-gpu" />
+        <div className="animate-landing-orb absolute -left-32 top-6 h-152 w-152 rounded-full bg-violet-200/20 blur-[140px] dark:bg-[#5a63df]/10 transform-gpu" />
+        <div className="animate-landing-orb absolute -right-32 top-2 h-168 w-168 rounded-full bg-purple-200/15 blur-[150px] dark:bg-[#5a63df]/8 transform-gpu [--landing-orb-delay:-7s]" />
+        <div className="animate-landing-orb absolute left-1/3 top-1/4 h-96 w-96 rounded-full bg-fuchsia-100/15 blur-[130px] dark:bg-transparent transform-gpu [--landing-orb-delay:-13s]" />
         <div className="absolute inset-x-0 bottom-0 h-28 bg-linear-to-t/srgb from-white to-transparent dark:from-[#08080a]" />
       </div>
 
       <div className="relative mx-auto grid max-w-[1540px] items-center gap-10 sm:gap-12 px-5 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-8 xl:px-12 2xl:px-16">
         <div className="relative z-10 min-w-0 flex flex-col items-center text-center lg:items-start lg:text-left lg:py-5">
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-violet-200/80 bg-white/90 dark:border-violet-500/30 dark:bg-violet-950/40 px-3.5 py-1.5 text-[11px] sm:text-xs font-bold text-[#5c44c2] dark:text-violet-200 shadow-[0_4px_20px_-6px_rgba(109,85,238,0.18)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:border-violet-300/90 dark:hover:border-violet-400/50 mx-auto lg:mx-0">
+          <div
+            className="animate-hero-enter inline-flex items-center gap-2.5 rounded-full border border-violet-200/80 bg-white/90 dark:border-violet-500/30 dark:bg-violet-950/40 px-3.5 py-1.5 text-[11px] sm:text-xs font-bold text-[#5c44c2] dark:text-violet-200 shadow-[0_4px_20px_-6px_rgba(109,85,238,0.18)] backdrop-blur-md transition-all [transition-duration:300ms] hover:scale-[1.02] hover:border-violet-300/90 dark:hover:border-violet-400/50 mx-auto lg:mx-0"
+            style={{ '--hero-enter-delay': '0ms' }}
+            data-motion-entry="eyebrow"
+          >
             <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-linear-to-tr/srgb from-[#6d55e8] to-[#8b5cf6] text-white shadow-sm">
               <Sparkles className="h-2.5 w-2.5" />
             </span>
@@ -266,7 +278,11 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             </span>
           </div>
 
-          <h1 className="mt-5 text-[2.65rem] min-[480px]:text-[3rem] sm:text-[3.5rem] lg:text-[3.45rem] xl:text-[4rem] 2xl:text-[4.4rem] font-extrabold leading-[1.02] tracking-tighter text-[#07142f] dark:text-white">
+          <h1
+            className="animate-hero-enter mt-5 text-[2.65rem] min-[480px]:text-[3rem] sm:text-[3.5rem] lg:text-[3.45rem] xl:text-[4rem] 2xl:text-[4.4rem] font-extrabold leading-[1.02] tracking-tighter text-[#07142f] dark:text-white"
+            style={{ '--hero-enter-delay': '70ms' }}
+            data-motion-entry="headline"
+          >
             <span className="block">IELTS Practice.</span>
             <span className="font-handwritten relative mt-2.5 sm:mt-3 inline-block w-fit max-w-full whitespace-nowrap text-[0.8em] min-[480px]:text-[0.86em] sm:text-[0.9em] lg:text-[0.88em] xl:text-[0.92em] leading-[1.08] tracking-[-0.035em] text-[#6d55e8] pr-6 sm:pr-7">
               Smarter with AI.
@@ -299,13 +315,21 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             </span>
           </h1>
 
-          <p className="mt-5 sm:mt-6 max-w-[560px] text-sm sm:text-base lg:text-[17px] font-medium leading-relaxed text-[#515d74] dark:text-slate-300 text-center lg:text-left mx-auto lg:mx-0">
+          <p
+            className="animate-hero-enter mt-5 sm:mt-6 max-w-[560px] text-sm sm:text-base lg:text-[17px] font-medium leading-relaxed text-[#515d74] dark:text-slate-300 text-center lg:text-left mx-auto lg:mx-0"
+            style={{ '--hero-enter-delay': '140ms' }}
+            data-motion-entry="description"
+          >
             Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated
             band feedback, track recurring weaknesses, and follow a study plan based on the work you
             actually complete.
           </p>
 
-          <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-3.5 w-full sm:w-auto justify-center lg:justify-start items-center sm:items-stretch max-w-sm sm:max-w-none mx-auto lg:mx-0">
+          <div
+            className="animate-hero-enter mt-7 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-3.5 w-full sm:w-auto justify-center lg:justify-start items-center sm:items-stretch max-w-sm sm:max-w-none mx-auto lg:mx-0"
+            style={{ '--hero-enter-delay': '210ms' }}
+            data-motion-entry="actions"
+          >
             <Button
               onClick={handlePrimaryCta}
               size="lg"
@@ -330,13 +354,21 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
           </div>
 
           {!isSignedIn && (
-            <p className="mt-4 flex items-center justify-center lg:justify-start gap-2 text-[13px] font-semibold text-[#66738c] dark:text-slate-400 text-center lg:text-left">
+            <p
+              className="animate-hero-enter mt-4 flex items-center justify-center lg:justify-start gap-2 text-[13px] font-semibold text-[#66738c] dark:text-slate-400 text-center lg:text-left"
+              style={{ '--hero-enter-delay': '270ms' }}
+              data-motion-entry="free-plan"
+            >
               <Check className="h-4 w-4 text-[#6256ef]" aria-hidden="true" />
               Free plan available — no credit card required
             </p>
           )}
 
-          <div className="w-full">
+          <div
+            className="animate-hero-enter w-full"
+            style={{ '--hero-enter-delay': '330ms' }}
+            data-motion-entry="proof"
+          >
             <LearnerProof />
           </div>
         </div>
