@@ -312,6 +312,10 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner reviewing weekly IELTS progress charts beside a study calendar',
   'how-to-track-ielts-score-improvement-week-by-week':
     'IELTS learner studying how to track ielts score improvement week by week with a laptop and notebook',
+  'ielts-self-study-schedule-a-flexible-8-week-plan':
+    'IELTS learner following an 8-week self-study schedule with a calendar, practice books, and a laptop',
+  'ielts-writing-band-score-how-your-essay-is-really-marked':
+    'IELTS learner reviewing an essay beside four writing band score criteria and a marked sample',
   'ielts-band-score-explained-from-raw-marks-to-overall-band':
     'IELTS learner studying ielts band score explained: from raw marks to overall band with a laptop and notebook',
   'ielts-speaking-topics-questions-cue-cards-tips':
@@ -322,16 +326,24 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner studying ielts vs toefl for us universities: an australian guide with a laptop and notebook',
   'ielts-writing-task-2-tips-for-a-reliable-band-7-score':
     'IELTS learner studying ielts writing task 2 tips for a reliable band 7+ score with a laptop and notebook',
+  'ielts-writing-task-2-tips-that-actually-raise-your-score':
+    'IELTS learner planning a Writing Task 2 essay with Band 7 structure, vocabulary, and score tips',
   'improve-your-ielts-essay-score-the-10-step-guide':
     'IELTS learner studying improve your ielts essay score: the 10-step guide with a laptop and notebook',
+  'improve-your-ielts-writing-band-8-week-plan-to-band-7':
+    'IELTS learner following an 8-week Writing plan from Band 6 to Band 7 with feedback and score tracking',
   'improve-your-ielts-writing-score-by-one-full-band':
     'IELTS learner studying improve your ielts writing score by one full band with a laptop and notebook',
+  'is-ai-feedback-good-enough-for-ielts-writing-practice':
+    'IELTS learner comparing AI and human feedback on a Writing practice essay beside band criteria',
   'is-ai-ielts-practice-actually-as-good-as-a-real-tutor':
     'IELTS learner studying is ai ielts practice actually as good as a real tutor? with a laptop and notebook',
   'minimum-ielts-scores-for-us-university-admission-2026-guide':
     'IELTS learner studying minimum ielts scores for us university admission: 2026 guide with a laptop and notebook',
   'track-your-ielts-progress-online-and-improve-faster':
     'IELTS learner studying track your ielts progress online and improve faster with a laptop and notebook',
+  'the-best-free-ielts-apps-in-2026-what-actually-works':
+    'IELTS learner comparing free IELTS preparation apps for mock tests, feedback, and progress tracking',
   'ielts-academic-vs-general-test':
     'IELTS learner comparing an Academic data report and a General Training letter at a study desk',
   'ielts-writing-coherence-cohesion-band-7':
