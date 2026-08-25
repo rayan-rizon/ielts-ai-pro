@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo, LogoIcon } from '@/components/shared/Logo';
-import { Crown, GraduationCap, LogOut, User as UserIcon, ArrowRight, Sparkles } from 'lucide-react';
+import { Crown, GraduationCap, LogOut, User as UserIcon, ArrowRight } from 'lucide-react';
 import {
   SidebarHeader,
   SidebarContent,
@@ -19,15 +19,12 @@ import { createPageUrl } from '@/utils';
 import { userNavigationItems, learningToolsItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/cn';
+import { AiBadge, TierBadge } from '@/features/dashboard/components/primitives';
 
 const ACCENT_ACTIVE =
   'bg-[#5a63df]/9 text-[#4a52c9] border-[#5a63df]/15 dark:bg-[#5a63df]/22 dark:text-[#c3c7ff] dark:border-[#5a63df]/25';
 const ACCENT_HOVER =
   'hover:bg-[#5a63df]/[0.07] hover:text-[#4a52c9] dark:hover:bg-white/8 dark:hover:text-white';
-const AI_BADGE =
-  'border-[0.5px] border-[#c3c8f2]/80 bg-linear-to-br/srgb from-[#f5f6ff] via-[#eef0ff] to-[#fbfaff] text-[#5b64c8] shadow-[0_1px_5px_rgba(86,97,233,0.08)] dark:border-[#7f87e2]/30 dark:bg-linear-to-br/srgb dark:from-[#30366f]/85 dark:via-[#393474]/70 dark:to-[#2b355e]/85 dark:text-[#cbd0f5] dark:shadow-[0_1px_6px_rgba(86,97,233,0.12)]';
-const AI_BADGE_ACTIVE =
-  'border-[0.5px] border-[#bdc3f0]/90 bg-linear-to-br/srgb from-[#edf0ff] via-[#e4e7ff] to-[#f5f2ff] text-[#4f58bb] shadow-[0_2px_7px_rgba(86,97,233,0.12)] dark:border-[#a0a7ed]/35 dark:bg-linear-to-br/srgb dark:from-[#4a53a0] dark:via-[#4d438c] dark:to-[#3d4b89] dark:text-[#eef0ff] dark:shadow-[0_2px_8px_rgba(86,97,233,0.16)]';
 
 /** One nav row. Every item shares the same accent — the group label above it does the wayfinding. */
 const NavItem = memo(({ item, isActive }) => {
@@ -67,16 +64,9 @@ const NavItem = memo(({ item, isActive }) => {
             {item.title}
           </span>
 
-          {isNew && (
-            <span
-              className={cn(
-                'ml-auto inline-flex h-6 min-w-9 shrink-0 items-center justify-center rounded-full px-2 text-[10px] font-bold uppercase tracking-[0.06em] group-data-[collapsible=icon]:hidden',
-                isActive ? AI_BADGE_ACTIVE : AI_BADGE
-              )}
-            >
-              AI
-            </span>
-          )}
+          {isNew ? (
+            <AiBadge active={isActive} className="ml-auto group-data-[collapsible=icon]:hidden" />
+          ) : null}
 
           {item.title === 'Study Groups' && (
             <span className="ml-auto shrink-0 rounded-full border border-slate-200 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:border-white/10 dark:text-slate-500 group-data-[collapsible=icon]:hidden">
@@ -176,9 +166,12 @@ const UpgradeCard = ({ isFree, onNavigate }) => {
 
         {/* Text Details */}
         <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-          <p className="text-[12px] font-extrabold leading-tight text-[#3c44c7] transition-colors duration-200 group-hover:text-[#2a31b0] dark:text-[#d4d7ff] dark:group-hover:text-white">
-            Upgrade to Pro
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[12px] font-extrabold leading-tight text-[#3c44c7] transition-colors duration-200 group-hover:text-[#2a31b0] dark:text-[#d4d7ff] dark:group-hover:text-white">
+              Upgrade to
+            </p>
+            <TierBadge tier="pro" />
+          </div>
           <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-500 transition-colors duration-200 group-hover:text-slate-700 dark:text-slate-400 dark:group-hover:text-slate-300">
             Unlock all features
           </p>
@@ -210,16 +203,13 @@ const UserProfileLink = ({ user, onNavigate }) => (
         <p className="truncate text-[13px] font-bold text-slate-800 dark:text-slate-100">
           {user?.full_name || 'Student'}
         </p>
-        <span
-          className={cn(
-            'mt-0.5 inline-block rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide border',
-            isPremiumUser(user)
-              ? 'border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#5a63df]/40 dark:bg-[#5a63df]/25 dark:text-[#c3c7ff]'
-              : 'border-slate-200 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300'
-          )}
-        >
-          {user?.subscription_tier || 'Free'}
-        </span>
+        {isPremiumUser(user) ? (
+          <TierBadge tier={user.subscription_tier} className="mt-0.5" />
+        ) : (
+          <span className="mt-0.5 inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+            Free
+          </span>
+        )}
       </div>
       <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-colors duration-200 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-data-[collapsible=icon]:hidden" />
     </div>

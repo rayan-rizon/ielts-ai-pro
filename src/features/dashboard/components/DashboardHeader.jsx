@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { FADE_UP, MICRO, MUTED, NUM, Pill } from './primitives';
+import { FADE_UP, MICRO, MUTED, NUM, TierBadge } from './primitives';
 
 const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommended }) => {
   const firstName = user?.full_name?.split(' ')[0] || user?.username || 'there';
@@ -21,7 +21,7 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <p className={cn(MICRO, MUTED)}>{dateLabel}</p>
-          {tier === 'premium' || tier === 'pro' ? <Pill tone="accent">{tier}</Pill> : null}
+          {tier === 'premium' || tier === 'pro' ? <TierBadge tier={tier} /> : null}
         </div>
 
         <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">

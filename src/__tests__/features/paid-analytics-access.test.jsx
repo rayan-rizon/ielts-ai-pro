@@ -6,6 +6,7 @@ import AnalyticsHeader from '@/features/analytics/components/AnalyticsHeader';
 import AnalyticsReport from '@/features/analytics/components/AnalyticsReport';
 import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate';
 import { hasContentAccess, hasPaidAccess } from '@/features/subscription/config/contentAccess';
+import { AiBadge, TierBadge } from '@/features/dashboard/components/primitives';
 
 describe('paid analytics entitlements', () => {
   it('grants advanced access from subscription tier, not admin role', () => {
@@ -35,6 +36,40 @@ describe('paid analytics entitlements', () => {
     expect(screen.queryByText('Private mastery: 17%')).not.toBeInTheDocument();
     expect(screen.getByText('Find the formats costing you marks')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /see upgrade/i })).toHaveAttribute('href', '/upgrade');
+  });
+
+  it('uses the animated plan marker for both paid tiers', () => {
+    render(
+      <>
+        <TierBadge tier="pro" />
+        <TierBadge tier="premium" />
+      </>
+    );
+
+    expect(screen.getByLabelText('Pro plan')).toHaveClass('dashboard-tier-badge--pro');
+    expect(screen.getByLabelText('Premium plan')).toHaveClass('dashboard-tier-badge--premium');
+  });
+
+  it('uses the same tier marker in the analytics header', () => {
+    render(
+      <MemoryRouter>
+        <AnalyticsHeader
+          isPremium
+          tier="premium"
+          selectedTimeframe="30d"
+          setSelectedTimeframe={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByLabelText('Premium plan')).toBeInTheDocument();
+  });
+
+  it('renders the compact AI capability marker with an active state', () => {
+    render(<AiBadge active />);
+
+    expect(screen.getByLabelText('AI feature')).toHaveClass('dashboard-ai-badge--active');
+    expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
   it('renders the real feature without upgrade chrome for paid users', () => {

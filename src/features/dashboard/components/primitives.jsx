@@ -133,6 +133,36 @@ export const Pill = ({ tone = 'neutral', className, children }) => (
   <span className={cn(PILL_BASE, pillTone(tone), className)}>{children}</span>
 );
 
+/**
+ * Plan marker for the learner dashboard. The moving wash stays inside the
+ * hairline pill so the badge feels alive without becoming a promotional glow.
+ */
+export const TierBadge = ({ tier = 'pro', className }) => {
+  const normalizedTier = tier === 'premium' ? 'premium' : 'pro';
+  const label = normalizedTier === 'premium' ? 'Premium' : 'Pro';
+
+  return (
+    <span
+      className={cn('dashboard-tier-badge', `dashboard-tier-badge--${normalizedTier}`, className)}
+      aria-label={`${label} plan`}
+    >
+      <span className="dashboard-tier-badge__wash" aria-hidden="true" />
+      <span className="dashboard-tier-badge__label">{label}</span>
+    </span>
+  );
+};
+
+/** Small AI capability marker used in navigation rows and compact feature lists. */
+export const AiBadge = ({ active = false, className }) => (
+  <span
+    className={cn('dashboard-ai-badge', active && 'dashboard-ai-badge--active', className)}
+    aria-label="AI feature"
+  >
+    <span className="dashboard-ai-badge__wash" aria-hidden="true" />
+    <span className="dashboard-ai-badge__label">AI</span>
+  </span>
+);
+
 const ICON_CHIP_TONES = {
   accent: 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]',
   amber: 'bg-amber-500/10 text-amber-600 dark:bg-amber-400/18 dark:text-amber-300',

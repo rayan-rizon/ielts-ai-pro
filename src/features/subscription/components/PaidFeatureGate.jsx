@@ -2,7 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, LockKeyhole } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { MICRO, MUTED, PANEL, PanelTitle, TILE } from '@/features/dashboard/components/primitives';
+import {
+  MICRO,
+  MUTED,
+  PANEL,
+  PanelTitle,
+  TILE,
+  TierBadge,
+} from '@/features/dashboard/components/primitives';
 
 const DEFAULT_BENEFITS = ['Personalised from your results', 'Included in Pro and Premium'];
 
@@ -31,14 +38,7 @@ export default function PaidFeatureGate({
       className={cn(inset ? TILE : PANEL, 'flex h-full min-h-[230px] flex-col p-4', className)}
       aria-label={`${label} requires Pro`}
     >
-      <PanelTitle
-        label={label}
-        action={
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#5a63df] dark:text-[#a9afff]">
-            Pro
-          </span>
-        }
-      />
+      <PanelTitle label={label} action={<TierBadge tier="pro" />} />
 
       <div className="flex flex-1 flex-col justify-center py-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#dcdff5] bg-[#f3f3fb] text-[#5a63df] dark:border-white/10 dark:bg-white/6 dark:text-[#a9afff]">
