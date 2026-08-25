@@ -208,9 +208,39 @@
           }
         };
 
+        // A paid click is the one arrival we cannot afford to measure late.
+        //
+        // GTM owns the Meta Pixel, and the deferral above holds it until the
+        // load event plus an idle callback — measured at ~3.5s after `load`
+        // on a fast desktop with a warm cache, and considerably worse inside
+        // the Facebook in-app browser on mobile, which is where nearly all ad
+        // traffic lands. A visitor who leaves before the Pixel initialises
+        // never fires PageView, so Meta bills the link click but records no
+        // landing page view and the optimiser gets no signal to learn from.
+        // The Gulf campaign showed exactly that shape: 19 link clicks against
+        // 8 landing page views.
+        //
+        // Organic and direct visits keep the idle deferral and its LCP
+        // benefit. Only traffic that arrived from an ad loads GTM eagerly —
+        // the script is async either way, so nothing blocks rendering, and for
+        // this traffic being measured is what the click was paid for.
+        var isPaidArrival = function () {
+          try {
+            var search = window.location.search;
+            if (/[?&](fbclid|gclid|ttclid|msclkid)=/.test(search)) return true;
+            return /[?&]utm_(source|medium|campaign)=/.test(search);
+          } catch (e) {
+            return false;
+          }
+        };
+
         // GTM owns the Meta Pixel tag. Loading Pixel here as well downloaded and
         // executed fbevents.js twice on every landing-page visit.
-        scheduleGtm();
+        if (isPaidArrival()) {
+          loadGtm();
+        } else {
+          scheduleGtm();
+        }
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
