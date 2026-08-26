@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import {
@@ -57,6 +57,14 @@ const UserAnalyticsWrapper = () => {
   const [analyticsData, setAnalyticsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState('30D');
+  const mountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    []
+  );
 
   const loadAnalyticsData = useCallback(
     async (range) => {
@@ -66,6 +74,7 @@ const UserAnalyticsWrapper = () => {
         // changes together instead of mixing windowed and lifetime values.
         const rpcRange = (range || selectedRange).toLowerCase();
         const data = await AnalyticsService.getUserIntelligence(rpcRange);
+        if (!mountedRef.current) return;
 
         setStats({
           totalUsers: data.totalUsers,
@@ -86,7 +95,7 @@ const UserAnalyticsWrapper = () => {
       } catch (error) {
         console.error('Error loading analytics data:', error);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) setLoading(false);
       }
     },
     [selectedRange]
@@ -120,6 +129,14 @@ const RevenueAnalyticsWrapper = () => {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState('30D');
+  const mountedRef = useRef(true);
+
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    []
+  );
 
   const loadAnalyticsData = useCallback(
     async (range = selectedRange) => {
@@ -127,6 +144,7 @@ const RevenueAnalyticsWrapper = () => {
         setLoading(true);
 
         const revenueData = await AnalyticsService.getRevenueIntelligence(range.toLowerCase());
+        if (!mountedRef.current) return;
 
         setStats({
           activeSubscribers: revenueData.activeSubscribers,
@@ -150,7 +168,7 @@ const RevenueAnalyticsWrapper = () => {
       } catch (error) {
         console.error('Error loading revenue analytics:', error);
       } finally {
-        setLoading(false);
+        if (mountedRef.current) setLoading(false);
       }
     },
     [selectedRange]

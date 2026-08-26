@@ -228,10 +228,7 @@ export const useReadingTestStore = create(
          * Clear persisted session data (call on successful submit or retake)
          */
         clearPersistedData: () => {
-          const sessionId = get().sessionId;
-          if (sessionId) {
-            sessionStorage.removeItem(`reading-test-${sessionId}`);
-          }
+          sessionStorage.removeItem('reading-test-store');
         },
 
         /**

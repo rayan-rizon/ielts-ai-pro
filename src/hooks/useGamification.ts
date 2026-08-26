@@ -17,7 +17,7 @@ export interface EarnedXP {
  * Options for awardXP function
  */
 export interface AwardXPOptions {
-  /** Whether to include 100 XP bonus for perfect score (default: true) */
+  /** Whether to include the 250 XP perfect-score bonus (default: true) */
   includePerfectBonus?: boolean;
   /** Whether to update the user's streak (default: true) */
   updateStreak?: boolean;
@@ -113,7 +113,7 @@ export function useGamification(): UseGamificationResult {
 
         // Calculate perfect score bonus
         const isPerfect = correctAnswers === totalQuestions && totalQuestions > 0;
-        const bonusXP = includePerfectBonus && isPerfect ? 100 : 0;
+        const bonusXP = includePerfectBonus && isPerfect ? 250 : 0;
 
         // Award points to user (using public ID, not auth ID)
         await UserPoints.addPoints(user.id!, xpAmount, 'test_completion', actionKey);

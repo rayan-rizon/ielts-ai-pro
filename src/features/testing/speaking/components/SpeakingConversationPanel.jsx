@@ -312,7 +312,7 @@ export default function SpeakingConversationPanel({
               />
             </div>
           )}
-          {testStarted && isPart2Prep && cueCardTopic && (
+          {testStarted && currentPartNumber === 2 && cueCardTopic && (
             <div ref={cueCardRef} className="pb-2 pt-1 sm:pt-2">
               <Part2CueCard cueCardTopic={cueCardTopic} />
             </div>

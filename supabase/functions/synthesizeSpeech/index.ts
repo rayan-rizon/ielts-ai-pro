@@ -73,7 +73,7 @@ async function callGoogleTTS(
   text: string,
   voiceName: string,
   apiKey: string
-): Promise<{ buffer?: ArrayBuffer; error?: string }> {
+): Promise<{ buffer?: ArrayBuffer; base64?: string; error?: string }> {
   const languageCode = voiceName.startsWith('en-GB') ? 'en-GB' : 'en-US';
 
   const body = {
@@ -118,7 +118,7 @@ async function callGoogleTTS(
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
-    return { buffer: bytes.buffer };
+    return { buffer: bytes.buffer, base64: audioContent };
   } catch (err: any) {
     return { error: `Fetch exception: ${err.message}` };
   }
@@ -284,11 +284,11 @@ serve(async (req: Request) => {
     // 2. Cache miss — call Google Cloud TTS Neural2
     // ----------------------------------------------------------
     console.log(`[TTS] Cache MISS — calling Google Neural2 for: "${cleanText.slice(0, 80)}"`);
-    const { buffer: audioBuffer, error: ttsError } = await callGoogleTTS(
-      cleanText,
-      voiceName,
-      apiKey
-    );
+    const {
+      buffer: audioBuffer,
+      base64: audioBase64,
+      error: ttsError,
+    } = await callGoogleTTS(cleanText, voiceName, apiKey);
 
     if (!audioBuffer) {
       // TTS API failed — signal the client to fall back to Web Speech API
@@ -340,14 +340,9 @@ serve(async (req: Request) => {
       EdgeRuntime.waitUntil(uploadPromise);
     }
 
-    // Immediately return audio as base64 data URI inline — NO waiting for upload
-    const uint8 = new Uint8Array(audioBuffer);
-    let binary = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < uint8.length; i += chunkSize) {
-      binary += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
-    }
-    const base64 = btoa(binary);
+    // Google already returned base64; retain it for the client response rather
+    // than decoding and encoding the same audio a second time.
+    const base64 = audioBase64;
 
     await finalizeApiUsage(supabase, quotaReservation.reservationId, 0, false, {
       textLength: cleanText.length,

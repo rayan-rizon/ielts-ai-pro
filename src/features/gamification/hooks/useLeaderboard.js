@@ -7,7 +7,7 @@ const PAGE_SIZE = 25;
 export function useLeaderboard(timeFilter = 'all_time', currentUserId = null) {
   const { data, ...rest } = useInfiniteQuery({
     // Destructure data from the query result
-    queryKey: ['leaderboard', timeFilter],
+    queryKey: ['leaderboard', timeFilter, currentUserId],
     queryFn: async ({ pageParam = 1 }) => {
       const from = (pageParam - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
@@ -47,6 +47,7 @@ export function useLeaderboard(timeFilter = 'all_time', currentUserId = null) {
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

@@ -1,17 +1,11 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
 import { isVisibleIeltsCheckout, stripeObjectId } from './visibility.ts';
+import { getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Content-Type': 'application/json',
-};
 
 const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2023-10-16',
@@ -99,7 +93,8 @@ const paymentFromInvoice = (invoice: Stripe.Invoice) => {
 };
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  const corsHeaders = { ...getCorsHeaders(req), 'Content-Type': 'application/json' };
+  if (req.method === 'OPTIONS') return handleCorsPrelight(req);
   if (req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,

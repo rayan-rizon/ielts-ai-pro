@@ -51,6 +51,16 @@ function buildLunaMessageContent(
   return content;
 }
 
+function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(arrayBuffer);
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+  }
+  return btoa(binary);
+}
+
 // Primary writing-feedback provider. Luna is vision-capable (needed for Task 1
 // charts/maps) and has no responseSchema equivalent, so the JSON contract is
 // restated as text via schemaText. Any failure — HTTP error, empty content,
@@ -539,9 +549,7 @@ IELTS Examiner Rule — Overview requirement:
             throw new Error('Task 1 image exceeds the 8 MB limit');
           }
           const arrayBuffer = await imageBlob.arrayBuffer();
-          const base64Image = btoa(
-            new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-          );
+          const base64Image = arrayBufferToBase64(arrayBuffer);
 
           userContentParts.push({
             inline_data: {

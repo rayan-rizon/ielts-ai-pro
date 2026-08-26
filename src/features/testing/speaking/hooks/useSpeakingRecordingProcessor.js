@@ -144,14 +144,13 @@ export default function useSpeakingRecordingProcessor({
           timerExpiredRef,
         });
       } catch (error) {
-        handleProcessingError(error, {
+        const shouldRestart = await handleProcessingError(error, {
           pendingTimersRef,
-          requestAutoStart,
           setConversation,
-          setIsProcessing,
           speakAiMessageFromLoadingState,
           setShowUpgradeDialog,
         });
+        if (shouldRestart) requestAutoStart?.();
       } finally {
         setIsProcessing(false);
         setProcessingStatus('');
@@ -443,9 +442,8 @@ function handlePartCompleteResponse(response, context) {
   });
 }
 
-function handleProcessingError(error, context) {
-  const { requestAutoStart, setConversation, setIsProcessing, speakAiMessageFromLoadingState } =
-    context;
+async function handleProcessingError(error, context) {
+  const { setConversation, speakAiMessageFromLoadingState } = context;
 
   console.error('Error processing recording:', error);
 
@@ -459,7 +457,7 @@ function handleProcessingError(error, context) {
         duration: 4000,
       });
     }
-    return;
+    return false;
   }
 
   setConversation((prev) => {
@@ -487,8 +485,6 @@ function handleProcessingError(error, context) {
 
   const recoveryMessage =
     "I'm sorry, I didn't quite catch that. Could you please repeat your answer?";
-  Promise.resolve(speakAiMessageFromLoadingState(recoveryMessage)).finally(() => {
-    setIsProcessing(false);
-    requestAutoStart?.();
-  });
+  await Promise.resolve(speakAiMessageFromLoadingState(recoveryMessage));
+  return true;
 }

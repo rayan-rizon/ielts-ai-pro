@@ -186,7 +186,7 @@ serve(async (req: Request) => {
         testId,
         speakingSessionId,
         reservationStatus: 'failed',
-        failureReason: 'evaluation_parse_failed',
+        failureReason: 'transcript_size_exceeded',
         promptTokens,
         outputTokens,
         providerCalls,

@@ -75,19 +75,26 @@ function getSupabaseCredentials() {
 
 async function fetchPublishedPosts() {
   const { supabaseUrl, anonKey } = getSupabaseCredentials();
-  const params = new URLSearchParams({
-    select:
-      'title,description,meta_description,slug,category,reading_minutes,published_at,updated_at',
-    content_type: 'eq.blog',
-    is_published: 'eq.true',
-    order: 'published_at.desc.nullslast,created_at.desc',
-    limit: '500',
-  });
-  const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
-    headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-  });
-  if (!response.ok) throw new Error(`Supabase returned ${response.status}`);
-  return response.json();
+  const pageSize = 500;
+  const posts = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const params = new URLSearchParams({
+      select:
+        'title,description,meta_description,slug,category,reading_minutes,published_at,updated_at',
+      content_type: 'eq.blog',
+      is_published: 'eq.true',
+      order: 'published_at.desc.nullslast,created_at.desc',
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+    const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+    });
+    if (!response.ok) throw new Error(`Supabase returned ${response.status}`);
+    const page = await response.json();
+    posts.push(...page);
+    if (page.length < pageSize) return posts;
+  }
 }
 
 export default async function handler(request, response) {

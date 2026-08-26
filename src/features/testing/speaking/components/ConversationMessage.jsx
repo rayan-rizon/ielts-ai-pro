@@ -184,6 +184,11 @@ function ExaminerLiveTranscript({ entry }) {
   const targetWordCount = hasAudioProgress
     ? Math.max(1, Math.min(words.length, Math.ceil(entry.speechProgress * words.length)))
     : fallbackWordCount;
+  const targetWordCountRef = useRef(targetWordCount);
+
+  useEffect(() => {
+    targetWordCountRef.current = targetWordCount;
+  }, [targetWordCount]);
 
   useEffect(() => {
     if (!entry.isExaminerSpeaking) {
@@ -200,14 +205,15 @@ function ExaminerLiveTranscript({ entry }) {
 
     const timer = setInterval(() => {
       setVisibleWordCount((current) => {
-        const next = Math.min(targetWordCount, current + 1);
-        if (next >= targetWordCount) clearInterval(timer);
+        const target = targetWordCountRef.current;
+        const next = Math.min(target, current + 1);
+        if (next >= target) clearInterval(timer);
         return next;
       });
     }, 68);
 
     return () => clearInterval(timer);
-  }, [entry.isExaminerSpeaking, targetWordCount]);
+  }, [entry.isExaminerSpeaking]);
 
   const visibleText = words.slice(0, visibleWordCount).join(' ');
 

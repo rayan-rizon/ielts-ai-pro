@@ -290,29 +290,37 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
       },
     };
 
-    const evalResponse = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: promptText }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 6144,
-            responseMimeType: 'application/json',
-            responseSchema: detailedResponseSchema,
-            thinkingConfig: {
-              thinkingBudget: 0,
-            },
-          },
-        }),
+    const requestBody = {
+      contents: [{ parts: [{ text: promptText }] }],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 6144,
+        responseMimeType: 'application/json',
+        responseSchema: detailedResponseSchema,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
+    };
+    let evalResponse: Response | undefined;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        evalResponse = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
+            body: JSON.stringify(requestBody),
+          }
+        );
+        if (evalResponse.ok || ![429, 500, 502, 503, 504].includes(evalResponse.status)) break;
+      } catch (error) {
+        if (attempt === 1) throw error;
       }
-    );
+      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+    }
 
-    if (!evalResponse.ok) {
-      const errorText = await evalResponse.text();
-      throw new Error(`Gemini API error: ${evalResponse.status} - ${errorText}`);
+    if (!evalResponse?.ok) {
+      const errorText = evalResponse ? await evalResponse.text() : 'No response';
+      throw new Error(`Gemini API error: ${evalResponse?.status ?? 'network'} - ${errorText}`);
     }
 
     const evalData = await evalResponse.json();

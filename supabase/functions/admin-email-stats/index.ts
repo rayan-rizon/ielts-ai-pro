@@ -1,20 +1,15 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 
 const resendApiKey = Deno.env.get('RESEND_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Content-Type': 'application/json',
-};
-
 Deno.serve(async (req: Request) => {
+  const corsHeaders = { ...getCorsHeaders(req), 'Content-Type': 'application/json' };
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return handleCorsPrelight(req);
   }
 
   if (req.method !== 'GET') {

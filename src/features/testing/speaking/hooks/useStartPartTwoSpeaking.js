@@ -15,7 +15,6 @@ export default function useStartPartTwoSpeaking({
 }) {
   return useCallback(() => {
     setIsPart2Prep(false);
-    setCueCardTopic(null);
 
     const message =
       'Alright, your preparation time is up. Please start speaking now. Remember, you should talk for 1 to 2 minutes.';
@@ -43,7 +42,6 @@ export default function useStartPartTwoSpeaking({
         currentPart: 2,
         isPart2Prep: false,
         prepTimeLeft: null,
-        cueCardTopic: null,
       },
     });
 

@@ -61,6 +61,7 @@ export default defineConfig({
             'pdf-vendor',
             'pdf-export-vendor',
             'editor-vendor',
+            'lucide-vendor',
           ];
           return !excludeKeywords.some((keyword) => dep.includes(keyword));
         });

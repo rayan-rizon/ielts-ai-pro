@@ -14,6 +14,16 @@
 
 // Cache for expanded answer variations to avoid re-computation
 const answerCache = new Map();
+const MAX_CACHE_ENTRIES = 500;
+const MAX_VARIATIONS = 256;
+const MAX_EXPANSION_DEPTH = 12;
+
+function cacheVariations(key, variations) {
+  // Map preserves insertion order, so this is a compact LRU cache.
+  if (answerCache.has(key)) answerCache.delete(key);
+  answerCache.set(key, variations);
+  if (answerCache.size > MAX_CACHE_ENTRIES) answerCache.delete(answerCache.keys().next().value);
+}
 
 /**
  * Normalize an answer string for comparison
@@ -56,8 +66,9 @@ export const parseIeltsAnswerVariations = (answerPattern) => {
 
   const allVariations = [];
 
+  const expansionState = { remaining: MAX_VARIATIONS };
   mainAlternatives.forEach((alternative) => {
-    const variations = expandAnswerVariations(alternative.trim());
+    const variations = expandAnswerVariations(alternative.trim(), expansionState);
     allVariations.push(...variations);
   });
 
@@ -67,7 +78,7 @@ export const parseIeltsAnswerVariations = (answerPattern) => {
   );
 
   // Cache the result
-  answerCache.set(cacheKey, result);
+  cacheVariations(cacheKey, result);
 
   return result;
 };
@@ -131,8 +142,12 @@ const splitMainAlternatives = (pattern) => {
  * @param {string} pattern - Single answer pattern like "(its/huarango/the) branches"
  * @returns {string[]} All valid variations
  */
-const expandAnswerVariations = (pattern) => {
-  if (!pattern) return [];
+const expandAnswerVariations = (pattern, state = { remaining: MAX_VARIATIONS }, depth = 0) => {
+  if (!pattern || state.remaining <= 0) return [];
+  if (depth >= MAX_EXPANSION_DEPTH) {
+    state.remaining -= 1;
+    return [pattern];
+  }
 
   // Find optional parts (content in parentheses)
   const optionalRegex = /\(([^)]+)\)/;
@@ -151,12 +166,14 @@ const expandAnswerVariations = (pattern) => {
       // Generate variations:
       // 1. Without the optional part at all
       const withoutVariations = expandAnswerVariations(
-        (before + after).replace(/\s+/g, ' ').trim()
+        (before + after).replace(/\s+/g, ' ').trim(),
+        state,
+        depth + 1
       );
 
       // 2. With each alternative
       const withVariations = alternatives.flatMap((alt) =>
-        expandAnswerVariations((before + alt + after).replace(/\s+/g, ' ').trim())
+        expandAnswerVariations((before + alt + after).replace(/\s+/g, ' ').trim(), state, depth + 1)
       );
 
       return [...withoutVariations, ...withVariations];
@@ -165,7 +182,10 @@ const expandAnswerVariations = (pattern) => {
       const withContent = (before + optionalContent + after).replace(/\s+/g, ' ').trim();
       const withoutContent = (before + after).replace(/\s+/g, ' ').trim();
 
-      return [...expandAnswerVariations(withContent), ...expandAnswerVariations(withoutContent)];
+      return [
+        ...expandAnswerVariations(withContent, state, depth + 1),
+        ...expandAnswerVariations(withoutContent, state, depth + 1),
+      ];
     }
   }
 
@@ -187,12 +207,13 @@ const expandAnswerVariations = (pattern) => {
 
       // Generate a variation for each alternative
       return alternatives.flatMap((alt) =>
-        expandAnswerVariations((before + alt + after).replace(/\s+/g, ' ').trim())
+        expandAnswerVariations((before + alt + after).replace(/\s+/g, ' ').trim(), state, depth + 1)
       );
     }
   }
 
   // No special patterns, return as-is
+  state.remaining -= 1;
   return [pattern];
 };
 

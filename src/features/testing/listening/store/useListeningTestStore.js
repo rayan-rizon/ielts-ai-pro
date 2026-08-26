@@ -221,10 +221,7 @@ export const useListeningTestStore = create(
          * Clear persisted session data
          */
         clearPersistedData: () => {
-          const sessionId = get().sessionId;
-          if (sessionId) {
-            sessionStorage.removeItem(`listening-test-${sessionId}`);
-          }
+          sessionStorage.removeItem('listening-test-store');
         },
 
         /**

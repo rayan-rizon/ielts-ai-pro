@@ -117,12 +117,14 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
 
     return result;
   } catch (error) {
-    // Retry logic for 401/403 (Token potentially expired/refreshing)
-    if ((error.status === 401 || error.status === 403) && !options._isRetry) {
-      console.warn(`Edge Function ${functionName} returned ${error.status}. Retrying once...`);
-      // Wait 1 second to allow potential background token refresh
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return callEdgeFunction(functionName, payload, { ...options, _isRetry: true });
+    // A 401 can be an expired access token. Refresh explicitly before one retry;
+    // a 403 is an authorization decision and must not be retried as auth refresh.
+    if (error.status === 401 && !options._isRetry) {
+      const client = await getSupabaseClient();
+      const { data, error: refreshError } = await client.auth.refreshSession();
+      if (!refreshError && data.session?.access_token) {
+        return callEdgeFunction(functionName, payload, { ...options, _isRetry: true });
+      }
     }
 
     if (error.status === 403) {

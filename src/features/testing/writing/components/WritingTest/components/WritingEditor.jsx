@@ -93,7 +93,7 @@ export function WritingEditor({
     setLocalValue(content);
 
     // 2. Immediate local word count for visual feedback
-    const words = content.replace(/<[^>]*>?/gm, ' ').match(/\S+/g) || [];
+    const words = content.replace(/<[^>]*>/g, ' ').match(/\S+/g) || [];
     setLocalWordCount(words.length);
 
     // 3. Update the ref immediately so that when the parent re-renders with the new value,

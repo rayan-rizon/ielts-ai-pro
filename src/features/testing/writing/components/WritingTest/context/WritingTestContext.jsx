@@ -13,6 +13,7 @@
 import React, { createContext, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { useAutosave } from '@/hooks/useAutosave';
+import { getSessionTestMode } from '@/features/testing/shared/testMode';
 
 // ============ ACTIONS CONSTANT (for dispatch compatibility) ============
 const ACTIONS = {
@@ -68,7 +69,7 @@ export function WritingTestProvider({ children }) {
   // Timer Logic - Robust implementation using wall-clock time
   useEffect(() => {
     // Don't run timer if no session or test is completed
-    if (!session || isCompleted) {
+    if (!session || isCompleted || getSessionTestMode(session) === 'exam') {
       return;
     }
 

@@ -76,6 +76,16 @@ describe('IELTS Answer Validation', () => {
       parseIeltsAnswerVariations('different pattern');
       expect(getAnswerCacheStats().size).toBe(2);
     });
+
+    it('bounds pathological optional-answer expansion and cache growth', () => {
+      const pattern = Array.from({ length: 20 }, (_, index) => `(option${index})`).join(' ');
+      expect(parseIeltsAnswerVariations(pattern)).toHaveLength(256);
+
+      for (let index = 0; index < 600; index += 1) {
+        parseIeltsAnswerVariations(`answer-${index}`);
+      }
+      expect(getAnswerCacheStats().size).toBeLessThanOrEqual(500);
+    });
   });
 
   describe('isAnswerCorrect', () => {

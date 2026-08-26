@@ -173,7 +173,11 @@ export const AI_ROUTES: AiRoute[] = [
     file: 'supabase/functions/generateDetailedSpeakingFeedback/index.ts',
     maxOutputTokens: 6144,
     steps: [
-      { model: 'gemini-2.5-flash', role: 'primary', when: 'Single-provider route, no fallback.' },
+      {
+        model: 'gemini-2.5-flash',
+        role: 'primary',
+        when: 'Primary provider with one bounded retry for transient failures.',
+      },
     ],
   },
   {
@@ -292,11 +296,13 @@ export function estimateTokenCostUsd(model: string, tokens: TokenCounts): number
   if (!pricing) return 0;
   const cached = Math.min(tokens.promptTokens, Math.max(0, tokens.cachedPromptTokens || 0));
   const uncached = Math.max(0, tokens.promptTokens - cached);
-  return (
-    (cached * pricing.cachedInputPerMillion +
-      uncached * pricing.inputPerMillion +
-      tokens.outputTokens * pricing.outputPerMillion) /
-    1_000_000
+  return Number(
+    (
+      (cached * pricing.cachedInputPerMillion +
+        uncached * pricing.inputPerMillion +
+        tokens.outputTokens * pricing.outputPerMillion) /
+      1_000_000
+    ).toFixed(6)
   );
 }
 

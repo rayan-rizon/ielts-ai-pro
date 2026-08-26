@@ -977,10 +977,15 @@ export default async function handler(request, response) {
 
     const query = request.query || {};
     const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
-    const posts = await fetchPosts({ slug, limit: slug ? 1 : undefined });
+    const [posts, allPosts] = await Promise.all([
+      fetchPosts({ slug, limit: slug ? 1 : undefined }),
+      slug ? fetchPosts({ select: RELATED_ARTICLE_FIELDS, limit: 4 }) : Promise.resolve(null),
+    ]);
     if (slug && posts.length === 0) return sendNotFound(response);
-    const allPosts = slug ? await fetchPosts({ select: RELATED_ARTICLE_FIELDS, limit: 4 }) : posts;
-    response.status(200).send(slug ? renderArticle(posts[0], allPosts) : renderIndex(posts, query));
+    const relatedPosts = slug ? allPosts : posts;
+    response
+      .status(200)
+      .send(slug ? renderArticle(posts[0], relatedPosts) : renderIndex(posts, query));
   } catch (error) {
     console.error('[blog-render]', error);
     try {

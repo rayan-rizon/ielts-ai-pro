@@ -307,10 +307,7 @@ export const useWritingTestStore = create(
          * Clear persisted session data
          */
         clearPersistedData: () => {
-          const sessionId = get().sessionId;
-          if (sessionId) {
-            sessionStorage.removeItem(`writing-test-${sessionId}`);
-          }
+          sessionStorage.removeItem('writing-test-store');
         },
 
         /**

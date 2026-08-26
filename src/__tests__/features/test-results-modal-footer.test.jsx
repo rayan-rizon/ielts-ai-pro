@@ -31,12 +31,12 @@ function renderModal(props) {
 describe('TestResultsModal footer — XP and plan status', () => {
   it('shows the XP actually earned this attempt instead of dropping it silently', () => {
     renderModal({
-      earnedXP: { xp: 220, bonus: 100, streak: 3 },
+      earnedXP: { xp: 220, bonus: 250, streak: 3 },
       user: { subscription_tier: 'free' },
     });
 
-    expect(screen.getByText('+320 XP earned')).toBeInTheDocument();
-    expect(screen.getByText('Includes a +100 perfect bonus')).toBeInTheDocument();
+    expect(screen.getByText('+470 XP earned')).toBeInTheDocument();
+    expect(screen.getByText('Includes a +250 perfect bonus')).toBeInTheDocument();
     // The XP figure takes priority over the plan-status chip when both apply.
     expect(screen.queryByText('Pro analysis')).not.toBeInTheDocument();
   });
