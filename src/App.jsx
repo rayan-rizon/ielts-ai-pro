@@ -112,6 +112,12 @@ const GlobalErrorElement = () => {
   );
 };
 
+const withGlobalRouteErrors = (routes) =>
+  routes.map((route) => ({
+    ...route,
+    errorElement: route.errorElement ?? <GlobalErrorElement />,
+  }));
+
 // Lazy loaded shared components (not needed for landing page initial load)
 const ProtectedRoute = lazyWithRetry(() => import('@/components/ProtectedRoute.jsx'));
 const Layout = lazyWithRetry(() => import('@/features/core/pages/Layout.jsx'));
@@ -213,7 +219,7 @@ const LazyPage = ({ children, className }) => {
 };
 
 const router = createBrowserRouter(
-  [
+  withGlobalRouteErrors([
     {
       path: '/',
       element: (
@@ -796,7 +802,7 @@ const router = createBrowserRouter(
         </LazyPage>
       ),
     },
-  ],
+  ]),
 
   {
     future: {

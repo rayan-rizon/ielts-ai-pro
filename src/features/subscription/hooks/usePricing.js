@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { User } from '@/entities';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
-import { detectLocation, getPriceData } from '@/lib/pricingUtils';
+import { countryCurrencyMap, detectLocation, getPriceData } from '@/lib/pricingUtils';
 import { fetchAllTierLimits, generateFeatureStrings } from '@/lib/tierLimitsUtils';
 
 export async function loadPricingConfiguration(options = {}) {
@@ -15,7 +15,6 @@ export async function loadPricingConfiguration(options = {}) {
     (normalizedCountry === 'BD' || normalizedCountry === 'BANGLADESH');
   const pricingCountry = shouldBypassBdLocalization ? 'US' : userCountry;
 
-  const { countryCurrencyMap } = await import('@/lib/pricingUtils');
   const currency = countryCurrencyMap[pricingCountry]?.currency || 'USD';
   const tierLimits = await fetchAllTierLimits(currency);
 

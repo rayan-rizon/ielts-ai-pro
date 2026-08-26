@@ -214,6 +214,7 @@ const AudioPlayer = React.forwardRef(
                 <div className="flex items-center gap-2 sm:gap-4" data-oid="play-controls">
                   <Button
                     size="icon"
+                    aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
                     className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-full bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:scale-105 active:scale-95 transition-all duration-300 border-none relative z-10"
                     onClick={togglePlay}
                     data-oid="91.6o0_"
@@ -235,6 +236,7 @@ const AudioPlayer = React.forwardRef(
                       onClick={() => skipTime(-10)}
                       className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-[#5a63df] dark:text-slate-500 dark:hover:text-[#a9afff] hover:bg-[#5a63df]/10 dark:hover:bg-[#5a63df]/10 rounded-full transition-colors"
                       title="Back 10s"
+                      aria-label="Seek backward 10 seconds"
                       data-oid="kd-tqao"
                     >
                       <RotateCcw className="h-4 w-4 sm:h-4.5 sm:w-4.5" data-oid="o6dm5_3" />
@@ -245,6 +247,7 @@ const AudioPlayer = React.forwardRef(
                       onClick={() => skipTime(10)}
                       className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-[#5a63df] dark:text-slate-500 dark:hover:text-[#a9afff] hover:bg-[#5a63df]/10 dark:hover:bg-[#5a63df]/10 rounded-full transition-colors"
                       title="Forward 10s"
+                      aria-label="Seek forward 10 seconds"
                       data-oid=".xod8v7"
                     >
                       <RotateCw className="h-4 w-4 sm:h-4.5 sm:w-4.5" data-oid="ytihwm7" />

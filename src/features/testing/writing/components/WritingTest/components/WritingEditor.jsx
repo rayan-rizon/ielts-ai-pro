@@ -66,6 +66,16 @@ export function WritingEditor({
   // Track the last value we synced to/from the parent to avoid self-updates
   const lastWritingRef = React.useRef(writing);
 
+  const flushWriting = React.useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    setWriting(lastWritingRef.current);
+  }, [setWriting]);
+
+  React.useEffect(() => () => flushWriting(), [flushWriting]);
+
   // Sync local state when external writing changes (e.g. task switch, session load)
   React.useEffect(() => {
     if (writing !== lastWritingRef.current) {
@@ -194,7 +204,10 @@ export function WritingEditor({
               value={localValue}
               onChange={handleChange}
               onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onBlur={() => {
+                setIsFocused(false);
+                flushWriting();
+              }}
               readOnly={isCompleted}
               spellCheck={!isExamMode}
               placeholder="Start writing your essay here..."

@@ -20,6 +20,9 @@ import ListeningTestOverlays from '../components/ListeningTest/components/Listen
 import ListeningTestSheet from '../components/ListeningTestSheet';
 
 function ListeningTestInner() {
+  const [showAnswerSheet, setShowAnswerSheet] = useState(false);
+  const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
+
   const {
     showConfetti,
     showXPNotification,
@@ -45,13 +48,13 @@ function ListeningTestInner() {
     isAwaitingStart,
     isStarting,
     examReview,
-  } = useListeningTestLogic({ awardXP });
+  } = useListeningTestLogic({
+    awardXP,
+    onResumeExpired: () => setShowTimeUpDialog(true),
+  });
 
   const state = useListeningTestState();
   const { dispatch, ACTIONS } = useListeningTestDispatch();
-
-  const [showAnswerSheet, setShowAnswerSheet] = useState(false);
-  const [showTimeUpDialog, setShowTimeUpDialog] = useState(false);
 
   const nav = useListeningTestNavigation({
     testData: state.testData,

@@ -298,4 +298,50 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
       'The city has several museums.'
     );
   });
+
+  it('keeps the media stream alive until MediaRecorder emits onstop', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+    const stopTrack = vi.fn();
+    let recorder;
+    class DeferredMediaRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+
+      constructor(_stream, options) {
+        this.mimeType = options.mimeType;
+        this.state = 'inactive';
+        recorder = this;
+      }
+
+      start() {
+        this.state = 'recording';
+      }
+
+      stop() {
+        this.state = 'inactive';
+      }
+    }
+    vi.stubGlobal('MediaRecorder', DeferredMediaRecorder);
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: () => [{ stop: stopTrack }],
+        }),
+      },
+    });
+
+    await startRecorderCapture(runtime);
+    const stopRecorder = vi.spyOn(recorder, 'stop');
+
+    stopRecorderCapture(runtime);
+
+    expect(stopRecorder).toHaveBeenCalledOnce();
+    expect(stopTrack).not.toHaveBeenCalled();
+
+    await recorder.onstop?.();
+    expect(stopTrack).toHaveBeenCalledOnce();
+  });
 });

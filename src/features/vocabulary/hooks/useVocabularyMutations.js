@@ -43,7 +43,12 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
         // Award XP for adding vocabulary
         if (user?.id) {
           try {
-            await UserPoints.addPoints(user.id, 5);
+            await UserPoints.addPoints(
+              user.id,
+              5,
+              'vocabulary_add',
+              `vocabulary-add:${newItem.id}`
+            );
           } catch (xpError) {
             console.warn('Failed to update XP:', xpError);
           }
@@ -86,7 +91,12 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
         // Award XP for mastering a word
         if (newLevel >= 4 && user?.id) {
           try {
-            await UserPoints.addPoints(user.id, 10);
+            await UserPoints.addPoints(
+              user.id,
+              10,
+              'vocabulary_mastery',
+              `vocabulary-mastery:${id}`
+            );
           } catch (xpError) {
             console.warn('Failed to update XP:', xpError);
           }

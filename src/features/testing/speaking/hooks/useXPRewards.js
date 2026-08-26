@@ -15,7 +15,12 @@ export default function useXPRewards(pendingTimersRef) {
         if (!userProfile?.id || !evaluation.overallBand) return;
 
         const xpAmount = 100 + Math.round(evaluation.overallBand * 20);
-        await UserPoints.addPoints(userProfile.id, xpAmount);
+        await UserPoints.addPoints(
+          userProfile.id,
+          xpAmount,
+          'speaking_evaluation',
+          evaluation.speakingSessionId ? `speaking-test:${evaluation.speakingSessionId}` : ''
+        );
         const streakData = await UserPoints.updateStreak(userProfile.id);
 
         setEarnedXP({

@@ -100,7 +100,12 @@ export function useReviewSession({
         // Award XP for review
         if (user?.id) {
           try {
-            await UserPoints.addPoints(user.id, 3);
+            await UserPoints.addPoints(
+              user.id,
+              3,
+              'vocabulary_review',
+              `vocabulary-review:${currentReviewItem.id}:${updates.last_reviewed.slice(0, 10)}`
+            );
           } catch (xpError) {
             console.warn('Failed to update XP:', xpError);
           }

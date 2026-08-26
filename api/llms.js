@@ -81,6 +81,7 @@ async function fetchPublishedPosts() {
     content_type: 'eq.blog',
     is_published: 'eq.true',
     order: 'published_at.desc.nullslast,created_at.desc',
+    limit: '500',
   });
   const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
     headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },

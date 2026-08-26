@@ -5,7 +5,7 @@
  */
 import { sendEmail } from './resend.ts';
 import { getEmailTemplate } from './templates.ts';
-import { DEFAULT_ALLOWED_ORIGIN, isAllowedOrigin } from './originValidation.ts';
+import { isAllowedOrigin } from './originValidation.ts';
 
 // =============================================================================
 // CORS Configuration
@@ -22,16 +22,19 @@ import { DEFAULT_ALLOWED_ORIGIN, isAllowedOrigin } from './originValidation.ts';
 export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('Origin') || '';
 
-  // Check if origin is in allowed list
-  const allowedOrigin = isAllowedOrigin(origin) ? origin : DEFAULT_ALLOWED_ORIGIN;
-
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
+  const baseHeaders = {
     'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
     'Access-Control-Allow-Headers':
       'authorization, x-client-info, apikey, content-type, x-csrf-token, x-requested-with',
-    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400', // Cache preflight for 24 hours
+  };
+
+  if (!isAllowedOrigin(origin)) return baseHeaders;
+
+  return {
+    ...baseHeaders,
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Credentials': 'true',
   };
 }
 

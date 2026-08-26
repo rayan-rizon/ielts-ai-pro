@@ -15,6 +15,7 @@ export function useNetworkStatus() {
   );
   const [wasOffline, setWasOffline] = useState(false);
   const wasOfflineTimerRef = useRef(null);
+  const offlineSeenRef = useRef(!isOnline);
 
   // Manual connection check (useful for verifying real connectivity)
   const checkConnection = useCallback(async () => {
@@ -34,7 +35,8 @@ export function useNetworkStatus() {
     const handleOnline = () => {
       setIsOnline(true);
       // User came back online after being offline
-      if (!navigator.onLine === false) {
+      if (offlineSeenRef.current) {
+        offlineSeenRef.current = false;
         setWasOffline(true);
         // Reset wasOffline after a delay so UI can show "back online" message
         if (wasOfflineTimerRef.current) clearTimeout(wasOfflineTimerRef.current);
@@ -43,6 +45,7 @@ export function useNetworkStatus() {
     };
 
     const handleOffline = () => {
+      offlineSeenRef.current = true;
       setIsOnline(false);
     };
 

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { callEdgeFunction } from '@/utils/api';
 
 export interface UserPointsType {
   id: string;
@@ -136,18 +137,21 @@ export const UserPoints = {
   async addPoints(
     userId: string,
     points: number,
-    reason: string = 'test_completion'
+    reason: string,
+    actionKey: string
   ): Promise<UserPointsType> {
     // Ensure the record exists before calling RPC
     const record = await this.getOrCreate(userId);
 
-    const { error: rpcError } = await supabase.rpc('add_user_points', {
-      p_points: points,
-    });
-
-    if (rpcError) {
-      console.error('Failed to add points via RPC:', rpcError);
-      return record;
+    try {
+      await callEdgeFunction('updateUserPoints', {
+        pointsToAdd: points,
+        reason,
+        actionKey,
+      });
+    } catch (awardError) {
+      console.error('Failed to add points via protected award endpoint:', awardError);
+      throw awardError;
     }
 
     // Fetch the updated record to return fresh data

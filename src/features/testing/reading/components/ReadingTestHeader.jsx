@@ -209,6 +209,7 @@ const ReadingTestHeader = ({
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Exit reading test"
             onClick={() => {
               if (!isFinished && solvedCount > 0) {
                 setShowExitDialog(true);

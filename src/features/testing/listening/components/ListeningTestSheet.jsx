@@ -218,6 +218,7 @@ const ListeningTestSheet = ({
           </div>
         ) : (
           <Input
+            aria-label={`Answer for question ${questionNum}`}
             value={value}
             onChange={(e) => handleAnswerChange(answerKey, e.target.value)}
             placeholder=""

@@ -5,14 +5,18 @@ export const parseAnswerList = (text) => {
   if (!text) return {};
   const map = {};
 
-  // Use a regex to find all "Number followed by separator" patterns
-  // This helps find multiple answers on one line: "1. A 2. B 3. C" or "1 A 2 B"
-  // Look for a number at starts or after whitespace, then a separator (. or ) or space), then content
-  const matches = [...text.matchAll(/(?:^|\s)(\d+)[.)\s]\s*/g)];
+  // Treat only line-leading, sequential numbers as answer delimiters. Numbers
+  // inside an answer (years, measurements, prices) are answer content.
+  const candidates = [...text.matchAll(/(^|\n)\s*(\d+)(?:[.)]|\s)\s*/g)];
+  const matches = [];
+  for (const candidate of candidates) {
+    const previous = matches.at(-1);
+    if (!previous || Number(candidate[2]) === Number(previous[2]) + 1) matches.push(candidate);
+  }
 
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
-    const num = parseInt(match[1]);
+    const num = parseInt(match[2]);
     const startPos = match.index + match[0].length;
     const nextMatch = matches[i + 1];
     const endPos = nextMatch ? nextMatch.index : text.length;

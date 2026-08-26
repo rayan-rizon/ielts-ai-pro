@@ -56,6 +56,7 @@ export function WritingHeader({
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Exit writing test"
             onClick={() => {
               const textOnly = (useWritingTestStore.getState().getCurrentDraft() || '')
                 .replace(/<[^>]*>/g, ' ')

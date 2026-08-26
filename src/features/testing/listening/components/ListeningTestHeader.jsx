@@ -80,6 +80,7 @@ const ListeningTestHeader = ({
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Exit listening test"
             onClick={() => {
               if (!isFinished && solvedCount > 0) {
                 setShowExitDialog(true);

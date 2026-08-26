@@ -182,49 +182,11 @@ Deno.serve(async (req: Request) => {
     });
   } catch (error) {
     console.error('[Webhook] Handler error:', error);
-
-    // Determine if this is a transient error worth retrying
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const isTransient =
-      errorMessage.includes('timeout') ||
-      errorMessage.includes('connection') ||
-      errorMessage.includes('ECONNREFUSED') ||
-      errorMessage.includes('network') ||
-      errorMessage.includes('503');
-
-    if (isTransient) {
-      // Return 500 so Stripe retries this event
-      return new Response(JSON.stringify({ error: 'Transient error, will retry' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Permanent errors: return 200 to stop Stripe retries, log for manual review
-    console.error(
-      `[Webhook] PERMANENT ERROR for event ${event.type} (${event.id}). Stopping retries.`
-    );
-    try {
-      await supabase
-        .from('stripe_events')
-        .insert({
-          id: `error_${event.id}`,
-          type: event.type,
-          status: 'failed_permanent',
-          metadata: {
-            error: errorMessage,
-            event_id: event.id,
-            failed_at: new Date().toISOString(),
-          },
-        })
-        .onConflict('id')
-        .ignore();
-    } catch (logErr) {
-      console.error('[Webhook] Failed to log permanent error:', logErr);
-    }
-
-    return new Response(JSON.stringify({ received: true, error: 'Permanent error logged' }), {
-      status: 200,
+    // Signature and payload rejection is handled before this block. A handler
+    // error means persistence or a required side effect did not finish, so
+    // keep Stripe's bounded retry schedule active.
+    return new Response(JSON.stringify({ error: 'Webhook processing failed; retry required' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -233,6 +195,17 @@ Deno.serve(async (req: Request) => {
 /**
  * Handle successful checkout session - new subscription
  */
+function requireClaimedStripeEvent(data: any, error: any, eventType: string): boolean {
+  if (error) {
+    console.error(`[Webhook] RPC error for ${eventType}:`, error);
+    throw error;
+  }
+  if (!data?.success) {
+    throw new Error(data?.error || `Failed to persist ${eventType}`);
+  }
+  return data.claimed !== false;
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId: string) {
   const userId = session.metadata?.supabase_user_id;
   const authId = session.metadata?.supabase_auth_id;
@@ -258,7 +231,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
 
   // Use the unified RPC with ON CONFLICT handling
   const { data, error } = await supabase.rpc('handle_stripe_event', {
-    p_event_id: eventId,
+    p_event_id: `checkout_${session.id}`,
     p_event_type: 'checkout.session.completed',
     p_auth_id: authId,
     p_user_id: userId,
@@ -281,12 +254,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
     },
   });
 
-  if (error) {
-    console.error('[Webhook] RPC error for checkout.session.completed:', error);
-    throw error;
-  }
-
-  if (data?.success) {
+  if (requireClaimedStripeEvent(data, error, 'checkout.session.completed')) {
     console.log(`[Webhook] ✅ User ${authId} upgraded to ${tier} successfully`);
     await recordMarketingPurchase(session, userId);
     // promo_discount is cleared atomically inside the RPC — no need for a separate update
@@ -322,8 +290,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       marketing_campaign_id: session.metadata?.marketing_campaign_id || null,
       marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
     });
-  } else {
-    console.warn('[Webhook] RPC returned:', data);
   }
 }
 
@@ -391,10 +357,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     p_metadata: { invoice_id: invoice.id, billing_reason: invoice.billing_reason },
   });
 
-  if (error) {
-    console.error('[Webhook] RPC error for invoice.paid:', error);
-    throw error;
-  }
+  if (!requireClaimedStripeEvent(data, error, 'invoice.paid')) return;
 
   console.log(`[Webhook] ✅ Recurring payment recorded for user ${userData.auth_id}`);
 
@@ -492,10 +455,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, even
     p_cancel_at_period_end: subscription.cancel_at_period_end || false,
   });
 
-  if (error) {
-    console.error('[Webhook] RPC error for subscription update:', error);
-    throw error;
-  }
+  if (!requireClaimedStripeEvent(data, error, 'customer.subscription.updated')) return;
 
   console.log(`[Webhook] ✅ User ${authId} subscription updated via RPC:`, data);
 }
@@ -556,10 +516,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription, even
     p_cancel_at_period_end: false,
   });
 
-  if (error) {
-    console.error('[Webhook] RPC error for subscription deletion:', error);
-    throw error;
-  }
+  if (!requireClaimedStripeEvent(data, error, 'customer.subscription.deleted')) return;
 
   console.log(`[Webhook] ✅ User ${authId} downgraded to free tier via RPC:`, data);
 

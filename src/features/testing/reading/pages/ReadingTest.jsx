@@ -1075,10 +1075,7 @@ function ReadingTestContent() {
         />
 
         {/* Time's Up Dialog */}
-        <AlertDialog
-          open={testMode !== 'exam' && showTimeUpDialog}
-          onOpenChange={setShowTimeUpDialog}
-        >
+        <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog}>
           <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-2xl font-bold">Time&apos;s Up</AlertDialogTitle>

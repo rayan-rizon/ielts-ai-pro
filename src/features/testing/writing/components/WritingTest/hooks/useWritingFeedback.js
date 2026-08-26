@@ -506,6 +506,7 @@ export function useWritingFeedback(awardXP) {
             includePerfectBonus: overallScore >= 7.0,
             updateStreak: true,
             notificationDelay: 800,
+            actionKey: `writing-test:${store.session.id}`,
           });
         }
       }

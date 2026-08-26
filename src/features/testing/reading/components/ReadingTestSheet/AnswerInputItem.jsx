@@ -140,6 +140,7 @@ export default function AnswerInputItem({
         </div>
       ) : (
         <Input
+          aria-label={`Answer for question ${globalNum}`}
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           placeholder=""

@@ -235,6 +235,10 @@ export function useWritingTaskLogic(passedUser = null) {
     isFinished: isCompleted,
     onTick: useCallback((remaining) => useWritingTestStore.getState().setTime(remaining), []),
     onExpire: handleSubmit,
+    onResumeExpired: useCallback(
+      () => useWritingTestStore.getState().setShowTimeUpDialog(true),
+      []
+    ),
   });
 
   // 5. Task Switching (atomic — single store update)

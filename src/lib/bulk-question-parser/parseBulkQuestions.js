@@ -49,16 +49,6 @@ export const parseBulkQuestions = (text, targetSection = '') => {
     blocks.push(currentBlock);
   }
 
-  // DEBUG: Log blocks for troubleshooting
-  console.log(
-    '[bulkQuestionParser] Blocks detected:',
-    blocks.map((b) => ({
-      range: b.range,
-      lineCount: b.raw.length,
-      firstLine: b.raw[0]?.substring(0, 50),
-    }))
-  );
-
   // 2. Process each block
   let allQuestions = [];
 

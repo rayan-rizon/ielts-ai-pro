@@ -7,26 +7,35 @@ export function useExamDeadline({
   durationSeconds = EXAM_DURATION_SECONDS,
   onTick,
   onExpire,
+  onResumeExpired,
 }) {
   const onTickRef = useRef(onTick);
   const onExpireRef = useRef(onExpire);
+  const onResumeExpiredRef = useRef(onResumeExpired);
 
   useEffect(() => {
     onTickRef.current = onTick;
     onExpireRef.current = onExpire;
-  }, [onTick, onExpire]);
+    onResumeExpiredRef.current = onResumeExpired;
+  }, [onTick, onExpire, onResumeExpired]);
 
   useEffect(() => {
     if (!session || isFinished || getSessionTestMode(session) !== 'exam') return;
 
     let expired = false;
+    let isInitialSync = true;
     const syncDeadline = () => {
       const remaining = getExamRemainingSeconds(session, durationSeconds);
       onTickRef.current?.(remaining);
       if (remaining === 0 && !expired) {
         expired = true;
-        onExpireRef.current?.();
+        if (isInitialSync && onResumeExpiredRef.current) {
+          onResumeExpiredRef.current();
+        } else {
+          onExpireRef.current?.();
+        }
       }
+      isInitialSync = false;
     };
 
     syncDeadline();

@@ -2,6 +2,7 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { CheckCircle2, Minus } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { PANEL } from '@/features/dashboard/components/primitives';
 
 export default function ComparisonSection() {
   return (
@@ -9,7 +10,7 @@ export default function ComparisonSection() {
       initial={{ opacity: 0, scale: 0.95 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
-      className="mb-32 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-4xl sm:rounded-[3rem] border border-slate-200 dark:border-white/5 p-6 sm:p-8 md:p-16 overflow-hidden relative shadow-2xl"
+      className={cn(PANEL, 'relative mb-32 overflow-hidden p-6 sm:p-8 md:p-16')}
     >
       <div className="absolute top-0 left-1/4 w-1/2 h-1 bg-linear-to-r/srgb from-transparent via-indigo-500/50 to-transparent" />
 

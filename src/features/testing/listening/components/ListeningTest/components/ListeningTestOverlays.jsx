@@ -52,11 +52,7 @@ export default function ListeningTestOverlays({
         .dark .custom-scrollbar::-webkit-scrollbar-thumb {background-color: #334155; }
       `}</style>
 
-      <AlertDialog
-        open={session?.test_mode !== 'mock' && showTimeUpDialog}
-        onOpenChange={setShowTimeUpDialog}
-        data-oid="qnwyd03"
-      >
+      <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog} data-oid="qnwyd03">
         <AlertDialogContent className="max-w-md" data-oid="ug__9pq">
           <AlertDialogHeader data-oid="rnwsb03">
             <AlertDialogTitle className="text-2xl font-bold" data-oid="hivm9by">

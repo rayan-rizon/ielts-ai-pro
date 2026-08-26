@@ -93,7 +93,7 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
 
         const sourceTag = `${testData?.title || 'Reading Test'} - Passage ${currentPassageIndex + 1}`;
 
-        await VocabularyItem.create({
+        const createdVocabulary = await VocabularyItem.create({
           user_id: user.id,
           word: wordData.word,
           definition: `${wordData.part_of_speech ? `(${wordData.part_of_speech}) ` : ''}${wordData.definition}`,
@@ -117,7 +117,12 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
         // Award points for adding vocabulary
         if (user?.id) {
           try {
-            await UserPoints.addPoints(user.id, 5);
+            await UserPoints.addPoints(
+              user.id,
+              5,
+              'vocabulary_add',
+              `vocabulary-add:${createdVocabulary.id}`
+            );
           } catch (pointsError) {
             console.warn('Could not update points:', pointsError);
           }

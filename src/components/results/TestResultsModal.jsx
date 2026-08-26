@@ -302,8 +302,9 @@ const ModalContent = React.memo(
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Close test results"
           onClick={onClose}
-          className="absolute top-2.5 right-4 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-300 hover:text-slate-950 hover:bg-slate-100 dark:hover:text-white dark:hover:bg-slate-800 rounded-xl transition-colors shadow-sm h-8 w-8"
+          className="absolute right-3 top-1.5 z-50 h-11 w-11 rounded-xl border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
         >
           <X className="w-4 h-4" />
         </Button>

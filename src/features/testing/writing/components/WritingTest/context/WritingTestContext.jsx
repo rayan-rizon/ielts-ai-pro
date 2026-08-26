@@ -10,7 +10,7 @@
  * - dispatch() calls are automatically converted to Zustand actions
  * - Timer and autosave logic is preserved but uses Zustand state
  */
-import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { useAutosave } from '@/hooks/useAutosave';
 
@@ -281,12 +281,14 @@ export function WritingTestProvider({ children }) {
     [store]
   );
 
+  const dispatchContextValue = useMemo(
+    () => ({ dispatch, getLatestState, saveNow, ACTIONS }),
+    [dispatch, getLatestState, saveNow]
+  );
+
   // For backward compatibility, provide context values
   return (
-    <WritingTestDispatchContext.Provider
-      value={{ dispatch, getLatestState, saveNow, ACTIONS }}
-      data-oid="eudftio"
-    >
+    <WritingTestDispatchContext.Provider value={dispatchContextValue} data-oid="eudftio">
       <WritingTestTimerContext.Provider value={timeRemaining} data-oid="kfei_-0">
         <WritingTestStateContext.Provider value={null} data-oid="6o3:tg3">
           {children}

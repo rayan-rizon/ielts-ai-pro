@@ -61,6 +61,17 @@ describe('useNetworkStatus', () => {
     expect(result.current.wasOffline).toBe(false);
   });
 
+  it('does not show a reconnection state for a duplicate online event', () => {
+    const { result } = renderHook(() => useNetworkStatus());
+
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+
+    expect(result.current.isOnline).toBe(true);
+    expect(result.current.wasOffline).toBe(false);
+  });
+
   it('should cleanup event listeners on unmount', () => {
     const { unmount } = renderHook(() => useNetworkStatus());
 

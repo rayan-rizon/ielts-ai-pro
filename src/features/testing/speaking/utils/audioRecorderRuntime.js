@@ -401,8 +401,9 @@ export function stopRecorderCapture(runtime, reason = 'manual') {
   stopSpeechRecognition(runtime);
   if (refs.mediaRecorder.current?.state === 'recording') {
     refs.mediaRecorder.current.stop();
+  } else {
+    stopMediaStream(runtime);
   }
-  stopMediaStream(runtime);
 
   actions.setIsListening(false);
   actions.setIsRecording(false);
@@ -497,7 +498,8 @@ function createMediaRecorder(runtime, stream) {
   mediaRecorder.ondataavailable = (event) => {
     if (event.data.size > 0) runtime.refs.audioChunks.current.push(event.data);
   };
-  mediaRecorder.onstop = () => processCompletedRecording(runtime, mediaRecorder);
+  mediaRecorder.onstop = () =>
+    processCompletedRecording(runtime, mediaRecorder).finally(() => stopMediaStream(runtime));
   return mediaRecorder;
 }
 

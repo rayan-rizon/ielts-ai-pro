@@ -68,6 +68,7 @@ const fallbackAuthContext = Object.freeze({
  * and whenever the tab regains focus. The query is three rows.
  */
 const GLOBAL_SETTINGS_POLL_MS = 120_000;
+const settingsAreEqual = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
 let hasWarnedMissingAuthProvider = false;
 
@@ -178,7 +179,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const SystemSetting = await loadSystemSettingService();
       const settings = await SystemSetting.getAll();
-      if (isMountedRef.current) setGlobalSettings(settings);
+      if (isMountedRef.current) {
+        setGlobalSettings((current) => (settingsAreEqual(current, settings) ? current : settings));
+      }
       return settings;
     } catch (error) {
       console.error('AuthContext: Failed to load system settings', error);
@@ -211,10 +214,8 @@ export const AuthProvider = ({ children }) => {
           // client-controlled and must never establish administrator status.
           setIsAdmin(false);
           setAdminCheckComplete(false);
-          // We don't set user object yet (need Supabase session), but setting authCheckComplete
-          // allows ProtectedRoute to render children while Supabase validates in background
-          setAuthCheckComplete(true);
-          setLoading(false); // PERFORMANCE: Unblock UI immediately on cache hit
+          // Cached profile data is presentation-only. Keep the auth gate closed
+          // until Supabase confirms that the session is still valid.
         }
         return hasLocalSession;
       } catch (err) {
@@ -750,6 +751,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const localOnboardingCompleted = React.useMemo(() => getLocalOnboardingCompleted(), []);
+  const maintenance = useMemo(
+    () => normalizeMaintenance(globalSettings?.maintenance_mode),
+    [globalSettings?.maintenance_mode]
+  );
+  const announcement = useMemo(
+    () => normalizeAnnouncement(globalSettings?.public_announcement),
+    [globalSettings?.public_announcement]
+  );
   const contextValue = useMemo(() => {
     const mergedUser = userProfile ? { ...user, ...userProfile } : user;
     const finalUser =
@@ -777,8 +786,8 @@ export const AuthProvider = ({ children }) => {
       // may still be a bare boolean, or that the banner's old severity was
       // `error`. `maintenance.enabled` is *not* the same as "show the screen" —
       // use isMaintenanceActive() from lib/communications for that.
-      maintenance: normalizeMaintenance(globalSettings?.maintenance_mode),
-      announcement: normalizeAnnouncement(globalSettings?.public_announcement),
+      maintenance,
+      announcement,
     };
   }, [
     user,
@@ -797,6 +806,8 @@ export const AuthProvider = ({ children }) => {
     globalSettings,
     settingsLoading,
     refreshGlobalSettings,
+    maintenance,
+    announcement,
   ]);
 
   return (

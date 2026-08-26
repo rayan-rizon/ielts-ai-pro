@@ -196,7 +196,7 @@ export const mergeListeningAnswers = (questions, answerMap) => {
         // This works regardless of where the flowchart appears in the test
         for (let gapIdx = 0; gapIdx < totalGapCount; gapIdx++) {
           const explicitNum = allGapNumbers[gapIdx];
-          const relativeNum = gapIdx + 1;
+          const relativeNum = (q.question_number || 1) + gapIdx;
 
           // Try explicit gap_number first, then fall back to relative numbering
           const answer = answerMap[explicitNum] || answerMap[relativeNum];

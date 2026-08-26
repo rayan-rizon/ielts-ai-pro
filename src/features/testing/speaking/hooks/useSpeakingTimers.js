@@ -1,5 +1,10 @@
 import { useEffect } from 'react';
 
+export function getCountdownSeconds(initialSeconds, startedAt, now = Date.now()) {
+  const elapsedSeconds = Math.floor(Math.max(0, now - startedAt) / 1000);
+  return Math.max(0, initialSeconds - elapsedSeconds);
+}
+
 function shouldRunCountdown({ isLoading, error, timeLeft, isTestComplete, testStarted }) {
   return !isLoading && !error && timeLeft > 0 && !isTestComplete && testStarted;
 }
@@ -11,18 +16,22 @@ function usePartCountdown({
   setTimeLeft,
   isTestComplete,
   testStarted,
+  currentPartNumber,
 }) {
   useEffect(() => {
     let timer = null;
     if (shouldRunCountdown({ isLoading, error, timeLeft, isTestComplete, testStarted })) {
+      const initialSeconds = timeLeft;
+      const startedAt = Date.now();
+      const syncCountdown = () => setTimeLeft(getCountdownSeconds(initialSeconds, startedAt));
       timer = setInterval(() => {
-        setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+        syncCountdown();
       }, 1000);
     }
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isLoading, error, isTestComplete, testStarted, timeLeft, setTimeLeft]);
+  }, [isLoading, error, isTestComplete, testStarted, currentPartNumber, setTimeLeft]);
 }
 
 function shouldSaveProgress({ testStarted, isTestComplete, session }) {
@@ -278,18 +287,19 @@ function usePart2PrepCountdown({
   setPrepTimeLeft,
   prepTimerRef,
   handleStartPart2Speaking,
+  currentPartNumber,
 }) {
   useEffect(() => {
     if (isPart2Prep && prepTimeLeft > 0) {
+      const initialSeconds = prepTimeLeft;
+      const startedAt = Date.now();
       prepTimerRef.current = setInterval(() => {
-        setPrepTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(prepTimerRef.current);
-            handleStartPart2Speaking();
-            return 0;
-          }
-          return prev - 1;
-        });
+        const remaining = getCountdownSeconds(initialSeconds, startedAt);
+        setPrepTimeLeft(remaining);
+        if (remaining === 0) {
+          clearInterval(prepTimerRef.current);
+          handleStartPart2Speaking();
+        }
       }, 1000);
     }
 
@@ -298,7 +308,7 @@ function usePart2PrepCountdown({
         clearInterval(prepTimerRef.current);
       }
     };
-  }, [isPart2Prep, handleStartPart2Speaking, prepTimeLeft, prepTimerRef, setPrepTimeLeft]);
+  }, [isPart2Prep, handleStartPart2Speaking, currentPartNumber, prepTimerRef, setPrepTimeLeft]);
 }
 
 function usePartCompleteKeyboardShortcut({

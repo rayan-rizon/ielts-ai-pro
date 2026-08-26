@@ -27,6 +27,14 @@ const ARTICLE_FIELDS = [
   'featured',
   'view_count',
 ].join(',');
+const RELATED_ARTICLE_FIELDS = [
+  'id',
+  'title',
+  'slug',
+  'category',
+  'reading_minutes',
+  'thumbnail_url',
+].join(',');
 
 function escapeHtml(value = '') {
   return String(value)
@@ -900,16 +908,17 @@ function getSupabaseCredentials() {
   return { supabaseUrl, anonKey };
 }
 
-async function fetchPosts(slug) {
+async function fetchPosts({ slug, select = ARTICLE_FIELDS, limit } = {}) {
   const { supabaseUrl, anonKey } = getSupabaseCredentials();
 
   const params = new URLSearchParams({
-    select: ARTICLE_FIELDS,
+    select,
     content_type: 'eq.blog',
     is_published: 'eq.true',
     order: 'published_at.desc.nullslast,created_at.desc',
   });
   if (slug) params.set('slug', `eq.${slug}`);
+  if (limit) params.set('limit', String(limit));
 
   const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
     headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
@@ -968,9 +977,9 @@ export default async function handler(request, response) {
 
     const query = request.query || {};
     const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
-    const posts = await fetchPosts(slug);
+    const posts = await fetchPosts({ slug, limit: slug ? 1 : undefined });
     if (slug && posts.length === 0) return sendNotFound(response);
-    const allPosts = slug ? await fetchPosts() : posts;
+    const allPosts = slug ? await fetchPosts({ select: RELATED_ARTICLE_FIELDS, limit: 4 }) : posts;
     response.status(200).send(slug ? renderArticle(posts[0], allPosts) : renderIndex(posts, query));
   } catch (error) {
     console.error('[blog-render]', error);

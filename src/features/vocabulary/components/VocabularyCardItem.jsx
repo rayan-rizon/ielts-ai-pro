@@ -27,7 +27,7 @@ const CardHeaderActions = ({ item, onToggleMastery, onDeleteWord }) => {
         size="icon"
         variant="ghost"
         className={cn(
-          'h-7.5 w-7.5 rounded-xl transition-all cursor-pointer',
+          'h-11 w-11 rounded-xl transition-all cursor-pointer',
           isMastered
             ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40'
             : 'text-slate-300 hover:text-amber-500 hover:bg-amber-50'
@@ -40,7 +40,7 @@ const CardHeaderActions = ({ item, onToggleMastery, onDeleteWord }) => {
       <Button
         size="icon"
         variant="ghost"
-        className="h-7.5 w-7.5 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+        className="h-11 w-11 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
         onClick={handleDelete}
         title="Delete Word"
       >

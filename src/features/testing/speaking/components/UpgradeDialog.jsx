@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PANEL } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -18,14 +20,10 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md bg-white dark:bg-slate-950 border-none shadow-2xl p-0 overflow-hidden rounded-3xl ring-1 ring-slate-900/5">
-        <div className="relative pt-10 pb-8 px-8 text-center bg-slate-900 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-rose-500/30 blur-[80px] rounded-full" />
-          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/30 blur-[80px] rounded-full" />
-
-          <div className="relative w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center mx-auto shadow-2xl ring-1 ring-white/20 mb-6">
-            <Mic className="w-10 h-10 text-white drop-shadow-md" />
+      <AlertDialogContent className={cn(PANEL, 'max-w-md overflow-hidden p-0')}>
+        <div className="relative overflow-hidden bg-slate-900 px-8 pb-8 pt-10 text-center">
+          <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl border border-white/15 bg-white/8">
+            <Mic className="h-8 w-8 text-white" />
           </div>
 
           <div className="relative space-y-2 z-10">
@@ -72,7 +70,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
                   isExitingRef.current = true;
                   navigate('/pricing');
                 }}
-                className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 text-white h-14 rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:shadow-slate-900/30 dark:shadow-rose-500/20 transition-colors duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                className="h-12 w-full rounded-xl bg-[#5a63df] font-bold text-white transition-colors hover:bg-[#4a52c9] active:scale-[0.99]"
               >
                 {tier === 'pro' ? 'Upgrade to Premium' : 'Upgrade to Pro'}
               </Button>

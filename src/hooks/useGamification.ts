@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { User, UserPoints } from '@/entities';
 
 /**
@@ -23,6 +23,8 @@ export interface AwardXPOptions {
   updateStreak?: boolean;
   /** Delay before showing XP notification in ms (default: 500) */
   notificationDelay?: number;
+  /** Stable source key used to prevent duplicate awards */
+  actionKey?: string;
 }
 
 /**
@@ -73,6 +75,16 @@ export function useGamification(): UseGamificationResult {
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   const [showXPNotification, setShowXPNotification] = useState<boolean>(false);
   const [earnedXP, setEarnedXP] = useState<EarnedXP>({ xp: 0, bonus: 0, streak: 0 });
+  const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearNotificationTimer = useCallback(() => {
+    if (notificationTimerRef.current !== null) {
+      clearTimeout(notificationTimerRef.current);
+      notificationTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearNotificationTimer, [clearNotificationTimer]);
 
   /**
    * Award XP to the current user after test completion.
@@ -83,9 +95,16 @@ export function useGamification(): UseGamificationResult {
       totalQuestions: number,
       options: AwardXPOptions = {}
     ): Promise<AwardXPResult> => {
-      const { includePerfectBonus = true, updateStreak = true, notificationDelay = 500 } = options;
+      const {
+        includePerfectBonus = true,
+        updateStreak = true,
+        notificationDelay = 500,
+        actionKey,
+      } = options;
 
       try {
+        if (!actionKey) throw new Error('A stable point-award action key is required');
+
         // Get current user profile (ensures public profile exists)
         const user = await User.me();
 
@@ -97,7 +116,7 @@ export function useGamification(): UseGamificationResult {
         const bonusXP = includePerfectBonus && isPerfect ? 100 : 0;
 
         // Award points to user (using public ID, not auth ID)
-        await UserPoints.addPoints(user.id!, xpAmount);
+        await UserPoints.addPoints(user.id!, xpAmount, 'test_completion', actionKey);
 
         // Update streak if enabled
         let streakValue = 0;
@@ -116,7 +135,11 @@ export function useGamification(): UseGamificationResult {
 
         // Trigger celebration
         setShowConfetti(true);
-        setTimeout(() => setShowXPNotification(true), notificationDelay);
+        clearNotificationTimer();
+        notificationTimerRef.current = setTimeout(() => {
+          notificationTimerRef.current = null;
+          setShowXPNotification(true);
+        }, notificationDelay);
 
         return { success: true, ...xpData };
       } catch (error) {
@@ -124,17 +147,18 @@ export function useGamification(): UseGamificationResult {
         return { success: false, xp: 0, bonus: 0, streak: 0 };
       }
     },
-    []
+    [clearNotificationTimer]
   );
 
   /**
    * Reset gamification state (useful when unmounting or resetting test).
    */
   const resetGamification = useCallback((): void => {
+    clearNotificationTimer();
     setShowConfetti(false);
     setShowXPNotification(false);
     setEarnedXP({ xp: 0, bonus: 0, streak: 0 });
-  }, []);
+  }, [clearNotificationTimer]);
 
   return {
     showConfetti,

@@ -109,7 +109,9 @@ const getMeaningfulText = (value: unknown): string => {
  * Extract comparable content from different answer formats
  * Handles both Writing test format (array with task1/task2 responses) and object format
  */
-const normalizeAnswersForComparison = (answers: Answers | null): NormalizedAnswers | null => {
+export const normalizeAnswersForComparison = (
+  answers: Answers | null
+): NormalizedAnswers | null => {
   if (!answers) return null;
 
   // Handle array format (used by Writing test autosave)
@@ -129,10 +131,22 @@ const normalizeAnswersForComparison = (answers: Answers | null): NormalizedAnswe
   // Handle object format (could be drafts object {'Task 1': '...', 'Task 2': '...'})
   if (typeof answers === 'object') {
     const obj = answers as Record<string, unknown>;
+    const isWritingAnswer =
+      'Task 1' in obj ||
+      'Task 2' in obj ||
+      'task1_response' in obj ||
+      'task2_response' in obj ||
+      'response' in obj;
+    if (isWritingAnswer) {
+      return {
+        task1: (obj['Task 1'] as string) || (obj.task1_response as string) || '',
+        task2: (obj['Task 2'] as string) || (obj.task2_response as string) || '',
+        response: (obj.response as string) || '',
+      };
+    }
+
     return {
-      task1: (obj['Task 1'] as string) || (obj.task1_response as string) || '',
-      task2: (obj['Task 2'] as string) || (obj.task2_response as string) || '',
-      response: (obj.response as string) || '',
+      raw: JSON.stringify(Object.entries(obj).sort(([left], [right]) => left.localeCompare(right))),
     };
   }
 
@@ -176,6 +190,7 @@ export function useAutosave({
   const lastSaveTimeRef = useRef<number>(0);
   const retryQueueRef = useRef<QueuedSave[]>([]);
   const isSavingRef = useRef<boolean>(false);
+  const isFinishedRef = useRef<boolean>(isFinished);
 
   const getAnswersRef = useRef(getAnswers);
   const getExtraDataRef = useRef(getExtraData);
@@ -185,6 +200,11 @@ export function useAutosave({
     getAnswersRef.current = getAnswers;
     getExtraDataRef.current = getExtraData;
   });
+
+  useEffect(() => {
+    isFinishedRef.current = isFinished;
+    if (isFinished) retryQueueRef.current = [];
+  }, [isFinished]);
 
   // Initialize lastSaved from session
   useEffect(() => {
@@ -215,7 +235,7 @@ export function useAutosave({
       retryCount: number = 0,
       skipThrottle: boolean = false
     ): Promise<boolean> => {
-      if (!session?.id) return false;
+      if (!session?.id || isFinishedRef.current) return false;
 
       // Throttle: Check if we saved recently
       const now = Date.now();
@@ -230,7 +250,8 @@ export function useAutosave({
             user_responses: answers,
             content_data: contentData,
           })
-          .eq('id', session.id);
+          .eq('id', session.id)
+          .eq('is_completed', false);
 
         if (error) throw error;
 
@@ -243,6 +264,7 @@ export function useAutosave({
         if (retryCount < MAX_RETRIES) {
           const backoffDelay = BASE_DELAY_MS * Math.pow(2, retryCount);
           await delay(backoffDelay);
+          if (isFinishedRef.current) return false;
           return saveWithRetry(answers, contentData, retryCount + 1, skipThrottle);
         }
 
@@ -263,7 +285,7 @@ export function useAutosave({
   );
 
   const processQueue = useCallback(async (): Promise<void> => {
-    if (!session?.id || retryQueueRef.current.length === 0) return;
+    if (!session?.id || isFinishedRef.current || retryQueueRef.current.length === 0) return;
     const latestQueued = retryQueueRef.current.pop();
     retryQueueRef.current = [];
     if (latestQueued) {

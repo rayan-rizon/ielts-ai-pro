@@ -500,7 +500,9 @@ export function useReadingTestLogic(
             }
           });
           try {
-            await awardXP(results.correctAnswers, results.totalQuestions);
+            await awardXP(results.correctAnswers, results.totalQuestions, {
+              actionKey: `reading-test:${session.id}`,
+            });
           } catch (xpError) {
             console.error('Reading XP error:', xpError);
           }
@@ -534,6 +536,7 @@ export function useReadingTestLogic(
       [dispatch]
     ),
     onExpire: handleSubmit,
+    onResumeExpired: useCallback(() => setShowTimeUpDialog(true), []),
   });
 
   // Timer sync for auto-submit is complex to move entirely, but we can expose handleSubmit

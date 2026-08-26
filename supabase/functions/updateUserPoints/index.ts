@@ -28,27 +28,28 @@ serve(async (req) => {
       return errorResponse(csrfCheck.error || 'CSRF validation failed', 403, corsHeaders);
     }
 
-    const supabase = createClient(
+    const authHeader = req.headers.get('Authorization');
+    const authClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader ?? '' } } }
     );
 
     // SECURITY: Read body first, but authenticate via JWT before trusting any value
     const body = await req.json();
-    const { pointsToAdd } = body;
+    const { pointsToAdd, actionKey, reason = 'test_completion' } = body;
 
-    const authHeader = req.headers.get('Authorization');
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser(authHeader?.split(' ')[1]);
+    } = await authClient.auth.getUser(authHeader?.split(' ')[1]);
     if (authError || !user) {
       return errorResponse('Unauthorized', 401, corsHeaders);
     }
 
     // SECURITY: Validate pointsToAdd is a safe, bounded positive integer
     // Never trust the client for the amount — cap at server-defined maximum
-    const MAX_POINTS_PER_ACTION = 500; // e.g., max 500 points per single action
+    const MAX_POINTS_PER_ACTION = 1200;
     if (
       typeof pointsToAdd !== 'number' ||
       !Number.isInteger(pointsToAdd) ||
@@ -61,6 +62,9 @@ serve(async (req) => {
         corsHeaders
       );
     }
+    if (typeof actionKey !== 'string' || !actionKey.trim() || actionKey.length > 200) {
+      return errorResponse('A valid actionKey is required', 400, corsHeaders);
+    }
 
     // Rate Limiting for points updates
     const rateLimitId = getRateLimitIdentifier(req, user.id);
@@ -70,27 +74,16 @@ serve(async (req) => {
       return rateLimitedResponse(rateLimit.resetIn, corsHeaders);
     }
 
-    // SECURITY: Use JWT-derived user.id as the lookup key — never the body-supplied userId
-    const { data: currentPoints, error: fetchError } = await supabase
-      .from('user_points')
-      .select('points')
-      .eq('user_id', user.id)
-      .single();
-
-    if (fetchError) {
-      return new Response(JSON.stringify({ error: fetchError.message }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const newPoints = (currentPoints?.points || 0) + pointsToAdd;
-
-    const { error: updateError } = await supabase
-      .from('user_points')
-      .update({ points: newPoints, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id); // Always use JWT-derived ID
-
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+    const { data: awardResult, error: updateError } = await serviceClient.rpc('award_user_points', {
+      p_auth_id: user.id,
+      p_points: pointsToAdd,
+      p_action_key: actionKey.trim(),
+      p_reason: reason,
+    });
     if (updateError) {
       return new Response(JSON.stringify({ error: updateError.message }), {
         status: 500,
@@ -98,10 +91,13 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ newPoints }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ newPoints: awardResult.new_points, awarded: awardResult.awarded }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

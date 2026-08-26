@@ -45,7 +45,7 @@ function loadAudioDuration(src) {
   });
 }
 
-export const useListeningTestLogic = ({ awardXP: awardXPFromPage } = {}) => {
+export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpired } = {}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { session, answers, testData, questions, questionsWithNumbers, isFinished, activePart } =
@@ -420,7 +420,10 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage } = {}) => {
             overall_band: results.bandScore,
           });
           try {
-            await awardXP(results.correctAnswers, questions.length, { updateStreak: false });
+            await awardXP(results.correctAnswers, questions.length, {
+              updateStreak: false,
+              actionKey: `listening-test:${session.id}`,
+            });
           } catch (e) {
             console.error('XP Error', e);
           }
@@ -529,6 +532,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage } = {}) => {
       [dispatch, ACTIONS.SET_TIME, session?.content_data?.review_seconds]
     ),
     onExpire: handleSubmit,
+    onResumeExpired,
   });
 
   const handleExamAudioEnded = useCallback(() => {

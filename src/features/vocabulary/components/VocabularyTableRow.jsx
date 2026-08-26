@@ -103,7 +103,7 @@ const TableRowActionsCell = ({ item, onViewWord, onToggleMastery, onDeleteWord }
           size="icon"
           variant="ghost"
           className={cn(
-            'h-8 w-8 rounded-lg transition-all',
+            'h-11 w-11 rounded-lg transition-all',
             isMastered
               ? 'text-amber-500 hover:bg-amber-500/10'
               : 'text-slate-400 hover:text-amber-500'
@@ -116,7 +116,7 @@ const TableRowActionsCell = ({ item, onViewWord, onToggleMastery, onDeleteWord }
         <Button
           size="icon"
           variant="ghost"
-          className="h-8 w-8 rounded-lg text-slate-500 hover:text-[#5a63df]"
+          className="h-11 w-11 rounded-lg text-slate-500 hover:text-[#5a63df]"
           onClick={() => onViewWord(item)}
           title="View Detail"
         >
@@ -125,7 +125,7 @@ const TableRowActionsCell = ({ item, onViewWord, onToggleMastery, onDeleteWord }
         <Button
           size="icon"
           variant="ghost"
-          className="h-8 w-8 rounded-lg text-slate-400 hover:text-rose-500"
+          className="h-11 w-11 rounded-lg text-slate-400 hover:text-rose-500"
           onClick={handleDelete}
           title="Delete Word"
         >

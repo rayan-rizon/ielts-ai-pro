@@ -109,9 +109,9 @@ Deno.serve(async (req: Request) => {
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // 4. Use the unified handle_stripe_event RPC (same as webhook)
-    // Using a "sync_" prefix for the event ID to distinguish from webhook events
+    // The checkout session is the canonical idempotency key shared with the webhook.
     const { data, error } = await serviceClient.rpc('handle_stripe_event', {
-      p_event_id: `sync_${session.id}`,
+      p_event_id: `checkout_${session.id}`,
       p_event_type: 'checkout.session.completed',
       p_auth_id: authId,
       p_user_id: userId,
@@ -138,6 +138,15 @@ Deno.serve(async (req: Request) => {
       console.error('[Sync] RPC Error:', error);
       throw error;
     }
+    if (!data?.success) {
+      throw new Error(data?.error || 'Stripe session could not be synchronized');
+    }
+    if (data.claimed === false) {
+      return new Response(JSON.stringify({ success: true, alreadyProcessed: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     console.log(`[Sync] ✅ User ${authId} synced to tier: ${tier}`);
 
@@ -152,7 +161,7 @@ Deno.serve(async (req: Request) => {
           discount_amount: (session.total_details?.amount_discount || 0) / 100,
         })
         .eq('transaction_id', session.id);
-      await serviceClient.from('marketing_events').insert({
+      const { error: marketingEventError } = await serviceClient.from('marketing_events').insert({
         campaign_id: marketingCampaignId,
         delivery_id: marketingDeliveryId,
         user_id: userId,
@@ -166,6 +175,9 @@ Deno.serve(async (req: Request) => {
           source: 'sync',
         },
       });
+      if (marketingEventError && marketingEventError.code !== '23505') {
+        console.warn('[Sync] Marketing purchase event failed:', marketingEventError.message);
+      }
     }
 
     return new Response(

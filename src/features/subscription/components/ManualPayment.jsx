@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
+import { PANEL } from '@/features/dashboard/components/primitives';
 
 const PAYMENT_METHODS = [
   {
@@ -127,7 +128,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xl"
+          className="fixed inset-0 bg-slate-950/60"
           data-oid="pxun8dp"
         />
 
@@ -135,7 +136,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-4xl shadow-2xl overflow-hidden border border-slate-200 dark:border-white/10 m-4"
+          className={cn(PANEL, 'relative m-4 w-full max-w-md overflow-hidden')}
           data-oid="v_21ppt"
         >
           {/* Header */}
@@ -156,8 +157,10 @@ export default function ManualPayment({ isOpen, onClose, planData: data }) {
               </p>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+              aria-label="Close payment portal"
+              className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-slate-200 dark:hover:bg-slate-700"
               data-oid="ttubi9v"
             >
               <X className="w-5 h-5" data-oid="8_kymqf" />

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { mergeAnswers, parseBulkQuestions, validateBulkData } from '@/lib/bulkQuestionParser';
+import {
+  mergeAnswers,
+  parseAnswerList,
+  parseBulkQuestions,
+  validateBulkData,
+} from '@/lib/bulkQuestionParser';
+import { mergeListeningAnswers } from '@/lib/listeningQuestionParser';
 
 const FLOWCHART_INPUT = `Questions 8-10
 
@@ -71,5 +77,31 @@ describe('reading bulk flow-chart parsing', () => {
       2: 'pipes',
     });
     expect(validateBulkData([merged])).toEqual({ errors: [], suggestions: [] });
+  });
+
+  it('keeps numeric answer content instead of treating it as a new question', () => {
+    expect(parseAnswerList('1. built in 1990\n2. exactly 15 cm\n3. London')).toEqual({
+      1: 'built in 1990',
+      2: 'exactly 15 cm',
+      3: 'London',
+    });
+  });
+
+  it('maps markerless listening flowchart gaps from the parent question number', () => {
+    const [merged] = mergeListeningAnswers(
+      [
+        {
+          type: 'flowchart',
+          question_number: 21,
+          flowchart: {
+            steps: [{ text: 'Choose [gap]' }, { text: 'Then [gap]' }],
+            answers: {},
+          },
+        },
+      ],
+      { 1: 'wrong part', 2: 'wrong part', 21: 'harbour', 22: 'museum' }
+    );
+
+    expect(merged.flowchart.answers).toEqual({ 0: 'harbour', 1: 'museum' });
   });
 });

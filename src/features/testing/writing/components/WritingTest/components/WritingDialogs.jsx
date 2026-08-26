@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Lock, Sparkles, XCircle } from 'lucide-react';
 import { useWritingTestDispatch } from '../context/WritingTestContext';
 import { ConfirmExitDialog } from '@/shared/ui';
+import { PANEL } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
 
 /**
  * WritingDialogs
@@ -61,10 +63,7 @@ export function WritingDialogs({ logic }) {
 
       {/* Manual Submission Dialog */}
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} data-oid="1jcn4qf">
-        <AlertDialogContent
-          className="max-w-md bg-white dark:bg-[#131315] border-none shadow-2xl"
-          data-oid="27i6yss"
-        >
+        <AlertDialogContent className={cn(PANEL, 'max-w-md')} data-oid="27i6yss">
           <AlertDialogHeader data-oid="vownwlc">
             <div
               className="w-16 h-16 bg-[#efedff] dark:bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
@@ -121,15 +120,8 @@ export function WritingDialogs({ logic }) {
       </AlertDialog>
 
       {/* Time Up Dialog */}
-      <AlertDialog
-        open={!isExamMode && showTimeUpDialog}
-        onOpenChange={setShowTimeUpDialog}
-        data-oid="yxae3w-"
-      >
-        <AlertDialogContent
-          className="max-w-md bg-white dark:bg-[#131315] border-none shadow-2xl"
-          data-oid="ijws.ud"
-        >
+      <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog} data-oid="yxae3w-">
+        <AlertDialogContent className={cn(PANEL, 'max-w-md')} data-oid="ijws.ud">
           <AlertDialogHeader data-oid="w0hr399">
             <div
               className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
@@ -175,7 +167,7 @@ export function WritingDialogs({ logic }) {
       {/* Upgrade Dialog */}
       <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} data-oid="qq3k8bw">
         <AlertDialogContent
-          className="max-w-md bg-white dark:bg-[#131315] border-none shadow-2xl p-0 overflow-hidden rounded-3xl ring-1 ring-slate-900/5"
+          className={cn(PANEL, 'max-w-md overflow-hidden p-0')}
           data-oid=".jxz1rs"
         >
           {/* Header Section - Premium Dark */}
@@ -185,11 +177,8 @@ export function WritingDialogs({ logic }) {
           >
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/30 blur-[80px] rounded-full" />
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/30 blur-[80px] rounded-full" />
-
             <div
-              className="relative w-20 h-20 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center mx-auto shadow-2xl ring-1 ring-white/20 mb-6"
+              className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl border border-white/15 bg-white/8"
               data-oid="42he-sd"
             >
               <Lock className="w-10 h-10 text-white drop-shadow-md" data-oid="836ru7x" />
