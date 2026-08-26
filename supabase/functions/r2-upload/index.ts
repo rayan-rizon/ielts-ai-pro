@@ -25,15 +25,23 @@ serve(async (req) => {
   }
 
   try {
-    const MAX_FILE_SIZE = 50 * 1024 * 1024;
+    const ADMIN_MAX_FILE_SIZE = 50 * 1024 * 1024;
+    const CHECKER_MAX_FILE_SIZE = 8 * 1024 * 1024;
     const MAX_MULTIPART_OVERHEAD = 1024 * 1024;
+    const uploadPurpose = req.headers.get('x-upload-purpose') || 'admin-content';
+    const isWritingCheckerUpload = uploadPurpose === 'writing-checker';
+    const maxFileSize = isWritingCheckerUpload ? CHECKER_MAX_FILE_SIZE : ADMIN_MAX_FILE_SIZE;
     const contentLengthHeader = req.headers.get('content-length');
     const contentLength = Number(contentLengthHeader);
     if (!contentLengthHeader || !Number.isSafeInteger(contentLength) || contentLength <= 0) {
       return errorResponse('A valid Content-Length header is required.', 411, corsHeaders);
     }
-    if (contentLength > MAX_FILE_SIZE + MAX_MULTIPART_OVERHEAD) {
-      return errorResponse('File too large. Maximum size is 50MB.', 413, corsHeaders);
+    if (contentLength > maxFileSize + MAX_MULTIPART_OVERHEAD) {
+      return errorResponse(
+        `File too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB.`,
+        413,
+        corsHeaders
+      );
     }
 
     const authHeader = req.headers.get('Authorization');
@@ -55,7 +63,10 @@ serve(async (req) => {
 
     // This upload surface is used only by authenticated content-management tools.
     const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin');
-    if (adminError || !isAdmin) {
+    if (adminError) {
+      return errorResponse('Could not verify upload permissions', 503, corsHeaders);
+    }
+    if (!isAdmin && !isWritingCheckerUpload) {
       return errorResponse('Administrator access required', 403, corsHeaders);
     }
 
@@ -69,16 +80,25 @@ serve(async (req) => {
       return errorResponse('No file uploaded', 400, corsHeaders);
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return errorResponse('File too large. Maximum size is 50MB.', 413, corsHeaders);
+    if (file.size > maxFileSize) {
+      return errorResponse(
+        `File too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB.`,
+        413,
+        corsHeaders
+      );
     }
 
-    // MIME type whitelist: only allow audio, image, and video
-    const ALLOWED_MIME_PREFIXES = ['audio/', 'image/', 'video/', 'application/pdf'];
     const fileType = file.type || '';
-    if (!ALLOWED_MIME_PREFIXES.some((prefix) => fileType.startsWith(prefix))) {
+    const checkerMimeTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
+    const adminMimePrefixes = ['audio/', 'image/', 'video/', 'application/pdf'];
+    const hasAllowedType = isWritingCheckerUpload
+      ? checkerMimeTypes.has(fileType)
+      : adminMimePrefixes.some((prefix) => fileType.startsWith(prefix));
+    if (!hasAllowedType) {
       return errorResponse(
-        'File type not allowed. Only audio, image, and video files are accepted.',
+        isWritingCheckerUpload
+          ? 'File type not allowed. Use PNG, JPG, or WebP for a Writing Task 1 visual.'
+          : 'File type not allowed. Only audio, image, video, and PDF files are accepted.',
         415,
         corsHeaders
       );
@@ -107,13 +127,13 @@ serve(async (req) => {
     // Sanitize filename
     const originalName = file.name?.trim() || 'upload.bin';
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const key = `uploads/${Date.now()}_${sanitizedName}`;
+    const keyPrefix = isWritingCheckerUpload ? `writing-checker/${user.id}` : 'uploads';
+    const key = `${keyPrefix}/${Date.now()}_${sanitizedName}`;
 
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const body = new Uint8Array(arrayBuffer);
-
-    if (!hasExpectedFileSignature(fileType, body)) {
+    // Inspect only the header bytes. Passing the File/Blob directly lets the
+    // S3 fetch handler stream it instead of allocating a second full-size copy.
+    const signatureBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    if (!hasExpectedFileSignature(fileType, signatureBytes)) {
       return errorResponse('File content does not match its declared type.', 415, corsHeaders);
     }
 
@@ -122,7 +142,8 @@ serve(async (req) => {
       new PutObjectCommand({
         Bucket: R2_BUCKET_NAME,
         Key: key,
-        Body: body,
+        Body: file,
+        ContentLength: file.size,
         ContentType: file.type,
       })
     );

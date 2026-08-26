@@ -190,6 +190,7 @@ export function useAutosave({
   const lastSaveTimeRef = useRef<number>(0);
   const retryQueueRef = useRef<QueuedSave[]>([]);
   const isSavingRef = useRef<boolean>(false);
+  const activeSavePromiseRef = useRef<Promise<boolean> | null>(null);
   const isFinishedRef = useRef<boolean>(isFinished);
 
   const getAnswersRef = useRef(getAnswers);
@@ -284,6 +285,26 @@ export function useAutosave({
     [session?.id, onSaveSuccess, onSaveError]
   );
 
+  const runSave = useCallback(
+    async (answers: Answers, contentData: ContentData, forced: boolean): Promise<boolean> => {
+      setIsSaving(true);
+      isSavingRef.current = true;
+      const savePromise = saveWithRetry(answers, contentData, 0, forced);
+      activeSavePromiseRef.current = savePromise;
+
+      try {
+        return await savePromise;
+      } finally {
+        if (activeSavePromiseRef.current === savePromise) {
+          activeSavePromiseRef.current = null;
+          isSavingRef.current = false;
+          setIsSaving(false);
+        }
+      }
+    },
+    [saveWithRetry]
+  );
+
   const processQueue = useCallback(async (): Promise<void> => {
     if (!session?.id || isFinishedRef.current || retryQueueRef.current.length === 0) return;
     const latestQueued = retryQueueRef.current.pop();
@@ -341,26 +362,16 @@ export function useAutosave({
       } else {
       }
 
-      setIsSaving(true);
-      isSavingRef.current = true;
+      const extraData = getExtraDataRef.current?.() || {};
+      const contentData: ContentData = {
+        ...(session.content_data || {}),
+        ...extraData,
+        last_saved_at: new Date().toISOString(),
+      };
 
-      try {
-        const extraData = getExtraDataRef.current?.() || {};
-        const contentData: ContentData = {
-          ...(session.content_data || {}),
-          ...extraData,
-          last_saved_at: new Date().toISOString(),
-        };
-
-        await saveWithRetry(currentAnswers, contentData, 0, forced);
-
-        return true;
-      } finally {
-        isSavingRef.current = false;
-        setIsSaving(false);
-      }
+      return runSave(currentAnswers, contentData, forced);
     },
-    [session, isFinished, saveWithRetry]
+    [session, isFinished, runSave]
   );
 
   // Autosave interval
@@ -416,8 +427,15 @@ export function useAutosave({
    * Manual save trigger (for passage changes, etc.)
    */
   const saveNow = useCallback(async (): Promise<boolean> => {
-    // Use session?.id for safer null checks
-    if (!session?.id || isFinished || isSavingRef.current) return false;
+    if (!session?.id || isFinishedRef.current) return false;
+
+    // A manual flush is used before navigation, evaluation, and submission.
+    // Wait for any older snapshot, then persist the latest answers instead of
+    // returning early and letting the caller navigate with unsaved edits.
+    while (activeSavePromiseRef.current) {
+      await activeSavePromiseRef.current.catch(() => false);
+      if (isFinishedRef.current) return false;
+    }
 
     // CRITICAL: Use refs to avoid stale closures when called from event handlers
     const currentAnswers = getAnswersRef.current();
@@ -430,9 +448,6 @@ export function useAutosave({
       return false;
     }
 
-    setIsSaving(true);
-    isSavingRef.current = true;
-
     // Use ref to get latest extra data (time remaining, etc.)
     const extraData = getExtraDataRef.current?.() || {};
     const contentData: ContentData = {
@@ -441,11 +456,8 @@ export function useAutosave({
       last_saved_at: new Date().toISOString(),
     };
 
-    const result = await saveWithRetry(currentAnswers, contentData, 0, true);
-    isSavingRef.current = false;
-    setIsSaving(false);
-    return result;
-  }, [session, isFinished, saveWithRetry]);
+    return runSave(currentAnswers, contentData, true);
+  }, [session, runSave]);
 
   return {
     saveNow,

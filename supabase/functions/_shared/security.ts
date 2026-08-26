@@ -25,7 +25,7 @@ export function getCorsHeaders(req: Request): Record<string, string> {
   const baseHeaders = {
     'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
     'Access-Control-Allow-Headers':
-      'authorization, x-client-info, apikey, content-type, x-csrf-token, x-requested-with',
+      'authorization, x-client-info, apikey, content-type, x-csrf-token, x-requested-with, x-upload-purpose',
     'Access-Control-Max-Age': '86400', // Cache preflight for 24 hours
   };
 
@@ -361,6 +361,33 @@ export async function finalizeApiUsage(
 }
 
 /**
+ * Recover a response that was finalized before the client received it. This
+ * closes the gap between provider completion and a lost HTTP response without
+ * invoking the paid provider again.
+ */
+export async function getFinalizedReservationResult<T>(
+  // @ts-ignore
+  supabase: any,
+  reservationId: string | undefined,
+  metadataKey = 'response'
+): Promise<T | null> {
+  if (!reservationId) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('ai_api_usage')
+      .select('request_metadata')
+      .eq('id', reservationId)
+      .maybeSingle();
+    if (error || data?.request_metadata?.reservationStatus !== 'completed') return null;
+    return (data.request_metadata?.[metadataKey] as T) ?? null;
+  } catch (error) {
+    console.warn('Could not recover finalized AI reservation response:', error);
+    return null;
+  }
+}
+
+/**
  * Check user's quota against database-stored tier limits.
  * This is the persistent quota check (daily/monthly limits).
  * Use in combination with in-memory burst limiting for hybrid approach.
@@ -523,6 +550,31 @@ export function quotaExceededResponse(
     }),
     {
       status: 429,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+/**
+ * Stop an idempotent request that is already reserved or completed before it
+ * reaches a paid provider. Failed reservations are reactivated by the database
+ * and therefore arrive with `alreadyReserved = false`.
+ */
+export function duplicateReservationResponse(
+  corsHeaders: Record<string, string>,
+  message = 'This request is already being processed or has already completed.'
+): Response {
+  return new Response(
+    JSON.stringify({
+      error: 'duplicate_request',
+      message,
+      retryable: false,
+    }),
+    {
+      status: 409,
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/json',

@@ -11,6 +11,8 @@ import {
   checkTierAccess,
   reserveDatabaseQuota,
   finalizeApiUsage,
+  getFinalizedReservationResult,
+  duplicateReservationResponse,
   quotaExceededResponse,
 } from '../_shared/security.ts';
 import {
@@ -99,7 +101,7 @@ serve(async (req: Request) => {
 
     let sessionQuery = supabase
       .from('test_sessions')
-      .select('id, passage_id')
+      .select('id, passage_id, content_data')
       .eq('user_id', userProfile?.id)
       .eq('test_type', 'speaking');
     sessionQuery = requestedSpeakingSessionId
@@ -118,16 +120,42 @@ serve(async (req: Request) => {
     }
 
     const speakingSessionId = ownedSession.id;
+    const cachedDeepDive = ownedSession.content_data?.detailedFeedback;
+    if (
+      cachedDeepDive?.evaluationVersion === FEEDBACK_EVALUATOR_VERSION &&
+      cachedDeepDive?.speakingSessionId === speakingSessionId
+    ) {
+      return new Response(
+        JSON.stringify({ success: true, detailedAnalysis: cachedDeepDive, cached: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const quotaReservation = await reserveDatabaseQuota(
       supabase,
       user.id,
-      'processSpeakingSession_start',
+      'generateDetailedSpeakingFeedback',
       'speaking',
-      `speaking-session:${speakingSessionId}`,
+      `speaking-deep-dive:${speakingSessionId}:${FEEDBACK_EVALUATOR_VERSION}`,
       { testId, speakingSessionId }
     );
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
+    }
+    if (quotaReservation.alreadyReserved) {
+      const cachedResponse = await getFinalizedReservationResult<Record<string, unknown>>(
+        supabase,
+        quotaReservation.reservationId
+      );
+      if (cachedResponse) {
+        return new Response(JSON.stringify({ ...cachedResponse, cached: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return duplicateReservationResponse(
+        corsHeaders,
+        'This Speaking deep dive is already being generated or has already completed.'
+      );
     }
     quotaReservationId = quotaReservation.reservationId;
 
@@ -324,12 +352,15 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
       throw new Error('Failed to parse AI response into JSON');
     }
 
+    const responsePayload = { success: true, detailedAnalysis };
+
     // Log successful usage
     await finalizeApiUsage(supabase, quotaReservationId, tokensUsed, false, {
       testId,
       speakingSessionId,
       partsAnalyzed: [1, 2, 3].filter((p) => !!allPartsConversation[p]).length,
       model: 'gemini-2.5-flash',
+      response: responsePayload,
     });
     quotaReservationId = undefined;
     await logApiUsage(supabase, user.id, 'generateDetailedSpeakingFeedback', false, tokensUsed, {
@@ -337,13 +368,10 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
       partsAnalyzed: [1, 2, 3].filter((p) => !!allPartsConversation[p]).length,
     });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        detailedAnalysis,
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify(responsePayload), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error: any) {
     console.error('Error in generateDetailedSpeakingFeedback:', error);
     if (quotaReservationId) {

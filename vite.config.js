@@ -119,7 +119,12 @@ export default defineConfig({
               return 'query-vendor';
             }
             // Editor dependencies - only needed in specific components
-            if (id.includes('lexical') || id.includes('prismjs')) {
+            if (
+              id.includes('lexical') ||
+              id.includes('prismjs') ||
+              id.includes('react-quill-new') ||
+              id.includes('/quill/')
+            ) {
               return 'editor-vendor';
             }
             // Chart and visualization libraries

@@ -49,7 +49,7 @@ function startStageTimer(setAnalysisStage) {
 async function executeAnalysis(selectedTask, selectedDrafts, taskImageFile) {
   let imageUrl = null;
   if (selectedTask === 'Task 1') {
-    const uploaded = await uploadFile(taskImageFile);
+    const uploaded = await uploadFile(taskImageFile, { purpose: 'writing-checker' });
     imageUrl = uploaded.file_url;
   }
 

@@ -11,6 +11,8 @@ import {
   checkTierAccess,
   reserveDatabaseQuota,
   finalizeApiUsage,
+  getFinalizedReservationResult,
+  duplicateReservationResponse,
   quotaExceededResponse,
 } from '../_shared/security.ts';
 import { generateEvaluationPrompt } from '../_shared/bandDescriptors.ts';
@@ -139,13 +141,29 @@ serve(async (req: Request) => {
     const quotaReservation = await reserveDatabaseQuota(
       supabase,
       user.id,
-      'processSpeakingSession_start',
+      'evaluateSpeakingTest',
       'speaking',
-      `speaking-session:${speakingSessionId}`,
+      `speaking-evaluation:${speakingSessionId}`,
       { testId, speakingSessionId }
     );
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
+    }
+    if (quotaReservation.alreadyReserved) {
+      const cachedResponse = await getFinalizedReservationResult<Record<string, unknown>>(
+        supabase,
+        quotaReservation.reservationId
+      );
+      if (cachedResponse) {
+        return new Response(JSON.stringify({ ...cachedResponse, cached: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return duplicateReservationResponse(
+        corsHeaders,
+        'This Speaking evaluation is already being processed or has already completed.'
+      );
     }
     quotaReservationId = quotaReservation.reservationId;
 
@@ -270,6 +288,8 @@ serve(async (req: Request) => {
       );
     }
 
+    const responsePayload = { success: true, evaluation };
+
     // Log successful usage
     const estimatedProviderCostUsd = providerResult.usage.estimatedProviderCostUsd;
     await finalizeApiUsage(supabase, quotaReservationId, tokensUsed, false, {
@@ -284,6 +304,7 @@ serve(async (req: Request) => {
       fallbackReason: providerResult.fallbackReason,
       routingReason: providerResult.routingReason,
       estimatedProviderCostUsd,
+      response: responsePayload,
     });
     quotaReservationId = undefined;
     await logApiUsage(supabase, user.id, 'evaluateSpeakingTest', false, tokensUsed, {
@@ -301,13 +322,10 @@ serve(async (req: Request) => {
       estimatedProviderCostUsd,
     });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        evaluation,
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify(responsePayload), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error: any) {
     console.error('Error in evaluateSpeakingTest:', error);
     if (quotaReservationId) {

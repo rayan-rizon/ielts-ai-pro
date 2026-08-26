@@ -7,6 +7,7 @@ import {
   checkTierAccess,
   errorResponse,
   finalizeApiUsage,
+  duplicateReservationResponse,
   getBurstLimitConfig,
   getCorsHeaders,
   getRateLimitIdentifier,
@@ -244,6 +245,12 @@ serve(async (req: Request) => {
       }
     );
     if (!quota.allowed) return quotaExceededResponse(quota, corsHeaders);
+    if (quota.alreadyReserved) {
+      return duplicateReservationResponse(
+        corsHeaders,
+        'This Grammar transfer evaluation is already being processed.'
+      );
+    }
     reservationId = quota.reservationId;
 
     const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');

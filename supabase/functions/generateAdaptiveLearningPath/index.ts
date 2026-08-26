@@ -18,6 +18,7 @@ import {
   checkRateLimit,
   errorResponse,
   finalizeApiUsage,
+  getFinalizedReservationResult,
   getCorsHeaders,
   getRateLimitIdentifier,
   handleCorsPrelight,
@@ -255,6 +256,22 @@ async function buildCoachSummary({
       deterministicFallback: true,
     };
   }
+  if (reservation.alreadyReserved) {
+    const cachedResponse = await getFinalizedReservationResult<Record<string, unknown>>(
+      supabase,
+      reservation.reservationId
+    );
+    if (cachedResponse) return cachedResponse;
+    return {
+      summary: {
+        headline: fallback.headline,
+        explanation: fallback.explanation,
+      },
+      rankedActivityKeys: fallback.rankedActivityKeys,
+      deterministicFallback: true,
+      fallbackReason: 'duplicate_request',
+    };
+  }
 
   try {
     const prompt = `You are an IELTS coach ranking a safe, pre-validated study plan.
@@ -313,6 +330,15 @@ ${JSON.stringify({
         .filter((key: string) => !rankedActivityKeys.includes(key)),
     ];
 
+    const responsePayload = {
+      summary: {
+        headline: parsed.headline.trim().slice(0, 180),
+        explanation: parsed.explanation.trim().slice(0, 650),
+      },
+      rankedActivityKeys: completeRanking,
+      deterministicFallback: false,
+    };
+
     await finalizeApiUsage(supabase, reservation.reservationId, tokensUsed, false, {
       ...metadata,
       provider: providerResult.provider,
@@ -325,15 +351,9 @@ ${JSON.stringify({
       outputTokens,
       estimatedProviderCostUsd: providerResult.usage.estimatedProviderCostUsd,
       deterministicFallback: false,
+      response: responsePayload,
     });
-    return {
-      summary: {
-        headline: parsed.headline.trim().slice(0, 180),
-        explanation: parsed.explanation.trim().slice(0, 650),
-      },
-      rankedActivityKeys: completeRanking,
-      deterministicFallback: false,
-    };
+    return responsePayload;
   } catch (error: any) {
     await finalizeApiUsage(
       supabase,

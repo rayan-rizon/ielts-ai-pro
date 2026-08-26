@@ -10,6 +10,8 @@ import {
   checkTierAccess,
   reserveDatabaseQuota,
   finalizeApiUsage,
+  getFinalizedReservationResult,
+  duplicateReservationResponse,
   quotaExceededResponse,
 } from '../_shared/security.ts';
 import {
@@ -343,6 +345,18 @@ serve(async (req: Request) => {
       { testId, speakingSessionId, part: partNumber, questionIndex: currentQuestionIndex }
     );
     if (!turnReservation.allowed) return quotaExceededResponse(turnReservation, corsHeaders);
+    if (turnReservation.alreadyReserved) {
+      const cachedResponse = await getFinalizedReservationResult<Record<string, unknown>>(
+        supabase,
+        turnReservation.reservationId
+      );
+      if (cachedResponse)
+        return jsonResponse({ ...cachedResponse, cached: true }, 200, corsHeaders);
+      return duplicateReservationResponse(
+        corsHeaders,
+        'This Speaking turn is already being processed or has already completed.'
+      );
+    }
     activeReservationId = turnReservation.reservationId;
 
     const safeQuestionIndex =
@@ -543,6 +557,25 @@ serve(async (req: Request) => {
     const pronunciationCostUsd = Number(pronunciationData?.estimatedCostUsd) || 0;
     const estimatedProviderCostUsd = transcriptionCostUsd + pronunciationCostUsd;
 
+    const responsePayload = {
+      success: true,
+      examinerResponse,
+      userTranscript: transcript,
+      currentQuestionIndex,
+      nextQuestionIndex: transcriptionFailed ? currentQuestionIndex : nextQuestionIndex,
+      isPartComplete: isLastQuestion && !transcriptionFailed,
+      totalQuestions: questions.length,
+      pronunciationData,
+      processing: {
+        transcriptionProvider,
+        transcriptionLatencyMs,
+        transcriptionVerificationReason,
+        transcriptionVerificationCompleted,
+        pronunciationCompleted: Boolean(pronunciationData),
+        estimatedProviderCostUsd,
+      },
+    };
+
     const turnFinalized = await finalizeApiUsage(supabase, activeReservationId, tokensUsed, false, {
       part: partNumber,
       isPartComplete: isLastQuestion && !transcriptionFailed,
@@ -573,32 +606,12 @@ serve(async (req: Request) => {
       examinerMode: 'deterministic-v1',
       examinerVoice: 'en-GB-Neural2-B',
       speakingSessionId,
+      response: responsePayload,
     });
     if (!turnFinalized) throw new Error('Failed to finalize speaking turn reservation');
     activeReservationId = undefined;
 
-    return jsonResponse(
-      {
-        success: true,
-        examinerResponse,
-        userTranscript: transcript,
-        currentQuestionIndex,
-        nextQuestionIndex: transcriptionFailed ? currentQuestionIndex : nextQuestionIndex,
-        isPartComplete: isLastQuestion && !transcriptionFailed,
-        totalQuestions: questions.length,
-        pronunciationData,
-        processing: {
-          transcriptionProvider,
-          transcriptionLatencyMs,
-          transcriptionVerificationReason,
-          transcriptionVerificationCompleted,
-          pronunciationCompleted: Boolean(pronunciationData),
-          estimatedProviderCostUsd,
-        },
-      },
-      200,
-      corsHeaders
-    );
+    return jsonResponse(responsePayload, 200, corsHeaders);
   } catch (error: any) {
     console.error('Error in processSpeakingSession:', error);
     if (activeReservationId) {

@@ -51,9 +51,14 @@ if (typeof document !== 'undefined') {
  * General purpose file upload utility.
  * Now defaults to R2 for better reliability and higher size limits.
  */
-export async function uploadFile(file: File): Promise<{ file_url: string }> {
+type UploadPurpose = 'admin-content' | 'writing-checker';
+
+export async function uploadFile(
+  file: File,
+  options: { purpose?: UploadPurpose } = {}
+): Promise<{ file_url: string }> {
   try {
-    const { file_url } = await uploadToR2(file);
+    const { file_url } = await uploadToR2(file, options);
     return { file_url };
   } catch (error) {
     console.error('Upload fallthrough to Supabase storage failed:', error);
@@ -66,7 +71,10 @@ export async function uploadFile(file: File): Promise<{ file_url: string }> {
  * Upload a file to Cloudflare R2 via Edge Function
  * Used for larger files and different content types like PDFs
  */
-export async function uploadToR2(file: File): Promise<{ file_url: string; key: string }> {
+export async function uploadToR2(
+  file: File,
+  { purpose = 'admin-content' }: { purpose?: UploadPurpose } = {}
+): Promise<{ file_url: string; key: string }> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -82,6 +90,7 @@ export async function uploadToR2(file: File): Promise<{ file_url: string; key: s
     method: 'POST',
     headers: {
       Authorization: `Bearer ${session.access_token}`,
+      'X-Upload-Purpose': purpose,
     },
     body: formData,
   });
