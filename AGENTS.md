@@ -21,3 +21,18 @@ Instead, strictly use the **Learner Panel Design System** documented in `.claude
 - **Surfaces & Elevation**: Zero heavy drop shadows or glassmorphism. Hierarchy is built strictly using hairline rules (`border-[#e4e2f0]` in light mode / `dark:border-white/[0.07]` in dark mode), subtle surface elevation (`WELL`, `TILE`), and card gradients (`from-white to-[#faf9ff]` in light / `from-[#141319] to-[#100f15]` in dark).
 - **Primitives Source**: Always import UI primitives from `@/features/dashboard/components/primitives.jsx`.
 - **Signal Colors**: Use `--signal-ok`, `--signal-warn`, `--signal-fault`, and brand accent `#5a63df`.
+
+## AI models, fallbacks and pricing
+
+`supabase/functions/_shared/aiModelRegistry.ts` is the single source of truth for
+which model runs on which route, what falls back to it, and what it costs.
+Provider cost math imports its rates from there, so changing a price in one
+place changes it everywhere.
+
+- `npm run ai:models` — print the route map, fallback chains and pricing (`--json`, `--route <id>`).
+- `npm run ai:bench -- --model <openrouter-id>` — benchmark a candidate model against
+  the real route prompts: JSON reliability, graded accuracy, latency and billed cost,
+  compared with the current primary. Needs `OPENROUTER_API_KEY` in the environment.
+
+When a route's model, fallback order or output budget changes, update the registry
+in the same commit.

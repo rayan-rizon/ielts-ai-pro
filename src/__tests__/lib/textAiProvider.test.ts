@@ -11,6 +11,7 @@ import {
   requestOpenRouterLunaJson,
   requestVercelGatewayLunaJson,
 } from '../../../supabase/functions/_shared/textAiProvider';
+import { MODELS } from '../../../supabase/functions/_shared/aiModelRegistry';
 
 function jsonResponse(body: any, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -205,7 +206,17 @@ describe('text AI provider routing', () => {
       fallbackUsed: false,
       parsed: { headline: 'Focus on accuracy' },
     });
-    expect(result.usage.estimatedProviderCostUsd).toBeCloseTo(0.00025256, 10);
+    // Derived from the registry rather than hardcoded, so a price change is a
+    // one-line registry edit. Still pins the cached/uncached split: 200 of the
+    // 1000 prompt tokens are cache hits and must not be billed at full rate.
+    const rates = MODELS[DEEPSEEK_TEXT_MODEL].pricing!;
+    expect(result.usage.estimatedProviderCostUsd).toBeCloseTo(
+      (200 * rates.cachedInputPerMillion +
+        800 * rates.inputPerMillion +
+        500 * rates.outputPerMillion) /
+        1_000_000,
+      10
+    );
   });
 
   it('falls back once to Gemini when DeepSeek returns an error', async () => {

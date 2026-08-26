@@ -1,0 +1,310 @@
+// Single source of truth for "which AI model runs where, what falls back to it,
+// and what it costs". Provider code imports the pricing from here so the cost
+// math and the documentation can never drift apart.
+//
+// Inspect it with:  npm run ai:models
+// Benchmark a candidate model against it with:  npm run ai:bench -- --model <id>
+
+export type TokenPricing = {
+  /** USD per 1M input tokens. */
+  inputPerMillion: number;
+  /** USD per 1M cached (prompt-cache hit) input tokens. */
+  cachedInputPerMillion: number;
+  /** USD per 1M output tokens (reasoning tokens included where billed). */
+  outputPerMillion: number;
+};
+
+export type ModelEntry = {
+  /** Provider-qualified model id exactly as sent on the wire. */
+  id: string;
+  vendor: string;
+  /** How the request reaches the model. */
+  access:
+    | 'openrouter'
+    | 'deepseek-direct'
+    | 'google-direct'
+    | 'vercel-ai-gateway'
+    | 'cloudflare'
+    | 'azure';
+  pricing?: TokenPricing;
+  /** Pricing note for services that are not billed per token. */
+  pricingNote?: string;
+  /** Where the numbers came from, so a stale rate is obvious on review. */
+  pricingSource?: string;
+};
+
+export type RouteStep = {
+  model: string;
+  role: 'primary' | 'fallback' | 'repair';
+  /** Why this step exists / when it is reached. */
+  when: string;
+};
+
+export type AiRoute = {
+  id: string;
+  /** User-visible surface this powers. */
+  surface: string;
+  file: string;
+  steps: RouteStep[];
+  maxOutputTokens?: number;
+  timeoutMs?: number;
+  notes?: string;
+};
+
+// --- Models -----------------------------------------------------------------
+
+export const MODELS: Record<string, ModelEntry> = {
+  'deepseek/deepseek-v4-flash-0731': {
+    id: 'deepseek/deepseek-v4-flash-0731',
+    vendor: 'DeepSeek',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.06, cachedInputPerMillion: 0.012, outputPerMillion: 0.12 },
+    pricingSource:
+      'OpenRouter catalog base price, verified 2026-08-27. Per-endpoint rates range from $0.03/M (OpenInference) to $0.20/M (Phala), so the billed usage.cost wins when returned.',
+  },
+  'deepseek-v4-flash': {
+    id: 'deepseek-v4-flash',
+    vendor: 'DeepSeek',
+    access: 'deepseek-direct',
+    pricing: { inputPerMillion: 0.44, cachedInputPerMillion: 0.014, outputPerMillion: 1.32 },
+    pricingSource:
+      'DeepSeek direct API peak list price, verified 2026-08-27. Off-peak (outside 01:00-04:00 and 06:00-10:00 UTC, Mon-Fri) is half these rates. This route is ~7x the OpenRouter price for the same model family.',
+  },
+  'openai/gpt-5.6-luna': {
+    id: 'openai/gpt-5.6-luna',
+    vendor: 'OpenAI',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.2, cachedInputPerMillion: 0.02, outputPerMillion: 1.2 },
+    pricingSource:
+      'OpenRouter catalog base price, verified 2026-08-27. One OpenAI endpoint serves it at half these rates; billed cost from usage.cost wins when returned.',
+  },
+  'gemini-2.5-flash': {
+    id: 'gemini-2.5-flash',
+    vendor: 'Google',
+    access: 'google-direct',
+    pricing: { inputPerMillion: 0.3, cachedInputPerMillion: 0.3, outputPerMillion: 2.5 },
+    pricingSource:
+      'Google AI list price, verified 2026-08-27. No prompt-cache discount is applied on this route.',
+  },
+  'gemini-2.5-flash-lite': {
+    id: 'gemini-2.5-flash-lite',
+    vendor: 'Google',
+    access: 'google-direct',
+    pricing: { inputPerMillion: 0.1, cachedInputPerMillion: 0.1, outputPerMillion: 0.4 },
+    pricingSource:
+      'Google AI list price, verified 2026-08-27. No prompt-cache discount is applied on this route.',
+  },
+  '@cf/openai/whisper-large-v3-turbo': {
+    id: '@cf/openai/whisper-large-v3-turbo',
+    vendor: 'OpenAI via Cloudflare Workers AI',
+    access: 'cloudflare',
+    pricingNote: 'Billed per audio minute by Cloudflare Workers AI, not per token.',
+  },
+  'azure-pronunciation-assessment': {
+    id: 'azure-pronunciation-assessment',
+    vendor: 'Microsoft Azure Speech',
+    access: 'azure',
+    pricingNote:
+      'Billed per audio hour by Azure Speech. Supplies the acoustic evidence, not a band.',
+  },
+  'google-tts-neural2': {
+    id: 'google-tts-neural2',
+    vendor: 'Google Cloud Text-to-Speech',
+    access: 'google-direct',
+    pricingNote: 'Billed per character (Neural2 tier). Results are cached by SHA-1 of voice+text.',
+  },
+};
+
+// --- Routes -----------------------------------------------------------------
+
+export const AI_ROUTES: AiRoute[] = [
+  {
+    id: 'writing-detailed-feedback',
+    surface: 'Writing: detailed essay feedback',
+    file: 'supabase/functions/generateDetailedFeedback/index.ts',
+    maxOutputTokens: 4096,
+    steps: [
+      {
+        model: 'openai/gpt-5.6-luna',
+        role: 'primary',
+        when: 'Always tried first when OPENROUTER_API_KEY is set.',
+      },
+      {
+        model: 'gemini-2.5-flash',
+        role: 'fallback',
+        when: 'Luna errors or returns no parsable feedback.',
+      },
+      {
+        model: 'gemini-2.5-flash',
+        role: 'repair',
+        when: 'One bounded retry on malformed Gemini JSON.',
+      },
+    ],
+  },
+  {
+    id: 'speaking-evaluation',
+    surface: 'Speaking: band scoring',
+    file: 'supabase/functions/evaluateSpeakingTest/index.ts',
+    maxOutputTokens: 4096,
+    timeoutMs: 7000,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'Only when Azure pronunciation evidence exists (benchmarked audio-backed route).',
+      },
+      {
+        model: 'gemini-2.5-flash',
+        role: 'fallback',
+        when: 'No pronunciation evidence, or DeepSeek failed. Calibrated transcript-only scorer.',
+      },
+      {
+        model: 'gemini-2.5-flash',
+        role: 'repair',
+        when: 'One retry at temperature 0 on malformed JSON.',
+      },
+    ],
+    notes:
+      'Routing decided in _shared/speakingEvaluationProvider.ts; routingReason is persisted per attempt.',
+  },
+  {
+    id: 'speaking-detailed-feedback',
+    surface: 'Speaking: detailed deep-dive feedback',
+    file: 'supabase/functions/generateDetailedSpeakingFeedback/index.ts',
+    maxOutputTokens: 6144,
+    steps: [
+      { model: 'gemini-2.5-flash', role: 'primary', when: 'Single-provider route, no fallback.' },
+    ],
+  },
+  {
+    id: 'grammar-transfer',
+    surface: 'Grammar Lab: transfer evaluation',
+    file: 'supabase/functions/evaluateGrammarTransfer/index.ts',
+    maxOutputTokens: 2200,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'OPENROUTER_API_KEY set.',
+      },
+      {
+        model: 'deepseek-v4-flash',
+        role: 'fallback',
+        when: 'OpenRouter failed and DEEPSEEK_API_KEY is set.',
+      },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+    ],
+    notes: 'Shared chain: _shared/textAiProvider.ts requestJsonWithGeminiFallback.',
+  },
+  {
+    id: 'study-recommendations',
+    surface: 'Dashboard: study recommendations',
+    file: 'supabase/functions/generateStudyRecommendations/index.ts',
+    maxOutputTokens: 2048,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'OPENROUTER_API_KEY set.',
+      },
+      { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+    ],
+  },
+  {
+    id: 'adaptive-learning-path',
+    surface: 'Study plan: adaptive learning path ranking',
+    file: 'supabase/functions/generateAdaptiveLearningPath/index.ts',
+    maxOutputTokens: 300,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'OPENROUTER_API_KEY set.',
+      },
+      { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+    ],
+    notes: 'The model only ranks a pre-validated plan; it never invents activities.',
+  },
+  {
+    id: 'speaking-transcription',
+    surface: 'Speaking: audio transcription',
+    file: 'supabase/functions/processSpeakingSession/index.ts',
+    steps: [
+      {
+        model: '@cf/openai/whisper-large-v3-turbo',
+        role: 'primary',
+        when: 'Cloudflare credentials present; one VAD-off retry on empty speech.',
+      },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'fallback',
+        when: 'Whisper failed, or the browser hint disagrees with Whisper by >0.08 similarity.',
+      },
+    ],
+  },
+  {
+    id: 'transcript-repair',
+    surface: 'Speaking: standalone transcribeAudio endpoint',
+    file: 'supabase/functions/transcribeAudio/index.ts',
+    steps: [
+      { model: 'gemini-2.5-flash', role: 'primary', when: 'Single-provider route, no fallback.' },
+    ],
+  },
+  {
+    id: 'pronunciation-evidence',
+    surface: 'Speaking: pronunciation scoring evidence',
+    file: 'supabase/functions/processSpeakingSession/index.ts',
+    steps: [
+      {
+        model: 'azure-pronunciation-assessment',
+        role: 'primary',
+        when: 'Azure Speech credentials present; absence changes the scoring route.',
+      },
+    ],
+  },
+  {
+    id: 'text-to-speech',
+    surface: 'Listening / Speaking: examiner voice',
+    file: 'supabase/functions/synthesizeSpeech/index.ts',
+    steps: [
+      {
+        model: 'google-tts-neural2',
+        role: 'primary',
+        when: 'GOOGLE_TTS_API_KEY, falling back to GEMINI_API_KEY for the same Google Cloud project.',
+      },
+    ],
+  },
+];
+
+// --- Cost helpers -----------------------------------------------------------
+
+export type TokenCounts = {
+  promptTokens: number;
+  cachedPromptTokens?: number;
+  outputTokens: number;
+};
+
+/** USD cost of one call, using the registry rate for `model`. Unknown models cost 0. */
+export function estimateTokenCostUsd(model: string, tokens: TokenCounts): number {
+  const pricing = MODELS[model]?.pricing;
+  if (!pricing) return 0;
+  const cached = Math.min(tokens.promptTokens, Math.max(0, tokens.cachedPromptTokens || 0));
+  const uncached = Math.max(0, tokens.promptTokens - cached);
+  return (
+    (cached * pricing.cachedInputPerMillion +
+      uncached * pricing.inputPerMillion +
+      tokens.outputTokens * pricing.outputPerMillion) /
+    1_000_000
+  );
+}
+
+/** Every route a given model appears in, with its role. Used by `npm run ai:models`. */
+export function routesUsingModel(model: string) {
+  return AI_ROUTES.flatMap((route) =>
+    route.steps
+      .filter((step) => step.model === model)
+      .map((step) => ({ route: route.id, surface: route.surface, role: step.role }))
+  );
+}

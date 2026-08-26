@@ -1,3 +1,5 @@
+import { estimateTokenCostUsd } from './aiModelRegistry.ts';
+
 export const DEEPSEEK_TEXT_MODEL = 'deepseek-v4-flash';
 export const OPENROUTER_DEEPSEEK_MODEL = 'deepseek/deepseek-v4-flash-0731';
 export const OPENROUTER_LUNA_MODEL = 'openai/gpt-5.6-luna';
@@ -15,7 +17,8 @@ type ProviderName =
   | 'openrouter-luna'
   | 'vercel-ai-gateway-luna'
   | 'deepseek'
-  | 'gemini';
+  | 'gemini'
+  | 'openrouter';
 
 export type TextAiUsage = {
   promptTokens: number;
@@ -210,7 +213,6 @@ export async function requestDeepSeekJson(request: ProviderRequest): Promise<Tex
       promptTokens,
       positiveNumber(data?.usage?.prompt_cache_hit_tokens)
     );
-    const uncachedPromptTokens = Math.max(0, promptTokens - cachedPromptTokens);
     const outputTokens = positiveNumber(data?.usage?.completion_tokens);
     const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
 
@@ -227,10 +229,11 @@ export async function requestDeepSeekJson(request: ProviderRequest): Promise<Tex
         cachedPromptTokens,
         outputTokens,
         tokensUsed,
-        estimatedProviderCostUsd:
-          cachedPromptTokens * 0.0000000028 +
-          uncachedPromptTokens * 0.00000014 +
-          outputTokens * 0.00000028,
+        estimatedProviderCostUsd: estimateTokenCostUsd(DEEPSEEK_TEXT_MODEL, {
+          promptTokens,
+          cachedPromptTokens,
+          outputTokens,
+        }),
       },
     };
   } catch (error) {
@@ -293,7 +296,6 @@ export async function requestOpenRouterDeepSeekJson(
     const outputTokens = positiveNumber(data?.usage?.completion_tokens);
     const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
     const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
-    const uncachedPromptTokens = Math.max(0, promptTokens - cachedPromptTokens);
 
     return {
       parsed,
@@ -311,9 +313,11 @@ export async function requestOpenRouterDeepSeekJson(
         // Prefer OpenRouter's reported charge; otherwise use its catalog base price.
         estimatedProviderCostUsd:
           reportedCost ||
-          cachedPromptTokens * 0.000000018 +
-            uncachedPromptTokens * 0.00000009 +
-            outputTokens * 0.00000018,
+          estimateTokenCostUsd(OPENROUTER_DEEPSEEK_MODEL, {
+            promptTokens,
+            cachedPromptTokens,
+            outputTokens,
+          }),
       },
     };
   } catch (error) {
@@ -366,7 +370,6 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
     const outputTokens = positiveNumber(data?.usage?.completion_tokens);
     const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
     const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
-    const uncachedPromptTokens = Math.max(0, promptTokens - cachedPromptTokens);
 
     return {
       parsed,
@@ -385,9 +388,11 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
         // fallback for responses that omit cost metadata and may change.
         estimatedProviderCostUsd:
           reportedCost ||
-          cachedPromptTokens * 0.00000001 +
-            uncachedPromptTokens * 0.0000001 +
-            outputTokens * 0.0000006,
+          estimateTokenCostUsd(OPENROUTER_LUNA_MODEL, {
+            promptTokens,
+            cachedPromptTokens,
+            outputTokens,
+          }),
       },
     };
   } catch (error) {
@@ -442,7 +447,6 @@ export async function requestVercelGatewayLunaJson(
     const outputTokens = positiveNumber(data?.usage?.completion_tokens);
     const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
     const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
-    const uncachedPromptTokens = Math.max(0, promptTokens - cachedPromptTokens);
 
     return {
       parsed,
@@ -459,13 +463,120 @@ export async function requestVercelGatewayLunaJson(
         tokensUsed,
         estimatedProviderCostUsd:
           reportedCost ||
-          cachedPromptTokens * 0.00000001 +
-            uncachedPromptTokens * 0.0000001 +
-            outputTokens * 0.0000006,
+          estimateTokenCostUsd(OPENROUTER_LUNA_MODEL, {
+            promptTokens,
+            cachedPromptTokens,
+            outputTokens,
+          }),
       },
     };
   } catch (error) {
     throw providerFailure('vercel-ai-gateway-luna', error);
+  }
+}
+
+export type OpenRouterModelRequest = ProviderRequest & {
+  /** Provider-qualified OpenRouter model id, e.g. "z-ai/glm-5.3-flash". */
+  model: string;
+  /** Ask OpenRouter for the billed cost in usage.cost instead of estimating it. */
+  includeUsageAccounting?: boolean;
+  /** Route only to upstreams that honour response_format/reasoning verbatim. */
+  requireParameters?: boolean;
+  /** Some models reject the explicit no-reasoning switch; drop it for those. */
+  disableReasoning?: boolean;
+  /**
+   * Reasoning effort to request. Defaults to 'none'. Models that mandate
+   * reasoning reject 'none' but accept 'low'/'minimal', which in practice still
+   * yields zero reasoning tokens — use those instead of dropping the switch.
+   */
+  reasoningEffort?: 'none' | 'minimal' | 'low' | 'medium' | 'high';
+  /** Some models reject response_format: json_object. */
+  jsonMode?: boolean;
+};
+
+/**
+ * Model-agnostic OpenRouter JSON call. The named production routes above stay
+ * pinned to their benchmarked models; this is what `npm run ai:bench` drives to
+ * measure a candidate model on the same prompts before it is promoted.
+ */
+export async function requestOpenRouterJson(
+  request: OpenRouterModelRequest
+): Promise<TextAiResult> {
+  const fetchImpl = request.fetchImpl || fetch;
+  try {
+    const response = await fetchWithTimeout(
+      fetchImpl,
+      OPENROUTER_URL,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${request.apiKey}`,
+          'Content-Type': 'application/json',
+          'X-Title': 'IELTS Ai Pro',
+        },
+        body: JSON.stringify({
+          model: request.model,
+          messages: [{ role: 'user', content: request.prompt }],
+          ...(request.jsonMode === false ? {} : { response_format: { type: 'json_object' } }),
+          ...(request.disableReasoning === false
+            ? {}
+            : { reasoning: { effort: request.reasoningEffort || 'none', exclude: true } }),
+          provider: { sort: 'latency', require_parameters: request.requireParameters ?? true },
+          ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
+          max_tokens: request.maxOutputTokens,
+          ...(request.includeUsageAccounting ? { usage: { include: true } } : {}),
+          stream: false,
+        }),
+      },
+      request.timeoutMs || DEFAULT_TIMEOUT_MS
+    );
+    if (!response.ok) {
+      throw new TextAiProviderError(`OpenRouter returned HTTP ${response.status}`, {
+        provider: 'openrouter',
+        status: response.status,
+        code: 'http_error',
+      });
+    }
+
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content;
+    const parsed = parseJsonText(text);
+    assertValidJsonShape('openrouter', parsed, request.validateJson);
+    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
+    const cachedPromptTokens = Math.min(
+      promptTokens,
+      positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
+    );
+    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
+    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
+    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+
+    return {
+      parsed,
+      text,
+      provider: 'openrouter',
+      model: data?.model || request.model,
+      mode: 'non-thinking',
+      fallbackUsed: false,
+      fallbackReason: null,
+      usage: {
+        promptTokens,
+        cachedPromptTokens,
+        outputTokens,
+        tokensUsed,
+        // Unknown candidate models are absent from the registry, so an
+        // unreported cost stays 0 rather than silently guessing a rate.
+        estimatedProviderCostUsd:
+          reportedCost ||
+          estimateTokenCostUsd(request.model, {
+            promptTokens,
+            cachedPromptTokens,
+            outputTokens,
+          }),
+      },
+    };
+  } catch (error) {
+    throw providerFailure('openrouter', error);
   }
 }
 
@@ -515,8 +626,6 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
     const tokensUsed =
       positiveNumber(data?.usageMetadata?.totalTokenCount) || promptTokens + outputTokens;
     const model = request.geminiModel || GEMINI_TEXT_FALLBACK_MODEL;
-    const inputCostPerToken = model === GEMINI_SCORING_MODEL ? 0.0000003 : 0.0000001;
-    const outputCostPerToken = model === GEMINI_SCORING_MODEL ? 0.0000025 : 0.0000004;
 
     return {
       parsed,
@@ -531,8 +640,11 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
         cachedPromptTokens: 0,
         outputTokens,
         tokensUsed,
-        estimatedProviderCostUsd:
-          promptTokens * inputCostPerToken + outputTokens * outputCostPerToken,
+        estimatedProviderCostUsd: estimateTokenCostUsd(model, {
+          promptTokens,
+          cachedPromptTokens: 0,
+          outputTokens,
+        }),
       },
     };
   } catch (error) {

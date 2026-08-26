@@ -27,6 +27,8 @@
     "perf:lighthouse:assert": "lhci assert",
     "precache-tts": "node scripts/pre-cache-tts.mjs",
     "compare:text-ai": "node --experimental-strip-types scripts/compare-text-ai-providers.mjs",
+    "ai:models": "node --experimental-strip-types scripts/ai-models.mjs",
+    "ai:bench": "node --experimental-strip-types scripts/bench-ai-model.mjs",
     "prepare": "if [ -d .git ]; then husky; fi"
   },
   "dependencies": {
