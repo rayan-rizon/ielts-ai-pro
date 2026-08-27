@@ -171,10 +171,10 @@ export function TestSpecFootnote({ duration, questionCount, takenCount, classNam
 // ---------------------------------------------------------------------------
 
 const PRIMARY_BTN =
-  'inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all active:scale-[0.98]';
+  'inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] cursor-pointer';
 const ICON_BTN = cn(
   TILE,
-  'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all hover:border-[#5a63df]/30 hover:text-[#5a63df] active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff]'
+  'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all hover:border-[#5a63df]/30 hover:text-[#5a63df] active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff] cursor-pointer'
 );
 const ACCENT_BTN = 'bg-[#5a63df] text-white hover:bg-[#484FB2]';
 
@@ -312,10 +312,10 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, scor
 }
 
 const ROW_BTN =
-  'flex h-7 w-[76px] shrink-0 items-center justify-center gap-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all active:scale-95';
+  'flex h-7 w-[76px] shrink-0 items-center justify-center gap-1 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all active:scale-95 cursor-pointer';
 const ROW_ICON_BTN = cn(
   TILE,
-  'flex h-7 w-7 shrink-0 items-center justify-center text-slate-500 transition-all active:scale-95 dark:text-slate-400'
+  'flex h-7 w-7 shrink-0 items-center justify-center text-slate-500 transition-all active:scale-95 dark:text-slate-400 cursor-pointer'
 );
 
 /** Keeps single-button rows aligned with the two-button (resume/retake) rows. */

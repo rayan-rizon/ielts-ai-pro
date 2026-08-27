@@ -60,7 +60,7 @@ export const FAINT = 'text-slate-400 dark:text-slate-500';
  * make the label *harder* to read; dark mode hovers to the lifted tint.
  */
 export const PANEL_LINK =
-  'inline-flex items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff]';
+  'inline-flex items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff] cursor-pointer';
 
 /** Chevron that brightens with its parent row/link. */
 export const ROW_CHEVRON =
