@@ -330,17 +330,13 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
 
     let detailedAnalysis;
     try {
-      // Trim backticks if Gemini ignores prompt instructions
+      // Extract a fenced or bare JSON array even when Gemini prepends a short
+      // conversational sentence before the response.
       let cleanText = evalText.trim();
-      if (cleanText.startsWith('```json')) {
-        cleanText = cleanText.substring(7);
-      }
-      if (cleanText.startsWith('```')) {
-        cleanText = cleanText.substring(3);
-      }
-      if (cleanText.endsWith('```')) {
-        cleanText = cleanText.substring(0, cleanText.length - 3);
-      }
+      const fencedJson = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (fencedJson?.[1]) cleanText = fencedJson[1];
+      const arrayJson = cleanText.match(/\[[\s\S]*\]/);
+      if (arrayJson?.[0]) cleanText = arrayJson[0];
       const detailedQuestions = normalizeDetailedSpeakingEvaluation(
         JSON.parse(cleanText.trim()),
         transcriptEvidence.candidateSource

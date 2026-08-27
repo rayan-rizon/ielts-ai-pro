@@ -580,3 +580,36 @@ graph TD
 ---
 
 _Report compiled and verified against commit tree. Unit test suite verified (170 test suites, 1,241 tests)._
+
+---
+
+## 7. Verification update — 2026-08-27
+
+This update re-checked the report against the current tree and production
+configuration. The original document is retained as the historical finding
+record; the table below is the authoritative disposition for this release.
+
+| Area             | Disposition                             | Evidence / action                                                                                                                                                                                                                                                                      |
+| :--------------- | :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1, 1.3         | **Confirmed, fixed**                    | Production migration `20260827072756` replaced the anonymous `test-assets` policies with owner-scoped authenticated policies, added the `(user_id, tier_id)` uniqueness guarantee, and serialized referral claims with a transaction advisory lock.                                    |
+| 1.2, 1.4         | **Confirmed, fixed**                    | Recording startup now discards and stops a stale `getUserMedia` stream after cancellation; table bullets are sanitized before HTML rendering. Regression tests cover both contracts.                                                                                                   |
+| 1.5, 1.6         | **Confirmed, fixed**                    | Vercel preview CORS is constrained to the project namespace; Reading and Listening preserve locally saved answers when a stale remote snapshot arrives.                                                                                                                                |
+| 2.1–2.3, 2.5–2.7 | **Confirmed, fixed**                    | Writing feedback and study recommendations now reserve work idempotently and cache stable results; Gemini requests have a bounded timeout; transcription rejects audio above 8 MiB; the admin email route responds 401 for missing credentials; fenced JSON feedback is parsed safely. |
+| 2.4              | **Partly confirmed, fixed for Writing** | Writing submissions are XML-delimited and clearly marked as untrusted exam material. Speaking prompt construction needs a separate prompt-boundary test before it can be marked fully remediated.                                                                                      |
+| 3.1, 3.4, 3.5    | **Confirmed, fixed**                    | `past_due` subscriptions retain billing access and subscription metadata; the marketing foreign-key index and malformed blog-slug short-circuit are in place.                                                                                                                          |
+| 3.2              | **Confirmed, not code-fixed**           | Refund/dispute handling remains an operational Stripe event-policy decision; safely changing entitlement behavior requires the configured event set and product policy, so it was not guessed in a live release.                                                                       |
+| 3.3              | **Stale**                               | The current payment flow uses the USD Stripe configuration introduced by migration `20260826224039`; the reported BDT route was no longer the active implementation.                                                                                                                   |
+| 4.1, 4.2, 4.4    | **Confirmed, fixed**                    | Completion mutations invalidate learner dashboard/analytics/path queries; unstable query fetchers are ref-backed; blob URLs are released after exports/previews.                                                                                                                       |
+| 4.3, 4.5         | **Real, deferred**                      | Broad auth polling consolidation and `window.find` replacement are architectural UX work, not safe mechanical hotfixes. No active `window.find` call remains in `src`; the latter finding is stale in this tree.                                                                       |
+| 5.1, 5.2         | **Confirmed, deferred / partly stale**  | The live audit still measures about 748 kB of raw CSS, and Framer Motion loading requires a deliberate route-level refactor. The cited dependencies are actively used by scripts or Edge Functions, so removal was not justified.                                                      |
+| 5.3–5.5          | **Confirmed, fixed in scope**           | jsPDF is emitted as a separate `pdf-export-vendor` chunk; cited glass/shadow surfaces use panel borders/gradients; test inputs and controls now expose focus/name semantics.                                                                                                           |
+
+### Release verification
+
+- Focused regression suites: **53 tests passed**, then **26 rerun after final UI changes**.
+- Static checks: `npm run build` (twice), `npm run seo:check`, targeted ESLint/Prettier, and `git diff --check` all passed.
+- Database: the latest local and linked Supabase migration histories both contain `20260827072756`.
+- Edge Functions: the hardening release is active for detailed feedback, study recommendations, speaking feedback, transcription, admin email testing, Stripe webhooks, and the shared CORS policy.
+- Web release: Vercel production deployment is **Ready** at `https://ielts-ai-9wesekeng-rayan-rizons-projects.vercel.app`.
+
+The remaining deferred items are deliberately recorded rather than treated as fixed: they need scoped product/performance work or an explicit Stripe lifecycle policy. The prior document's blanket completion/test-count statement should therefore not be used as current release evidence.

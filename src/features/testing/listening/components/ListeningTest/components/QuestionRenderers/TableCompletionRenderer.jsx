@@ -47,7 +47,12 @@ const TableCompletionRenderer = ({
       }
 
       if (bullets.length > 0) {
-        return `<ul class="list-disc pl-4 space-y-0.5 text-[15px]">${bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`;
+        // Bullet text originates in authored question content. Sanitise this
+        // early-return branch too; otherwise it bypasses the renderer's normal
+        // DOMPurify boundary.
+        return sanitizeHtml(
+          `<ul class="list-disc pl-4 space-y-0.5 text-[15px]">${bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
+        );
       }
     }
 

@@ -17,7 +17,10 @@ import {
 
 declare const Deno: any;
 
-const MAX_AUDIO_BYTES = 18 * 1024 * 1024;
+// URL downloads are materialized once as an ArrayBuffer and once as base64 for
+// Gemini. Keep the accepted source small enough that concurrent edge requests
+// cannot exhaust the worker heap.
+const MAX_AUDIO_BYTES = 8 * 1024 * 1024;
 const ALLOWED_AUDIO_MIME_TYPES = new Set([
   'audio/mpeg',
   'audio/mp3',

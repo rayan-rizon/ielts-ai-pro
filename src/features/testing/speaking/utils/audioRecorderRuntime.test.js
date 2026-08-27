@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MAX_VOICE_THRESHOLD,
   MIN_VOICE_THRESHOLD,
+  cancelRecorderCapture,
   startRecorderCapture,
   stopRecorderCapture,
   __testing,
@@ -54,6 +55,7 @@ function buildRuntime(processRecording) {
       maxRecordingTimer: ref(null),
       startTime: ref(0),
       discardRecording: ref(false),
+      captureRequestId: ref(0),
       stopReason: ref('manual'),
       speechRecognition: ref(null),
       recognitionRestartTimer: ref(null),
@@ -113,6 +115,27 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.useRealTimers();
+  });
+
+  it('stops a microphone stream that resolves after capture is cancelled', async () => {
+    const runtime = buildRuntime(vi.fn());
+    const stop = vi.fn();
+    let resolvePermission;
+    navigator.mediaDevices.getUserMedia.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvePermission = resolve;
+        })
+    );
+
+    const pendingStart = startRecorderCapture(runtime);
+    cancelRecorderCapture(runtime);
+    resolvePermission({ getTracks: () => [{ stop }] });
+    await pendingStart;
+
+    expect(stop).toHaveBeenCalledOnce();
+    expect(runtime.refs.mediaRecorder.current).toBeNull();
+    expect(runtime.refs.isListening.current).toBe(false);
   });
 
   it('uses transcript activity to send after a natural pause when Web Audio is unavailable', async () => {

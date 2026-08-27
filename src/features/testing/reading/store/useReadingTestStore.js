@@ -124,7 +124,10 @@ export const useReadingTestStore = create(
          */
         setAnswersBulk: (answersObj) =>
           set((state) => ({
-            answers: { ...state.answers, ...answersObj },
+            // Session storage is the newest durable copy while an autosave is
+            // pending. Merge the database snapshot first so a reconnect cannot
+            // overwrite answers typed locally for the same session.
+            answers: { ...answersObj, ...state.answers },
           })),
 
         /**

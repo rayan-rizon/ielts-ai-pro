@@ -79,7 +79,7 @@ const RecordingControls = React.memo(
           <Button
             onClick={onStartTest}
             size="lg"
-            className="h-12 w-full gap-2 rounded-xl bg-rose-500 px-7 text-sm font-extrabold text-white shadow-lg shadow-rose-500/20 transition-transform hover:-translate-y-0.5 hover:bg-rose-600"
+            className="h-12 w-full gap-2 rounded-xl border border-rose-600/30 bg-rose-500 px-7 text-sm font-extrabold text-white transition-transform hover:-translate-y-0.5 hover:bg-rose-600"
           >
             <PlayCircle className="h-4 w-4" aria-hidden="true" />
             Begin test

@@ -69,3 +69,14 @@ export const queryKeys = {
     userPoints: (userId: string) => ['userPoints', userId] as const,
   },
 } as const;
+
+/**
+ * Test completion changes the evidence behind dashboard, analytics, and
+ * learning-path views. Keep their React Query layer coherent with the legacy
+ * runner cache invalidation used by each test flow.
+ */
+export function invalidateLearnerPracticeQueries(): void {
+  queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+  queryClient.invalidateQueries({ queryKey: ['analytics'] });
+  queryClient.invalidateQueries({ queryKey: ['learningPath'] });
+}

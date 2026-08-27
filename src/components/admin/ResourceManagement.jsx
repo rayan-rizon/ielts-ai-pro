@@ -161,6 +161,7 @@ const ResourceManagement = () => {
     access_tier: 'free',
   });
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState(null);
   const [urlError, setUrlError] = useState('');
   const [showBlogEditor, setShowBlogEditor] = useState(false);
   const [showVocabEditor, setShowVocabEditor] = useState(false);
@@ -194,6 +195,16 @@ const ResourceManagement = () => {
   useEffect(() => {
     fetchResources();
   }, [fetchResources]);
+
+  useEffect(() => {
+    if (!thumbnailFile) {
+      setThumbnailPreviewUrl(null);
+      return undefined;
+    }
+    const objectUrl = URL.createObjectURL(thumbnailFile);
+    setThumbnailPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [thumbnailFile]);
 
   const resetForm = () => {
     setFormData({
@@ -855,14 +866,10 @@ const ResourceManagement = () => {
                 <div>
                   <Label className={FIELD_LABEL}>Thumbnail image</Label>
                   <div className="flex items-center gap-2.5">
-                    {(formData.thumbnail_url || thumbnailFile) && (
+                    {(formData.thumbnail_url || thumbnailPreviewUrl) && (
                       <div className="w-12 h-12 rounded-md overflow-hidden border border-stone-200 dark:border-white/10 relative shrink-0">
                         <img
-                          src={
-                            thumbnailFile
-                              ? URL.createObjectURL(thumbnailFile)
-                              : formData.thumbnail_url
-                          }
+                          src={thumbnailPreviewUrl || formData.thumbnail_url}
                           alt="Thumbnail preview"
                           className="w-full h-full object-cover"
                         />

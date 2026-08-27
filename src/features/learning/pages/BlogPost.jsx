@@ -471,7 +471,7 @@ function BlogPostSidebar({
           <a
             href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonicalUrl)}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             aria-label="Share on Facebook"
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 text-blue-600 dark:text-blue-400 transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
           >
@@ -480,7 +480,7 @@ function BlogPostSidebar({
           <a
             href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonicalUrl)}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             aria-label="Share on LinkedIn"
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/4 text-sky-600 dark:text-sky-400 transition hover:bg-sky-50 dark:hover:bg-sky-500/10"
           >

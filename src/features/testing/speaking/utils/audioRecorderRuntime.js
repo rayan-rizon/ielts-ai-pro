@@ -411,7 +411,11 @@ export function stopRecorderCapture(runtime, reason = 'manual') {
 }
 
 export function cancelRecorderCapture(runtime) {
-  runtime.refs.discardRecording.current = true;
+  const { refs } = runtime;
+  refs.discardRecording.current = true;
+  // getUserMedia can resolve after a route change or explicit cancel. Invalidate
+  // that pending request before stopping the currently active capture.
+  if (refs.captureRequestId) refs.captureRequestId.current += 1;
   stopRecorderCapture(runtime, 'cancelled');
 }
 
@@ -532,6 +536,8 @@ export async function startRecorderCapture(runtime) {
   const { refs, actions } = runtime;
   if (isCaptureBusy(refs)) return;
 
+  const requestId = refs.captureRequestId ? ++refs.captureRequestId.current : null;
+
   try {
     actions.setMicError(null);
     resetRecorderCapture(runtime);
@@ -547,6 +553,13 @@ export async function startRecorderCapture(runtime) {
         sampleRate: 16000,
       },
     });
+
+    // Do not resurrect a microphone after the learner navigated away, cancelled
+    // the prompt, or started a newer capture while permission was pending.
+    if (requestId !== null && refs.captureRequestId.current !== requestId) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
     refs.stream.current = stream;
 
     const mediaRecorder = createMediaRecorder(runtime, stream);
@@ -566,6 +579,7 @@ export async function startRecorderCapture(runtime) {
       MAX_RECORDING_DURATION
     );
   } catch (error) {
+    if (requestId !== null && refs.captureRequestId.current !== requestId) return;
     console.error('Microphone error:', error);
     actions.setMicError(microphoneErrorMessage(error));
     resetRecorderCapture(runtime);

@@ -24,6 +24,7 @@ import {
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
 import { trackAppEvent } from '@/lib/tracking';
+import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
 
 function loadAudioDuration(src) {
   return new Promise((resolve, reject) => {
@@ -412,6 +413,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
 
         const { removeFromCache } = await import('@/lib/apiCache');
         removeFromCache('listening-tests-list');
+        if (didComplete) invalidateLearnerPracticeQueries();
 
         if (didComplete) {
           trackAppEvent('test_completed', {

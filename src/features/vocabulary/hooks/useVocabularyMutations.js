@@ -158,6 +158,7 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
     return { success: true };
   }, [allVocabulary]);

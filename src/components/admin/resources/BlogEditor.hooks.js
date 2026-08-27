@@ -61,6 +61,13 @@ export function useBlogEditorLogic(initialData, onSave) {
   useBlogAutoSave(formData, initialData, setLastSaved);
   useBlogSlugAutoGenerate(formData, initialData, setFormData);
 
+  useEffect(() => {
+    const thumbnailUrl = formData.thumbnail_url;
+    return () => {
+      if (thumbnailUrl?.startsWith('blob:')) URL.revokeObjectURL(thumbnailUrl);
+    };
+  }, [formData.thumbnail_url]);
+
   const handleAddTag = (e) => {
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();

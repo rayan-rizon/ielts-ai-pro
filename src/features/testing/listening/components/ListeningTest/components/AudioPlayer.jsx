@@ -283,6 +283,7 @@ const AudioPlayer = React.forwardRef(
                 <div className="flex sm:hidden items-center" data-oid="mobile-rate">
                   <div className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2 py-1 transition-colors">
                     <select
+                      aria-label="Audio playback speed"
                       className="text-[10px] bg-transparent border-none focus:ring-0 p-0 text-slate-600 dark:text-slate-300 font-bold cursor-pointer outline-none w-10"
                       value={playbackRate}
                       onChange={(e) => {
@@ -363,6 +364,7 @@ const AudioPlayer = React.forwardRef(
                   />
                 ) : (
                   <select
+                    aria-label="Audio playback speed"
                     className="text-xs bg-transparent border-none focus:ring-0 p-0 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer outline-none w-12"
                     value={playbackRate}
                     onChange={(e) => {

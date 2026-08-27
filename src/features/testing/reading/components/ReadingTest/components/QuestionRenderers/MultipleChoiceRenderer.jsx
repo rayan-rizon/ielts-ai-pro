@@ -108,7 +108,7 @@ const MultipleChoiceRenderer = memo(function MultipleChoiceRenderer({
           isFinished && correctAnswersList.some((ans) => isAnswerCorrect(letter, ans));
 
         let labelClass =
-          'flex items-center gap-2.5 px-2.5 py-1 rounded-lg border transition-all duration-150 relative overflow-hidden select-none group ';
+          'flex items-center gap-2.5 px-2.5 py-1 rounded-lg border transition-all duration-150 relative overflow-hidden select-none group has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#5a63df] has-[:focus-visible]:ring-offset-2 ';
         let badgeClass =
           'w-[18px] h-[18px] min-w-[18px] rounded-full flex items-center justify-center text-[11px] font-bold transition-all shrink-0 ';
 

@@ -14,6 +14,7 @@ import {
   quotaExceededResponse,
   getBurstLimitConfig,
   checkTierAccess,
+  duplicateReservationResponse,
 } from '../_shared/security.ts';
 import { requestJsonWithGeminiFallback, TextAiProviderError } from '../_shared/textAiProvider.ts';
 
@@ -128,19 +129,6 @@ serve(async (req) => {
       return errorResponse('Recent session data exceeds maximum allowed size', 413, corsHeaders);
     }
 
-    const quotaReservation = await reserveDatabaseQuota(
-      supabase,
-      user.id,
-      'generateStudyRecommendations',
-      null,
-      null,
-      { sessionCount: recentSessions?.length || 0 }
-    );
-    if (!quotaReservation.allowed) {
-      return quotaExceededResponse(quotaReservation, corsHeaders);
-    }
-    quotaReservationId = quotaReservation.reservationId;
-
     // ── Build safe feature vectors for the AI prompt (no PII) ──
     const userFeatures = {
       subscription_tier: userData.subscription_tier,
@@ -164,6 +152,55 @@ serve(async (req) => {
         s.content_data?.typeStats || s.content_data?.question_type_accuracy || null,
       error_patterns: s.content_data?.errorPatterns || null,
     }));
+
+    // Recommendations are deterministic for a profile plus its current five
+    // most-recent session features. Reuse that result instead of paying for an
+    // LLM invocation every time the dashboard mounts.
+    const fingerprint = JSON.stringify({
+      userId: user.id,
+      evaluator: 'study-recommendations-v1',
+      userFeatures,
+      sessionFeatures,
+    });
+    const hashBytes = new TextEncoder().encode(fingerprint);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', hashBytes);
+    const inputHash = Array.from(new Uint8Array(hashBuffer))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+
+    const { data: cachedEntry } = await supabase
+      .from('ai_feedback_cache')
+      .select('feedback_json')
+      .eq('input_hash', `study-recommendations:${inputHash}`)
+      .maybeSingle();
+    if (cachedEntry?.feedback_json?.recommendations) {
+      return new Response(
+        JSON.stringify({
+          recommendations: cachedEntry.feedback_json.recommendations,
+          cached: true,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const quotaReservation = await reserveDatabaseQuota(
+      supabase,
+      user.id,
+      'generateStudyRecommendations',
+      null,
+      `study-recommendations:${inputHash}`,
+      { sessionCount: recentSessions?.length || 0, inputHash }
+    );
+    if (!quotaReservation.allowed) {
+      return quotaExceededResponse(quotaReservation, corsHeaders);
+    }
+    if (quotaReservation.alreadyReserved) {
+      return duplicateReservationResponse(
+        corsHeaders,
+        'These study recommendations are already being generated. Please wait for the existing result.'
+      );
+    }
+    quotaReservationId = quotaReservation.reservationId;
 
     // ── Prompt with isolated user data (prompt injection mitigation) ──
     const prompt = `
@@ -266,6 +303,15 @@ Respond ONLY with a valid JSON object in the following format:
       estimatedProviderCostUsd: providerResult.usage.estimatedProviderCostUsd,
     });
     quotaReservationId = undefined;
+
+    const { error: cacheError } = await supabase.from('ai_feedback_cache').upsert(
+      {
+        input_hash: `study-recommendations:${inputHash}`,
+        feedback_json: { recommendations },
+      },
+      { onConflict: 'input_hash' }
+    );
+    if (cacheError) console.warn('Could not cache study recommendations:', cacheError.message);
 
     return new Response(JSON.stringify({ recommendations }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -2,6 +2,7 @@ import { toast } from 'sonner';
 
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { trackAppEvent } from '@/lib/tracking';
+import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 
@@ -198,6 +199,7 @@ export async function handleEvaluationSuccess({
   await awardXP(response.evaluation);
   trackEvaluationSubmitted(session, response.evaluation);
   await removeSpeakingTestsCache();
+  invalidateLearnerPracticeQueries();
   refreshLearningPath(session, response.evaluation);
 }
 

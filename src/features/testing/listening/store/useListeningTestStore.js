@@ -97,7 +97,9 @@ export const useListeningTestStore = create(
          */
         setAnswersBulk: (answersObj) =>
           set((state) => ({
-            answers: { ...state.answers, ...answersObj },
+            // Preserve sessionStorage answers when the network restores an
+            // older autosave snapshot for this same listening session.
+            answers: { ...answersObj, ...state.answers },
           })),
 
         /**

@@ -69,6 +69,8 @@ export function useDataQuery<T>(
   const isMountedRef = useRef<boolean>(true);
   const isRevalidatingRef = useRef<boolean>(false);
   const requestCounterRef = useRef<number>(0);
+  const fetcherRef = useRef(fetcher);
+  fetcherRef.current = fetcher;
 
   const fetchData = useCallback(
     async (force: boolean = false): Promise<void> => {
@@ -88,7 +90,8 @@ export function useDataQuery<T>(
 
         // Background revalidation
         isRevalidatingRef.current = true;
-        fetcher()
+        fetcherRef
+          .current()
           .then((fresh) => {
             if (isMountedRef.current && thisRequest === requestCounterRef.current) {
               setInCache(cacheKey, fresh, ttl);
@@ -116,7 +119,7 @@ export function useDataQuery<T>(
       setError(null);
 
       try {
-        const result = await fetcher();
+        const result = await fetcherRef.current();
         if (isMountedRef.current && thisRequest === requestCounterRef.current) {
           setInCache(cacheKey, result, ttl);
           setData(result);
@@ -133,7 +136,7 @@ export function useDataQuery<T>(
         }
       }
     },
-    [cacheKey, fetcher, ttl, staleWhileRevalidate]
+    [cacheKey, ttl, staleWhileRevalidate]
   );
 
   // Initial fetch

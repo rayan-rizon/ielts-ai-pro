@@ -8,12 +8,13 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5174',
   'https://ieltsai.pro',
   'https://www.ieltsai.pro',
-  'https://ielts-ai-pro*.vercel.app',
 ];
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+// Vercel deployment hostnames are scoped by team. Restrict preview access to
+// this project's deployment naming scheme instead of accepting every hostname
+// beginning with `ielts-ai-pro` on the public Vercel domain.
+const VERCEL_PROJECT_ORIGIN =
+  /^https:\/\/ielts-ai-pro-[a-z0-9-]+-rayan-rizons-projects\.vercel\.app$/;
 
 export function isAllowedOrigin(origin: string): boolean {
   if (!origin) return false;
@@ -29,13 +30,5 @@ export function isAllowedOrigin(origin: string): boolean {
     return false;
   }
 
-  return ALLOWED_ORIGINS.some((allowed) => {
-    if (!allowed.includes('*')) return allowed === origin;
-
-    const pattern = allowed
-      .split('*')
-      .map((part) => escapeRegex(part))
-      .join('[a-zA-Z0-9-]*');
-    return new RegExp(`^${pattern}$`).test(origin);
-  });
+  return ALLOWED_ORIGINS.includes(origin) || VERCEL_PROJECT_ORIGIN.test(origin);
 }

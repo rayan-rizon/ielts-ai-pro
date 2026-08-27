@@ -917,6 +917,10 @@ async function fetchPosts({ slug, select = ARTICLE_FIELDS, limit } = {}) {
     is_published: 'eq.true',
     order: 'published_at.desc.nullslast,created_at.desc',
   });
+  // PostgREST filter syntax is data, not a query language for route input.
+  // Reject malformed slugs before composing an `eq.` filter so bad URLs become
+  // normal not-found pages instead of an upstream 400/503.
+  if (slug && !/^[a-z0-9-]+$/i.test(slug)) return [];
   if (slug) params.set('slug', `eq.${slug}`);
   if (limit) params.set('limit', String(limit));
 

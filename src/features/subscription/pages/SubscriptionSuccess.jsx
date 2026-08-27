@@ -466,7 +466,7 @@ export default function SubscriptionSuccess() {
           className="w-full max-w-md"
         >
           <Card
-            className={`bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl ${colors.border} border rounded-3xl shadow-2xl overflow-hidden`}
+            className={`border ${colors.border} overflow-hidden rounded-xl bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15]`}
           >
             <CardContent className="p-8">
               {/* Plan header */}

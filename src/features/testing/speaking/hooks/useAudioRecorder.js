@@ -17,6 +17,9 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     maxRecordingTimer: useRef(null),
     startTime: useRef(0),
     discardRecording: useRef(false),
+    // Each permission prompt is asynchronous.  A monotonically increasing
+    // request id lets cleanup/unmount invalidate a prompt that resolves later.
+    captureRequestId: useRef(0),
     stopReason: useRef('manual'),
     speechRecognition: useRef(null),
     recognitionRestartTimer: useRef(null),

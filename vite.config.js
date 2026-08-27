@@ -115,6 +115,11 @@ export default defineConfig({
             if (id.includes('pdfjs-dist')) {
               return 'pdf-vendor';
             }
+            // jsPDF is loaded only for result/export flows; keep it out of
+            // shared PDF viewer and application chunks.
+            if (id.includes('/node_modules/jspdf/')) {
+              return 'pdf-export-vendor';
+            }
             // TanStack Query - data fetching
             if (id.includes('@tanstack/react-query')) {
               return 'query-vendor';

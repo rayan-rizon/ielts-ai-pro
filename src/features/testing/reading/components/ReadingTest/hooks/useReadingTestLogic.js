@@ -9,6 +9,7 @@ import {
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
 import { removeFromCache } from '@/lib/apiCache';
+import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
 import { calculateErrorPatterns, calculatePassageProficiency } from '@/services/testMetricsService';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
@@ -475,6 +476,7 @@ export function useReadingTestLogic(
 
         const didComplete = await TestSession.complete(session.id, updateData);
         removeFromCache('reading-tests-list');
+        if (didComplete) invalidateLearnerPracticeQueries();
 
         setSession((prev) => (prev ? { ...prev, is_completed: true } : prev));
         setIsFinished(true);

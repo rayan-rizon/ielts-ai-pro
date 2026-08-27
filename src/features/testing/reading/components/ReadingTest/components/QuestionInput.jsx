@@ -93,6 +93,7 @@ const QuestionInput = memo(function QuestionInput({
                 onChange={(value) => onAnswerChange?.(answerKey, value)}
                 disabled={disabled}
                 placeholder="answer"
+                aria-label={`Answer for question ${displayNum}`}
                 className={cn(
                   'w-28 h-7 px-2 py-0.5 text-center text-[15px] rounded-lg transition-all duration-200 shadow-sm',
                   inputClass,

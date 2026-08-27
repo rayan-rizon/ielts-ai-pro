@@ -80,7 +80,7 @@ export default function CookieConsent() {
       data-oid="h_5l9:v"
     >
       <div
-        className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-slate-700/60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl p-3 sm:p-3.5 shadow-xl shadow-slate-900/10 dark:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8),0_0_20px_rgba(99,102,241,0.08)]"
+        className="relative overflow-hidden rounded-xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3 sm:p-3.5 dark:border-white/[0.07] dark:from-[#141319] dark:to-[#100f15]"
         data-oid="h54q63k"
       >
         <div className="flex items-start gap-2.5 mb-2.5" data-oid="tj:plw1">

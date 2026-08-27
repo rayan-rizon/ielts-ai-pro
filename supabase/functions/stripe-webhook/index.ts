@@ -424,10 +424,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, even
   }
 
   const priceId = subscription.items.data[0]?.price.id;
-  const tier =
-    subscription.status === 'active'
-      ? PRICE_TO_TIER[priceId] || subscription.metadata?.tier || 'pro'
-      : 'free';
+  // Stripe retains the subscription through Smart Retries. Clearing the id for
+  // `past_due` locks a learner out of the customer portal precisely when they
+  // need it to repair their payment method.
+  const retainsBillingAccess = ['active', 'trialing', 'past_due'].includes(subscription.status);
+  const tier = retainsBillingAccess
+    ? PRICE_TO_TIER[priceId] || subscription.metadata?.tier || 'pro'
+    : 'free';
   const interval = PRICE_TO_INTERVAL[priceId] || subscription.metadata?.interval || 'monthly';
 
   const endDate = subscription.current_period_end
@@ -445,11 +448,11 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, even
     p_auth_id: authId,
     p_user_id: profileId,
     p_tier: tier,
-    p_interval: subscription.status === 'active' ? interval : 'monthly',
+    p_interval: retainsBillingAccess ? interval : 'monthly',
     p_amount: 0,
     p_currency: 'USD',
     p_transaction_id: subscription.id,
-    p_subscription_id: subscription.status === 'active' ? subscription.id : null,
+    p_subscription_id: retainsBillingAccess ? subscription.id : null,
     p_end_date: endDate.toISOString(),
     p_metadata: { subscription_status: subscription.status },
     p_cancel_at_period_end: subscription.cancel_at_period_end || false,

@@ -43,6 +43,7 @@ const QuestionNumberCircle = React.memo(
           className
         )}
         title={isFlagged ? 'Uncheck to unflag' : 'Click to flag for review'}
+        aria-label={`Question ${number}: ${isFlagged ? 'unflag for review' : 'flag for review'}`}
         data-oid="ksh.17o"
       >
         {number}
