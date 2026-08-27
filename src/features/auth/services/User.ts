@@ -15,6 +15,7 @@ interface ListOptions {
     subscription?: string;
     subscriptionStatus?: string;
     role?: string;
+    channel?: string;
     inactiveDays?: string | number;
     search?: string;
     [key: string]: any;
@@ -711,6 +712,17 @@ export const User = {
     }
     if (filters.role && filters.role !== 'all') {
       query = query.eq('role', filters.role);
+    }
+    // First-touch acquisition channel. Rows predating attribution tracking have a
+    // NULL signup_channel and surface as "unknown" in the UI, so match both.
+    if (filters.channel && filters.channel !== 'all') {
+      if (filters.channel === 'unknown') {
+        query = query.or('signup_channel.is.null,signup_channel.eq.unknown');
+      } else if (filters.channel === 'paid') {
+        query = query.in('signup_channel', ['paid_search', 'paid_social']);
+      } else {
+        query = query.eq('signup_channel', filters.channel);
+      }
     }
     // Inactivity filter - filter by last_active or created_at
     if (filters.inactiveDays && filters.inactiveDays !== 'all') {

@@ -10,9 +10,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Calendar, Clock, CreditCard, Mail, Search, Shield, Trash2 } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Mail, Radio, Search, Shield, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MICRO, PANEL } from '../ui/primitives';
+import { SIGNUP_CHANNELS, SIGNUP_CHANNEL_KEYS } from '../shared/signupChannel';
 
 const FIELD_INPUT =
   'h-9 rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium';
@@ -185,6 +186,24 @@ export const UserManagementFilters = ({
             <SelectItem value="this_month">Joined this month</SelectItem>
             <SelectItem value="last_month">Joined last month</SelectItem>
             <SelectItem value="custom">Custom date range…</SelectItem>
+          </FilterSelect>
+        </div>
+
+        {/* Acquisition Channel Filter */}
+        <div className="w-[165px] shrink-0">
+          <FilterSelect
+            value={filters.channel || 'all'}
+            onValueChange={(value) => updateFilter('channel', value)}
+            icon={Radio}
+            placeholder="Channel"
+          >
+            <SelectItem value="all">All channels</SelectItem>
+            <SelectItem value="paid">Paid only</SelectItem>
+            {SIGNUP_CHANNEL_KEYS.map((key) => (
+              <SelectItem key={key} value={key}>
+                {SIGNUP_CHANNELS[key].label}
+              </SelectItem>
+            ))}
           </FilterSelect>
         </div>
 

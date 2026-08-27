@@ -9,20 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  ChevronRight,
-  CircleHelp,
-  Clock,
-  Compass,
-  Link2,
-  Mail,
-  MousePointer2,
-  Search,
-  Share2,
-  ShieldCheck,
-} from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChevronRight, Clock, ShieldCheck } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -33,6 +20,7 @@ import {
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import ServiceStatusStrip from '../ServiceStatusStrip';
+import { SignupSourceMark, channelMeta } from '../shared/signupChannel';
 import { NUM, MICRO, PANEL, Kpi, InfoTip, Tip } from '../ui/primitives';
 
 const SEVERITY = {
@@ -46,51 +34,6 @@ const WINDOWS = [
   { label: 'Last 30 days', days: 30 },
   { label: 'Last 90 days', days: 90 },
 ];
-
-const SIGNUP_SOURCES = {
-  paid_search: { label: 'Google Ads', icon: MousePointer2, tone: 'text-[#4285f4] bg-[#4285f4]/10' },
-  paid_social: { label: 'Social ad', icon: MousePointer2, tone: 'text-[#1877f2] bg-[#1877f2]/10' },
-  organic_search: { label: 'Organic search', icon: Search, tone: 'text-[#34a853] bg-[#34a853]/10' },
-  organic_social: { label: 'Organic social', icon: Share2, tone: 'text-[#e1306c] bg-[#e1306c]/10' },
-  email: { label: 'Email', icon: Mail, tone: 'text-[#b7791f] bg-[#b7791f]/10' },
-  referral: { label: 'Referral', icon: Link2, tone: 'text-[#5a63df] bg-[#5a63df]/10' },
-  direct: {
-    label: 'Direct visit',
-    icon: Compass,
-    tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
-  },
-  other: {
-    label: 'Other source',
-    icon: Compass,
-    tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
-  },
-  unknown: {
-    label: 'Source not captured',
-    icon: CircleHelp,
-    tone: 'text-stone-400 bg-stone-100 dark:text-stone-500 dark:bg-white/[0.06]',
-  },
-};
-
-const SignupSourceMark = ({ channel, source }) => {
-  const meta = SIGNUP_SOURCES[channel] || SIGNUP_SOURCES.unknown;
-  const Icon = meta.icon;
-  const sourceName = source?.trim();
-  const description = sourceName ? `${meta.label} · ${sourceName}` : meta.label;
-
-  return (
-    <Tip content={description}>
-      <span
-        aria-label={description}
-        className={cn(
-          'inline-grid h-4 w-4 shrink-0 place-items-center rounded-[5px] ring-1 ring-black/[0.04] dark:ring-white/[0.06]',
-          meta.tone
-        )}
-      >
-        <Icon aria-hidden="true" className="h-2.5 w-2.5 stroke-[2.35]" />
-      </span>
-    </Tip>
-  );
-};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -899,30 +842,6 @@ const ModuleEngagementPanel = ({ modules }) => (
   </m.div>
 );
 
-const CHANNEL_LABELS = {
-  paid_social: 'Paid social (Meta ads)',
-  paid_search: 'Paid search (Google ads)',
-  organic_search: 'Organic search',
-  organic_social: 'Organic social',
-  referral: 'Referral',
-  email: 'Email',
-  direct: 'Direct',
-  other: 'Other',
-  unknown: 'Unknown',
-};
-
-const CHANNEL_COLORS = {
-  paid_social: 'bg-[#1877F2]',
-  paid_search: 'bg-[rgb(var(--signal-ok))]',
-  organic_search: 'bg-[rgb(var(--signal-ok))]',
-  organic_social: 'bg-[#1877F2]',
-  referral: 'bg-[rgb(var(--signal-warn))]',
-  email: 'bg-stone-400',
-  direct: 'bg-stone-400',
-  other: 'bg-stone-300',
-  unknown: 'bg-stone-200 dark:bg-white/10',
-};
-
 const SignupChannelsPanel = ({ channels, displayDays }) => {
   const total = channels.reduce((sum, row) => sum + (row.signups || 0), 0);
   const max = channels.reduce((peak, row) => Math.max(peak, row.signups || 0), 0);
@@ -947,18 +866,18 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
             return (
               <Tip
                 key={key}
-                content={`${CHANNEL_LABELS[key] || key} — ${row.signups} signups (${share}% of total signups)`}
+                content={`${channelMeta(key).label} — ${row.signups} signups (${share}% of total signups)`}
               >
                 <div className="flex items-center gap-2 py-2 px-1 -mx-1 rounded-md border-b border-stone-100 dark:border-white/5 last:border-0 hover:bg-stone-50 dark:hover:bg-white/3 transition-colors text-[11px] cursor-default group">
                   <span className="w-24 shrink-0 font-extrabold text-stone-900 dark:text-stone-50 truncate">
-                    {CHANNEL_LABELS[key] || key}
+                    {channelMeta(key).short}
                   </span>
                   <div className="flex-1 min-w-[40px]">
                     <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
                       <div
                         className={cn(
                           'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',
-                          CHANNEL_COLORS[key] || 'bg-stone-300'
+                          channelMeta(key).bar
                         )}
                         style={{ width: `${width}%` }}
                       />

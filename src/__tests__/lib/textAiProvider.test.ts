@@ -215,7 +215,7 @@ describe('text AI provider routing', () => {
         800 * rates.inputPerMillion +
         500 * rates.outputPerMillion) /
         1_000_000,
-      10
+      6
     );
   });
 

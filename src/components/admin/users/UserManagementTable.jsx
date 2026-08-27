@@ -12,11 +12,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import PaginationControls from '../shared/PaginationControls';
+import { SignupSourceCell } from '../shared/signupChannel';
 import { NUM, MICRO, PANEL } from '../ui/primitives';
 
 const COLUMNS = [
   { field: 'full_name', label: 'User' },
   { field: 'email', label: 'Email' },
+  { field: 'signup_channel', label: 'Source' },
   { field: 'subscription_tier', label: 'Plan' },
   { field: 'role', label: 'Role' },
   { field: 'last_active', label: 'Last active' },
@@ -89,6 +91,13 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
         </div>
       </td>
       <td className="py-3 px-4">
+        <SignupSourceCell
+          channel={user.signup_channel}
+          source={user.signup_utm_source}
+          campaign={user.signup_utm_campaign}
+        />
+      </td>
+      <td className="py-3 px-4">
         <span
           className={cn(
             'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 capitalize',
@@ -155,7 +164,7 @@ const TableBody = ({
   if (loading && users.length === 0) {
     return Array.from({ length: 6 }).map((_, index) => (
       <tr key={index} className="border-b border-stone-100 dark:border-white/5">
-        <td colSpan={7} className="py-3.5 px-4">
+        <td colSpan={8} className="py-3.5 px-4">
           <div className="h-4 w-full max-w-xs bg-stone-100 dark:bg-white/5 rounded animate-pulse" />
         </td>
       </tr>
@@ -164,7 +173,7 @@ const TableBody = ({
   if (users.length === 0) {
     return (
       <tr>
-        <td colSpan={7} className="py-16 text-center">
+        <td colSpan={8} className="py-16 text-center">
           <Search className="w-6 h-6 mx-auto mb-2 text-stone-300 dark:text-stone-600" />
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             No users match your filters
@@ -211,7 +220,7 @@ export const UserManagementTable = ({
 }) => (
   <div className={cn(PANEL, 'overflow-hidden')}>
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[880px] text-left border-collapse">
+      <table className="w-full min-w-[1010px] text-left border-collapse">
         <thead>
           <tr className="border-b border-stone-200 dark:border-white/[0.07]">
             <th className="py-2.5 px-4 w-10">
