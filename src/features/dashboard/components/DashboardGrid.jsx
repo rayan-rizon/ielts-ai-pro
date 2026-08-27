@@ -86,6 +86,7 @@ export default function DashboardGrid({
           <PaidFeatureGate
             hasAccess={canUseAdvancedInsights}
             label="Next up"
+            badgeTier="pro"
             title="Turn results into your next action"
             description="Get a ranked practice queue built from your weakest module, question types, and current study plan."
             benefits={['Evidence-ranked priorities', 'Updates after every scored test']}

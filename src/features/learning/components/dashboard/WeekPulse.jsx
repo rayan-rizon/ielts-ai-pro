@@ -11,7 +11,6 @@ import {
   PanelTitle,
   Pill,
   Ring,
-  TILE,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import {

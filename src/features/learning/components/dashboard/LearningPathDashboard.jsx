@@ -17,15 +17,15 @@ function LearningPathLoadingView() {
   return (
     <div className="space-y-3" aria-label="Loading learning path">
       <div className={`h-[300px] ${SKELETON_BLOCK}`} />
-      <div className={`h-[420px] ${SKELETON_BLOCK}`} />
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 2xl:grid-cols-[1.08fr_1fr_0.9fr]">
-        <div className={`h-[440px] md:col-span-2 2xl:col-span-1 ${SKELETON_BLOCK}`} />
-        <div className={`h-[440px] ${SKELETON_BLOCK}`} />
-        <div className={`h-[440px] ${SKELETON_BLOCK}`} />
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 xl:grid-cols-[1.75fr_1fr]">
+        <div className={`h-[560px] ${SKELETON_BLOCK}`} />
+        <div className={`h-[560px] ${SKELETON_BLOCK}`} />
       </div>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1.35fr_1fr]">
-        <div className={`h-[240px] ${SKELETON_BLOCK}`} />
-        <div className={`h-[240px] ${SKELETON_BLOCK}`} />
+      <div className={`h-[420px] ${SKELETON_BLOCK}`} />
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 2xl:grid-cols-[1fr_1.35fr_1fr]">
+        <div className={`h-[400px] ${SKELETON_BLOCK}`} />
+        <div className={`h-[400px] ${SKELETON_BLOCK}`} />
+        <div className={`h-[400px] md:col-span-2 2xl:col-span-1 ${SKELETON_BLOCK}`} />
       </div>
     </div>
   );
@@ -58,7 +58,10 @@ export default function LearningPathDashboard(props) {
     weeklyCapacity,
     sevenDays,
     today,
+    phases,
+    pathProgress,
     primaryTask,
+    isFallbackTask,
     nextTasks,
     startTask,
     toggleTask,
@@ -73,10 +76,11 @@ export default function LearningPathDashboard(props) {
   // sitting at opacity 0 for the first beat — it read as an empty panel.
   return (
     <div className="space-y-3">
-      {/* 1 — What do I do right now, and why does the plan look like this. */}
+      {/* 1 — What do I do right now, why, and how far along am I. */}
       <HeroSection
         isLegacyPlan={isLegacyPlan}
         primaryTask={primaryTask}
+        isFallbackTask={isFallbackTask}
         today={today}
         path={path}
         targetBand={targetBand}
@@ -85,6 +89,7 @@ export default function LearningPathDashboard(props) {
         daysLeft={daysLeft}
         readiness={readiness}
         weeklyCapacity={weeklyCapacity}
+        pathProgress={pathProgress}
         refreshing={refreshing}
         planUpdateAvailable={planUpdateAvailable}
         refreshPlan={refreshPlan}
@@ -94,8 +99,31 @@ export default function LearningPathDashboard(props) {
         nextTasks={nextTasks}
       />
 
-      {/* 2 — Where am I on the whole journey. */}
+      {/* 2 — The week itself. This is the page's working surface: the thing a
+          learner opens the page to act on, so it gets the widest column on the
+          page rather than a third of one row lower down. */}
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-3 xl:grid-cols-[1.75fr_1fr]">
+        <WeekPlan
+          days={sevenDays}
+          canReschedule={path?.version === 2}
+          expandedTask={expandedTask}
+          setExpandedTask={setExpandedTask}
+          onToggle={toggleTask}
+          onStart={startTask}
+          onReschedule={rescheduleTask}
+          onCustomize={() => setCustomizeOpen(true)}
+        />
+
+        <WeekPulse
+          days={sevenDays}
+          weeklyCapacity={weeklyCapacity}
+          onCustomize={() => setCustomizeOpen(true)}
+        />
+      </div>
+
+      {/* 3 — Where am I on the whole journey. */}
       <RoadmapSection
+        phases={phases}
         roadmap={roadmap}
         isLegacyPlan={isLegacyPlan}
         readiness={readiness}
@@ -106,29 +134,11 @@ export default function LearningPathDashboard(props) {
         onStart={startTask}
       />
 
-      {/* 3 — What is scheduled, what to fix, how the week is loaded. */}
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-[1.08fr_1fr_0.9fr]">
-        <WeekPlan
-          days={sevenDays}
-          canReschedule={path?.version === 2}
-          expandedTask={expandedTask}
-          setExpandedTask={setExpandedTask}
-          onToggle={toggleTask}
-          onStart={startTask}
-          onReschedule={rescheduleTask}
-        />
+      {/* 4 — The evidence behind all of the above: what to fix, where I stand,
+          and how much time is left to close the gap. */}
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-[1fr_1.35fr_1fr]">
+        <PrioritiesPanel evidence={evidence} onStart={startTask} />
 
-        <PrioritiesPanel evidence={evidence} />
-
-        <WeekPulse
-          days={sevenDays}
-          weeklyCapacity={weeklyCapacity}
-          onCustomize={() => setCustomizeOpen(true)}
-        />
-      </div>
-
-      {/* 4 — Standing scores, and how much time is left to close the gap. */}
-      <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 lg:grid-cols-[1.35fr_1fr]">
         <ReadinessPanel
           readiness={readiness}
           days={sevenDays}
@@ -146,6 +156,7 @@ export default function LearningPathDashboard(props) {
           days={sevenDays}
           onCustomize={() => setCustomizeOpen(true)}
           onStart={startTask}
+          className="md:col-span-2 2xl:col-span-1"
         />
       </div>
 

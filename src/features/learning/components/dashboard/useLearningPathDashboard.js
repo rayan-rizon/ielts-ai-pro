@@ -10,9 +10,12 @@ import {
   normalizeStudyAvailability,
 } from '../../../../../supabase/functions/_shared/learningPathV2';
 import {
+  buildFallbackTask,
+  buildRoadmapViewModel,
   computeDashboardSnapshot,
   computeEvidence,
   computeSevenDays,
+  getPathProgress,
   getPlanRefreshTrigger,
   rankBestNextTask,
 } from './dashboardUtils';
@@ -97,7 +100,27 @@ export function useLearningPathDashboard({
   const planUpdateAvailable = !previewMode && Boolean(refreshTrigger);
 
   const today = sevenDays[0];
-  const primaryTask = useMemo(
+
+  const isLegacyPlan = path?.version === 1;
+
+  // The stage view model is computed once here rather than inside the roadmap
+  // panel, because the hero prints the same stage and the same percentage. Two
+  // components deriving it separately is how they drifted apart before.
+  const phases = useMemo(
+    () =>
+      buildRoadmapViewModel({
+        roadmap: snapshot.roadmap,
+        isLegacyPlan,
+        readiness: snapshot.readiness,
+        evidence,
+        days: sevenDays,
+        targetBand: snapshot.targetBand,
+      }),
+    [snapshot.roadmap, isLegacyPlan, snapshot.readiness, evidence, sevenDays, snapshot.targetBand]
+  );
+  const pathProgress = useMemo(() => getPathProgress(phases), [phases]);
+
+  const scheduledTask = useMemo(
     () =>
       rankBestNextTask(sevenDays, {
         targetBand: snapshot.targetBand,
@@ -107,10 +130,26 @@ export function useLearningPathDashboard({
       }),
     [sevenDays, snapshot.targetBand, snapshot.daysLeft, snapshot.readiness, evidence]
   );
+
+  // An empty schedule is not an empty page: fall back to the highest-value
+  // unscheduled work so the hero's primary action is never a disabled button.
+  const fallbackTask = useMemo(
+    () =>
+      scheduledTask
+        ? null
+        : buildFallbackTask({
+            readiness: snapshot.readiness,
+            evidence,
+            targetBand: snapshot.targetBand,
+          }),
+    [scheduledTask, snapshot.readiness, evidence, snapshot.targetBand]
+  );
+  const primaryTask = scheduledTask || fallbackTask;
   const nextTasks = useMemo(
     () =>
       sevenDays
         .flatMap((day) => day.tasks.map((task) => ({ ...task, day })))
+        .filter((task) => !task.is_completed)
         .filter((task) => task.activity_key !== primaryTask?.activity_key)
         .slice(0, 3),
     [sevenDays, primaryTask?.activity_key]
@@ -221,8 +260,6 @@ export function useLearningPathDashboard({
     }
   };
 
-  const isLegacyPlan = path?.version === 1;
-
   return {
     customizeOpen,
     setCustomizeOpen,
@@ -244,7 +281,10 @@ export function useLearningPathDashboard({
     weeklyCapacity,
     sevenDays,
     today,
+    phases,
+    pathProgress,
     primaryTask,
+    isFallbackTask: Boolean(fallbackTask),
     nextTasks,
     startTask,
     toggleTask,

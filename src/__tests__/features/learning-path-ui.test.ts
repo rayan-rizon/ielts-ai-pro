@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  buildFallbackTask,
   buildRoadmapViewModel,
   computeDashboardSnapshot,
   computePhases,
@@ -10,6 +11,7 @@ import {
   getDaySummaryMeta,
   getFriendlyPlanText,
   getFriendlyTaskTitle,
+  getPathProgress,
   getPlanRefreshTrigger,
 } from '@/features/learning/components/dashboard/dashboardUtils';
 
@@ -53,6 +55,10 @@ const countdown = readFileSync(
   resolve(process.cwd(), 'src/features/learning/components/dashboard/ExamCountdownPanel.jsx'),
   'utf8'
 );
+const primitives = readFileSync(
+  resolve(process.cwd(), 'src/features/dashboard/components/primitives.jsx'),
+  'utf8'
+);
 const app = readFileSync(resolve(process.cwd(), 'src/App.jsx'), 'utf8');
 const layout = readFileSync(resolve(process.cwd(), 'src/features/core/pages/Layout.jsx'), 'utf8');
 const hook = readFileSync(
@@ -90,19 +96,30 @@ describe('Learning Path main page composition', () => {
 
   it('uses compact responsive layouts and redirects the retired preview route', () => {
     expect(dashboard).toContain('grid-cols-[minmax(0,1fr)]');
-    expect(weekPlan).toContain('md:col-span-2');
+    // "This week's plan" is the surface a learner comes here to act on, so it
+    // leads its own row at nearly twice the width of anything beside it rather
+    // than sharing a three-up row lower down the page.
+    expect(dashboard).toContain('xl:grid-cols-[1.75fr_1fr]');
+    expect(dashboard.indexOf('<WeekPlan')).toBeLessThan(dashboard.indexOf('<RoadmapSection'));
+    expect(weekPlan).not.toContain('md:col-span-2');
     // Seven day columns, one per day of the plan week.
     expect(weekPlan).toContain('grid-cols-7');
     expect(roadmap).toContain('auto-cols-[88%]');
     expect(roadmap).toContain('sm:grid-cols-2');
     expect(roadmap).toContain('xl:grid-cols-4');
     expect(dashboard).toContain('md:grid-cols-2');
-    expect(dashboard).toContain('2xl:grid-cols-[1.08fr_1fr_0.9fr]');
+    expect(dashboard).toContain('2xl:grid-cols-[1fr_1.35fr_1fr]');
     expect(dashboard).toContain('items-stretch');
-    expect(hero).toContain('grid-cols-2');
-    expect(hero).toContain('sm:grid-cols-4');
+    // The hero's four facts are one divided instrument rail now, so the
+    // responsive grid lives in the shared primitive rather than in the page.
+    expect(hero).toContain('<StatRail');
+    expect(hero).toContain('bare');
+    expect(primitives).toContain('export const StatRail');
+    expect(primitives).toContain('grid grid-cols-2 sm:grid-cols-4');
     expect(readiness).toContain('grid-cols-2');
     expect(readiness).toContain('sm:grid-cols-4');
+    // Narrowest at the *widest* viewport, where it takes a 1fr column.
+    expect(readiness).toContain('2xl:grid-cols-2');
     expect(layout).toContain(
       'pointer-events-none absolute top-4 left-4 z-50 flex items-center gap-2 md:hidden'
     );
@@ -321,7 +338,7 @@ describe('Learning Path main page composition', () => {
     expect(roadmap).toContain('Your saved exam date has passed');
   });
 
-  it('derives roadmap progress from evidence instead of a static completion value', () => {
+  it('scores every stage as a count against a fixed, durable denominator', () => {
     const phases = buildRoadmapViewModel({
       roadmap: [
         { key: 'foundation', current: true, start_date: '2020-01-01', end_date: '2099-01-01' },
@@ -332,16 +349,22 @@ describe('Learning Path main page composition', () => {
       isLegacyPlan: false,
       readiness: {
         modules: {
-          reading: { sufficient: true, sample_count: 2, median: 6.5 },
-          writing: { sufficient: false, sample_count: 1 },
-          listening: { sufficient: false, sample_count: 0 },
-          speaking: { sufficient: false, sample_count: 0 },
+          reading: {
+            sufficient: true,
+            sample_count: 2,
+            median: 6.5,
+            mode_counts: { practice: 1, timed: 1, exam: 0 },
+          },
+          writing: { sufficient: false, sample_count: 1, mode_counts: {} },
+          listening: { sufficient: false, sample_count: 0, mode_counts: {} },
+          speaking: { sufficient: false, sample_count: 0, mode_counts: {} },
         },
         missing_diagnostics: ['writing', 'listening', 'speaking'],
         overall: { available: false },
       },
       evidence: {
-        measured_priorities: [{ skill_code: 'reading_inference', mastery: 0.35, observations: 10 }],
+        measured_priorities: [{ skill_code: 'reading_inference', mastery: 0.3, observations: 10 }],
+        maintenance: [{ skill_code: 'reading_matching', mastery: 0.9, observations: 40 }],
         due_reviews: [],
       },
       days: [
@@ -360,11 +383,100 @@ describe('Learning Path main page composition', () => {
       targetBand: 7,
     });
 
-    expect(phases.map((phase) => phase.progressPercent)).toEqual([25, 50, 50, 0]);
-    expect(phases[0].progressLabel).toBe('1 of 4 subjects checked');
+    // Foundation counts scored attempts, not finished modules: 2 + 1 of 8.
+    expect(phases[0].progressPercent).toBe(38);
+    expect(phases[0].progressLabel).toBe('3 of 8 scored checks recorded');
+    expect(phases[0].progressRule).toContain('Each scored test adds 13%');
     expect(phases[0].actionTask?.title).toBe('Writing diagnostic');
-    expect(phases[0].checklist.map((item) => item.done)).toEqual([false, false, true]);
-    expect(phases[2].checklist.map((item) => item.done)).toEqual([true, true, false]);
+
+    // Repair averages every measured skill against the 75% bar, so a repaired
+    // skill can never be displaced by the next-weakest one.
+    expect(phases[1].progressPercent).toBe(70);
+    expect(phases[1].progressLabel).toBe('1 of 2 measured skills at 75%');
+
+    // Timed progress comes from the scored record (one timed attempt of two),
+    // never from a task ticked off in a schedule that is rebuilt every refresh.
+    expect(phases[2].progressPercent).toBe(50);
+    expect(phases[2].progressLabel).toBe('1 of 2 timed attempts completed');
+
+    // No Exam Mode attempt anywhere, so no exam-readiness credit.
+    expect(phases[3].progressPercent).toBe(0);
+  });
+
+  it('gives half credit for an Exam Mode attempt and the rest for hitting target', () => {
+    const modules = {
+      reading: { sample_count: 2, median: 7, mode_counts: { exam: 1 }, latest_exam_score: 7 },
+      writing: { sample_count: 2, median: 6, mode_counts: { exam: 1 }, latest_exam_score: 6 },
+      listening: { sample_count: 2, median: 6, mode_counts: { exam: 0 } },
+      speaking: { sample_count: 2, median: 6, mode_counts: { exam: 0 } },
+    };
+    const [, , , readinessPhase] = buildRoadmapViewModel({
+      roadmap: [],
+      readiness: { modules, missing_diagnostics: [], overall: { available: true } },
+      evidence: {},
+      days: [],
+      targetBand: 7,
+    });
+
+    // Reading is at target (full credit) and writing was attempted (half): 1.5/4.
+    expect(readinessPhase.progressPercent).toBe(38);
+    expect(readinessPhase.progressLabel).toBe('1 of 4 Exam Mode scores at band 7.0');
+  });
+
+  it('reports one journey number for the rail and the readout', () => {
+    const progress = getPathProgress([
+      { progressPercent: 100 },
+      { progressPercent: 50 },
+      { progressPercent: 0 },
+      { progressPercent: 0 },
+    ]);
+
+    expect(progress.overallPercent).toBe(38);
+    expect(progress.stagesDone).toBe(1);
+    expect(progress.currentIndex).toBe(1);
+    expect(progress.totalStages).toBe(4);
+  });
+
+  it('offers real work when the schedule has nothing left, instead of an empty hero', () => {
+    const missingScore = buildFallbackTask({
+      readiness: { missing_diagnostics: ['listening'], modules: {} },
+      evidence: {},
+      targetBand: 7,
+    });
+    expect(missingScore?.module).toBe('listening');
+    expect(missingScore?.activity_type).toBe('diagnostic');
+    expect(missingScore?.is_synthetic).toBe(true);
+    // Synthetic tasks are routing hints only — they are never persisted.
+    expect(missingScore?.activity_key).toBeUndefined();
+
+    const focusSkill = buildFallbackTask({
+      readiness: { missing_diagnostics: [], modules: {} },
+      evidence: {
+        measured_priorities: [
+          { skill_code: 'reading_inference', module: 'reading', mastery: 0.4, observations: 30 },
+        ],
+      },
+      targetBand: 7,
+    });
+    expect(focusSkill?.module).toBe('reading');
+    expect(focusSkill?.skill_targets).toEqual(['reading_inference']);
+
+    // The hero renders that task and its CTA stays live, rather than printing a
+    // headline over a disabled button and two hundred pixels of nothing.
+    expect(hero).toContain('isFallbackTask');
+    expect(hero).toContain('<StageStrip pathProgress={pathProgress} />');
+    expect(dashboard).toContain('isFallbackTask={isFallbackTask}');
+  });
+
+  it('keeps the learning path query fresh enough to show progress from a new score', () => {
+    expect(hook).toContain("refetchOnMount: 'always'");
+    expect(hook).toContain('refetchOnWindowFocus: true');
+  });
+
+  it('makes each ranked focus skill startable', () => {
+    expect(priorities).toContain('onStart?.(');
+    expect(priorities).toContain("activity_type: 'targeted_drill'");
+    expect(dashboard).toContain('<PrioritiesPanel evidence={evidence} onStart={startTask} />');
   });
 
   it('does not request a plan rebuild when goals and scored results are unchanged', () => {
@@ -418,9 +530,12 @@ describe('Learning Path main page composition', () => {
 
   it('shows interactive evidence stages and a cost-safe update action', () => {
     expect(roadmap).toContain('InteractiveStageRail');
-    // The connector line is driven by evidence, not decoration: its head sits in
-    // segment space so a half-finished stage lands halfway between two nodes.
-    expect(roadmap).toContain('getRailFill');
+    // The connector line is driven by evidence, not decoration — and by the
+    // *same* number as the readout beside it. Two formulas for one journey
+    // printed 35% next to a line drawn at 38%.
+    expect(roadmap).not.toContain('function getRailFill');
+    expect(roadmap).toContain('getPathProgress');
+    expect(roadmap).toContain('const railFill = overallPercent;');
     expect(roadmap).toContain('railFill={railFill}');
     expect(roadmap).toContain('Open stage ${index + 1}');
     expect(roadmap).toContain("Planned: 'Planned'");

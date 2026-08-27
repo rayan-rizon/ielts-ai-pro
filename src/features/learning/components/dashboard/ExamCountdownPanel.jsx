@@ -62,22 +62,27 @@ function useRunway({ daysLeft, weeklyCapacity, days, readiness, targetBand }) {
   }, [daysLeft, weeklyCapacity, days, readiness, targetBand]);
 }
 
-function RunwayTile({ icon, label, value, sub }) {
+/**
+ * One runway figure: label on the left, number on a shared right edge.
+ *
+ * No qualifier column. "Weeks left … to exam day" says the same thing twice,
+ * and the three qualifiers wrapped to two lines each in this column, making
+ * every row a different height. The footnote below carries the one thing they
+ * actually added — where these numbers come from — once.
+ */
+function RunwayRow({ icon, label, value }) {
   return (
-    <div className={cn(TILE, 'p-3')}>
-      <div className="flex items-center gap-1.5">
-        <IconChip icon={icon} size="sm" />
-        <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
-      </div>
+    <div className="flex items-center gap-2 px-3 py-2">
+      <IconChip icon={icon} size="sm" />
+      <p className={cn(MICRO, MUTED, 'min-w-0 flex-1 truncate')}>{label}</p>
       <p
         className={cn(
           NUM,
-          'mt-1.5 text-base font-extrabold leading-none text-slate-900 dark:text-white'
+          'shrink-0 text-sm font-extrabold leading-none text-slate-900 dark:text-white'
         )}
       >
         {value}
       </p>
-      {sub && <p className={cn(MICRO, MUTED, 'mt-1.5 truncate')}>{sub}</p>}
     </div>
   );
 }
@@ -99,6 +104,7 @@ export default function ExamCountdownPanel({
   readiness,
   days = [],
   onCustomize,
+  className,
 }) {
   const runway = useRunway({ daysLeft, weeklyCapacity, days, readiness, targetBand });
   const examLabel = formatExamDate(examDate);
@@ -123,7 +129,7 @@ export default function ExamCountdownPanel({
 
   return (
     <section
-      className={cn(PANEL, 'flex h-full flex-col p-4 sm:p-5')}
+      className={cn(PANEL, 'flex h-full flex-col p-4 sm:p-5', className)}
       aria-labelledby="countdown-title"
     >
       <PanelTitle
@@ -187,26 +193,30 @@ export default function ExamCountdownPanel({
             {Math.round(windowUsed)}% through a typical 12-week preparation window
           </p>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <RunwayTile
-              icon={CalendarDays}
-              label="Weeks left"
-              value={runway.weeksLeft}
-              sub="Until exam day"
-            />
-            <RunwayTile
-              icon={Layers}
-              label="Sessions left"
-              value={runway.sessionsLeft}
-              sub="At your pace"
-            />
-            <RunwayTile
-              icon={Clock3}
-              label="Study time left"
-              value={formatMinutes(runway.minutesLeft)}
-              sub="Time you saved"
-            />
+          {/* Three rows, not three columns. This panel is at its *narrowest* on
+              the widest screens — it takes the 1fr column of the closing
+              three-up row — so viewport breakpoints run backwards here and no
+              column split survives: "Study time left" clipped to "STUDY TI…"
+              and "5h 43m" wrapped mid-value. Stacked, every label is whole and
+              the numbers share one right edge, which is what makes a column of
+              figures scannable in the first place. */}
+          <div
+            className={cn(
+              TILE,
+              'mt-4 divide-y divide-[#eeedf7] overflow-hidden dark:divide-white/[0.07]'
+            )}
+          >
+            {[
+              { icon: CalendarDays, label: 'Weeks left', value: runway.weeksLeft },
+              { icon: Layers, label: 'Sessions left', value: runway.sessionsLeft },
+              { icon: Clock3, label: 'Study time left', value: formatMinutes(runway.minutesLeft) },
+            ].map((row) => (
+              <RunwayRow key={row.label} {...row} />
+            ))}
           </div>
+          <p className={cn(MICRO, MUTED, 'mt-1.5 leading-relaxed')}>
+            Sessions and study time are the availability you saved, spread across the weeks left.
+          </p>
 
           <div className={cn(TILE, 'mt-auto flex items-start gap-2.5 p-3.5 sm:mt-4')}>
             <IconChip

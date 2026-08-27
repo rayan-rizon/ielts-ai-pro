@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gauge } from 'lucide-react';
+import { ChevronRight, Gauge } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   Empty,
@@ -10,6 +10,7 @@ import {
   PANEL,
   PanelTitle,
   Pill,
+  ROW_CHEVRON,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import { formatSkill, getModuleStyle, getModuleTone, getPrioritiesList } from './dashboardUtils';
@@ -60,21 +61,42 @@ function ConfidenceBadge({ label }) {
   );
 }
 
-function PriorityRow({ skill, index }) {
+/**
+ * Rows are startable.
+ *
+ * This panel ranks the skills that cost the most band, then used to leave the
+ * learner to find the matching practice themselves somewhere else in the app.
+ * Each row now routes straight into practice for that module and skill, which
+ * is the only action the ranking was ever asking for.
+ */
+function PriorityRow({ skill, index, onStart }) {
   const style = getModuleStyle(skill.module);
   const Icon = style.icon;
   const mastery = Math.round((skill.mastery || 0) * 100);
   const band = masteryBand(mastery);
   const isTopPriority = index === 0;
+  const skillName = formatSkill(skill.skill_code);
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={() =>
+        onStart?.({
+          module: skill.module,
+          activity_type: 'targeted_drill',
+          title: `${style.label}: ${skillName.toLowerCase()} practice`,
+          skill_targets: [skill.skill_code],
+          routing: { route: skill.module, mode: 'practice', skill: skill.skill_code },
+          requested_mode: 'practice',
+        })
+      }
+      aria-label={`Practise ${skillName}, currently ${mastery}% correct`}
       className={cn(
-        'min-w-0 border-b border-[#eeedf7] px-3 py-2.5 transition-colors last:border-b-0 hover:bg-[#faf9ff] dark:border-white/10 dark:hover:bg-white/3',
+        'block w-full min-w-0 border-b border-[#eeedf7] px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-[#faf9ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:hover:bg-white/3',
         isTopPriority && 'bg-[#5a63df]/3 dark:bg-[#8f97ff]/5'
       )}
     >
-      <div className="flex min-w-0 items-start gap-2.5">
+      <div className="group flex min-w-0 items-start gap-2.5">
         <span
           className={cn(
             NUM,
@@ -90,11 +112,14 @@ function PriorityRow({ skill, index }) {
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-1.5">
             <p className="truncate text-xs font-bold leading-snug text-slate-900 dark:text-white">
-              {formatSkill(skill.skill_code)}
+              {skillName}
             </p>
-            <Pill tone={KIND_TONE[skill.tone] || 'neutral'}>
-              {KIND_LABEL[skill.kind] || skill.kind}
-            </Pill>
+            <span className="flex shrink-0 items-center gap-1">
+              <Pill tone={KIND_TONE[skill.tone] || 'neutral'}>
+                {KIND_LABEL[skill.kind] || skill.kind}
+              </Pill>
+              <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} />
+            </span>
           </div>
 
           <div className="mt-1.5 flex items-center gap-2">
@@ -124,11 +149,11 @@ function PriorityRow({ skill, index }) {
           </p>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
-export default function PrioritiesPanel({ evidence }) {
+export default function PrioritiesPanel({ evidence, onStart }) {
   const priorities = getPrioritiesList(evidence);
 
   return (
@@ -143,13 +168,19 @@ export default function PrioritiesPanel({ evidence }) {
         action={<ConfidenceBadge label={evidence?.confidence_label || 'diagnostic'} />}
       />
       <p id="priorities-title" className={cn('text-xs font-medium leading-relaxed', MUTED)}>
-        Your weakest skills first. Practising the top row moves your band the most.
+        Your weakest skills first. Pick any row to practise it — the top one moves your band the
+        most.
       </p>
 
       <div className="mt-3 flex-1 overflow-hidden rounded-lg border border-[#eeedf7] bg-white dark:border-white/10 dark:bg-white/2">
         {priorities.length > 0 ? (
           priorities.map((skill, index) => (
-            <PriorityRow key={`${skill.kind}-${skill.skill_code}`} skill={skill} index={index} />
+            <PriorityRow
+              key={`${skill.kind}-${skill.skill_code}`}
+              skill={skill}
+              index={index}
+              onStart={onStart}
+            />
           ))
         ) : (
           <Empty icon={Gauge}>Complete a scored level check to find your first focus area.</Empty>

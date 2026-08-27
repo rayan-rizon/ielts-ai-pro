@@ -37,12 +37,24 @@ async function fetchLearningPathData(userId) {
   return buildLearningPathData(data);
 }
 
+/**
+ * Progress on this page is only as current as this query.
+ *
+ * Scored practice completed anywhere else in the app is what moves every stage
+ * bar, so a five-minute stale window with focus refetching off (the app-wide
+ * default) let a learner finish a test, come back, and see their old numbers.
+ * One RPC is cheap; keep it honest instead. Explicit invalidation after a test
+ * still fires — this only covers the paths that invalidation cannot reach, like
+ * a test finished in another tab.
+ */
 const useLearningPathQuery = (userId) =>
   useQuery({
     queryKey: ['learningPath', 'combined', userId ?? 'anonymous'],
     queryFn: () => fetchLearningPathData(userId),
     enabled: Boolean(userId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
 const useToggleActivity = ({ userId, learningPathId, queryClient }) =>

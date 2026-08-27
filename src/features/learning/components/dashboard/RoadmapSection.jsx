@@ -30,12 +30,23 @@ import {
   TITLE,
   WELL,
 } from '@/features/dashboard/components/primitives';
-import { buildRoadmapViewModel, getFriendlyPlanText, getFriendlyTaskTitle } from './dashboardUtils';
+import {
+  buildRoadmapViewModel,
+  getFriendlyPlanText,
+  getFriendlyTaskTitle,
+  getPathProgress,
+} from './dashboardUtils';
 
-const STATUS_TONE = { Completed: 'ok', 'In Progress': 'accent', Upcoming: 'accent' };
+const STATUS_TONE = {
+  Completed: 'ok',
+  'In Progress': 'accent',
+  Started: 'accent',
+  Upcoming: 'accent',
+};
 const STATUS_LABEL = {
   Completed: 'Done',
   'In Progress': 'Current',
+  Started: 'Started',
   Upcoming: 'Next',
   Planned: 'Planned',
   Condensed: 'Condensed',
@@ -156,6 +167,11 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
         <p className="mt-1.5 text-[11px] font-bold leading-snug text-slate-700 dark:text-slate-300">
           {completed ? 'Stage complete' : getFriendlyPlanText(phase.progressLabel)}
         </p>
+        {!completed && phase.progressRule && (
+          <p className="mt-1 text-[11px] font-bold leading-snug text-[#5a63df] dark:text-[#afb5ff]">
+            {getFriendlyPlanText(phase.progressRule)}
+          </p>
+        )}
 
         <p className="mt-2.5 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
           {getFriendlyPlanText(phase.objective)}
@@ -346,8 +362,9 @@ function HowItWorksModal({ open, onOpenChange, phases }) {
             How your path moves forward
           </DialogTitle>
           <DialogDescription className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Each stage has a clear goal. Checklist items update from scored practice and verified
-            tasks. Dates guide your pacing, but every stage stays open to explore.
+            Every stage percentage is a count against a fixed target, taken from your scored record
+            over the last 90 days — not from ticking tasks off. That is why a stage never drops when
+            your plan is rebuilt, and why each one can tell you exactly what moves it.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
@@ -360,6 +377,11 @@ function HowItWorksModal({ open, onOpenChange, phases }) {
                 <span className={cn(MICRO, MUTED)}>{getFriendlyPlanText(phase.progressLabel)}</span>
               </div>
               <p className="mt-1.5">Target: {getFriendlyPlanText(phase.checkpoint)}</p>
+              {phase.progressRule && (
+                <p className="mt-1 font-bold text-[#5a63df] dark:text-[#afb5ff]">
+                  {getFriendlyPlanText(phase.progressRule)}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -377,22 +399,8 @@ function HowItWorksModal({ open, onOpenChange, phases }) {
   );
 }
 
-/**
- * Position of the rail head, 0–100, in *segment* space rather than raw average:
- * with four nodes there are three gaps, so one finished stage puts the head
- * exactly on node two and a half-finished current stage lands mid-gap.
- */
-function getRailFill(phases) {
-  const segments = phases.length - 1;
-  if (segments < 1) return 0;
-  const completed = phases.filter((phase) => Number(phase.progressPercent || 0) >= 100).length;
-  const currentIndex = phases.findIndex((phase) => Number(phase.progressPercent || 0) < 100);
-  const currentFraction =
-    currentIndex >= 0 ? Number(phases[currentIndex].progressPercent || 0) / 100 : 0;
-  return Math.max(0, Math.min(100, ((completed + currentFraction) / segments) * 100));
-}
-
 export default function RoadmapSection({
+  phases: providedPhases,
   roadmap,
   isLegacyPlan,
   readiness,
@@ -405,33 +413,27 @@ export default function RoadmapSection({
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const phases = useMemo(
     () =>
-      buildRoadmapViewModel({
-        roadmap,
-        isLegacyPlan,
-        readiness,
-        evidence,
-        days,
-        targetBand,
-      }),
-    [roadmap, isLegacyPlan, readiness, evidence, days, targetBand]
+      providedPhases?.length
+        ? providedPhases
+        : buildRoadmapViewModel({
+            roadmap,
+            isLegacyPlan,
+            readiness,
+            evidence,
+            days,
+            targetBand,
+          }),
+    [providedPhases, roadmap, isLegacyPlan, readiness, evidence, days, targetBand]
   );
   const currentPhaseIndex = phases.findIndex((p) => p.status === 'In Progress');
   const [selectedIndex, setSelectedIndex] = useState(Math.max(0, currentPhaseIndex));
   const cardRefs = useRef([]);
 
-  const { railFill, overallPercent, stagesDone } = useMemo(
-    () => ({
-      railFill: getRailFill(phases),
-      overallPercent: phases.length
-        ? Math.round(
-            phases.reduce((total, phase) => total + Number(phase.progressPercent || 0), 0) /
-              phases.length
-          )
-        : 0,
-      stagesDone: phases.filter((phase) => phase.status === 'Completed').length,
-    }),
-    [phases]
-  );
+  // The rail head and the readout beside it are the same number. They used to
+  // be two formulas — an average over four stages next to a fill measured
+  // across three gaps — which printed 35% beside a line drawn at 38%.
+  const { overallPercent, stagesDone } = useMemo(() => getPathProgress(phases), [phases]);
+  const railFill = overallPercent;
 
   useEffect(() => {
     if (currentPhaseIndex >= 0) setSelectedIndex(currentPhaseIndex);

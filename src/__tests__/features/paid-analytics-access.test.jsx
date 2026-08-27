@@ -35,7 +35,24 @@ describe('paid analytics entitlements', () => {
 
     expect(screen.queryByText('Private mastery: 17%')).not.toBeInTheDocument();
     expect(screen.getByText('Find the formats costing you marks')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Pro plan')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /see upgrade/i })).toHaveAttribute('href', '/upgrade');
+  });
+
+  it('only shows a tier marker when the host surface opts in', () => {
+    render(
+      <MemoryRouter>
+        <PaidFeatureGate
+          hasAccess={false}
+          label="Next up"
+          badgeTier="pro"
+          title="Turn results into your next action"
+          description="Build a focused practice queue."
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByLabelText('Pro plan')).toBeInTheDocument();
   });
 
   it('uses the animated plan marker for both paid tiers', () => {

@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CalendarClock, Check, CheckCircle2, ChevronDown, Play, ShieldCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Play,
+  ShieldCheck,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -14,7 +22,6 @@ import {
   PANEL,
   PanelTitle,
   Pill,
-  WELL,
 } from '@/features/dashboard/components/primitives';
 import {
   DAY_FORMAT,
@@ -182,7 +189,7 @@ function CalendarDay({ day, isToday, isSelected, onSelect }) {
           : 'Rest day'
       }.`}
       className={cn(
-        'group flex min-w-0 flex-col items-center gap-1 rounded-xl border px-1 py-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+        'group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border px-1 py-2.5 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         isSelected
           ? 'border-[#5a63df] bg-[#5a63df]/10 dark:border-[#8f97ff]/60 dark:bg-[#8f97ff]/20'
           : 'border-transparent hover:border-[#e4e2f0] hover:bg-white dark:hover:border-white/10 dark:hover:bg-white/5'
@@ -200,7 +207,7 @@ function CalendarDay({ day, isToday, isSelected, onSelect }) {
       <span
         className={cn(
           NUM,
-          'flex h-7 w-7 items-center justify-center rounded-full text-sm font-extrabold transition-transform duration-150 group-hover:scale-105',
+          'flex h-8 w-8 items-center justify-center rounded-full text-[15px] font-extrabold transition-transform duration-150 group-hover:scale-105',
           isToday
             ? 'bg-[#5a63df] text-white shadow-xs'
             : allDone
@@ -255,7 +262,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
   return (
     <div
       className={cn(
-        'min-w-0 border-b border-[#eceafa] px-3.5 py-3 last:border-b-0 dark:border-white/[0.07] transition-colors hover:bg-slate-50/60 dark:hover:bg-white/2',
+        'min-w-0 border-b border-[#eceafa] px-3.5 py-3.5 last:border-b-0 dark:border-white/[0.07] transition-colors hover:bg-slate-50/60 dark:hover:bg-white/2',
         task.is_completed && 'opacity-60'
       )}
     >
@@ -270,7 +277,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
           <span className="flex items-center gap-2">
             <span
               className={cn(
-                'line-clamp-2 text-xs font-extrabold leading-snug tracking-tight text-slate-900 dark:text-slate-100',
+                'line-clamp-2 text-[13px] font-extrabold leading-snug tracking-tight text-slate-900 dark:text-slate-100',
                 task.is_completed && 'line-through'
               )}
             >
@@ -324,6 +331,7 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
 export default function WeekPlan({
   days,
   canReschedule,
+  onCustomize,
   expandedTask,
   setExpandedTask,
   onToggle,
@@ -354,7 +362,7 @@ export default function WeekPlan({
 
   return (
     <section
-      className={cn(PANEL, 'flex h-full min-w-0 flex-col p-4 sm:p-5 md:col-span-2 2xl:col-span-1')}
+      className={cn(PANEL, 'flex h-full min-w-0 flex-col p-4 sm:p-5')}
       aria-labelledby="week-plan-title"
     >
       <PanelTitle
@@ -374,7 +382,7 @@ export default function WeekPlan({
         {weekRange} · pick a day to see everything scheduled on it.
       </p>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 rounded-xl border border-[#e4e2f0] dark:border-white/8 bg-[#f4f3fb]/60 dark:bg-white/3 p-1.5">
+      <div className="mt-3 grid grid-cols-7 gap-1 rounded-xl border border-[#e4e2f0] dark:border-white/8 bg-[#f4f3fb]/60 dark:bg-white/3 p-2 sm:gap-1.5 sm:p-2.5">
         {days.map((day, index) => (
           <CalendarDay
             key={day.dateKey}
@@ -411,7 +419,7 @@ export default function WeekPlan({
             </p>
           )}
 
-          <div className="mt-2.5 flex-1 overflow-hidden rounded-xl border border-[#e4e2f0] bg-white dark:border-white/8 dark:bg-white/2">
+          <div className="mt-2.5 min-h-[168px] flex-1 overflow-hidden rounded-xl border border-[#e4e2f0] bg-white dark:border-white/8 dark:bg-white/2">
             {selectedDay.tasks.length > 0 ? (
               selectedDay.tasks.map((task) => (
                 <TaskRow
@@ -429,6 +437,30 @@ export default function WeekPlan({
                   onReschedule={onReschedule}
                 />
               ))
+            ) : plannedDays === 0 ? (
+              // Nothing scheduled *all week* is not a rest day, it is a plan
+              // with no work in it. This panel is now the largest on the page,
+              // so that state has to offer the way out rather than leave the
+              // biggest surface here reading as an empty box.
+              <div className="flex flex-col items-center gap-2.5 px-4 py-8 text-center">
+                <IconChip icon={CalendarClock} tone="amber" size="md" />
+                <p className="text-[13px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  No study time is scheduled this week
+                </p>
+                <p className={cn('max-w-xs text-xs font-medium leading-relaxed', MUTED)}>
+                  Your plan has no tasks for any of these seven days. Set the days you are free and
+                  it will schedule around them.
+                </p>
+                {onCustomize && (
+                  <button
+                    type="button"
+                    onClick={onCustomize}
+                    className="mt-1 inline-flex h-9 items-center gap-2 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-colors hover:bg-[#4a52c9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                  >
+                    Set your study days <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             ) : (
               <Empty icon={CheckCircle2}>
                 Rest day — nothing is scheduled. Pick another day, or add time in your goals.

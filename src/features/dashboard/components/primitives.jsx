@@ -277,6 +277,12 @@ Panel.displayName = 'Panel';
  * → sub-line) with two additions for the learner-facing surface: an icon chip
  * for at-a-glance scanning, and a touch more size on the number itself since
  * this is the first thing on the page rather than one of twenty ops metrics.
+ *
+ * `bare` drops the panel shell and pulls the sub-line up onto the number's
+ * baseline, for a strip of stats that already sits inside a panel. A bordered
+ * tile nested in a bordered band inside a bordered panel is three rules to say
+ * one thing, and it costs a third of the strip's height in chrome — see
+ * `StatRail`, which is where this variant is meant to be used.
  */
 export const Stat = ({
   icon,
@@ -288,35 +294,73 @@ export const Stat = ({
   delta,
   tip,
   size = 'md',
+  bare = false,
   className,
 }) => (
   <div
     className={cn(
-      PANEL,
-      size === 'sm' ? 'px-3 py-2' : 'px-3.5 py-3',
-      'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/18',
+      bare
+        ? 'px-3 py-2.5'
+        : cn(
+            PANEL,
+            size === 'sm' ? 'px-3 py-2' : 'px-3.5 py-3',
+            'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/18'
+          ),
       className
     )}
   >
     <div className="flex items-center gap-1.5">
       {icon && <IconChip icon={icon} tone={tone} size="sm" />}
-      <p className={cn(MICRO, MUTED)}>{label}</p>
+      <p className={cn(MICRO, MUTED, bare && 'truncate')}>{label}</p>
       {tip && <InfoTip>{tip}</InfoTip>}
     </div>
-    <div className="mt-1.5 flex items-baseline gap-1.5">
+    <div
+      className={cn(
+        'flex items-baseline gap-x-1.5',
+        // Wrapping, not truncating: in a two-column rail on a phone the value
+        // and its qualifier compete, and clipping turned a date into
+        // "AUG 31, 2…" while the value itself broke mid-phrase. The qualifier
+        // drops to its own line instead, which costs a line only when needed.
+        bare ? 'mt-1 flex-wrap gap-y-0.5' : 'mt-1.5'
+      )}
+    >
       <span
         className={cn(
           NUM,
           'font-extrabold leading-none text-slate-900 dark:text-slate-50',
-          size === 'sm' ? 'text-base' : 'text-2xl'
+          bare && 'whitespace-nowrap',
+          size === 'sm' || bare ? 'text-base' : 'text-2xl'
         )}
       >
         {value}
       </span>
       {unit && <span className={cn(MICRO, MUTED, 'leading-none')}>{unit}</span>}
       {delta}
+      {bare && sub && <span className={cn(MICRO, MUTED, 'leading-tight')}>{sub}</span>}
     </div>
-    {sub && <p className={cn(MICRO, MUTED, 'mt-1.5')}>{sub}</p>}
+    {!bare && sub && <p className={cn(MICRO, MUTED, 'mt-1.5')}>{sub}</p>}
+  </div>
+);
+
+/**
+ * A row of `bare` stats separated by hairlines instead of by borders — the
+ * instrument strip the panel system asks for, rather than a tray of cards.
+ * Dividers only ever appear *between* cells, including across the wrap on
+ * narrow screens, so the rail reads as one continuous instrument at any width.
+ */
+export const StatRail = ({ children, className }) => (
+  <div
+    className={cn(
+      'grid grid-cols-2 sm:grid-cols-4',
+      '[&>*]:border-[#eeedf7] dark:[&>*]:border-white/[0.07]',
+      // Two columns: rules left of the even cells, above the wrapped row.
+      '[&>*:nth-child(even)]:border-l [&>*:nth-child(n+3)]:border-t',
+      // Four columns: one continuous run, no wrap, nothing left of cell one.
+      'sm:[&>*:not(:first-child)]:border-l sm:[&>*:nth-child(n+3)]:border-t-0',
+      className
+    )}
+  >
+    {children}
   </div>
 );
 

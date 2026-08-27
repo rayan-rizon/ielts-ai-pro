@@ -30,6 +30,7 @@ export default function PaidFeatureGate({
   className,
   inset = false,
   onUpgrade,
+  badgeTier = null,
 }) {
   if (hasAccess) return children;
 
@@ -38,7 +39,7 @@ export default function PaidFeatureGate({
       className={cn(inset ? TILE : PANEL, 'flex h-full min-h-[230px] flex-col p-4', className)}
       aria-label={`${label} requires Pro`}
     >
-      <PanelTitle label={label} action={<TierBadge tier="pro" />} />
+      <PanelTitle label={label} action={badgeTier ? <TierBadge tier={badgeTier} /> : null} />
 
       <div className="flex flex-1 flex-col justify-center py-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#dcdff5] bg-[#f3f3fb] text-[#5a63df] dark:border-white/10 dark:bg-white/6 dark:text-[#a9afff]">

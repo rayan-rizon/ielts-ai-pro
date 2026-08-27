@@ -9,8 +9,11 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
+// pt-16 on mobile, not pt-14: the floating sidebar toggle Layout renders at
+// top-4 is 40px tall, so it ended exactly on the old padding edge and sat on
+// the "AI Learning Path" pill with no clearance at all.
 const PAGE_SHELL =
-  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-3 pt-14 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-3 md:px-5 md:py-4';
+  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-3 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-3 md:px-5 md:py-4';
 
 const LearningPathBackdrop = () => (
   <>

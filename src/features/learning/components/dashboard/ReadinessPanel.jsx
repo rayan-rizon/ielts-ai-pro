@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, CheckCircle2, CircleAlert } from 'lucide-react';
+import { ArrowRight, CircleAlert } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   IconChip,
@@ -32,24 +32,35 @@ function ModuleScoreCard({ module, item, targetBand }) {
   const displayScore = hasScore ? (typeof median === 'number' ? median.toFixed(1) : median) : '—';
   const gap = hasScore ? Number((targetBand - numericScore).toFixed(1)) : null;
   const atTarget = gap !== null && gap <= 0;
+  const observed = Array.isArray(item?.observed_range) ? item.observed_range : null;
+  const spread = observed && observed[0] !== observed[1];
 
   return (
-    <div className={cn(TILE, 'p-3')}>
-      <div className="flex items-center gap-2">
-        <IconChip icon={Icon} tone={getModuleTone(module)} />
-        <span className="truncate text-xs font-bold text-slate-900 dark:text-slate-100">
+    <div className={cn(TILE, 'flex flex-col justify-between p-2.5')}>
+      {/* Subject and score share one baseline: the label row carried nothing but
+          a name, and the score row nothing but a number, so the card spent two
+          rows saying "Reading 1.0". */}
+      <div className="flex items-baseline gap-2">
+        <IconChip icon={Icon} tone={getModuleTone(module)} className="self-center" />
+        <span className="min-w-0 flex-1 truncate text-xs font-bold text-slate-900 dark:text-slate-100">
           {style.label}
+        </span>
+        <span className={cn(NUM, 'shrink-0 text-lg font-extrabold text-slate-900 dark:text-white')}>
+          {displayScore}
         </span>
       </div>
 
-      <div className="mt-2 flex items-baseline justify-between gap-1">
-        <span className={cn(NUM, 'text-xl font-extrabold text-slate-900 dark:text-white')}>
-          {displayScore}
-        </span>
-        <span className={cn(MICRO, 'truncate', MUTED)}>
-          {hasScore ? `${sampleCount} test${sampleCount === 1 ? '' : 's'}` : 'Needs test'}
-        </span>
-      </div>
+      {/* The spread behind the median. A single "1.0" across 27 tests reads as
+          broken until you can see the attempts actually ranged 1.0 to 5.0 —
+          and the room for it came free once the card stretched to fill its row. */}
+      {spread && (
+        <p className={cn(MICRO, MUTED, 'mt-2 truncate')}>
+          Range{' '}
+          <span className={cn(NUM, 'font-bold text-slate-600 dark:text-slate-300')}>
+            {Number(observed[0]).toFixed(1)}–{Number(observed[1]).toFixed(1)}
+          </span>
+        </p>
+      )}
 
       <div className={cn('relative mt-2 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
         {hasScore && (
@@ -68,21 +79,26 @@ function ModuleScoreCard({ module, item, targetBand }) {
         />
       </div>
 
-      <p
-        className={cn(
-          'mt-1.5 truncate text-[10px] font-bold',
-          !hasScore
-            ? MUTED
+      <p className="mt-1.5 flex items-baseline justify-between gap-1.5 text-[10px] font-bold">
+        <span
+          className={cn(
+            'truncate',
+            !hasScore
+              ? MUTED
+              : atTarget
+                ? 'text-[rgb(var(--signal-ok))]'
+                : 'text-slate-600 dark:text-slate-300'
+          )}
+        >
+          {!hasScore
+            ? 'No score yet'
             : atTarget
-              ? 'text-[rgb(var(--signal-ok))]'
-              : 'text-slate-600 dark:text-slate-300'
-        )}
-      >
-        {!hasScore
-          ? 'No score yet'
-          : atTarget
-            ? 'At your target'
-            : `${gap.toFixed(1)} below target`}
+              ? 'At your target'
+              : `${gap.toFixed(1)} below target`}
+        </span>
+        <span className={cn(MICRO, MUTED, 'shrink-0')}>
+          {hasScore ? `${sampleCount} test${sampleCount === 1 ? '' : 's'}` : 'Needs test'}
+        </span>
       </p>
     </div>
   );
@@ -111,10 +127,10 @@ export default function ReadinessPanel({ readiness, days = [], targetBand = 7, o
 
   return (
     <section
-      className={cn(PANEL, 'flex h-full flex-col justify-between p-4 sm:p-5')}
+      className={cn(PANEL, 'flex h-full flex-col p-4 sm:p-5')}
       aria-labelledby="readiness-title"
     >
-      <div className="min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col">
         <PanelTitle
           label="Recent practice scores"
           accent
@@ -133,7 +149,10 @@ export default function ReadinessPanel({ readiness, days = [], targetBand = 7, o
           . The notch on each bar marks that target.
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {/* `flex-1` + `auto-rows-fr`: the four tiles absorb whatever height this
+            panel is stretched to by its taller neighbours, instead of leaving it
+            pooled in one dead band above the footer. */}
+        <div className="mt-3 grid flex-1 auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-4 2xl:grid-cols-2">
           {MODULES.map((module) => (
             <ModuleScoreCard
               key={module}
@@ -172,34 +191,7 @@ export default function ReadinessPanel({ readiness, days = [], targetBand = 7, o
             Start score check <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
-      ) : (
-        <div
-          className={cn(
-            TILE,
-            'mt-4 flex flex-col gap-3 border-[rgb(var(--signal-ok)/0.25)] bg-[rgb(var(--signal-ok)/0.05)] p-3.5 sm:flex-row sm:items-center sm:justify-between'
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <IconChip icon={CheckCircle2} tone="emerald" />
-            <div className="min-w-0">
-              <span className={cn(MICRO, 'text-[rgb(var(--signal-ok))]')}>
-                All subjects checked
-              </span>
-              <p className="mt-0.5 text-xs font-bold text-slate-900 dark:text-white">
-                Band {range?.[0]}–{range?.[1]}
-              </p>
-            </div>
-          </div>
-          <span
-            className={cn(
-              MICRO,
-              'shrink-0 rounded-lg border border-[#eeedf7] bg-white px-2.5 py-1 text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400'
-            )}
-          >
-            Recent practice range
-          </span>
-        </div>
-      )}
+      ) : null}
     </section>
   );
 }

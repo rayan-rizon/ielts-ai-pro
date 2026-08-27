@@ -113,8 +113,8 @@ export const ROADMAP_PRESENTATION = [
     shortName: 'Repair priority skills',
     icon: BookOpen,
     objective: 'Improve the skills that recent answers confirm need attention.',
-    checkpoint: 'Focus skills reach 70%+ across 20 new answers.',
-    checkpointShort: '70%+ across 20 new answers',
+    checkpoint: 'Focus skills reach 75%+ across 20 new answers.',
+    checkpointShort: '75%+ across 20 new answers',
     surface:
       'bg-[linear-gradient(160deg,#ffffff_35%,#f5f8ff_100%)] border-indigo-200/60 shadow-[0_4px_20px_-10px_rgba(79,70,229,0.08)] dark:bg-none dark:bg-indigo-950/15 dark:border-indigo-500/20',
     nodeStyle:
@@ -408,6 +408,109 @@ const compareRankedTasks = (left, right) =>
   right.score - left.score ||
   String(left.task.scheduled_date || '').localeCompare(String(right.task.scheduled_date || '')) ||
   String(left.task.activity_key || '').localeCompare(String(right.task.activity_key || ''));
+
+/**
+ * What "do this next" means when the seven-day schedule has nothing left to
+ * offer — every task finished, or a plan that has not been generated yet.
+ *
+ * The hero used to render an empty tile here: a headline, one line of copy, a
+ * disabled button, and two hundred pixels of nothing. But "no scheduled task"
+ * is never the same as "nothing worth doing": a learner in that state always
+ * has a missing starting score, a weak measured skill, or a timed attempt they
+ * have not sat yet. This returns that work as a real, startable task so the
+ * primary call to action on the page is never dead.
+ *
+ * Returned tasks are synthetic — they carry no `activity_key` and are never
+ * persisted or ticked off. They only route the learner to the right practice.
+ */
+export function buildFallbackTask({ readiness, evidence, targetBand = 7 } = {}) {
+  return (
+    buildMissingScoreTask(readiness) ||
+    buildFocusSkillTask(evidence) ||
+    buildTimedAttemptTask(readiness) ||
+    buildExamModeTask(readiness, targetBand) ||
+    null
+  );
+}
+
+const synthesizeTask = ({ module, activityType, mode, minutes, reason, criterion, skill }) => ({
+  module,
+  activity_type: activityType,
+  title: `${MODULE_STYLE[module]?.label || 'IELTS'} ${activityType}`,
+  estimated_time: minutes,
+  priority: 'high',
+  is_synthetic: true,
+  skill_targets: skill ? [skill] : [],
+  routing: { route: module, mode },
+  requested_mode: mode,
+  reason,
+  success_criterion: criterion,
+});
+
+const buildMissingScoreTask = (readiness) => {
+  const module = (readiness?.missing_diagnostics || [])[0];
+  if (!module) return null;
+  return synthesizeTask({
+    module,
+    activityType: 'diagnostic',
+    mode: 'diagnostic',
+    minutes: 30,
+    reason: `${MODULE_STYLE[module]?.label || module} has no reliable starting score yet, so your plan cannot rank it against your other subjects.`,
+    criterion: 'Finish one scored attempt so this subject joins your evidence.',
+  });
+};
+
+const buildFocusSkillTask = (evidence) => {
+  const skill = (evidence?.measured_priorities || [])[0];
+  const module = String(skill?.module || '').toLowerCase();
+  if (!skill || !MODULE_STYLE[module]) return null;
+  return synthesizeTask({
+    module,
+    activityType: 'targeted_drill',
+    mode: 'practice',
+    minutes: 25,
+    skill: skill.skill_code,
+    reason: `${formatSkill(skill.skill_code)} is your weakest measured skill at ${Math.round(Number(skill.mastery || 0) * 100)}% across ${Number(skill.observations || 0).toLocaleString()} answers.`,
+    criterion: `Raise ${formatSkill(skill.skill_code)} toward ${Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100)}%.`,
+  });
+};
+
+const buildTimedAttemptTask = (readiness) => {
+  if (timedAttemptCount(readiness) >= PROGRESS_RULES.TIMED_ATTEMPT_TARGET) return null;
+  const module = weakestScoredModule(readiness) || 'reading';
+  return synthesizeTask({
+    module,
+    activityType: 'timed_assessment',
+    mode: 'timed',
+    minutes: 60,
+    reason:
+      'You have scores, but not yet under official section timing — that is the gap the next stage measures.',
+    criterion: 'Complete one full section inside the official time limit.',
+  });
+};
+
+const buildExamModeTask = (readiness, targetBand) => {
+  const module = IELTS_MODULE_KEYS.find(
+    (key) => examCredit(readiness?.modules?.[key] || {}, Number(targetBand) || 7) < 1
+  );
+  if (!module) return null;
+  return synthesizeTask({
+    module,
+    activityType: 'exam_assessment',
+    mode: 'mock',
+    minutes: 60,
+    reason: `${MODULE_STYLE[module]?.label || module} has no Exam Mode score at band ${Number(targetBand || 7).toFixed(1)} yet.`,
+    criterion: `Sit one Exam Mode attempt and score band ${Number(targetBand || 7).toFixed(1)} or above.`,
+  });
+};
+
+const weakestScoredModule = (readiness) =>
+  IELTS_MODULE_KEYS.map((module) => ({
+    module,
+    median: Number(readiness?.modules?.[module]?.median ?? NaN),
+  }))
+    .filter((item) => Number.isFinite(item.median))
+    .sort((left, right) => left.median - right.median)[0]?.module || null;
 
 export function getFriendlyPlanText(text = '') {
   if (!text) return '';
@@ -711,6 +814,43 @@ const formatRoadmapRange = (phase) => {
   return start === end || !end ? start : `${start} – ${end}`;
 };
 
+/**
+ * The one place that says what "progress" means on this page.
+ *
+ * Every stage percentage below is a *count against a fixed denominator* that a
+ * learner can state out loud — "3 of 8 scored checks", "1 of 2 timed attempts"
+ * — never an opaque blend. Two consequences follow, and both are the point:
+ *
+ * 1. Each stage can answer "what moves this, and by how much" in one sentence
+ *    (`progressRule`), which is what the stage cards and the how-it-works
+ *    dialog print verbatim.
+ * 2. Every denominator is counted from *durable* evidence — the 90-day scored
+ *    record in `readiness`, and skill mastery in `evidence` — not from the
+ *    seven-day schedule, which is rebuilt on every plan refresh. Deriving a
+ *    percentage from this week's task list is what previously let a learner's
+ *    progress fall back to zero the moment their plan regenerated.
+ */
+export const PROGRESS_RULES = {
+  /** Scored attempts per module before a starting score is trusted. */
+  SCORED_CHECKS_PER_MODULE: 2,
+  /** Mastery a focus skill has to clear to count as repaired. */
+  FOCUS_MASTERY_TARGET: 0.75,
+  /** Observations behind a focus skill before its mastery is actionable. */
+  FOCUS_OBSERVATION_TARGET: 20,
+  /** Timed or exam-mode attempts that complete the timed-integration stage. */
+  TIMED_ATTEMPT_TARGET: 2,
+  /** Exam-mode credit for attempting a module at all, before hitting target. */
+  EXAM_ATTEMPT_CREDIT: 0.5,
+};
+
+const IELTS_MODULE_KEYS = ['reading', 'writing', 'listening', 'speaking'];
+const FOUNDATION_TARGET = PROGRESS_RULES.SCORED_CHECKS_PER_MODULE * IELTS_MODULE_KEYS.length;
+
+const moduleList = (readiness) =>
+  IELTS_MODULE_KEYS.map((module) => readiness?.modules?.[module] || {});
+
+const pluralTests = (count) => `${count} scored ${count === 1 ? 'check' : 'checks'}`;
+
 const PHASE_TASK_MATCHERS = {
   foundation: (type, title) => type === 'diagnostic' || title.includes('diagnostic'),
   repair: (type) => ['targeted_drill', 'spaced_review', 'vocabulary_review'].includes(type),
@@ -727,6 +867,9 @@ const taskMatchesPhase = (task, phaseKey) => {
   return matcher(type, title);
 };
 
+const findPhaseTask = (tasks = [], phaseKey) =>
+  tasks.find((task) => !task.is_completed && taskMatchesPhase(task, phaseKey)) || null;
+
 function findDiagnosticTask(tasks, nextModule) {
   if (!nextModule) return null;
   const target = String(nextModule).toLowerCase();
@@ -740,19 +883,38 @@ function findDiagnosticTask(tasks, nextModule) {
   );
 }
 
+/**
+ * Stage 1 — every scored attempt counts, not every finished module.
+ *
+ * The denominator is 8 (two per subject), so a single completed test is always
+ * worth a visible 12–13%. Scoring this per *module* instead meant three tests
+ * in a row could leave the bar untouched, which reads as a broken page.
+ */
 function buildFoundationPhase(readiness, tasks = []) {
-  const modules = Object.values(readiness?.modules || {});
+  const modules = moduleList(readiness);
+  const credited = modules.reduce(
+    (total, item) =>
+      total + Math.min(Number(item?.sample_count || 0), PROGRESS_RULES.SCORED_CHECKS_PER_MODULE),
+    0
+  );
   const sufficientCount = modules.filter(hasEnoughModuleEvidence).length;
   const missing = readiness?.missing_diagnostics || [];
   const actionTask = findDiagnosticTask(tasks, missing[0]);
   const missingText = missing.map((mod) => MODULE_STYLE[mod]?.label || mod).join(', ');
+  const remaining = Math.max(0, FOUNDATION_TARGET - credited);
 
   return {
-    progressPercent: clampPercent((sufficientCount / 4) * 100),
-    progressLabel: `${sufficientCount} of 4 subjects checked`,
+    progressPercent: clampPercent((credited / FOUNDATION_TARGET) * 100),
+    progressLabel: `${credited} of ${FOUNDATION_TARGET} scored checks recorded`,
+    progressRule: remaining
+      ? `Each scored test adds ${Math.round(100 / FOUNDATION_TARGET)}%. ${pluralTests(remaining)} to go.`
+      : 'Every subject has two recent scored checks.',
     actionTask,
     checklist: [
-      { label: 'Starting scores ready in at least 3 subjects', done: sufficientCount >= 3 },
+      {
+        label: `${sufficientCount} of 4 subjects have two recent scores`,
+        done: sufficientCount >= 3,
+      },
       {
         label: missing.length
           ? `Starting score still needed: ${missingText}`
@@ -764,152 +926,159 @@ function buildFoundationPhase(readiness, tasks = []) {
   };
 }
 
-function calculateRepairProgress(priorities) {
-  if (!priorities.length) return 0;
-  const sum = priorities.reduce((total, item) => {
-    const masteryProgress = Number(item.mastery || 0) / 0.7;
-    const observationProgress = Number(item.observations || 0) / 20;
-    return total + Math.min(masteryProgress, observationProgress, 1);
-  }, 0);
-  return sum / priorities.length;
-}
+const skillStrength = (item) =>
+  Math.min(1, Number(item?.mastery || 0) / PROGRESS_RULES.FOCUS_MASTERY_TARGET);
 
-const isSkillTargeted = (item) =>
-  Number(item?.mastery || 0) >= 0.7 && Number(item?.observations || 0) >= 20;
-
-const areAllPrioritiesTargeted = (priorities) =>
-  Boolean(priorities.length > 0 && priorities.every(isSkillTargeted));
-
-const getFocusSkillsLabel = (count) => {
-  if (!count) return 'Waiting for confirmed focus skills';
-  const unit = count === 1 ? 'skill' : 'skills';
-  return `${count} confirmed focus ${unit}`;
-};
-
-const getFocusChecklistLabel = (priorityNames) =>
-  priorityNames.length
-    ? `Focus skills confirmed: ${priorityNames.join(' and ')}`
-    : 'Confirm focus skills with a level check';
+const isSkillRepaired = (item) =>
+  Number(item?.mastery || 0) >= PROGRESS_RULES.FOCUS_MASTERY_TARGET &&
+  Number(item?.observations || 0) >= PROGRESS_RULES.FOCUS_OBSERVATION_TARGET;
 
 const getReviewsChecklistLabel = (reviewsDue) =>
   reviewsDue
     ? `${reviewsDue} scheduled ${reviewsDue === 1 ? 'review' : 'reviews'} still due`
     : 'All scheduled reviews completed';
 
+/**
+ * Stage 2 — share of measured skills that have reached the 75% bar.
+ *
+ * The denominator is every skill with enough evidence to judge (weak ones plus
+ * already-strong ones), so pushing one skill over the bar always moves the
+ * number, and a skill leaving the weak list can never *shrink* it. Averaging
+ * only the weak list — the previous behaviour — meant repairing your worst
+ * skill promoted the next-worst into its place and the bar barely moved.
+ */
 function buildRepairPhase(evidence = {}) {
-  const priorities = evidence.measured_priorities || [];
-  const averageProgress = calculateRepairProgress(priorities);
-  const priorityNames = priorities.slice(0, 2).map((item) => formatSkill(item.skill_code));
+  const weak = evidence.measured_priorities || [];
+  const strong = evidence.maintenance || [];
+  const measured = [...weak, ...strong];
+  const repaired = measured.filter(isSkillRepaired).length;
   const reviewsDue = Number(evidence.due_reviews?.length || 0);
+  const strength = measured.length
+    ? measured.reduce((total, item) => total + skillStrength(item), 0) / measured.length
+    : 0;
 
   return {
-    progressPercent: clampPercent(averageProgress * 100),
-    progressLabel: getFocusSkillsLabel(priorities.length),
+    progressPercent: clampPercent(strength * 100),
+    progressLabel: measured.length
+      ? `${repaired} of ${measured.length} measured skills at ${Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100)}%`
+      : 'Waiting for confirmed focus skills',
+    progressRule: measured.length
+      ? `Every answer that lifts a focus skill toward ${Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100)}% raises this.`
+      : 'Complete a scored level check to confirm your focus skills.',
+    actionTask: null,
     checklist: [
       {
-        label: getFocusChecklistLabel(priorityNames),
-        done: priorities.length > 0,
+        label: weak.length
+          ? `${weak.length} focus ${weak.length === 1 ? 'skill' : 'skills'} still below target`
+          : 'Confirm focus skills with a level check',
+        done: measured.length > 0 && weak.length === 0,
       },
+      { label: getReviewsChecklistLabel(reviewsDue), done: reviewsDue === 0 },
       {
-        label: getReviewsChecklistLabel(reviewsDue),
-        done: reviewsDue === 0,
-      },
-      {
-        label: 'Focus skills reach 70% across 20 answers',
-        done: areAllPrioritiesTargeted(priorities),
+        label: `Focus skills reach ${Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100)}% across ${PROGRESS_RULES.FOCUS_OBSERVATION_TARGET} answers`,
+        done: measured.length > 0 && measured.every(isSkillRepaired),
       },
     ],
   };
 }
 
-const VERIFIED_COMPLETION_SOURCES = new Set([
-  'test_session',
-  'grammar_attempt',
-  'transfer',
-  'vocabulary_review',
-]);
-
-const isVerifiedCompletion = (task) =>
-  Boolean(
-    task?.is_completed &&
-    (VERIFIED_COMPLETION_SOURCES.has(String(task?.completion_source || '').toLowerCase()) ||
-      task?.outcome_data?.verified === true)
+const timedAttemptCount = (readiness) =>
+  moduleList(readiness).reduce(
+    (total, item) =>
+      total + Number(item?.mode_counts?.timed || 0) + Number(item?.mode_counts?.exam || 0),
+    0
   );
 
-function buildIntegrationPhase(tasks) {
-  const timedTasks = tasks.filter((task) => taskMatchesPhase(task, 'integration'));
-  const completed = timedTasks.filter(isVerifiedCompletion).length;
+/**
+ * Stage 3 — timed and exam-mode attempts in the 90-day scored record.
+ *
+ * Counting the *scheduled* timed tasks instead (what this did before) tied the
+ * stage to a task list that is thrown away and rebuilt on every plan refresh,
+ * so a learner who finished two timed sections last week could open the page to
+ * a 0% stage. The scored record survives the rebuild; the schedule does not.
+ */
+function buildIntegrationPhase(readiness, tasks = []) {
+  const attempts = timedAttemptCount(readiness);
+  const target = PROGRESS_RULES.TIMED_ATTEMPT_TARGET;
+  const credited = Math.min(attempts, target);
+  const remaining = Math.max(0, target - credited);
+
   return {
-    progressPercent: clampPercent((completed / Math.max(2, timedTasks.length || 2)) * 100),
-    progressLabel: timedTasks.length
-      ? `${completed} of ${timedTasks.length} timed tasks done this week`
-      : 'Timed work follows diagnostics',
+    progressPercent: clampPercent((credited / target) * 100),
+    progressLabel: `${credited} of ${target} timed attempts completed`,
+    progressRule: remaining
+      ? `Each timed or Exam Mode attempt adds ${Math.round(100 / target)}%. ${remaining} to go.`
+      : 'Timed work is done — Exam Mode attempts carry the next stage.',
+    actionTask: findPhaseTask(tasks, 'integration'),
     checklist: [
-      {
-        label: timedTasks.length
-          ? 'Timed practice is scheduled this week'
-          : 'Schedule your first timed practice',
-        done: timedTasks.length > 0,
-      },
-      { label: 'Complete the first timed practice', done: completed >= 1 },
-      { label: 'Complete two timed practices', done: completed >= 2 },
+      { label: 'Complete your first timed attempt', done: credited >= 1 },
+      { label: `Complete ${target} timed attempts`, done: credited >= target },
+      // A scheduling hint, not a completion criterion — so it is dropped once
+      // the stage is finished rather than sitting unticked under "Stage
+      // complete" and contradicting it.
+      ...(remaining
+        ? [
+            {
+              label: 'Timed practice is scheduled this week',
+              done: tasks.some((task) => taskMatchesPhase(task, 'integration')),
+            },
+          ]
+        : []),
     ],
   };
 }
 
-const getMockChecklistLabel = (hasExamTask) =>
-  hasExamTask ? 'Exam Mode check added to your plan' : 'Schedule an Exam Mode check';
-
-const getScoreTargetChecklistLabel = (completedExamModules, targetScore) =>
-  completedExamModules
-    ? `Verified Exam Mode scores reach Band ${targetScore.toFixed(1)}`
-    : 'Complete one Exam Mode attempt';
-
-function buildReadinessPhase(readiness = {}, targetBand = 7, tasks = []) {
-  const moduleItems = Object.values(readiness.modules || {});
-  const measured = moduleItems.filter(hasEnoughModuleEvidence);
-  const targetScore = Number(targetBand || 7);
-  const examReadyModules = moduleItems.filter((item) => isModuleExamReady(item, targetScore));
-  const examTasks = tasks.filter((task) => taskMatchesPhase(task, 'readiness'));
-  const completedExamTasks = examTasks.filter(isVerifiedCompletion).length;
-
-  return {
-    progressPercent: clampPercent((examReadyModules.length / 4) * 100),
-    progressLabel: `${examReadyModules.length} of 4 Exam Mode scores at target`,
-    checklist: buildReadinessChecklist({
-      measuredCount: measured.length,
-      examTaskCount: examTasks.length,
-      completedExamTasks,
-      examReadyCount: examReadyModules.length,
-      targetScore,
-    }),
-  };
-}
-
-const isModuleExamReady = (item, targetScore) => {
+const examCredit = (item, targetScore) => {
+  const attempts = Number(item?.mode_counts?.exam || 0);
+  if (attempts <= 0) return 0;
   const score = Number(item?.latest_exam_score);
-  return Number(item?.mode_counts?.exam || 0) > 0 && Number.isFinite(score) && score >= targetScore;
+  const atTarget = Number.isFinite(score) && score >= targetScore;
+  return atTarget ? 1 : PROGRESS_RULES.EXAM_ATTEMPT_CREDIT;
 };
 
-const buildReadinessChecklist = ({
-  measuredCount,
-  examTaskCount,
-  completedExamTasks,
-  examReadyCount,
-  targetScore,
-}) => [
-  { label: 'Recent scores ready in all 4 subjects', done: measuredCount === 4 },
-  { label: getMockChecklistLabel(examTaskCount > 0), done: examTaskCount > 0 },
-  {
-    label: getScoreTargetChecklistLabel(examReadyCount, targetScore),
-    done: completedExamTasks > 0 && examReadyCount > 0,
-  },
-];
+const isModuleExamReady = (item, targetScore) => examCredit(item, targetScore) >= 1;
+
+/**
+ * Stage 4 — Exam Mode credit per subject, half for attempting, half for target.
+ *
+ * All-or-nothing credit made the bar sit at 0% through four completed mocks if
+ * none of them cleared the target band, which hides real work. Half credit for
+ * the attempt keeps the stage honest in both directions: it never claims exam
+ * readiness the scores do not support, and it never claims nothing happened.
+ */
+function buildReadinessPhase(readiness = {}, targetBand = 7, tasks = []) {
+  const modules = moduleList(readiness);
+  const targetScore = Number(targetBand || 7);
+  const measured = modules.filter(hasEnoughModuleEvidence).length;
+  const attempted = modules.filter((item) => Number(item?.mode_counts?.exam || 0) > 0).length;
+  const atTarget = modules.filter((item) => isModuleExamReady(item, targetScore)).length;
+  const credit = modules.reduce((total, item) => total + examCredit(item, targetScore), 0);
+
+  return {
+    progressPercent: clampPercent((credit / IELTS_MODULE_KEYS.length) * 100),
+    progressLabel: `${atTarget} of 4 Exam Mode scores at band ${targetScore.toFixed(1)}`,
+    progressRule: `Each Exam Mode attempt adds ${Math.round(PROGRESS_RULES.EXAM_ATTEMPT_CREDIT * 25)}%, and reaching band ${targetScore.toFixed(1)} adds the rest.`,
+    actionTask: findPhaseTask(tasks, 'readiness'),
+    checklist: [
+      { label: 'Recent scores ready in all 4 subjects', done: measured === 4 },
+      {
+        label: attempted
+          ? `${attempted} of 4 subjects attempted in Exam Mode`
+          : 'Complete one Exam Mode attempt',
+        done: attempted === IELTS_MODULE_KEYS.length,
+      },
+      {
+        label: `Exam Mode scores reach band ${targetScore.toFixed(1)} in every subject`,
+        done: atTarget === IELTS_MODULE_KEYS.length,
+      },
+    ],
+  };
+}
 
 const PHASE_BUILDERS = {
   foundation: ({ readiness, tasks }) => buildFoundationPhase(readiness, tasks),
   repair: ({ evidence }) => buildRepairPhase(evidence),
-  integration: ({ tasks }) => buildIntegrationPhase(tasks),
+  integration: ({ readiness, tasks }) => buildIntegrationPhase(readiness, tasks),
   readiness: ({ readiness, targetBand, tasks }) =>
     buildReadinessPhase(readiness, targetBand, tasks),
 };
@@ -935,6 +1104,7 @@ export function buildRoadmapData({
       dateRange: formatRoadmapRange(rawPhase),
       progressPercent: derived.progressPercent || 0,
       progressLabel: derived.progressLabel || '',
+      progressRule: derived.progressRule || '',
       actionTask: derived.actionTask || null,
       checklist: derived.checklist || [],
     };
@@ -968,17 +1138,49 @@ export function buildRoadmapViewModel({
     merged.findIndex((phase) => Number(phase.progressPercent || 0) < 100)
   );
 
+  // A stage the learner has already put evidence into is never "Planned".
+  // Stages are open in any order — someone can sit a mock in week one — so the
+  // ladder reports what actually happened rather than forcing a single file.
   return merged.map((phase, index) => ({
     ...phase,
-    status:
-      Number(phase.progressPercent || 0) >= 100
-        ? 'Completed'
-        : index === currentIndex
-          ? 'In Progress'
-          : index === currentIndex + 1
-            ? 'Upcoming'
-            : 'Planned',
+    status: getStageStatus(phase, index, currentIndex),
   }));
+}
+
+const getStageStatus = (phase, index, currentIndex) => {
+  const percent = Number(phase.progressPercent || 0);
+  if (percent >= 100) return 'Completed';
+  if (index === currentIndex) return 'In Progress';
+  if (percent > 0) return 'Started';
+  return index === currentIndex + 1 ? 'Upcoming' : 'Planned';
+};
+
+/**
+ * The single journey number, shared by the stage rail and the readout beside it.
+ *
+ * These used to be computed separately — the readout averaged four stages while
+ * the rail measured three gaps between nodes — so the same journey was printed
+ * as 35% next to a line drawn at 38%. One function, one number, both consumers.
+ */
+export function getPathProgress(phases = []) {
+  if (!phases.length)
+    return { overallPercent: 0, stagesDone: 0, currentIndex: 0, currentStage: null };
+  const overallPercent = clampPercent(
+    phases.reduce((total, phase) => total + Number(phase.progressPercent || 0), 0) / phases.length
+  );
+  const stagesDone = phases.filter((phase) => Number(phase.progressPercent || 0) >= 100).length;
+  const currentIndex = Math.max(
+    0,
+    phases.findIndex((phase) => Number(phase.progressPercent || 0) < 100)
+  );
+
+  return {
+    overallPercent,
+    stagesDone,
+    currentIndex,
+    currentStage: phases[currentIndex] || null,
+    totalStages: phases.length,
+  };
 }
 
 export function getSnapshotReadiness(rawReadiness, sessions) {
