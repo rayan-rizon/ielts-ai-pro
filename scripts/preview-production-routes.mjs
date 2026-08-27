@@ -4,6 +4,7 @@ import { extname, join, normalize, resolve } from 'node:path';
 import process from 'node:process';
 import dotenv from 'dotenv';
 import blogHandler from '../api/blog.js';
+import blogCssHandler from '../api/blog-css.js';
 import feedHandler from '../api/feed.js';
 import llmsHandler from '../api/llms.js';
 import sitemapHandler from '../api/sitemap.js';
@@ -79,6 +80,7 @@ createServer(async (request, response) => {
   const vercelResponse = createVercelResponse(response);
 
   const dynamicHandlers = new Map([
+    ['/blog.css', blogCssHandler],
     ['/sitemap.xml', sitemapHandler],
     ['/llms.txt', llmsHandler],
     ['/blog/feed.xml', feedHandler],

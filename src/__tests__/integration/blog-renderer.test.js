@@ -105,6 +105,7 @@ describe('server-rendered IELTS blog', () => {
       'html.dark .category-tabs',
       'html.dark .category-tabs a.active',
       'html.dark .library-search input',
+      '.hero-photo img{display:block;width:100%;height:auto;aspect-ratio:16/10',
       'card:hover h2{color:#4f46e5}',
       'html.dark .card:hover h2',
     ]) {

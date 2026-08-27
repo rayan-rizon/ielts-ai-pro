@@ -48,7 +48,7 @@ h3{font-size:20px;line-height:1.35;font-weight:700}
 .index-hero:before{position:absolute;inset:0;content:"";background:radial-gradient(circle at 15% 20%,rgba(99,102,241,.09),transparent 28%),radial-gradient(circle at 90% 10%,rgba(45,212,191,.08),transparent 25%)}
 .hero-grid{position:relative;display:grid;grid-template-columns:.95fr 1.05fr;gap:40px;align-items:center}
 .hero-photo{position:relative;border:1px solid #dfe3ff;border-radius:28px;background:#f0f2ff;padding:7px;box-shadow:0 30px 70px -42px rgba(79,70,229,.55)}
-.hero-photo img{display:block;width:100%;aspect-ratio:16/10;border-radius:22px;object-fit:cover}
+.hero-photo img{display:block;width:100%;height:auto;aspect-ratio:16/10;border-radius:22px;object-fit:cover}
 .note{position:absolute;z-index:2;padding:10px 13px;border-radius:7px;background:#e9ddff;color:#5b21b6;font-size:11px;font-weight:700;box-shadow:0 12px 30px -14px rgba(76,29,149,.5)}
 .note.one{left:-14px;top:48px;transform:rotate(-5deg)}
 .note.two{right:-8px;bottom:42px;transform:rotate(5deg);background:#dff7e9;color:#047857}
