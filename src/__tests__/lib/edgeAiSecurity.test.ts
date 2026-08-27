@@ -6,7 +6,9 @@ import { isAllowedOrigin } from '../../../supabase/functions/_shared/originValid
 describe('AI edge security controls', () => {
   it('accepts exact production, preview, and loopback origins', () => {
     expect(isAllowedOrigin('https://ieltsai.pro')).toBe(true);
-    expect(isAllowedOrigin('https://ielts-ai-pro-preview-123.vercel.app')).toBe(true);
+    expect(
+      isAllowedOrigin('https://ielts-ai-pro-preview-123-rayan-rizons-projects.vercel.app')
+    ).toBe(true);
     expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
     expect(isAllowedOrigin('http://127.0.0.1:5174')).toBe(true);
   });
