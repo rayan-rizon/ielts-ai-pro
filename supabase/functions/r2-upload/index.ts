@@ -160,7 +160,7 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Upload Error:', error);
-    return errorResponse(error.message, 500, corsHeaders);
+    return errorResponse('Upload failed. Please try again.', 500, corsHeaders);
   }
 });
 

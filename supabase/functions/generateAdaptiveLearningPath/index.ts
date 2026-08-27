@@ -391,8 +391,16 @@ serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || serviceKey;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const authHeader = req.headers.get('Authorization') || '';
+    if (!supabaseUrl || !serviceKey || !anonKey) {
+      console.error('generateAdaptiveLearningPath is missing required Supabase configuration');
+      return errorResponse(
+        'Service is temporarily unavailable. Please try again later.',
+        503,
+        corsHeaders
+      );
+    }
     const supabase = createClient(supabaseUrl, serviceKey);
     const userSupabase = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },

@@ -272,8 +272,8 @@ serve(async (req: Request) => {
       user.id,
       'synthesizeSpeech',
       'tts',
-      null,
-      { textLength: cleanText.length, voice: voiceName }
+      `tts:${cacheKey}`,
+      { textLength: cleanText.length, voice: voiceName, idempotencyKey: `tts:${cacheKey}` }
     );
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);

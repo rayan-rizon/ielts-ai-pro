@@ -172,6 +172,9 @@ export default async function handler(req, res) {
   }
 
   const payload = {
+    // Keep the credential in the TLS-protected request body rather than a URL,
+    // which may be retained by CDN, proxy, and observability request logs.
+    access_token: accessToken,
     data: [
       {
         event_name: eventName,
@@ -194,14 +197,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(
-      `https://graph.facebook.com/${GRAPH_VERSION}/${pixelId}/events?access_token=${encodeURIComponent(accessToken)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
-    );
+    const response = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${pixelId}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
 
     if (!response.ok) {
       const detail = await response.text();

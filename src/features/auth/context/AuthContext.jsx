@@ -367,7 +367,7 @@ export const AuthProvider = ({ children }) => {
           setIsAdmin(false);
           setAdminCheckComplete(false);
           clearAdminAccess();
-          setAuthCheckComplete(false); // Reset for next login
+          setAuthCheckComplete(true);
           clearCachedProfile(); // Clear cached profile on sign out
           if (typeof window !== 'undefined') {
             window.localStorage.removeItem('onboarding_completed');
@@ -720,7 +720,7 @@ export const AuthProvider = ({ children }) => {
       setUserProfile(null);
       setIsAdmin(false);
       setAdminCheckComplete(false);
-      setAuthCheckComplete(false);
+      setAuthCheckComplete(true);
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem('onboarding_completed');
         window.dataLayer = window.dataLayer || [];

@@ -1,3 +1,5 @@
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
 /**
  * Generates a JPEG thumbnail of the first page of a PDF file.
  * Uses dynamic import of pdfjs-dist to avoid top-level issues in Vite.
@@ -10,9 +12,8 @@ export const generatePdfThumbnail = async (file: File, scale = 1.0): Promise<Blo
     // Dynamic import to handle Vite's potential issues with pdfjs-dist at top-level
     const pdfjsLib = await import('pdfjs-dist');
 
-    // Configure the worker - using unpkg as a reliable CDN
-    const version = pdfjsLib.version || '4.0.379';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+    // Bundle the worker with the app so it stays covered by the production CSP.
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
     const arrayBuffer = await file.arrayBuffer();
     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });

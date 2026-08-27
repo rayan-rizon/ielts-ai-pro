@@ -4,7 +4,6 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   getCorsHeaders,
-  logApiUsage,
   checkRateLimit,
   getRateLimitIdentifier,
   getBurstLimitConfig,
@@ -45,7 +44,6 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
   let quotaReservationId: string | undefined;
-  let authenticatedUserId: string | undefined;
   let tokensUsed = 0;
   let promptTokens = 0;
   let outputTokens = 0;
@@ -65,7 +63,6 @@ serve(async (req: Request) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    authenticatedUserId = user.id;
 
     // Rate limiting
     const { data: userProfile } = await supabase
@@ -182,15 +179,6 @@ serve(async (req: Request) => {
         { testId, speakingSessionId, failureReason: 'Transcript exceeds maximum size' },
         'failed'
       );
-      await logApiUsage(supabase, user.id, 'evaluateSpeakingTest', false, tokensUsed, {
-        testId,
-        speakingSessionId,
-        reservationStatus: 'failed',
-        failureReason: 'transcript_size_exceeded',
-        promptTokens,
-        outputTokens,
-        providerCalls,
-      });
       quotaReservationId = undefined;
       return new Response(
         JSON.stringify({ error: `Conversation transcript exceeds maximum allowed size.` }),
@@ -307,21 +295,6 @@ serve(async (req: Request) => {
       response: responsePayload,
     });
     quotaReservationId = undefined;
-    await logApiUsage(supabase, user.id, 'evaluateSpeakingTest', false, tokensUsed, {
-      testId,
-      speakingSessionId,
-      partsCompleted: Object.keys(allPartsConversation).length,
-      provider: providerResult.provider,
-      model: providerResult.model,
-      promptTokens,
-      outputTokens,
-      providerCalls,
-      fallbackUsed: providerResult.fallbackUsed,
-      fallbackReason: providerResult.fallbackReason,
-      routingReason: providerResult.routingReason,
-      estimatedProviderCostUsd,
-    });
-
     return new Response(JSON.stringify(responsePayload), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -338,15 +311,12 @@ serve(async (req: Request) => {
         'failed'
       );
     }
-    if (authenticatedUserId) {
-      await logApiUsage(supabase, authenticatedUserId, 'evaluateSpeakingTest', false, 0, {
-        reservationStatus: 'failed',
-        failureReason: error?.message || 'Internal server error',
-      });
-    }
     const corsHeaders = getCorsHeaders(req);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error', success: false }),
+      JSON.stringify({
+        error: 'Unable to evaluate this speaking test. Please try again.',
+        success: false,
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -123,15 +123,6 @@ serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  if (req.method === 'POST') {
-    try {
-      const pingBody = await req.clone().json();
-      if (pingBody?.ping === true) return jsonResponse({ pong: true }, 200, corsHeaders);
-    } catch {
-      // Continue with the authenticated request.
-    }
-  }
-
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

@@ -219,16 +219,25 @@ serve(async (req: Request) => {
       }
     }
 
+    const audioDigest = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(`${mimeType}:${base64Audio}`)
+    );
+    const idempotencyKey = `transcription:${Array.from(new Uint8Array(audioDigest))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('')}`;
+
     const quotaReservation = await reserveDatabaseQuota(
       supabase,
       user.id,
       'transcribeAudio',
       null,
-      null,
+      idempotencyKey,
       {
         hasUrl: !!audioUrl,
         hasBase64: !!audioBase64,
         mimeType,
+        idempotencyKey,
       }
     );
     if (!quotaReservation.allowed) {

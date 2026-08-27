@@ -660,6 +660,19 @@ Register and tone:
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const inputHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
+    const { data: cachedEntry } = await supabase
+      .from('ai_feedback_cache')
+      .select('feedback_json')
+      .eq('input_hash', inputHash)
+      .maybeSingle();
+
+    if (cachedEntry && cachedEntry.feedback_json) {
+      return new Response(
+        JSON.stringify({ success: true, data: cachedEntry.feedback_json, cached: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const quotaReservation = await reserveDatabaseQuota(
       supabase,
       user.id,
@@ -672,27 +685,6 @@ Register and tone:
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
     quotaReservationId = quotaReservation.reservationId;
-
-    const { data: cachedEntry } = await supabase
-      .from('ai_feedback_cache')
-      .select('feedback_json')
-      .eq('input_hash', inputHash)
-      .single();
-
-    if (cachedEntry && cachedEntry.feedback_json) {
-      // A cache hit calls no provider, so it must not be attributed to one —
-      // health counts provider attempts, not requests served.
-      await finalizeApiUsage(supabase, quotaReservation.reservationId, 0, true, {
-        taskType,
-        cached: true,
-        provider: 'cache',
-      });
-      quotaReservationId = undefined;
-      return new Response(
-        JSON.stringify({ success: true, data: cachedEntry.feedback_json, cached: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     if (quotaReservation.alreadyReserved) {
       return duplicateReservationResponse(
@@ -921,7 +913,10 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
       );
     }
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error', success: false }),
+      JSON.stringify({
+        error: 'Unable to generate writing feedback. Please try again.',
+        success: false,
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

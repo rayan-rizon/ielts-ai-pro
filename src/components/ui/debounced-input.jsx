@@ -23,10 +23,21 @@ const DebouncedInput = memo(function DebouncedInput({
   const [localValue, setLocalValue] = useState(externalValue);
   const debounceTimer = useRef(null);
   const isMounted = useRef(true);
+  const localValueRef = useRef(externalValue);
+  const externalValueRef = useRef(externalValue);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // Sync external value to local when it changes from outside
   useEffect(() => {
-    setLocalValue(externalValue);
+    externalValueRef.current = externalValue;
+    if (externalValue !== localValueRef.current) {
+      localValueRef.current = externalValue;
+      setLocalValue(externalValue);
+    }
   }, [externalValue]);
 
   // Cleanup on unmount
@@ -36,6 +47,10 @@ const DebouncedInput = memo(function DebouncedInput({
       isMounted.current = false;
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
+        debounceTimer.current = null;
+        if (onChangeRef.current && localValueRef.current !== externalValueRef.current) {
+          onChangeRef.current(localValueRef.current);
+        }
       }
     };
   }, []);
@@ -44,6 +59,7 @@ const DebouncedInput = memo(function DebouncedInput({
   const handleChange = useCallback(
     (e) => {
       const newValue = e.target.value;
+      localValueRef.current = newValue;
       setLocalValue(newValue);
 
       // Clear existing timer
@@ -53,12 +69,13 @@ const DebouncedInput = memo(function DebouncedInput({
 
       // Set new debounce timer for global sync
       debounceTimer.current = setTimeout(() => {
-        if (isMounted.current && onChange) {
-          onChange(newValue);
+        debounceTimer.current = null;
+        if (isMounted.current && onChangeRef.current) {
+          onChangeRef.current(newValue);
         }
       }, debounceMs);
     },
-    [onChange, debounceMs]
+    [debounceMs]
   );
 
   // Sync immediately on blur
@@ -67,10 +84,10 @@ const DebouncedInput = memo(function DebouncedInput({
       clearTimeout(debounceTimer.current);
       debounceTimer.current = null;
     }
-    if (onChange && localValue !== externalValue) {
-      onChange(localValue);
+    if (onChangeRef.current && localValueRef.current !== externalValueRef.current) {
+      onChangeRef.current(localValueRef.current);
     }
-  }, [onChange, localValue, externalValue]);
+  }, []);
 
   return (
     <Input

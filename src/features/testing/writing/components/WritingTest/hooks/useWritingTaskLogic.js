@@ -173,6 +173,7 @@ export function useWritingTaskLogic(passedUser = null) {
 
       if (submitError) throw submitError;
 
+      store.setCompleted(true);
       removeFromCache('writing-tests-list');
 
       isExiting.current = true;

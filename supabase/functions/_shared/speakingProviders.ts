@@ -2,6 +2,20 @@ export const CLOUDFLARE_WHISPER_MODEL = '@cf/openai/whisper-large-v3-turbo';
 export const CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD = 0.00051;
 export const AZURE_SPEECH_COST_PER_AUDIO_HOUR_USD = 1;
 
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 interface TranscriptionResult {
   transcript: string;
   provider: 'cloudflare' | 'gemini-fallback';
@@ -166,7 +180,7 @@ export async function transcribeWithCloudflare(params: {
 }): Promise<TranscriptionResult> {
   const startedAt = Date.now();
   const requestTranscription = async (vadFilter: boolean, noSpeechThreshold?: number) => {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.cloudflare.com/client/v4/accounts/${params.accountId}/ai/run/${CLOUDFLARE_WHISPER_MODEL}`,
       {
         method: 'POST',
@@ -182,7 +196,8 @@ export async function transcribeWithCloudflare(params: {
           condition_on_previous_text: false,
           beam_size: 5,
         }),
-      }
+      },
+      6_000
     );
 
     if (!response.ok) {
@@ -236,7 +251,7 @@ export async function transcribeWithGeminiFallback(params: {
   const model = 'gemini-2.5-flash-lite';
   const startedAt = Date.now();
   const prompt = buildGeminiTranscriptionPrompt(params);
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: 'POST',
@@ -261,7 +276,8 @@ export async function transcribeWithGeminiFallback(params: {
           thinkingConfig: { thinkingBudget: 0 },
         },
       }),
-    }
+    },
+    8_000
   );
 
   if (!response.ok) throw new Error(`Gemini transcription fallback failed (${response.status})`);
@@ -394,16 +410,20 @@ export async function assessPronunciationWithAzure(params: {
   const pronunciationHeader = btoa(String.fromCharCode(...configBytes));
   const endpoint = buildAzurePronunciationUrl(params.endpoint);
   const audio = Uint8Array.from(atob(params.wavBase64), (char) => char.charCodeAt(0));
-  const response = await fetch(`${endpoint}?language=en-GB&format=detailed`, {
-    method: 'POST',
-    headers: {
-      'Ocp-Apim-Subscription-Key': params.apiKey,
-      'Pronunciation-Assessment': pronunciationHeader,
-      'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
-      Accept: 'application/json',
+  const response = await fetchWithTimeout(
+    `${endpoint}?language=en-GB&format=detailed`,
+    {
+      method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': params.apiKey,
+        'Pronunciation-Assessment': pronunciationHeader,
+        'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
+        Accept: 'application/json',
+      },
+      body: audio,
     },
-    body: audio,
-  });
+    6_000
+  );
 
   if (!response.ok) {
     const body = await response.text();

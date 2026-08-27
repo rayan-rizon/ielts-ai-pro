@@ -227,7 +227,7 @@ export function useAutosave({
       ];
     } else {
     }
-  }, [session, lastSaved]);
+  }, [session?.id]);
 
   const saveWithRetry = useCallback(
     async (
