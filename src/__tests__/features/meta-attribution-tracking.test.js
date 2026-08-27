@@ -1,5 +1,6 @@
 /* @vitest-environment jsdom */
 
+import { webcrypto } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const clearCookies = () => {
@@ -134,6 +135,7 @@ describe('Meta event allowlist', () => {
 
 describe('Conversions API mirroring', () => {
   beforeEach(() => {
+    vi.stubGlobal('crypto', webcrypto);
     window.dataLayer = [];
     window.fbq = vi.fn();
     window.fetch = vi.fn(() => Promise.resolve({ ok: true }));
@@ -151,6 +153,7 @@ describe('Conversions API mirroring', () => {
 
     trackAppEvent('signup_completed', { method: 'google', user_id: 'user-1' });
 
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
     const pixelEventId = window.fbq.mock.calls[0][3].eventID;
     const capiBody = JSON.parse(window.fetch.mock.calls[0][1].body);
 
@@ -160,13 +163,112 @@ describe('Conversions API mirroring', () => {
     expect(capiBody).toMatchObject({ value: 1, currency: 'USD' });
   });
 
+  it('hashes CAPI identity in the browser and never serializes raw values', async () => {
+    const { trackAppEvent } = await loadTracking();
+
+    trackAppEvent('signup_completed', {
+      method: 'email',
+      email: ' Learner@Example.com ',
+      user_id: 'user-42',
+    });
+
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
+    const body = window.fetch.mock.calls[0][1].body;
+    const capiBody = JSON.parse(body);
+
+    expect(body).not.toContain('Learner@Example.com');
+    expect(body).not.toContain('user-42');
+    expect(capiBody.user).toEqual({
+      em: '2d985f691975ed96ce710fc7f6272a38c0c6ae910798dfd12c24365ed185bfd4',
+      external_id: '6d894aa3ee802549d7f340e7c1cf0d1c1cb14cd84f768d92ffaa6785337c4997',
+    });
+  });
+
+  it('omits identity rather than falling back to plaintext without Web Crypto', async () => {
+    vi.stubGlobal('crypto', undefined);
+    const { trackAppEvent } = await loadTracking();
+
+    trackAppEvent('signup_completed', {
+      method: 'email',
+      email: 'learner@example.com',
+      user_id: 'user-42',
+    });
+
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
+    const body = window.fetch.mock.calls[0][1].body;
+
+    expect(body).not.toContain('learner@example.com');
+    expect(body).not.toContain('user-42');
+    expect(JSON.parse(body).user).toEqual({});
+  });
+
+  it('keeps direct identity and learner content out of Pixel and dataLayer payloads', async () => {
+    const { trackAppEvent } = await loadTracking();
+
+    trackAppEvent('signup_completed', {
+      method: 'email',
+      email: 'learner@example.com',
+      user_id: 'user-42',
+      session_id: 'session-42',
+      transcript: 'private learner response',
+    });
+
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
+    const pixelPayload = window.fbq.mock.calls.find(
+      (call) => call[1] === 'CompleteRegistration'
+    )[2];
+    const dataLayerPayload = window.dataLayer.find((entry) => entry.event === 'signup_completed');
+
+    for (const payload of [pixelPayload, dataLayerPayload]) {
+      expect(payload).not.toHaveProperty('email');
+      expect(payload).not.toHaveProperty('user_id');
+      expect(payload).not.toHaveProperty('session_id');
+      expect(payload).not.toHaveProperty('transcript');
+    }
+  });
+
+  it('hashes profile identity before the Pixel init and dataLayer event', async () => {
+    const { pushUserIdentity } = await loadTracking();
+
+    pushUserIdentity({
+      id: 'user-42',
+      email: ' Learner@Example.com ',
+      full_name: 'Learner Example',
+      subscription_tier: 'pro',
+      role: 'user',
+    });
+
+    await vi.waitFor(() =>
+      expect(window.fbq.mock.calls.some((call) => call[0] === 'init')).toBe(true)
+    );
+    const initPayload = window.fbq.mock.calls.find((call) => call[0] === 'init')[2];
+    const identityEvent = window.dataLayer.find((entry) => entry.event === 'user_identified');
+
+    expect(initPayload).toEqual({
+      em: '2d985f691975ed96ce710fc7f6272a38c0c6ae910798dfd12c24365ed185bfd4',
+      fn: '1210f10c3412994f89ce378289d7ffdabf0aa594b5f3c010ff301a1d309ee421',
+      ln: expect.stringMatching(/^[a-f0-9]{64}$/),
+      external_id: '6d894aa3ee802549d7f340e7c1cf0d1c1cb14cd84f768d92ffaa6785337c4997',
+    });
+    expect(identityEvent).toEqual(
+      expect.objectContaining({
+        event: 'user_identified',
+        user_id_hash: '6d894aa3ee802549d7f340e7c1cf0d1c1cb14cd84f768d92ffaa6785337c4997',
+        subscription_tier: 'pro',
+        is_authenticated: true,
+        is_admin: false,
+      })
+    );
+    expect(JSON.stringify(initPayload)).not.toContain('Learner');
+  });
+
   it('still reports server-side when the Pixel is blocked', async () => {
     const { trackAppEvent } = await loadTracking();
     delete window.fbq;
 
     trackAppEvent('signup_completed', { method: 'email' });
 
-    expect(window.fetch).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(window.fetch).toHaveBeenCalledTimes(1));
     expect(JSON.parse(window.fetch.mock.calls[0][1].body).event_name).toBe('CompleteRegistration');
   });
 

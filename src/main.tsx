@@ -2,12 +2,15 @@ import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from '@/App.jsx';
 import { RootProviders } from './components/RootProviders';
+import { optionalPublicEnv } from '@/lib/publicEnv';
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 const isLiveProduction = import.meta.env.PROD && !isLocalHost;
 const SENTRY_INITIALIZED_KEY = '__ieltsAiProSentryInitialized__';
+const sentryDsn = optionalPublicEnv('VITE_SENTRY_DSN');
 const isSentryEnabled =
-  isLiveProduction || import.meta.env.VITE_SENTRY_ENABLE_DEVELOPMENT === 'true';
+  Boolean(sentryDsn) &&
+  (isLiveProduction || import.meta.env.VITE_SENTRY_ENABLE_DEVELOPMENT === 'true');
 
 const scheduleIdle = (callback: () => void, timeout = 3000) => {
   if ('requestIdleCallback' in window) {
@@ -62,14 +65,20 @@ const initSentry = () => {
     (window as any)[SENTRY_INITIALIZED_KEY] = true;
 
     Sentry.init({
-      dsn:
-        import.meta.env.VITE_SENTRY_DSN ||
-        'https://03ed8b4e6214256395735d17f027f8f4@o4511451727331328.ingest.us.sentry.io/4511452061040640',
+      dsn: sentryDsn,
       environment: isLiveProduction ? 'production' : 'development',
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.browserProfilingIntegration(),
-        Sentry.replayIntegration(),
+        Sentry.replayIntegration({
+          // Replay can observe learner essays, payment fields, and admin
+          // screens. Keep the privacy contract explicit instead of relying on
+          // SDK defaults, and allow a future sensitive surface to opt in.
+          maskAllText: true,
+          maskAllInputs: true,
+          blockAllMedia: true,
+          mask: ['[data-ielts-sensitive]'],
+        }),
       ],
       tracesSampleRate: isLiveProduction ? 0.15 : 0,
       // The browser-profile decision is made once per session. Keep production

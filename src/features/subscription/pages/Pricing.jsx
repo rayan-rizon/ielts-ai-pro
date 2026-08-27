@@ -9,6 +9,7 @@ import { trackAppEvent } from '@/lib/tracking';
 import { getMarketingAttribution } from '@/lib/marketingAttribution';
 import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/lib/promoOffer';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
+import { requirePublicEnv } from '@/lib/publicEnv';
 
 // Extracted Components
 import PricingCard from '../components/PricingCard';
@@ -26,11 +27,11 @@ const containerVariants = {
 
 // Temporary kill switch for Bangladesh manual payment flow.
 const MANUAL_BD_PAYMENT_ENABLED = true;
+const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 
 // Module-level helper functions to minimize component complexity
 const requestCustomerPortal = async (sessionToken) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const response = await fetch(`${supabaseUrl}/functions/v1/create-customer-portal`, {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/create-customer-portal`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -47,8 +48,7 @@ const requestCustomerPortal = async (sessionToken) => {
 };
 
 const createStripeCheckout = async (sessionToken, planTier, interval, currency, attribution) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout-session`, {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

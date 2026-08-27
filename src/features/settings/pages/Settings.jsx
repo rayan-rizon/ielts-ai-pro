@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { IconChip, MUTED, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 import { generateAdaptiveLearningPath } from '@/utils/api';
+import { requirePublicEnv } from '@/lib/publicEnv';
 import {
   getWeeklyCapacity,
   normalizeStudyAvailability,
@@ -53,6 +54,7 @@ const EmailPreferencesSection = lazy(
 
 const loadUserService = () => import('@/features/auth/services/User').then((module) => module.User);
 const loadSupabaseClient = () => import('@/lib/supabase').then((module) => module.supabase);
+const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 
 function SettingsTabFallback() {
   return (
@@ -217,16 +219,18 @@ export default function Settings() {
         return;
       }
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321';
-      const response = await fetch(`${supabaseUrl}/functions/v1/toggle-subscription-cancellation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({ cancel: !user.cancel_at_period_end }),
-      });
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/toggle-subscription-cancellation`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ cancel: !user.cancel_at_period_end }),
+        }
+      );
 
       const data = await response.json();
 
@@ -261,17 +265,14 @@ export default function Settings() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) return;
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL || 'http://127.0.0.1:54321'}/functions/v1/create-customer-portal`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-        }
-      );
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-customer-portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to open billing portal');
       if (data.url) window.open(data.url, '_blank');

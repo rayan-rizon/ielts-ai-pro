@@ -5,8 +5,10 @@
  * Price IDs should be updated after creating prices in Stripe Dashboard.
  */
 
+import { optionalPublicEnv } from '@/lib/publicEnv';
+
 // Stripe publishable key (test mode)
-export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+export const STRIPE_PUBLISHABLE_KEY = optionalPublicEnv('VITE_STRIPE_PUBLISHABLE_KEY') || '';
 
 // Stripe Product IDs (created in sandbox)
 export const STRIPE_PRODUCTS = {

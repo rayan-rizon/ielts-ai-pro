@@ -1,15 +1,15 @@
 'use client';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/theme-provider';
 import { Toaster as Sonner } from 'sonner';
 
 const Toaster = ({ ...props }) => {
-  // Resolve the actual app theme before handing it to Sonner. Passing `system`
-  // through can produce a dark toast over this app's light theme tokens.
-  const { resolvedTheme = 'light' } = useTheme();
+  // Use the same provider as the rest of the app so toast surfaces follow the
+  // user's selected theme instead of reading an unmounted next-themes context.
+  const { theme = 'light' } = useTheme();
 
   return (
     <Sonner
-      theme={resolvedTheme}
+      theme={theme}
       className="toaster group"
       toastOptions={{
         classNames: {

@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-// @ts-ignore
 import { withCache, CACHE_TTL } from '@/lib/apiCache';
 import { Question as QuestionType } from '@/types';
 
@@ -77,7 +76,6 @@ export const Question = {
         return false; // Signal that we couldn't drop this column
       }
       console.warn(`[Question.bulkCreate] Dropping column "${col}" from all items`);
-      // @ts-ignore
       payload = payload.map(({ [col]: _omit, ...rest }) => rest);
       return true;
     };
@@ -160,7 +158,6 @@ export const Question = {
         return false;
       }
       console.warn(`[Question.bulkUpsert] Dropping column "${col}" from all items`);
-      // @ts-ignore
       payload = payload.map(({ [col]: _omit, ...rest }) => rest);
       return true;
     };

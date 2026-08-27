@@ -380,7 +380,9 @@ export const AuthProvider = ({ children }) => {
           if (session?.user) {
             setUser(session.user);
             // Update last_active on token refresh
-            User.updateLastActive().catch(() => {});
+            // User.updateLastActive handles its own non-fatal errors; do not
+            // let telemetry-like activity delay the auth state transition.
+            void User.updateLastActive();
           }
           return;
         }
@@ -428,7 +430,7 @@ export const AuthProvider = ({ children }) => {
                 setCachedProfile(profile);
 
                 // Update last_active on sign-in (fire and forget - don't block)
-                User.updateLastActive().catch(() => {});
+                void User.updateLastActive();
 
                 setAuthCheckComplete(true);
               } catch (error) {
@@ -540,7 +542,7 @@ export const AuthProvider = ({ children }) => {
             setUser(session.user);
             console.info('[Visibility] Session revalidated on tab focus');
             // Update last_active when tab becomes visible
-            User.updateLastActive().catch(() => {});
+            void User.updateLastActive();
           }
         } catch (error) {
           console.warn('[Visibility] Session revalidation failed:', error);

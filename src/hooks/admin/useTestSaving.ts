@@ -110,7 +110,6 @@ export const useTestSaving = (onSuccess?: (passage: PassageType) => void): UseTe
           }
 
           if (!isTempId && id) {
-            // @ts-ignore
             payload.id = id;
             questionsToUpdate.push(payload);
           } else {
@@ -124,7 +123,6 @@ export const useTestSaving = (onSuccess?: (passage: PassageType) => void): UseTe
           let deleteQuery = supabase.from('questions').delete().eq('passage_id', savedPassage.id);
 
           if (keptIds.length > 0) {
-            // @ts-ignore
             const filterString = `(${keptIds.map((id) => `"${id}"`).join(',')})`;
             deleteQuery = deleteQuery.filter('id', 'not.in', filterString);
           }
@@ -242,7 +240,6 @@ export const useTestSaving = (onSuccess?: (passage: PassageType) => void): UseTe
 
     // Determine if it's a Reading test or standard test
     if (data.passage && Array.isArray(data.questions)) {
-      // @ts-ignore
       return await saveReadingTest({ passage: data.passage, questions: data.questions }, silent);
     } else {
       // Ensure data has the isDraft property if needed by saveStandardTest

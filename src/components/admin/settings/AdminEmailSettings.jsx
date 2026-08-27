@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { supabase } from '@/lib/supabase';
+import { requirePublicEnv } from '@/lib/publicEnv';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import {
   Mail,
@@ -42,7 +43,7 @@ import {
   FADE_UP,
 } from '@/components/admin/ui/primitives';
 
-const ADMIN_EMAIL_TESTER_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-email-tester`;
+const ADMIN_EMAIL_TESTER_URL = `${requirePublicEnv('VITE_SUPABASE_URL')}/functions/v1/admin-email-tester`;
 
 const EMAIL_TRIGGERS = [
   {

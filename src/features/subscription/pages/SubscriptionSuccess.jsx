@@ -19,10 +19,12 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { trackAppEvent } from '@/lib/tracking';
 import { clearMarketingAttribution } from '@/lib/marketingAttribution';
+import { requirePublicEnv } from '@/lib/publicEnv';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL = 2000;
 const SYNC_TIMEOUT = 15000;
+const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 
 // A valid Stripe Checkout session ID always starts with 'cs_'
 const isValidSessionId = (id) => typeof id === 'string' && id.startsWith('cs_') && id.length > 10;
@@ -39,12 +41,11 @@ export default function SubscriptionSuccess() {
 
   const syncStripeSession = useCallback(
     async (authSession) => {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), SYNC_TIMEOUT);
 
       try {
-        const response = await fetch(`${supabaseUrl}/functions/v1/sync-stripe-session`, {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/sync-stripe-session`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

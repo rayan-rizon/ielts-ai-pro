@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-// @ts-ignore
 import { withCache, CACHE_TTL } from '@/lib/apiCache';
 import { Passage as PassageType } from '@/types';
 

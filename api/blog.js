@@ -123,6 +123,7 @@ function practiceLabel(category) {
 }
 
 const ICON_CONTENT = {
+  'arrow-up': '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
   'arrow-right': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
   'book-open':
     '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
@@ -157,7 +158,12 @@ const ICON_CONTENT = {
   tag: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.41 2.41 0 0 0 3.408 0l5.88-5.88a2.41 2.41 0 0 0 0-3.408z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  mail: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 6L2 7"/>',
   facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+  instagram:
+    '<rect width="20" height="20" x="2" y="2" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5"/>',
+  youtube:
+    '<path d="M21.6 7.2a2.5 2.5 0 0 0-1.7-1.8C18.4 5 12 5 12 5s-6.4 0-7.9.4a2.5 2.5 0 0 0-1.7 1.8A26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.7 1.8C5.6 19 12 19 12 19s6.4 0 7.9-.4a2.5 2.5 0 0 0 1.7-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8Z"/><path d="m10 15 5-3-5-3v6Z"/>',
   linkedin:
     '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>',
   'share-2':
@@ -439,7 +445,10 @@ function coverAlt(post) {
 const SERP_TITLE_MAX_PIXELS = 560;
 const NARROW_TITLE_CHARS = new Set([...` .,:;!|'"()[]{}ijltfrI-`]);
 const WIDE_TITLE_CHARS = new Set([...'mwMW@%']);
-const ARTICLE_TITLE_SUFFIX = ' | IELTS Guide | IELTS Ai Pro';
+// The brand suffix needs to leave enough room for the distinctive terms in an
+// article title. The former "IELTS Guide" segment was redundant and caused
+// separate articles with the same opening words to collapse into one title.
+const ARTICLE_TITLE_SUFFIX = ' | IELTS Ai Pro';
 const OFFICIAL_WRITING_FORMAT_URL =
   'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing';
 
@@ -534,7 +543,7 @@ function layout({
   <header id="public-header">
     <div class="mobile-backdrop" data-mobile-backdrop></div>
     <nav class="site-nav" aria-label="Primary">
-      <a class="brand" href="/" aria-label="IELTS Ai Pro Home"><img src="/logo.svg" alt="IELTS Ai Pro Logo" class="brand-light"><img src="/footer.svg" alt="IELTS Ai Pro Logo" class="brand-dark"></a>
+      <a class="brand" href="/" aria-label="IELTS Ai Pro Home"><img src="/logo.svg" alt="IELTS Ai Pro Logo" class="brand-light" width="300" height="72"><img src="/footer.svg" alt="IELTS Ai Pro Logo" class="brand-dark" width="300" height="72"></a>
       <div class="nav-center">
         <a href="/#features">Platform</a>
         <a href="/ielts-writing-checker">Writing checker</a>
@@ -600,9 +609,9 @@ function layout({
     <div class="footer-shell">
       <div class="footer-main">
         <div>
-          <div class="footer-brand-row"><a class="footer-brand" href="/" aria-label="IELTS Ai Pro Home"><img src="/footer.svg" alt="IELTS Ai Pro Logo"></a><span class="ai-badge">✦ AI Powered</span></div>
+          <div class="footer-brand-row"><a class="footer-brand" href="/" aria-label="IELTS Ai Pro Home"><img src="/footer.svg" alt="IELTS Ai Pro Logo" width="300" height="72" loading="lazy" decoding="async"></a><span class="ai-badge">✦ AI Powered</span></div>
           <p class="footer-description">Web-based IELTS practice platform for Reading, Listening, Writing, and Speaking with instant criterion-based AI practice feedback, score analytics, and target-band guidance.</p>
-          <div class="footer-contact-row"><a class="footer-email" href="mailto:mail@ieltsai.pro">✉ mail@ieltsai.pro</a><div class="footer-socials"><a href="https://www.facebook.com/ieltsaipro" aria-label="Follow us on Facebook">f</a><a href="https://www.instagram.com/ieltsaipro/" aria-label="Follow us on Instagram">◎</a><a href="https://x.com/IELTSAiPro" aria-label="Follow us on X (Twitter)">X</a><a href="https://youtube.com" aria-label="Follow us on YouTube">▶</a><a href="https://linkedin.com" aria-label="Follow us on LinkedIn">in</a></div></div>
+          <div class="footer-contact-row"><a class="footer-email" href="mailto:mail@ieltsai.pro"><span aria-hidden="true">${iconSvg('mail')}</span><span>mail@ieltsai.pro</span></a><div class="footer-socials"><a href="https://www.facebook.com/ieltsaipro" aria-label="Follow us on Facebook">${iconSvg('facebook')}</a><a href="https://www.instagram.com/ieltsaipro/" aria-label="Follow us on Instagram">${iconSvg('instagram')}</a><a href="https://x.com/IELTSAiPro" aria-label="Follow us on X (Twitter)">${iconSvg('x')}</a><a href="https://youtube.com" aria-label="Follow us on YouTube">${iconSvg('youtube')}</a><a href="https://linkedin.com" aria-label="Follow us on LinkedIn">${iconSvg('linkedin')}</a></div></div>
         </div>
         <nav class="footer-navigation" aria-label="Footer">
           <details class="footer-group" open><summary><span class="footer-group-icon">▦</span>Core Features</summary><ul><li><a href="/ielts-band-score-calculator">Band Score Calculator</a></li><li><a href="/ielts-writing-checker">Writing Task Evaluator</a></li><li><a href="/ielts-speaking-practice-ai">Speaking Test Simulator</a></li><li><a href="/cambridge-ielts-practice-tests#listening">Listening Practice Hub</a></li><li><a href="/cambridge-ielts-practice-tests#reading">Reading Comprehension</a></li></ul></details>
@@ -611,7 +620,7 @@ function layout({
           <details class="footer-group" open><summary><span class="footer-group-icon">▣</span>Company</summary><ul><li><a href="/about">About Platform</a></li><li><a href="/contact">Contact Support</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li></ul></details>
         </nav>
       </div>
-      <div class="footer-bottom"><div class="footer-legal"><span>© ${new Date().getFullYear()} IELTS Ai Pro</span><span>•</span><a href="/privacy">Privacy Policy</a><span>•</span><a href="/terms">Terms of Service</a><span>•</span><a href="/about">About Platform</a></div><div class="footer-trust"><span class="independence-badge">✓ Independent prep platform. Not affiliated with IELTS, IDP, or British Council.</span><button class="back-to-top" type="button" aria-label="Scroll back to top" title="Back to top">↑</button></div></div>
+      <div class="footer-bottom"><div class="footer-legal"><span>© ${new Date().getFullYear()} IELTS Ai Pro</span><span>•</span><a href="/privacy">Privacy Policy</a><span>•</span><a href="/terms">Terms of Service</a><span>•</span><a href="/about">About Platform</a></div><div class="footer-trust"><span class="independence-badge">✓ Independent prep platform. Not affiliated with IELTS, IDP, or British Council.</span><button class="back-to-top" type="button" aria-label="Scroll back to top" title="Back to top">${iconSvg('arrow-up')}</button></div></div>
     </div>
   </footer>
   <script>
@@ -710,7 +719,7 @@ function renderIndex(posts, requestQuery = {}) {
   const pageHref = viewHref;
   const pagination =
     totalPages > 1
-      ? `<nav class="pagination" aria-label="Article pages">${currentPage > 1 ? `<a href="${pageHref(currentPage - 1)}" aria-label="Previous page">←</a>` : ''}${Array.from(
+      ? `<nav class="pagination" aria-label="Article pages">${currentPage > 1 ? `<a href="${pageHref(currentPage - 1)}" aria-label="Previous page">${iconSvg('chevron-left')}</a>` : ''}${Array.from(
           { length: totalPages },
           (_, index) => index + 1
         )
@@ -721,7 +730,7 @@ function renderIndex(posts, requestQuery = {}) {
           )
           .join(
             ''
-          )}${currentPage < totalPages ? `<a href="${pageHref(currentPage + 1)}" aria-label="Next page">→</a>` : ''}</nav>`
+          )}${currentPage < totalPages ? `<a href="${pageHref(currentPage + 1)}" aria-label="Next page">${iconSvg('chevron-right')}</a>` : ''}</nav>`
       : '';
   const trending = [...posts]
     .sort(
@@ -774,7 +783,7 @@ function renderIndex(posts, requestQuery = {}) {
       : BLOG_LIBRARY_COPY.metaDescription;
   const description =
     currentPage > 1
-      ? `Page ${currentPage} of the IELTS Ai Pro${category !== 'All' ? ` ${category}` : ''} guide library: strategies, study plans, and exam updates.`
+      ? `Explore page ${currentPage} of the IELTS Ai Pro${category !== 'All' ? ` ${category}` : ''} guide library for practical strategies, guided study plans, current exam updates, and focused practice across all four skills.`
       : viewDescription;
   const listedPosts = [...featuredArticles, ...paginatedPosts];
   return layout({
@@ -808,7 +817,7 @@ function renderIndex(posts, requestQuery = {}) {
       },
     ],
     body: `<main id="main">
-      <section class="index-hero"><div class="shell hero-grid"><div><span class="eyebrow">${iconSvg('book-open')} ${escapeHtml(BLOG_LIBRARY_COPY.heroEyebrow)}</span><h1>${escapeHtml(BLOG_LIBRARY_COPY.heroTitle)}</h1><p class="hand">${escapeHtml(BLOG_LIBRARY_COPY.heroScript)}</p><p class="intro">${escapeHtml(BLOG_LIBRARY_COPY.heroDescription)}</p></div><div class="hero-photo"><span class="note one">Consistency builds excellence</span><img src="/ielts-hero-student.webp" alt="IELTS learner studying with a laptop and notebook"><span class="note two">Plan · Practise · Progress</span><span class="hero-sparkle">${iconSvg('sparkles')}</span></div></div></section>
+      <section class="index-hero"><div class="shell hero-grid"><div><span class="eyebrow">${iconSvg('book-open')} ${escapeHtml(BLOG_LIBRARY_COPY.heroEyebrow)}</span><h1>${escapeHtml(BLOG_LIBRARY_COPY.heroTitle)}</h1><p class="hand">${escapeHtml(BLOG_LIBRARY_COPY.heroScript)}</p><p class="intro">${escapeHtml(BLOG_LIBRARY_COPY.heroDescription)}</p></div><div class="hero-photo"><span class="note one">Consistency builds excellence</span><img src="/ielts-hero-student.webp" alt="IELTS learner studying with a laptop and notebook" width="1200" height="900" loading="eager" decoding="async" fetchpriority="high"><span class="note two">Plan · Practise · Progress</span><span class="hero-sparkle">${iconSvg('sparkles')}</span></div></div></section>
       <section class="category-rail" aria-label="Article categories"><div class="shell"><nav class="category-tabs">${categories}</nav></div></section>
       <section class="index-content"><div class="shell"><div class="library-heading"><div><p class="library-kicker">${escapeHtml(BLOG_LIBRARY_COPY.sectionEyebrow)}</p><h2>${escapeHtml(getBlogLibraryHeading({ category, query }))}</h2></div><form class="library-search" action="/blog" method="get"><span aria-hidden="true">${iconSvg('search')}</span>${category !== 'All' ? `<input type="hidden" name="category" value="${escapeHtml(category)}">` : ''}<input type="search" name="q" value="${escapeHtml(query)}" placeholder="${escapeHtml(BLOG_LIBRARY_COPY.searchPlaceholder)}" aria-label="Search IELTS articles"></form></div>${libraryBody}</div></section>
     </main>`,
@@ -861,7 +870,14 @@ function renderArticle(post, allPosts = []) {
       '@id': `${SITE_URL}/#organization`,
       name: 'IELTS Ai Pro',
       url: `${SITE_URL}/`,
-      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+      // This must be a crawlable raster image. logo.png was never deployed and
+      // made otherwise-valid Article schema reference a 404 asset.
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/apple-touch-icon.png`,
+        width: 180,
+        height: 180,
+      },
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
     image: { '@type': 'ImageObject', url: socialImageUrl, width: 1200, height: 675 },
@@ -972,7 +988,12 @@ export default async function handler(request, response) {
   try {
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Content-Language', 'en');
-    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
+    // Keep browser caches revalidated while allowing the CDN to serve this
+    // database-backed HTML for five minutes and refresh it in the background.
+    response.setHeader(
+      'Cache-Control',
+      'public, max-age=0, s-maxage=300, stale-while-revalidate=86400'
+    );
     response.setHeader(
       'Link',
       `<${SITE_URL}/blog/feed.xml>; rel="alternate"; type="application/rss+xml"`

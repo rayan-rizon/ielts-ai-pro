@@ -8,13 +8,13 @@ import {
   invalidateCache,
 } from '@/lib/apiCache';
 import { getCsrfHeaders } from '@/lib/csrf';
+import { requirePublicEnv } from '@/lib/publicEnv';
 
 // Get the Supabase Functions URL based on environment
-// Use the same URL as the main Supabase client, with fallback to production
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || 'https://zvrmvycajimjxghrnpgy.supabase.co';
+// Use the same validated configuration as the main Supabase client.
+const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_ANON_KEY = requirePublicEnv('VITE_SUPABASE_ANON_KEY');
 
 /**
  * Call a Supabase Edge Function with proper authentication, rate limiting, and error handling

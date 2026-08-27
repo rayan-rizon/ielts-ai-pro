@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
+
 /**
  * Playwright Configuration for IELTS Ai Pro E2E Tests
  * @see https://playwright.dev/docs/test-configuration
@@ -21,7 +23,7 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+    baseURL,
 
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
@@ -55,10 +57,16 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /*
+   * Make `npm test` self-contained by starting Vite when no target is supplied.
+   * A supplied PLAYWRIGHT_BASE_URL intentionally opts out so preview and deployed
+   * environments remain under the caller's lifecycle control.
+   */
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: 'npm run dev -- --host localhost',
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+      },
 });

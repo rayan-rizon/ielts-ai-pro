@@ -173,6 +173,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
         word_count: wordCount,
       });
       window.setTimeout(() => {
+        if (typeof document === 'undefined') return;
         const results = document.querySelector('#checker-results');
         if (typeof results?.scrollIntoView === 'function') {
           results.scrollIntoView({ behavior: 'smooth', block: 'start' });

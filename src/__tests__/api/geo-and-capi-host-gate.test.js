@@ -64,6 +64,8 @@ describe('GET /api/geo', () => {
 });
 
 describe('POST /api/meta-capi host gate', () => {
+  const emailHash = 'b4c9a289323b21a01c3e940f150eb9b8c542587f1abfd8f0e1cc1ffc5e475514';
+  const externalIdHash = 'c1f711dd5e8a5c7a03e39fe27f0ca20ec95125d6c4c2d514099213b30e62019d';
   const validEvent = {
     event_name: 'CompleteRegistration',
     event_id: 'evt_1',
@@ -99,6 +101,35 @@ describe('POST /api/meta-capi host gate', () => {
 
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     expect(res.statusCode).toBe(202);
+  });
+
+  it('passes pre-hashed identity through without receiving raw identifiers', async () => {
+    const res = await post({
+      ...validEvent,
+      event_source_url: 'https://www.ieltsai.pro/signup',
+      user: { em: emailHash, external_id: externalIdHash },
+    });
+
+    const payload = JSON.parse(globalThis.fetch.mock.calls[0][1].body);
+    expect(payload.data[0].user_data).toEqual(
+      expect.objectContaining({ em: [emailHash], external_id: [externalIdHash] })
+    );
+    expect(res.statusCode).toBe(202);
+  });
+
+  it.each([
+    { email: 'learner@example.com' },
+    { em: 'not-a-sha256-hash' },
+    { external_id: 'raw-user-id' },
+  ])('rejects raw or malformed identity values', async (user) => {
+    const res = await post({
+      ...validEvent,
+      event_source_url: 'https://www.ieltsai.pro/signup',
+      user,
+    });
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(400);
   });
 
   it('rejects a caller-supplied URL from a different host', async () => {

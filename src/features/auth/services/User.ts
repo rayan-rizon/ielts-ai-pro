@@ -211,16 +211,10 @@ export const User = {
     console.log('[User.me] Created new profile');
 
     // Set Advanced Matching (hashed email/external_id via fbq('init', ...))
-    // before the CompleteRegistration pixel call below. Callers of User.me()
-    // also call pushUserIdentity(profile) themselves once this resolves, but
-    // that is too late for THIS event: it fires while the pixel is still
-    // running on the identity of an anonymous visitor, so the browser-side
-    // CompleteRegistration carried no hashed matching data at all. The
-    // server-side CAPI mirror already includes it (email/user_id travel in
-    // trackSignupCompleted's payload independent of fbq state), which is why
-    // match quality was still non-zero, just short of what both channels
-    // together can deliver.
-    if (insertedProfile) pushUserIdentity(insertedProfile);
+    // before the CompleteRegistration pixel call below. The identity helper
+    // is deliberately awaited only for this new-profile path so the browser
+    // event has matching data while analytics failures remain non-blocking.
+    if (insertedProfile) await pushUserIdentity(insertedProfile);
 
     // The only point in the app where a brand-new account definitively comes
     // into existence, regardless of provider. Reporting the registration here
@@ -424,13 +418,11 @@ export const User = {
     try {
       // Try to sign out, but don't fail if the endpoint is unavailable
       const { error } = await supabase.auth.signOut({ scope: 'local' });
-      // @ts-ignore
       if (error && !this.isNetworkError(error.message)) {
         console.warn('Logout error:', error.message);
       }
     } catch (err: any) {
       // Ignore network errors during logout
-      // @ts-ignore
       if (!this.isNetworkError(err.message)) {
         console.warn('Logout failed:', err.message);
       }
@@ -861,7 +853,6 @@ export const User = {
     });
 
     if (error) {
-      // @ts-ignore
       const errorMessage =
         error.message ||
         error.error ||
@@ -971,7 +962,6 @@ export const User = {
     }
 
     // Import sendEmail dynamically to avoid circular deps
-    // @ts-ignore
     const { sendEmail } = await import('@/utils/api');
 
     // Send emails in batches of 10 to avoid rate limits

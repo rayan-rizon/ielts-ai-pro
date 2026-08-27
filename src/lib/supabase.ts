@@ -6,15 +6,10 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { requirePublicEnv } from '@/lib/publicEnv';
 
-const supabaseUrl =
-  import.meta.env.VITE_SUPABASE_URL ||
-  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL : undefined) ||
-  'https://placeholder.supabase.co';
-const supabaseAnonKey =
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY : undefined) ||
-  'placeholder-anon-key';
+const supabaseUrl = requirePublicEnv('VITE_SUPABASE_URL');
+const supabaseAnonKey = requirePublicEnv('VITE_SUPABASE_ANON_KEY');
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

@@ -13,4 +13,18 @@ describe('landing page stylesheet loading', () => {
       /addEventListener\(["'](?:pointerdown|touchstart|keydown|wheel)["']/
     );
   });
+
+  it('bootstraps the saved theme before the application renders', () => {
+    const indexHtml = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+    const bootstrap = indexHtml.slice(
+      indexHtml.indexOf("window.localStorage.getItem('vite-ui-theme')"),
+      indexHtml.indexOf(
+        '</script>',
+        indexHtml.indexOf("window.localStorage.getItem('vite-ui-theme')")
+      )
+    );
+
+    expect(bootstrap).toContain('document.documentElement.classList.add(theme)');
+    expect(bootstrap).toContain("window.matchMedia('(prefers-color-scheme: dark)')");
+  });
 });

@@ -98,6 +98,7 @@ const DROPPED_EVENTS = new Set([
 ]);
 
 const isBrowser = () => typeof window !== 'undefined';
+const SHA256_HEX = /^[a-f0-9]{64}$/;
 
 /** Hosts whose traffic is real. Must stay in sync with index.html. */
 const MEASURED_HOSTS = new Set(['ieltsai.pro', 'www.ieltsai.pro']);
@@ -197,6 +198,26 @@ const createEventId = () => {
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 };
 
+/**
+ * Meta requires normalized SHA-256 identifiers. Hash at the browser boundary
+ * so the CAPI relay never receives a raw email address or account identifier.
+ * Missing Web Crypto is an analytics-quality degradation, not a reason to
+ * expose plaintext identity or interrupt a learner flow.
+ */
+const hashMetaIdentifier = async (value) => {
+  if (typeof value !== 'string' || !value.trim() || !window.crypto?.subtle) return null;
+
+  try {
+    const bytes = new TextEncoder().encode(value.trim().toLowerCase());
+    const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join(
+      ''
+    );
+  } catch {
+    return null;
+  }
+};
+
 const pushDataLayer = (payload) => {
   if (!isBrowser()) return false;
 
@@ -204,6 +225,29 @@ const pushDataLayer = (payload) => {
   window.dataLayer.push(payload);
   return true;
 };
+
+// GTM can fan a dataLayer event out to any configured vendor. Keep direct
+// identity and learner-authored content out of that shared bus even when a
+// future call site accidentally includes it in an event payload.
+const ANALYTICS_SENSITIVE_KEYS = new Set([
+  'email',
+  'user_id',
+  'full_name',
+  'first_name',
+  'last_name',
+  'name',
+  'session_id',
+  'transcript',
+  'answer',
+  'answers',
+  'essay',
+  'response',
+]);
+
+const sanitizeAnalyticsPayload = (payload = {}) =>
+  Object.fromEntries(
+    Object.entries(payload).filter(([key]) => !ANALYTICS_SENSITIVE_KEYS.has(key.toLowerCase()))
+  );
 
 const normalizeCurrency = (value) => (value || 'USD').toUpperCase();
 
@@ -246,43 +290,56 @@ const sendToConversionsApi = (pixelEvent, { eventId, value, currency, payload })
   if (!isBrowser() || !CAPI_EVENTS.has(pixelEvent)) return;
   if (!measurementEnabled()) return;
 
-  const body = JSON.stringify({
-    event_name: pixelEvent,
-    event_id: String(eventId),
-    event_source_url: window.location.href,
-    fbp: getFbp(),
-    fbc: getFbc(),
-    ...(value !== undefined ? { value } : {}),
-    ...(isValuePixelEvent(pixelEvent) ? { currency } : {}),
-    ...(isCommercePixelEvent(pixelEvent)
-      ? {
-          content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
-          content_name: payload.plan_tier || payload.plan_name || 'subscription',
-          content_type: 'product',
-          num_items: 1,
-        }
-      : {}),
-    user: {
-      email: payload.email || null,
-      external_id: payload.user_id || null,
-    },
-  });
+  const dispatch = ({ em, externalId } = {}) => {
+    const body = JSON.stringify({
+      event_name: pixelEvent,
+      event_id: String(eventId),
+      event_source_url: window.location.href,
+      fbp: getFbp(),
+      fbc: getFbc(),
+      ...(value !== undefined ? { value } : {}),
+      ...(isValuePixelEvent(pixelEvent) ? { currency } : {}),
+      ...(isCommercePixelEvent(pixelEvent)
+        ? {
+            content_ids: payload.plan_tier ? [String(payload.plan_tier)] : undefined,
+            content_name: payload.plan_tier || payload.plan_name || 'subscription',
+            content_type: 'product',
+            num_items: 1,
+          }
+        : {}),
+      user: {
+        ...(em && SHA256_HEX.test(em) ? { em } : {}),
+        ...(externalId && SHA256_HEX.test(externalId) ? { external_id: externalId } : {}),
+      },
+    });
 
-  // keepalive lets the request survive the navigation that often follows a
-  // conversion (checkout redirect, post-signup route change).
-  try {
-    window
-      .fetch(CAPI_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-        keepalive: true,
-        credentials: 'same-origin',
-      })
-      ?.catch?.(() => {});
-  } catch {
-    /* measurement must never surface an error to the user */
+    // keepalive lets the request survive the navigation that often follows a
+    // conversion (checkout redirect, post-signup route change).
+    try {
+      window
+        .fetch(CAPI_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          keepalive: true,
+          credentials: 'same-origin',
+        })
+        ?.catch?.(() => {});
+    } catch {
+      /* measurement must never surface an error to the user */
+    }
+  };
+
+  // Preserve the synchronous dispatch for the common case. Identity-bearing
+  // signup events wait only for Web Crypto, never falling back to plaintext.
+  if (!payload.email && !payload.user_id) {
+    dispatch();
+    return;
   }
+
+  void Promise.all([hashMetaIdentifier(payload.email), hashMetaIdentifier(payload.user_id)]).then(
+    ([em, externalId]) => dispatch({ em, externalId })
+  );
 };
 
 /** Shared by Purchase and its Subscribe companion — same commerce parameter shape. */
@@ -379,7 +436,8 @@ export const trackAppEvent = (eventName, payload = {}) => {
     eventId,
   });
 
-  pushDataLayer({ event: eventName, ...enrichedPayload });
+  const sanitizedPayload = sanitizeAnalyticsPayload(enrichedPayload);
+  pushDataLayer({ event: eventName, ...sanitizedPayload });
 
   if (purchaseMarker) writeStorage(purchaseMarker, '1');
 
@@ -394,7 +452,7 @@ export const trackAppEvent = (eventName, payload = {}) => {
   const dispatchToMeta = (targetPixelEvent) => {
     // Server-side delivery is independent of the Pixel: it must still fire
     // when fbevents.js is blocked or has not loaded yet.
-    sendToConversionsApi(targetPixelEvent, {
+    void sendToConversionsApi(targetPixelEvent, {
       eventId,
       value: normalizedValue,
       currency: normalizedCurrency,
@@ -431,7 +489,7 @@ export const trackAppEvent = (eventName, payload = {}) => {
       'track',
       targetPixelEvent,
       {
-        ...payload,
+        ...sanitizeAnalyticsPayload(payload),
         ...(normalizedValue !== undefined ? { value: normalizedValue } : {}),
         ...(isValuePixelEvent(targetPixelEvent) ? { currency: normalizedCurrency } : {}),
         fbc: getFbc(),
@@ -486,27 +544,50 @@ export const trackSignupCompleted = ({
 };
 
 export const pushUserIdentity = (profile) => {
-  if (!isBrowser() || !profile) return;
-  void identifyProductUser(profile);
-  pushDataLayer({
-    event: 'user_identified',
-    user_id: profile.id || null,
-    is_authenticated: true,
-    subscription_tier: profile.subscription_tier || 'free',
-    is_admin: profile.role === 'admin' || false,
-  });
+  if (!isBrowser() || !profile) return Promise.resolve();
+  void identifyProductUser(profile).catch(() => {});
 
+  // Identity goes to the product-analytics SDK through its own allowlist. If
+  // GTM or the browser Pixel is present too, only stable SHA-256 identifiers
+  // cross those boundaries; plaintext email, names, and account IDs never do.
+  const dataLayerPromise = hashMetaIdentifier(profile.id)
+    .then((userIdHash) => {
+      pushDataLayer({
+        event: 'user_identified',
+        ...(userIdHash ? { user_id_hash: userIdHash } : {}),
+        is_authenticated: true,
+        subscription_tier: profile.subscription_tier || 'free',
+        is_admin: profile.role === 'admin' || false,
+      });
+    })
+    .catch(() => {});
+
+  let pixelPromise = Promise.resolve();
   if (typeof window.fbq === 'function') {
-    const userData = {};
-    if (profile.email) userData.em = profile.email.toLowerCase().trim();
-    if (profile.full_name) {
-      const names = profile.full_name.trim().split(/\s+/);
-      userData.fn = names[0].toLowerCase();
-      if (names.length > 1) userData.ln = names.slice(1).join(' ').toLowerCase();
-    }
-    userData.external_id = profile.id;
+    const names =
+      typeof profile.full_name === 'string' ? profile.full_name.trim().split(/\s+/) : [];
+    pixelPromise = Promise.all([
+      hashMetaIdentifier(profile.email),
+      hashMetaIdentifier(names[0]),
+      hashMetaIdentifier(names.length > 1 ? names.slice(1).join(' ') : null),
+      hashMetaIdentifier(profile.id),
+    ])
+      .then(([em, firstName, lastName, externalId]) => {
+        const userData = {
+          ...(em ? { em } : {}),
+          ...(firstName ? { fn: firstName } : {}),
+          ...(lastName ? { ln: lastName } : {}),
+          ...(externalId ? { external_id: externalId } : {}),
+        };
 
-    // Re-init with Advanced Matching data
-    window.fbq('init', TRACKING_IDS.pixelId, userData);
+        // Re-init with Advanced Matching data, using Meta's normalized hashes.
+        window.fbq('init', TRACKING_IDS.pixelId, userData);
+      })
+      .catch(() => {});
   }
+
+  // Callers that immediately report a signup can await this short-lived
+  // browser hashing step, ensuring the Pixel's advanced-matching init lands
+  // before CompleteRegistration without ever making analytics load-bearing.
+  return Promise.all([dataLayerPromise, pixelPromise]).then(() => undefined);
 };

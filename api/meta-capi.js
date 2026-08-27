@@ -1,5 +1,4 @@
 import { Buffer } from 'node:buffer';
-import crypto from 'node:crypto';
 import process from 'node:process';
 
 /**
@@ -80,8 +79,9 @@ const COMMERCE_EVENTS = new Set(['InitiateCheckout', 'Purchase', 'Subscribe']);
 const VALUE_EVENTS = new Set(['CompleteRegistration', 'InitiateCheckout', 'Purchase', 'Subscribe']);
 const COMMERCE_CURRENCIES = new Set(['USD', 'BDT']);
 
-const sha256 = (value) =>
-  crypto.createHash('sha256').update(String(value).trim().toLowerCase()).digest('hex');
+const SHA256_HEX = /^[a-f0-9]{64}$/;
+
+const isSha256 = (value) => typeof value === 'string' && SHA256_HEX.test(value);
 
 const clientIpFrom = (req) => {
   const forwarded = req.headers['x-forwarded-for'];
@@ -112,12 +112,11 @@ const buildUserData = (body, req) => {
   // The click id is what actually ties a conversion back to a specific ad.
   if (body.fbc) userData.fbc = body.fbc;
 
-  // Meta requires these identifiers to arrive pre-hashed.
-  const email = body.user?.email;
-  if (email) userData.em = [sha256(email)];
-
-  const externalId = body.user?.external_id;
-  if (externalId) userData.external_id = [sha256(externalId)];
+  // Browser code canonicalizes and hashes before this request crosses the
+  // serverless boundary. Passing hashes through prevents raw identity values
+  // from reaching request logging while preserving Meta's required payload.
+  if (body.user?.em) userData.em = [body.user.em];
+  if (body.user?.external_id) userData.external_id = [body.user.external_id];
 
   return userData;
 };
@@ -169,6 +168,16 @@ export default async function handler(req, res) {
     // Without a shared id the browser and server events cannot be deduplicated,
     // which would inflate reported conversions.
     return res.status(400).json({ error: 'event_id is required for deduplication' });
+  }
+
+  const user = body.user;
+  if (
+    user &&
+    (Object.hasOwn(user, 'email') ||
+      (user.em !== undefined && !isSha256(user.em)) ||
+      (user.external_id !== undefined && !isSha256(user.external_id)))
+  ) {
+    return res.status(400).json({ error: 'user identifiers must be pre-hashed SHA-256 values' });
   }
 
   const isCommerceEvent = COMMERCE_EVENTS.has(eventName);

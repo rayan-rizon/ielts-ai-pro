@@ -150,8 +150,9 @@ describe('Admin Marketing Hub contracts', () => {
   });
 
   it('keeps error notifications readable in the resolved app theme', () => {
-    expect(toaster).toContain("const { resolvedTheme = 'light' } = useTheme()");
-    expect(toaster).toContain('theme={resolvedTheme}');
+    expect(toaster).toContain("import { useTheme } from '@/components/theme-provider'");
+    expect(toaster).toContain("const { theme = 'light' } = useTheme()");
+    expect(toaster).toContain('theme={theme}');
     expect(toaster).toContain('!bg-white');
     expect(toaster).toContain('dark:!bg-[#18171d]');
   });

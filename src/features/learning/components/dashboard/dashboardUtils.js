@@ -422,6 +422,12 @@ const compareRankedTasks = (left, right) =>
  *
  * Returned tasks are synthetic — they carry no `activity_key` and are never
  * persisted or ticked off. They only route the learner to the right practice.
+ *
+ * @param {{
+ *   readiness?: { missing_diagnostics?: string[]; modules?: Record<string, unknown> };
+ *   evidence?: { measured_priorities?: Array<{ skill_code?: string; module?: string; mastery?: number; observations?: number }> };
+ *   targetBand?: number;
+ * }} [options]
  */
 export function buildFallbackTask({ readiness, evidence, targetBand = 7 } = {}) {
   return (

@@ -85,9 +85,9 @@ export default [
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
-  // Add Node.js globals for test files (Playwright uses process.env)
+  // Test infrastructure reads Node APIs even when unit tests live under src/.
   {
-    files: ['tests/**/*.{js,jsx}'],
+    files: ['tests/**/*.{js,jsx}', 'src/__tests__/**/*.{js,jsx}'],
     languageOptions: {
       globals: {
         ...globals.node,

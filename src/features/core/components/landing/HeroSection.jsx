@@ -21,7 +21,12 @@ import {
   Bar,
 } from '@/features/dashboard/components/primitives';
 
-const highPriorityImageProps = { fetchpriority: 'high' };
+// Reserve the browser's highest image-priority lane for the likely LCP image.
+// The small learner portraits still load eagerly, but do not compete with the
+// main hero artwork for bandwidth.
+// React 18 forwards the HTML-standard lowercase attribute without a development
+// warning; React support for the camel-cased prop arrived later.
+const heroImagePriorityProps = { fetchpriority: 'high' };
 
 function FloatingCard({ className, delay = 0, children, label }) {
   return (
@@ -176,7 +181,7 @@ function StudentVisual() {
             height="900"
             loading="eager"
             decoding="async"
-            {...highPriorityImageProps}
+            {...heroImagePriorityProps}
             data-oid="hero-student-img"
           />
         </picture>
@@ -211,7 +216,6 @@ function LearnerProof() {
                 className="h-10 w-10 rounded-full border-2 border-white bg-slate-100 object-cover shadow-sm dark:border-slate-900 ring-1 ring-slate-900/5 transform-gpu transition-all duration-200 hover:scale-110 hover:z-20 cursor-pointer"
                 loading="eager"
                 decoding="async"
-                {...highPriorityImageProps}
               />
             ))}
           </div>

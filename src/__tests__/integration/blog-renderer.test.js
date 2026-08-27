@@ -67,6 +67,16 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('type="application/rss+xml"');
     expect(response.body).toContain('1.2K reads');
     expect(response.body).toContain('class="site-footer"');
+    expect(response.body).toContain('class="brand-light" width="300" height="72"');
+    expect(response.body).toContain(
+      'src="/ielts-hero-student.webp" alt="IELTS learner studying with a laptop and notebook" width="1200" height="900" loading="eager" decoding="async" fetchpriority="high"'
+    );
+    expect(response.body).toContain(
+      '<a class="footer-email" href="mailto:mail@ieltsai.pro"><span aria-hidden="true"><svg'
+    );
+    expect(response.body).toContain(
+      'class="footer-socials"><a href="https://www.facebook.com/ieltsaipro" aria-label="Follow us on Facebook"><svg'
+    );
     expect(response.body).toContain('class="category-tabs"');
     expect(response.body).toContain('IELTS tips for higher band scores');
     expect(response.body).toContain('Latest IELTS guidance');
@@ -215,6 +225,9 @@ describe('server-rendered IELTS blog', () => {
     // Deeper archive pages are navigation aids, not thin search landing pages.
     expect(rendered[1]).toContain('<meta name="robots" content="noindex, follow">');
     expect(rendered[3]).toContain('<meta name="robots" content="noindex, follow">');
+    expect(rendered[1]).toContain('<use href="#icon-chevron-left"/>');
+    expect(rendered[1]).toContain('<use href="#icon-chevron-right"/>');
+    expect(descriptions[1].length).toBeGreaterThanOrEqual(120);
     expect(rendered[0]).not.toContain('rel="nofollow"');
     // Blocked routes must not receive internal links from a crawlable page.
     for (const blocked of ['/analytics', '/pricing', '/resources', '/vocabulary']) {
@@ -270,6 +283,9 @@ describe('server-rendered IELTS blog', () => {
       '"citation":["https://ielts.org/take-a-test/test-types/ielts-academic-test"]'
     );
     expect(response.body).toContain('"url":"https://www.ieltsai.pro/about"');
+    expect(response.body).toContain('"url":"https://www.ieltsai.pro/apple-touch-icon.png"');
+    expect(response.body).toContain('"width":180');
+    expect(response.body).toContain('"height":180');
     expect(response.body).toContain('Use evidence');
     expect(response.body).not.toContain('<script>alert(1)</script>');
     expect(response.body).toContain('href="/cambridge-ielts-practice-tests#reading"');
@@ -310,9 +326,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('aria-expanded');
     expect(BLOG_CSS).toContain('html.dark .article table');
     expect(response.body).not.toContain('Turn the strategy into a score');
-    expect(response.body).toContain(
-      '<title>IELTS Reading Strategy | IELTS Guide | IELTS Ai Pro</title>'
-    );
+    expect(response.body).toContain('<title>IELTS Reading Strategy | IELTS Ai Pro</title>');
   });
 
   it('keeps the article title distinct from its H1 and repairs audited legacy citations', async () => {
@@ -333,7 +347,7 @@ describe('server-rendered IELTS blog', () => {
     const title = response.body.match(/<title>(.*?)<\/title>/)?.[1];
     const h1 = response.body.match(/<h1>(.*?)<\/h1>/)?.[1];
     expect(title).not.toBe(h1);
-    expect(title).toContain('IELTS Guide | IELTS Ai Pro');
+    expect(title).toContain('IELTS Ai Pro');
     expect(response.body).toContain(
       'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing'
     );
@@ -366,8 +380,41 @@ describe('server-rendered IELTS blog', () => {
 
     expect(response.statusCode).toBe(200);
     const title = response.body.match(/<title>(.*?)<\/title>/)?.[1] || '';
-    expect(title).toContain('IELTS Guide | IELTS Ai Pro');
+    expect(title).toContain('IELTS Ai Pro');
     expect(title).not.toBe(longTitleArticle.title);
+  });
+
+  it('keeps title tags unique when articles share their opening words', async () => {
+    const similarlyNamedArticles = [
+      'Improve Your IELTS Writing Band: 8-Week Plan to Band 7+',
+      'Improve Your IELTS Writing Score by One Full Band',
+      'IELTS vs TOEFL for US admission: which test is easier?',
+      'IELTS vs TOEFL for US Universities: An Australian Guide',
+      'IELTS Writing Task 2 Examples: When You Need One',
+      'IELTS Writing Task 2 Off-Topic? Use the Prompt-Lock Check',
+    ].map((title, index) => ({ ...article, id: `title-${index}`, slug: `title-${index}`, title }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url) => {
+        const slug = new URL(url).searchParams.get('slug')?.replace(/^eq\./, '');
+        return Promise.resolve({
+          ok: true,
+          json: async () =>
+            slug
+              ? similarlyNamedArticles.filter((post) => post.slug === slug)
+              : similarlyNamedArticles,
+        });
+      })
+    );
+
+    const titles = [];
+    for (const post of similarlyNamedArticles) {
+      const response = createResponse();
+      await blogHandler({ query: { slug: post.slug } }, response);
+      titles.push(response.body.match(/<title>(.*?)<\/title>/)?.[1]);
+    }
+
+    expect(new Set(titles).size).toBe(similarlyNamedArticles.length);
   });
 
   it('provides descriptive cover alt text for each new daily guide', () => {

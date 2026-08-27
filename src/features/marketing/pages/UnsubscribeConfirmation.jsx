@@ -5,6 +5,7 @@ import { m } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Loader2, TriangleAlert, Undo2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Logo } from '@/components/shared/Logo';
+import { requirePublicEnv } from '@/lib/publicEnv';
 
 /**
  * Landing page for the unsubscribe link in every marketing email.
@@ -51,7 +52,7 @@ const STATES = {
   },
 };
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 
 export default function UnsubscribeConfirmation() {
   const [searchParams] = useSearchParams();
