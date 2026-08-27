@@ -111,3 +111,43 @@ flowchart TD
    - **2 remain to be sealed in database migrations** (`public.questions` answer disclosure and `start_grammar_attempt` concurrency lock).
 2. **All core frontend state and autosave concurrency loops are verified resolved.**
 3. **No regressions were introduced in the latest hardening commit (`6b8b76a`).**
+
+---
+
+## 2026-08-27 Reconciliation and Remediation Addendum
+
+This addendum supersedes the status labels above where they disagree. It was
+based on a fresh 113-page production crawl, current source inspection, live
+Supabase policy/function metadata, and focused regression tests.
+
+| Area                                                    | Current classification                       | Outcome                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AI-01 to AI-05, DB-01 to DB-03, FE-01 to FE-05, PERF-01 | Already fixed                                | Confirmed as implemented; no duplicate change made.                                                                                                                                                                                                                                                           |
+| AI-06                                                   | Partially mitigated, not a proven incident   | The upload has a content-length/signature limit, but `request.formData()` still buffers multipart input. Direct-to-object-storage upload is a separate product/API design, not a safe one-line change.                                                                                                        |
+| AI-07                                                   | Real                                         | Fixed: transcription and TTS now log provider details only server-side and return stable learner-safe errors while preserving the TTS browser-voice fallback.                                                                                                                                                 |
+| AI-08                                                   | Real                                         | Fixed in code: the trusted deployment host, required same-origin HTTPS request, and matching source URL now gate delivery. Global abuse throttling remains a Vercel Firewall/shared-rate-limit configuration requirement; an in-memory serverless limiter would not be reliable.                              |
+| DB-04                                                   | Real                                         | Still requires an additive migration that replaces the exact _live_ RPC body with an advisory lock. The local and remote migration histories are divergent, so applying the repository definition would risk overwriting newer production logic.                                                              |
+| DB-05 and DB-06                                         | Real                                         | Not a UI-only issue: active mock/exam data includes answer keys and the client computes/persists scores. A complete fix requires server-authoritative question delivery, scoring, and narrow progress RPCs. Practice review can remain after completion; mock/exam must never receive or persist review keys. |
+| DB-07                                                   | Stale                                        | Live function metadata showed no `SECURITY DEFINER` function without an explicit `search_path`; no unsafe bulk rewrite was made.                                                                                                                                                                              |
+| DB-08                                                   | Stale/unapplied-schema claim                 | Live `grammar_attempts` already has the relevant user indexes and `vocabulary_review_events` is not present in the live schema.                                                                                                                                                                               |
+| FE-06, PERF-04                                          | Real                                         | Fixed: dictionary requests are aborted/superseded and timers cleared; temporary audio elements clear handlers, source, and timeout on every settled path.                                                                                                                                                     |
+| FE-07 and FE-08                                         | Intentional/low-risk architecture            | The manual state and navigation mechanisms have invalidation/guard logic. They were not demonstrated as a current correctness or performance defect.                                                                                                                                                          |
+| PERF-02                                                 | Real                                         | Fixed: unused runtime packages were removed; script/build-only `dotenv` and `rollup` are development dependencies. `npm audit` reports zero vulnerabilities.                                                                                                                                                  |
+| PERF-03 and PERF-05                                     | Real                                         | Fixed: password-reset screens now use Learner Panel primitives with no legacy glass/blur treatment, and the promo dialog has a viewport-bounded scroll container.                                                                                                                                             |
+| Fresh crawl: broken legacy blog reference               | Real                                         | Fixed at render time and with a new immutable migration for persisted content. The stale internal target now uses the official IELTS writing-format reference.                                                                                                                                                |
+| Fresh crawl: 748 KB shared CSS                          | Real, but not safely solved by scanner scope | Tailwind source scoping was measured and only reduced output by ~1.4 KB. Meaningful reduction needs route-level style architecture/component-class consolidation; it remains a tracked performance task rather than a misleading cosmetic change.                                                             |
+
+### Verification performed
+
+- `npm run lint -- --quiet` — passed.
+- Focused API, renderer, and promo tests — 37 passed.
+- Production build — passed.
+- `npm audit` — 0 vulnerabilities.
+- Live crawl — 113 production pages scanned before changes; the fixed source requires a normal production deployment for a new public crawl.
+
+### Production safety boundary
+
+No database migration or deployment was applied by this addendum. The production
+database must first have its migration history reconciled with the repository;
+then the new blog migration and any future server-authoritative exam migration
+can be applied safely.

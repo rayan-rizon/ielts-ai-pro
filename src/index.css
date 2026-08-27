@@ -1,4 +1,11 @@
-@import 'tailwindcss';
+/*
+ * Do not let Tailwind's automatic scanner read audit reports, generated output,
+ * or tooling files. Those strings become unused utility rules in the public
+ * stylesheet. The app only renders classes from the Vite entry point and src.
+ */
+@import 'tailwindcss' source(none);
+@source '../index.html';
+@source './**/*.{js,jsx,ts,tsx}';
 
 @plugin 'tailwindcss-animate';
 @plugin '@tailwindcss/typography';

@@ -86,7 +86,11 @@ describe('POST /api/meta-capi host gate', () => {
 
   const post = (body, headers = {}) =>
     capiHandler(
-      { method: 'POST', headers: { host: 'www.ieltsai.pro', ...headers }, body },
+      {
+        method: 'POST',
+        headers: { host: 'www.ieltsai.pro', origin: 'https://www.ieltsai.pro', ...headers },
+        body,
+      },
       makeRes()
     );
 
@@ -97,21 +101,41 @@ describe('POST /api/meta-capi host gate', () => {
     expect(res.statusCode).toBe(202);
   });
 
-  it('drops localhost events instead of writing them to the dataset', async () => {
+  it('rejects a caller-supplied URL from a different host', async () => {
     const res = await post({ ...validEvent, event_source_url: 'http://localhost:5173/signup' });
 
     expect(globalThis.fetch).not.toHaveBeenCalled();
-    expect(res.statusCode).toBe(204);
+    expect(res.statusCode).toBe(400);
   });
 
-  it('drops preview-deployment events', async () => {
+  it('rejects a caller-supplied preview URL', async () => {
     const res = await post({
       ...validEvent,
       event_source_url: 'https://ielts-ai-pro-git-branch.vercel.app/',
     });
 
     expect(globalThis.fetch).not.toHaveBeenCalled();
-    expect(res.statusCode).toBe(204);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('rejects a cross-origin request even when its body claims a production URL', async () => {
+    const res = await post(
+      { ...validEvent, event_source_url: 'https://www.ieltsai.pro/signup' },
+      { origin: 'https://attacker.example' }
+    );
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('rejects requests without a browser origin', async () => {
+    const res = await post(
+      { ...validEvent, event_source_url: 'https://www.ieltsai.pro/signup' },
+      { origin: undefined }
+    );
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(403);
   });
 
   it('falls back to the request host when no source url is supplied', async () => {
@@ -141,7 +165,14 @@ describe('POST /api/meta-capi Subscribe event', () => {
   });
 
   const post = (body) =>
-    capiHandler({ method: 'POST', headers: { host: 'www.ieltsai.pro' }, body }, makeRes());
+    capiHandler(
+      {
+        method: 'POST',
+        headers: { host: 'www.ieltsai.pro', origin: 'https://www.ieltsai.pro' },
+        body,
+      },
+      makeRes()
+    );
 
   it('accepts and forwards Subscribe with a valid value and currency', async () => {
     const res = await post({

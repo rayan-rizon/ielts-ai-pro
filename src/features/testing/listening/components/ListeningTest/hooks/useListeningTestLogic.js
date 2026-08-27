@@ -29,18 +29,30 @@ import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
 function loadAudioDuration(src) {
   return new Promise((resolve, reject) => {
     const audio = new Audio();
-    const timeout = window.setTimeout(() => {
-      audio.src = '';
-      reject(new Error(`Audio metadata timed out: ${src}`));
-    }, 15_000);
+    let settled = false;
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      audio.onloadedmetadata = null;
+      audio.onerror = null;
+      audio.removeAttribute('src');
+      audio.load();
+    };
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      callback();
+    };
+    const timeout = window.setTimeout(
+      () => finish(() => reject(new Error(`Audio metadata timed out: ${src}`))),
+      15_000
+    );
     audio.preload = 'metadata';
     audio.onloadedmetadata = () => {
-      window.clearTimeout(timeout);
-      resolve(Math.ceil(audio.duration));
+      finish(() => resolve(Math.ceil(audio.duration)));
     };
     audio.onerror = () => {
-      window.clearTimeout(timeout);
-      reject(new Error(`Unable to load audio metadata: ${src}`));
+      finish(() => reject(new Error(`Unable to load audio metadata: ${src}`)));
     };
     audio.src = src;
   });

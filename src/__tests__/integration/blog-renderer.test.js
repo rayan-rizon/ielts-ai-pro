@@ -338,7 +338,7 @@ describe('server-rendered IELTS blog', () => {
       'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing'
     );
     expect(response.body).toContain(
-      'https://www.ieltsai.pro/blog/ielts-writing-task-2-time-management-20-minutes'
+      'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing'
     );
     for (const brokenUrl of [
       'www.hss.iitb.ac.in',

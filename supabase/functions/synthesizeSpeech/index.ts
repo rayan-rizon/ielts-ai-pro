@@ -103,13 +103,13 @@ async function callGoogleTTS(
     if (!response.ok) {
       const errText = await response.text();
       console.error(`Google TTS API error ${response.status}:`, errText);
-      return { error: `[HTTP ${response.status}] ${errText}` };
+      return { error: 'Speech service is temporarily unavailable.' };
     }
 
     const data = await response.json();
     const audioContent: string = data.audioContent;
     if (!audioContent) {
-      return { error: 'API returned no audioContent in response' };
+      return { error: 'Speech service is temporarily unavailable.' };
     }
 
     // Decode base64 to binary
@@ -120,7 +120,8 @@ async function callGoogleTTS(
     }
     return { buffer: bytes.buffer, base64: audioContent };
   } catch (err: any) {
-    return { error: `Fetch exception: ${err.message}` };
+    console.error('[TTS] Google request failed:', err);
+    return { error: 'Speech service is temporarily unavailable.' };
   }
 }
 
@@ -229,7 +230,7 @@ serve(async (req: Request) => {
         JSON.stringify({
           success: false,
           fallback: true,
-          error: 'TTS API key not configured. Did you set the secret?',
+          error: 'Speech service is temporarily unavailable.',
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -306,7 +307,7 @@ serve(async (req: Request) => {
         JSON.stringify({
           success: false,
           fallback: true,
-          error: ttsError || 'TTS API call failed',
+          error: ttsError || 'Speech service is temporarily unavailable.',
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -375,9 +376,13 @@ serve(async (req: Request) => {
       );
     }
     // Always respond 200 with fallback flag — never block the speaking test
-    return new Response(JSON.stringify({ success: false, fallback: true, error: error.message }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        fallback: true,
+        error: 'Speech service is temporarily unavailable.',
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 });

@@ -363,7 +363,10 @@ serve(async (req: Request) => {
     const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({
-        error: error.message || 'Internal server error',
+        // Upstream provider messages can contain implementation and quota
+        // details. Keep them in the server log above, but never return them
+        // to a learner.
+        error: 'We could not transcribe this audio. Please try again.',
         success: false,
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

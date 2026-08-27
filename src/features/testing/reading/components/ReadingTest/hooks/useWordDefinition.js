@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { UserPoints } from '@/features/gamification/services/UserPoints';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 
@@ -7,8 +7,32 @@ const definitionCache = new Map();
 
 export const useWordDefinition = (user, testData, currentPassageIndex) => {
   const [wordDefinition, setWordDefinition] = useState(null);
+  const requestControllerRef = useRef(null);
+  const clearTimerRef = useRef(null);
+  const requestIdRef = useRef(0);
+
+  const clearFeedbackLater = useCallback(() => {
+    if (clearTimerRef.current) window.clearTimeout(clearTimerRef.current);
+    clearTimerRef.current = window.setTimeout(() => {
+      clearTimerRef.current = null;
+      setWordDefinition(null);
+    }, 2000);
+  }, []);
+
+  useEffect(
+    () => () => {
+      requestControllerRef.current?.abort();
+      if (clearTimerRef.current) window.clearTimeout(clearTimerRef.current);
+    },
+    []
+  );
 
   const fetchWordDefinition = useCallback(async (word) => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+    const requestId = ++requestIdRef.current;
+
     try {
       // Clean the word (remove punctuation)
       const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
@@ -21,7 +45,9 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
         return;
       }
 
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
+      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`, {
+        signal: controller.signal,
+      });
 
       if (!response.ok) {
         throw new Error('Word not found');
@@ -49,11 +75,9 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
       // Store in cache
       definitionCache.set(cleanWord, result);
 
-      setWordDefinition((prev) => ({
-        ...prev,
-        ...result,
-      }));
+      if (requestId === requestIdRef.current) setWordDefinition((prev) => ({ ...prev, ...result }));
     } catch (err) {
+      if (err.name === 'AbortError' || requestId !== requestIdRef.current) return;
       console.warn('Error fetching definition:', err);
       setWordDefinition((prev) => ({
         ...prev,
@@ -85,9 +109,7 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
             addedToVocab: false,
             vocabError: false,
           }));
-          setTimeout(() => {
-            setWordDefinition(null);
-          }, 2000);
+          clearFeedbackLater();
           return;
         }
 
@@ -128,9 +150,7 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
           }
         }
 
-        setTimeout(() => {
-          setWordDefinition(null);
-        }, 2000);
+        clearFeedbackLater();
       } catch (error) {
         console.error('Error adding word to vocabulary:', error);
         setWordDefinition((prev) => ({
@@ -142,7 +162,7 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
         }));
       }
     },
-    [user, testData, currentPassageIndex]
+    [user, testData, currentPassageIndex, clearFeedbackLater]
   );
 
   return {

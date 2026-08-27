@@ -46,18 +46,34 @@ const ALLOWED_EVENTS = new Set([
  */
 const MEASURED_HOSTS = new Set(['ieltsai.pro', 'www.ieltsai.pro']);
 
-const requestHost = (req, body) => {
-  const sourceUrl = body?.event_source_url;
-  if (typeof sourceUrl === 'string' && sourceUrl.length > 0) {
-    try {
-      return new URL(sourceUrl).hostname;
-    } catch {
-      /* fall through to the request headers */
-    }
-  }
+const requestHost = (req) => {
+  // The Vercel proxy owns these headers. The event body is an untrusted browser
+  // payload and must never decide which site can send measurement events.
   const forwarded = req.headers['x-forwarded-host'] || req.headers.host;
   if (typeof forwarded !== 'string') return null;
   return forwarded.split(',')[0].trim().split(':')[0];
+};
+
+const trustedEventSourceUrl = (value, host) => {
+  if (typeof value !== 'string' || value.length === 0) return `https://${host}/`;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.host !== host) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
+
+const hasTrustedOrigin = (req, host) => {
+  const origin = req.headers.origin;
+  if (typeof origin !== 'string' || origin.length === 0) return false;
+  try {
+    const url = new URL(origin);
+    return url.protocol === 'https:' && url.host === host;
+  } catch {
+    return false;
+  }
 };
 
 const COMMERCE_EVENTS = new Set(['InitiateCheckout', 'Purchase', 'Subscribe']);
@@ -130,11 +146,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid JSON body' });
   }
 
-  const host = requestHost(req, body);
+  const host = requestHost(req);
   if (!MEASURED_HOSTS.has(host)) {
     // Not an error the caller should retry or surface — the event is simply not
     // real traffic. 204 keeps dev consoles quiet.
     return res.status(204).end();
+  }
+  if (!hasTrustedOrigin(req, host)) {
+    return res.status(403).json({ error: 'Cross-origin measurement requests are not allowed' });
+  }
+  const eventSourceUrl = trustedEventSourceUrl(body.event_source_url, host);
+  if (!eventSourceUrl) {
+    return res.status(400).json({ error: 'event_source_url must be a production HTTPS URL' });
   }
 
   const eventName = body.event_name;
@@ -180,7 +203,7 @@ export default async function handler(req, res) {
         event_name: eventName,
         event_time: Math.floor(Date.now() / 1000),
         event_id: String(body.event_id),
-        event_source_url: body.event_source_url || undefined,
+        event_source_url: eventSourceUrl,
         action_source: 'website',
         user_data: buildUserData(body, req),
         ...(Object.keys(customData).length > 0 ? { custom_data: customData } : {}),

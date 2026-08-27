@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '@/features/auth/services/User';
 import { validateField, emailSchema } from '@/lib/validations';
 import { cn } from '@/lib/cn';
+import { IconChip, MICRO, PANEL, TITLE, WELL } from '@/features/dashboard/components/primitives';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -63,26 +63,9 @@ export default function ForgotPassword() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50 dark:bg-[#0a0a0a] flex items-center justify-center p-4 relative overflow-hidden font-sans"
+      className="min-h-screen bg-[#f7f6fd] dark:bg-[#09090c] flex items-center justify-center p-4 font-sans"
       data-oid="jz59unm"
     >
-      {/* Background Decorative Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" data-oid="p8_wsb-">
-        <div
-          className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]"
-          data-oid="avw1-ly"
-        ></div>
-        <div
-          className="absolute top-[-20%] right-[-10%] w-[70vh] h-[70vh] rounded-full bg-blue-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse"
-          data-oid="t33g.1p"
-        />
-
-        <div
-          className="absolute top-[20%] left-[-10%] w-[50vh] h-[50vh] rounded-full bg-indigo-500/10 blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse delay-1000"
-          data-oid="tp0ov67"
-        />
-      </div>
-
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -92,7 +75,10 @@ export default function ForgotPassword() {
       >
         <Link
           to={createPageUrl('Login')}
-          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors mb-6 group"
+          className={cn(
+            MICRO,
+            'inline-flex items-center gap-2 text-slate-500 hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff] transition-colors mb-4 group'
+          )}
           data-oid="aymn5ah"
         >
           <ArrowLeft
@@ -102,29 +88,32 @@ export default function ForgotPassword() {
           Back to login
         </Link>
 
-        <Card className="glass-card shadow-2xl overflow-hidden" data-oid="1c.krmt">
-          <CardHeader className="text-center pb-6" data-oid="zqnggmu">
+        <section className={cn(PANEL, 'p-6 sm:p-7')} data-oid="1c.krmt">
+          <header className="text-center pb-6" data-oid="zqnggmu">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-600/20"
+              className="mx-auto mb-4"
               data-oid="27uba-v"
             >
-              <Mail className="w-8 h-8 text-white" data-oid="k:pyb28" />
+              <IconChip
+                icon={Mail}
+                tone="accent"
+                size="md"
+                className="h-12 w-12 rounded-xl"
+                data-oid="k:pyb28"
+              />
             </motion.div>
-            <CardTitle
-              className="text-3xl font-black text-slate-900 dark:text-white"
-              data-oid="wb75q7w"
-            >
+            <h1 className={cn(TITLE, 'text-2xl')} data-oid="wb75q7w">
               Forgot Password?
-            </CardTitle>
-            <CardDescription className="text-slate-500 dark:text-slate-400 mt-2" data-oid="0v--19p">
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2" data-oid="0v--19p">
               No worries! Enter your email and we'll send you reset instructions.
-            </CardDescription>
-          </CardHeader>
+            </p>
+          </header>
 
-          <CardContent className="pt-2" data-oid="tu0slua">
+          <div className="pt-2" data-oid="tu0slua">
             <AnimatePresence mode="wait" data-oid="7mdnhqb">
               {success ? (
                 <motion.div
@@ -135,7 +124,10 @@ export default function ForgotPassword() {
                   data-oid="qxu3ixq"
                 >
                   <div
-                    className="bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 p-6 rounded-2xl flex flex-col items-center gap-3"
+                    className={cn(
+                      WELL,
+                      'border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 p-5 rounded-lg flex flex-col items-center gap-3'
+                    )}
                     data-oid="e214025"
                   >
                     <CheckCircle2 className="w-12 h-12" data-oid="7p1lkt7" />
@@ -166,7 +158,7 @@ export default function ForgotPassword() {
                       onClick={handleSubmit}
                       disabled={isLoading}
                       variant="outline"
-                      className="w-full h-11 rounded-xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 font-bold"
+                      className="w-full h-11 rounded-lg border-[#e4e2f0] dark:border-white/10 hover:bg-[#f7f6fd] dark:hover:bg-white/5 font-bold"
                       data-oid="j3mv8ct"
                     >
                       {isLoading ? (
@@ -212,7 +204,7 @@ export default function ForgotPassword() {
                         onChange={handleChange}
                         onBlur={handleBlur}
                         className={cn(
-                          'pl-11 h-12 bg-white/50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:ring-blue-500/20 rounded-xl transition-all',
+                          'pl-11 h-12 bg-white dark:bg-[#131315] border-[#e4e2f0] dark:border-white/10 focus:ring-[#5a63df]/20 rounded-lg transition-all',
                           touched &&
                             fieldError &&
                             'border-destructive focus-visible:ring-destructive'
@@ -242,7 +234,7 @@ export default function ForgotPassword() {
                   <Button
                     type="submit"
                     disabled={isLoading || !email || !!fieldError}
-                    className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="w-full h-12 bg-[#5a63df] hover:bg-[#4c55c9] text-white font-black rounded-lg active:scale-[0.99] transition-colors duration-200"
                     data-oid="3ymnkwf"
                   >
                     {isLoading ? (
@@ -267,8 +259,8 @@ export default function ForgotPassword() {
                 </form>
               )}
             </AnimatePresence>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </motion.div>
     </div>
   );

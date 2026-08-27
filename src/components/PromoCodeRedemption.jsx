@@ -175,7 +175,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
 
       <DialogContent
         hideClose
-        className="p-4 border-0 bg-transparent shadow-none w-full sm:max-w-[400px] overflow-hidden focus-visible:outline-none"
+        className="max-h-[calc(100dvh-2rem)] w-full overflow-y-auto border-0 bg-transparent p-4 shadow-none focus-visible:outline-none sm:max-w-[400px]"
         data-oid="d.jj_fd"
       >
         <motion.div
