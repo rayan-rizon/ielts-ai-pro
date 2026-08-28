@@ -16,6 +16,8 @@ describe('Vercel security-header contract', () => {
       'x-xss-protection': '0',
       'referrer-policy': 'strict-origin-when-cross-origin',
       'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+      'permissions-policy':
+        'camera=(), microphone=(self), geolocation=(), payment=(self "https://js.stripe.com"), display-capture=(), browsing-topics=()',
     });
   });
 
@@ -40,12 +42,16 @@ describe('Vercel security-header contract', () => {
     });
   });
 
-  it('keeps a same-origin CSP with explicit Supabase and payment connections', () => {
+  it('keeps a same-origin CSP with pinned Supabase and payment connections', () => {
     const csp = headerValues['content-security-policy'];
 
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("script-src 'self'");
-    expect(csp).toContain("connect-src 'self' https://*.supabase.co");
+    expect(csp).toContain("connect-src 'self' https://zvrmvycajimjxghrnpgy.supabase.co");
     expect(csp).toContain('https://api.stripe.com');
+    const imageSources = csp.match(/img-src ([^;]+)/)[1];
+
+    expect(imageSources).not.toMatch(/(?:^|\s)https:(?:\s|$)/);
+    expect(csp).not.toContain('https://*.supabase.co');
   });
 });

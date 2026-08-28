@@ -4,10 +4,18 @@ import { z } from 'zod';
  * Authentication validation schemas
  */
 
+// Copy/paste from rich text can add characters that are invisible but not
+// whitespace to JavaScript. Removing them before validation keeps equivalent
+// email input from creating a separate account or failing sign-in.
+const INVISIBLE_EMAIL_CHARACTERS = /[\u200B-\u200D\u2060\uFEFF]/g;
+
+export const normalizeEmailInput = (value: string): string =>
+  value.replace(INVISIBLE_EMAIL_CHARACTERS, '').trim();
+
 export const emailSchema = z
   .string()
-  .min(1, 'Email is required')
-  .email('Please enter a valid email address');
+  .transform(normalizeEmailInput)
+  .pipe(z.string().min(1, 'Email is required').email('Please enter a valid email address'));
 
 export const passwordSchema = z
   .string()

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { signUpSchema } from '@/lib/validations';
+import { emailSchema, signUpSchema } from '@/lib/validations';
 import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
 import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
@@ -266,6 +266,8 @@ export const User = {
       throw new Error('Email and password are required');
     }
 
+    const normalizedEmail = emailSchema.parse(email);
+
     try {
       signUpSchema.shape.password.parse(password);
     } catch (e: any) {
@@ -273,7 +275,7 @@ export const User = {
     }
 
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         data: { full_name: username },
@@ -370,8 +372,10 @@ export const User = {
       throw new Error('Email and password are required');
     }
 
+    const normalizedEmail = emailSchema.parse(email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
     if (error) {

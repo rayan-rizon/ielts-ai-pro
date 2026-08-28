@@ -42,7 +42,10 @@ export default defineConfig({
     },
   },
   build: {
-    sourcemap: 'hidden',
+    // Do not publish production source maps with the static site. Vercel serves
+    // every file in dist/assets publicly, so `hidden` still exposed the maps to
+    // anyone who knew an asset filename.
+    sourcemap: false,
     target: 'esnext',
     cssCodeSplit: true,
     chunkSizeWarningLimit: 1000,

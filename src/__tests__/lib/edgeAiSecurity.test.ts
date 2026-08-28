@@ -4,13 +4,18 @@ import { resolve } from 'node:path';
 import { isAllowedOrigin } from '../../../supabase/functions/_shared/originValidation.ts';
 
 describe('AI edge security controls', () => {
-  it('accepts exact production, preview, and loopback origins', () => {
+  it('accepts exact production and preview origins', () => {
     expect(isAllowedOrigin('https://ieltsai.pro')).toBe(true);
     expect(
       isAllowedOrigin('https://ielts-ai-pro-preview-123-rayan-rizons-projects.vercel.app')
     ).toBe(true);
-    expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
-    expect(isAllowedOrigin('http://127.0.0.1:5174')).toBe(true);
+  });
+
+  it('requires an explicit local-only opt-in before allowing loopback origins', () => {
+    expect(isAllowedOrigin('http://localhost:5173', false)).toBe(false);
+    expect(isAllowedOrigin('http://127.0.0.1:5174', false)).toBe(false);
+    expect(isAllowedOrigin('http://localhost:5173', true)).toBe(true);
+    expect(isAllowedOrigin('http://127.0.0.1:5174', true)).toBe(true);
   });
 
   it('rejects attacker domains containing trusted-looking text', () => {

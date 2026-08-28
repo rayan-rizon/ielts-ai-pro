@@ -27,4 +27,15 @@ describe('landing page stylesheet loading', () => {
     expect(bootstrap).toContain('document.documentElement.classList.add(theme)');
     expect(bootstrap).toContain("window.matchMedia('(prefers-color-scheme: dark)')");
   });
+
+  it('gives the compact theme control an action-specific accessible name', () => {
+    const themeToggle = readFileSync(
+      resolve(process.cwd(), 'src/features/core/components/Sidebar/ThemeToggle.jsx'),
+      'utf8'
+    );
+
+    expect(themeToggle).toContain("const nextTheme = theme === 'dark' ? 'light' : 'dark';");
+    expect(themeToggle).toContain('aria-label={`Switch to ${nextTheme} theme`}');
+    expect(themeToggle).toContain("aria-pressed={theme === 'dark'}");
+  });
 });

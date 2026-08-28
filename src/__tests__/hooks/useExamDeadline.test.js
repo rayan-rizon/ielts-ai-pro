@@ -48,4 +48,31 @@ describe('useExamDeadline', () => {
     vi.advanceTimersByTime(1000);
     expect(onExpire).toHaveBeenCalledTimes(1);
   });
+
+  it('uses elapsed wall-clock time after a delayed background-tab tick', () => {
+    const onTick = vi.fn();
+    const onExpire = vi.fn();
+    const now = new Date('2026-08-29T00:00:00.000Z');
+    vi.setSystemTime(now);
+
+    renderHook(() =>
+      useExamDeadline({
+        session: {
+          id: 'backgrounded-session',
+          test_mode: 'mock',
+          started_at: now.toISOString(),
+        },
+        isFinished: false,
+        durationSeconds: 60,
+        onTick,
+        onExpire,
+      })
+    );
+
+    vi.setSystemTime(new Date(now.getTime() + 5 * 60 * 1000));
+    vi.advanceTimersByTime(1000);
+
+    expect(onTick).toHaveBeenLastCalledWith(0);
+    expect(onExpire).toHaveBeenCalledTimes(1);
+  });
 });

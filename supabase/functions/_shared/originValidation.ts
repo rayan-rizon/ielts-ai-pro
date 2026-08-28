@@ -16,7 +16,16 @@ const ALLOWED_ORIGINS = [
 const VERCEL_PROJECT_ORIGIN =
   /^https:\/\/ielts-ai-pro-[a-z0-9-]+-rayan-rizons-projects\.vercel\.app$/;
 
-export function isAllowedOrigin(origin: string): boolean {
+/**
+ * Hosted functions must never reflect a loopback origin. Local development can
+ * opt in explicitly via ALLOW_LOOPBACK_ORIGINS=true in its local function
+ * environment; this avoids making a deployment-stage assumption from a missing
+ * environment variable.
+ */
+const allowsLoopbackOrigins = () =>
+  typeof Deno !== 'undefined' && Deno.env.get('ALLOW_LOOPBACK_ORIGINS') === 'true';
+
+export function isAllowedOrigin(origin: string, allowLoopback = allowsLoopbackOrigins()): boolean {
   if (!origin) return false;
 
   try {
@@ -25,7 +34,7 @@ export function isAllowedOrigin(origin: string): boolean {
       (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') &&
       parsed.protocol === 'http:';
 
-    if (isLoopback) return true;
+    if (isLoopback) return allowLoopback;
   } catch {
     return false;
   }

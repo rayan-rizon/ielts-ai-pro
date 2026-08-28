@@ -201,6 +201,11 @@ export function useWritingFeedback(awardXP) {
     });
     const requiredCredits = analysisPlan.filter((item) => !item.cached).length;
 
+    // Claim the in-memory mutex before the asynchronous quota preflight. The
+    // database claim below remains the cross-tab/process safeguard, while this
+    // prevents a rapid second click from repeating preflight and save work.
+    analyzingRef.current = true;
+
     // Pre-flight quota check: verify limit BEFORE showing analysis UI
     // This prevents the "AI Analysis In Progress" animation from flashing
     // when the user has already hit their limit.
@@ -232,6 +237,7 @@ export function useWritingFeedback(awardXP) {
           if (requiredCredits > 0 && quota && (quota.allowed === false || !hasEnoughCredits)) {
             store.setFeedbackError(getWritingEvaluationCreditMessage(requiredCredits, quota));
             store.setShowUpgradeDialog(true);
+            analyzingRef.current = false;
             return;
           }
         }
@@ -246,8 +252,6 @@ export function useWritingFeedback(awardXP) {
     }
 
     try {
-      analyzingRef.current = true;
-
       // Ensure content is saved before starting feedback
       console.info('[WritingTest] Starting AI feedback, saving content first...');
       await saveNow();

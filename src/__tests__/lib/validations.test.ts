@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   emailSchema,
+  normalizeEmailInput,
   passwordSchema,
   usernameSchema,
   signInSchema,
@@ -25,6 +26,13 @@ describe('Validation Schemas', () => {
       expect(emailSchema.safeParse('user@').success).toBe(false);
       expect(emailSchema.safeParse('@domain.com').success).toBe(false);
       expect(emailSchema.safeParse('user@domain').success).toBe(false);
+    });
+
+    it('normalizes surrounding whitespace and pasted invisible characters', () => {
+      const value = ' \u200Buser\u2060@example.com\uFEFF ';
+
+      expect(normalizeEmailInput(value)).toBe('user@example.com');
+      expect(emailSchema.parse(value)).toBe('user@example.com');
     });
   });
 
