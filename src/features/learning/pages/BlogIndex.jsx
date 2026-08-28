@@ -472,7 +472,7 @@ function BlogFeaturedCarousel({ featuredArticles }) {
       <button
         type="button"
         onClick={handlePrev}
-        className="absolute left-[-10px] top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-slate-50 dark:bg-[#141319] dark:text-slate-200 dark:hover:bg-slate-800"
+        className="absolute left-2 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-slate-50 md:left-[-10px] dark:bg-[#141319] dark:text-slate-200 dark:hover:bg-slate-800"
         aria-label="Previous featured article"
       >
         <ChevronLeft className="h-4 w-4" />
@@ -480,7 +480,7 @@ function BlogFeaturedCarousel({ featuredArticles }) {
       <button
         type="button"
         onClick={handleNext}
-        className="absolute right-[-10px] top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-slate-50 dark:bg-[#141319] dark:text-slate-200 dark:hover:bg-slate-800"
+        className="absolute right-2 top-1/2 z-30 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:scale-105 hover:bg-slate-50 md:right-[-10px] dark:bg-[#141319] dark:text-slate-200 dark:hover:bg-slate-800"
         aria-label="Next featured article"
       >
         <ChevronRight className="h-4 w-4" />

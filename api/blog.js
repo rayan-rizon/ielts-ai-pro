@@ -663,7 +663,8 @@ function renderIndex(posts, requestQuery = {}) {
     ? filteredPosts.filter((post) => !featuredIds.has(post.id))
     : filteredPosts;
   const totalPages = Math.max(1, Math.ceil(remainingPosts.length / 9));
-  const currentPage = Math.min(requestedPage, totalPages);
+  if (requestedPage > totalPages) return null;
+  const currentPage = requestedPage;
   const featuredArticles = currentPage === 1 ? editorialFeatured : [];
   const viewHref = (pageNumber) => {
     const parts = [];
@@ -960,6 +961,19 @@ function sendNotFound(response) {
   );
 }
 
+function sendIndexPageNotFound(response) {
+  response.status(404).send(
+    layout({
+      title: 'Blog page not found',
+      description: 'That page of IELTS preparation guides is not available.',
+      canonical: `${SITE_URL}/blog`,
+      robots: 'noindex, follow',
+      structuredData: [],
+      body: '<main id="main"><span class="eyebrow">404</span><h1>That page is not in this guide collection.</h1><p class="intro"><a href="/blog">Browse the latest IELTS preparation guides.</a></p></main>',
+    })
+  );
+}
+
 function sendError(response) {
   response.status(503).send(
     layout({
@@ -1008,9 +1022,10 @@ export default async function handler(request, response) {
     ]);
     if (slug && posts.length === 0) return sendNotFound(response);
     const relatedPosts = slug ? allPosts : posts;
-    response
-      .status(200)
-      .send(slug ? renderArticle(posts[0], relatedPosts) : renderIndex(posts, query));
+    if (slug) return response.status(200).send(renderArticle(posts[0], relatedPosts));
+    const index = renderIndex(posts, query);
+    if (index === null) return sendIndexPageNotFound(response);
+    response.status(200).send(index);
   } catch (error) {
     console.error('[blog-render]', error);
     try {

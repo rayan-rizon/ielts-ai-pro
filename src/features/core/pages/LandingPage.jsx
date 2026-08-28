@@ -195,6 +195,8 @@ const getStructuredData = () => ({
       primaryImageOfPage: {
         '@type': 'ImageObject',
         url: 'https://www.ieltsai.pro/og.webp',
+        width: 1731,
+        height: 909,
       },
     },
   ],

@@ -73,6 +73,7 @@ const scheduledEmailsSource = readFileSync(
   resolve(process.cwd(), 'supabase/functions/scheduled-emails/index.ts'),
   'utf8'
 );
+const supabaseConfig = readFileSync(resolve(process.cwd(), 'supabase/config.toml'), 'utf8');
 
 describe('platform health database contracts', () => {
   it('exposes provider routing health without probing or exposing secrets', () => {
@@ -155,6 +156,16 @@ describe('platform health database contracts', () => {
     expect(schedulerMigration).not.toContain("key = 'service_role_key'");
     expect(scheduledEmailsSource).toContain("req.headers.get('X-Scheduler-Secret')");
     expect(scheduledEmailsSource).toContain('requestBody?.healthCheck === true');
+  });
+
+  it('allows the scheduler through the gateway only to the custom Vault-secret check', () => {
+    expect(supabaseConfig).toMatch(/\[functions\.scheduled-emails\]\s*verify_jwt\s*=\s*false/);
+    expect(scheduledEmailsSource).toContain("req.headers.get('X-Scheduler-Secret')");
+    expect(scheduledEmailsSource).toContain("supabase.rpc('verify_scheduled_email_token'");
+    expect(schedulerMigration).toContain(
+      'GRANT EXECUTE ON FUNCTION public.verify_scheduled_email_token(text)\n    TO service_role'
+    );
+    expect(schedulerMigration).not.toContain("'Authorization'");
   });
 
   it('reports a repaired scheduler as pending verification until its first real run', () => {

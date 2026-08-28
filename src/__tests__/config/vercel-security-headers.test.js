@@ -13,8 +13,30 @@ describe('Vercel security-header contract', () => {
     expect(headerValues).toMatchObject({
       'x-content-type-options': 'nosniff',
       'x-frame-options': 'DENY',
+      'x-xss-protection': '0',
       'referrer-policy': 'strict-origin-when-cross-origin',
       'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    });
+  });
+
+  it('keeps crawler directives and cache policy explicit for protected and root static paths', () => {
+    const protectedRoutes = vercelConfig.headers.find((entry) => entry.source.includes('admin/'));
+    const rootStaticAssets = vercelConfig.headers.find((entry) =>
+      entry.source.includes('og\\.webp')
+    );
+
+    expect(protectedRoutes.headers).toContainEqual({
+      key: 'X-Robots-Tag',
+      value: 'noindex, nofollow, noarchive',
+    });
+    expect(rootStaticAssets.headers).toContainEqual({
+      key: 'Cache-Control',
+      value: 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400',
+    });
+    expect(vercelConfig.redirects).toContainEqual({
+      source: '/feed.xml',
+      destination: '/blog/feed.xml',
+      permanent: true,
     });
   });
 

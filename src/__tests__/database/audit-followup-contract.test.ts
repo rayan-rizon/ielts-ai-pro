@@ -63,7 +63,9 @@ describe('2026-08-27 audit follow-up contracts', () => {
   it('uses only session-persisted pronunciation evidence for speaking scores', () => {
     const evaluation = readProjectFile('supabase/functions/evaluateSpeakingTest/index.ts');
 
-    expect(evaluation).toContain(".select('id, passage_id, content_data')");
+    expect(evaluation).toContain(
+      ".select('id, passage_id, content_data, started_at, created_at, evaluation_status')"
+    );
     expect(evaluation).toContain('ownedSession.content_data?.allPartsAcousticMetrics');
     expect(evaluation).not.toMatch(/aggregatePronunciationEvidence\(allPartsPronunciation\)/);
   });

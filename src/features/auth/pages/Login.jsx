@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
@@ -54,6 +54,7 @@ export default function Login() {
     window.location.hash.includes('id_token=')
   );
   const [isLoading, setIsLoading] = useState(false);
+  const emailAuthInFlight = useRef(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -168,6 +169,7 @@ export default function Login() {
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
+    if (emailAuthInFlight.current) return;
     if (lockoutTime && Date.now() < lockoutTime) {
       const remaining = Math.ceil((lockoutTime - Date.now()) / 1000);
       setError(`Too many failed attempts. Please wait ${remaining} seconds.`);
@@ -194,6 +196,7 @@ export default function Login() {
       }
     }
 
+    emailAuthInFlight.current = true;
     setIsLoading(true);
     try {
       if (authMode === 'signin') {
@@ -259,6 +262,7 @@ export default function Login() {
       });
     } finally {
       setIsLoading(false);
+      emailAuthInFlight.current = false;
     }
   };
 

@@ -310,6 +310,13 @@ verify_jwt = true
 [functions.admin-email-stats]
 verify_jwt = true
 
+# This cron endpoint is authenticated by its dedicated, high-entropy Vault
+# secret in X-Scheduler-Secret. Gateway JWT verification must remain off so
+# pg_cron can reach that custom check; the function rejects every request
+# without a valid secret before doing any work.
+[functions.scheduled-emails]
+verify_jwt = false
+
 [functions.marketing-campaign-dispatch]
 verify_jwt = false
 

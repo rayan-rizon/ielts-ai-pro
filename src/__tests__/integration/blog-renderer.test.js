@@ -113,6 +113,19 @@ describe('server-rendered IELTS blog', () => {
     }
   });
 
+  it('returns a branded 404 instead of canonicalising out-of-range archive pages', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [article] }));
+    const response = createResponse();
+
+    await blogHandler({ query: { page: '99999' } }, response);
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toContain('<title>Blog page not found');
+    expect(response.body).toContain('That page is not in this guide collection.');
+    expect(response.body).toContain('<meta name="robots" content="noindex, follow">');
+    expect(response.body).toContain('rel="canonical" href="https://www.ieltsai.pro/blog"');
+  });
+
   it('keeps headings unique and link anchors descriptive for crawlers', async () => {
     const posts = Array.from({ length: 5 }, (_, index) => ({
       ...article,
