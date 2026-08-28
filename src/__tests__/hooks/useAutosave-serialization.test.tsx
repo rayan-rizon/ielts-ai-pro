@@ -72,4 +72,41 @@ describe('autosave serialization', () => {
       await finalFlush;
     });
   });
+
+  it('serializes multiple manual flushes that were queued behind one active save', async () => {
+    let answers = { response: 'first' };
+    const { result } = renderHook(() =>
+      useAutosave({
+        session: { id: 'session-1', content_data: {} },
+        getAnswers: () => answers,
+        isFinished: false,
+      })
+    );
+
+    let first!: Promise<boolean>;
+    let second!: Promise<boolean>;
+    let third!: Promise<boolean>;
+    act(() => {
+      first = result.current.saveNow();
+      second = result.current.saveNow();
+      third = result.current.saveNow();
+    });
+    await waitFor(() => expect(database.payloads).toHaveLength(1));
+
+    answers = { response: 'second' };
+    await act(async () => database.completions.shift()?.());
+    await waitFor(() => expect(database.payloads).toHaveLength(2));
+
+    answers = { response: 'third' };
+    await act(async () => database.completions.shift()?.());
+    await waitFor(() => expect(database.payloads).toHaveLength(3));
+
+    await act(async () => database.completions.shift()?.());
+    await Promise.all([first, second, third]);
+    expect(database.payloads.map((payload) => payload.user_responses)).toEqual([
+      { response: 'first' },
+      { response: 'second' },
+      { response: 'third' },
+    ]);
+  });
 });

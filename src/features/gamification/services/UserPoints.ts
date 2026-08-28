@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import { callEdgeFunction } from '@/utils/api';
 
 export interface UserPointsType {
   id: string;
@@ -11,6 +10,12 @@ export interface UserPointsType {
   updated_at?: string;
   created_at?: string;
   [key: string]: any;
+}
+
+export interface VerifiedPointAward {
+  awarded: boolean;
+  awardedPoints: number;
+  newPoints: number;
 }
 
 export const UserPoints = {
@@ -67,33 +72,6 @@ export const UserPoints = {
     return { data: formattedData, count: count };
   },
 
-  async create(data: Partial<UserPointsType>): Promise<UserPointsType> {
-    const { data: newPoints, error } = await supabase
-      .from('user_points')
-      .insert(data)
-      .select()
-      .single();
-    if (error) throw error;
-    return newPoints as UserPointsType;
-  },
-
-  async update(id: string, data: Partial<UserPointsType>): Promise<UserPointsType> {
-    const { data: updatedPoints, error } = await supabase
-      .from('user_points')
-      .update(data)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    return updatedPoints as UserPointsType;
-  },
-
-  async delete(id: string): Promise<boolean> {
-    const { error } = await supabase.from('user_points').delete().eq('id', id);
-    if (error) throw error;
-    return true;
-  },
-
   async getById(id: string): Promise<UserPointsType> {
     const { data, error } = await supabase.from('user_points').select('*').eq('id', id).single();
     if (error) throw error;
@@ -116,70 +94,28 @@ export const UserPoints = {
     return data as UserPointsType;
   },
 
-  // Get or create user points record
-  async getOrCreate(userId: string): Promise<UserPointsType> {
-    let record = await this.getByUserId(userId);
-    if (!record) {
-      record = await this.create({
-        user_id: userId,
-        points: 0,
-        current_streak: 0,
-        longest_streak: 0,
-        last_activity_date: null,
-      });
-    }
-    return record;
-  },
-
-  // Add points to a user's account (atomic via RPC)
-  // Note: userId is still accepted for getOrCreate/fallback, but the RPC
-  // derives the user from auth.uid() server-side (no client-supplied ID)
+  // The browser may request a verified activity, never a point amount. The
+  // legacy arguments stay temporarily so existing UI callers remain stable.
   async addPoints(
-    userId: string,
-    points: number,
-    reason: string,
-    actionKey: string
-  ): Promise<UserPointsType> {
-    // Ensure the record exists before calling RPC
-    const record = await this.getOrCreate(userId);
-
-    try {
-      await callEdgeFunction('updateUserPoints', {
-        pointsToAdd: points,
-        reason,
-        actionKey,
-      });
-    } catch (awardError) {
-      console.error('Failed to add points via protected award endpoint:', awardError);
-      throw awardError;
-    }
-
-    // Fetch the updated record to return fresh data
-    const { data, error } = await supabase
-      .from('user_points')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (error || !data) {
-      console.error('Failed to fetch updated points:', error);
-      return { ...record, points: (record.points || 0) + points };
-    }
-    return data as UserPointsType;
+    _userId: string,
+    _points: number,
+    _reason: string,
+    _actionKey: string
+  ): Promise<VerifiedPointAward> {
+    // Client-side activity is not award evidence. Keep callers stable while
+    // XP transitions are moved to verified server workflows.
+    return { awarded: false, awardedPoints: 0, newPoints: 0 };
   },
 
   // Update user's streak (atomic via RPC)
   // Note: userId is still accepted for getOrCreate/fallback, but the RPC
   // derives the user from auth.uid() server-side (no client-supplied ID)
   async updateStreak(userId: string): Promise<UserPointsType> {
-    // Ensure the record exists before calling RPC
-    const record = await this.getOrCreate(userId);
-
     const { data: rpcData, error: rpcError } = await supabase.rpc('update_user_streak');
 
     if (rpcError) {
       console.error('Failed to update streak via RPC:', rpcError);
-      return record;
+      return { id: '', user_id: userId, points: 0, current_streak: 0 };
     }
 
     // Fetch the updated record to return fresh data
@@ -191,7 +127,7 @@ export const UserPoints = {
 
     if (error || !data) {
       console.error('Failed to fetch updated streak:', error);
-      return record;
+      return { id: '', user_id: userId, points: 0, current_streak: 0 };
     }
     return data as UserPointsType;
   },

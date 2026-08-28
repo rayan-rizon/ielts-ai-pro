@@ -187,16 +187,18 @@ export async function handleEvaluationSuccess({
   ) {
     throw new Error('The speaking feedback did not match this session. Please retry.');
   }
-  const didPersist = await persistSuccessfulEvaluation({
-    session,
-    evaluation: response.evaluation,
-    conversationsToEvaluate,
-    saveSessionProgress,
-  });
+  const didPersist =
+    response.sessionPersisted === true ||
+    (await persistSuccessfulEvaluation({
+      session,
+      evaluation: response.evaluation,
+      conversationsToEvaluate,
+      saveSessionProgress,
+    }));
   if (!didPersist) return;
   setFinalEvaluation(response.evaluation);
   setEvaluationError(null);
-  await awardXP(response.evaluation);
+  await awardXP(response.xpAward);
   trackEvaluationSubmitted(session, response.evaluation);
   await removeSpeakingTestsCache();
   invalidateLearnerPracticeQueries();

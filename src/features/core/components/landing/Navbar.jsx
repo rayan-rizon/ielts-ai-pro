@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import SunMedium from 'lucide-react/icons/sun-medium';
 import MoonStar from 'lucide-react/icons/moon-star';
@@ -150,27 +149,16 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                 aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
                 data-oid="6m:a:wq"
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={isDark ? 'sun' : 'moon'}
-                    initial={{ y: -12, opacity: 0, rotate: -90, scale: 0.6 }}
-                    animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
-                    exit={{ y: 12, opacity: 0, rotate: 90, scale: 0.6 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 350,
-                      damping: 22,
-                    }}
-                    className="flex items-center justify-center"
-                    data-oid="wdgwl66"
-                  >
-                    {isDark ? (
-                      <SunMedium className="h-4.5 w-4.5 text-amber-500" />
-                    ) : (
-                      <MoonStar className="h-4.5 w-4.5 text-[#5a63df] dark:text-[#a9afff]" />
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+                <span
+                  className="flex items-center justify-center transition-transform duration-200"
+                  data-oid="wdgwl66"
+                >
+                  {isDark ? (
+                    <SunMedium className="h-4.5 w-4.5 text-amber-500" />
+                  ) : (
+                    <MoonStar className="h-4.5 w-4.5 text-[#5a63df] dark:text-[#a9afff]" />
+                  )}
+                </span>
               </Button>
 
               <Button

@@ -9,11 +9,20 @@ import {
 
 export default function useMoveToNextSpeakingPart(options) {
   const optionsRef = useRef(options);
+  const transitionIdRef = useRef(0);
   optionsRef.current = options;
-  return useCallback(() => moveToNextSpeakingPart(optionsRef.current), []);
+  return useCallback(() => {
+    const transitionId = ++transitionIdRef.current;
+    return moveToNextSpeakingPart(optionsRef.current, () => {
+      return (
+        transitionIdRef.current === transitionId &&
+        optionsRef.current.isMountedRef?.current !== false
+      );
+    });
+  }, []);
 }
 
-async function moveToNextSpeakingPart(context) {
+async function moveToNextSpeakingPart(context, isTransitionCurrent = () => true) {
   const currentConversation = context.conversation.filter((entry) => !entry.isLoading);
   const nextAllPartsConversation = {
     ...context.allPartsConversation,
@@ -37,10 +46,10 @@ async function moveToNextSpeakingPart(context) {
     nextPartNumber,
   };
   if (nextPartNumber === 2) {
-    startPartTwoPreparation(transitionContext);
+    startPartTwoPreparation({ ...transitionContext, isTransitionCurrent });
     return;
   }
-  startDiscussionPart(transitionContext);
+  startDiscussionPart({ ...transitionContext, isTransitionCurrent });
 }
 
 function resetPartState({
@@ -69,19 +78,21 @@ function startPartTwoPreparation({
   session,
   setConversation,
   setCueCardTopic,
+  setIsPart2Intro,
   setIsPart2Prep,
   setPrepTimeLeft,
   speakText,
+  isTransitionCurrent,
 }) {
-  setIsPart2Prep(true);
+  setIsPart2Intro(true);
+  setIsPart2Prep(false);
   setPrepTimeLeft(60);
 
   const cueCardTopic = buildCueCardTopic(nextPart);
   const message = PART_TWO_PREP_MESSAGE;
 
-  setCueCardTopic(cueCardTopic);
+  setCueCardTopic(null);
   setConversation([{ speaker: 'ai', text: message }]);
-  speakText(message);
   saveNextPartProgress({
     currentConversation,
     currentPartNumber,
@@ -91,6 +102,61 @@ function startPartTwoPreparation({
     saveSessionProgress,
     session,
     contentData: {
+      isPart2Intro: true,
+      isPart2Prep: false,
+      prepTimeLeft: null,
+      cueCardTopic: null,
+    },
+  });
+
+  void finishPartTwoIntroduction({
+    cueCardTopic,
+    currentConversation,
+    currentPartNumber,
+    nextAllPartsConversation,
+    nextPartNumber,
+    saveSessionProgress,
+    session,
+    setCueCardTopic,
+    setIsPart2Intro,
+    setIsPart2Prep,
+    setPrepTimeLeft,
+    speakText,
+    isTransitionCurrent,
+  });
+}
+
+async function finishPartTwoIntroduction({
+  cueCardTopic,
+  currentConversation,
+  currentPartNumber,
+  nextAllPartsConversation,
+  nextPartNumber,
+  saveSessionProgress,
+  session,
+  setCueCardTopic,
+  setIsPart2Intro,
+  setIsPart2Prep,
+  setPrepTimeLeft,
+  speakText,
+  isTransitionCurrent,
+}) {
+  await Promise.resolve(speakText(PART_TWO_PREP_MESSAGE));
+  if (!isTransitionCurrent()) return;
+  setCueCardTopic(cueCardTopic);
+  setPrepTimeLeft(60);
+  setIsPart2Intro(false);
+  setIsPart2Prep(true);
+  saveNextPartProgress({
+    currentConversation,
+    currentPartNumber,
+    nextAllPartsConversation,
+    nextPartNumber,
+    nextConversation: [{ speaker: 'ai', text: PART_TWO_PREP_MESSAGE }],
+    saveSessionProgress,
+    session,
+    contentData: {
+      isPart2Intro: false,
       isPart2Prep: true,
       prepTimeLeft: 60,
       cueCardTopic,
@@ -110,6 +176,7 @@ function startDiscussionPart({
   setConversation,
   setCurrentQuestionIndex,
   speakText,
+  isTransitionCurrent,
 }) {
   const message = `Excellent! Now let's move on to Part ${nextPartNumber}: "${nextPart.title}". Listen to the question, then your microphone will start automatically.`;
 
@@ -123,6 +190,7 @@ function startDiscussionPart({
     requestAutoStart,
     setConversation,
     speakText,
+    isTransitionCurrent,
   });
 
   saveNextPartProgress({
@@ -138,6 +206,7 @@ function startDiscussionPart({
     session,
     contentData: {
       isPart2Prep: false,
+      isPart2Intro: false,
       prepTimeLeft: null,
       cueCardTopic: null,
     },
@@ -150,8 +219,10 @@ async function speakDiscussionStart({
   requestAutoStart,
   setConversation,
   speakText,
+  isTransitionCurrent,
 }) {
   await speakText(message);
+  if (!isTransitionCurrent()) return;
   if (firstQuestion) {
     setConversation((current) =>
       current.some((entry) => entry.speaker === 'ai' && entry.text === firstQuestion)
@@ -159,6 +230,7 @@ async function speakDiscussionStart({
         : [...current, { speaker: 'ai', text: firstQuestion }]
     );
     await speakText(firstQuestion);
+    if (!isTransitionCurrent()) return;
   }
   requestAutoStart?.();
 }

@@ -41,6 +41,7 @@ export type TextAiResult = {
 
 type TextAiRequest = {
   prompt: string;
+  systemPrompt?: string;
   openRouterApiKey?: string | null;
   deepseekApiKey?: string | null;
   geminiApiKey?: string | null;
@@ -54,6 +55,13 @@ type TextAiRequest = {
   geminiModel?: string;
   responseSchema?: Record<string, unknown>;
 };
+
+function chatMessages(request: Pick<TextAiRequest, 'prompt' | 'systemPrompt'>) {
+  return [
+    ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
+    { role: 'user', content: request.prompt },
+  ];
+}
 
 type ProviderRequest = Omit<
   TextAiRequest,
@@ -186,7 +194,7 @@ export async function requestDeepSeekJson(request: ProviderRequest): Promise<Tex
         },
         body: JSON.stringify({
           model: DEEPSEEK_TEXT_MODEL,
-          messages: [{ role: 'user', content: request.prompt }],
+          messages: chatMessages(request),
           response_format: { type: 'json_object' },
           thinking: { type: 'disabled' },
           temperature: request.temperature ?? 0.2,
@@ -258,7 +266,7 @@ export async function requestOpenRouterDeepSeekJson(
         },
         body: JSON.stringify({
           model: OPENROUTER_DEEPSEEK_MODEL,
-          messages: [{ role: 'user', content: request.prompt }],
+          messages: chatMessages(request),
           response_format: { type: 'json_object' },
           // This endpoint supports an explicit no-reasoning mode. Using a token cap
           // alone is not reliable: the model can still consume the entire completion
@@ -340,7 +348,7 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
         },
         body: JSON.stringify({
           model: OPENROUTER_LUNA_MODEL,
-          messages: [{ role: 'user', content: request.prompt }],
+          messages: chatMessages(request),
           response_format: { type: 'json_object' },
           reasoning: { effort: 'none', exclude: true },
           provider: { sort: 'latency', require_parameters: true },
@@ -416,7 +424,7 @@ export async function requestVercelGatewayLunaJson(
         },
         body: JSON.stringify({
           model: VERCEL_GATEWAY_LUNA_MODEL,
-          messages: [{ role: 'user', content: request.prompt }],
+          messages: chatMessages(request),
           // Gateway's Luna access currently rejects response_format on free
           // keys. The production prompt still requires JSON, and the shared
           // shape validator prevents accepting an incomplete response.
@@ -516,7 +524,7 @@ export async function requestOpenRouterJson(
         },
         body: JSON.stringify({
           model: request.model,
-          messages: [{ role: 'user', content: request.prompt }],
+          messages: chatMessages(request),
           ...(request.jsonMode === false ? {} : { response_format: { type: 'json_object' } }),
           ...(request.disableReasoning === false
             ? {}
@@ -593,6 +601,9 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
           'x-goog-api-key': request.apiKey,
         },
         body: JSON.stringify({
+          ...(request.systemPrompt
+            ? { systemInstruction: { parts: [{ text: request.systemPrompt }] } }
+            : {}),
           contents: [{ role: 'user', parts: [{ text: request.prompt }] }],
           generationConfig: {
             temperature: request.temperature ?? 0.2,

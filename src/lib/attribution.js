@@ -16,6 +16,41 @@ const hostIncludes = (referrer, list) => {
 };
 
 /**
+ * Navigation inside IELTS AI Pro is not an acquisition source. Browsers set
+ * document.referrer when a visitor moves from a public page to /signup, so
+ * treating every referrer as external incorrectly turns direct signups into
+ * "referral" signups.
+ */
+export const isInternalReferrer = (
+  referrer,
+  origin = isBrowser() ? window.location.origin : ''
+) => {
+  if (!referrer || !origin) return false;
+  try {
+    return new URL(referrer).origin === new URL(origin).origin;
+  } catch {
+    return false;
+  }
+};
+
+const withoutInternalReferrer = (attribution) => {
+  if (!attribution || !isInternalReferrer(attribution.referrer)) return attribution;
+
+  const { referrer: _referrer, ...externalAttribution } = attribution;
+  const hasExternalSignal = [
+    externalAttribution.utm_source,
+    externalAttribution.utm_medium,
+    externalAttribution.utm_campaign,
+    externalAttribution.utm_content,
+    externalAttribution.utm_term,
+    externalAttribution.gclid,
+    externalAttribution.fbclid,
+  ].some(Boolean);
+
+  return hasExternalSignal ? externalAttribution : null;
+};
+
+/**
  * Read the first-touch attribution snapshot captured in index.html before the
  * SPA router strips query params. Returns null if this browser has never
  * landed with any recognizable acquisition signal (utm_*, click id, referrer).
@@ -24,7 +59,14 @@ export const getStoredAttribution = () => {
   if (!isBrowser()) return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const attribution = raw ? JSON.parse(raw) : null;
+    const sanitized = withoutInternalReferrer(attribution);
+
+    // Remove the bad legacy snapshot so a future genuine external first touch
+    // can be captured rather than being blocked by this local navigation.
+    if (attribution && !sanitized) window.localStorage.removeItem(STORAGE_KEY);
+
+    return sanitized;
   } catch {
     return null;
   }
@@ -38,9 +80,10 @@ export const getStoredAttribution = () => {
  * or bare referrer parsing, which are easier to spoof or omit.
  */
 export const classifyChannel = (attribution) => {
-  if (!attribution) return 'direct';
+  const sanitized = withoutInternalReferrer(attribution);
+  if (!sanitized) return 'direct';
 
-  const { fbclid, gclid, utm_source: source, utm_medium: medium, referrer } = attribution;
+  const { fbclid, gclid, utm_source: source, utm_medium: medium, referrer } = sanitized;
   const src = (source || '').toLowerCase();
   const med = (medium || '').toLowerCase();
 

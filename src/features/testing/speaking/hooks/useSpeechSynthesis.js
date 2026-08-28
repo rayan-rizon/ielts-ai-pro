@@ -12,7 +12,7 @@ import { normalizeSpeakingTtsText, requestSpeakingTts } from '../utils/speakingT
 /**
  * useSpeechSynthesis
  *
- * Premium TTS hook using Google Cloud TTS Neural2 (en-GB-Neural2-B) via a
+ * Speaking TTS hook using Google Cloud TTS Neural2 (en-GB-Neural2-C) via a
  * Supabase Edge Function with content-addressed Supabase Storage caching.
  *
  * Bug fixes in this version:
@@ -66,23 +66,40 @@ function getOptimalWebVoice() {
  * Speaks chunks via Web Speech API, respecting an isMounted flag.
  * Returns true if completed, false if bailed out early.
  */
-async function speakChunksViaWebSpeech(chunks, selectedVoice, isMountedRef) {
+async function speakChunksViaWebSpeech(chunks, selectedVoice, isMountedRef, onProgress) {
   if (!('speechSynthesis' in window)) return false;
   window.speechSynthesis.cancel();
 
+  const totalWords = chunks.join(' ').trim().split(/\s+/).filter(Boolean).length || 1;
+  let spokenWords = 0;
   for (const chunk of chunks) {
     // Bail immediately if the component has unmounted
     if (!isMountedRef.current) {
       window.speechSynthesis.cancel();
       return false;
     }
+    const chunkWords = chunk.trim().split(/\s+/).filter(Boolean);
     await new Promise((resolve) => {
       const utterance = new SpeechSynthesisUtterance(chunk);
       utterance.lang = 'en-GB';
       utterance.rate = 0.92;
       utterance.pitch = 1.0;
       if (selectedVoice) utterance.voice = selectedVoice;
-      utterance.onend = resolve;
+      utterance.onstart = () => onProgress?.(Math.min(1, (spokenWords + 1) / totalWords));
+      utterance.onboundary = (event) => {
+        if (event.name !== 'word') return;
+        const wordsThroughBoundary = chunk
+          .slice(0, event.charIndex)
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean).length;
+        onProgress?.(Math.min(1, (spokenWords + wordsThroughBoundary + 1) / totalWords));
+      };
+      utterance.onend = () => {
+        spokenWords += chunkWords.length;
+        onProgress?.(Math.min(1, spokenWords / totalWords));
+        resolve();
+      };
       utterance.onerror = resolve;
       window.speechSynthesis.speak(utterance);
     });
@@ -107,6 +124,14 @@ export default function useSpeechSynthesis() {
   const isMountedRef = useRef(true);
   // Tracks the current request so stale completions don't update state
   const requestIdRef = useRef(0);
+  const playbackFrameRef = useRef(null);
+
+  const stopProgressTracking = useCallback(() => {
+    if (playbackFrameRef.current !== null) {
+      cancelAnimationFrame(playbackFrameRef.current);
+      playbackFrameRef.current = null;
+    }
+  }, []);
 
   // Keep muted ref in sync
   useEffect(() => {
@@ -151,6 +176,7 @@ export default function useSpeechSynthesis() {
       isMountedRef.current = false;
       // Invalidate all in-flight requests
       requestIdRef.current += 1;
+      stopProgressTracking();
       // Stop any playing HTML Audio element
       if (currentAudioRef.current) {
         releasePlaybackAudio();
@@ -161,7 +187,7 @@ export default function useSpeechSynthesis() {
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [stopProgressTracking]);
 
   /**
    * Cancel any in-flight audio and clear state.
@@ -169,6 +195,7 @@ export default function useSpeechSynthesis() {
    */
   const cancelCurrentAudio = useCallback(() => {
     requestIdRef.current += 1;
+    stopProgressTracking();
     if (currentAudioRef.current) {
       releasePlaybackAudio();
       currentAudioRef.current = null;
@@ -181,7 +208,7 @@ export default function useSpeechSynthesis() {
     setIsPlaybackActive(false);
     setActiveSpeechText('');
     setSpeechProgress(null);
-  }, []);
+  }, [stopProgressTracking]);
 
   /**
    * Main speakText function.
@@ -198,6 +225,11 @@ export default function useSpeechSynthesis() {
     async (text, options = { cancel: true }) => {
       if (!text || isMutedRef.current || !isMountedRef.current) return;
 
+      // Claim this turn before awaiting an autoplay unlock. Without this stamp,
+      // two queued prompts could both resume after one learner gesture and the
+      // older prompt would briefly take over the live transcript.
+      const myRequestId = ++requestIdRef.current;
+
       // Resuming a session speaks the examiner's last question while the page
       // is still loading, before the learner has touched anything — so no
       // playback permission exists yet and the audio was simply discarded.
@@ -207,16 +239,20 @@ export default function useSpeechSynthesis() {
         await new Promise((resolve) => {
           onSpeechPlaybackUnlocked(resolve);
         });
-        if (!isMountedRef.current || isMutedRef.current) return;
+        if (!isMountedRef.current || isMutedRef.current || requestIdRef.current !== myRequestId) {
+          return;
+        }
       }
 
       // Cancel previous audio if requested
       if (options.cancel) {
-        cancelCurrentAudio();
+        stopProgressTracking();
+        if (currentAudioRef.current) {
+          releasePlaybackAudio();
+          currentAudioRef.current = null;
+        }
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       }
-
-      // Stamp a request ID so we can detect if we were superseded
-      const myRequestId = ++requestIdRef.current;
 
       // Clean text for speech (handle IELTS-specific notation)
       const cleanText = normalizeSpeakingTtsText(text);
@@ -261,6 +297,21 @@ export default function useSpeechSynthesis() {
                 setSpeechProgress(0);
                 setIsPlaybackActive(true);
                 options.onPlayStart?.();
+                const updateProgress = () => {
+                  if (
+                    requestIdRef.current !== myRequestId ||
+                    !isMountedRef.current ||
+                    audio.paused
+                  ) {
+                    return;
+                  }
+                  if (Number.isFinite(audio.duration) && audio.duration > 0) {
+                    setSpeechProgress(Math.min(1, audio.currentTime / audio.duration));
+                  }
+                  playbackFrameRef.current = requestAnimationFrame(updateProgress);
+                };
+                stopProgressTracking();
+                playbackFrameRef.current = requestAnimationFrame(updateProgress);
               }
             };
             audio.ontimeupdate = () => {
@@ -274,6 +325,7 @@ export default function useSpeechSynthesis() {
             };
             audio.onended = () => {
               if (requestIdRef.current === myRequestId) {
+                stopProgressTracking();
                 currentAudioRef.current = null;
                 setSpeechProgress(1);
                 setIsPlaybackActive(false);
@@ -283,6 +335,7 @@ export default function useSpeechSynthesis() {
             audio.onerror = (e) => {
               console.warn('[TTS] Audio element error, will use fallback:', e);
               if (requestIdRef.current === myRequestId) {
+                stopProgressTracking();
                 currentAudioRef.current = null;
               }
               // Audio element failed — DO fall back
@@ -334,7 +387,11 @@ export default function useSpeechSynthesis() {
         setSpeechProgress(null);
         setIsPlaybackActive(true);
         const sentences = splitIntoSentences(cleanText);
-        await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef);
+        await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef, (progress) => {
+          if (requestIdRef.current === myRequestId && isMountedRef.current) {
+            setSpeechProgress(progress);
+          }
+        });
       }
 
       // ── Cleanup ────────────────────────────────────────────────────────────
@@ -346,7 +403,7 @@ export default function useSpeechSynthesis() {
         setSpeechProgress(null);
       }
     },
-    [cancelCurrentAudio]
+    [cancelCurrentAudio, stopProgressTracking]
   );
 
   return {

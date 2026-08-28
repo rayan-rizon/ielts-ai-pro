@@ -26,10 +26,11 @@ import {
   transcribeWithCloudflare,
   transcribeWithGeminiFallback,
 } from '../_shared/speakingProviders.ts';
+import { resolvePartTwoTurn } from '../_shared/speakingTurnPolicy.ts';
 
 declare const Deno: any;
 
-const MAX_TURNS_PER_PART: Record<number, number> = { 1: 8, 2: 2, 3: 8 };
+const MAX_TURNS_PER_PART: Record<number, number> = { 1: 8, 2: 8, 3: 8 };
 const MAX_TOTAL_TURNS = 20;
 const MAX_AUDIO_PAYLOAD_BYTES = 5 * 1024 * 1024;
 const MAX_PRONUNCIATION_AUDIO_BYTES = Math.round(1.2 * 1024 * 1024);
@@ -531,15 +532,25 @@ serve(async (req: Request) => {
       }
     }
 
+    const normalizedAudioDurationMs = Math.max(0, Number(audioDurationMs) || 0);
+    const partTwoTurn =
+      partNumber === 2 && !transcriptionFailed
+        ? resolvePartTwoTurn({ audioDurationMs: normalizedAudioDurationMs, transcript })
+        : null;
+    const isPartComplete =
+      isLastQuestion &&
+      !transcriptionFailed &&
+      (partNumber !== 2 || partTwoTurn?.complete === true);
     const examinerResponse = transcriptionFailed
       ? "I'm sorry, I didn't quite catch that. Could you please say that again?"
-      : buildDeterministicExaminerResponse({
-          partNumber,
-          currentQuestionIndex: safeQuestionIndex,
-          nextQuestion: nextQuestion?.question_text,
-          isLastQuestion,
-        });
-    const normalizedAudioDurationMs = Math.max(0, Number(audioDurationMs) || 0);
+      : partTwoTurn && !partTwoTurn.complete
+        ? partTwoTurn.examinerResponse
+        : buildDeterministicExaminerResponse({
+            partNumber,
+            currentQuestionIndex: safeQuestionIndex,
+            nextQuestion: nextQuestion?.question_text,
+            isLastQuestion: isPartComplete,
+          });
     const transcriptionCostUsd = cloudflareTranscriptionCompleted
       ? (normalizedAudioDurationMs / 60000) *
         CLOUDFLARE_COST_PER_AUDIO_MINUTE_USD *
@@ -554,7 +565,7 @@ serve(async (req: Request) => {
       userTranscript: transcript,
       currentQuestionIndex,
       nextQuestionIndex: transcriptionFailed ? currentQuestionIndex : nextQuestionIndex,
-      isPartComplete: isLastQuestion && !transcriptionFailed,
+      isPartComplete,
       totalQuestions: questions.length,
       pronunciationData,
       processing: {
@@ -569,7 +580,7 @@ serve(async (req: Request) => {
 
     const turnFinalized = await finalizeApiUsage(supabase, activeReservationId, tokensUsed, false, {
       part: partNumber,
-      isPartComplete: isLastQuestion && !transcriptionFailed,
+      isPartComplete,
       hasAudio: Boolean(audioBase64),
       audioDurationMs: normalizedAudioDurationMs,
       transcriptionFailed,
@@ -595,7 +606,7 @@ serve(async (req: Request) => {
       pronunciationError,
       estimatedProviderCostUsd,
       examinerMode: 'deterministic-v1',
-      examinerVoice: 'en-GB-Neural2-B',
+      examinerVoice: 'en-GB-Neural2-C',
       speakingSessionId,
       response: responsePayload,
     });

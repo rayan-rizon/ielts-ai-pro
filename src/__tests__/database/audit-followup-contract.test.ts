@@ -60,11 +60,20 @@ describe('2026-08-27 audit follow-up contracts', () => {
     expect(deepDive).not.toContain('speaking-session:${speakingSessionId}');
   });
 
+  it('uses only session-persisted pronunciation evidence for speaking scores', () => {
+    const evaluation = readProjectFile('supabase/functions/evaluateSpeakingTest/index.ts');
+
+    expect(evaluation).toContain(".select('id, passage_id, content_data')");
+    expect(evaluation).toContain('ownedSession.content_data?.allPartsAcousticMetrics');
+    expect(evaluation).not.toMatch(/aggregatePronunciationEvidence\(allPartsPronunciation\)/);
+  });
+
   it('bounds learner uploads and avoids a second full-file allocation', () => {
     const upload = readProjectFile('supabase/functions/r2-upload/index.ts');
 
     expect(upload).toContain('CHECKER_MAX_FILE_SIZE = 8 * 1024 * 1024');
     expect(upload).toContain('writing-checker/${user.id}');
+    expect(upload).toContain('crypto.randomUUID()');
     expect(upload).toContain('file.slice(0, 16).arrayBuffer()');
     expect(upload).toContain('Body: file');
     expect(upload).not.toContain('await file.arrayBuffer()');

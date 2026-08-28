@@ -12,6 +12,7 @@ import Part2CueCard from './Part2CueCard';
 import PartCompleteCard from './PartCompleteCard';
 import RecordingControls from './RecordingControls';
 import TimeUpTransition from './TimeUpTransition';
+import { shouldShowPart2CueCard } from '../utils/speakingTestUtils';
 
 function Part2PreparationControls({ prepTimeLeft, onStartSpeaking }) {
   const minutes = Math.floor(prepTimeLeft / 60);
@@ -312,11 +313,12 @@ export default function SpeakingConversationPanel({
               />
             </div>
           )}
-          {testStarted && currentPartNumber === 2 && cueCardTopic && (
-            <div ref={cueCardRef} className="pb-2 pt-1 sm:pt-2">
-              <Part2CueCard cueCardTopic={cueCardTopic} />
-            </div>
-          )}
+          {testStarted &&
+            shouldShowPart2CueCard({ currentPartNumber, isPart2Prep, cueCardTopic }) && (
+              <div ref={cueCardRef} className="pb-2 pt-1 sm:pt-2">
+                <Part2CueCard cueCardTopic={cueCardTopic} />
+              </div>
+            )}
         </div>
 
         {!isPartComplete && (

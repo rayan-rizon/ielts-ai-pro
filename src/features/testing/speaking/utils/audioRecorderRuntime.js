@@ -463,6 +463,11 @@ function buildRecordingMetadata(runtime, duration) {
 
 async function processCompletedRecording(runtime, mediaRecorder) {
   const { refs } = runtime;
+  // Set the synchronous guard before React has a chance to publish its
+  // processing state. Otherwise a fast click or auto-start can open a second
+  // capture while this turn is still uploading/transcribing.
+  if (refs.isProcessing.current) return;
+  refs.isProcessing.current = true;
   const duration = Date.now() - refs.startTime.current;
   refs.mediaRecorder.current = null;
 
@@ -470,12 +475,17 @@ async function processCompletedRecording(runtime, mediaRecorder) {
     refs.discardRecording.current = false;
     refs.audioChunks.current = [];
     resetRecorderCapture(runtime);
+    refs.isProcessing.current = false;
     return;
   }
 
   if (duration < 1500) {
-    await runtime.processRecording(null, { error: 'too_short', duration });
-    resetRecorderCapture(runtime);
+    try {
+      await runtime.processRecording(null, { error: 'too_short', duration });
+    } finally {
+      resetRecorderCapture(runtime);
+      refs.isProcessing.current = false;
+    }
     return;
   }
 
@@ -488,6 +498,7 @@ async function processCompletedRecording(runtime, mediaRecorder) {
     await runtime.processRecording(audioBlob, buildRecordingMetadata(runtime, duration));
   } finally {
     resetRecorderCapture(runtime);
+    refs.isProcessing.current = false;
   }
 }
 

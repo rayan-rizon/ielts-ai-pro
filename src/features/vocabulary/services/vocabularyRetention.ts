@@ -101,13 +101,18 @@ export async function recordVocabularyReviewEvent({
   vocabularyItemId: string;
   quality: number;
 }) {
-  const { error } = await supabase.from('vocabulary_review_events').insert({
-    user_id: userId,
-    vocabulary_item_id: vocabularyItemId,
-    quality,
-  });
+  const { data, error } = await supabase
+    .from('vocabulary_review_events')
+    .insert({
+      user_id: userId,
+      vocabulary_item_id: vocabularyItemId,
+      quality,
+    })
+    .select('id')
+    .single();
 
   if (error) throw error;
+  return data;
 }
 
 export async function completeVocabularyLearningActivity(

@@ -191,6 +191,7 @@ export function useAutosave({
   const retryQueueRef = useRef<QueuedSave[]>([]);
   const isSavingRef = useRef<boolean>(false);
   const activeSavePromiseRef = useRef<Promise<boolean> | null>(null);
+  const manualSaveQueueRef = useRef<Promise<boolean>>(Promise.resolve(false));
   const isFinishedRef = useRef<boolean>(isFinished);
 
   const getAnswersRef = useRef(getAnswers);
@@ -426,7 +427,7 @@ export function useAutosave({
   /**
    * Manual save trigger (for passage changes, etc.)
    */
-  const saveNow = useCallback(async (): Promise<boolean> => {
+  const flushLatest = useCallback(async (): Promise<boolean> => {
     if (!session?.id || isFinishedRef.current) return false;
 
     // A manual flush is used before navigation, evaluation, and submission.
@@ -458,6 +459,14 @@ export function useAutosave({
 
     return runSave(currentAnswers, contentData, true);
   }, [session, runSave]);
+
+  const saveNow = useCallback((): Promise<boolean> => {
+    // Queue every navigation/submission flush. Multiple callers that were
+    // waiting on the same active autosave must not all start together.
+    const queued = manualSaveQueueRef.current.catch(() => false).then(() => flushLatest());
+    manualSaveQueueRef.current = queued;
+    return queued;
+  }, [flushLatest]);
 
   return {
     saveNow,

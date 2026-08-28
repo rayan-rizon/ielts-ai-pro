@@ -18,7 +18,7 @@ function calculateSignalLevel(analyser, samples) {
   return Math.sqrt(sum / samples.length);
 }
 
-async function measureMicrophone(stream) {
+async function measureMicrophone(stream, signal) {
   const audioContext = getAudioContext();
   if (!audioContext) return { detected: true, level: null };
 
@@ -33,14 +33,25 @@ async function measureMicrophone(stream) {
 
   await new Promise((resolve) => {
     const startedAt = Date.now();
+    let timer = null;
+    const finish = () => {
+      if (timer) clearTimeout(timer);
+      signal?.removeEventListener('abort', finish);
+      resolve();
+    };
     const sampleInput = () => {
-      peakLevel = Math.max(peakLevel, calculateSignalLevel(analyser, samples));
-      if (Date.now() - startedAt >= MICROPHONE_TEST_DURATION_MS) {
-        resolve();
+      if (signal?.aborted) {
+        finish();
         return;
       }
-      setTimeout(sampleInput, 70);
+      peakLevel = Math.max(peakLevel, calculateSignalLevel(analyser, samples));
+      if (Date.now() - startedAt >= MICROPHONE_TEST_DURATION_MS) {
+        finish();
+        return;
+      }
+      timer = setTimeout(sampleInput, 70);
     };
+    signal?.addEventListener('abort', finish, { once: true });
     sampleInput();
   });
 
@@ -74,11 +85,13 @@ export default function useSpeakingDeviceChecks() {
   const [speakerStatus, setSpeakerStatus] = useState('idle');
   const mountedRef = useRef(true);
   const microphoneBusyRef = useRef(false);
+  const microphoneAbortRef = useRef(null);
   const speakerBusyRef = useRef(false);
 
   useEffect(
     () => () => {
       mountedRef.current = false;
+      microphoneAbortRef.current?.abort();
     },
     []
   );
@@ -86,6 +99,9 @@ export default function useSpeakingDeviceChecks() {
   const testMicrophone = useCallback(async () => {
     if (microphoneBusyRef.current) return;
     microphoneBusyRef.current = true;
+    microphoneAbortRef.current?.abort();
+    const controller = new AbortController();
+    microphoneAbortRef.current = controller;
     setMicrophoneStatus('testing');
     let stream;
 
@@ -98,7 +114,7 @@ export default function useSpeakingDeviceChecks() {
           channelCount: 1,
         },
       });
-      const result = await measureMicrophone(stream);
+      const result = await measureMicrophone(stream, controller.signal);
       if (mountedRef.current) {
         setMicrophoneStatus(result.detected ? 'ready' : 'quiet');
       }
@@ -106,6 +122,7 @@ export default function useSpeakingDeviceChecks() {
       if (mountedRef.current) setMicrophoneStatus('error');
     } finally {
       stream?.getTracks().forEach((track) => track.stop());
+      if (microphoneAbortRef.current === controller) microphoneAbortRef.current = null;
       microphoneBusyRef.current = false;
     }
   }, []);

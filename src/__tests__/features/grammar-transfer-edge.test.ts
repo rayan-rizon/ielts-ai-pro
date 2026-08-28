@@ -24,6 +24,14 @@ describe('Grammar transfer evaluator safeguards', () => {
     expect(source).toContain('text.replace(example.quote, example.correction)');
   });
 
+  it('escapes learner and task XML delimiters before prompt interpolation', () => {
+    expect(source).toMatch(
+      /import \{[^}]*escapePromptXml[^}]*\} from '\.\.\/_shared\/evaluationUtils\.ts'/
+    );
+    expect(source).toContain("escapePromptXml(taskContext || 'Academic IELTS grammar transfer')");
+    expect(source).toContain('escapePromptXml(sourceText)');
+  });
+
   it('forbids IELTS bands and spoken claims unsupported by the transcript', () => {
     expect(source).toContain('Never output an IELTS band');
     expect(source).toContain('Do not judge pronunciation');

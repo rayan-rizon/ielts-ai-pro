@@ -89,6 +89,15 @@ export function countWords(text: unknown): number {
   return normalized.split(/\s+/).filter(Boolean).length;
 }
 
+export function escapePromptXml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 export function normalizeBandScore(value: unknown, allowZero = true): number | null {
   const numeric = typeof value === 'string' ? Number.parseFloat(value) : value;
   if (typeof numeric !== 'number' || !Number.isFinite(numeric)) return null;
@@ -470,7 +479,7 @@ export function buildSpeakingTranscript(
     const candidateResponses: string[] = [];
     const lines: string[] = [];
 
-    if (context) lines.push(`Task context: ${context}`);
+    if (context) lines.push(`<task_context>${escapePromptXml(context)}</task_context>`);
 
     for (const entry of entries) {
       if (!entry || entry.isLoading || typeof entry.text !== 'string') continue;
@@ -482,13 +491,13 @@ export function buildSpeakingTranscript(
           candidateWordCount += countWords(text);
           validResponseCount += 1;
           candidateResponses.push(text);
-          lines.push(`Candidate: ${text}`);
+          lines.push(`<utterance role="candidate">${escapePromptXml(text)}</utterance>`);
         } else {
           unintelligibleResponseCount += 1;
           lines.push('Candidate: [No intelligible response]');
         }
       } else if (!isProceduralExaminerText(text)) {
-        lines.push(`Examiner: ${text}`);
+        lines.push(`<utterance role="examiner">${escapePromptXml(text)}</utterance>`);
       }
     }
 

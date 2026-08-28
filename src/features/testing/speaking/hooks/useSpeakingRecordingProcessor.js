@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { callEdgeFunction } from '@/utils/api';
@@ -40,11 +40,22 @@ export default function useSpeakingRecordingProcessor({
   speakText,
   testId,
   timerExpiredRef,
+  isMountedRef,
 }) {
   const pronunciationAttemptedPartsRef = useRef(new Set());
+  const processingRequestIdRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      processingRequestIdRef.current += 1;
+    };
+  }, []);
 
   return useCallback(
     async (audioBlob, metadata = {}) => {
+      const requestId = ++processingRequestIdRef.current;
+      const isCurrentRequest = () =>
+        processingRequestIdRef.current === requestId && isMountedRef?.current !== false;
       if (metadata.error === 'too_short') {
         toast.warning('Recording too short', {
           description: 'Please speak for at least a few seconds.',
@@ -98,6 +109,7 @@ export default function useSpeakingRecordingProcessor({
           blobToBase64(audioBlob),
           pronunciationPromise,
         ]);
+        if (!isCurrentRequest()) return;
 
         setProcessingStatus(getTranscriptionStatus(pronunciationAudioBase64));
 
@@ -118,6 +130,7 @@ export default function useSpeakingRecordingProcessor({
           requestPronunciation: Boolean(pronunciationAudioBase64),
           testId,
         });
+        if (!isCurrentRequest()) return;
 
         if (!response) {
           setConversation((prev) => prev.filter((entry) => !entry.isLoading));
@@ -144,6 +157,7 @@ export default function useSpeakingRecordingProcessor({
           timerExpiredRef,
         });
       } catch (error) {
+        if (!isCurrentRequest()) return;
         const shouldRestart = await handleProcessingError(error, {
           pendingTimersRef,
           setConversation,
@@ -152,8 +166,10 @@ export default function useSpeakingRecordingProcessor({
         });
         if (shouldRestart) requestAutoStart?.();
       } finally {
-        setIsProcessing(false);
-        setProcessingStatus('');
+        if (isCurrentRequest()) {
+          setIsProcessing(false);
+          setProcessingStatus('');
+        }
       }
     },
     [
@@ -177,6 +193,7 @@ export default function useSpeakingRecordingProcessor({
       speakText,
       testId,
       timerExpiredRef,
+      isMountedRef,
     ]
   );
 }

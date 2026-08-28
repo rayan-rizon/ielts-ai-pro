@@ -1,32 +1,21 @@
 import { useCallback, useState } from 'react';
 
-import { User } from '@/features/auth/services/User';
-import { UserPoints } from '@/features/gamification/services/UserPoints';
-
 export default function useXPRewards(pendingTimersRef) {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showXPNotification, setShowXPNotification] = useState(false);
   const [earnedXP, setEarnedXP] = useState({ xp: 0, bonus: 0, streak: 0 });
 
   const awardXP = useCallback(
-    async (evaluation) => {
+    async (serverAward) => {
       try {
-        const userProfile = await User.me();
-        if (!userProfile?.id || !evaluation.overallBand) return;
-
-        const xpAmount = 100 + Math.round(evaluation.overallBand * 20);
-        await UserPoints.addPoints(
-          userProfile.id,
-          xpAmount,
-          'speaking_evaluation',
-          evaluation.speakingSessionId ? `speaking-test:${evaluation.speakingSessionId}` : ''
-        );
-        const streakData = await UserPoints.updateStreak(userProfile.id);
+        // The evaluator records this award atomically with the authoritative
+        // completed session. Never mint speaking XP from browser state.
+        if (!serverAward?.awarded) return;
 
         setEarnedXP({
-          xp: xpAmount,
+          xp: serverAward.awardedPoints,
           bonus: 0,
-          streak: streakData?.current_streak || 0,
+          streak: 0,
         });
         setShowConfetti(true);
 

@@ -102,7 +102,7 @@ function DraftTranscript({ entry }) {
   const isPaused = entry.autoSubmitPaused;
   const isLive = entry.isLive;
   const status = isPaused
-    ? 'Auto-send paused'
+    ? 'Timer & auto-send paused'
     : entry.autoFinishCountdown
       ? `Sending in ${entry.autoFinishCountdown}s`
       : isLive
@@ -137,7 +137,7 @@ function DraftTranscript({ entry }) {
       {(isPaused || entry.autoFinishCountdown || !isLive) && (
         <p className="text-[9px] font-medium leading-3 text-muted-foreground/75">
           {isPaused
-            ? 'Silence will not send this answer.'
+            ? 'Test time and silence sending are paused.'
             : entry.autoFinishCountdown
               ? 'Keep speaking to cancel the countdown.'
               : 'Finalising your wording…'}
@@ -152,70 +152,37 @@ function ExaminerLiveTranscript({ entry }) {
   const words = useMemo(() => cleanText.split(/\s+/).filter(Boolean), [cleanText]);
   const isPreparing = entry.isExaminerPreparing && !entry.isExaminerSpeaking;
   const hasAudioProgress = Number.isFinite(entry.speechProgress);
-  const [fallbackWordCount, setFallbackWordCount] = useState(
-    entry.isExaminerSpeaking ? 1 : words.length
-  );
   const [visibleWordCount, setVisibleWordCount] = useState(
     entry.isExaminerSpeaking ? 1 : words.length
   );
 
   useEffect(() => {
     if (!entry.isExaminerSpeaking) {
-      setFallbackWordCount(words.length);
       return undefined;
     }
-    if (hasAudioProgress) return undefined;
+    setVisibleWordCount(1);
+    return undefined;
+  }, [entry.isExaminerSpeaking]);
 
-    setFallbackWordCount(1);
-    const revealInterval = Math.max(105, Math.min(210, 3200 / Math.max(words.length, 1)));
-    const timer = setInterval(() => {
-      setFallbackWordCount((count) => {
-        if (count >= words.length) {
-          clearInterval(timer);
-          return count;
-        }
-        return count + 1;
-      });
-    }, revealInterval);
-
-    return () => clearInterval(timer);
-  }, [entry.isExaminerSpeaking, hasAudioProgress, words]);
-
-  const targetWordCount = hasAudioProgress
+  const audioWordCount = hasAudioProgress
     ? Math.max(1, Math.min(words.length, Math.ceil(entry.speechProgress * words.length)))
-    : fallbackWordCount;
-  const targetWordCountRef = useRef(targetWordCount);
-
-  useEffect(() => {
-    targetWordCountRef.current = targetWordCount;
-  }, [targetWordCount]);
+    : 1;
 
   useEffect(() => {
     if (!entry.isExaminerSpeaking) {
       setVisibleWordCount(words.length);
       return undefined;
     }
-
-    setVisibleWordCount((current) => Math.min(current, targetWordCount));
+    setVisibleWordCount(audioWordCount);
     return undefined;
-  }, [entry.isExaminerSpeaking, targetWordCount, words.length]);
+  }, [audioWordCount, entry.isExaminerSpeaking, words.length]);
 
-  useEffect(() => {
-    if (!entry.isExaminerSpeaking) return undefined;
-
-    const timer = setInterval(() => {
-      setVisibleWordCount((current) => {
-        const target = targetWordCountRef.current;
-        const next = Math.min(target, current + 1);
-        if (next >= target) clearInterval(timer);
-        return next;
-      });
-    }, 68);
-
-    return () => clearInterval(timer);
-  }, [entry.isExaminerSpeaking]);
-
-  const visibleText = words.slice(0, visibleWordCount).join(' ');
+  // Transcript progress is driven only by real playback progress. A synthetic
+  // word clock made the text run ahead of audio on slower devices.
+  const renderedWordCount = entry.isExaminerSpeaking
+    ? Math.min(visibleWordCount, audioWordCount)
+    : words.length;
+  const visibleText = words.slice(0, renderedWordCount).join(' ');
 
   return (
     <div className="space-y-2">

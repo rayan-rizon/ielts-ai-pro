@@ -1,5 +1,11 @@
 import DOMPurify from 'dompurify';
 
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 /**
  * Sanitizes HTML content to prevent XSS attacks.
  * Configured to allow standard text formatting and images but strip script tags and dangerous attributes.

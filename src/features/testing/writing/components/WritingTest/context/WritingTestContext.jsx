@@ -45,7 +45,6 @@ const ACTIONS = {
 
 // ============ CONTEXTS (for Provider compatibility) ============
 const WritingTestStateContext = createContext(null);
-const WritingTestTimerContext = createContext(null);
 const WritingTestDispatchContext = createContext(null);
 
 /**
@@ -64,7 +63,6 @@ export function WritingTestProvider({ children }) {
   const session = useWritingTestStore((s) => s.session);
   const isCompleted = useWritingTestStore((s) => s.isCompleted);
   const activeType = useWritingTestStore((s) => s.activeType);
-  const timeRemaining = useWritingTestStore((s) => s.timeRemaining);
 
   // Timer Logic - Robust implementation using wall-clock time
   useEffect(() => {
@@ -290,11 +288,9 @@ export function WritingTestProvider({ children }) {
   // For backward compatibility, provide context values
   return (
     <WritingTestDispatchContext.Provider value={dispatchContextValue} data-oid="eudftio">
-      <WritingTestTimerContext.Provider value={timeRemaining} data-oid="kfei_-0">
-        <WritingTestStateContext.Provider value={null} data-oid="6o3:tg3">
-          {children}
-        </WritingTestStateContext.Provider>
-      </WritingTestTimerContext.Provider>
+      <WritingTestStateContext.Provider value={null} data-oid="6o3:tg3">
+        {children}
+      </WritingTestStateContext.Provider>
     </WritingTestDispatchContext.Provider>
   );
 }

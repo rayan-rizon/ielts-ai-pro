@@ -32,6 +32,7 @@ export default function useSpeakingTestInitialization({
   setError,
   setFinalEvaluation,
   setIsLoading,
+  setIsPart2Intro,
   setIsPart2Prep,
   setIsPartComplete,
   setIsTestComplete,
@@ -160,7 +161,9 @@ export default function useSpeakingTestInitialization({
         matchingSession.content_data?.allPartsPronunciation ||
         {};
       const currentPartData = dbParts[resumePart] || Object.values(dbParts)[0];
-      const isPart2Prep = Boolean(matchingSession.content_data?.isPart2Prep);
+      const isPart2Prep = Boolean(
+        matchingSession.content_data?.isPart2Prep || matchingSession.content_data?.isPart2Intro
+      );
       const resumeState = buildSpeakingResumeState({
         conversation: matchingSession.answers?.conversation,
         currentQuestionIndex: matchingSession.answers?.currentQuestionIndex,
@@ -178,6 +181,7 @@ export default function useSpeakingTestInitialization({
         Boolean(matchingSession.content_data?.isPartComplete || resumeState.isPartComplete)
       );
       setIsPart2Prep(isPart2Prep);
+      setIsPart2Intro(false);
       setPrepTimeLeft(
         typeof matchingSession.content_data?.prepTimeLeft === 'number'
           ? matchingSession.content_data.prepTimeLeft

@@ -130,6 +130,17 @@
 
             var params = new URLSearchParams(window.location.search);
             var fbclidMatch = window.location.search.match(/[?&]fbclid=([^&#]+)/);
+            var referrer = document.referrer || null;
+            // Moving from another IELTS AI Pro page to /signup is not a
+            // referral. Do not persist it as first-touch attribution because
+            // it would block a later genuine external source from being saved.
+            if (referrer) {
+              try {
+                if (new URL(referrer).origin === window.location.origin) referrer = null;
+              } catch (e) {
+                referrer = null;
+              }
+            }
             var attribution = {
               utm_source: params.get('utm_source') || null,
               utm_medium: params.get('utm_medium') || null,
@@ -138,7 +149,7 @@
               utm_term: params.get('utm_term') || null,
               gclid: params.get('gclid') || null,
               fbclid: fbclidMatch ? decodeURIComponent(fbclidMatch[1]) : null,
-              referrer: document.referrer || null,
+              referrer: referrer,
               landing_page: window.location.pathname + window.location.search,
               captured_at: new Date().toISOString(),
             };

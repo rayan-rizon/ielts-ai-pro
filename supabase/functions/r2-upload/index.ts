@@ -128,7 +128,7 @@ serve(async (req) => {
     const originalName = file.name?.trim() || 'upload.bin';
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
     const keyPrefix = isWritingCheckerUpload ? `writing-checker/${user.id}` : 'uploads';
-    const key = `${keyPrefix}/${Date.now()}_${sanitizedName}`;
+    const key = `${keyPrefix}/${crypto.randomUUID()}-${sanitizedName}`;
 
     // Inspect only the header bytes. Passing the File/Blob directly lets the
     // S3 fetch handler stream it instead of allocating a second full-size copy.

@@ -8,6 +8,7 @@ import {
 
 export type SpeakingEvaluationProviderRequest = {
   prompt: string;
+  systemPrompt?: string;
   responseSchema: Record<string, unknown>;
   hasPronunciationEvidence: boolean;
   openRouterApiKey?: string | null;
@@ -74,6 +75,7 @@ async function requestGeminiSpeakingEvaluation(
 
   return requestGeminiJson({
     prompt: request.prompt,
+    systemPrompt: request.systemPrompt,
     apiKey: request.geminiApiKey,
     geminiModel: GEMINI_SCORING_MODEL,
     responseSchema: request.responseSchema,
@@ -100,6 +102,7 @@ export async function requestSpeakingEvaluation(
       try {
         const result = await requestOpenRouterDeepSeekJson({
           prompt: request.prompt,
+          systemPrompt: request.systemPrompt,
           apiKey: request.openRouterApiKey,
           maxOutputTokens: 4096,
           timeoutMs: Math.min(request.timeoutMs || 15_000, 7_000),

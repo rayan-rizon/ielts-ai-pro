@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 
-export function getCountdownSeconds(initialSeconds, startedAt, now = Date.now()) {
+export function getCountdownSeconds(initialSeconds, startedAt, now = Date.now(), isPaused = false) {
+  if (isPaused) return initialSeconds;
   const elapsedSeconds = Math.floor(Math.max(0, now - startedAt) / 1000);
   return Math.max(0, initialSeconds - elapsedSeconds);
 }
 
-function shouldRunCountdown({ isLoading, error, timeLeft, isTestComplete, testStarted }) {
-  return !isLoading && !error && timeLeft > 0 && !isTestComplete && testStarted;
+function shouldRunCountdown({ isLoading, error, timeLeft, isTestComplete, testStarted, isPaused }) {
+  return !isLoading && !error && timeLeft > 0 && !isTestComplete && testStarted && !isPaused;
 }
 
 function usePartCountdown({
@@ -17,10 +18,20 @@ function usePartCountdown({
   isTestComplete,
   testStarted,
   currentPartNumber,
+  isPaused,
 }) {
   useEffect(() => {
     let timer = null;
-    if (shouldRunCountdown({ isLoading, error, timeLeft, isTestComplete, testStarted })) {
+    if (
+      shouldRunCountdown({
+        isLoading,
+        error,
+        timeLeft,
+        isTestComplete,
+        testStarted,
+        isPaused,
+      })
+    ) {
       const initialSeconds = timeLeft;
       const startedAt = Date.now();
       const syncCountdown = () => setTimeLeft(getCountdownSeconds(initialSeconds, startedAt));
@@ -31,7 +42,7 @@ function usePartCountdown({
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isLoading, error, isTestComplete, testStarted, currentPartNumber, setTimeLeft]);
+  }, [isLoading, error, isTestComplete, testStarted, currentPartNumber, isPaused, setTimeLeft]);
 }
 
 function shouldSaveProgress({ testStarted, isTestComplete, session }) {
@@ -46,6 +57,7 @@ function persistProgressSnapshot({
   questionIndexRef,
   timeLeftRef,
   isPartComplete,
+  isPart2Intro,
   isPart2Prep,
   prepTimeLeft,
   cueCardTopic,
@@ -64,6 +76,7 @@ function persistProgressSnapshot({
       ...session?.content_data,
       currentPart: currentPartNumber,
       isPartComplete,
+      isPart2Intro,
       isPart2Prep,
       prepTimeLeft,
       cueCardTopic,
@@ -83,6 +96,7 @@ function usePeriodicProgressSave({
   questionIndexRef,
   timeLeftRef,
   isPartComplete,
+  isPart2Intro,
   isPart2Prep,
   prepTimeLeft,
   cueCardTopic,
@@ -101,6 +115,7 @@ function usePeriodicProgressSave({
         questionIndexRef,
         timeLeftRef,
         isPartComplete,
+        isPart2Intro,
         isPart2Prep,
         prepTimeLeft,
         cueCardTopic,
@@ -121,6 +136,7 @@ function usePeriodicProgressSave({
     questionIndexRef,
     timeLeftRef,
     isPartComplete,
+    isPart2Intro,
     isPart2Prep,
     prepTimeLeft,
     cueCardTopic,

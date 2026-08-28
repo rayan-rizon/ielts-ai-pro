@@ -102,7 +102,7 @@ const RecordingControls = React.memo(
               <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
                 <AudioLines className="h-4 w-4 animate-pulse" aria-hidden="true" />
                 <span className={cn(MICRO, 'tracking-[0.16em]')}>
-                  {autoSubmitPaused ? 'Auto-send paused' : 'Transcript streaming in chat'}
+                  {autoSubmitPaused ? 'Timer & auto-send paused' : 'Transcript streaming in chat'}
                 </span>
               </div>
             ) : (
@@ -125,8 +125,8 @@ const RecordingControls = React.memo(
                 whileTap={{ scale: 0.96 }}
                 aria-label={
                   autoSubmitPaused
-                    ? 'Resume automatic answer sending'
-                    : 'Pause automatic answer sending'
+                    ? 'Resume test timer and automatic answer sending'
+                    : 'Pause test timer and automatic answer sending'
                 }
                 aria-pressed={autoSubmitPaused}
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all sm:h-14 sm:w-14 ${
@@ -178,8 +178,8 @@ const RecordingControls = React.memo(
                   <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
                   {handsFreeEnabled
                     ? autoSubmitPaused
-                      ? 'Take your time. Tap play when you want silence detection to resume.'
-                      : 'I’ll send after a natural pause. Pause auto-send whenever you need to think.'
+                      ? 'Take your time. Tap play to resume the timer and silence detection.'
+                      : 'I’ll send after a natural pause. Pause the timer whenever you need to think.'
                     : 'Manual mode is on. Finish and send when your answer is complete.'}
                 </>
               ) : (

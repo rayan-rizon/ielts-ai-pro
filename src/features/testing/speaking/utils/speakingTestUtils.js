@@ -22,6 +22,10 @@ const EXAMINER_ACKNOWLEDGEMENTS = {
 export const PART_TWO_PREP_MESSAGE =
   "Now it's time for Part 2, the Individual Long Turn. I'm going to give you a topic and I'd like you to talk about it for 1 to 2 minutes. Before you talk, you'll have one minute to think about what you're going to say. Here's your topic card.";
 
+export function shouldShowPart2CueCard({ currentPartNumber, isPart2Prep, cueCardTopic }) {
+  return currentPartNumber === 2 && isPart2Prep && Boolean(cueCardTopic);
+}
+
 export function formatIeltsQuestion(text = '') {
   return String(text || '')
     .replace(/\[\s*Why\s*\/\s*Why\s*not\s*\?*\]/gi, '(Why or why not?)')
@@ -324,6 +328,22 @@ export function buildLocalDevSpeakingResponse({
 }) {
   const questionLines = getQuestionLines(currentPart?.questions);
   const actualTotalQuestions = questionLines.length || 4;
+  // Part 2 is one long turn, not a normal final question. The development
+  // fallback has no authoritative audio/transcript evidence, so it must never
+  // infer completion from a question index. Production applies the matching
+  // substantive-turn policy in processSpeakingSession.
+  if (currentPartNumber === 2) {
+    return {
+      success: true,
+      userTranscript: '(Your response was recorded)',
+      examinerResponse:
+        'Please continue your long turn when you are ready. Aim to speak about the topic card for 1 to 2 minutes.',
+      nextQuestionIndex: 0,
+      isPartComplete: false,
+      totalQuestions: actualTotalQuestions,
+      evaluation: null,
+    };
+  }
   const isLastQuestion = currentQuestionIndex >= actualTotalQuestions - 1;
   const nextQuestion = isLastQuestion ? null : questionLines[currentQuestionIndex + 1] || null;
   const followUp = getDevFollowUp({

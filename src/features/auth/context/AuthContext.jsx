@@ -243,7 +243,10 @@ export const AuthProvider = ({ children }) => {
 
           // PERFORMANCE: Use cached profile for instant auth restoration
           const cachedProfile = getCachedProfile();
-          if (cachedProfile && cachedProfile.id === session.user.id) {
+          if (
+            cachedProfile &&
+            (cachedProfile.auth_id === session.user.id || cachedProfile.id === session.user.id)
+          ) {
             // Instant auth with cached data!
             setUserProfile(cachedProfile);
             setIsAdmin(false);

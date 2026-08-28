@@ -56,6 +56,7 @@ export function canAutoStartSpeakingAnswer({
   isTTSLoading,
   isListening,
   isPartComplete,
+  isPart2Intro,
   isPart2Prep,
   isTestComplete,
 }) {
@@ -68,6 +69,7 @@ export function canAutoStartSpeakingAnswer({
     isTTSLoading,
     isListening,
     isPartComplete,
+    isPart2Intro,
     isPart2Prep,
     isTestComplete,
   ].some(Boolean);

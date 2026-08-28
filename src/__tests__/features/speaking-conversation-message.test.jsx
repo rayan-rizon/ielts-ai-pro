@@ -43,8 +43,8 @@ describe('speaking conversation message', () => {
       />
     );
 
-    expect(screen.getByText('Auto-send paused')).toBeInTheDocument();
-    expect(screen.getByText('Silence will not send this answer.')).toBeInTheDocument();
+    expect(screen.getByText('Timer & auto-send paused')).toBeInTheDocument();
+    expect(screen.getByText('Test time and silence sending are paused.')).toBeInTheDocument();
   });
 
   it('shows a transcript-only loading state when no live words are available', () => {
@@ -100,6 +100,32 @@ describe('speaking conversation message', () => {
     expect(
       screen.getByText('How interested are young people in learning to drive?')
     ).toBeInTheDocument();
+  });
+
+  it('does not reveal examiner words ahead of stalled audio progress', async () => {
+    vi.useFakeTimers();
+    render(
+      <ConversationMessage
+        index={0}
+        authUser={{ full_name: 'Candidate' }}
+        entry={{
+          speaker: 'ai',
+          text: 'When did you first become interested in learning English?',
+          isExaminerLive: true,
+          isExaminerSpeaking: true,
+          speechProgress: 0,
+        }}
+      />
+    );
+
+    expect(screen.getByText('When')).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_200);
+    });
+
+    expect(screen.getByText('When')).toBeInTheDocument();
+    expect(screen.queryByText(/When did you first/)).not.toBeInTheDocument();
   });
 
   it('shows a polished preparation state before examiner audio starts', () => {

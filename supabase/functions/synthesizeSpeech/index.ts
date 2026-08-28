@@ -16,10 +16,10 @@ declare const Deno: any;
 declare const EdgeRuntime: any;
 
 // ============================================================
-// Google Cloud TTS Neural2 — synthesizeSpeech Edge Function
+// Google Cloud TTS Studio — synthesizeSpeech Edge Function
 // ============================================================
 // Uses GEMINI_API_KEY (or dedicated GOOGLE_TTS_API_KEY) to call
-// the Google Cloud Text-to-Speech API (Neural2 voice).
+// the Google Cloud Text-to-Speech API (Studio voice).
 // Results are cached in Supabase Storage (tts-cache bucket)
 // keyed by a SHA-1 hash of (voice + text) to avoid duplicate calls.
 //
@@ -29,17 +29,22 @@ declare const EdgeRuntime: any;
 // ============================================================
 
 const TTS_BUCKET = 'tts-cache';
+// Neural2 is materially cheaper than Studio while retaining a clear British
+// accent. Keep this rate aligned with the provider billing unit.
 const GOOGLE_NEURAL2_COST_PER_CHARACTER_USD = 0.000016;
 
-// en-GB-Neural2-B: male, warm, natural British English — least robotic Neural2 voice
-const DEFAULT_VOICE = 'en-GB-Neural2-B';
-const DEFAULT_SPEAKING_RATE = 0.88; // Measured examiner pace — clear and deliberate
-const DEFAULT_PITCH = 0.0; // Neutral pitch — avoid robotic bass distortion
+// Neural2-C is a warm British female examiner voice. The slightly slower rate
+// gives questions a conversational cadence without stretching test time.
+const DEFAULT_VOICE = 'en-GB-Neural2-C';
+const DEFAULT_SPEAKING_RATE = 0.91;
+const DEFAULT_PITCH = 0;
 const ALLOWED_VOICES = new Set([
   'en-GB-Neural2-A',
   'en-GB-Neural2-B',
   'en-GB-Neural2-C',
   'en-GB-Neural2-D',
+  'en-GB-Studio-B',
+  'en-GB-Studio-C',
   'en-US-Neural2-A',
   'en-US-Neural2-C',
   'en-US-Neural2-D',

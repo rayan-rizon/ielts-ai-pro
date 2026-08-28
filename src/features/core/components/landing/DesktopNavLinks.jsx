@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Desktop navigation pill bar with hover-following highlight.
@@ -24,24 +23,12 @@ export default function DesktopNavLinks({ links, hoveredLink, onHover }) {
           className="relative z-10 rounded-full px-4 py-1.5 text-[13px] font-semibold tracking-tight text-slate-600 transition-colors duration-200 hover:text-[#5a63df] dark:text-slate-300 dark:hover:text-[#a9afff] md:text-sm"
           data-oid="b41jq1v"
         >
-          <AnimatePresence>
-            {hoveredLink === link.label && (
-              <motion.span
-                layoutId="desktop-nav-hover-pill"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 400,
-                  damping: 30,
-                  opacity: { duration: 0.15 },
-                }}
-                className="absolute inset-0 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/8 pointer-events-none dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14]"
-                data-oid="hover-pill-bg"
-              />
-            )}
-          </AnimatePresence>
+          {hoveredLink === link.label && (
+            <span
+              className="pointer-events-none absolute inset-0 animate-in fade-in zoom-in-95 rounded-full border border-[#5a63df]/20 bg-[#5a63df]/8 duration-150 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14]"
+              data-oid="hover-pill-bg"
+            />
+          )}
           <span className="relative z-10">{link.label}</span>
         </a>
       ))}

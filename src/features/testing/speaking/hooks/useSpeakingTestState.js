@@ -58,6 +58,7 @@ export default function useSpeakingTestState() {
 
   const [testStarted, setTestStarted] = useState(false);
   const pendingGreetingRef = useRef(null);
+  const [isPart2Intro, setIsPart2Intro] = useState(false);
   const [isPart2Prep, setIsPart2Prep] = useState(false);
   const [prepTimeLeft, setPrepTimeLeft] = useState(60);
   const [cueCardTopic, setCueCardTopic] = useState(null);
@@ -91,6 +92,7 @@ export default function useSpeakingTestState() {
     isExiting,
     isLoading,
     isMountedRef,
+    isPart2Intro,
     isPart2Prep,
     isPartComplete,
     isProcessing,
@@ -113,6 +115,7 @@ export default function useSpeakingTestState() {
     setCurrentQuestionIndex,
     setError,
     setIsLoading,
+    setIsPart2Intro,
     setIsPart2Prep,
     setIsPartComplete,
     setIsProcessing,

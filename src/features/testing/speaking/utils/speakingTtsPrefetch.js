@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabase';
 
-export const SPEAKING_TTS_VOICE = 'en-GB-Neural2-B';
+// Neural2-C is a natural-sounding British female voice at the standard TTS
+// price tier. Keeping the voice in one constant keeps prefetch and playback
+// requests on the same cache key.
+export const SPEAKING_TTS_VOICE = 'en-GB-Neural2-C';
 
 const MAX_CACHED_REQUESTS = 40;
 const requestCache = new Map();

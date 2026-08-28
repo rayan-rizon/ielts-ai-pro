@@ -66,7 +66,7 @@ describe('speaking recording controls', () => {
     expect(screen.getByText('Transcript streaming in chat')).toBeInTheDocument();
     expect(screen.queryByText('I know the capital city quite well.')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Pause automatic answer sending' })
+      screen.getByRole('button', { name: 'Pause test timer and automatic answer sending' })
     ).toBeInTheDocument();
   });
 
@@ -95,7 +95,9 @@ describe('speaking recording controls', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Pause automatic answer sending' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Pause test timer and automatic answer sending' })
+    );
     expect(onAutoSubmitPausedChange).toHaveBeenCalledWith(true);
 
     rerender(
@@ -106,8 +108,10 @@ describe('speaking recording controls', () => {
         onAutoSubmitPausedChange={onAutoSubmitPausedChange}
       />
     );
-    expect(screen.getByText('Auto-send paused')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Resume automatic answer sending' }));
+    expect(screen.getByText('Timer & auto-send paused')).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Resume test timer and automatic answer sending' })
+    );
     expect(onAutoSubmitPausedChange).toHaveBeenLastCalledWith(false);
   });
 });

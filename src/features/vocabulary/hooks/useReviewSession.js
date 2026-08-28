@@ -76,8 +76,9 @@ export function useReviewSession({
           mastery_level: newMasteryLevel,
         });
 
+        let reviewEvent = null;
         try {
-          await recordVocabularyReviewEvent({
+          reviewEvent = await recordVocabularyReviewEvent({
             userId: currentReviewItem.user_id || user?.id,
             vocabularyItemId: currentReviewItem.id,
             quality,
@@ -98,13 +99,13 @@ export function useReviewSession({
         );
 
         // Award XP for review
-        if (user?.id) {
+        if (user?.id && reviewEvent?.id) {
           try {
             await UserPoints.addPoints(
               user.id,
               3,
               'vocabulary_review',
-              `vocabulary-review:${currentReviewItem.id}:${updates.last_reviewed.slice(0, 10)}`
+              `vocabulary-review:${reviewEvent.id}`
             );
           } catch (xpError) {
             console.warn('Failed to update XP:', xpError);

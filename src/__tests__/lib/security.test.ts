@@ -85,6 +85,13 @@ describe('sanitizeHtml', () => {
       expect(sanitizeHtml(link)).toContain('href');
     });
 
+    it('should protect links that open a new tab', () => {
+      const result = sanitizeHtml('<a href="https://example.com" target="_blank">Example</a>');
+
+      expect(result).toContain('target="_blank"');
+      expect(result).toContain('rel="noopener noreferrer"');
+    });
+
     it('should allow src on images', () => {
       const img = '<img src="https://example.com/img.jpg" alt="Test">';
       expect(sanitizeHtml(img)).toContain('src');

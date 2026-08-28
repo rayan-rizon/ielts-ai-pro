@@ -227,6 +227,17 @@ describe('speakingTestUtils', () => {
     expect(response.evaluation.overallBand).toBe(6.5);
   });
 
+  it('never completes the Part 2 long turn from a fallback question index', () => {
+    const response = buildLocalDevSpeakingResponse({
+      currentPart: { questions: 'Describe a park' },
+      currentPartNumber: 2,
+      currentQuestionIndex: 0,
+    });
+
+    expect(response.isPartComplete).toBe(false);
+    expect(response.examinerResponse).toContain('continue your long turn');
+  });
+
   it('builds part contexts for evaluation requests', () => {
     expect(
       buildPartContexts({

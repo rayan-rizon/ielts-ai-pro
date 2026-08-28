@@ -108,15 +108,18 @@ export function useGamification(): UseGamificationResult {
         // Get current user profile (ensures public profile exists)
         const user = await User.me();
 
-        // Calculate XP amount based on performance
-        const xpAmount = UserPoints.calculateTestXP(correctAnswers, totalQuestions);
-
-        // Calculate perfect score bonus
-        const isPerfect = correctAnswers === totalQuestions && totalQuestions > 0;
-        const bonusXP = includePerfectBonus && isPerfect ? 250 : 0;
-
-        // Award points to user (using public ID, not auth ID)
-        await UserPoints.addPoints(user.id!, xpAmount, 'test_completion', actionKey);
+        // The server derives the reward from the verified test completion.
+        // Correct-answer counts remain UI-only until objective scoring is
+        // evaluated server-side.
+        void correctAnswers;
+        void totalQuestions;
+        void includePerfectBonus;
+        const award = await UserPoints.addPoints(user.id!, 0, 'test_completion', actionKey);
+        if (!award.awarded) {
+          return { success: false, xp: 0, bonus: 0, streak: 0 };
+        }
+        const xpAmount = award.awardedPoints;
+        const bonusXP = 0;
 
         // Update streak if enabled
         let streakValue = 0;

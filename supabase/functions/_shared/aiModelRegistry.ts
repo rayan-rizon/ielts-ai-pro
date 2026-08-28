@@ -107,11 +107,11 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingNote:
       'Billed per audio hour by Azure Speech. Supplies the acoustic evidence, not a band.',
   },
-  'google-tts-neural2': {
-    id: 'google-tts-neural2',
+  'google-tts-studio': {
+    id: 'google-tts-studio',
     vendor: 'Google Cloud Text-to-Speech',
     access: 'google-direct',
-    pricingNote: 'Billed per character (Neural2 tier). Results are cached by SHA-1 of voice+text.',
+    pricingNote: 'Billed per character (Studio tier). Results are cached by SHA-1 of voice+text.',
   },
 };
 
@@ -274,7 +274,7 @@ export const AI_ROUTES: AiRoute[] = [
     file: 'supabase/functions/synthesizeSpeech/index.ts',
     steps: [
       {
-        model: 'google-tts-neural2',
+        model: 'google-tts-studio',
         role: 'primary',
         when: 'GOOGLE_TTS_API_KEY, falling back to GEMINI_API_KEY for the same Google Cloud project.',
       },

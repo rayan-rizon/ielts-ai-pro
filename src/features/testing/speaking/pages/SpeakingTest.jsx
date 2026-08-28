@@ -92,6 +92,7 @@ export default function SpeakingTest() {
     isExiting,
     isLoading,
     isMountedRef,
+    isPart2Intro,
     isPart2Prep,
     isPartComplete,
     isProcessing,
@@ -114,6 +115,7 @@ export default function SpeakingTest() {
     setCurrentQuestionIndex,
     setError,
     setIsLoading,
+    setIsPart2Intro,
     setIsPart2Prep,
     setIsPartComplete,
     setIsProcessing,
@@ -169,6 +171,7 @@ export default function SpeakingTest() {
         ...session.content_data,
         currentPart: currentPartNumber,
         isPartComplete,
+        isPart2Intro,
         isPart2Prep,
         prepTimeLeft,
         cueCardTopic,
@@ -182,6 +185,7 @@ export default function SpeakingTest() {
     cueCardTopic,
     currentPartNumber,
     conversationRef,
+    isPart2Intro,
     isPart2Prep,
     isPartComplete,
     isTestComplete,
@@ -264,6 +268,7 @@ export default function SpeakingTest() {
     speakText,
     testId,
     timerExpiredRef,
+    isMountedRef,
   });
 
   const recorder = useAudioRecorder({
@@ -293,6 +298,7 @@ export default function SpeakingTest() {
       isTTSLoading,
       isListening,
       isPartComplete,
+      isPart2Intro,
       isPart2Prep,
       isTestComplete,
     });
@@ -304,6 +310,7 @@ export default function SpeakingTest() {
     autoStartRequestVersion,
     isListening,
     handsFreeEnabled,
+    isPart2Intro,
     isPart2Prep,
     isPartComplete,
     isProcessing,
@@ -334,6 +341,7 @@ export default function SpeakingTest() {
           isTTSLoading,
           isListening,
           isPartComplete,
+          isPart2Intro,
           isPart2Prep,
           isTestComplete,
         })
@@ -343,6 +351,7 @@ export default function SpeakingTest() {
     },
     [
       isListening,
+      isPart2Intro,
       isPart2Prep,
       isPartComplete,
       isProcessing,
@@ -367,6 +376,7 @@ export default function SpeakingTest() {
     setCueCardTopic,
     setCurrentPartNumber,
     setCurrentQuestionIndex,
+    setIsPart2Intro,
     setIsPart2Prep,
     setIsPartComplete,
     setPrepTimeLeft,
@@ -374,6 +384,7 @@ export default function SpeakingTest() {
     speakText,
     requestAutoStart,
     timerExpiredRef,
+    isMountedRef,
   });
 
   useEffect(() => {
@@ -428,6 +439,7 @@ export default function SpeakingTest() {
     setError,
     setFinalEvaluation,
     setIsLoading,
+    setIsPart2Intro,
     setIsPart2Prep,
     setIsPartComplete,
     setIsTestComplete,
@@ -438,6 +450,7 @@ export default function SpeakingTest() {
     setTimeLeft,
     requestAutoStart,
     speakText,
+    isMountedRef,
   });
 
   const handleStartTest = useStartSpeakingTest({
@@ -489,6 +502,7 @@ export default function SpeakingTest() {
     cancelListening,
     setConversation,
     handleStartPart2Speaking,
+    isPart2Intro,
     isPart2Prep,
     prepTimeLeft,
     setPrepTimeLeft,
@@ -505,6 +519,7 @@ export default function SpeakingTest() {
     cueCardTopic,
     allPartsConversation,
     allPartsAcousticMetrics,
+    isPaused: recorder.autoSubmitPaused || isPart2Intro,
   });
 
   return (
@@ -561,6 +576,7 @@ export default function SpeakingTest() {
           moveToNextPart,
           conversationContainerRef,
           isPart2Prep,
+          isPart2Intro,
           cueCardTopic,
           prepTimeLeft,
           handleStartPart2Speaking,

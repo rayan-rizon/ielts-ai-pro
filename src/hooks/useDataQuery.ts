@@ -68,6 +68,7 @@ export function useDataQuery<T>(
   const [isStale, setIsStale] = useState<boolean>(false);
   const isMountedRef = useRef<boolean>(true);
   const isRevalidatingRef = useRef<boolean>(false);
+  const revalidatingKeyRef = useRef<string | null>(null);
   const requestCounterRef = useRef<number>(0);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
@@ -75,7 +76,7 @@ export function useDataQuery<T>(
   const fetchData = useCallback(
     async (force: boolean = false): Promise<void> => {
       // Prevent duplicate revalidation requests
-      if (isRevalidatingRef.current && !force) return;
+      if (isRevalidatingRef.current && revalidatingKeyRef.current === cacheKey && !force) return;
 
       // Increment request counter for ordering — stale responses are discarded
       const thisRequest = ++requestCounterRef.current;
@@ -90,6 +91,7 @@ export function useDataQuery<T>(
 
         // Background revalidation
         isRevalidatingRef.current = true;
+        revalidatingKeyRef.current = cacheKey;
         fetcherRef
           .current()
           .then((fresh) => {
@@ -103,7 +105,10 @@ export function useDataQuery<T>(
             console.warn(`Background revalidation failed for ${cacheKey}:`, err);
           })
           .finally(() => {
-            isRevalidatingRef.current = false;
+            if (revalidatingKeyRef.current === cacheKey) {
+              isRevalidatingRef.current = false;
+              revalidatingKeyRef.current = null;
+            }
           });
         return;
       }

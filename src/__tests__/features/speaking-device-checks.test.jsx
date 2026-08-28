@@ -108,4 +108,22 @@ describe('speaking device readiness checks', () => {
     expect(screen.getByText('Microphone works')).toBeInTheDocument();
     expect(stopTrack).toHaveBeenCalledOnce();
   });
+
+  it('cancels microphone sampling and releases the stream on unmount', async () => {
+    vi.useFakeTimers();
+    const { unmount } = render(
+      <InitialWelcomeScreen partNumber={1} title="Introduction & Interview" />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Test microphone' }));
+    await act(async () => Promise.resolve());
+    unmount();
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(stopTrack).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });
