@@ -137,17 +137,16 @@ serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  // Fast path for warm-up pings (no TTS call, just boot the worker)
-  // This eliminates cold-start latency for the first real request
+  // Recognize warm-up pings early, but do not return before the same auth and
+  // per-user burst controls as a normal request. A public ping endpoint would
+  // otherwise provide an unbounded worker-warmup surface.
   const contentType = req.headers.get('content-type') || '';
+  let isWarmupPing = false;
   if (contentType.includes('application/json')) {
     try {
       const maybeBody = await req.clone().json();
       if (maybeBody?.ping === true) {
-        return new Response(JSON.stringify({ pong: true }), {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        isWarmupPing = true;
       }
     } catch {
       // Not JSON or no ping field — continue to normal handler
@@ -203,6 +202,15 @@ serve(async (req: Request) => {
           'Content-Type': 'application/json',
           'Retry-After': String(Math.ceil(burstCheck.resetIn / 1000)),
         },
+      });
+    }
+
+    // Authenticated and rate-limited warm-up: no provider call and no quota
+    // reservation, while preserving the cold-start optimization for learners.
+    if (isWarmupPing) {
+      return new Response(JSON.stringify({ pong: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 

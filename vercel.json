@@ -203,7 +203,25 @@
       ]
     },
     {
-      "source": "/(admin/(.*)|dashboard|login|signup|register|forgot-password|update-password|settings|subscription/(.*)|upgrade|pricing|onboarding)",
+      "source": "/admin/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/subscription/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/(dashboard|login|signup|register|forgot-password|update-password|settings|upgrade|pricing|onboarding)",
       "headers": [
         {
           "key": "X-Robots-Tag",

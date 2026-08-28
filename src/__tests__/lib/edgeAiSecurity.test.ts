@@ -63,4 +63,17 @@ describe('AI edge security controls', () => {
       'REVOKE ALL ON FUNCTION public.check_user_rate_limit(uuid, text, text) FROM anon'
     );
   });
+
+  it('does not expose an anonymous TTS warm-up path', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/synthesizeSpeech/index.ts'),
+      'utf8'
+    );
+    const ping = source.indexOf('if (isWarmupPing)');
+    const auth = source.indexOf('if (authError || !user)');
+    const burst = source.indexOf('if (!burstCheck.allowed)');
+
+    expect(ping).toBeGreaterThan(auth);
+    expect(ping).toBeGreaterThan(burst);
+  });
 });
