@@ -158,7 +158,13 @@ export default function useSpeakingRecordingProcessor({
         if (response.coaching?.message && speakingMode === 'practice') {
           setConversation((prev) => [
             ...prev,
-            { speaker: 'coach', text: response.coaching.message, code: response.coaching.code },
+            {
+              speaker: 'coach',
+              text: response.coaching.message,
+              code: response.coaching.code,
+              evidenceQuote: response.coaching.evidenceQuote,
+              partNumber: currentPartNumber,
+            },
           ]);
         }
         if (response.state) setSpeakingV2State?.(response.state);
@@ -372,6 +378,7 @@ function replaceLoadingUserTranscript(conversation, transcript) {
       speaker: 'user',
       text: transcript || '(Unable to transcribe - please try again)',
       isLoading: false,
+      isTranscript: !isTranscriptError(transcript),
       error: isTranscriptError(transcript),
     };
   } else {
@@ -379,6 +386,7 @@ function replaceLoadingUserTranscript(conversation, transcript) {
       speaker: 'user',
       text: transcript || '(Unable to transcribe - please try again)',
       isLoading: false,
+      isTranscript: !isTranscriptError(transcript),
       error: isTranscriptError(transcript),
     });
   }

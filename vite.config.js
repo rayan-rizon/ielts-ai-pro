@@ -1,7 +1,10 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import viteCompression from 'vite-plugin-compression';
+
+const { VITE_SUPABASE_URL } = loadEnv('development', '.', '');
+const SUPABASE_PROXY_TARGET = VITE_SUPABASE_URL?.replace(/\/$/, '');
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -22,6 +25,21 @@ export default defineConfig({
   ],
   server: {
     allowedHosts: true,
+    // Production Edge Functions deliberately reject loopback origins. This
+    // development-only proxy preserves that boundary while letting the local
+    // app call the same deployed functions through a same-origin request.
+    ...(SUPABASE_PROXY_TARGET
+      ? {
+          proxy: {
+            '/__supabase/functions': {
+              target: SUPABASE_PROXY_TARGET,
+              changeOrigin: true,
+              rewrite: (requestPath) =>
+                requestPath.replace(/^\/__supabase\/functions/, '/functions/v1'),
+            },
+          },
+        }
+      : {}),
   },
   resolve: {
     alias: {

@@ -1,8 +1,18 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { AudioLines, Pause, Radio, Sparkles } from 'lucide-react';
+import {
+  AudioLines,
+  CheckCircle2,
+  CornerDownRight,
+  Pause,
+  Quote,
+  Radio,
+  Sparkles,
+} from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
+
+import { getPracticeCoachContent } from '../utils/practiceCoachContent';
 
 function cleanMessageText(text = '') {
   return String(text)
@@ -150,6 +160,92 @@ function DraftTranscript({ entry }) {
   );
 }
 
+function FinalTranscript({ entry }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1">
+        <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
+          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+          Captured transcript
+        </span>
+        <span className="font-mono text-[9px] font-bold uppercase tracking-[0.1em] text-rose-500/75 dark:text-rose-300/75">
+          Ready
+        </span>
+      </div>
+      <p className="whitespace-pre-wrap text-[13.5px] leading-snug text-rose-950 dark:text-rose-100 sm:text-[14.5px]">
+        {cleanMessageText(entry.text)}
+      </p>
+    </div>
+  );
+}
+
+function PracticeCoachCard({ entry }) {
+  const prefersReducedMotion = useReducedMotion();
+  const coach = getPracticeCoachContent(entry);
+
+  return (
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.28, ease: [0.2, 0, 0, 1] }}
+      className="relative overflow-hidden px-3.5 py-3 sm:px-4"
+      aria-label={`Practice coach: ${coach.title}`}
+    >
+      <motion.span
+        aria-hidden="true"
+        animate={prefersReducedMotion ? { opacity: 0.65 } : { opacity: [0.45, 0.9, 0.45] }}
+        transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
+        className="absolute inset-y-0 left-0 w-px bg-[#5a63df] dark:bg-[#9aa0ff]"
+      />
+
+      <div className="flex items-start gap-2.5 pl-1">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/15 bg-[#5a63df]/8 text-[#5a63df] dark:border-[#9aa0ff]/20 dark:bg-[#5a63df]/15 dark:text-[#afb5ff]">
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1 space-y-2">
+          <div>
+            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>
+              One focused adjustment
+            </p>
+            <h3 className="mt-0.5 text-sm font-bold leading-snug text-slate-900 dark:text-white">
+              {coach.title}
+            </h3>
+          </div>
+
+          {coach.evidenceQuote && (
+            <div className="flex gap-1.5 border-l border-[#5a63df]/20 pl-2.5 text-xs leading-snug text-slate-600 dark:text-slate-300">
+              <Quote
+                className="mt-0.5 h-3 w-3 shrink-0 text-[#5a63df]/70 dark:text-[#afb5ff]/70"
+                aria-hidden="true"
+              />
+              <p>“{coach.evidenceQuote}”</p>
+            </div>
+          )}
+
+          <p className="text-sm leading-snug text-slate-700 dark:text-slate-200">
+            {coach.explanation}
+          </p>
+
+          <div className="rounded-lg border border-[#5a63df]/14 bg-[#5a63df]/5 px-2.5 py-2 dark:border-[#9aa0ff]/18 dark:bg-[#5a63df]/10">
+            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>Try this next</p>
+            <p className="mt-0.5 text-sm font-semibold leading-snug text-slate-800 dark:text-slate-100">
+              {coach.nextStep}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+            <CornerDownRight
+              className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#afb5ff]"
+              aria-hidden="true"
+            />
+            <span>{coach.pattern}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function ExaminerLiveTranscript({ entry }) {
   const cleanText = useMemo(() => cleanMessageText(entry.text), [entry.text]);
   const words = useMemo(() => cleanText.split(/\s+/).filter(Boolean), [cleanText]);
@@ -218,11 +314,19 @@ function MessageBody({ entry }) {
     return <ExaminerLiveTranscript entry={entry} />;
   }
 
+  if (entry.speaker === 'coach') {
+    return <PracticeCoachCard entry={entry} />;
+  }
+
   if (entry.isLoading) {
     if (entry.speaker === 'user') {
       if (entry.isTranscriptDraft || entry.isLive) return <DraftTranscript entry={entry} />;
     }
     return <LoadingText speaker={entry.speaker} />;
+  }
+
+  if (entry.speaker === 'user' && entry.isTranscript) {
+    return <FinalTranscript entry={entry} />;
   }
 
   return <p className="whitespace-pre-wrap">{cleanMessageText(entry.text)}</p>;
@@ -255,6 +359,7 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
   const bubbleRef = useRef(null);
   const isCompactTranscript = entry.speaker === 'user' && (entry.isLive || entry.isTranscriptDraft);
   const isExaminerTranscript = entry.speaker === 'ai' && entry.isExaminerLive;
+  const isCoachMessage = entry.speaker === 'coach';
   const isExaminerMessage = entry.speaker === 'ai' || entry.speaker === 'coach';
   const isUserMessage = entry.speaker === 'user';
   const prefersReducedMotion = useReducedMotion();
@@ -273,9 +378,11 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
         className={`min-w-0 space-y-1 ${
           isCompactTranscript || isExaminerTranscript
             ? 'max-w-[88%] sm:max-w-[72%] lg:max-w-[65%]'
-            : isUserMessage
-              ? 'max-w-[78%] sm:max-w-[68%]'
-              : 'max-w-[88%] sm:max-w-[80%]'
+            : isCoachMessage
+              ? 'max-w-[92%] sm:max-w-[78%] lg:max-w-[68%]'
+              : isUserMessage
+                ? 'max-w-[78%] sm:max-w-[68%]'
+                : 'max-w-[88%] sm:max-w-[80%]'
         } ${isUserMessage ? 'text-right' : ''}`}
       >
         {/* Label row */}
@@ -309,9 +416,11 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
           className={`overflow-hidden text-left tracking-normal ${
             isCompactTranscript || isExaminerTranscript
               ? 'px-3 py-2'
-              : isExaminerMessage
-                ? 'px-4 py-2 text-[13px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-sm'
-                : 'px-4 py-2 text-[13.5px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-[14.5px]'
+              : isCoachMessage
+                ? 'p-0'
+                : isExaminerMessage
+                  ? 'px-4 py-2 text-[13px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-sm'
+                  : 'px-4 py-2 text-[13.5px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-[14.5px]'
           } ${getBubbleClass(entry)}`}
         >
           <MessageBody entry={entry} />

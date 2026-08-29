@@ -60,6 +60,48 @@ describe('speaking conversation message', () => {
     expect(screen.queryByText('Answer captured')).not.toBeInTheDocument();
   });
 
+  it('turns the practice coach hint into an actionable card with the captured evidence', () => {
+    render(
+      <ConversationMessage
+        index={0}
+        authUser={{ full_name: 'Candidate' }}
+        entry={{
+          speaker: 'coach',
+          code: 'develop_detail',
+          partNumber: 2,
+          evidenceQuote: 'The trip was memorable.',
+          text: 'Develop one idea with a concrete detail.',
+        }}
+      />
+    );
+
+    expect(screen.getByText('Turn the idea into a scene')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'For your long turn: Your main point is clear. Add one memorable detail about the place, activity, person, or feeling.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('“The trip was memorable.”')).toBeInTheDocument();
+    expect(screen.getByText(/One moment I clearly remember is/)).toBeInTheDocument();
+  });
+
+  it('marks a final practice transcript as captured after recognition settles', () => {
+    render(
+      <ConversationMessage
+        index={0}
+        authUser={{ full_name: 'Candidate' }}
+        entry={{
+          speaker: 'user',
+          text: 'I enjoy visiting the park with my family.',
+          isTranscript: true,
+        }}
+      />
+    );
+
+    expect(screen.getByText('Captured transcript')).toBeInTheDocument();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+  });
+
   it('reveals the examiner question progressively while the voice is playing', async () => {
     vi.useFakeTimers();
     const { rerender } = render(

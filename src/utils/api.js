@@ -9,11 +9,16 @@ import {
 } from '@/lib/apiCache';
 import { getCsrfHeaders } from '@/lib/csrf';
 import { requirePublicEnv } from '@/lib/publicEnv';
+import { resolveEdgeFunctionsUrl } from '@/lib/edgeFunctionEndpoint';
 
 // Get the Supabase Functions URL based on environment
 // Use the same validated configuration as the main Supabase client.
 const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
-const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+const SUPABASE_FUNCTIONS_URL = resolveEdgeFunctionsUrl({
+  supabaseUrl: SUPABASE_URL,
+  isDevelopment: import.meta.env.DEV,
+  hostname: typeof window === 'undefined' ? '' : window.location.hostname,
+});
 const SUPABASE_ANON_KEY = requirePublicEnv('VITE_SUPABASE_ANON_KEY');
 
 /**
