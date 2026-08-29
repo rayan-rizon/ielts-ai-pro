@@ -23,6 +23,8 @@ import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
 import { shouldAutomaticallyFinalizeSpeaking } from '../utils/autoFinalEvaluation';
 import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
+import { isSpeakingV2Available } from '../utils/speakingV2';
+import { callEdgeFunction } from '@/utils/api';
 
 const HANDS_FREE_STORAGE_KEY = 'ielts-speaking-hands-free';
 
@@ -47,6 +49,7 @@ export default function SpeakingTest() {
   handsFreeEnabledRef.current = handsFreeEnabled;
   const autoStartRequestedRef = useRef(false);
   const autoFinalEvaluationRequestedRef = useRef(false);
+  const serverFinishRequestedRef = useRef(false);
   const [autoStartRequestVersion, setAutoStartRequestVersion] = useState(0);
   const requestAutoStart = useCallback(() => {
     if (!handsFreeEnabledRef.current) return;
@@ -106,6 +109,8 @@ export default function SpeakingTest() {
     processingStatus,
     questionIndexRef,
     session,
+    speakingMode,
+    speakingV2State,
     setAllParts,
     setAllPartsAcousticMetrics,
     setAllPartsConversation,
@@ -123,6 +128,8 @@ export default function SpeakingTest() {
     setPrepTimeLeft,
     setProcessingStatus,
     setSession,
+    setSpeakingMode,
+    setSpeakingV2State,
     setShowExitDialog,
     setShowUpgradeDialog,
     setTestStarted,
@@ -137,6 +144,51 @@ export default function SpeakingTest() {
     timerExpiredRef,
     transitionCardRef,
   } = useSpeakingTestState();
+  const speakingV2Available = isSpeakingV2Available(authUser);
+  // All active Speaking sessions now run through the server-authoritative flow.
+  // Legacy sessions are intentionally not resumed; initialization starts a clean V2 attempt.
+  const useSpeakingV2 = speakingV2Available;
+
+  useEffect(() => {
+    if (!useSpeakingV2 || speakingMode !== 'practice' || !testStarted || !session?.id) return;
+    const sendHeartbeat = () => {
+      callEdgeFunction('processSpeakingSessionV2', {
+        action: 'heartbeat',
+        sessionId: session.id,
+      })
+        .then((result) => setSpeakingV2State(result.state))
+        .catch((heartbeatError) =>
+          console.warn('Speaking Practice heartbeat failed:', heartbeatError?.message)
+        );
+    };
+    const heartbeat = window.setInterval(sendHeartbeat, 15_000);
+    return () => window.clearInterval(heartbeat);
+  }, [session?.id, setSpeakingV2State, speakingMode, testStarted, useSpeakingV2]);
+
+  useEffect(() => {
+    if (!useSpeakingV2 || speakingMode !== 'exam' || !speakingV2State?.expiresAt) return;
+    const syncExamClock = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((new Date(speakingV2State.expiresAt).getTime() - Date.now()) / 1000)
+      );
+      setTimeLeft(remaining);
+    };
+    syncExamClock();
+    const clock = window.setInterval(syncExamClock, 1_000);
+    return () => window.clearInterval(clock);
+  }, [setTimeLeft, speakingMode, speakingV2State?.expiresAt, useSpeakingV2]);
+
+  useEffect(() => {
+    if (
+      !useSpeakingV2 ||
+      speakingMode !== 'practice' ||
+      speakingV2State?.remainingActiveSeconds == null
+    ) {
+      return;
+    }
+    setTimeLeft(speakingV2State.remainingActiveSeconds);
+  }, [setTimeLeft, speakingMode, speakingV2State?.remainingActiveSeconds, useSpeakingV2]);
 
   useSpeakingSessionEffects({
     testId,
@@ -157,8 +209,15 @@ export default function SpeakingTest() {
 
   const saveSessionProgress = useSpeakingSessionPersistence(session?.id, session?.content_data);
 
-  const flushCurrentSession = useCallback(() => {
+  const flushCurrentSession = useCallback(async () => {
     if (!session?.id || !testStarted || isTestComplete) return Promise.resolve();
+
+    if (useSpeakingV2 && speakingMode === 'practice') {
+      await callEdgeFunction('processSpeakingSessionV2', {
+        action: 'pause',
+        sessionId: session.id,
+      }).catch(() => {});
+    }
 
     return saveSessionProgress({
       answers: {
@@ -195,6 +254,8 @@ export default function SpeakingTest() {
     session,
     testStarted,
     timeLeftRef,
+    speakingMode,
+    useSpeakingV2,
   ]);
 
   const {
@@ -230,6 +291,46 @@ export default function SpeakingTest() {
     setProcessingStatus,
   });
 
+  useEffect(() => {
+    if (!useSpeakingV2 || !testStarted || !session?.id) return;
+    if (
+      speakingMode === 'exam' &&
+      timeLeft === 0 &&
+      speakingV2State?.status === 'active' &&
+      !serverFinishRequestedRef.current
+    ) {
+      serverFinishRequestedRef.current = true;
+      callEdgeFunction('processSpeakingSessionV2', {
+        action: 'finish_exam',
+        sessionId: session.id,
+      })
+        .then((result) => setSpeakingV2State(result.state))
+        .catch((finishError) => {
+          serverFinishRequestedRef.current = false;
+          console.warn('Could not finish expired Speaking exam:', finishError?.message);
+        });
+      return;
+    }
+    if (
+      speakingV2State?.status === 'ready_for_evaluation' &&
+      !isEvaluating &&
+      !autoFinalEvaluationRequestedRef.current
+    ) {
+      autoFinalEvaluationRequestedRef.current = true;
+      requestFinalEvaluation();
+    }
+  }, [
+    isEvaluating,
+    requestFinalEvaluation,
+    session?.id,
+    setSpeakingV2State,
+    speakingMode,
+    speakingV2State?.status,
+    testStarted,
+    timeLeft,
+    useSpeakingV2,
+  ]);
+
   // ─── Navigation Blocker ────────────────────────────────────────────────
   const blocker = useSpeakingNavigationBlocker({
     isTestComplete,
@@ -264,11 +365,15 @@ export default function SpeakingTest() {
     setIsProcessing,
     setProcessingStatus,
     setShowUpgradeDialog,
+    setSpeakingV2State,
+    speakingMode,
+    speakingV2State,
     speakAiMessageFromLoadingState,
     speakText,
     testId,
     timerExpiredRef,
     isMountedRef,
+    useSpeakingV2,
   });
 
   const recorder = useAudioRecorder({
@@ -363,7 +468,7 @@ export default function SpeakingTest() {
     ]
   );
 
-  const moveToNextPart = useMoveToNextSpeakingPart({
+  const moveToNextPartLegacy = useMoveToNextSpeakingPart({
     allParts,
     allPartsConversation,
     conversation,
@@ -386,8 +491,28 @@ export default function SpeakingTest() {
     timerExpiredRef,
     isMountedRef,
   });
+  const moveToNextPart = useCallback(async () => {
+    if (useSpeakingV2 && allParts[currentPartNumber + 1]) {
+      const result = await callEdgeFunction('processSpeakingSessionV2', {
+        action: 'advance_part',
+        sessionId: session?.id,
+        expectedRevision: speakingV2State?.revision,
+      });
+      setSpeakingV2State(result.state);
+    }
+    return moveToNextPartLegacy();
+  }, [
+    allParts,
+    currentPartNumber,
+    moveToNextPartLegacy,
+    session?.id,
+    setSpeakingV2State,
+    speakingV2State?.revision,
+    useSpeakingV2,
+  ]);
 
   useEffect(() => {
+    if (useSpeakingV2) return;
     const isFinalPart = Object.keys(allParts).length > 0 && !allParts[currentPartNumber + 1];
     if (!isPartComplete || !isFinalPart) {
       autoFinalEvaluationRequestedRef.current = false;
@@ -419,6 +544,7 @@ export default function SpeakingTest() {
     moveToNextPart,
     session?.content_data?.evaluationPending,
     session?.evaluation_status,
+    useSpeakingV2,
   ]);
 
   useSpeakingTestInitialization({
@@ -444,6 +570,8 @@ export default function SpeakingTest() {
     setIsPartComplete,
     setIsTestComplete,
     setSession,
+    setSpeakingMode,
+    setSpeakingV2State,
     setPrepTimeLeft,
     setTestStarted,
     setTestTitle,
@@ -464,10 +592,13 @@ export default function SpeakingTest() {
     setConversation,
     setCurrentQuestionIndex,
     setSession,
+    setSpeakingV2State,
     setTestStarted,
+    speakingMode,
     requestAutoStart,
     speakText,
     testId,
+    useSpeakingV2,
   });
 
   const currentPart = allParts[currentPartNumber];
@@ -520,6 +651,7 @@ export default function SpeakingTest() {
     allPartsConversation,
     allPartsAcousticMetrics,
     isPaused: recorder.autoSubmitPaused || isPart2Intro,
+    serverAuthoritative: useSpeakingV2,
   });
 
   return (
@@ -592,6 +724,9 @@ export default function SpeakingTest() {
           timeExpired: testStarted && timeLeft === 0,
           timerExpiredRef,
           handleStartTest,
+          speakingMode,
+          setSpeakingMode,
+          speakingV2Available,
         },
         isTestComplete,
         handsFreeEnabled,
@@ -602,6 +737,8 @@ export default function SpeakingTest() {
         testStarted,
         testTitle,
         totalParts: Object.keys(allParts).length,
+        speakingMode,
+        speakingV2State,
         upgradeDialogProps: {
           onOpenChange: setShowUpgradeDialog,
           isExitingRef: isExiting,

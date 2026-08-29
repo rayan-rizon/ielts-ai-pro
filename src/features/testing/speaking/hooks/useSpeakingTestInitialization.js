@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Passage } from '@/features/testing/shared/services/Passage';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { supabase } from '@/lib/supabase';
+import { callEdgeFunction } from '@/utils/api';
 
 import {
   buildAverageSpeakingEvaluation,
@@ -12,6 +13,10 @@ import {
   getQuestionLines,
 } from '../utils/speakingTestUtils';
 import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
+
+function isSpeakingV2Session(session) {
+  return session?.content_data?.speakingVersion === 'v2';
+}
 
 export default function useSpeakingTestInitialization({
   testId,
@@ -37,6 +42,8 @@ export default function useSpeakingTestInitialization({
   setIsPartComplete,
   setIsTestComplete,
   setSession,
+  setSpeakingMode,
+  setSpeakingV2State,
   setPrepTimeLeft,
   setTestStarted,
   setTestTitle,
@@ -54,7 +61,9 @@ export default function useSpeakingTestInitialization({
         .maybeSingle();
 
       return {
-        initialSession: session || null,
+        // Completed legacy reports remain viewable by their direct URL. An unfinished
+        // legacy attempt must not revive the retired examiner pipeline.
+        initialSession: session?.is_completed || isSpeakingV2Session(session) ? session : null,
         resolvedPassageId:
           session?.passage_id ||
           session?.content_data?.passage_id ||
@@ -117,10 +126,11 @@ export default function useSpeakingTestInitialization({
       return sessions?.find((session) => {
         const contentData = session.content_data || {};
         return (
-          session.passage_id === passageId ||
-          contentData.id === passageId ||
-          contentData.passage_id === passageId ||
-          contentData.passageId === passageId
+          isSpeakingV2Session(session) &&
+          (session.passage_id === passageId ||
+            contentData.id === passageId ||
+            contentData.passage_id === passageId ||
+            contentData.passageId === passageId)
         );
       });
     };
@@ -151,10 +161,23 @@ export default function useSpeakingTestInitialization({
       setIsLoading(false);
     };
 
-    const restoreActiveSession = (matchingSession, dbParts) => {
+    const restoreActiveSession = async (matchingSession, dbParts) => {
       setSession(matchingSession);
 
-      const resumePart = matchingSession.content_data?.currentPart || 1;
+      let serverResume = null;
+      if (matchingSession.content_data?.speakingVersion === 'v2') {
+        const savedMode =
+          matchingSession.content_data?.speakingMode === 'practice' ? 'practice' : 'exam';
+        setSpeakingMode?.(savedMode);
+        serverResume = await callEdgeFunction('processSpeakingSessionV2', {
+          action: savedMode === 'practice' ? 'resume_practice' : 'resume',
+          sessionId: matchingSession.id,
+        });
+        setSpeakingV2State?.(serverResume.state);
+      }
+
+      const resumePart =
+        serverResume?.state?.part || matchingSession.content_data?.currentPart || 1;
       const resumeAllPartsConversation = matchingSession.content_data?.allPartsConversation || {};
       const savedMetrics =
         matchingSession.content_data?.allPartsAcousticMetrics ||
@@ -174,11 +197,25 @@ export default function useSpeakingTestInitialization({
       acousticMetricsRef.current = savedMetrics;
       setAllPartsAcousticMetrics(savedMetrics);
       setCurrentPartNumber(resumePart);
-      setConversation(resumeState.conversation);
-      setCurrentQuestionIndex(resumeState.currentQuestionIndex);
+      const resumedConversation = serverResume?.examinerText
+        ? [
+            ...resumeState.conversation.filter(
+              (entry) => entry.text?.trim() !== serverResume.examinerText.trim()
+            ),
+            { speaker: 'ai', text: serverResume.examinerText },
+          ]
+        : resumeState.conversation;
+      setConversation(resumedConversation);
+      setCurrentQuestionIndex(
+        serverResume?.state?.questionNumber ?? resumeState.currentQuestionIndex
+      );
       setAllPartsConversation(resumeAllPartsConversation);
       setIsPartComplete(
-        Boolean(matchingSession.content_data?.isPartComplete || resumeState.isPartComplete)
+        Boolean(
+          serverResume?.state?.status === 'part_complete' ||
+          matchingSession.content_data?.isPartComplete ||
+          resumeState.isPartComplete
+        )
       );
       setIsPart2Prep(isPart2Prep);
       setIsPart2Intro(false);
@@ -203,15 +240,24 @@ export default function useSpeakingTestInitialization({
       setTestStarted(true);
       setIsLoading(false);
 
-      repairAndResumeSpeakingSession({
-        matchingSession,
-        requestAutoStart,
-        resumeState,
-        shouldAutoStart: !isPart2Prep && !resumeState.isPartComplete,
-        speakText,
-      });
+      if (serverResume?.examinerText) {
+        Promise.resolve(speakText(serverResume.examinerText)).finally(() => {
+          if (!isPart2Prep && serverResume.state?.status !== 'part_complete') requestAutoStart?.();
+        });
+      } else {
+        repairAndResumeSpeakingSession({
+          matchingSession,
+          requestAutoStart,
+          resumeState,
+          shouldAutoStart: !isPart2Prep && !resumeState.isPartComplete,
+          speakText,
+        });
+      }
 
-      if (resumeState.conversation.filter((entry) => entry.speaker === 'user').length === 0) {
+      if (
+        !serverResume &&
+        resumeState.conversation.filter((entry) => entry.speaker === 'user').length === 0
+      ) {
         checkCurrentQuota();
       }
 
@@ -271,7 +317,7 @@ export default function useSpeakingTestInitialization({
         }
 
         if (matchingSession) {
-          restoreActiveSession(matchingSession, dbParts);
+          await restoreActiveSession(matchingSession, dbParts);
           return;
         }
 

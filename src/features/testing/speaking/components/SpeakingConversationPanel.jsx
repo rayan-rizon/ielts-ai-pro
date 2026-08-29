@@ -13,6 +13,7 @@ import PartCompleteCard from './PartCompleteCard';
 import RecordingControls from './RecordingControls';
 import TimeUpTransition from './TimeUpTransition';
 import { shouldShowPart2CueCard } from '../utils/speakingTestUtils';
+import { getVisibleSpeakingConversation } from '../utils/speakingV2';
 
 function Part2PreparationControls({ prepTimeLeft, onStartSpeaking }) {
   const minutes = Math.floor(prepTimeLeft / 60);
@@ -78,6 +79,9 @@ export default function SpeakingConversationPanel({
   stopListening,
   setAutoSubmitPaused,
   handleStartTest,
+  speakingMode = 'exam',
+  setSpeakingMode,
+  speakingV2Available = false,
 }) {
   const cueCardRef = useRef(null);
 
@@ -113,9 +117,11 @@ export default function SpeakingConversationPanel({
     if (isPartComplete) scrollToLatest('smooth');
   }, [isPartComplete, scrollToLatest]);
 
-  const finalCandidateMessage = conversation.findLast((entry) => entry.speaker === 'user');
-  const latestExaminerIndex = conversation.findLastIndex((entry) => entry.speaker === 'ai');
-  const latestExaminerMessage = latestExaminerIndex >= 0 ? conversation[latestExaminerIndex] : null;
+  const visibleConversation = getVisibleSpeakingConversation(conversation, speakingMode);
+  const finalCandidateMessage = visibleConversation.findLast((entry) => entry.speaker === 'user');
+  const latestExaminerIndex = visibleConversation.findLastIndex((entry) => entry.speaker === 'ai');
+  const latestExaminerMessage =
+    latestExaminerIndex >= 0 ? visibleConversation[latestExaminerIndex] : null;
 
   // Identity is the spoken text, never the array position. Keying on the index
   // meant that dropping a loading placeholder — which happens every time an
@@ -124,12 +130,12 @@ export default function SpeakingConversationPanel({
   // learner's new reply.
   const latestExaminerKey = latestExaminerMessage?.text?.trim() || null;
   const activeExaminerIndex = activeSpeechText
-    ? conversation.findLastIndex(
+    ? visibleConversation.findLastIndex(
         (entry) => entry.speaker === 'ai' && entry.text?.trim() === activeSpeechText
       )
     : -1;
   const activeExaminerKey =
-    activeExaminerIndex >= 0 ? conversation[activeExaminerIndex].text?.trim() || null : null;
+    activeExaminerIndex >= 0 ? visibleConversation[activeExaminerIndex].text?.trim() || null : null;
   const [examinerStream, setExaminerStream] = useState({
     key: null,
     phase: 'finished',
@@ -201,6 +207,7 @@ export default function SpeakingConversationPanel({
     liveExaminerIndex >= 0 &&
     (queuedExaminerIndex >= 0 || isTTSLoading || isPlaybackActive || isSpeaking);
   const showStreamingCandidate =
+    speakingMode === 'practice' &&
     (isListening || isProcessing) &&
     (!finalCandidateMessage || finalCandidateMessage.text !== liveTranscript);
 
@@ -264,10 +271,16 @@ export default function SpeakingConversationPanel({
           aria-label="Conversation with the AI examiner"
         >
           {!testStarted ? (
-            <InitialWelcomeScreen partNumber={currentPartNumber} title={currentPart?.title} />
+            <InitialWelcomeScreen
+              partNumber={currentPartNumber}
+              title={currentPart?.title}
+              speakingMode={speakingMode}
+              setSpeakingMode={setSpeakingMode}
+              speakingV2Available={speakingV2Available}
+            />
           ) : (
             <AnimatePresence mode="sync">
-              {conversation.map((entry, index) => (
+              {visibleConversation.map((entry, index) => (
                 <ConversationMessage
                   key={`${entry.speaker}-${index}`}
                   entry={
@@ -297,7 +310,7 @@ export default function SpeakingConversationPanel({
                     autoFinishCountdown,
                     autoSubmitPaused,
                   }}
-                  index={conversation.length}
+                  index={visibleConversation.length}
                   authUser={authUser}
                 />
               )}

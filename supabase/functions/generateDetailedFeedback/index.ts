@@ -715,6 +715,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     let modelUsed = LUNA_MODEL;
     let tokensUsed = 0;
     let parsedFeedback: Record<string, any> | null = null;
+    const providerStartedAt = Date.now();
 
     const lunaResult = await requestLunaWritingFeedback(
       systemInstruction,
@@ -864,6 +865,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     if (!parsedFeedback) {
       throw new Error('No feedback content received from any provider');
     }
+    const providerLatencyMs = Date.now() - providerStartedAt;
 
     const feedbackData = {
       ...normalizeWritingEvaluation(parsedFeedback, taskType, writingText),
@@ -881,6 +883,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
       provider: modelUsed === LUNA_MODEL ? 'openrouter-luna' : 'gemini',
       fallbackUsed: modelUsed !== LUNA_MODEL,
       fallbackReason: modelUsed !== LUNA_MODEL ? 'luna_no_parsable_feedback' : null,
+      providerLatencyMs,
     });
     quotaReservationId = undefined;
 

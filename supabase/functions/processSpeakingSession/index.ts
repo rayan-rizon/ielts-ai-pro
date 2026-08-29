@@ -124,6 +124,19 @@ serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  // Warm the authenticated worker without manufacturing a speaking turn. Keep
+  // this behind the same identity, tier, and burst checks as normal requests so
+  // it cannot become a public cold-start amplification endpoint.
+  const contentType = req.headers.get('content-type') || '';
+  let isWarmupPing = false;
+  if (contentType.includes('application/json')) {
+    try {
+      isWarmupPing = (await req.clone().json())?.ping === true;
+    } catch {
+      // Normal validation below owns malformed/non-JSON requests.
+    }
+  }
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -169,6 +182,10 @@ serve(async (req: Request) => {
         429,
         corsHeaders
       );
+    }
+
+    if (isWarmupPing) {
+      return jsonResponse({ pong: true }, 200, corsHeaders);
     }
 
     const {

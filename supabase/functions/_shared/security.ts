@@ -257,6 +257,9 @@ interface QuotaCheckResult {
   monthlyRemaining: number;
   dailyUsed: number;
   monthlyUsed: number;
+  // `speaking_turn` is an integrity guard for one test attempt, not a
+  // subscription allowance. Keep that distinction all the way to the UI.
+  limitScope?: 'plan' | 'speaking_turn';
   error?: string;
 }
 
@@ -306,6 +309,7 @@ export async function reserveDatabaseQuota(
       monthlyRemaining: result?.monthly_remaining ?? 0,
       dailyUsed: result?.daily_used ?? 0,
       monthlyUsed: result?.monthly_used ?? 0,
+      limitScope: featureType === 'speaking_turn' ? 'speaking_turn' : 'plan',
       reservationId: result?.reservation_id || undefined,
       alreadyReserved: result?.already_reserved ?? false,
     };
@@ -539,14 +543,23 @@ export function quotaExceededResponse(
   quotaResult: QuotaCheckResult,
   corsHeaders: Record<string, string>
 ): Response {
+  const isSpeakingTurnLimit = quotaResult.limitScope === 'speaking_turn';
   return new Response(
     JSON.stringify({
-      error: 'Daily or monthly API quota exceeded',
+      error: isSpeakingTurnLimit
+        ? 'Speaking response limit reached for this test'
+        : 'Daily or monthly API quota exceeded',
+      message: isSpeakingTurnLimit
+        ? 'This test attempt has reached its allowed number of responses. Start a new attempt to continue.'
+        : 'Your current plan has reached its daily or monthly allowance.',
+      rateLimitType: isSpeakingTurnLimit ? 'speaking_turn' : 'quota',
       dailyUsed: quotaResult.dailyUsed,
       dailyRemaining: quotaResult.dailyRemaining,
       monthlyUsed: quotaResult.monthlyUsed,
       monthlyRemaining: quotaResult.monthlyRemaining,
-      upgradeMessage: 'Upgrade your subscription for higher limits',
+      ...(isSpeakingTurnLimit
+        ? {}
+        : { upgradeMessage: 'Upgrade your subscription for higher limits' }),
     }),
     {
       status: 429,

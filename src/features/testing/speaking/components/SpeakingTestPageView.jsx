@@ -47,6 +47,8 @@ export default function SpeakingTestPageView({
     testStarted,
     testTitle,
     totalParts,
+    speakingMode,
+    speakingV2State,
     upgradeDialogProps,
   } = shellProps;
 
@@ -55,12 +57,6 @@ export default function SpeakingTestPageView({
       data-testid="speaking-test-page"
       className="relative min-h-full overflow-x-hidden bg-[#f8f8fb] transition-colors duration-500 dark:bg-[#08080a]"
     >
-      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-32 -top-48 h-128 w-128 rounded-full bg-rose-500/6 blur-3xl dark:bg-rose-500/8" />
-        <div className="absolute -right-40 -bottom-56 h-144 w-144 rounded-full bg-red-500/4.5 blur-3xl dark:bg-red-500/6" />
-        <div className="absolute inset-0 bg-[radial-gradient(#e11d48_0.8px,transparent_0.8px)] bg-size-[22px_22px] opacity-[0.055] mask-[linear-gradient(to_bottom,black,transparent_72%)] dark:opacity-[0.08]" />
-      </div>
-
       <ExitDialog open={showExitDialog} blocker={blocker} {...exitDialogProps} />
 
       {/* Page Wrapper */}
@@ -100,6 +96,8 @@ export default function SpeakingTestPageView({
               isPart2Prep={conversationPanelProps.isPart2Prep}
               handsFreeEnabled={handsFreeEnabled}
               onHandsFreeChange={setHandsFreeEnabled}
+              speakingMode={speakingMode}
+              speakingV2State={speakingV2State}
             />
           </div>
         </div>

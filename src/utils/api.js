@@ -96,7 +96,8 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
         // Distinguish burst limit vs quota exceeded:
         // - quotaExceededResponse includes dailyUsed/monthlyUsed fields
         // - burst limit only returns { error, message }
-        error.rateLimitType = parsedError?.dailyUsed !== undefined ? 'quota' : 'burst';
+        error.rateLimitType =
+          parsedError?.rateLimitType || (parsedError?.dailyUsed !== undefined ? 'quota' : 'burst');
         error.quotaInfo = parsedError || null;
         const retryAfterSeconds = parsedError?.retryAfterSeconds;
         if (typeof retryAfterSeconds === 'number' && Number.isFinite(retryAfterSeconds)) {
@@ -154,13 +155,67 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
     // Add user-friendly message property
     error.userMessage =
       error.name === 'RateLimitError'
-        ? `Too many requests. Please wait ${Math.ceil((error.resetMs || 60000) / 1000)} seconds.`
+        ? error.rateLimitType === 'speaking_turn'
+          ? errorMessage
+          : `Too many requests. Please wait ${Math.ceil((error.resetMs || 60000) / 1000)} seconds.`
         : error.status === 401 || error.status === 403
           ? 'Please log in again to use AI features.'
           : error.status >= 500
             ? 'AI service is temporarily unavailable. Please try again in a moment.'
             : errorMessage;
 
+    throw error;
+  }
+}
+
+/**
+ * Send binary form data to an authenticated Edge Function. The browser owns
+ * the multipart boundary, so this deliberately does not set Content-Type.
+ */
+export async function callEdgeFunctionMultipart(functionName, formData, options = {}) {
+  try {
+    const client = await getSupabaseClient();
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+    if (sessionError) throw new Error(`Authentication error: ${sessionError.message}`);
+    if (!sessionData?.session?.access_token) {
+      throw new Error('No valid session found. Please log in.');
+    }
+
+    const response = await fetch(`${SUPABASE_FUNCTIONS_URL}/${functionName}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+        ...(SUPABASE_ANON_KEY ? { apikey: SUPABASE_ANON_KEY } : {}),
+        ...getCsrfHeaders(),
+        ...(options.headers || {}),
+      },
+      body: formData,
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(
+        result.error || result.message || `Edge Function error: ${response.status}`
+      );
+      error.status = response.status;
+      error.rateLimitType = result.rateLimitType || null;
+      error.retryAfterSeconds = result.retryAfterSeconds;
+      error.quotaInfo = result;
+      if (response.status === 429) error.name = 'RateLimitError';
+      throw error;
+    }
+    return result;
+  } catch (error) {
+    if (error.status === 401 && !options._isRetry) {
+      const client = await getSupabaseClient();
+      const { data, error: refreshError } = await client.auth.refreshSession();
+      if (!refreshError && data.session?.access_token) {
+        return callEdgeFunctionMultipart(functionName, formData, { ...options, _isRetry: true });
+      }
+    }
+    error.userMessage =
+      error.status >= 500
+        ? 'AI service is temporarily unavailable. Please try again in a moment.'
+        : error.message;
     throw error;
   }
 }

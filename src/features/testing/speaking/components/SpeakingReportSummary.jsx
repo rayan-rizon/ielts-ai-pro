@@ -7,9 +7,24 @@ import {
 } from './FeedbackSections';
 import PartByPartSection from './PartByPartSection';
 import { buildSpeakingReportSummary } from '../utils/speakingReportSummary';
+import { cn } from '@/lib/cn';
+import { MUTED, PANEL, Pill, TITLE } from '@/features/dashboard/components/primitives';
 
 export default function SpeakingReportSummary({ finalEvaluation, pronunciationBreakdown }) {
   const summary = useMemo(() => buildSpeakingReportSummary(finalEvaluation), [finalEvaluation]);
+
+  if (finalEvaluation?.assessmentStatus === 'insufficient_evidence') {
+    return (
+      <div className={cn(PANEL, 'p-5')} role="status" data-testid="insufficient-speaking-evidence">
+        <Pill tone="warn">No band assigned</Pill>
+        <h2 className={cn(TITLE, 'mt-3 text-lg')}>More speaking evidence is needed</h2>
+        <p className={cn(MUTED, 'mt-2 max-w-2xl text-sm leading-6')}>{finalEvaluation.feedback}</p>
+        <p className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+          {finalEvaluation.targetBandTips}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-in space-y-3 fade-in slide-in-from-bottom-5 duration-700">

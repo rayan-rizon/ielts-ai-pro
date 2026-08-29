@@ -242,8 +242,10 @@ function useTimerExpiryCompletion({
   isProcessingRef,
   timerExpiredRef,
   pendingTimersRef,
+  serverAuthoritative,
 }) {
   useEffect(() => {
+    if (serverAuthoritative) return;
     if (timeLeft === 0 && isListening) {
       cancelListening();
       return;
@@ -294,6 +296,7 @@ function useTimerExpiryCompletion({
     timerExpiredRef,
     pendingTimersRef,
     session,
+    serverAuthoritative,
   ]);
 }
 
@@ -349,7 +352,7 @@ function usePartCompleteKeyboardShortcut({
 }
 
 export default function useSpeakingTimers(options) {
-  usePartCountdown(options);
+  usePartCountdown({ ...options, isPaused: options.isPaused || options.serverAuthoritative });
   usePeriodicProgressSave(options);
   useTimerExpiryCompletion(options);
   usePart2PrepCountdown(options);

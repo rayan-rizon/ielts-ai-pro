@@ -3,16 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { playInitialGreeting } from './useStartSpeakingTest';
 
 describe('playInitialGreeting', () => {
-  it('reveals the first question only after the greeting finishes', async () => {
+  it('shows the welcome and asks the first question without waiting for welcome audio', async () => {
     let conversation = [];
-    let finishGreeting;
-    const greetingPlayback = new Promise((resolve) => {
-      finishGreeting = resolve;
-    });
-    const speakText = vi
-      .fn()
-      .mockReturnValueOnce(greetingPlayback)
-      .mockResolvedValueOnce(undefined);
+    const speakText = vi.fn().mockResolvedValue(undefined);
     const setConversation = vi.fn((valueOrUpdater) => {
       conversation =
         typeof valueOrUpdater === 'function' ? valueOrUpdater(conversation) : valueOrUpdater;
@@ -41,18 +34,14 @@ describe('playInitialGreeting', () => {
       speakText,
     });
 
-    expect(conversation).toEqual([{ speaker: 'ai', text: 'Welcome to the speaking test.' }]);
-    expect(firstQuestionInsertedRef.current).toBe(false);
-
-    finishGreeting();
     await playback;
 
     expect(conversation).toEqual([
       { speaker: 'ai', text: 'Welcome to the speaking test.' },
       { speaker: 'ai', text: 'Do you work or study?' },
     ]);
-    expect(speakText).toHaveBeenNthCalledWith(1, 'Welcome to the speaking test.');
-    expect(speakText).toHaveBeenNthCalledWith(2, 'Do you work or study?');
+    expect(speakText).toHaveBeenCalledOnce();
+    expect(speakText).toHaveBeenCalledWith('Do you work or study?');
     expect(firstQuestionInsertedRef.current).toBe(true);
     expect(requestAutoStart).toHaveBeenCalledOnce();
   });

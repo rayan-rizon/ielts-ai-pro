@@ -11,7 +11,7 @@ function cleanMessageText(text = '') {
 }
 
 function MessageAvatar({ entry, authUser }) {
-  if (entry.speaker === 'ai') {
+  if (entry.speaker === 'ai' || entry.speaker === 'coach') {
     return null;
   }
 
@@ -35,6 +35,9 @@ function MessageAvatar({ entry, authUser }) {
 }
 
 function getBubbleClass(entry) {
+  if (entry.speaker === 'coach') {
+    return 'rounded-2xl rounded-tl-sm border border-[#5a63df]/20 bg-[#5a63df]/6 text-left font-medium text-slate-800 dark:border-[#8c92ff]/20 dark:bg-[#5a63df]/10 dark:text-slate-100';
+  }
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
@@ -252,7 +255,7 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
   const bubbleRef = useRef(null);
   const isCompactTranscript = entry.speaker === 'user' && (entry.isLive || entry.isTranscriptDraft);
   const isExaminerTranscript = entry.speaker === 'ai' && entry.isExaminerLive;
-  const isExaminerMessage = entry.speaker === 'ai';
+  const isExaminerMessage = entry.speaker === 'ai' || entry.speaker === 'coach';
   const isUserMessage = entry.speaker === 'user';
   const prefersReducedMotion = useReducedMotion();
   const liveMinHeight = useMonotonicHeight(bubbleRef, isCompactTranscript, entry.text);
@@ -280,7 +283,11 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
           className={`flex items-center gap-1.5 px-1 ${isUserMessage ? 'flex-row-reverse' : ''}`}
         >
           <span className={cn(MICRO, MUTED, 'truncate sm:text-[10px]')}>
-            {entry.speaker === 'ai' ? 'Examiner' : authUser?.full_name || 'Candidate'}
+            {entry.speaker === 'ai'
+              ? 'Examiner'
+              : entry.speaker === 'coach'
+                ? 'Practice coach'
+                : authUser?.full_name || 'Candidate'}
           </span>
           {entry.timestamp && (
             <span className="shrink-0 font-mono text-[9px] text-slate-400/70 dark:text-slate-500/50 sm:text-[10px]">

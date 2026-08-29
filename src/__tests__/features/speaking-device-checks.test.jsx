@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import InitialWelcomeScreen from '@/features/testing/speaking/components/InitialWelcomeScreen';
+import { isSpeakingV2Available } from '@/features/testing/speaking/utils/speakingV2';
 
 const stopTrack = vi.fn();
 
@@ -125,5 +126,27 @@ describe('speaking device readiness checks', () => {
 
     expect(stopTrack).toHaveBeenCalledOnce();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('lets an internal learner choose Exam or Practice before starting', () => {
+    const setSpeakingMode = vi.fn();
+    render(
+      <InitialWelcomeScreen
+        partNumber={1}
+        title="Introduction & Interview"
+        speakingMode="exam"
+        setSpeakingMode={setSpeakingMode}
+        speakingV2Available
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /exam/i })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /practice/i }));
+    expect(setSpeakingMode).toHaveBeenCalledWith('practice');
+  });
+
+  it('uses the server-authoritative speaking implementation for every learner', () => {
+    expect(isSpeakingV2Available({ role: 'free', subscription_tier: 'free' })).toBe(true);
+    expect(isSpeakingV2Available({ role: 'admin', subscription_tier: 'premium' })).toBe(true);
   });
 });

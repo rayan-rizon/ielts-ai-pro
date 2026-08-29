@@ -104,4 +104,28 @@ describe('speaking report', () => {
     expect(screen.getByText('Where did you grow up?')).toBeInTheDocument();
     expect(screen.getByText('Part 1: Introduction')).toBeInTheDocument();
   });
+
+  it('does not render a numeric band or deep dive when evidence is insufficient', () => {
+    render(
+      <MemoryRouter>
+        <SpeakingReport
+          finalEvaluation={{
+            assessmentStatus: 'insufficient_evidence',
+            overallBand: null,
+            feedback: 'A reliable IELTS band could not be assigned.',
+            targetBandTips: 'Complete at least two parts with relevant answers.',
+          }}
+          isEvaluating={false}
+          showConfetti={false}
+          showXPNotification={false}
+          testTitle="Incomplete Speaking Test"
+          allPartsPronunciation={{}}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('insufficient-speaking-evidence')).toBeInTheDocument();
+    expect(screen.getByText('No band assigned')).toBeInTheDocument();
+    expect(screen.queryByText('AI Deep Dive')).not.toBeInTheDocument();
+  });
 });

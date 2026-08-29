@@ -1,6 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, Check, Loader2, Mic2, Volume2 } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  Loader2,
+  MessageSquareText,
+  Mic2,
+  ShieldCheck,
+  Volume2,
+} from 'lucide-react';
 
 import { cn } from '@/lib/cn';
 import { MUTED } from '@/features/dashboard/components/primitives';
@@ -84,7 +92,13 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
   );
 }
 
-const InitialWelcomeScreen = ({ partNumber, title }) => {
+const InitialWelcomeScreen = ({
+  partNumber,
+  title,
+  speakingMode = 'exam',
+  setSpeakingMode,
+  speakingV2Available = false,
+}) => {
   const { microphoneStatus, speakerStatus, testMicrophone, testSpeaker } =
     useSpeakingDeviceChecks();
 
@@ -117,6 +131,50 @@ const InitialWelcomeScreen = ({ partNumber, title }) => {
           {PART_INTROS[partNumber] || 'Answer naturally, listen carefully, and speak clearly.'}
           <br className="hidden sm:block" /> Answer naturally and speak clearly.
         </p>
+
+        {speakingV2Available && (
+          <div className="mt-3 grid w-full max-w-lg grid-cols-2 gap-2" aria-label="Speaking mode">
+            {[
+              {
+                id: 'exam',
+                label: 'Exam',
+                detail: '14 min · no coaching',
+                icon: ShieldCheck,
+              },
+              {
+                id: 'practice',
+                label: 'Practice',
+                detail: '8 active min · coaching',
+                icon: MessageSquareText,
+              },
+            ].map((mode) => {
+              const Icon = mode.icon;
+              const selected = speakingMode === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => setSpeakingMode?.(mode.id)}
+                  aria-pressed={selected}
+                  className={cn(
+                    'flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
+                    selected
+                      ? 'border-[#5a63df]/35 bg-[#5a63df]/7 text-[#444cc7] dark:text-[#aeb3ff]'
+                      : 'border-[#e4e2f0] bg-white text-slate-700 hover:border-[#5a63df]/25 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-200'
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-extrabold uppercase tracking-[0.12em]">
+                      {mode.label}
+                    </span>
+                    <span className={cn(MUTED, 'block truncate text-[9px]')}>{mode.detail}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="mt-2.5 grid w-full max-w-lg grid-cols-2 gap-2">
           <ReadinessCard

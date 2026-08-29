@@ -8,6 +8,8 @@ export default function useSpeakingTestState() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [testTitle, setTestTitle] = useState('');
+  const [speakingMode, setSpeakingMode] = useState('exam');
+  const [speakingV2State, setSpeakingV2State] = useState(null);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
@@ -106,6 +108,8 @@ export default function useSpeakingTestState() {
     processingStatus,
     questionIndexRef,
     session,
+    speakingMode,
+    speakingV2State,
     setAllParts,
     setAllPartsAcousticMetrics,
     setAllPartsConversation,
@@ -123,6 +127,8 @@ export default function useSpeakingTestState() {
     setPrepTimeLeft,
     setProcessingStatus,
     setSession,
+    setSpeakingMode,
+    setSpeakingV2State,
     setShowExitDialog,
     setShowUpgradeDialog,
     setTestStarted,

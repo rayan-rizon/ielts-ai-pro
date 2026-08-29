@@ -168,6 +168,22 @@ export const AI_ROUTES: AiRoute[] = [
       'Routing decided in _shared/speakingEvaluationProvider.ts; routingReason is persisted per attempt.',
   },
   {
+    id: 'speaking-turn-decision',
+    surface: 'Speaking V2: relevance, intent, and coaching decision',
+    file: 'supabase/functions/_shared/speakingTurnDecision.ts',
+    maxOutputTokens: 256,
+    timeoutMs: 1500,
+    steps: [
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'primary',
+        when: 'Only after deterministic silence, repeat, and microphone-intent fast paths.',
+      },
+    ],
+    notes:
+      'Returns a closed decision schema. Examiner wording and TTS remain server-template controlled.',
+  },
+  {
     id: 'speaking-detailed-feedback',
     surface: 'Speaking: detailed deep-dive feedback',
     file: 'supabase/functions/generateDetailedSpeakingFeedback/index.ts',

@@ -207,12 +207,14 @@ export default function SpeakingReport({
               pronunciationBreakdown={pronunciationBreakdown}
             />
 
-            <SpeakingReportDeepDive
-              detailedFeedback={detailedFeedback}
-              isGeneratingDetailed={isGeneratingDetailed}
-              deepDiveError={deepDiveError}
-              handleRetryDeepDive={handleRetryDeepDive}
-            />
+            {finalEvaluation.assessmentStatus !== 'insufficient_evidence' && (
+              <SpeakingReportDeepDive
+                detailedFeedback={detailedFeedback}
+                isGeneratingDetailed={isGeneratingDetailed}
+                deepDiveError={deepDiveError}
+                handleRetryDeepDive={handleRetryDeepDive}
+              />
+            )}
 
             {/* Bottom Footer Actions Bar */}
             <div className="flex flex-col justify-between gap-3 border-t border-[#e4e2f0] pt-4 dark:border-white/[0.07] sm:flex-row sm:items-center">

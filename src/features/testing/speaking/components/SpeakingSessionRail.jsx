@@ -16,6 +16,7 @@ import { cn } from '@/lib/cn';
 import { MICRO, MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
 import HandsFreeAnswerControl from './HandsFreeAnswerControl';
+import { formatSpeakingBudget } from '../utils/speakingV2';
 
 const PART_DETAILS = {
   1: {
@@ -295,7 +296,10 @@ export default function SpeakingSessionRail({
   isPart2Prep,
   handsFreeEnabled,
   onHandsFreeChange,
+  speakingMode,
+  speakingV2State,
 }) {
+  const budget = formatSpeakingBudget(speakingV2State);
   return (
     <>
       {/* ── Mobile / Tablet (below xl): single slim progress strip ── */}
@@ -303,6 +307,14 @@ export default function SpeakingSessionRail({
         className={cn(PANEL, 'overflow-hidden rounded-xl xl:hidden')}
         aria-label="Speaking test progress"
       >
+        {speakingV2State && (
+          <div className="flex items-center justify-between gap-3 border-b border-[#e4e2f0] px-3 py-2 dark:border-white/[0.07]">
+            <span className={cn(MICRO, 'text-[#5a63df]')}>{speakingMode} mode</span>
+            <span className="font-mono text-[9px] font-bold text-slate-600 dark:text-slate-300">
+              {budget}
+            </span>
+          </div>
+        )}
         <MobileProgressStrip
           allParts={allParts}
           currentPartNumber={currentPartNumber}
@@ -316,6 +328,19 @@ export default function SpeakingSessionRail({
         className={cn(PANEL, 'hidden overflow-hidden rounded-xl xl:sticky xl:top-4 xl:block')}
         aria-label="Speaking test guidance"
       >
+        {speakingV2State && (
+          <section className="border-b border-[#e4e2f0] px-5 py-3 dark:border-white/[0.07]">
+            <p className={cn(MICRO, 'text-[#5a63df]')}>{speakingMode} mode</p>
+            <p className="mt-1 font-mono text-xs font-bold text-slate-700 dark:text-slate-200">
+              {budget}
+            </p>
+            <p className={cn(MUTED, 'mt-1 text-[10px]')}>
+              {speakingMode === 'exam'
+                ? 'Transcript and coaching stay hidden until your report.'
+                : 'Your transcript and one concise coaching note appear after each answer.'}
+            </p>
+          </section>
+        )}
         <TestRoadmap allParts={allParts} currentPartNumber={currentPartNumber} />
         <SessionReadiness
           testStarted={testStarted}

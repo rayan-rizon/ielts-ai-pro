@@ -381,7 +381,7 @@ export function normalizeWritingEvaluation(
   // required data/diagram at Band 3. Band 2 is reserved for barely related
   // content, so a wrong visual must not be automatically forced below Band 3.
   if (taskAnalysis?.alignment === 'mismatched') {
-    criteriaScores[taskCriterionKey] = Math.min(3, criteriaScores[taskCriterionKey]);
+    criteriaScores[taskCriterionKey] = Math.min(3, criteriaScores[taskCriterionKey] ?? 3);
   }
 
   // Official 2023 public descriptors: responses of 20 words or fewer are rated

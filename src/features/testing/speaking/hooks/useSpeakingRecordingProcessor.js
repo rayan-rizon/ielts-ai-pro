@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-import { callEdgeFunction } from '@/utils/api';
+import { callEdgeFunction, callEdgeFunctionMultipart } from '@/utils/api';
 
 import {
   buildConversationHistory,
   buildExpectedExaminerResponse,
-  buildLocalDevSpeakingResponse,
   formatIeltsQuestion,
   getQuestionLines,
   isSilentSpeechMetadata,
@@ -36,11 +35,15 @@ export default function useSpeakingRecordingProcessor({
   setIsProcessing,
   setProcessingStatus,
   setShowUpgradeDialog,
+  setSpeakingV2State,
+  speakingMode,
+  speakingV2State,
   speakAiMessageFromLoadingState,
   speakText,
   testId,
   timerExpiredRef,
   isMountedRef,
+  useSpeakingV2 = false,
 }) {
   const pronunciationAttemptedPartsRef = useRef(new Set());
   const processingRequestIdRef = useRef(0);
@@ -91,11 +94,13 @@ export default function useSpeakingRecordingProcessor({
         const currentPart = allParts[currentPartNumber];
         const questionLines = getQuestionLines(currentPart?.questions);
         const questionContext = questionLines[snapshotQuestionIndex] || '';
-        prefetchExpectedExaminerSpeech({
-          currentPartNumber,
-          questionLines,
-          snapshotQuestionIndex,
-        });
+        if (!useSpeakingV2) {
+          prefetchExpectedExaminerSpeech({
+            currentPartNumber,
+            questionLines,
+            snapshotQuestionIndex,
+          });
+        }
         const pronunciationPromise = preparePronunciationAudio({
           acousticMetrics: acousticMetricsRef.current,
           audioBlob,
@@ -105,31 +110,43 @@ export default function useSpeakingRecordingProcessor({
         });
 
         setProcessingStatus('Uploading your answer...');
-        const [audioBase64, pronunciationAudioBase64] = await Promise.all([
-          blobToBase64(audioBlob),
+        const [audioBase64, pronunciationAudio] = await Promise.all([
+          useSpeakingV2 ? Promise.resolve(null) : blobToBase64(audioBlob),
           pronunciationPromise,
         ]);
         if (!isCurrentRequest()) return;
 
-        setProcessingStatus(getTranscriptionStatus(pronunciationAudioBase64));
+        setProcessingStatus(getTranscriptionStatus(pronunciationAudio));
 
-        const response = await processSpeakingTurn({
-          audioBase64,
-          audioMimeType: audioBlob.type || 'audio/webm',
-          audioDurationMs: Number(metadata.duration) || null,
-          allParts,
-          conversationHistory: buildConversationHistory(conversationRef.current),
-          currentPartNumber,
-          questionContext,
-          sessionId: session?.id,
-          snapshotQuestionIndex,
-          speechConfidence: metadata.speechConfidence || null,
-          speechDetected: metadata.speechDetected ?? null,
-          pronunciationAudioBase64,
-          pronunciationDurationMs: pronunciationAudioBase64 ? Number(metadata.duration) : null,
-          requestPronunciation: Boolean(pronunciationAudioBase64),
-          testId,
-        });
+        const response = useSpeakingV2
+          ? await processSpeakingV2Turn({
+              audioBlob,
+              audioDurationMs: Number(metadata.duration) || 0,
+              browserTranscript: metadata.liveTranscript,
+              sessionId: session?.id,
+              speakingV2State,
+              speechConfidence: metadata.speechConfidence,
+              speechDetected: metadata.speechDetected,
+              pronunciationAudio,
+            })
+          : await processSpeakingTurn({
+              audioBase64,
+              audioMimeType: audioBlob.type || 'audio/webm',
+              audioDurationMs: Number(metadata.duration) || null,
+              conversationHistory: buildConversationHistory(conversationRef.current),
+              currentPartNumber,
+              questionContext,
+              sessionId: session?.id,
+              snapshotQuestionIndex,
+              speechConfidence: metadata.speechConfidence || null,
+              speechDetected: metadata.speechDetected ?? null,
+              pronunciationAudioBase64: pronunciationAudio
+                ? await blobToBase64(pronunciationAudio)
+                : null,
+              pronunciationDurationMs: pronunciationAudio ? Number(metadata.duration) : null,
+              requestPronunciation: Boolean(pronunciationAudio),
+              testId,
+            });
         if (!isCurrentRequest()) return;
 
         if (!response) {
@@ -138,6 +155,13 @@ export default function useSpeakingRecordingProcessor({
         }
 
         setConversation((prev) => replaceLoadingUserTranscript(prev, response.userTranscript));
+        if (response.coaching?.message && speakingMode === 'practice') {
+          setConversation((prev) => [
+            ...prev,
+            { speaker: 'coach', text: response.coaching.message, code: response.coaching.code },
+          ]);
+        }
+        if (response.state) setSpeakingV2State?.(response.state);
         await handleSpeakingResponse(response, {
           acousticMetricsRef,
           allParts,
@@ -189,11 +213,15 @@ export default function useSpeakingRecordingProcessor({
       setIsProcessing,
       setProcessingStatus,
       setShowUpgradeDialog,
+      setSpeakingV2State,
+      speakingMode,
+      speakingV2State,
       speakAiMessageFromLoadingState,
       speakText,
       testId,
       timerExpiredRef,
       isMountedRef,
+      useSpeakingV2,
     ]
   );
 }
@@ -234,12 +262,47 @@ function preparePronunciationAudio({
   // One bounded attempt per eligible part keeps payloads and Azure usage
   // predictable even when the provider is not configured or unavailable.
   pronunciationAttemptedParts.add(partNumber);
-  return convertAudioBlobToWav16kMono(audioBlob)
-    .then(blobToBase64)
-    .catch((error) => {
-      console.warn('Pronunciation sample conversion unavailable:', error);
-      return null;
-    });
+  return convertAudioBlobToWav16kMono(audioBlob).catch((error) => {
+    console.warn('Pronunciation sample conversion unavailable:', error);
+    return null;
+  });
+}
+
+async function processSpeakingV2Turn({
+  audioBlob,
+  audioDurationMs,
+  browserTranscript,
+  sessionId,
+  speakingV2State,
+  speechConfidence,
+  speechDetected,
+  pronunciationAudio,
+}) {
+  if (!sessionId || speakingV2State?.revision == null) {
+    throw new Error('The speaking session is not ready. Please restart the test.');
+  }
+  const confidenceValues = Array.isArray(speechConfidence) ? speechConfidence : [];
+  const confidence = confidenceValues.length
+    ? confidenceValues.reduce((sum, value) => sum + Number(value || 0), 0) / confidenceValues.length
+    : 0;
+  const formData = new FormData();
+  formData.append('sessionId', sessionId);
+  formData.append('expectedRevision', String(speakingV2State.revision));
+  formData.append('idempotencyKey', crypto.randomUUID());
+  formData.append('audio', audioBlob, `speaking-${Date.now()}.webm`);
+  formData.append('mimeType', audioBlob.type || 'audio/webm');
+  formData.append('audioDurationMs', String(audioDurationMs));
+  formData.append('speechDetected', String(speechDetected !== false));
+  if (browserTranscript) {
+    formData.append(
+      'browserSpeechHint',
+      JSON.stringify({ transcript: browserTranscript, confidence })
+    );
+  }
+  if (pronunciationAudio) {
+    formData.append('pronunciationAudio', pronunciationAudio, `pronunciation-${Date.now()}.wav`);
+  }
+  return callEdgeFunctionMultipart('processSpeakingSessionV2', formData);
 }
 
 function getTranscriptionStatus(pronunciationAudioBase64) {
@@ -252,7 +315,6 @@ async function processSpeakingTurn({
   audioBase64,
   audioMimeType,
   audioDurationMs,
-  allParts,
   conversationHistory,
   currentPartNumber,
   questionContext,
@@ -288,14 +350,6 @@ async function processSpeakingTurn({
 
     if (error.status === 429 || error.status === 403 || error.name === 'RateLimitError') {
       throw error;
-    }
-
-    if (import.meta.env.DEV) {
-      return buildLocalDevSpeakingResponse({
-        currentPart: allParts[currentPartNumber],
-        currentPartNumber,
-        currentQuestionIndex: snapshotQuestionIndex,
-      });
     }
 
     toast.error('Processing Error', {
@@ -466,7 +520,14 @@ async function handleProcessingError(error, context) {
 
   if (error.status === 429 || error.status === 403 || error.name === 'RateLimitError') {
     setConversation((prev) => prev.filter((entry) => !entry.isLoading));
-    if (error.rateLimitType === 'quota' || error.status === 403) {
+    if (error.rateLimitType === 'speaking_turn') {
+      toast.info('This test attempt is complete', {
+        description:
+          error.userMessage ||
+          'This test has reached its response limit. Start a new attempt to continue.',
+        duration: 5000,
+      });
+    } else if (error.rateLimitType === 'quota' || error.status === 403) {
       context.setShowUpgradeDialog?.(true);
     } else {
       toast.error('Too many requests', {
