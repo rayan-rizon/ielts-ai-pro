@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
+import WritingAnalysis from './WritingAnalysis';
 import {
   cleanFeedbackText,
   prepareFeedbackText,
@@ -282,54 +283,6 @@ function ScoreRing({ score }) {
         </span>
       </div>
     </div>
-  );
-}
-
-function AnalyzingState({ loadingMessage }) {
-  const steps = ['Grammar & spelling', 'Vocabulary', 'Coherence', 'Band calibration'];
-  return (
-    <motion.div
-      key="analyzing"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex min-h-[520px] flex-1 items-center justify-center bg-[#f7f6fd] p-6 dark:bg-[#08080a]"
-    >
-      <div className="w-full max-w-sm rounded-2xl border border-[#dce0f5] bg-white p-7 text-center shadow-md dark:border-white/10 dark:bg-[#131315]">
-        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#5661e9] border-r-indigo-400"
-          />
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5661e9] text-white shadow-md shadow-indigo-500/20">
-            <Sparkles className="h-6 w-6" />
-          </div>
-        </div>
-        <p className="text-xs font-extrabold uppercase tracking-wider text-[#5661e9] dark:text-indigo-400">
-          Building your review
-        </p>
-        <h2 className="mt-2 text-xl font-black text-slate-900 dark:text-white">
-          Checking evidence against IELTS criteria
-        </h2>
-        <p className="mt-2 min-h-5 text-sm text-slate-500 dark:text-slate-400">
-          {loadingMessage || 'Reading your response carefully...'}
-        </p>
-        <div className="mt-6 grid grid-cols-2 gap-2 text-left">
-          {steps.map((step, index) => (
-            <div
-              key={step}
-              className="flex items-center gap-2 rounded-xl border border-[#e2e5f6] bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 dark:border-white/5 dark:bg-white/5 dark:text-slate-300"
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${index === 0 ? 'animate-pulse bg-[#5661e9]' : 'bg-slate-300 dark:bg-white/15'}`}
-              />
-              {step}
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
   );
 }
 
@@ -761,7 +714,7 @@ export function FeedbackPanel({
       className="flex h-full min-h-0 flex-col bg-[#f7f6fd] text-slate-900 dark:bg-[#08080a] dark:text-white"
     >
       <AnimatePresence mode="wait">
-        {isAnalyzing && <AnalyzingState loadingMessage={loadingMessage} />}
+        {isAnalyzing && <WritingAnalysis loadingMessage={loadingMessage} />}
         {!isAnalyzing && feedbackError && (
           <ErrorState feedbackError={feedbackError} handleGetFeedback={handleGetFeedback} />
         )}
