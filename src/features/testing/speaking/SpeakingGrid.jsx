@@ -20,12 +20,30 @@ const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-
 // Pure prop-builder (extracted from render to lower CC in grid)
 // ---------------------------------------------------------------------------
 
-function computeSpeakingProgress(latestSession, test, questionCount) {
+export function computeSpeakingProgress(latestSession, test, questionCount) {
   const isResuming = !!latestSession && !latestSession.is_completed;
   if (!isResuming) return 0;
-  const currentPart = latestSession.content_data?.currentPart || 0;
+  const currentPart = Math.min(
+    Math.max(Number(latestSession.content_data?.currentPart) || 1, 1),
+    3
+  );
   const total = test.total_questions || questionCount || 3;
-  return Math.round((currentPart / total) * 100);
+  if (latestSession.content_data?.speakingVersion === 'v2') {
+    const currentQuestionIndex = Math.max(
+      0,
+      Number(latestSession.answers?.currentQuestionIndex) || 0
+    );
+    const currentQuestionCount = Number(latestSession.content_data?.speakingV2State?.questionCount);
+    const withinPart =
+      currentQuestionCount > 0
+        ? Math.min((currentQuestionIndex + 1) / currentQuestionCount, 0.99)
+        : 0.5;
+    return Math.min(99, Math.round(((currentPart - 1 + withinPart) / 3) * 100));
+  }
+  const legacyProgress = Math.round((currentPart / total) * 100);
+  // A resumable legacy snapshot only tracks the part number. Treat its final
+  // part as in progress instead of visually claiming the test is finished.
+  return legacyProgress >= 100 ? 83 : legacyProgress;
 }
 
 function buildSpeakingCardProps({

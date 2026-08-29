@@ -44,21 +44,46 @@ const TestHeader = React.memo(
     isMuted,
     setIsMuted,
     isPart2Prep,
+    isPartComplete,
     onShowExitDialog,
+    speakingMode = 'practice',
   }) => {
     const partProgress = totalParts > 0 ? (currentPartNumber / totalParts) * 100 : 0;
     const questionCount = Math.max(getQuestionLines(currentPart?.questions).length, 1);
     const isLongTurn = currentPartNumber === 2;
-    const questionValue = isPart2Prep
-      ? 'Preparing'
-      : isLongTurn
-        ? 'Long turn'
-        : `${Math.min(currentQuestionIndex + 1, questionCount)} of ${questionCount}`;
+    const questionValue = isPartComplete
+      ? 'Complete'
+      : isPart2Prep
+        ? 'Preparing'
+        : isLongTurn
+          ? 'Long turn'
+          : `${Math.min(currentQuestionIndex + 1, questionCount)} of ${questionCount}`;
     const progressLabel = `${Math.round(partProgress)}%`;
+    const isExam = speakingMode === 'exam';
+
+    const practiceBadge = (
+      <span
+        className={cn(
+          TEST_HEADER_BADGE,
+          isExam
+            ? 'border-indigo-500/15 bg-indigo-500/6 text-indigo-600 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-300'
+            : 'border-rose-500/15 bg-rose-500/6 text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300'
+        )}
+      >
+        <span
+          className={cn(
+            'h-1.5 w-1.5 animate-pulse rounded-full',
+            isExam ? 'bg-indigo-500' : 'bg-rose-500'
+          )}
+          aria-hidden="true"
+        />
+        {isExam ? 'Exam room' : 'Practice room'}
+      </span>
+    );
 
     return (
       <header className="relative z-40 mb-2 sm:mb-2.5">
-        <div className="mb-1 flex h-8 items-center justify-between sm:mb-2">
+        <div className="mb-1 flex h-8 items-center sm:mb-2">
           <Button
             variant="ghost"
             onClick={onShowExitDialog}
@@ -71,24 +96,6 @@ const TestHeader = React.memo(
             <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5 stroke-[2.5] sm:mr-2 sm:h-4.5 sm:w-4.5" />
             <span className="hidden text-xs font-bold sm:inline">Back to Speaking</span>
           </Button>
-
-          <div className="hidden items-center gap-2.5 sm:flex">
-            <span
-              className={cn(
-                TEST_HEADER_BADGE,
-                'border-rose-500/15 bg-rose-500/6 text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300'
-              )}
-            >
-              <span
-                className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500"
-                aria-hidden="true"
-              />
-              Practice room
-            </span>
-            <span className={cn(MICRO, MUTED, 'tracking-[0.11em]')}>
-              Your responses are saved automatically
-            </span>
-          </div>
         </div>
 
         <div className={cn(PANEL, 'overflow-hidden rounded-xl')}>
@@ -98,8 +105,8 @@ const TestHeader = React.memo(
                 <Mic2 className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className={cn(MICRO, 'text-rose-500')}>Speaking practice</p>
-                <h1 className={cn(TITLE, 'mt-0.5 truncate text-sm sm:text-base')}>
+                {practiceBadge}
+                <h1 className={cn(TITLE, 'mt-1 truncate text-sm sm:text-base')}>
                   IELTS Speaking Session
                 </h1>
                 <p className={cn(MUTED, 'truncate text-[10px] font-medium sm:text-[11px]')}>
@@ -223,8 +230,8 @@ const TestHeader = React.memo(
                 <Mic2 className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <p className={cn(MICRO, 'text-rose-500')}>Speaking practice</p>
-                <h1 className={cn(TITLE, 'mt-0.5 truncate text-base')}>IELTS Speaking Session</h1>
+                {practiceBadge}
+                <h1 className={cn(TITLE, 'mt-1 truncate text-base')}>IELTS Speaking Session</h1>
                 <p className={cn(MUTED, 'truncate text-[11px] font-medium')}>{testTitle}</p>
               </div>
             </section>
@@ -251,7 +258,7 @@ const TestHeader = React.memo(
                 />
               </div>
               <p className={cn(MUTED, 'mt-2 text-[10px] font-medium')}>
-                Part {currentPartNumber} is active
+                Part {currentPartNumber} {isPartComplete ? 'complete' : 'is active'}
               </p>
             </StatusSection>
 
@@ -292,11 +299,13 @@ const TestHeader = React.memo(
                 </p>
               </div>
               <p className={cn(MUTED, 'mt-1.5 text-[10px] font-medium')}>
-                {isPart2Prep
-                  ? 'Topic card ready'
-                  : isLongTurn
-                    ? 'Individual response'
-                    : 'Current item'}
+                {isPartComplete
+                  ? allPartsLabel(currentPartNumber, totalParts)
+                  : isPart2Prep
+                    ? 'Topic card ready'
+                    : isLongTurn
+                      ? 'Individual response'
+                      : 'Current item'}
               </p>
             </StatusSection>
           </div>
@@ -305,6 +314,12 @@ const TestHeader = React.memo(
     );
   }
 );
+
+function allPartsLabel(currentPartNumber, totalParts) {
+  return currentPartNumber < totalParts
+    ? `Ready for Part ${currentPartNumber + 1}`
+    : 'Test complete';
+}
 
 TestHeader.displayName = 'TestHeader';
 export default TestHeader;

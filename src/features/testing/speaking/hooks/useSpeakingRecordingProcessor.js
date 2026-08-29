@@ -453,6 +453,7 @@ function handleSuccessfulTurn(response, context) {
       allPartsPronunciation: acousticMetricsRef.current,
       allPartsAcousticMetrics: acousticMetricsRef.current,
       isPartComplete: !!response.isPartComplete,
+      ...(response.state ? { speakingV2State: response.state } : {}),
     },
   });
 }

@@ -113,8 +113,8 @@ function DraftTranscript({ entry }) {
         : 'Refining transcript';
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1.5">
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1">
         <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
           {isPaused ? (
             <Pause className="h-3 w-3 fill-current" aria-hidden="true" />
@@ -127,7 +127,7 @@ function DraftTranscript({ entry }) {
         </span>
         <LiveWaveform active={isLive && !isPaused} tone="rose" />
       </div>
-      <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-foreground/90 sm:text-[13px]">
+      <p className="whitespace-pre-wrap text-[12.5px] leading-snug text-foreground/90 sm:text-[13px]">
         {cleanMessageText(entry.text) ||
           (isLive ? 'Start speaking when you are ready.' : 'Preparing your transcript…')}
         {isLive && entry.text && (
@@ -188,8 +188,8 @@ function ExaminerLiveTranscript({ entry }) {
   const visibleText = words.slice(0, renderedWordCount).join(' ');
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1.5">
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1">
         <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
           {entry.isExaminerSpeaking ? (
             <AudioLines className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
@@ -200,7 +200,7 @@ function ExaminerLiveTranscript({ entry }) {
         </span>
         <LiveWaveform active={entry.isExaminerSpeaking} tone="rose" />
       </div>
-      <p className="min-h-4 whitespace-pre-wrap text-[12.5px] leading-relaxed text-foreground/90 sm:text-[13px]">
+      <p className="min-h-4 whitespace-pre-wrap text-[12.5px] leading-snug text-foreground/90 sm:text-[13px]">
         {isPreparing ? 'Getting the examiner voice ready…' : visibleText}
         {entry.isExaminerSpeaking && visibleWordCount < words.length && (
           <span
@@ -308,10 +308,10 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
           transition={{ layout: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
           className={`overflow-hidden text-left tracking-normal ${
             isCompactTranscript || isExaminerTranscript
-              ? 'px-3 py-2.5'
+              ? 'px-3 py-2'
               : isExaminerMessage
-                ? 'px-4 py-2.5 text-[13px] leading-relaxed sm:px-4.5 sm:py-3 sm:text-sm'
-                : 'px-4 py-2.5 text-[13.5px] leading-relaxed sm:px-4.5 sm:py-3 sm:text-[14.5px]'
+                ? 'px-4 py-2 text-[13px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-sm'
+                : 'px-4 py-2 text-[13.5px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-[14.5px]'
           } ${getBubbleClass(entry)}`}
         >
           <MessageBody entry={entry} />

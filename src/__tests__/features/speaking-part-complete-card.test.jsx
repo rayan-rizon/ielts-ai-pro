@@ -34,4 +34,18 @@ describe('speaking part complete card', () => {
     fireEvent.click(screen.getByRole('button', { name: /proceed to part 2/i }));
     expect(onMoveToNext).toHaveBeenCalledOnce();
   });
+
+  it('locks the transition button while Part 2 is opening', () => {
+    render(
+      <PartCompleteCard
+        isPartComplete
+        currentPartNumber={1}
+        allParts={{ 1: {}, 2: {}, 3: {} }}
+        onMoveToNext={vi.fn()}
+        isTransitioning
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /opening part 2/i })).toBeDisabled();
+  });
 });

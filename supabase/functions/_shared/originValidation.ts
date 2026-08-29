@@ -1,3 +1,5 @@
+declare const Deno: any;
+
 export const DEFAULT_ALLOWED_ORIGIN = 'http://localhost:5173';
 
 const ALLOWED_ORIGINS = [

@@ -40,6 +40,7 @@ function buildProps(overrides = {}) {
     stopListening: vi.fn(),
     setAutoSubmitPaused: vi.fn(),
     handleStartTest: vi.fn(),
+    speakingMode: 'exam',
     ...overrides,
   };
 }
@@ -180,6 +181,22 @@ describe('speaking conversation panel examiner streaming', () => {
 
     expect(screen.getByText(examinerQuestion)).toBeInTheDocument();
     expect(screen.queryByText('Preparing examiner audio')).not.toBeInTheDocument();
+  });
+
+  it('shows an explicit listening signal while Exam transcripts stay hidden', () => {
+    render(
+      <SpeakingConversationPanel
+        {...buildProps({
+          isListening: true,
+          liveTranscript: 'This hidden draft must not be rendered.',
+        })}
+      />
+    );
+
+    expect(screen.getByRole('status', { name: /microphone live/i })).toBeInTheDocument();
+    expect(screen.getByText('Listening to your answer')).toBeInTheDocument();
+    expect(screen.getByText('Transcript stays hidden in Exam mode.')).toBeInTheDocument();
+    expect(screen.queryByText('This hidden draft must not be rendered.')).not.toBeInTheDocument();
   });
 
   it("shows a clear time's-up transition before the final report starts", () => {

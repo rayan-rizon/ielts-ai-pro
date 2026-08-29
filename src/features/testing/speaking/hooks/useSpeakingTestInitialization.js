@@ -11,7 +11,10 @@ import {
   buildLegacySpeakingEvaluation,
   buildSpeakingResumeState,
   getQuestionLines,
+  trimConversationAfterPartCompletion,
 } from '../utils/speakingTestUtils';
+import { shouldResumeSpeakingFinalEvaluation } from '../utils/speakingResumePolicy';
+import { shouldStartUninitializedSpeakingV2Session } from '../utils/speakingV2ResumeRecovery';
 import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
 
 function isSpeakingV2Session(session) {
@@ -169,11 +172,80 @@ export default function useSpeakingTestInitialization({
         const savedMode =
           matchingSession.content_data?.speakingMode === 'practice' ? 'practice' : 'exam';
         setSpeakingMode?.(savedMode);
-        serverResume = await callEdgeFunction('processSpeakingSessionV2', {
-          action: savedMode === 'practice' ? 'resume_practice' : 'resume',
-          sessionId: matchingSession.id,
-        });
+        try {
+          serverResume = await callEdgeFunction('processSpeakingSessionV2', {
+            action: savedMode === 'practice' ? 'resume_practice' : 'resume',
+            sessionId: matchingSession.id,
+          });
+        } catch (resumeError) {
+          if (
+            !shouldStartUninitializedSpeakingV2Session({
+              isSpeakingV2: true,
+              error: resumeError,
+            })
+          ) {
+            throw resumeError;
+          }
+          // A V2 test row can exist before the first Start click completes. It
+          // has no private state to resume, so initialize that same row through
+          // the server start operation instead of surfacing a dead resume page.
+          serverResume = await callEdgeFunction('processSpeakingSessionV2', {
+            action: 'start',
+            sessionId: matchingSession.id,
+            mode: savedMode,
+          });
+        }
         setSpeakingV2State?.(serverResume.state);
+
+        if (serverResume.state?.status === 'completed') {
+          restoreCompletedSession(matchingSession);
+          return;
+        }
+
+        // A finished V2 session is ready for scoring, not for another prompt.
+        // Do not hydrate the old client conversation or restart the microphone;
+        // that was the source of the "still speaking" resume loop. The evaluator
+        // reads the authoritative speaking_turns ledger on the server.
+        if (serverResume.state?.status === 'ready_for_evaluation') {
+          const savedConversation = matchingSession.content_data?.allPartsConversation || {};
+          const savedMetrics =
+            matchingSession.content_data?.allPartsAcousticMetrics ||
+            matchingSession.content_data?.allPartsPronunciation ||
+            {};
+          setAllPartsConversation(savedConversation);
+          acousticMetricsRef.current = savedMetrics;
+          setAllPartsAcousticMetrics(savedMetrics);
+          setCurrentPartNumber(serverResume.state?.part || 3);
+          setSession({
+            ...matchingSession,
+            is_completed: false,
+            evaluation_status: 'not_requested',
+            content_data: {
+              ...matchingSession.content_data,
+              currentPart: serverResume.state?.part || 3,
+              isPartComplete: false,
+              evaluationPending: false,
+              speakingV2State: serverResume.state,
+            },
+          });
+          setTestStarted(false);
+          setIsLoading(false);
+          setIsTestComplete(true);
+          return;
+        }
+
+        setSession({
+          ...matchingSession,
+          is_completed: false,
+          evaluation_status: 'not_requested',
+          content_data: {
+            ...matchingSession.content_data,
+            currentPart: serverResume.state?.part || matchingSession.content_data?.currentPart,
+            isPartComplete: serverResume.state?.status === 'part_complete',
+            evaluationPending: false,
+            speakingV2State: serverResume.state,
+          },
+        });
       }
 
       const resumePart =
@@ -197,7 +269,10 @@ export default function useSpeakingTestInitialization({
       acousticMetricsRef.current = savedMetrics;
       setAllPartsAcousticMetrics(savedMetrics);
       setCurrentPartNumber(resumePart);
-      const resumedConversation = serverResume?.examinerText
+      const shouldRestoreServerPrompt = Boolean(
+        serverResume?.examinerText && serverResume?.state?.status !== 'part_complete'
+      );
+      const hydratedConversation = shouldRestoreServerPrompt
         ? [
             ...resumeState.conversation.filter(
               (entry) => entry.text?.trim() !== serverResume.examinerText.trim()
@@ -205,17 +280,19 @@ export default function useSpeakingTestInitialization({
             { speaker: 'ai', text: serverResume.examinerText },
           ]
         : resumeState.conversation;
+      const resumedConversation =
+        serverResume?.state?.status === 'part_complete'
+          ? trimConversationAfterPartCompletion(hydratedConversation, resumePart)
+          : hydratedConversation;
       setConversation(resumedConversation);
       setCurrentQuestionIndex(
         serverResume?.state?.questionNumber ?? resumeState.currentQuestionIndex
       );
       setAllPartsConversation(resumeAllPartsConversation);
       setIsPartComplete(
-        Boolean(
-          serverResume?.state?.status === 'part_complete' ||
-          matchingSession.content_data?.isPartComplete ||
-          resumeState.isPartComplete
-        )
+        serverResume
+          ? serverResume.state?.status === 'part_complete'
+          : Boolean(matchingSession.content_data?.isPartComplete || resumeState.isPartComplete)
       );
       setIsPart2Prep(isPart2Prep);
       setIsPart2Intro(false);
@@ -240,7 +317,7 @@ export default function useSpeakingTestInitialization({
       setTestStarted(true);
       setIsLoading(false);
 
-      if (serverResume?.examinerText) {
+      if (shouldRestoreServerPrompt) {
         Promise.resolve(speakText(serverResume.examinerText)).finally(() => {
           if (!isPart2Prep && serverResume.state?.status !== 'part_complete') requestAutoStart?.();
         });
@@ -262,8 +339,12 @@ export default function useSpeakingTestInitialization({
       }
 
       if (
-        matchingSession.content_data?.evaluationPending &&
-        Object.keys(resumeAllPartsConversation).length > 0
+        shouldResumeSpeakingFinalEvaluation({
+          isSpeakingV2: matchingSession.content_data?.speakingVersion === 'v2',
+          serverStatus: serverResume?.state?.status,
+          evaluationPending: matchingSession.content_data?.evaluationPending,
+          hasSavedConversation: Object.keys(resumeAllPartsConversation).length > 0,
+        })
       ) {
         setTimeout(() => requestFinalEvaluation(resumeAllPartsConversation), 500);
       }
@@ -311,7 +392,7 @@ export default function useSpeakingTestInitialization({
           isRetake,
         });
 
-        if (matchingSession?.is_completed) {
+        if (matchingSession?.is_completed && !isSpeakingV2Session(matchingSession)) {
           restoreCompletedSession(matchingSession);
           return;
         }

@@ -91,6 +91,8 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
 
       const error = new Error(errorMessage);
       error.status = response.status;
+      error.details = parsedError;
+      error.state = parsedError?.state || null;
       if (response.status === 429) {
         error.name = 'RateLimitError';
         // Distinguish burst limit vs quota exceeded:
@@ -158,7 +160,7 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
         ? error.rateLimitType === 'speaking_turn'
           ? errorMessage
           : `Too many requests. Please wait ${Math.ceil((error.resetMs || 60000) / 1000)} seconds.`
-        : error.status === 401 || error.status === 403
+        : error.status === 401
           ? 'Please log in again to use AI features.'
           : error.status >= 500
             ? 'AI service is temporarily unavailable. Please try again in a moment.'

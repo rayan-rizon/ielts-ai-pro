@@ -18,12 +18,18 @@ export default function useSpeakingSessionEffects({
   isProcessingRef,
   pendingTimersRef,
   isMountedRef,
+  useSpeakingV2 = false,
 }) {
   useEffect(() => {
     if (!testId) return;
-    callEdgeFunction('processSpeakingSession', { ping: true }).catch(() => {});
+    // V2 owns the complete speaking pipeline. Do not warm the retired
+    // processSpeakingSession endpoint for a V2 room: it adds a second Edge
+    // invocation on every mount and can race the authoritative state flow.
+    if (!useSpeakingV2) {
+      callEdgeFunction('processSpeakingSession', { ping: true }).catch(() => {});
+    }
     supabase.functions.invoke('synthesizeSpeech', { body: { ping: true } }).catch(() => {});
-  }, [testId]);
+  }, [testId, useSpeakingV2]);
 
   useEffect(() => {
     return () => {

@@ -25,6 +25,11 @@ import {
   SPEAKING_COACHING_TEXT,
   type SpeakingMode,
 } from '../_shared/speakingTurnDecision.ts';
+import { buildSpeakingV2ControlResponse } from '../_shared/speakingV2ControlResponse.ts';
+import {
+  parseSpeakingQuestionRows,
+  type SpeakingQuestion,
+} from '../_shared/speakingV2Questions.ts';
 
 declare const Deno: any;
 declare const EdgeRuntime: any;
@@ -48,7 +53,7 @@ type StateRow = {
   resume_expires_at: string | null;
 };
 
-type Question = { id: string; text: string };
+type Question = SpeakingQuestion;
 
 function responseJson(
   body: Record<string, unknown>,
@@ -61,7 +66,7 @@ function responseJson(
   });
 }
 
-function publicState(state: StateRow) {
+function publicState(state: StateRow, questionCount?: number) {
   return {
     part: Number(state.current_part),
     questionNumber: Number(state.current_question_index),
@@ -72,6 +77,7 @@ function publicState(state: StateRow) {
     expiresAt: state.expires_at,
     resumeExpiresAt: state.resume_expires_at,
     remainingActiveSeconds: state.remaining_active_seconds,
+    ...(questionCount && questionCount > 0 ? { questionCount } : {}),
   };
 }
 
@@ -93,25 +99,6 @@ function isFailedTranscript(value: string) {
   return !clean || clean === '(Inaudible)' || clean.includes('(Unable to transcribe');
 }
 
-function parseQuestionRows(rows: any[], partNumber: number): Question[] {
-  const questions: Question[] = [];
-  for (const row of rows || []) {
-    const raw = String(row.correct_answer || row.question_text || '');
-    const lines = raw
-      .split(/\r?\n/)
-      .map((line) => line.replace(/^[-*•\d.)\s]+/, '').trim())
-      .filter(Boolean);
-    if (partNumber === 2) {
-      questions.push({ id: row.id, text: String(row.question_text || lines[0] || '').trim() });
-      break;
-    }
-    for (const line of lines.length ? lines : [row.question_text]) {
-      if (String(line || '').trim()) questions.push({ id: row.id, text: String(line).trim() });
-    }
-  }
-  return questions;
-}
-
 async function getOwnedState(supabase: any, authId: string, sessionId: string) {
   const { data, error } = await supabase
     .from('speaking_session_state')
@@ -131,19 +118,58 @@ async function loadQuestions(supabase: any, state: StateRow) {
     .eq('question_number', state.current_part)
     .order('id', { ascending: true });
   if (error) throw new Error(`Could not load speaking questions: ${error.message}`);
-  const questions = parseQuestionRows(data || [], state.current_part);
+  const questions = parseSpeakingQuestionRows(data || [], state.current_part);
   if (questions.length === 0) throw new Error('No speaking questions found for this part');
   return questions;
 }
 
 function firstQuestionResponse(state: StateRow, questions: Question[]) {
-  const index = Math.min(Number(state.current_question_index), questions.length - 1);
-  return {
-    success: true,
-    examinerText: questions[index].text,
-    examinerResponse: questions[index].text,
-    state: publicState(state),
+  return buildSpeakingV2ControlResponse({
+    state: publicState(state, questions.length),
+    questions,
+  });
+}
+
+/**
+ * Keep the learner-facing session summary aligned with the private V2 state.
+ * This repairs the learner-facing summary after an ownership-checked server
+ * operation; it deliberately never trusts a browser progress or evaluation flag.
+ */
+async function synchronizeV2SessionSummary(supabase: any, state: StateRow, questions: Question[]) {
+  const { data: session, error } = await supabase
+    .from('test_sessions')
+    .select('content_data, answers, is_completed, evaluation_status')
+    .eq('id', state.test_session_id)
+    .maybeSingle();
+  if (error || !session) return;
+
+  const isInProgress = ['active', 'paused', 'part_complete'].includes(state.status);
+  const isAwaitingEvaluation = state.status === 'ready_for_evaluation';
+  const shouldKeepLearnerSessionOpen = isInProgress || isAwaitingEvaluation;
+  const contentData = {
+    ...(session.content_data || {}),
+    speakingVersion: 'v2',
+    currentPart: state.current_part,
+    isPartComplete: state.status === 'part_complete',
+    speakingV2State: publicState(state, questions.length),
+    ...(shouldKeepLearnerSessionOpen ? { evaluationPending: false } : {}),
   };
+  const answers = {
+    ...(session.answers || {}),
+    currentQuestionIndex: state.current_question_index,
+  };
+  const { error: updateError } = await supabase
+    .from('test_sessions')
+    .update({
+      content_data: contentData,
+      answers,
+      ...(shouldKeepLearnerSessionOpen
+        ? { is_completed: false, evaluation_status: 'not_requested' }
+        : {}),
+    })
+    .eq('id', state.test_session_id);
+  if (updateError)
+    console.warn('Could not synchronize Speaking V2 session summary', updateError.message);
 }
 
 async function handleStart(params: {
@@ -158,7 +184,7 @@ async function handleStart(params: {
 
   const { data: profile } = await params.supabase
     .from('users')
-    .select('id, role')
+    .select('id')
     .eq('auth_id', params.authId)
     .maybeSingle();
   const { data: ownedSession } = profile
@@ -172,22 +198,6 @@ async function handleStart(params: {
     : { data: null };
   if (!ownedSession) {
     return responseJson({ error: 'Speaking session not found' }, 404, params.corsHeaders);
-  }
-  if (profile.role === 'admin') {
-    const { data: testingOverride, error: overrideError } = await params.supabase.rpc(
-      'consume_speaking_testing_override',
-      { p_auth_id: params.authId, p_test_session_id: sessionId }
-    );
-    if (overrideError || !testingOverride?.allowed) {
-      return responseJson(
-        {
-          error: 'An active Speaking V2 testing override is required.',
-          reason: testingOverride?.reason || 'testing_override_unavailable',
-        },
-        403,
-        params.corsHeaders
-      );
-    }
   }
 
   const quota = await reserveDatabaseQuota(
@@ -227,6 +237,7 @@ async function handleStart(params: {
   }
   const state = decodeState(data);
   const questions = await loadQuestions(params.supabase, state);
+  await synchronizeV2SessionSummary(params.supabase, state, questions);
   return responseJson(firstQuestionResponse(state, questions), 200, params.corsHeaders);
 }
 
@@ -242,12 +253,32 @@ async function handleControl(params: {
 
   let state: StateRow | null = null;
   if (action === 'advance_part') {
+    const currentState = await getOwnedState(params.supabase, params.authId, sessionId);
+    if (!currentState)
+      return responseJson({ error: 'Speaking V2 session not found' }, 404, params.corsHeaders);
+    if (
+      currentState.status !== 'part_complete' ||
+      currentState.revision !== Number(params.body.expectedRevision)
+    ) {
+      return responseJson(
+        { error: 'Speaking state conflict', state: publicState(currentState) },
+        409,
+        params.corsHeaders
+      );
+    }
     const { data, error } = await params.supabase.rpc('advance_speaking_v2_part', {
       p_auth_id: params.authId,
       p_test_session_id: sessionId,
       p_expected_revision: Number(params.body.expectedRevision),
     });
-    if (error) return responseJson({ error: 'Speaking state conflict' }, 409, params.corsHeaders);
+    if (error || data?.allowed === false) {
+      const conflictState = data?.state ? decodeState(data.state) : currentState;
+      return responseJson(
+        { error: 'Speaking state conflict', state: publicState(conflictState) },
+        409,
+        params.corsHeaders
+      );
+    }
     state = decodeState(data);
   } else if (action === 'finish_exam') {
     const { data, error } = await params.supabase.rpc('finish_speaking_v2_exam', {
@@ -270,6 +301,7 @@ async function handleControl(params: {
   if (!state)
     return responseJson({ error: 'Speaking V2 session not found' }, 404, params.corsHeaders);
   const questions = await loadQuestions(params.supabase, state);
+  await synchronizeV2SessionSummary(params.supabase, state, questions);
   return responseJson(firstQuestionResponse(state, questions), 200, params.corsHeaders);
 }
 
@@ -449,7 +481,7 @@ async function handleTurn(params: {
 
   if (state.revision !== expectedRevision || state.status !== 'active') {
     return responseJson(
-      { error: 'Speaking state conflict', state: publicState(state) },
+      { error: 'Speaking state conflict', state: publicState(state, questions.length) },
       409,
       params.corsHeaders
     );
@@ -468,7 +500,7 @@ async function handleTurn(params: {
         examinerText: "I didn't hear an answer. Please try again.",
         examinerResponse: "I didn't hear an answer. Please try again.",
         userTranscript: '(Inaudible)',
-        state: publicState(state),
+        state: publicState(state, questions.length),
       },
       200,
       params.corsHeaders
@@ -501,7 +533,7 @@ async function handleTurn(params: {
               ? 'burst'
               : 'state',
         retryAfterSeconds: reservation?.retryAfterSeconds,
-        state: reservation?.state ? publicState(reservation.state) : undefined,
+        state: reservation?.state ? publicState(reservation.state, questions.length) : undefined,
       },
       failure.status,
       params.corsHeaders
@@ -534,7 +566,7 @@ async function handleTurn(params: {
           examinerText: "I didn't catch that. Please repeat your answer.",
           examinerResponse: "I didn't catch that. Please repeat your answer.",
           userTranscript: '(Inaudible)',
-          state: publicState(state),
+          state: publicState(state, questions.length),
         },
         200,
         params.corsHeaders
@@ -584,7 +616,7 @@ async function handleTurn(params: {
           }
         : undefined;
     const projectedState = {
-      ...publicState(state),
+      ...publicState(state, questions.length),
       revision: state.revision + 1,
       questionNumber: nextQuestionIndex,
       status: nextStatus,
@@ -653,11 +685,14 @@ async function handleTurn(params: {
         durationMs: audioDurationMs,
       });
     }
+    if (['part_complete', 'ready_for_evaluation'].includes(authoritativeState.status)) {
+      await synchronizeV2SessionSummary(params.supabase, authoritativeState, questions);
+    }
     return responseJson(
       {
         ...responsePayload,
         revision: authoritativeState.revision,
-        state: publicState(authoritativeState),
+        state: publicState(authoritativeState, questions.length),
       },
       200,
       params.corsHeaders

@@ -23,8 +23,11 @@ import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
 import { shouldAutomaticallyFinalizeSpeaking } from '../utils/autoFinalEvaluation';
 import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
+import { createSpeakingPartTransitionGuard } from '../utils/speakingPartTransitionGuard';
 import { isSpeakingV2Available } from '../utils/speakingV2';
+import { advanceSpeakingV2Part } from '../utils/speakingV2Transition';
 import { callEdgeFunction } from '@/utils/api';
+import { toast } from 'sonner';
 
 const HANDS_FREE_STORAGE_KEY = 'ielts-speaking-hands-free';
 
@@ -50,6 +53,8 @@ export default function SpeakingTest() {
   const autoStartRequestedRef = useRef(false);
   const autoFinalEvaluationRequestedRef = useRef(false);
   const serverFinishRequestedRef = useRef(false);
+  const partTransitionGuardRef = useRef(createSpeakingPartTransitionGuard());
+  const [isPartTransitioning, setIsPartTransitioning] = useState(false);
   const [autoStartRequestVersion, setAutoStartRequestVersion] = useState(0);
   const requestAutoStart = useCallback(() => {
     if (!handsFreeEnabledRef.current) return;
@@ -205,6 +210,7 @@ export default function SpeakingTest() {
     isProcessingRef,
     pendingTimersRef,
     isMountedRef,
+    useSpeakingV2,
   });
 
   const saveSessionProgress = useSpeakingSessionPersistence(session?.id, session?.content_data);
@@ -292,7 +298,7 @@ export default function SpeakingTest() {
   });
 
   useEffect(() => {
-    if (!useSpeakingV2 || !testStarted || !session?.id) return;
+    if (!useSpeakingV2 || !session?.id) return;
     if (
       speakingMode === 'exam' &&
       timeLeft === 0 &&
@@ -313,6 +319,9 @@ export default function SpeakingTest() {
     }
     if (
       speakingV2State?.status === 'ready_for_evaluation' &&
+      !isSpeaking &&
+      !isTTSLoading &&
+      !isProcessing &&
       !isEvaluating &&
       !autoFinalEvaluationRequestedRef.current
     ) {
@@ -321,6 +330,9 @@ export default function SpeakingTest() {
     }
   }, [
     isEvaluating,
+    isProcessing,
+    isSpeaking,
+    isTTSLoading,
     requestFinalEvaluation,
     session?.id,
     setSpeakingV2State,
@@ -429,8 +441,9 @@ export default function SpeakingTest() {
   useEffect(() => {
     if (isTestComplete) {
       cancelListening();
+      cancelCurrentAudio();
     }
-  }, [cancelListening, isTestComplete]);
+  }, [cancelCurrentAudio, cancelListening, isTestComplete]);
 
   const handleHandsFreeChange = useCallback(
     (enabled) => {
@@ -492,15 +505,28 @@ export default function SpeakingTest() {
     isMountedRef,
   });
   const moveToNextPart = useCallback(async () => {
-    if (useSpeakingV2 && allParts[currentPartNumber + 1]) {
-      const result = await callEdgeFunction('processSpeakingSessionV2', {
-        action: 'advance_part',
-        sessionId: session?.id,
-        expectedRevision: speakingV2State?.revision,
+    if (!partTransitionGuardRef.current.acquire()) return;
+    setIsPartTransitioning(true);
+    try {
+      if (useSpeakingV2 && allParts[currentPartNumber + 1]) {
+        const result = await advanceSpeakingV2Part({
+          callEdgeFunction,
+          sessionId: session?.id,
+          expectedRevision: speakingV2State?.revision,
+          currentPartNumber,
+        });
+        setSpeakingV2State(result.state);
+      }
+      return await moveToNextPartLegacy();
+    } catch (error) {
+      toast.error(`Could not open Part ${currentPartNumber + 1}`, {
+        description: error?.userMessage || error?.message || 'Please try again.',
       });
-      setSpeakingV2State(result.state);
+      return undefined;
+    } finally {
+      partTransitionGuardRef.current.release();
+      setIsPartTransitioning(false);
     }
-    return moveToNextPartLegacy();
   }, [
     allParts,
     currentPartNumber,
@@ -706,6 +732,7 @@ export default function SpeakingTest() {
           testStarted,
           isPartComplete,
           moveToNextPart,
+          isPartTransitioning,
           conversationContainerRef,
           isPart2Prep,
           isPart2Intro,

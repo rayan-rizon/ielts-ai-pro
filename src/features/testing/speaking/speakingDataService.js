@@ -33,6 +33,7 @@ function deduplicateSessions(sessionsData) {
         passage_id: passageId,
         is_completed: s.is_completed,
         score: s.score,
+        answers: s.answers || {},
         content_data: s.content_data || {},
         test_type: 'speaking',
         created_at: s.created_at,
@@ -77,7 +78,7 @@ async function fetchUserSessions(user, passageIds) {
   if (!user || passageIds.length === 0) return [];
   const { data, error } = await supabase
     .from('test_sessions')
-    .select('id, passage_id, is_completed, score, content_data, created_at, completed_at')
+    .select('id, passage_id, is_completed, score, answers, content_data, created_at, completed_at')
     .eq('user_id', user.id)
     .eq('test_type', 'speaking')
     .in('passage_id', passageIds)

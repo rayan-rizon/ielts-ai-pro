@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-  AudioWaveform,
-  Check,
-  Circle,
-  Headphones,
-  Lightbulb,
-  Mic2,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react';
+import { AudioWaveform, Check, Circle, Headphones, Mic2, Sparkles } from 'lucide-react';
 
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -34,12 +25,6 @@ const PART_DETAILS = {
     description: 'Discuss ideas in depth',
     activeGuide: 'Develop each opinion with a clear reason or relevant example.',
   },
-};
-
-const PART_TIPS = {
-  1: 'Speak naturally and be specific. A short example makes an answer stronger.',
-  2: 'Keep talking until the examiner stops you; use the prompts to maintain structure.',
-  3: 'Explain why you think something, then compare it with another perspective.',
 };
 
 // ─── xl desktop sidebar components ──────────────────────────────────────────
@@ -170,23 +155,6 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
             </p>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function UsefulTip({ currentPartNumber }) {
-  return (
-    <section className="border-t border-[#e4e2f0] px-4 py-3.5 dark:border-white/[0.07] sm:px-5">
-      <div className="flex items-center gap-2">
-        <Lightbulb className="h-4 w-4 text-amber-500" aria-hidden="true" />
-        <p className={cn(MICRO, MUTED)}>One useful tip</p>
-      </div>
-      <div className="mt-2.5 flex gap-3 rounded-xl bg-rose-500/5.5 p-3">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" aria-hidden="true" />
-        <p className="text-[11px] leading-5 text-slate-700 dark:text-slate-300">
-          {PART_TIPS[currentPartNumber] || PART_TIPS[1]}
-        </p>
       </div>
     </section>
   );
@@ -347,7 +315,6 @@ export default function SpeakingSessionRail({
           isPart2Prep={isPart2Prep}
           currentPartNumber={currentPartNumber}
         />
-        <UsefulTip currentPartNumber={currentPartNumber} />
         <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} />
       </aside>
     </>

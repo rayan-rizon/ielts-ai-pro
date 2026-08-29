@@ -59,6 +59,7 @@ const RecordingControls = React.memo(
     micError,
     autoSubmitPaused,
     handsFreeEnabled,
+    speakingMode,
     timerExpiredRef,
     onStartListening,
     onStopListening,
@@ -102,7 +103,11 @@ const RecordingControls = React.memo(
               <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
                 <AudioLines className="h-4 w-4 animate-pulse" aria-hidden="true" />
                 <span className={cn(MICRO, 'tracking-[0.16em]')}>
-                  {autoSubmitPaused ? 'Timer & auto-send paused' : 'Transcript streaming in chat'}
+                  {autoSubmitPaused
+                    ? 'Timer & auto-send paused'
+                    : speakingMode === 'exam'
+                      ? 'Microphone live · answer recording'
+                      : 'Transcript streaming in chat'}
                 </span>
               </div>
             ) : (

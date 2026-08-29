@@ -339,6 +339,7 @@ function usePartCompleteKeyboardShortcut({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key !== 'Enter') return;
+      if (e.repeat) return;
       if (!isPartComplete) return;
       if (isProcessing) return;
       if (isEvaluating) return;

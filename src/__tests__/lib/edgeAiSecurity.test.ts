@@ -91,6 +91,19 @@ describe('AI edge security controls', () => {
     );
   });
 
+  it('allows admins to start the main Speaking V2 flow without a rollout-only override', () => {
+    const speakingV2Source = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/processSpeakingSessionV2/index.ts'),
+      'utf8'
+    );
+    const apiSource = readFileSync(resolve(process.cwd(), 'src/utils/api.js'), 'utf8');
+
+    expect(speakingV2Source).not.toContain('consume_speaking_testing_override');
+    expect(speakingV2Source).not.toContain('testing override is required');
+    expect(speakingV2Source).toContain(".select('id')");
+    expect(apiSource).not.toContain('error.status === 401 || error.status === 403');
+  });
+
   it('does not expose an anonymous TTS warm-up path', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'supabase/functions/synthesizeSpeech/index.ts'),

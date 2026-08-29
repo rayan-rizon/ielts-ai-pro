@@ -82,6 +82,16 @@ export function buildSpeakingResumeState({
   };
 }
 
+export function trimConversationAfterPartCompletion(conversation = [], partNumber) {
+  const normalized = normalizeSavedConversation(conversation);
+  const completionPattern = new RegExp(`end\\s+of\\s+Part\\s+${Number(partNumber)}`, 'i');
+  const completionIndex = normalized.findLastIndex(
+    (entry) => entry.speaker === 'ai' && completionPattern.test(entry.text)
+  );
+
+  return completionIndex >= 0 ? normalized.slice(0, completionIndex + 1) : normalized;
+}
+
 function normalizeSavedConversation(conversation) {
   if (!Array.isArray(conversation)) return [];
 

@@ -13,6 +13,9 @@ export const requirePublicEnv = (name: string) => {
   // Vitest imports browser services without a deployed Vite environment. Keep
   // that test-only contract explicit instead of shipping placeholders to users.
   if (import.meta.env.MODE === 'test' && (!value || isPlaceholder(value))) {
+    if (name.endsWith('_URL') || name.includes('URL')) {
+      return `https://test-${name.toLowerCase().replace(/_/g, '-')}.supabase.co`;
+    }
     return `test-${name.toLowerCase()}`;
   }
 

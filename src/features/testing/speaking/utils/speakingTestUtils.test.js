@@ -13,9 +13,28 @@ import {
   getQuestionLines,
   isSilentSpeechMetadata,
   isTranscriptError,
+  trimConversationAfterPartCompletion,
 } from './speakingTestUtils';
 
 describe('speakingTestUtils', () => {
+  it('removes stale prompts saved after an authoritative part-completion marker', () => {
+    expect(
+      trimConversationAfterPartCompletion(
+        [
+          { speaker: 'ai', text: 'Where did you grow up?' },
+          { speaker: 'user', text: 'In Dhaka.' },
+          { speaker: 'ai', text: 'Thank you. That brings us to the end of Part 1.' },
+          { speaker: 'ai', text: 'Where did you grow up?' },
+        ],
+        1
+      )
+    ).toEqual([
+      { speaker: 'ai', text: 'Where did you grow up?' },
+      { speaker: 'user', text: 'In Dhaka.' },
+      { speaker: 'ai', text: 'Thank you. That brings us to the end of Part 1.' },
+    ]);
+  });
+
   it('formats IELTS why/why not prompts consistently', () => {
     expect(formatIeltsQuestion('Do you like music? [Why / Why not?]')).toBe(
       'Do you like music? (Why or why not?)'

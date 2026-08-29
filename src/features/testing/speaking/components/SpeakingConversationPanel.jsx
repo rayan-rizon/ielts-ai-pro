@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Activity, Mic2, PlayCircle, Radio, Timer } from 'lucide-react';
+import { Activity, AudioLines, Mic2, PlayCircle, Radio, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { MICRO, MUTED, NUM, PANEL, TITLE } from '@/features/dashboard/components/primitives';
+import { MICRO, MUTED, NUM, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
 
 import useConversationAutoScroll from '../hooks/useConversationAutoScroll';
 import ConversationMessage from './ConversationMessage';
@@ -45,6 +45,42 @@ function Part2PreparationControls({ prepTimeLeft, onStartSpeaking }) {
   );
 }
 
+function ExamListeningIndicator() {
+  return (
+    <div
+      className={cn(
+        TILE,
+        'ml-auto flex w-fit max-w-[88%] items-center gap-3 border-rose-500/20 bg-rose-500/5 px-3 py-2 dark:border-rose-400/20 dark:bg-rose-400/8'
+      )}
+      role="status"
+      aria-live="polite"
+      aria-label="Microphone live. Your answer is being recorded."
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500 text-white">
+        <AudioLines className="h-4 w-4 animate-pulse" aria-hidden="true" />
+      </span>
+      <div className="min-w-0">
+        <p className={cn(MICRO, 'text-rose-600 dark:text-rose-300')}>Microphone live</p>
+        <p className="mt-0.5 text-sm font-semibold leading-snug text-slate-800 dark:text-slate-100">
+          Listening to your answer
+        </p>
+        <p className={cn(MUTED, 'mt-0.5 text-[10px] leading-snug')}>
+          Transcript stays hidden in Exam mode.
+        </p>
+      </div>
+      <span className="ml-1 flex h-4 items-end gap-0.5" aria-hidden="true">
+        {[5, 11, 8, 14, 7].map((height, index) => (
+          <span
+            key={`${height}-${index}`}
+            className="w-0.5 animate-pulse rounded-full bg-rose-500"
+            style={{ height, animationDelay: `${index * 90}ms` }}
+          />
+        ))}
+      </span>
+    </div>
+  );
+}
+
 export default function SpeakingConversationPanel({
   currentPartNumber,
   currentPart,
@@ -54,6 +90,7 @@ export default function SpeakingConversationPanel({
   testStarted,
   isPartComplete,
   moveToNextPart,
+  isPartTransitioning,
   conversationContainerRef,
   isPart2Prep,
   cueCardTopic,
@@ -314,6 +351,7 @@ export default function SpeakingConversationPanel({
                   authUser={authUser}
                 />
               )}
+              {speakingMode === 'exam' && isListening && <ExamListeningIndicator />}
             </AnimatePresence>
           )}
           {isPartComplete && (
@@ -323,6 +361,7 @@ export default function SpeakingConversationPanel({
                 currentPartNumber={currentPartNumber}
                 allParts={allParts}
                 onMoveToNext={moveToNextPart}
+                isTransitioning={isPartTransitioning}
               />
             </div>
           )}
@@ -360,6 +399,7 @@ export default function SpeakingConversationPanel({
                   micError={micError}
                   autoSubmitPaused={autoSubmitPaused}
                   handsFreeEnabled={handsFreeEnabled}
+                  speakingMode={speakingMode}
                   timerExpiredRef={timerExpiredRef}
                   onStartListening={startListening}
                   onStopListening={stopListening}

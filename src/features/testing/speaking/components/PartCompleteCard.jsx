@@ -13,7 +13,7 @@ import {
 } from '@/features/dashboard/components/primitives';
 
 const PartCompleteCard = React.memo(
-  ({ isPartComplete, currentPartNumber, allParts, onMoveToNext }) => {
+  ({ isPartComplete, currentPartNumber, allParts, onMoveToNext, isTransitioning = false }) => {
     const hasNextPart = Boolean(allParts[currentPartNumber + 1]);
 
     return (
@@ -27,15 +27,17 @@ const PartCompleteCard = React.memo(
             className="w-full"
           >
             <div className={cn(PANEL, 'overflow-hidden')}>
-              <div className="flex flex-col items-center gap-3 px-4 py-5 text-center">
-                <IconChip icon={CheckCircle2} tone="emerald" size="lg" />
+              <div className="flex flex-col items-center gap-2 px-4 py-3.5 text-center">
+                <IconChip icon={CheckCircle2} tone="rose" size="md" />
 
-                <div className="space-y-1.5">
-                  <Pill tone="ok">Section complete</Pill>
-                  <h2 className={cn(TITLE, 'text-xl md:text-2xl')}>
+                <div className="space-y-1">
+                  <Pill className="border-rose-500/35 bg-rose-500/8 text-rose-600 dark:bg-rose-400/12 dark:text-rose-300">
+                    Section complete
+                  </Pill>
+                  <h2 className={cn(TITLE, 'text-lg md:text-xl')}>
                     Part {currentPartNumber} Finished
                   </h2>
-                  <p className={cn(MUTED, 'mx-auto max-w-104 text-xs leading-relaxed md:text-sm')}>
+                  <p className={cn(MUTED, 'mx-auto max-w-104 text-xs leading-snug md:text-sm')}>
                     {hasNextPart
                       ? `You have completed this part. Tap below to start Part ${currentPartNumber + 1}.`
                       : 'Your test is complete. Your report is being generated automatically.'}
@@ -46,11 +48,19 @@ const PartCompleteCard = React.memo(
                   <div className="pt-0.5">
                     <Button
                       onClick={onMoveToNext}
-                      className="group h-10 rounded-lg bg-[#5a63df] px-6 text-[10px] font-extrabold uppercase tracking-[0.14em] text-white hover:bg-[#4d55ca]"
+                      disabled={isTransitioning}
+                      aria-busy={isTransitioning}
+                      className="group h-9 rounded-lg bg-[#ef295d] px-5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-white shadow-none hover:bg-[#d91f51] hover:shadow-none"
                     >
                       <span className="flex items-center gap-2">
-                        Proceed to Part {currentPartNumber + 1}
-                        <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                        {isTransitioning
+                          ? `Opening Part ${currentPartNumber + 1}`
+                          : `Proceed to Part ${currentPartNumber + 1}`}
+                        {isTransitioning ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                        )}
                       </span>
                     </Button>
                   </div>
