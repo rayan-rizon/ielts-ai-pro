@@ -85,12 +85,16 @@ const UserAnalyticsWrapper = () => {
           conversionRate: data.conversionRate,
           activationRate: data.activationRate,
           newUsers: data.newUsers,
+          engagement: data.engagement || {},
+          geoSummary: data.geoSummary || {},
         });
 
         setAnalyticsData({
           userGrowthData: data.trend,
           recentSignups: data.recentSignups,
           funnel: data.funnel,
+          geography: data.geography || [],
+          acquisitionChannels: data.acquisitionChannels || [],
         });
       } catch (error) {
         console.error('Error loading analytics data:', error);
@@ -106,7 +110,7 @@ const UserAnalyticsWrapper = () => {
   }, [selectedRange, loadAnalyticsData]);
 
   if (loading && !Object.keys(stats).length) {
-    return <AdminPageSkeleton kpis={3} panels={1} />;
+    return <AdminPageSkeleton kpis={6} panels={3} />;
   }
 
   return (

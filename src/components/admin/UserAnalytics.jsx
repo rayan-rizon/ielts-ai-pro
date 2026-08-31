@@ -1,6 +1,13 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, LineChart, UserCheck, UserRoundCheck } from 'lucide-react';
+import {
+  Activity,
+  Globe2,
+  LineChart,
+  MousePointerClick,
+  UserCheck,
+  UserRoundCheck,
+} from 'lucide-react';
 import {
   AreaChart,
   Area,
@@ -11,6 +18,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@/lib/cn';
+import { channelMeta, SignupSourceMark } from './shared/signupChannel';
+import { countryName, countryShortLabel, normalizeCountryCode } from './shared/country';
 import {
   AdminPageHeader,
   Empty,
@@ -24,6 +33,7 @@ import {
   PanelHeader,
   STAGGER_CONTAINER,
   FADE_UP,
+  Pill,
   pillTone,
 } from './ui/primitives';
 
@@ -38,6 +48,205 @@ const GRID = 'rgba(168,162,158,0.22)';
 const INK = '#6366f1';
 const TRACE = '#a8a29e';
 
+const rate = (value) => `${Number(value || 0).toFixed(Number(value || 0) % 1 ? 1 : 0)}%`;
+
+const MarketBreakdown = ({ rows = [], summary = {}, selectedRange }) => {
+  const maxSignups = rows.reduce((maximum, row) => Math.max(maximum, Number(row.signups) || 0), 0);
+
+  return (
+    <div className={cn(PANEL, 'overflow-hidden')}>
+      <PanelHeader
+        label="Market signals"
+        title={`Signup country · ${RANGE_LABEL[selectedRange]}`}
+        description="First-touch IP country at signup. Rates describe this signup cohort's current progress."
+      >
+        <Pill tone={Number(summary.coverageRate || 0) >= 80 ? 'ok' : 'warn'}>
+          {rate(summary.coverageRate)} covered
+        </Pill>
+      </PanelHeader>
+      {rows.length ? (
+        <div className="divide-y divide-stone-100 px-4 dark:divide-white/5">
+          {rows.map((row) => {
+            const code = normalizeCountryCode(row.country);
+            const width = maxSignups ? Math.max(3, (Number(row.signups) / maxSignups) * 100) : 0;
+            return (
+              <div key={code} className="py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <span
+                      className={cn(
+                        NUM,
+                        'grid h-7 w-8 shrink-0 place-items-center rounded-md border border-stone-200/80 bg-stone-50 text-[10px] font-black text-stone-600 dark:border-white/10 dark:bg-white/[0.045] dark:text-stone-300'
+                      )}
+                    >
+                      {countryShortLabel(code)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
+                        {countryName(code)}
+                      </p>
+                      <p className={cn(MICRO, MUTED)}>{rate(row.share)} of signups</p>
+                    </div>
+                  </div>
+                  <span className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
+                    {Number(row.signups || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-indigo-500/70 transition-[width] duration-700 dark:bg-indigo-400/70"
+                    style={{ width: `${width}%` }}
+                  />
+                </div>
+                <div className={cn(MICRO, MUTED, 'mt-2 flex flex-wrap gap-x-4 gap-y-1')}>
+                  <span>Onboarded {rate(row.activationRate)}</span>
+                  <span>Practiced {rate(row.practiceRate)}</span>
+                  <span>Paid {rate(row.paidRate)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <Empty icon={Globe2} title="No market data yet">
+          Country signals appear after a learner signs up in this period.
+        </Empty>
+      )}
+      <div className="border-t border-stone-200/80 px-4 py-2.5 dark:border-white/[0.07]">
+        <p className={cn(MICRO, MUTED)}>
+          {Number(summary.identifiedSignups || 0).toLocaleString()} identified ·{' '}
+          {Number(summary.unknownSignups || 0).toLocaleString()} unknown ·{' '}
+          {Number(summary.countries || 0).toLocaleString()} countries
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const AcquisitionQuality = ({ rows = [], selectedRange }) => (
+  <div className={cn(PANEL, 'overflow-hidden')}>
+    <PanelHeader
+      label="Acquisition quality"
+      title={`First-touch channels · ${RANGE_LABEL[selectedRange]}`}
+      description="Volume and downstream progress for users acquired in this period."
+    />
+    {rows.length ? (
+      <div className="divide-y divide-stone-100 px-4 dark:divide-white/5">
+        {rows.map((row) => {
+          const meta = channelMeta(row.channel || 'unknown');
+          return (
+            <div key={row.channel || 'unknown'} className="py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-stone-400" />
+                  <span className="truncate text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
+                    {meta.label}
+                  </span>
+                </div>
+                <span className={cn(NUM, 'text-xs font-bold text-stone-900 dark:text-stone-50')}>
+                  {Number(row.signups || 0).toLocaleString()} signups
+                </span>
+              </div>
+              <div className={cn(MICRO, MUTED, 'mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-5')}>
+                <span>Onboarded {rate(row.activationRate)}</span>
+                <span>Practiced {rate(row.practiceRate)}</span>
+                <span>Paid {rate(row.paidRate)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <Empty icon={MousePointerClick} title="No acquisition data yet">
+        First-touch channels appear after registrations in this period.
+      </Empty>
+    )}
+  </div>
+);
+
+const OperatorRead = ({ geography = [], channels = [], summary = {}, newUsers = 0 }) => {
+  const knownMarkets = geography.filter((row) => normalizeCountryCode(row.country) !== 'unknown');
+  const topMarket = knownMarkets[0];
+  const qualityMarket = [...knownMarkets]
+    .filter((row) => Number(row.signups) >= 5)
+    .sort((left, right) => Number(right.practiceRate) - Number(left.practiceRate))[0];
+  const qualityChannel = [...channels]
+    .filter((row) => Number(row.signups) >= 5 && row.channel !== 'unknown')
+    .sort((left, right) => Number(right.practiceRate) - Number(left.practiceRate))[0];
+  const coverage = Number(summary.coverageRate || 0);
+
+  const findings = [
+    topMarket
+      ? {
+          label: 'Largest observed market',
+          value: `${countryName(topMarket.country)} supplied ${topMarket.signups} signups (${rate(topMarket.share)}).`,
+        }
+      : {
+          label: 'Market volume',
+          value: 'No identified signup country is available in this range.',
+        },
+    qualityMarket
+      ? {
+          label: 'Strongest practice signal',
+          value: `${countryName(qualityMarket.country)} reached ${rate(qualityMarket.practiceRate)} practice among markets with at least 5 signups.`,
+        }
+      : {
+          label: 'Sample confidence',
+          value:
+            'No country has 5 signups yet, so conversion-rate comparisons are too fragile for budget decisions.',
+        },
+    qualityChannel
+      ? {
+          label: 'Channel quality',
+          value: `${channelMeta(qualityChannel.channel).label} reached ${rate(qualityChannel.practiceRate)} practice from ${qualityChannel.signups} signups.`,
+        }
+      : {
+          label: 'Channel quality',
+          value: 'Channel cohorts are still too small for a stable quality comparison.',
+        },
+    {
+      label: 'Geo confidence',
+      value:
+        Number(newUsers) === 0
+          ? 'No signups occurred in this range.'
+          : `${rate(coverage)} of signups have an identified country; ${Number(summary.unknownSignups || 0)} remain unknown.`,
+      tone: coverage >= 80 ? 'ok' : 'warn',
+    },
+  ];
+
+  return (
+    <div className={cn(PANEL, 'overflow-hidden')}>
+      <PanelHeader
+        label="Operator read"
+        title="What the cohort currently supports"
+        description="Directional analysis with minimum-sample and coverage guards."
+      />
+      <div className="divide-y divide-stone-100 dark:divide-white/5">
+        {findings.map((finding) => (
+          <div key={finding.label} className="flex gap-3 px-4 py-3">
+            <span
+              className={cn(
+                'mt-1 h-3 w-0.5 shrink-0 rounded-full',
+                finding.tone === 'warn'
+                  ? 'bg-[rgb(var(--signal-warn))]'
+                  : finding.tone === 'ok'
+                    ? 'bg-[rgb(var(--signal-ok))]'
+                    : 'bg-indigo-500'
+              )}
+            />
+            <div>
+              <p className={cn(MICRO, MUTED)}>{finding.label}</p>
+              <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-stone-700 dark:text-stone-200">
+                {finding.value}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const UserAnalytics = ({
   stats = {},
   analyticsData = {},
@@ -45,7 +254,15 @@ const UserAnalytics = ({
   onRangeChange,
   isDataLoading = false,
 }) => {
-  const { userGrowthData = [], recentSignups = [], funnel = [] } = analyticsData;
+  const {
+    userGrowthData = [],
+    recentSignups = [],
+    funnel = [],
+    geography = [],
+    acquisitionChannels = [],
+  } = analyticsData;
+  const engagement = stats.engagement || {};
+  const geoSummary = stats.geoSummary || {};
 
   // The RPC returns new signups per period; the running total is the more
   // useful "is the community growing" read, so it is derived here rather than
@@ -109,7 +326,10 @@ const UserAnalytics = ({
         </AdminPageHeader>
       </motion.div>
 
-      <motion.div variants={FADE_UP} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <motion.div
+        variants={FADE_UP}
+        className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6"
+      >
         <Kpi
           label="Total community"
           value={(stats.totalUsers || 0).toLocaleString()}
@@ -134,6 +354,18 @@ const UserAnalytics = ({
           sub={`${(stats.completedTests || 0).toLocaleString()} completed sessions`}
           tip="Distinct learners who started practice during the selected period, plus completed sessions."
         />
+        <Kpi
+          label="Active reach"
+          value={`${engagement.activeRate || 0}%`}
+          sub={`${Number(stats.activeUsers || 0).toLocaleString()} active learners`}
+          tip={`Share of all registered learners active during the ${RANGE_LABEL[selectedRange]}.`}
+        />
+        <Kpi
+          label="Repeat practice"
+          value={`${engagement.repeatRate || 0}%`}
+          sub={`${Number(engagement.repeatTesters || 0).toLocaleString()} learners returned`}
+          tip="Share of learners with practice in this period who started at least two sessions."
+        />
       </motion.div>
 
       {/* Chart and arrivals sit side by side so the page reads in one screen
@@ -153,7 +385,7 @@ const UserAnalytics = ({
 
           <div className="relative min-h-[300px] flex-1 p-4">
             {isDataLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-xl bg-white/60 backdrop-blur-[2px] dark:bg-[#131315]/60">
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-xl bg-white/75 dark:bg-[#131315]/75">
                 <Activity className="h-5 w-5 animate-pulse text-stone-500 dark:text-stone-400" />
               </div>
             )}
@@ -303,6 +535,15 @@ const UserAnalytics = ({
                         >
                           {user.email}
                         </p>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <span className={cn(NUM, MICRO, MUTED)}>
+                            {countryShortLabel(user.country)}
+                          </span>
+                          <SignupSourceMark
+                            channel={user.signup_channel}
+                            source={user.signup_utm_source}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -324,6 +565,11 @@ const UserAnalytics = ({
             )}
           </div>
         </div>
+      </motion.div>
+
+      <motion.div variants={FADE_UP} className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
+        <MarketBreakdown rows={geography} summary={geoSummary} selectedRange={selectedRange} />
+        <AcquisitionQuality rows={acquisitionChannels} selectedRange={selectedRange} />
       </motion.div>
 
       <motion.div variants={FADE_UP} className="grid gap-4 xl:grid-cols-[1.1fr_1fr]">
@@ -365,24 +611,12 @@ const UserAnalytics = ({
             </p>
           </div>
         </div>
-        <div className={cn(PANEL, 'p-4')}>
-          <PanelHeader label="Operator read" title="What to act on" />
-          <div className="space-y-3 pt-4 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
-            <p>
-              <span className="font-bold text-stone-900 dark:text-stone-50">Activation</span> shows
-              whether new registrations reach a usable account state.
-            </p>
-            <p>
-              <span className="font-bold text-stone-900 dark:text-stone-50">Practice reach</span>{' '}
-              distinguishes signups from learners actually experiencing the product.
-            </p>
-            <p>
-              <span className="font-bold text-stone-900 dark:text-stone-50">Paid users</span> is
-              deliberately not projected; it counts only the current paid status of people who
-              signed up in this period.
-            </p>
-          </div>
-        </div>
+        <OperatorRead
+          geography={geography}
+          channels={acquisitionChannels}
+          summary={geoSummary}
+          newUsers={stats.newUsers}
+        />
       </motion.div>
     </motion.div>
   );
