@@ -1,7 +1,17 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { m } from 'framer-motion';
-import { AlertCircle, Check, BookOpen } from 'lucide-react';
+import { AlertCircle, Check, BookOpen, LoaderCircle } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import {
+  MICRO,
+  MUTED,
+  PANEL,
+  Pill,
+  TILE,
+  TITLE,
+  WELL,
+} from '@/features/dashboard/components/primitives';
 
 export default function WordDefinitionPopover({ wordDefinition, addToVocabulary }) {
   if (!wordDefinition || !wordDefinition.position) return null;
@@ -9,9 +19,9 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
   return (
     <AnimatePresence>
       <m.div
-        initial={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-        exit={{ opacity: 0, scale: 0.95, y: 10, filter: 'blur(10px)' }}
+        initial={{ opacity: 0, scale: 0.98, y: 6 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 6 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         style={{
           position: 'absolute',
@@ -23,74 +33,98 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
           zIndex: 200,
         }}
       >
-        <div className="w-72 bg-white dark:bg-slate-900 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[1.75rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] p-4 relative overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
-          <div className="flex justify-between items-start mb-2">
-            <h5 className="text-base font-black text-slate-900 dark:text-white truncate pr-4">
-              {wordDefinition.word}
-            </h5>
+        <div
+          className={cn(
+            PANEL,
+            'relative max-h-[min(24rem,calc(100vh-2rem))] w-72 overflow-y-auto p-3.5'
+          )}
+          aria-label={`Definition for ${wordDefinition.word}`}
+        >
+          <div className="mb-3 flex items-start justify-between gap-2 border-b border-[#eceafa] pb-2.5 dark:border-white/[0.07]">
+            <div className="min-w-0">
+              <p className={cn(MICRO, MUTED)}>Dictionary</p>
+              <h5 className={cn(TITLE, 'mt-0.5 truncate text-[15px]')}>{wordDefinition.word}</h5>
+            </div>
+            {wordDefinition.part_of_speech && (
+              <Pill tone="accent">{wordDefinition.part_of_speech}</Pill>
+            )}
           </div>
 
           {wordDefinition.vocabError || wordDefinition.error ? (
-            <div className="text-center py-4">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-2">
-                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <div className={cn(TILE, 'py-4 text-center')} role="status" aria-live="polite">
+              <div className="mx-auto mb-2 flex size-8 items-center justify-center rounded-lg bg-[rgb(var(--signal-fault)/0.1)]">
+                <AlertCircle className="size-4 text-[rgb(var(--signal-fault))]" />
               </div>
-              <p className="text-red-600 dark:text-red-400 text-sm font-medium mb-2">
+              <p className="mb-2 text-sm font-medium text-[rgb(var(--signal-fault))]">
                 {wordDefinition.error
                   ? 'Definition not found.'
                   : wordDefinition.errorMessage || 'Could not add to vocabulary.'}
               </p>
               {wordDefinition.definition &&
                 wordDefinition.definition !== 'Definition not found.' && (
-                  <div className="text-slate-600 dark:text-slate-300 text-sm bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
+                  <div
+                    className={cn(
+                      WELL,
+                      'rounded-lg p-2 text-sm text-slate-600 dark:text-slate-300'
+                    )}
+                  >
                     {wordDefinition.definition}
                   </div>
                 )}
             </div>
           ) : wordDefinition.addedToVocab ? (
-            <div className="text-center py-4 space-y-2 animate-in fade-in zoom-in duration-300">
-              <div className="w-12 h-12 bg-linear-to-br/srgb from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400 shadow-lg">
-                <Check className="w-6 h-6" />
+            <div
+              className={cn(TILE, 'space-y-2 py-4 text-center')}
+              role="status"
+              aria-live="polite"
+            >
+              <div className="mx-auto flex size-8 items-center justify-center rounded-lg bg-[rgb(var(--signal-ok)/0.1)] text-[rgb(var(--signal-ok))]">
+                <Check className="size-4" />
               </div>
-              <p className="font-bold text-base text-slate-800 dark:text-white">
-                Added to Word Bank!
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">+5 points earned</p>
+              <p className={TITLE}>Added to Word Bank</p>
+              <p className={cn(MICRO, MUTED)}>+5 points earned</p>
             </div>
           ) : wordDefinition.alreadyExists ? (
-            <div className="text-center py-4 space-y-2 animate-in fade-in zoom-in duration-300">
-              <div className="w-12 h-12 bg-linear-to-br/srgb from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400 shadow-lg">
-                <BookOpen className="w-6 h-6" />
+            <div
+              className={cn(TILE, 'space-y-2 py-4 text-center')}
+              role="status"
+              aria-live="polite"
+            >
+              <div className="mx-auto flex size-8 items-center justify-center rounded-lg bg-[rgb(var(--signal-warn)/0.1)] text-[rgb(var(--signal-warn))]">
+                <BookOpen className="size-4" />
               </div>
-              <p className="font-bold text-base text-slate-800 dark:text-white">
-                Already in Word Bank
-              </p>
+              <p className={TITLE}>Already in Word Bank</p>
             </div>
           ) : wordDefinition.definition === 'Loading...' ? (
-            <div className="flex flex-col items-center justify-center py-6 gap-3">
-              <div className="relative">
-                <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <div className="absolute inset-0 w-6 h-6 border-3 border-blue-200 border-t-transparent rounded-full animate-spin animation-delay-150"></div>
+            <div
+              className={cn(TILE, 'flex items-center gap-2.5 px-3 py-3')}
+              role="status"
+              aria-live="polite"
+            >
+              <LoaderCircle className="size-4 shrink-0 animate-spin text-[#5a63df]" />
+              <div>
+                <p className={cn(MICRO, MUTED)}>Definition lookup</p>
+                <p className="mt-0.5 text-[12px] font-medium text-slate-700 dark:text-slate-200">
+                  Looking up definition…
+                </p>
               </div>
-              <span className="text-sm text-slate-500 animate-pulse font-medium">
-                Looking up definition...
-              </span>
             </div>
           ) : (
             <>
-              <div className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium mb-3">
+              <p className={cn(MICRO, MUTED, 'mb-1.5')}>Meaning</p>
+              <div className="mb-3 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
                 {wordDefinition.definition}
               </div>
               {wordDefinition.example && (
-                <div className="mt-3 relative pl-4 border-l-2 border-blue-200 dark:border-blue-700/50 bg-linear-to-r/srgb from-blue-50/50 to-transparent dark:from-blue-900/20 dark:to-transparent py-2 pr-2 rounded-r-lg">
-                  <p className="text-sm italic text-slate-600 dark:text-slate-400 leading-relaxed font-serif">
+                <div className={cn(TILE, 'mt-3 border-l-2 border-l-[#5a63df] px-3 py-2')}>
+                  <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-400">
                     "{wordDefinition.example}"
                   </p>
                 </div>
               )}
               {wordDefinition.synonyms && wordDefinition.synonyms.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <p className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2 flex items-center gap-2">
+                <div className="mt-4 border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
+                  <p className={cn(MICRO, MUTED, 'mb-2 flex items-center gap-2')}>
                     <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
                     Synonyms
                     <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
@@ -99,7 +133,10 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
                     {wordDefinition.synonyms.slice(0, 5).map((syn, i) => (
                       <span
                         key={i}
-                        className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-default shadow-sm"
+                        className={cn(
+                          TILE,
+                          'cursor-default px-2 py-1 text-xs text-slate-600 dark:text-slate-400'
+                        )}
                       >
                         {syn}
                       </span>
@@ -117,9 +154,9 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
               <button
                 onClick={() => addToVocabulary(wordDefinition)}
                 disabled={wordDefinition.definition === 'Loading...'}
-                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-linear-to-r/srgb from-slate-900 to-slate-800 dark:from-blue-600 dark:to-blue-500 text-white hover:from-slate-800 hover:to-slate-700 dark:hover:from-blue-500 dark:hover:to-blue-400 active:scale-[0.98] transition-all text-sm font-bold shadow-xl shadow-slate-200/50 dark:shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-[#5a63df] bg-[#5a63df] px-3 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-[#4d56c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <BookOpen className="size-3.5" />
                 Add to Word Bank
               </button>
             )}

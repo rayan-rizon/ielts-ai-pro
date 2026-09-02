@@ -4,6 +4,65 @@ import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 
 // Simple in-memory cache for word definitions to prevent redundant API calls
 const definitionCache = new Map();
+const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+const DATAMUSE_API_URL = 'https://api.datamuse.com/words';
+const LOOKUP_TIMEOUT_MS = 4000;
+
+async function fetchJsonWithTimeout(url, signal) {
+  const timeoutController = new AbortController();
+  const onAbort = () => timeoutController.abort();
+  const timeoutId = window.setTimeout(() => timeoutController.abort(), LOOKUP_TIMEOUT_MS);
+
+  signal.addEventListener('abort', onAbort, { once: true });
+
+  try {
+    const response = await fetch(url, { signal: timeoutController.signal });
+    if (!response.ok) throw new Error('Word not found');
+    return await response.json();
+  } catch (error) {
+    if (timeoutController.signal.aborted && !signal.aborted) {
+      throw new Error('Dictionary request timed out');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+    signal.removeEventListener('abort', onAbort);
+  }
+}
+
+function dictionaryResult(entry) {
+  const meaning = entry.meanings?.[0];
+  const def = meaning?.definitions?.find((item) => item?.definition) || meaning?.definitions?.[0];
+  const phonetics = entry.phonetics || [];
+  const phonetic = phonetics.find((item) => item.audio && item.text) || phonetics[0];
+
+  return {
+    word: entry.word,
+    definition: def?.definition || 'Definition unavailable.',
+    pronunciation: phonetic?.text || entry.phonetic || '',
+    audio: phonetic?.audio || '',
+    example: def?.example || '',
+    synonyms: meaning?.synonyms || [],
+    part_of_speech: meaning?.partOfSpeech || '',
+  };
+}
+
+function datamuseResult(entries, word) {
+  const entry = entries.find((item) => item.word?.toLowerCase() === word) || entries[0];
+  const rawDefinition = entry?.defs?.[0];
+  if (!rawDefinition) throw new Error('Word not found');
+
+  const [partOfSpeech = '', definition = rawDefinition] = rawDefinition.split('\t');
+  return {
+    word: entry.word || word,
+    definition: definition.trim(),
+    pronunciation: '',
+    audio: '',
+    example: '',
+    synonyms: [],
+    part_of_speech: partOfSpeech,
+  };
+}
 
 export const useWordDefinition = (user, testData, currentPassageIndex) => {
   const [wordDefinition, setWordDefinition] = useState(null);
@@ -40,37 +99,27 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
 
       // Check cache first
       if (definitionCache.has(cleanWord)) {
-        console.log(`[Dictionary] Serving from cache: ${cleanWord}`);
-        setWordDefinition(definitionCache.get(cleanWord));
+        setWordDefinition((prev) => ({ ...prev, ...definitionCache.get(cleanWord) }));
         return;
       }
 
-      const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`, {
-        signal: controller.signal,
-      });
+      let result;
+      try {
+        const data = await fetchJsonWithTimeout(
+          `${DICTIONARY_API_URL}/${encodeURIComponent(cleanWord)}`,
+          controller.signal
+        );
+        result = dictionaryResult(data[0]);
+      } catch (primaryError) {
+        if (controller.signal.aborted || requestId !== requestIdRef.current) return;
 
-      if (!response.ok) {
-        throw new Error('Word not found');
+        console.warn('[Dictionary] Primary lookup failed; trying fallback.', primaryError);
+        const fallbackData = await fetchJsonWithTimeout(
+          `${DATAMUSE_API_URL}?sp=${encodeURIComponent(cleanWord)}&md=d&max=5`,
+          controller.signal
+        );
+        result = datamuseResult(fallbackData, cleanWord);
       }
-
-      const data = await response.json();
-      const entry = data[0];
-      const meaning = entry.meanings?.[0];
-      const def =
-        meaning?.definitions?.find((item) => item?.definition) || meaning?.definitions?.[0];
-
-      // Find audio if available
-      const phonetic = entry.phonetics.find((p) => p.audio && p.text) || entry.phonetics[0];
-
-      const result = {
-        word: entry.word,
-        definition: def?.definition || 'Definition unavailable.',
-        pronunciation: phonetic?.text || entry.phonetic || '',
-        audio: phonetic?.audio || '',
-        example: def?.example || '',
-        synonyms: meaning.synonyms || [],
-        part_of_speech: meaning?.partOfSpeech,
-      };
 
       // Store in cache
       definitionCache.set(cleanWord, result);
