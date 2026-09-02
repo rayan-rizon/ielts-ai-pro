@@ -1,0 +1,86 @@
+# --- Logs and Runtime ---
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+scripts/node_modules
+dist
+dist-ssr
+*.local
+
+# --- Editor and OS Specific ---
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+*.tmp
+*.temp
+
+# --- Environments ---
+.env
+.env.production
+.env.development
+.env.staging
+.env*.local
+
+# --- Database and Backups ---
+# Backups may contain real user PII (emails, names) - never track any file in these dirs
+backups/
+supabase/backups/
+supabase/.temp/
+
+# --- CI and Tooling ---
+.vercel
+.smart-coding-cache/
+.mcp.json
+tsconfig.tsbuildinfo
+
+# --- Test Artifacts and Reports ---
+test-results.json
+test-results/
+test-results.log
+playwright-report/
+blob-report/
+playwright/.cache/
+.lighthouseci/
+.lighthouse/
+accessibility-reports/
+
+# --- Graphify ---
+graphify-out/
+
+# --- Codex ---
+.codex/
+
+# --- Agent Customizations & Skills ---
+.agent/
+.agents/
+
+# --- Transcript Assets (Local Only - Do Not Commit) ---
+transcript/
+_tagger_*.cjs
+
+# --- Local Working Directories ---
+Blog/
+
+
+
+

@@ -1,0 +1,55 @@
+# IELTS Ai Pro - robots.txt
+# Last updated: 2026-08-04
+
+# This policy applies to search and AI discovery crawlers, including:
+# Googlebot, Bingbot, OAI-SearchBot, GPTBot, ChatGPT-User,
+# ClaudeBot, Claude-SearchBot, Claude-User, PerplexityBot, and Perplexity-User.
+# Public marketing pages, tools, articles, discovery files, and article feeds are crawlable.
+
+User-agent: *
+Allow: /
+Allow: /ielts-writing-checker
+Allow: /ielts-speaking-practice-ai
+Allow: /cambridge-ielts-practice-tests
+
+# Private/authenticated routes
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /onboarding/
+Disallow: /settings
+Disallow: /analytics
+Disallow: /learning-path
+Disallow: /leaderboard
+
+# Auth flows
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /update-password
+
+# Protected app pages
+# These are ProtectedRoute screens: they answer 200 with the SPA shell, so a crawler
+# that reaches them indexes a login wall carrying the homepage's metadata.
+Disallow: /pricing
+Disallow: /resources
+Disallow: /cambridge-tests
+Disallow: /reading
+Disallow: /listening
+Disallow: /writing
+Disallow: /speaking
+Disallow: /vocabulary
+Disallow: /grammar
+Disallow: /study-groups
+Disallow: /upgrade
+Disallow: /subscription/
+Disallow: /learning-path-preview
+
+# API and function routes
+Disallow: /api/
+Disallow: /functions/
+
+Sitemap: https://www.ieltsai.pro/sitemap.xml
+
+# AI answer engines can cite the public marketing and calculator pages.
+# LLM-friendly site summary: https://www.ieltsai.pro/llms.txt
+# Published article feed: https://www.ieltsai.pro/blog/feed.xml

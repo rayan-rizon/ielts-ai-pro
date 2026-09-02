@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // Apply the saved theme before styles and React render so returning users
+      // do not see a light-frame flash while the ThemeProvider hydrates.
+      (function () {
+        try {
+          var savedTheme = window.localStorage.getItem('vite-ui-theme');
+          var theme =
+            savedTheme === 'dark' || savedTheme === 'light'
+              ? savedTheme
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.classList.add(theme);
+        } catch (e) {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        var DEFAULT_GTM_ID = 'GTM-TR6XQ2R3';
+        var DEFAULT_PIXEL_ID = '991226963227159';
+        var config = window.__TRACKING_CONFIG__ || {};
+        var gtmId = config.gtmId || DEFAULT_GTM_ID;
+        var pixelId = config.pixelId || DEFAULT_PIXEL_ID;
+
+        window.__TRACKING_IDS__ = {
+          gtmId: gtmId,
+          pixelId: pixelId,
+        };
+
+        // Measurement runs on the production site only.
+        //
+        // Local dev and preview deployments also loaded GTM, and GTM owns the
+        // Meta Pixel tag — so every `npm run dev` session sent PageViews to the
+        // live dataset. That registered `localhost` as a sending domain and
+        // inflated PageView to ~37.7K against ~78 real registrations, which is
+        // what Meta flags as low data quality and then discounts the ad spend
+        // the dataset informs. Gate the loader rather than the individual tags:
+        // one check here covers the Pixel, GA, and anything added to GTM later.
+        var MEASURED_HOSTS = ['ieltsai.pro', 'www.ieltsai.pro'];
+        var trackingEnabled = false;
+        try {
+          trackingEnabled = MEASURED_HOSTS.indexOf(window.location.hostname) !== -1;
+        } catch (e) {
+          trackingEnabled = false;
+        }
+        window.__TRACKING_ENABLED__ = trackingEnabled;
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag =
+          window.gtag ||
+          function () {
+            window.dataLayer.push(arguments);
+          };
+
+        // Product analytics and advertising measurement are enabled by default.
+        // Keep the network work off the critical startup path; GTM owns the
+        // Meta Pixel tag, so it is loaded only once.
+        window.gtag('consent', 'default', {
+          analytics_storage: 'granted',
+          ad_storage: 'granted',
+          ad_user_data: 'granted',
+          ad_personalization: 'granted',
+        });
+
+        var loadGtm = function () {
+          if (window.__gtmLoaded || !gtmId || !trackingEnabled) return;
+          window.dataLayer.push({
+            'gtm.start': new Date().getTime(),
+            event: 'gtm.js',
+          });
+
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
+          (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
+          window.__gtmLoaded = true;
+        };
+
+        // Meta click attribution must be captured on the very first paint.
+        // The router rewrites the URL (dropping ?fbclid=...) long before the
+        // deferred Pixel tag runs, so by the time fbevents.js can read
+        // location.search the click id is already gone and _fbc is never set.
+        // Without _fbc, Meta cannot tie any later conversion back to the ad.
+        // This costs no network work, so it does not affect LCP.
+        var captureClickId = function () {
+          try {
+            var match = window.location.search.match(/[?&]fbclid=([^&#]+)/);
+            if (!match) return;
+
+            var fbclid = decodeURIComponent(match[1]);
+            var existing = document.cookie.match(/(?:^|;\s*)_fbc=([^;]+)/);
+            var existingFbc = existing && decodeURIComponent(existing[1]);
+            if (existingFbc && /^fb\.\d+\.\d+\..+$/.test(existingFbc)) {
+              window.localStorage.setItem('_fbc_backup', existingFbc);
+              return;
+            }
+
+            // Meta's required format: fb.<subdomainIndex>.<creationTime>.<fbclid>
+            var fbc = 'fb.1.' + Date.now() + '.' + fbclid;
+            var host = window.location.hostname.replace(/^www\./, '');
+            document.cookie =
+              '_fbc=' + fbc + ';path=/;max-age=7776000;domain=.' + host + ';SameSite=Lax;Secure';
+            // Cookie writes can be rejected (Safari ITP, odd hosts). Keep a
+            // same-origin copy so the Pixel and the server-side CAPI call can
+            // still recover the click id.
+            window.localStorage.setItem('_fbc_backup', fbc);
+          } catch (e) {
+            /* attribution is best-effort and must never break the page */
+          }
+        };
+
+        captureClickId();
+
+        // First-touch marketing attribution (which channel a signup came
+        // from: paid search, paid social, organic, referral, direct).
+        // Captured here for the same reason as _fbc above: the SPA router
+        // strips ?utm_*=... from the URL before any React code can read it,
+        // so by the time a signup happens the source is already gone unless
+        // it is persisted on first paint. Written once per browser — later
+        // visits (e.g. a returning user clicking a direct bookmark) must not
+        // overwrite the touch that actually brought them in.
+        var captureAttribution = function () {
+          try {
+            if (window.localStorage.getItem('attribution_first_touch')) return;
+
+            var params = new URLSearchParams(window.location.search);
+            var fbclidMatch = window.location.search.match(/[?&]fbclid=([^&#]+)/);
+            var referrer = document.referrer || null;
+            // Moving from another IELTS AI Pro page to /signup is not a
+            // referral. Do not persist it as first-touch attribution because
+            // it would block a later genuine external source from being saved.
+            if (referrer) {
+              try {
+                if (new URL(referrer).origin === window.location.origin) referrer = null;
+              } catch (e) {
+                referrer = null;
+              }
+            }
+            var attribution = {
+              utm_source: params.get('utm_source') || null,
+              utm_medium: params.get('utm_medium') || null,
+              utm_campaign: params.get('utm_campaign') || null,
+              utm_content: params.get('utm_content') || null,
+              utm_term: params.get('utm_term') || null,
+              gclid: params.get('gclid') || null,
+              fbclid: fbclidMatch ? decodeURIComponent(fbclidMatch[1]) : null,
+              referrer: referrer,
+              landing_page: window.location.pathname + window.location.search,
+              captured_at: new Date().toISOString(),
+            };
+
+            var hasSignal = Object.keys(attribution).some(function (key) {
+              return key !== 'landing_page' && key !== 'captured_at' && attribution[key];
+            });
+            if (!hasSignal) return;
+
+            window.localStorage.setItem('attribution_first_touch', JSON.stringify(attribution));
+          } catch (e) {
+            /* attribution is best-effort and must never break the page */
+          }
+        };
+
+        captureAttribution();
+
+        // Offer code carried by an ad or email link (?promo=FIRST30).
+        //
+        // Captured on first paint for the same reason as _fbc and the
+        // attribution snapshot above: the SPA router rewrites the URL before
+        // any React code runs. It also has to survive a *logged-out* landing —
+        // an ad click arrives anonymous, signs up, and only reaches /pricing
+        // several screens later. Previously the code was read on /pricing
+        // only, stripped from the URL immediately, and then discarded whenever
+        // no user was signed in yet, so every ad visitor lost the discount the
+        // ad had just promised them and saw full price at checkout.
+        var capturePromoCode = function () {
+          try {
+            var match = window.location.search.match(/[?&]promo=([^&#]+)/);
+            if (!match) return;
+
+            var code = decodeURIComponent(match[1]).trim().toUpperCase();
+            // Same shape the redemption RPC accepts; anything else is noise.
+            if (!/^[A-Z0-9-]{6,64}$/.test(code)) return;
+
+            window.localStorage.setItem('pending_promo_code', code);
+          } catch (e) {
+            /* the offer is best-effort and must never break the page */
+          }
+        };
+
+        capturePromoCode();
+
+        var scheduleGtm = function () {
+          if (window.__gtmLoaded || window.__gtmScheduled) return;
+          window.__gtmScheduled = true;
+
+          var interactionEvents = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+
+          var loadNow = function () {
+            interactionEvents.forEach(function (name) {
+              window.removeEventListener(name, loadNow);
+            });
+            loadGtm();
+          };
+
+          var startWhenIdle = function () {
+            // Give the app time to paint and hydrate before third-party code runs.
+            // The fallback also works in browsers without requestIdleCallback.
+            var loadWhenIdle = function () {
+              if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(loadNow, { timeout: 4000 });
+                return;
+              }
+
+              loadNow();
+            };
+
+            window.setTimeout(loadWhenIdle, 3000);
+          };
+
+          // Anyone who interacts is a real visitor worth measuring, and by then
+          // the page has already painted. Loading on first interaction keeps the
+          // idle deferral's LCP benefit while cutting the window in which a
+          // converting visitor is invisible to the Pixel.
+          interactionEvents.forEach(function (name) {
+            window.addEventListener(name, loadNow, { once: true, passive: true });
+          });
+
+          if (document.readyState === 'complete') {
+            startWhenIdle();
+          } else {
+            window.addEventListener('load', startWhenIdle, { once: true });
+          }
+        };
+
+        // A paid click is the one arrival we cannot afford to measure late.
+        //
+        // GTM owns the Meta Pixel, and the deferral above holds it until the
+        // load event plus an idle callback — measured at ~3.5s after `load`
+        // on a fast desktop with a warm cache, and considerably worse inside
+        // the Facebook in-app browser on mobile, which is where nearly all ad
+        // traffic lands. A visitor who leaves before the Pixel initialises
+        // never fires PageView, so Meta bills the link click but records no
+        // landing page view and the optimiser gets no signal to learn from.
+        // The Gulf campaign showed exactly that shape: 19 link clicks against
+        // 8 landing page views.
+        //
+        // Organic and direct visits keep the idle deferral and its LCP
+        // benefit. Only traffic that arrived from an ad loads GTM eagerly —
+        // the script is async either way, so nothing blocks rendering, and for
+        // this traffic being measured is what the click was paid for.
+        var isPaidArrival = function () {
+          try {
+            var search = window.location.search;
+            if (/[?&](fbclid|gclid|ttclid|msclkid)=/.test(search)) return true;
+            return /[?&]utm_(source|medium|campaign)=/.test(search);
+          } catch (e) {
+            return false;
+          }
+        };
+
+        // GTM owns the Meta Pixel tag. Loading Pixel here as well downloaded and
+        // executed fbevents.js twice on every landing-page visit.
+        if (isPaidArrival()) {
+          loadGtm();
+        } else {
+          scheduleGtm();
+        }
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://zvrmvycajimjxghrnpgy.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://o4511451727331328.ingest.us.sentry.io" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png" sizes="192x192" type="image/png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/src/index.css" data-app-styles />
+    <link
+      rel="preload"
+      href="/fonts/plus-jakarta-sans-latin-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      href="/fonts/kalam-latin-700-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      href="/ielts-hero-student-640.webp"
+      as="image"
+      type="image/webp"
+      media="(max-width: 767px)"
+      fetchpriority="high"
+    />
+    <meta name="author" content="IELTS Ai Pro" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="facebook-domain-verification" content="ai2z71gngx36yw9iakgr8eb1stpon1" />
+    <title>Free AI IELTS Practice & Mock Tests | IELTS Ai Pro</title>
+    <meta
+      name="description"
+      content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+    />
+    <link rel="canonical" href="https://www.ieltsai.pro/" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="IELTS Ai Pro Preparation Guides"
+      href="https://www.ieltsai.pro/blog/feed.xml"
+    />
+    <link
+      rel="alternate"
+      type="text/plain"
+      title="IELTS Ai Pro for language models"
+      href="https://www.ieltsai.pro/llms.txt"
+    />
+    <meta property="og:title" content="Free AI IELTS Practice & Mock Tests | IELTS Ai Pro" />
+    <meta
+      property="og:description"
+      content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Track progress and start free today."
+    />
+    <meta property="og:url" content="https://www.ieltsai.pro/" />
+    <meta property="og:site_name" content="IELTS Ai Pro" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://www.ieltsai.pro/og.webp" />
+    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:width" content="1731" />
+    <meta property="og:image:height" content="909" />
+    <meta property="og:image:alt" content="IELTS Ai Pro - AI-powered IELTS practice platform" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@IELTSAiPro" />
+    <meta name="twitter:creator" content="@IELTSAiPro" />
+    <meta name="twitter:title" content="Free AI IELTS Practice & Mock Tests | IELTS Ai Pro" />
+    <meta
+      name="twitter:description"
+      content="Get instant AI band scores for IELTS Writing & Speaking, plus free Cambridge-style Reading and Listening mock tests. Start free today."
+    />
+    <meta name="twitter:image" content="https://www.ieltsai.pro/og.webp" />
+    <!--
+      The graph below deliberately describes this page as a WebPage rather than a
+      SoftwareApplication. Google's Software App markup requires an aggregateRating,
+      and the only way to satisfy that would be to publish review data the product has
+      not collected - so every page still emitting that node was reported as a
+      structured-data error. Reinstate it only alongside genuine reviews.
+    -->
+    <script data-static-seo type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.ieltsai.pro/#organization",
+            "name": "IELTS Ai Pro",
+            "url": "https://www.ieltsai.pro/",
+            "description": "Independent web-based IELTS preparation platform with practice tests, AI-assisted feedback, band guidance, and progress tracking.",
+            "email": "mail@ieltsai.pro",
+            "sameAs": [
+              "https://www.facebook.com/ieltsaipro",
+              "https://www.instagram.com/ieltsaipro/",
+              "https://x.com/IELTSAiPro"
+            ],
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.ieltsai.pro/logo.svg",
+              "width": 300,
+              "height": 72
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "mail@ieltsai.pro",
+              "contactType": "customer support",
+              "availableLanguage": "English"
+            },
+            "knowsAbout": [
+              "IELTS Academic preparation",
+              "IELTS Writing",
+              "IELTS Speaking",
+              "IELTS Reading",
+              "IELTS Listening",
+              "IELTS band scores"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.ieltsai.pro/#website",
+            "url": "https://www.ieltsai.pro/",
+            "name": "IELTS Ai Pro",
+            "publisher": {
+              "@id": "https://www.ieltsai.pro/#organization"
+            },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://www.ieltsai.pro/#webpage",
+            "url": "https://www.ieltsai.pro/",
+            "name": "Free AI IELTS Practice & Mock Tests",
+            "description": "IELTS practice platform with Reading and Listening tests, AI-assisted Writing and Speaking feedback, analytics, vocabulary review, and study planning.",
+            "inLanguage": "en",
+            "isPartOf": {
+              "@id": "https://www.ieltsai.pro/#website"
+            },
+            "about": {
+              "@id": "https://www.ieltsai.pro/#organization"
+            },
+            "primaryImageOfPage": {
+              "@type": "ImageObject",
+              "url": "https://www.ieltsai.pro/og.webp",
+              "width": 1731,
+              "height": 909
+            }
+          }
+        ]
+      }
+    </script>
+
+    <!-- Meta Pixel is managed by GTM after consent. -->
+    <style>
+      #seo-content {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+        pointer-events: none !important;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -999px;
+        top: 12px;
+        z-index: 10000;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #111827;
+        border: 1px solid #e5e7eb;
+        font:
+          600 14px/1.2 system-ui,
+          sans-serif;
+      }
+
+      .skip-link:focus {
+        left: 12px;
+      }
+
+      /*
+       * The semantic fallback is useful to crawlers before React starts, but its
+       * Tailwind `sr-only` class is not available until the app stylesheet loads.
+       * Keep the equivalent critical styles inline so it never flashes as a page
+       * of unstyled content on a cold load.
+       */
+      #static-prerender-content {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#root">Skip to content</a>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+      <iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3"
+        title="Google Tag Manager"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <main id="root" class="min-h-screen">
+      <!-- Pre-rendered static semantic content for SEO crawlers and LLM readability -->
+      <article id="static-prerender-content" class="sr-only">
+        <h1>IELTS Practice. Smarter with AI.</h1>
+        <p>
+          Practice Reading, Listening, Writing, and Speaking in one workspace. Review estimated band
+          feedback, track recurring weaknesses, and follow a study plan based on the work you
+          actually complete.
+        </p>
+
+        <section>
+          <h2>IELTS Tools Built to Help You Score</h2>
+          <p>
+            From AI writing feedback to speaking practice and adaptive study plans — everything you
+            need to hit your target band score.
+          </p>
+          <ul>
+            <li>
+              <strong>AI-Assisted Writing Feedback:</strong> Instant evaluation across Task
+              Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range with
+              dynamic inline corrections.
+            </li>
+            <li>
+              <strong>AI Speaking Practice:</strong> Record answers for common IELTS Speaking tasks
+              and review feedback across fluency, vocabulary, grammar, and pronunciation criteria.
+            </li>
+            <li>
+              <strong>Reading and Listening Tests:</strong> Practise with timed activities, common
+              question types, answer review, and saved attempt history.
+            </li>
+            <li>
+              <strong>Adaptive Learning Path:</strong> Eligible plans use completed practice, target
+              band, and study schedule to recommend focused next activities.
+            </li>
+            <li>
+              <strong>Progress Analytics:</strong> Review saved practice history and skill-level
+              trends to choose where to focus next.
+            </li>
+            <li>
+              <strong>Vocabulary &amp; Study Resources:</strong> Topic-based vocabulary lists,
+              flashcards, strategy guides, PDF downloads, and blog articles.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>How IELTS Ai Pro Works</h2>
+          <ol>
+            <li>
+              <strong>01. Choose a Task:</strong> Select Reading, Listening, Writing, or Speaking
+              practice.
+            </li>
+            <li>
+              <strong>02. Review Feedback:</strong> Get instant estimated AI band scores and
+              detailed breakdown reports.
+            </li>
+            <li>
+              <strong>03. Follow a Plan:</strong> Use personalized recommended actions to target
+              weak points.
+            </li>
+            <li>
+              <strong>04. Track Progress:</strong> Monitor score growth and history on your
+              dashboard.
+            </li>
+          </ol>
+        </section>
+
+        <section>
+          <h2>Why Choose IELTS Ai Pro?</h2>
+          <p>
+            The Free plan includes Reading and Listening practice, one Writing evaluation per month,
+            vocabulary tools, and basic progress analytics. Paid plans increase monthly Writing and
+            Speaking evaluation limits and add features such as advanced analytics or an adaptive
+            learning path.
+          </p>
+          <p>
+            IELTS Ai Pro is an independent preparation platform designed to help learners build
+            confidence, understand scoring criteria, and practice effectively for academic and
+            general training tests.
+          </p>
+        </section>
+
+        <section>
+          <h2>IELTS Ai Pro FAQ</h2>
+          <dl>
+            <dt>What can I practice for free?</dt>
+            <dd>
+              The Free plan includes IELTS Reading and Listening practice, Cambridge test sets
+              available to free learners, one AI Writing evaluation per month, vocabulary tools, and
+              basic progress analytics. Current limits are always shown on the pricing page.
+            </dd>
+            <dt>How does the IELTS Writing feedback work?</dt>
+            <dd>
+              After a practice task, IELTS Ai Pro returns an estimated practice band with feedback
+              across Task Achievement or Task Response, Coherence and Cohesion, Lexical Resource,
+              and Grammatical Range and Accuracy. The report also highlights specific corrections
+              and next steps.
+            </dd>
+            <dt>What does the Speaking report assess?</dt>
+            <dd>
+              Speaking reports organize practice feedback around Fluency and Coherence, Lexical
+              Resource, Grammatical Range and Accuracy, and Pronunciation. When acoustic
+              pronunciation evidence is unavailable, the product identifies transcript-based
+              estimates instead of presenting them as measured pronunciation scores.
+            </dd>
+            <dt>Are AI band scores official IELTS results?</dt>
+            <dd>
+              No. AI band scores are practice estimates designed to help you find patterns and
+              choose what to improve next. Official IELTS results are issued only by authorized
+              IELTS test providers and trained examiners.
+            </dd>
+            <dt>How is the AI learning path personalized?</dt>
+            <dd>
+              For eligible plans, the learning path uses completed practice, skill performance,
+              target band, and study schedule to recommend focused activities. You can review
+              progress in the analytics dashboard and continue directly into the suggested module.
+            </dd>
+            <dt>Does IELTS Ai Pro cover all four IELTS skills?</dt>
+            <dd>
+              Yes. The app includes Reading, Listening, Writing, and Speaking practice, plus
+              Cambridge test sets, vocabulary review, study resources, progress analytics, and an
+              adaptive learning path for eligible plans.
+            </dd>
+          </dl>
+        </section>
+
+        <!--
+          Mirrors the canonical routes in api/sitemap.js. Retired keyword URLs are
+          deliberately absent: they 301 to authenticated pages that robots.txt
+          disallows, so linking them here only spends crawl budget on dead ends.
+        -->
+        <nav aria-label="Static Site Directory">
+          <a href="/">Home</a>
+          <a href="/ielts-writing-checker"
+            >Free IELTS Writing Checker - Task 1 &amp; Task 2 Band Score</a
+          >
+          <a href="/ielts-speaking-practice-ai"
+            >AI IELTS Speaking Practice - Parts 1, 2 &amp; 3 Feedback</a
+          >
+          <a href="/cambridge-ielts-practice-tests"
+            >Cambridge-style IELTS Reading &amp; Listening Practice Tests</a
+          >
+          <a href="/ielts-band-score-calculator"
+            >IELTS Band Score Calculator - Overall Band &amp; Raw Score Conversion</a
+          >
+          <a href="/blog">IELTS Preparation Blog - Strategies, Study Plans &amp; Band Guides</a>
+          <a href="/about">About Us - Our Mission &amp; Story</a>
+          <a href="/contact">Contact Us - Support &amp; Inquiries</a>
+          <a href="/privacy">Privacy Policy - Data Security &amp; Rights</a>
+          <a href="/terms">Terms of Service - Licensing &amp; Disclaimers</a>
+        </nav>
+
+        <footer>
+          <p>
+            &copy; 2026 IELTS Ai Pro. All rights reserved. AI feedback and practice bands are
+            estimates, not official IELTS results.
+          </p>
+        </footer>
+      </article>
+    </main>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

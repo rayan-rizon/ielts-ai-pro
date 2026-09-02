@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="IELTS Ai Pro">
+  <!-- Exact light-surface monogram from logo.svg; no added container or background. -->
+  <defs>
+    <linearGradient id="slashGradient" x1="198" y1="154" x2="316" y2="74" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6C4CFF"/><stop offset="1" stop-color="#A977FF"/></linearGradient>
+    <linearGradient id="legGradient" x1="235" y1="155" x2="305" y2="253" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#A977FF"/><stop offset=".55" stop-color="#7D55FF"/><stop offset="1" stop-color="#6C4CFF"/></linearGradient>
+  </defs>
+  <g transform="translate(1.5 1.5) scale(.2346) translate(-55 -21)">
+    <path fill="#0B0E2A" d="M211 21 L160 22 L55 252 L125 252 L207 173 L195 146 L151 173 L145 174 L185 82 L205 127 L249 103 Z"/>
+    <path fill="url(#legGradient)" d="M265 139 L223 179 L257 253 L316 253 L311 238 Z"/>
+    <path fill="url(#slashGradient)" d="M316 74 L198 144 L198 149 L208 172 Z"/>
+  </g>
+</svg>
