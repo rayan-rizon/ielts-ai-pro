@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 const SITE_NAME = 'IELTS Ai Pro';
 
 const STALE_META_SELECTORS = [
+  'title',
   'meta[name="description"]',
   'meta[name="robots"]',
   'link[rel="canonical"]',
