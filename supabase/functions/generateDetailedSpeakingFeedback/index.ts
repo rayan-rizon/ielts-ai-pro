@@ -19,6 +19,7 @@ import {
   FEEDBACK_EVALUATOR_VERSION,
   normalizeDetailedSpeakingEvaluation,
 } from '../_shared/evaluationUtils.ts';
+import { estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
 
 declare const Deno: any;
 
@@ -201,6 +202,11 @@ You are a senior IELTS examiner and speaking coach. Analyse the following speaki
    - Report each error with the exact incorrect phrase and its correct form.
    - Do NOT state 'grammatical structures are used accurately' if any error exists — this is a hallucination and misleads the student.
    - The transcript is ASR-generated. Do not treat punctuation, capitalization, spelling, or a likely transcription error as evidence of the candidate's grammar.
+   - A speech recogniser cannot hear apostrophes and confuses words that sound alike. NEVER report a correction whose only change is one of these — the candidate said it correctly and the transcriber wrote it down wrong:
+     * a restored apostrophe: 'its' -> 'it's', 'im' -> 'I'm', 'dont' -> 'don't', 'theres' -> 'there's'
+     * a same-sounding word: 'by' -> 'buy', 'then' -> 'than', 'to' -> 'too', 'their' -> 'there', 'of' -> 'off', 'no' -> 'know'
+     Read those aloud: if the incorrect and correct versions sound identical, it is not the candidate's error and must not appear in grammaticalErrors.
+   - DO report errors that change the sound of the words: verb agreement ('I plays' -> 'I play', 'my mother teach' -> 'my mother taught'), 'there is many' -> 'there are many', 'I were' -> 'I was'.
    - Return an empty grammaticalErrors array when there is no clear error. Never invent a correction to fill the array.
 
 2. Topic adherence check:
@@ -333,6 +339,8 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
     const evalData = await evalResponse.json();
     const evalText = evalData.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const tokensUsed = evalData.usageMetadata?.totalTokenCount || 0;
+    const promptTokens = evalData.usageMetadata?.promptTokenCount || 0;
+    const outputTokens = evalData.usageMetadata?.candidatesTokenCount || 0;
     console.log(`[Detailed Eval] Gemini length: ${evalText.length} chars, tokens: ${tokensUsed}`);
 
     let detailedAnalysis;
@@ -371,6 +379,17 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
       speakingSessionId,
       partsAnalyzed: [1, 2, 3].filter((p) => !!allPartsConversation[p]).length,
       model: 'gemini-2.5-flash',
+      // This route is single-provider, so `provider` has to be stated
+      // explicitly or every deep dive lands in the unattributed bucket.
+      provider: 'gemini',
+      fallbackUsed: false,
+      promptTokens,
+      outputTokens,
+      estimatedProviderCostUsd: estimateTokenCostUsd('gemini-2.5-flash', {
+        promptTokens,
+        cachedPromptTokens: 0,
+        outputTokens,
+      }),
       response: responsePayload,
     });
     quotaReservationId = undefined;

@@ -22,6 +22,7 @@ import {
   normalizeWritingEvaluation,
   parseStructuredJson,
 } from '../_shared/evaluationUtils.ts';
+import { estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
 
 // @ts-ignore
 declare const Deno: any;
@@ -91,7 +92,12 @@ async function requestLunaWritingFeedback(
   userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
   schemaText: string,
   requiredCriterionKey: string
-): Promise<{ parsedFeedback: Record<string, any>; tokensUsed: number } | null> {
+): Promise<{
+  parsedFeedback: Record<string, any>;
+  tokensUsed: number;
+  promptTokens: number;
+  outputTokens: number;
+} | null> {
   if (!OPENROUTER_API_KEY) return null;
 
   const controller = new AbortController();
@@ -152,7 +158,12 @@ async function requestLunaWritingFeedback(
       return null;
     }
 
-    return { parsedFeedback, tokensUsed: Number(data?.usage?.total_tokens) || 0 };
+    return {
+      parsedFeedback,
+      tokensUsed: Number(data?.usage?.total_tokens) || 0,
+      promptTokens: Number(data?.usage?.prompt_tokens) || 0,
+      outputTokens: Number(data?.usage?.completion_tokens) || 0,
+    };
   } catch (e) {
     console.warn('Luna writing request threw; falling back to Gemini:', e);
     return null;
@@ -714,6 +725,10 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
 
     let modelUsed = LUNA_MODEL;
     let tokensUsed = 0;
+    // Split token counts, not just the total: platform health prices input and
+    // output separately, and a total alone cannot be costed.
+    let promptTokens = 0;
+    let outputTokens = 0;
     let parsedFeedback: Record<string, any> | null = null;
     const providerStartedAt = Date.now();
 
@@ -726,6 +741,8 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     if (lunaResult) {
       parsedFeedback = lunaResult.parsedFeedback;
       tokensUsed = lunaResult.tokensUsed;
+      promptTokens = lunaResult.promptTokens;
+      outputTokens = lunaResult.outputTokens;
       console.log(`Using model: ${modelUsed} for task type: ${taskType}`);
     }
 
@@ -833,6 +850,8 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
 
       let geminiData = await geminiResponse.json();
       tokensUsed = geminiData.usageMetadata?.totalTokenCount || 0;
+      promptTokens = geminiData.usageMetadata?.promptTokenCount || 0;
+      outputTokens = geminiData.usageMetadata?.candidatesTokenCount || 0;
       let aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!aiContent) {
@@ -857,6 +876,8 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
         }
         geminiData = await geminiResponse.json();
         tokensUsed += geminiData.usageMetadata?.totalTokenCount || 0;
+        promptTokens += geminiData.usageMetadata?.promptTokenCount || 0;
+        outputTokens += geminiData.usageMetadata?.candidatesTokenCount || 0;
         aiContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
         parsedFeedback = parseStructuredJson(aiContent);
       }
@@ -884,6 +905,15 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
       fallbackUsed: modelUsed !== LUNA_MODEL,
       fallbackReason: modelUsed !== LUNA_MODEL ? 'luna_no_parsable_feedback' : null,
       providerLatencyMs,
+      promptTokens,
+      outputTokens,
+      // Without this the admin cost panel sums nothing and renders $0.000000 as
+      // if it were a measured figure.
+      estimatedProviderCostUsd: estimateTokenCostUsd(modelUsed, {
+        promptTokens,
+        cachedPromptTokens: 0,
+        outputTokens,
+      }),
     });
     quotaReservationId = undefined;
 

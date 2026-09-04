@@ -148,6 +148,72 @@ describe('PlatformHealthDashboard operations console', () => {
     expect(screen.getByText('Two text AI requests recovered automatically.')).toBeInTheDocument();
   });
 
+  it('says an unrecorded provider cost is unrecorded instead of printing $0.000000', async () => {
+    // The live card summed seven calls that carried no cost metadata and
+    // rendered "$0.000000" as though it were measured. A null cost must read
+    // as absent, and a real cost must still render.
+    mocks.get.mockResolvedValueOnce({
+      ...health,
+      services: [
+        {
+          key: 'ai_text_providers',
+          label: 'Text AI Providers',
+          category: 'ai',
+          provider: 'OpenRouter (Luna, DeepSeek) -> Direct DeepSeek -> Gemini',
+          status: 'operational',
+          source: 'ai_api_usage provider and recovery outcomes',
+          impact: 'Text AI requests completed without a recorded provider failure.',
+          metrics: {
+            attempts: 7,
+            errors: 0,
+            errorRate: 0,
+            servedCalls: 4,
+            geminiCalls: 0,
+            openrouterLunaCalls: 4,
+            estimatedCostUsd: null,
+            costedCalls: 0,
+          },
+        },
+      ],
+    });
+    mocks.incidents.mockResolvedValueOnce([]);
+
+    render(<PlatformHealthDashboard />);
+
+    expect(await screen.findByText('Service directory')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { expanded: false, name: /Text AI Providers/ }));
+    expect(screen.getByText('Not recorded')).toBeInTheDocument();
+    expect(screen.queryByText('$0.000000')).not.toBeInTheDocument();
+    // `costedCalls` qualifies the cost tile; it is not a tile of its own.
+    expect(screen.queryByText('costedCalls')).not.toBeInTheDocument();
+  });
+
+  it('renders a recorded provider cost normally', async () => {
+    mocks.get.mockResolvedValueOnce({
+      ...health,
+      services: [
+        {
+          key: 'ai_text_providers',
+          label: 'Text AI Providers',
+          category: 'ai',
+          provider: 'OpenRouter (Luna, DeepSeek) -> Direct DeepSeek -> Gemini',
+          status: 'operational',
+          source: 'ai_api_usage provider and recovery outcomes',
+          impact: 'Text AI requests completed without a recorded provider failure.',
+          metrics: { attempts: 4, errors: 0, estimatedCostUsd: 0.015378, costedCalls: 4 },
+        },
+      ],
+    });
+    mocks.incidents.mockResolvedValueOnce([]);
+
+    render(<PlatformHealthDashboard />);
+
+    expect(await screen.findByText('Service directory')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { expanded: false, name: /Text AI Providers/ }));
+    expect(screen.getByText('$0.015378')).toBeInTheDocument();
+    expect(screen.queryByText('Not recorded')).not.toBeInTheDocument();
+  });
+
   it('filters and searches the full provider directory without hiding incident context', async () => {
     render(<PlatformHealthDashboard />);
 

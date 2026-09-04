@@ -8,8 +8,11 @@
 // graders (see scripts/lib/ai-task-suite.mjs), latency, tokens and billed cost.
 // The API key is read from the environment only; never pass it as an argument.
 
-import { requestOpenRouterJson } from '../supabase/functions/_shared/textAiProvider.ts';
-import { AI_ROUTES } from '../supabase/functions/_shared/aiModelRegistry.ts';
+import {
+  requestGeminiJson,
+  requestOpenRouterJson,
+} from '../supabase/functions/_shared/textAiProvider.ts';
+import { AI_ROUTES, MODELS } from '../supabase/functions/_shared/aiModelRegistry.ts';
 import { selectCases } from './lib/ai-task-suite.mjs';
 
 const args = process.argv.slice(2);
@@ -34,20 +37,29 @@ if (!candidateModel) {
   console.error('  --any-provider         do not require upstreams to honour every parameter');
   console.error('  --budget-multiplier N  widen max_tokens (for models that force reasoning)');
   console.error('  --reasoning-effort L   none|minimal|low|medium|high (try "low" if "none" is rejected)');
+  console.error('  --provider A,B         pin OpenRouter upstreams by name, no fallback');
   process.exit(1);
 }
 
-const apiKey = process.env.OPENROUTER_API_KEY;
-if (!apiKey) {
-  console.error('Set OPENROUTER_API_KEY in the environment. This script never accepts keys as arguments.');
-  process.exit(1);
-}
+// Google-direct models (the Speaking deep dive and Writing fallbacks) are not
+// on OpenRouter, so they are called on their own API. Keys come from the
+// environment only, and only the keys the selected models actually need.
+const isGoogleDirect = (model) => MODELS[model]?.access === 'google-direct';
+const apiKeys = {
+  openrouter: process.env.OPENROUTER_API_KEY,
+  gemini: process.env.GEMINI_API_KEY,
+};
+const keyFor = (model) => (isGoogleDirect(model) ? apiKeys.gemini : apiKeys.openrouter);
+const keyNameFor = (model) => (isGoogleDirect(model) ? 'GEMINI_API_KEY' : 'OPENROUTER_API_KEY');
 
 const requestOptions = {
   jsonMode: args.includes('--no-json-mode') ? false : undefined,
   disableReasoning: args.includes('--allow-reasoning') ? false : undefined,
   requireParameters: !args.includes('--any-provider'),
   reasoningEffort: flag('--reasoning-effort') || undefined,
+  // A popular open model can have 30 OpenRouter endpoints whose output quality
+  // differs wildly. Pin the one you measured before quoting a number.
+  providerOrder: flag('--provider') ? flag('--provider').split(',').map((name) => name.trim()) : undefined,
 };
 
 let cases;
@@ -63,6 +75,14 @@ const models = [
   ...(baselineModel && baselineModel !== 'none' ? [{ id: baselineModel, role: 'baseline' }] : []),
 ];
 
+const missingKeys = [...new Set(models.filter((model) => !keyFor(model.id)).map((model) => keyNameFor(model.id)))];
+if (missingKeys.length) {
+  console.error(
+    `Set ${missingKeys.join(' and ')} in the environment. This script never accepts keys as arguments.`
+  );
+  process.exit(1);
+}
+
 const median = (values) => {
   if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
@@ -75,18 +95,23 @@ const usd = (value) => (value ? `$${value.toFixed(6)}` : '$0 (unreported)');
 
 async function runOnce(model, testCase, options = {}) {
   const startedAt = performance.now();
+  const shared = {
+    apiKey: keyFor(model),
+    prompt: testCase.prompt,
+    temperature: options.dropTemperature ? undefined : testCase.temperature,
+    maxOutputTokens: Math.round(testCase.maxOutputTokens * budgetMultiplier),
+    timeoutMs,
+    validateJson: testCase.validateJson,
+  };
   try {
-    const result = await requestOpenRouterJson({
-      ...requestOptions,
-      model,
-      apiKey,
-      prompt: testCase.prompt,
-      temperature: options.dropTemperature ? undefined : testCase.temperature,
-      maxOutputTokens: Math.round(testCase.maxOutputTokens * budgetMultiplier),
-      timeoutMs,
-      includeUsageAccounting: true,
-      validateJson: testCase.validateJson,
-    });
+    const result = isGoogleDirect(model)
+      ? await requestGeminiJson({ ...shared, geminiModel: model, responseSchema: testCase.responseSchema })
+      : await requestOpenRouterJson({
+          ...requestOptions,
+          ...shared,
+          model,
+          includeUsageAccounting: true,
+        });
     const latencyMs = Math.round(performance.now() - startedAt);
     let checks = [];
     try {
@@ -191,6 +216,7 @@ console.log(
     (budgetMultiplier > 1 ? ` · output budget ×${budgetMultiplier}` : '') +
     (requestOptions.disableReasoning === false ? ' · reasoning enabled' : '') +
     (requestOptions.reasoningEffort ? ` · reasoning effort ${requestOptions.reasoningEffort}` : '') +
+    (requestOptions.providerOrder ? ` · upstream ${requestOptions.providerOrder.join(' > ')}` : '') +
     '\n'
 );
 const reports = [];

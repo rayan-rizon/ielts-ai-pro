@@ -500,6 +500,13 @@ export type OpenRouterModelRequest = ProviderRequest & {
   reasoningEffort?: 'none' | 'minimal' | 'low' | 'medium' | 'high';
   /** Some models reject response_format: json_object. */
   jsonMode?: boolean;
+  /**
+   * Pin the upstream endpoints, best first. This model family is served by ~30
+   * OpenRouter endpoints of very uneven quality, so benchmarks and any promoted
+   * route need to name the ones they actually measured. Unset keeps the default
+   * latency-sorted routing.
+   */
+  providerOrder?: string[];
 };
 
 /**
@@ -529,7 +536,12 @@ export async function requestOpenRouterJson(
           ...(request.disableReasoning === false
             ? {}
             : { reasoning: { effort: request.reasoningEffort || 'none', exclude: true } }),
-          provider: { sort: 'latency', require_parameters: request.requireParameters ?? true },
+          provider: {
+            ...(request.providerOrder?.length
+              ? { order: request.providerOrder, allow_fallbacks: false }
+              : { sort: 'latency' }),
+            require_parameters: request.requireParameters ?? true,
+          },
           ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
           max_tokens: request.maxOutputTokens,
           ...(request.includeUsageAccounting ? { usage: { include: true } } : {}),

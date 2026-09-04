@@ -159,7 +159,9 @@ const METRIC_LABEL = {
   cachedResponses: 'Served from cache',
   unknownProviderCalls: 'Unattributed',
   upstreamFailures: 'Provider failures',
+  upstreamFailureRate: 'Provider failure rate',
   recoveredFallbacks: 'Recovered',
+  servedCalls: 'Served',
   estimatedCostUsd: 'Est. cost',
 };
 
@@ -183,6 +185,7 @@ const ALARM_KEYS = new Set([
 
 const PERCENT_METRICS = new Set([
   'errorRate',
+  'upstreamFailureRate',
   'completionRate',
   'eventFailureRate',
   'dispatchFailureRate',
@@ -204,7 +207,9 @@ const METRIC_FORMATTERS = {
 
 const fmt = (key, value) => {
   if (value === null || value === undefined) {
-    return key === 'lastRunAgeHours' ? 'No recorded run' : '—';
+    if (key === 'lastRunAgeHours') return 'No recorded run';
+    if (key === 'estimatedCostUsd') return 'Not recorded';
+    return '—';
   }
   if (PERCENT_METRICS.has(key)) return `${value}%`;
   if (HOUR_METRICS.has(key)) return `${value}h`;
@@ -212,6 +217,9 @@ const fmt = (key, value) => {
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
   return typeof value === 'number' ? value.toLocaleString() : String(value);
 };
+
+/** Internal fields that qualify another metric rather than standing alone. */
+const HIDDEN_METRICS = new Set(['costedCalls']);
 
 const HEADLINE_KEY = {
   speech_transcription: 'errorRate',
@@ -237,9 +245,19 @@ const headlineFor = (service) => {
   return { label: METRIC_LABEL[key] || key || '', value: fmt(key, m[key]) };
 };
 
+/**
+ * Metrics that stay on the card when null, because "we did not measure this"
+ * is itself the operator-relevant fact. Dropping the tile would read as though
+ * the metric does not exist; rendering 0 would assert a measurement we do not
+ * have.
+ */
+const NULLABLE_METRICS = new Set(['estimatedCostUsd']);
+
 const metricsFor = (service) =>
   Object.entries(service.metrics || {}).filter(
-    ([, value]) => value !== null && value !== undefined
+    ([key, value]) =>
+      !HIDDEN_METRICS.has(key) &&
+      ((value !== null && value !== undefined) || NULLABLE_METRICS.has(key))
   );
 
 const ownerFor = (service) => SERVICE_OWNER[service.category] || 'Platform operations';

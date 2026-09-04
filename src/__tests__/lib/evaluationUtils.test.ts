@@ -3,6 +3,7 @@ import {
   aggregatePronunciationEvidence,
   buildSpeakingTranscript,
   normalizeBandScore,
+  isTranscriptionArtifact,
   normalizeDetailedSpeakingEvaluation,
   normalizeSpeakingEvaluation,
   normalizeWritingEvaluation,
@@ -364,5 +365,70 @@ describe('evaluationUtils', () => {
     expect(result).toHaveLength(1);
     expect(result[0].grammaticalErrors).toHaveLength(1);
     expect(result[0].grammaticalErrors[0].incorrect).toBe('I live');
+  });
+
+  describe('ASR transcription artifacts', () => {
+    // Whisper cannot hear an apostrophe and confuses same-sounding words. Both
+    // gemini-2.5-flash and gpt-5.6-luna reported every one of these as the
+    // candidate's own grammar error on 5/5 benchmark runs, so the rule is
+    // enforced here instead of only being asked for in the prompt.
+    it.each([
+      ['its faster', "it's faster"],
+      ['im to tired', "I'm too tired"],
+      ['we by coffee', 'we buy coffee'],
+      ['more effort then they expect', 'more effort than they expect'],
+      ['theres a cafe', "there's a cafe"],
+      ['i dont think so', "I don't think so"],
+      ['nine oclock', "nine o'clock"],
+      ['walking over their', 'walking over there'],
+    ])("discards the transcriber's error: %s -> %s", (incorrect, correct) => {
+      expect(isTranscriptionArtifact(incorrect, correct)).toBe(true);
+    });
+
+    it.each([
+      ['My mother teach me', 'My mother taught me'],
+      ['the weather were perfect', 'the weather was perfect'],
+      ['There is many reasons', 'There are many reasons'],
+      ['I plays football', 'I play football'],
+      ['since I were in secondary school', 'since I was in secondary school'],
+      ['he do not like it', 'he does not like it'],
+    ])("keeps the candidate's real error: %s -> %s", (incorrect, correct) => {
+      expect(isTranscriptionArtifact(incorrect, correct)).toBe(false);
+    });
+
+    it('strips artifact corrections but keeps real ones in a normalized report', () => {
+      const candidateAnswer =
+        'I cycle most days so its faster than the bus and my brother teach me the route';
+      const result = normalizeDetailedSpeakingEvaluation(
+        [
+          {
+            part: 1,
+            question: 'How do you get to work?',
+            candidateAnswer,
+            grammaticalErrors: [
+              { incorrect: 'its faster', correct: "it's faster", explanation: 'apostrophe' },
+              {
+                incorrect: 'my brother teach me',
+                correct: 'my brother taught me',
+                explanation: 'agreement',
+              },
+            ],
+            topicDrift: 'null',
+            suggestedAnswer: "Well, I'd cycle most days.",
+            feedback: 'Good.',
+          },
+        ],
+        { '1': candidateAnswer }
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].grammaticalErrors).toEqual([
+        {
+          incorrect: 'my brother teach me',
+          correct: 'my brother taught me',
+          explanation: 'agreement',
+        },
+      ]);
+    });
   });
 });

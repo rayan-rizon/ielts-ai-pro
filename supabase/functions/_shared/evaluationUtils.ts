@@ -908,6 +908,125 @@ function processDetailedSpeakingItem(item: any, candidateSource: Record<string, 
   };
 }
 
+/**
+ * Contractions written without their apostrophe, which is what an ASR
+ * transcript routinely contains. Expanded on both sides of a comparison so
+ * "its faster" and "it's faster" reduce to the same thing.
+ */
+const CONTRACTION_EXPANSIONS: Record<string, string> = {
+  im: 'i am',
+  "i'm": 'i am',
+  its: 'it is',
+  "it's": 'it is',
+  theres: 'there is',
+  "there's": 'there is',
+  thats: 'that is',
+  "that's": 'that is',
+  whats: 'what is',
+  "what's": 'what is',
+  ive: 'i have',
+  "i've": 'i have',
+  id: 'i would',
+  "i'd": 'i would',
+  theyre: 'they are',
+  "they're": 'they are',
+  youre: 'you are',
+  "you're": 'you are',
+  "we're": 'we are',
+  dont: 'do not',
+  "don't": 'do not',
+  doesnt: 'does not',
+  "doesn't": 'does not',
+  didnt: 'did not',
+  "didn't": 'did not',
+  isnt: 'is not',
+  "isn't": 'is not',
+  arent: 'are not',
+  "aren't": 'are not',
+  wasnt: 'was not',
+  "wasn't": 'was not',
+  havent: 'have not',
+  "haven't": 'have not',
+  hasnt: 'has not',
+  "hasn't": 'has not',
+  cant: 'can not',
+  "can't": 'can not',
+  couldnt: 'could not',
+  "couldn't": 'could not',
+  wouldnt: 'would not',
+  "wouldn't": 'would not',
+  shouldnt: 'should not',
+  "shouldn't": 'should not',
+};
+
+/**
+ * Words a speech recogniser confuses acoustically. A "correction" that only
+ * swaps one of these is the transcriber's mistake, not the candidate's, so the
+ * route must never show it as the learner's grammar error. "were" is
+ * deliberately absent: was/were is a real agreement error we must keep.
+ */
+const HOMOPHONE_GROUPS: string[][] = [
+  ['by', 'buy', 'bye'],
+  ['then', 'than'],
+  ['to', 'too', 'two'],
+  ['there', 'their'],
+  ['hear', 'here'],
+  ['of', 'off'],
+  ['no', 'know'],
+  ['week', 'weak'],
+  ['right', 'write', 'rite'],
+  ['past', 'passed'],
+  ['effect', 'affect'],
+  ['lose', 'loose'],
+  ['quiet', 'quite'],
+  ['whether', 'weather'],
+  ['piece', 'peace'],
+  ['sea', 'see'],
+  ['son', 'sun'],
+  ['one', 'won'],
+  ['brake', 'break'],
+  ['allowed', 'aloud'],
+  ['accept', 'except'],
+];
+
+const HOMOPHONE_CANONICAL: Record<string, string> = Object.fromEntries(
+  HOMOPHONE_GROUPS.flatMap((group) => group.map((word) => [word, group[0]]))
+);
+
+/**
+ * Reduce a phrase to the form that survives transcription: lowercase, no
+ * punctuation, contractions expanded, acoustically-confusable words collapsed
+ * onto one spelling.
+ */
+function transcriptionInvariant(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
+    .split(/\s+/)
+    .flatMap((token) => {
+      const bare = token.replace(/[^a-z']/g, '');
+      const expanded = CONTRACTION_EXPANSIONS[bare];
+      return (expanded ?? bare).split(' ');
+    })
+    .map((token) => token.replace(/'/g, ''))
+    .filter(Boolean)
+    .map((token) => HOMOPHONE_CANONICAL[token] ?? token)
+    .join(' ');
+}
+
+/**
+ * True when `correct` differs from `incorrect` only by things the candidate
+ * never controlled — capitalisation, punctuation, a dropped apostrophe, or an
+ * acoustically-confusable word. The deep-dive prompt forbids reporting these,
+ * but models do it anyway on every run, so the contract is enforced here
+ * rather than requested.
+ */
+export function isTranscriptionArtifact(incorrect: string, correct: string): boolean {
+  const before = transcriptionInvariant(incorrect);
+  const after = transcriptionInvariant(correct);
+  return before.length > 0 && before === after;
+}
+
 function extractGrammaticalErrors(rawErrors: unknown, candidateAnswer: string) {
   if (!Array.isArray(rawErrors)) return [];
 
@@ -919,6 +1038,10 @@ function extractGrammaticalErrors(rawErrors: unknown, candidateAnswer: string) {
         typeof error.correct === 'string' &&
         error.correct.trim().length > 0 &&
         error.correct.trim() !== error.incorrect.trim() &&
+        // The transcript is ASR output. A "correction" that only restores an
+        // apostrophe or swaps a homophone is the transcriber's error, and
+        // showing it would tell the learner they made a mistake they did not.
+        !isTranscriptionArtifact(error.incorrect, error.correct) &&
         typeof error.explanation === 'string'
     )
     .slice(0, 12);
