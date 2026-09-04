@@ -63,3 +63,64 @@ export function resolveCorrectAnswer(q, subId, correctAnswer) {
 
   return q.correct_answer ?? null;
 }
+
+/**
+ * Reduce an MCQ answer to its option letter.
+ * Imported Cambridge questions store the full option text ("C. greater water-storage
+ * capacity") while the test UI stores just the letter, so both sides have to be
+ * reduced to the letter before they can be compared.
+ */
+export function toChoiceLetter(value) {
+  const str = String(value ?? '').trim();
+  const match = str.match(/^([A-Z])(?:[.)]|\s|$)/i);
+  return match ? match[1].toUpperCase() : str;
+}
+
+export function parseChoiceList(raw) {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw !== 'string') return [];
+
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // Legacy imports may use a comma-separated answer string.
+    }
+  }
+
+  return trimmed.split(',').map((answer) => answer.trim());
+}
+
+/**
+ * Grade a multi-select MCQ group the same way the score calculator does: letters
+ * are compared as a set, so the order the candidate ticked the boxes in never
+ * changes the outcome. Correct letters the candidate missed are handed to the
+ * remaining boxes so each one shows a letter that is actually still missing.
+ */
+export function resolveMultiSelectReview(q, userAnswers) {
+  const correctLetters = parseChoiceList(q.correct_answers ?? q.correct_answer)
+    .map(toChoiceLetter)
+    .filter(Boolean);
+  const userLetters = userAnswers.map(toChoiceLetter);
+
+  const unmatchedCorrect = [...correctLetters];
+  const matches = userLetters.map((letter) => {
+    if (!letter) return false;
+    const index = unmatchedCorrect.indexOf(letter);
+    if (index === -1) return false;
+    unmatchedCorrect.splice(index, 1);
+    return true;
+  });
+
+  let nextMissing = 0;
+  const expected = matches.map((matched, index) =>
+    matched
+      ? userLetters[index]
+      : (unmatchedCorrect[nextMissing++] ?? correctLetters[index] ?? null)
+  );
+
+  return { matches, expected, correctLetters };
+}

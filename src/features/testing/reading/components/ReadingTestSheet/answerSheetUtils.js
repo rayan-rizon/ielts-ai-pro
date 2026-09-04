@@ -2,7 +2,14 @@ import { useMemo } from 'react';
 import { getPassageQuestions, calculateInitialQuestionCounter } from './passageFilter';
 import { buildAnswerEntriesForQuestion } from './entryBuilders';
 
-export { checkAnswer, resolveCorrectAnswer, formatAnswerValue } from './answerResolver';
+export {
+  checkAnswer,
+  resolveCorrectAnswer,
+  formatAnswerValue,
+  toChoiceLetter,
+  parseChoiceList,
+  resolveMultiSelectReview,
+} from './answerResolver';
 export {
   getPassageQuestions,
   countQuestionBlanks,

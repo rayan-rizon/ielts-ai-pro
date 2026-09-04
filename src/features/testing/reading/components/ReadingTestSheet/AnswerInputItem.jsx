@@ -1,6 +1,11 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { checkAnswer, resolveCorrectAnswer, formatAnswerValue } from './answerSheetUtils';
+import {
+  checkAnswer,
+  resolveCorrectAnswer,
+  formatAnswerValue,
+  resolveMultiSelectReview,
+} from './answerSheetUtils';
 
 function getMultiSelectAnswers(value) {
   if (Array.isArray(value)) return value;
@@ -14,6 +19,20 @@ function getMultiSelectAnswers(value) {
   }
 
   return value.split(',').map((answer) => answer.trim());
+}
+
+function getMultiSelectSlotCount(question, groupAnswers, subId) {
+  const declared = parseInt(String(question.question_count ?? ''), 10);
+  const fallback = Math.max(groupAnswers.length, Number(subId) + 1);
+  return Number.isFinite(declared) && declared > 0 ? Math.max(declared, fallback) : fallback;
+}
+
+function buildGroupUserAnswers(question, questionId, answers, groupAnswers, subId) {
+  const slotCount = getMultiSelectSlotCount(question, groupAnswers, subId);
+  return Array.from(
+    { length: slotCount },
+    (_, index) => answers[`${questionId}_${index}`] || groupAnswers[index] || ''
+  );
 }
 
 function isMultiSelectEntry(question, subId) {
@@ -58,8 +77,22 @@ export default function AnswerInputItem({
   const groupAnswers = isMultiSelect ? getMultiSelectAnswers(answers[questionId]) : [];
   const value = answers[answerKey] || groupAnswers[subId] || '';
 
-  const cAnswer = resolveCorrectAnswer(q, subId, correctAnswer);
-  const isCorrect = isFinished ? checkAnswer(value, cAnswer) : false;
+  // Multi-select boxes are graded as a set, so this item needs the whole group.
+  const groupReview =
+    isFinished && isMultiSelect
+      ? resolveMultiSelectReview(
+          q,
+          buildGroupUserAnswers(q, questionId, answers, groupAnswers, subId)
+        )
+      : null;
+
+  const cAnswer = groupReview
+    ? groupReview.expected[subId]
+    : resolveCorrectAnswer(q, subId, correctAnswer);
+  let isCorrect = false;
+  if (isFinished) {
+    isCorrect = groupReview ? groupReview.matches[subId] === true : checkAnswer(value, cAnswer);
+  }
 
   const formattedUserValue = formatAnswerValue(value);
   const formattedCorrectValue = formatAnswerValue(cAnswer);

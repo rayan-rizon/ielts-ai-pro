@@ -1,3 +1,5 @@
+import { parseChoiceList, toChoiceLetter } from './answerResolver';
+
 function buildTableCompletionEntries(q) {
   if (!q.table_data?.rows) return [];
   let absoluteIdx = 0;
@@ -139,25 +141,12 @@ function buildFlowchartEntries(q, baseNum) {
   return entries;
 }
 
-function parseMultipleChoiceAnswers(rawAnswers) {
-  if (Array.isArray(rawAnswers)) return rawAnswers;
-  if (typeof rawAnswers !== 'string') return [];
-
-  try {
-    const parsed = JSON.parse(rawAnswers);
-    if (Array.isArray(parsed)) return parsed;
-  } catch {
-    // Legacy imports may use a comma-separated answer string.
-  }
-
-  return rawAnswers.split(',').map((answer) => answer.trim());
-}
-
 function buildMultipleChoiceEntries(q, baseNum) {
   if (!q.allow_multiple || (q.question_count || 0) <= 1) {
     return [{ question: q, globalNum: baseNum }];
   }
-  const correctAnswers = q.correct_answers || parseMultipleChoiceAnswers(q.correct_answer);
+  // Imported questions store the full option text; the test UI stores letters.
+  const correctAnswers = parseChoiceList(q.correct_answers ?? q.correct_answer).map(toChoiceLetter);
   const entries = [];
   for (let i = 0; i < q.question_count; i++) {
     entries.push({
