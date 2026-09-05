@@ -231,7 +231,7 @@ describe('Admin Marketing Hub contracts', () => {
     expect(customerPortal).toContain("Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro'");
 
     // Gmail, Outlook and Yahoo do not render SVG in email — the mark must be a
-    // raster, and every auth template must use the same one.
+    // raster, and every auth template must use the same authentic logo.
     // Match the URL form, not the word — the shell's comment explains why the
     // SVG was dropped and legitimately names the file.
     expect(emailTemplates).not.toContain('/footer.svg');
@@ -243,7 +243,8 @@ describe('Admin Marketing Hub contracts', () => {
       'password-changed',
     ]) {
       const html = readFileSync(resolve(process.cwd(), `supabase/emails/${template}.html`), 'utf8');
-      expect(html, template).toContain('https://www.ieltsai.pro/footer.png');
+      expect(html, template).toContain('https://www.ieltsai.pro/logo.png');
+      expect(html, template).not.toContain('https://www.ieltsai.pro/footer.png');
       expect(html, template).not.toContain('footer.svg');
     }
 
