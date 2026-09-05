@@ -110,11 +110,14 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <p className={cn('text-[11px] font-medium', MUTED)}>
           Audiences are evaluated at send time, so membership stays current without a re-run.
         </p>
-        <AdminButton onClick={() => setEditor({})}>
+        <AdminButton
+          onClick={() => setEditor({})}
+          className="w-full sm:w-auto shrink-0 justify-center"
+        >
           <Plus className="h-3.5 w-3.5" />
           New audience
         </AdminButton>

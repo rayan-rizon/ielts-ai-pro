@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { m } from 'framer-motion';
 import { Activity, BarChart3, Clock3, Gift, Target, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
@@ -194,7 +195,7 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
           title="Conversion quality per campaign"
           description="Last 30 days"
         >
-          <div className="flex items-center gap-1 rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
+          <div className="no-scrollbar flex items-center gap-1 overflow-x-auto max-w-full rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
             {[
               ['all', 'All'],
               ['active', 'Active only'],
@@ -211,123 +212,260 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
                   type="button"
                   onClick={() => setStatusFilter(val)}
                   className={cn(
-                    'flex items-center gap-1 rounded-md px-2.5 py-1 transition-all active:scale-[0.97]',
+                    'relative flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors active:scale-[0.97]',
                     MICRO,
                     isActive
-                      ? 'bg-white text-stone-900 shadow-2xs dark:bg-[#131315] dark:text-stone-50 font-bold'
+                      ? 'text-stone-900 dark:text-stone-50 font-bold'
                       : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
                   )}
                 >
-                  {label}
-                  <span className={cn(NUM, 'text-[10px] opacity-60')}>{count}</span>
+                  {isActive && (
+                    <m.span
+                      layoutId="analyticsStatusFilterActivePill"
+                      className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">{label}</span>
+                  <span className={cn(NUM, 'relative z-10 text-[10px] opacity-60')}>{count}</span>
                 </button>
               );
             })}
           </div>
         </PanelHeader>
         {filteredCampaignRows.length ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left">
-              <thead>
-                <tr className="border-b border-stone-200/80 dark:border-white/[0.07]">
-                  {[
-                    ['Campaign', 'left'],
-                    ['Reach', 'right'],
-                    ['Delivered', 'right'],
-                    ['Views', 'right'],
-                    ['Clicks', 'right'],
-                    ['CTR', 'right'],
-                    ['Checkouts', 'right'],
-                    ['Purchases', 'right'],
-                    ['Failed / skipped', 'right'],
-                    ['Conversion', 'right'],
-                  ].map(([label, align]) => (
-                    <th
-                      key={label}
-                      className={cn(
-                        MICRO,
-                        MUTED,
-                        'whitespace-nowrap px-3 py-2.5',
-                        align === 'right' && 'text-right'
-                      )}
-                    >
-                      {label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCampaignRows.map((row) => {
-                  const failed = Number(row.failed || 0);
-                  return (
-                    <tr
-                      key={row.id}
-                      className="border-b border-stone-100 transition-colors last:border-0 hover:bg-stone-50/60 dark:border-white/5 dark:hover:bg-white/[0.02]"
-                    >
-                      <td className="px-3 py-2.5">
-                        <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+          <>
+            {/* Mobile Responsive Drilldown (< md) — zero horizontal overflow */}
+            <div className="divide-y divide-stone-100 md:hidden dark:divide-white/5">
+              {filteredCampaignRows.map((row) => {
+                const failed = Number(row.failed || 0);
+                const skipped = Number(row.skipped || 0);
+                const hasIssues = failed > 0 || skipped > 0;
+                const convRate = Number(row.conversion_rate || 0);
+                const purchases = Number(row.purchases || 0);
+                const checkouts = Number(row.checkouts || 0);
+                const reach = Number(row.reach || 0);
+                const delivered = Number(row.delivered || 0);
+                const views = Number(row.views || 0);
+                const clicks = Number(row.clicks || 0);
+                const ctr = row.ctr || 0;
+
+                return (
+                  <div key={row.id} className="p-3.5 space-y-2">
+                    {/* Header: Campaign name, status pill, and Conversion outcome */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-extrabold leading-snug text-stone-900 dark:text-stone-50">
                           {row.name}
                         </p>
-                        <Pill tone={STATUS_TONE[row.status]} className="mt-1">
-                          {row.status}
-                        </Pill>
-                      </td>
-                      {['reach', 'delivered', 'views', 'clicks'].map((key) => (
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <Pill tone={STATUS_TONE[row.status]}>{row.status}</Pill>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p
+                          className={cn(
+                            NUM,
+                            'text-sm font-extrabold',
+                            convRate > 0
+                              ? 'text-[rgb(var(--signal-ok))]'
+                              : 'text-stone-500 dark:text-stone-400'
+                          )}
+                        >
+                          {convRate}%
+                        </p>
+                        <p className={cn(MICRO, MUTED, 'text-[8px]')}>conversion</p>
+                      </div>
+                    </div>
+
+                    {/* 4-column metric grid */}
+                    <div className={cn(WELL, 'grid grid-cols-4 gap-1 rounded-lg p-2 text-center')}>
+                      <div className="min-w-0">
+                        <p className={cn(MICRO, MUTED, 'truncate text-[8px]')}>Delivery</p>
+                        <p
+                          className={cn(
+                            NUM,
+                            'mt-0.5 text-xs font-bold text-stone-800 dark:text-stone-100'
+                          )}
+                        >
+                          {delivered.toLocaleString()}
+                        </p>
+                        <p className={cn(NUM, MUTED, 'mt-0.5 truncate text-[8px]')}>
+                          {reach.toLocaleString()} reach
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={cn(MICRO, MUTED, 'truncate text-[8px]')}>Engagement</p>
+                        <p
+                          className={cn(
+                            NUM,
+                            'mt-0.5 text-xs font-bold text-stone-800 dark:text-stone-100'
+                          )}
+                        >
+                          {views.toLocaleString()}
+                        </p>
+                        <p className={cn(NUM, MUTED, 'mt-0.5 truncate text-[8px]')}>
+                          {clicks.toLocaleString()} clicks
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={cn(MICRO, MUTED, 'truncate text-[8px]')}>CTR</p>
+                        <p
+                          className={cn(
+                            NUM,
+                            'mt-0.5 text-xs font-bold text-stone-800 dark:text-stone-100'
+                          )}
+                        >
+                          {ctr}%
+                        </p>
+                        <p className={cn(MICRO, MUTED, 'mt-0.5 truncate text-[8px]')}>click rate</p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={cn(MICRO, MUTED, 'truncate text-[8px]')}>Purchases</p>
+                        <p
+                          className={cn(
+                            NUM,
+                            'mt-0.5 text-xs font-extrabold',
+                            purchases > 0
+                              ? 'text-[rgb(var(--signal-ok))]'
+                              : 'text-stone-900 dark:text-stone-50'
+                          )}
+                        >
+                          {purchases.toLocaleString()}
+                        </p>
+                        <p className={cn(NUM, MUTED, 'mt-0.5 truncate text-[8px]')}>
+                          {checkouts.toLocaleString()} chkout
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Issue alert if any failed or skipped */}
+                    {hasIssues && (
+                      <div className="flex items-center justify-between rounded bg-red-500/5 px-2 py-1 text-[10px] font-medium dark:bg-red-500/10">
+                        <span className={cn(MICRO, 'text-[8px] text-[rgb(var(--signal-fault))]')}>
+                          Delivery issues
+                        </span>
+                        <span
+                          className={cn(
+                            NUM,
+                            'text-[10px] font-bold text-[rgb(var(--signal-fault))]'
+                          )}
+                        >
+                          {failed} failed · {skipped} skipped
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table (>= md) */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full min-w-[820px] text-left">
+                <thead>
+                  <tr className="border-b border-stone-200/80 dark:border-white/[0.07]">
+                    {[
+                      ['Campaign', 'left'],
+                      ['Reach', 'right'],
+                      ['Delivered', 'right'],
+                      ['Views', 'right'],
+                      ['Clicks', 'right'],
+                      ['CTR', 'right'],
+                      ['Checkouts', 'right'],
+                      ['Purchases', 'right'],
+                      ['Failed / skipped', 'right'],
+                      ['Conversion', 'right'],
+                    ].map(([label, align], idx) => (
+                      <th
+                        key={label}
+                        className={cn(
+                          MICRO,
+                          MUTED,
+                          'whitespace-nowrap px-3 py-2.5',
+                          align === 'right' && 'text-right',
+                          idx === 0 &&
+                            'sticky left-0 z-20 bg-white/95 dark:bg-[#131315]/95 shadow-[1px_0_0_0_rgba(0,0,0,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]'
+                        )}
+                      >
+                        {label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCampaignRows.map((row) => {
+                    const failed = Number(row.failed || 0);
+                    return (
+                      <tr
+                        key={row.id}
+                        className="border-b border-stone-100 transition-colors last:border-0 hover:bg-stone-50/60 dark:border-white/5 dark:hover:bg-white/[0.02]"
+                      >
+                        <td className="sticky left-0 z-10 bg-white/95 px-3 py-2.5 dark:bg-[#131315]/95 shadow-[1px_0_0_0_rgba(0,0,0,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]">
+                          <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+                            {row.name}
+                          </p>
+                          <Pill tone={STATUS_TONE[row.status]} className="mt-1">
+                            {row.status}
+                          </Pill>
+                        </td>
+                        {['reach', 'delivered', 'views', 'clicks'].map((key) => (
+                          <td
+                            key={key}
+                            className={cn(
+                              NUM,
+                              'px-3 py-2.5 text-right text-xs font-bold text-stone-700 dark:text-stone-200'
+                            )}
+                          >
+                            {Number(row[key] || 0).toLocaleString()}
+                          </td>
+                        ))}
+                        <td className={cn(NUM, 'px-3 py-2.5 text-right text-xs font-bold', MUTED)}>
+                          {row.ctr || 0}%
+                        </td>
                         <td
-                          key={key}
                           className={cn(
                             NUM,
                             'px-3 py-2.5 text-right text-xs font-bold text-stone-700 dark:text-stone-200'
                           )}
                         >
-                          {Number(row[key] || 0).toLocaleString()}
+                          {Number(row.checkouts || 0).toLocaleString()}
                         </td>
-                      ))}
-                      <td className={cn(NUM, 'px-3 py-2.5 text-right text-xs font-bold', MUTED)}>
-                        {row.ctr || 0}%
-                      </td>
-                      <td
-                        className={cn(
-                          NUM,
-                          'px-3 py-2.5 text-right text-xs font-bold text-stone-700 dark:text-stone-200'
-                        )}
-                      >
-                        {Number(row.checkouts || 0).toLocaleString()}
-                      </td>
-                      <td
-                        className={cn(
-                          NUM,
-                          'px-3 py-2.5 text-right text-xs font-bold text-stone-900 dark:text-stone-50'
-                        )}
-                      >
-                        {Number(row.purchases || 0).toLocaleString()}
-                      </td>
-                      <td
-                        className={cn(
-                          NUM,
-                          'px-3 py-2.5 text-right text-xs font-bold',
-                          failed > 0 ? 'text-[rgb(var(--signal-fault))]' : MUTED
-                        )}
-                      >
-                        {failed} / {Number(row.skipped || 0)}
-                      </td>
-                      <td
-                        className={cn(
-                          NUM,
-                          'px-3 py-2.5 text-right text-xs font-extrabold',
-                          Number(row.conversion_rate || 0) > 0
-                            ? 'text-[rgb(var(--signal-ok))]'
-                            : MUTED
-                        )}
-                      >
-                        {row.conversion_rate || 0}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <td
+                          className={cn(
+                            NUM,
+                            'px-3 py-2.5 text-right text-xs font-bold text-stone-900 dark:text-stone-50'
+                          )}
+                        >
+                          {Number(row.purchases || 0).toLocaleString()}
+                        </td>
+                        <td
+                          className={cn(
+                            NUM,
+                            'px-3 py-2.5 text-right text-xs font-bold',
+                            failed > 0 ? 'text-[rgb(var(--signal-fault))]' : MUTED
+                          )}
+                        >
+                          {failed} / {Number(row.skipped || 0)}
+                        </td>
+                        <td
+                          className={cn(
+                            NUM,
+                            'px-3 py-2.5 text-right text-xs font-extrabold',
+                            Number(row.conversion_rate || 0) > 0
+                              ? 'text-[rgb(var(--signal-ok))]'
+                              : MUTED
+                          )}
+                        >
+                          {row.conversion_rate || 0}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <Empty
             icon={Activity}

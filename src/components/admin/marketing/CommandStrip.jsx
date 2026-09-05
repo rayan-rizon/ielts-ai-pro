@@ -144,9 +144,12 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, onNavigate }) 
 
   return (
     <div className={cn(PANEL, 'overflow-hidden')}>
-      <div className="grid grid-cols-2 divide-x divide-y divide-stone-200/80 sm:grid-cols-3 lg:grid-cols-5 lg:divide-y-0 dark:divide-white/[0.07]">
+      <div className="grid grid-cols-2 gap-px bg-stone-200/80 sm:grid-cols-3 lg:grid-cols-5 dark:bg-white/[0.07]">
         {counts.map((count) => (
-          <div key={count.label} className="flex min-w-0 flex-col justify-center px-3.5 py-3">
+          <div
+            key={count.label}
+            className="flex min-w-0 flex-col justify-center bg-white px-3.5 py-3 dark:bg-[#131315]"
+          >
             <div className="flex items-center gap-1.5">
               {count.live && <LiveDot />}
               <p className={cn(MICRO, MUTED, 'truncate')}>{count.label}</p>
@@ -166,7 +169,7 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, onNavigate }) 
 
         {/* Currencies get a line each — joined onto one they overflow the tile
             and "USD 2210.50 · BDT 48200" reads as a single number. */}
-        <div className="col-span-2 flex min-w-0 flex-col justify-center px-3.5 py-3 sm:col-span-1">
+        <div className="col-span-2 flex min-w-0 flex-col justify-center bg-white px-3.5 py-3 sm:col-span-1 dark:bg-[#131315]">
           <p className={cn(MICRO, MUTED, 'truncate')}>Attributed revenue</p>
           {revenue.length ? (
             <div className="mt-1.5 space-y-0.5">

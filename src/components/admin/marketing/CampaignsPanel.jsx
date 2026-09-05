@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { m } from 'framer-motion';
 import {
   AlertTriangle,
   Ban,
@@ -317,8 +318,8 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1 rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="no-scrollbar flex items-center gap-1 overflow-x-auto max-w-full rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
           {CAMPAIGN_FILTERS.map(([id, label, predicate]) => {
             const count = ordered.filter(predicate).length;
             const isActive = id === filter;
@@ -328,20 +329,30 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
                 type="button"
                 onClick={() => setFilter(id)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-all active:scale-[0.97]',
+                  'relative flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors active:scale-[0.97]',
                   MICRO,
                   isActive
-                    ? 'bg-white text-stone-900 shadow-2xs dark:bg-[#131315] dark:text-stone-50'
+                    ? 'text-stone-900 dark:text-stone-50 font-bold'
                     : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
                 )}
               >
-                {label}
-                <span className={cn(NUM, 'text-[10px] opacity-60')}>{count}</span>
+                {isActive && (
+                  <m.span
+                    layoutId="campaignFilterActivePill"
+                    className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <span className="relative z-10">{label}</span>
+                <span className={cn(NUM, 'relative z-10 text-[10px] opacity-60')}>{count}</span>
               </button>
             );
           })}
         </div>
-        <AdminButton onClick={() => setEditor({})}>
+        <AdminButton
+          onClick={() => setEditor({})}
+          className="w-full sm:w-auto shrink-0 justify-center"
+        >
           <Plus className="h-3.5 w-3.5" />
           New campaign
         </AdminButton>

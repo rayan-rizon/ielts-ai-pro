@@ -219,9 +219,21 @@ export const FieldLabel = ({ children, hint }) => (
  * parks its controls. Pages kept re-writing this `p-4 border-b` row by hand and
  * drifting on padding and label size; this fixes both.
  */
-export const PanelHeader = ({ label, title, description, accent = 'idle', children }) => (
-  <div className="flex items-start justify-between gap-3 border-b border-stone-200/80 px-4 py-3 dark:border-white/[0.07]">
-    <div className="min-w-0">
+export const PanelHeader = ({
+  label,
+  title,
+  description,
+  accent = 'idle',
+  className,
+  children,
+}) => (
+  <div
+    className={cn(
+      'flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 sm:gap-3 border-b border-stone-200/80 px-4 py-3 dark:border-white/[0.07]',
+      className
+    )}
+  >
+    <div className="min-w-0 flex-1">
       {label && <SectionLabel accent={accent}>{label}</SectionLabel>}
       {title && <p className={cn(TITLE, label && 'mt-1')}>{title}</p>}
       {description && (
@@ -232,7 +244,11 @@ export const PanelHeader = ({ label, title, description, accent = 'idle', childr
         </p>
       )}
     </div>
-    {children && <div className="flex shrink-0 items-center gap-1.5">{children}</div>}
+    {children && (
+      <div className="flex shrink-0 items-center gap-1.5 flex-wrap w-full sm:w-auto">
+        {children}
+      </div>
+    )}
   </div>
 );
 

@@ -3,6 +3,7 @@ import { m } from 'framer-motion';
 import { BarChart3, FileText, Megaphone, RefreshCcw, Users, Workflow } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
 import { PromoCode } from '@/entities';
 import {
@@ -137,18 +138,54 @@ export default function MarketingHub() {
 
       <m.div variants={FADE_UP}>
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-          <div className="overflow-x-auto pb-1">
+          <div className="overflow-x-auto pb-1 no-scrollbar">
             <TabsList className={ADMIN_TABS_LIST}>
-              {TABS.map(([value, label, Icon]) => (
-                <TabsTrigger key={value} value={value} className={ADMIN_TAB_TRIGGER}>
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </TabsTrigger>
-              ))}
+              {TABS.map(([value, label, Icon]) => {
+                const isActive = tab === value;
+                return (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    id={`marketing-tab-${value}`}
+                    aria-controls={`marketing-tabpanel-${value}`}
+                    className={cn(
+                      ADMIN_TAB_TRIGGER,
+                      'relative z-0 overflow-visible transition-colors',
+                      'data-[state=active]:bg-transparent data-[state=active]:shadow-none'
+                    )}
+                  >
+                    {isActive && (
+                      <m.span
+                        layoutId="marketingMainTabActivePill"
+                        className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
+                    <Icon
+                      className={cn(
+                        'relative z-10 h-3.5 w-3.5 shrink-0 transition-colors pointer-events-none',
+                        isActive
+                          ? 'text-stone-900 dark:text-stone-50'
+                          : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'relative z-10 transition-colors pointer-events-none',
+                        isActive
+                          ? 'text-stone-900 dark:text-stone-50 font-bold'
+                          : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
           </div>
 
-          <TabsContent value="overview" className="mt-0">
+          <TabsContent value="overview" className="mt-0 outline-none">
             <AnalyticsPanel
               dashboard={data.dashboard}
               intelligence={data.intelligence}
@@ -156,7 +193,7 @@ export default function MarketingHub() {
               recovery={data.recovery}
             />
           </TabsContent>
-          <TabsContent value="campaigns" className="mt-0">
+          <TabsContent value="campaigns" className="mt-0 outline-none">
             <CampaignsPanel
               campaigns={data.campaigns}
               segments={data.segments}
@@ -165,13 +202,13 @@ export default function MarketingHub() {
               onRefresh={load}
             />
           </TabsContent>
-          <TabsContent value="audiences" className="mt-0">
+          <TabsContent value="audiences" className="mt-0 outline-none">
             <SegmentsPanel segments={data.segments} onRefresh={load} />
           </TabsContent>
-          <TabsContent value="templates" className="mt-0">
+          <TabsContent value="templates" className="mt-0 outline-none">
             <TemplatesPanel templates={data.templates} onRefresh={load} />
           </TabsContent>
-          <TabsContent value="journeys" className="mt-0">
+          <TabsContent value="journeys" className="mt-0 outline-none">
             <JourneysPanel
               journeys={data.journeys}
               campaigns={data.campaigns}
