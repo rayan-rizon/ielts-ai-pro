@@ -230,13 +230,13 @@ describe('Admin Marketing Hub contracts', () => {
     expect(checkoutSession).toContain("Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro'");
     expect(customerPortal).toContain("Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro'");
 
-    // Gmail, Outlook and Yahoo do not render SVG in email. The non-confirmation
-    // templates use the shared raster mark; confirmation uses a text lockup so
-    // the brand still renders when a recipient blocks remote images.
+    // Gmail, Outlook and Yahoo do not render SVG in email — the mark must be a
+    // raster, and every auth template must use the same one.
     // Match the URL form, not the word — the shell's comment explains why the
     // SVG was dropped and legitimately names the file.
     expect(emailTemplates).not.toContain('/footer.svg');
     for (const template of [
+      'confirm-signup',
       'magic-link',
       'reset-password',
       'email-change',
@@ -258,8 +258,6 @@ describe('Admin Marketing Hub contracts', () => {
     expect(confirmationEmail).not.toContain('{{ .ConfirmationURL }}');
     expect(confirmationEmail).not.toContain('fonts.googleapis.com');
     expect(confirmationEmail).not.toMatch(/<svg\b/i);
-    expect(confirmationEmail).not.toContain('footer.png');
-    expect(confirmationEmail).toContain('>IELTS <span style="color:#a977ff">AI Pro</span>');
     expect(confirmationEmail).toContain('Open the secure confirmation link');
   });
 
