@@ -13,16 +13,70 @@ import {
 import { cn } from '@/lib/cn';
 import PaginationControls from '../shared/PaginationControls';
 import { SignupSourceCell } from '../shared/signupChannel';
-import { NUM, MICRO, PANEL } from '../ui/primitives';
+import { NUM, MICRO, PANEL, Tip } from '../ui/primitives';
+import { countryName, countryFlag, normalizeCountryCode } from '../shared/country';
 
 const COLUMNS = [
   { field: 'full_name', label: 'User' },
   { field: 'email', label: 'Email' },
+  { field: 'country', label: 'Country' },
   { field: 'signup_channel', label: 'Source' },
   { field: 'subscription_tier', label: 'Plan' },
   { field: 'role', label: 'Role' },
   { field: 'last_active', label: 'Last active' },
 ];
+
+const CountryCell = ({ country }) => {
+  const code = normalizeCountryCode(country);
+  if (code === 'unknown') {
+    return <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500 font-normal')}>—</span>;
+  }
+
+  const name = countryName(code);
+  const flag = countryFlag(code);
+
+  return (
+    <Tip content={`${name} (${code})`}>
+      <span
+        aria-label={`${name} (${code})`}
+        className="inline-flex min-w-0 items-center gap-1.5 cursor-default"
+      >
+        {flag ? (
+          <span
+            className="inline-grid h-5 w-5 shrink-0 place-items-center text-sm leading-none select-none rounded bg-stone-100 dark:bg-white/[0.06] ring-1 ring-black/[0.04] dark:ring-white/[0.06]"
+            aria-hidden="true"
+          >
+            {flag}
+          </span>
+        ) : (
+          <span
+            className={cn(
+              NUM,
+              'inline-grid h-5 min-w-[20px] px-1 shrink-0 place-items-center text-[9px] font-bold text-stone-600 dark:text-stone-300 rounded bg-stone-100 dark:bg-white/[0.06] ring-1 ring-black/[0.04] dark:ring-white/[0.06]'
+            )}
+            aria-hidden="true"
+          >
+            {code}
+          </span>
+        )}
+        <span className="min-w-0">
+          <span className="block text-[11px] font-extrabold text-stone-900 dark:text-stone-50 leading-tight truncate max-w-[120px]">
+            {name}
+          </span>
+          <span
+            className={cn(
+              NUM,
+              MICRO,
+              'text-[10px] text-stone-500 dark:text-stone-400 leading-tight block'
+            )}
+          >
+            {code}
+          </span>
+        </span>
+      </span>
+    </Tip>
+  );
+};
 
 const TIER_PILL = {
   premium:
@@ -89,6 +143,9 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
           <Mail className="w-3 h-3 text-stone-500 dark:text-stone-400 shrink-0" />
           <span className={cn(NUM, 'truncate')}>{user.email}</span>
         </div>
+      </td>
+      <td className="py-3 px-4">
+        <CountryCell country={user.country} />
       </td>
       <td className="py-3 px-4">
         <SignupSourceCell
@@ -164,7 +221,7 @@ const TableBody = ({
   if (loading && users.length === 0) {
     return Array.from({ length: 6 }).map((_, index) => (
       <tr key={index} className="border-b border-stone-100 dark:border-white/5">
-        <td colSpan={8} className="py-3.5 px-4">
+        <td colSpan={9} className="py-3.5 px-4">
           <div className="h-4 w-full max-w-xs bg-stone-100 dark:bg-white/5 rounded animate-pulse" />
         </td>
       </tr>
@@ -173,7 +230,7 @@ const TableBody = ({
   if (users.length === 0) {
     return (
       <tr>
-        <td colSpan={8} className="py-16 text-center">
+        <td colSpan={9} className="py-16 text-center">
           <Search className="w-6 h-6 mx-auto mb-2 text-stone-300 dark:text-stone-600" />
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             No users match your filters
@@ -220,7 +277,7 @@ export const UserManagementTable = ({
 }) => (
   <div className={cn(PANEL, 'overflow-hidden')}>
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1010px] text-left border-collapse">
+      <table className="w-full min-w-[1100px] text-left border-collapse">
         <thead>
           <tr className="border-b border-stone-200 dark:border-white/[0.07]">
             <th className="py-2.5 px-4 w-10">

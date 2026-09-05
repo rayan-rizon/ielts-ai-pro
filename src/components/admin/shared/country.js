@@ -18,3 +18,9 @@ export const countryShortLabel = (value) => {
   const code = normalizeCountryCode(value);
   return code === 'unknown' ? '—' : code;
 };
+
+export const countryFlag = (value) => {
+  const code = normalizeCountryCode(value);
+  if (code === 'unknown') return '';
+  return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0)));
+};

@@ -3,6 +3,7 @@ export interface UserProfile {
   auth_id: string;
   email: string;
   full_name?: string;
+  country?: string | null;
   role: 'user' | 'admin';
   subscription_tier?: 'free' | 'pro' | 'premium';
   avatar_url?: string;
