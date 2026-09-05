@@ -247,6 +247,18 @@ describe('Admin Marketing Hub contracts', () => {
       expect(html, template).toContain('https://www.ieltsai.pro/footer.png');
       expect(html, template).not.toContain('footer.svg');
     }
+
+    const confirmationEmail = readFileSync(
+      resolve(process.cwd(), 'supabase/emails/confirm-signup.html'),
+      'utf8'
+    );
+    expect(confirmationEmail).toContain(
+      'https://www.ieltsai.pro/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup'
+    );
+    expect(confirmationEmail).not.toContain('{{ .ConfirmationURL }}');
+    expect(confirmationEmail).not.toContain('fonts.googleapis.com');
+    expect(confirmationEmail).not.toMatch(/<svg\b/i);
+    expect(confirmationEmail).toContain('Open the secure confirmation link');
   });
 
   it('sends a plain-text alternative alongside every HTML email', () => {

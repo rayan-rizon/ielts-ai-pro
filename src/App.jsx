@@ -127,6 +127,9 @@ const AdminLogin = lazyWithRetry(() => import('@/features/auth/pages/AdminLogin.
 const Login = lazyWithRetry(() => import('@/features/auth/pages/Login.jsx'));
 const ForgotPassword = lazyWithRetry(() => import('@/features/auth/pages/ForgotPassword.jsx'));
 const UpdatePassword = lazyWithRetry(() => import('@/features/auth/pages/UpdatePassword.jsx'));
+const EmailConfirmation = lazyWithRetry(
+  () => import('@/features/auth/pages/EmailConfirmation.jsx')
+);
 const Dashboard = lazyWithRetry(() => import('@/features/dashboard/pages/Dashboard.jsx'));
 const Listening = lazyWithRetry(() => import('@/features/testing/shared/pages/Listening.jsx'));
 const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Reading.jsx'));
@@ -352,6 +355,14 @@ const router = createBrowserRouter(
             <UpdatePassword data-oid="hu68k4h" />
           </LazyPage>
         </Layout>
+      ),
+    },
+    {
+      path: '/auth/confirm',
+      element: (
+        <LazyPage data-oid="email-confirmation-page">
+          <EmailConfirmation data-oid="email-confirmation-comp" />
+        </LazyPage>
       ),
     },
     {
