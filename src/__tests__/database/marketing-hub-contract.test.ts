@@ -236,7 +236,6 @@ describe('Admin Marketing Hub contracts', () => {
     // SVG was dropped and legitimately names the file.
     expect(emailTemplates).not.toContain('/footer.svg');
     for (const template of [
-      'confirm-signup',
       'magic-link',
       'reset-password',
       'email-change',
@@ -252,6 +251,8 @@ describe('Admin Marketing Hub contracts', () => {
       resolve(process.cwd(), 'supabase/emails/confirm-signup.html'),
       'utf8'
     );
+    expect(confirmationEmail).toContain('https://www.ieltsai.pro/logo.png');
+    expect(confirmationEmail).not.toContain('https://www.ieltsai.pro/footer.png');
     expect(confirmationEmail).toContain(
       'https://www.ieltsai.pro/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup'
     );
