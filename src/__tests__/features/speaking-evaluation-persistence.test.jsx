@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { fromMock } = vi.hoisted(() => ({
@@ -19,9 +19,14 @@ import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluation
 import {
   buildCriteriaScores,
   persistSuccessfulEvaluation,
+  releaseDeferredEvaluation,
+  handleQuotaOrRateLimit,
+  persistSpeakingEvaluationFailure,
 } from '@/features/testing/speaking/hooks/speakingEvaluationHelpers';
 import { persistDeepDiveAnalysis } from '@/features/testing/speaking/hooks/useDeepDive';
 import useFinalEvaluation from '@/features/testing/speaking/hooks/useFinalEvaluation';
+import { callEdgeFunction } from '@/utils/api';
+import useSpeakingSessionPersistence from '@/features/testing/speaking/hooks/useSpeakingSessionPersistence';
 
 function updateChain(result, capture) {
   const chain = {
@@ -30,6 +35,7 @@ function updateChain(result, capture) {
       return chain;
     }),
     eq: vi.fn(() => chain),
+    in: vi.fn(() => chain),
     select: vi.fn(() => chain),
     maybeSingle: vi.fn(async () => result),
   };
@@ -37,8 +43,110 @@ function updateChain(result, capture) {
 }
 
 describe('Speaking evaluation persistence', () => {
+  it('does not let a late failure downgrade an already completed evaluation', async () => {
+    const capture = {};
+    const chain = updateChain({ data: null, error: null }, capture);
+    fromMock.mockReturnValue(chain);
+    await persistSpeakingEvaluationFailure({
+      session: { id: 'session-a' },
+      conversationsToEvaluate: {},
+      failure: { code: 'NetworkError' },
+    });
+    expect(chain.eq).toHaveBeenCalledWith('evaluation_status', 'pending');
+    expect(capture.payload.content_data.evaluationFailure.code).toBe('NetworkError');
+  });
+  it('restricts delayed autosaves to incomplete sessions', async () => {
+    const capture = {};
+    const chain = updateChain({ data: null, error: null }, capture);
+    fromMock.mockReturnValue(chain);
+    const { result } = renderHook(() => useSpeakingSessionPersistence('session-a', {}));
+    await act(async () => {
+      await result.current({ content_data: { currentPart: 3 } });
+    });
+    expect(chain.eq).toHaveBeenCalledWith('id', 'session-a');
+    expect(chain.eq).toHaveBeenCalledWith('is_completed', false);
+  });
   beforeEach(() => {
     fromMock.mockReset();
+    vi.mocked(callEdgeFunction).mockReset();
+  });
+
+  it('recovers a server-saved report when the evaluation response is lost', async () => {
+    const saved = {
+      overallBand: 7,
+      evaluationVersion: CURRENT_EVALUATION_VERSION,
+      speakingSessionId: 'session-a',
+    };
+    const read = {
+      select: vi.fn(() => read),
+      eq: vi.fn(() => read),
+      maybeSingle: vi.fn(async () => ({
+        data: { evaluation_status: 'complete', content_data: { finalEvaluation: saved } },
+        error: null,
+      })),
+    };
+    fromMock
+      .mockReturnValueOnce(updateChain({ data: { id: 'session-a' }, error: null }, {}))
+      .mockReturnValueOnce(read);
+    vi.mocked(callEdgeFunction).mockRejectedValueOnce(new Error('Failed to fetch'));
+    const saveSessionProgress = vi.fn();
+    const awardXP = vi.fn();
+    const { result } = renderHook(() =>
+      useFinalEvaluation({
+        testId: 'test-a',
+        session: { id: 'session-a' },
+        allParts: {},
+        allPartsConversation: {},
+        currentPartNumber: 3,
+        conversation: [],
+        acousticMetricsRef: { current: {} },
+        saveSessionProgress,
+        awardXP,
+        setIsTestComplete: vi.fn(),
+        setShowUpgradeDialog: vi.fn(),
+        setProcessingStatus: vi.fn(),
+      })
+    );
+    await act(async () => {
+      await result.current.requestFinalEvaluation({});
+    });
+    expect(result.current.finalEvaluation).toEqual(saved);
+    expect(result.current.evaluationError).toBeNull();
+    expect(saveSessionProgress).not.toHaveBeenCalled();
+    expect(awardXP).not.toHaveBeenCalled();
+    expect(fromMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('releases only a pending claim after a quota denial, without overwriting a report', async () => {
+    const capture = {};
+    const chain = updateChain({ data: null, error: null }, capture);
+    fromMock.mockReturnValue(chain);
+    await releaseDeferredEvaluation({ id: 'session-a' });
+    expect(capture.payload).toEqual({ evaluation_status: 'not_requested' });
+    expect(chain.eq).toHaveBeenCalledWith('id', 'session-a');
+    expect(chain.eq).toHaveBeenCalledWith('evaluation_status', 'pending');
+  });
+
+  it('explains exhausted allowance without claiming speaking is excluded from the plan', () => {
+    const setEvaluationError = vi.fn();
+    const setShowUpgradeDialog = vi.fn();
+    handleQuotaOrRateLimit({
+      evalError: { status: 429, rateLimitType: 'quota' },
+      setEvaluationError,
+      setShowUpgradeDialog,
+      setIsTestComplete: vi.fn(),
+    });
+    expect(setEvaluationError).toHaveBeenCalledWith(expect.stringContaining('allowance'));
+    expect(setShowUpgradeDialog).toHaveBeenCalledWith(true);
+    setShowUpgradeDialog.mockClear();
+    handleQuotaOrRateLimit({
+      evalError: { status: 403 },
+      setEvaluationError,
+      setShowUpgradeDialog,
+      setIsTestComplete: vi.fn(),
+    });
+    expect(setShowUpgradeDialog).not.toHaveBeenCalled();
+    expect(setEvaluationError).toHaveBeenLastCalledWith(expect.stringContaining('denied'));
   });
 
   it('stores the final evaluation with current version and exact session metadata', async () => {

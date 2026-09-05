@@ -1,3 +1,5 @@
+import { splitFeedbackSentences } from './feedbackSentences.ts';
+
 export const FEEDBACK_EVALUATOR_VERSION = '2026-07-29-v5';
 export const WRITING_CALIBRATION_REVISION = 2;
 
@@ -166,7 +168,7 @@ function compactFeedbackText(value: unknown, maxSentences = 1, maxChars = 160): 
     .replace(/\s+/g, ' ');
   if (!normalized) return '';
 
-  const sentences = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [normalized];
+  const sentences = splitFeedbackSentences(normalized);
   const selected = sentences
     .map((sentence) => sentence.trim())
     .filter(Boolean)

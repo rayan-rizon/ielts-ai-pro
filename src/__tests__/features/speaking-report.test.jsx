@@ -29,6 +29,14 @@ const finalEvaluation = {
 };
 
 describe('speaking report', () => {
+  it('shows the saved test date when an older report is reopened', () => {
+    render(
+      <MemoryRouter>
+        <SpeakingReport finalEvaluation={finalEvaluation} testDate="2026-08-10T12:00:00Z" />
+      </MemoryRouter>
+    );
+    expect(screen.getByText(/10 Aug 2026/)).toBeInTheDocument();
+  });
   it('renders one continuous concise report with a PDF action and no tabs', () => {
     render(
       <MemoryRouter>

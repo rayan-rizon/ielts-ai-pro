@@ -12,6 +12,21 @@ import {
 import { generateEvaluationPrompt } from '../../../supabase/functions/_shared/bandDescriptors.ts';
 
 describe('evaluationUtils', () => {
+  it('preserves abbreviations and decimal durations in stored speaking feedback', () => {
+    const result = normalizeSpeakingEvaluation(
+      {
+        fluency: 6,
+        lexical: 6,
+        grammar: 6,
+        improvements: [{ area: 'Grammar', tip: 'Use plurals, e.g. books are useful.' }],
+        targetBandTips: 'Speak for 1.5 minutes with developed examples.',
+      },
+      {},
+      { score: 6, sampleCount: 2, partCount: 2 }
+    );
+    expect(result.improvements[0].tip).toBe('Use plurals, e.g. books are useful.');
+    expect(result.targetBandTips).toBe('Speak for 1.5 minutes with developed examples.');
+  });
   it('normalizes model scores to valid IELTS half bands', () => {
     expect(normalizeBandScore(6.24)).toBe(6);
     expect(normalizeBandScore('6.76')).toBe(7);

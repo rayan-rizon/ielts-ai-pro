@@ -1,3 +1,5 @@
+import { splitFeedbackSentences } from '../../../../../supabase/functions/_shared/feedbackSentences.ts';
+
 export const compactText = (value, { maxSentences = 3, maxChars = 500 } = {}) => {
   if (typeof value !== 'string') return '';
   const normalized = value
@@ -6,7 +8,7 @@ export const compactText = (value, { maxSentences = 3, maxChars = 500 } = {}) =>
     .replace(/\s+/g, ' ');
   if (!normalized) return '';
 
-  const sentences = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [normalized];
+  const sentences = splitFeedbackSentences(normalized);
   const selectedSentences = sentences
     .map((sentence) => sentence.trim())
     .filter(Boolean)

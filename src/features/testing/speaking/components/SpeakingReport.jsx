@@ -28,6 +28,7 @@ export default function SpeakingReport({
   earnedXP,
   onXPComplete,
   testTitle,
+  testDate,
   testId,
   allPartsConversation,
   allPartsPronunciation,
@@ -43,11 +44,14 @@ export default function SpeakingReport({
 
   const isGeneratingDetailed = isGeneratingDetailedProp ?? isGeneratingDetailedLocal;
   const pronunciationBreakdown = usePronunciationBreakdown(allPartsPronunciation);
-  const testDateFormatted = new Date().toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  const reportDate = new Date(testDate || finalEvaluation?.generatedAt || NaN);
+  const testDateFormatted = Number.isNaN(reportDate.getTime())
+    ? 'Unavailable'
+    : reportDate.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
 
   const handleGenerateDetailed = async () => {
     if (!testId || !allPartsConversation) {

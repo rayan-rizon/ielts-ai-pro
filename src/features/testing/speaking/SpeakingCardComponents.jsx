@@ -58,7 +58,11 @@ export function GridMetaBar({
   displayScore,
   progress,
 }) {
-  const hasScore = isCompleted && displayScore !== undefined;
+  const hasScore =
+    isCompleted &&
+    displayScore != null &&
+    Number.isFinite(Number(displayScore)) &&
+    displayScore !== '';
 
   return (
     <div className="space-y-2.5">
@@ -93,6 +97,7 @@ export function GridMetaBar({
         </div>
       )}
 
+      {isCompleted && !hasScore && <p className={cn(MICRO, MUTED)}>No band assigned</p>}
       {hasScore && (
         <div className="border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
           <div className="flex items-center justify-between">
@@ -228,7 +233,9 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
           'shrink-0 rounded bg-[rgb(var(--signal-ok)/0.08)] px-1.5 py-0.5 text-[10px] font-extrabold text-[rgb(var(--signal-ok))]'
         )}
       >
-        Band {typeof score === 'number' ? score.toFixed(1) : score}
+        {score != null && score !== '' && Number.isFinite(Number(score))
+          ? `Band ${Number(score).toFixed(1)}`
+          : 'No band assigned'}
       </span>
     );
   }

@@ -1,3 +1,9 @@
+import { AI_ROUTES } from '../_shared/aiModelRegistry.ts';
+import {
+  COACH_RESPONSE_SCHEMA,
+  isCoachResponse,
+  resolveCoachRanking,
+} from '../_shared/learningPathCoach.ts';
 // @ts-ignore Deno URL imports are resolved by the Supabase Edge runtime.
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 // @ts-ignore
@@ -277,7 +283,7 @@ async function buildCoachSummary({
     const prompt = `You are an IELTS coach ranking a safe, pre-validated study plan.
 Use aggregate evidence only. Never invent activities, keys, evidence, routes, scores, or capacity.
 Never predict improvement, promise a score, or call level-check/needs-more-results skills weaknesses.
-Return JSON only: {"headline":"max 18 words","explanation":"max 65 words","rankedActivityKeys":["exact provided keys, most useful first"]}.
+Choose at most three provided activityIndex values, most useful first. Return JSON only: {"headline":"max 18 words","explanation":"max 65 words","rankedActivityIndices":[0,1,2]}.
 
 <aggregate_evidence>
 ${JSON.stringify({
@@ -290,8 +296,8 @@ ${JSON.stringify({
   missingDiagnostics: readiness.missing_diagnostics,
   observedOverallRange: readiness.overall.range,
   nextCheckpoint: checkpoint,
-  candidates: (candidates || []).map((candidate: any) => ({
-    activityKey: candidate.activity_key,
+  candidates: (candidates || []).map((candidate: any, activityIndex: number) => ({
+    activityIndex,
     module: candidate.module,
     activityType: candidate.activity_type,
     stage: candidate.stage_key,
@@ -308,27 +314,17 @@ ${JSON.stringify({
       openRouterApiKey,
       geminiApiKey,
       temperature: 0.25,
-      maxOutputTokens: 300,
-      validateJson: (value) =>
-        typeof value?.headline === 'string' &&
-        typeof value?.explanation === 'string' &&
-        Array.isArray(value?.rankedActivityKeys),
+      maxOutputTokens: AI_ROUTES.find((route) => route.id === 'adaptive-learning-path')!
+        .maxOutputTokens!,
+      responseSchema: COACH_RESPONSE_SCHEMA,
+      validateJson: isCoachResponse,
     });
     const { promptTokens, cachedPromptTokens, outputTokens, tokensUsed } = providerResult.usage;
     const parsed = providerResult.parsed;
-    const allowedKeys = new Set((candidates || []).map((candidate: any) => candidate.activity_key));
-    const rankedActivityKeys = Array.isArray(parsed.rankedActivityKeys)
-      ? parsed.rankedActivityKeys.filter(
-          (key: unknown, index: number, values: unknown[]) =>
-            typeof key === 'string' && allowedKeys.has(key) && values.indexOf(key) === index
-        )
-      : [];
-    const completeRanking = [
-      ...rankedActivityKeys,
-      ...(candidates || [])
-        .map((candidate: any) => candidate.activity_key)
-        .filter((key: string) => !rankedActivityKeys.includes(key)),
-    ];
+    const completeRanking = resolveCoachRanking(
+      (candidates || []).map((candidate: any) => candidate.activity_key),
+      parsed.rankedActivityIndices
+    );
 
     const responsePayload = {
       summary: {

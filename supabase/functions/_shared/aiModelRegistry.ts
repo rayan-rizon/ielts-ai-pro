@@ -245,7 +245,7 @@ export const AI_ROUTES: AiRoute[] = [
     id: 'adaptive-learning-path',
     surface: 'Study plan: adaptive learning path ranking',
     file: 'supabase/functions/generateAdaptiveLearningPath/index.ts',
-    maxOutputTokens: 300,
+    maxOutputTokens: 512,
     steps: [
       {
         model: 'deepseek/deepseek-v4-flash-0731',
@@ -260,7 +260,8 @@ export const AI_ROUTES: AiRoute[] = [
         when: 'One retry at temperature 0 on malformed JSON.',
       },
     ],
-    notes: 'The model only ranks a pre-validated plan; it never invents activities.',
+    notes:
+      'The model selects at most three compact activity indices; remaining validated activities retain their order.',
   },
   {
     id: 'speaking-transcription',

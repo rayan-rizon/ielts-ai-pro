@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 
-import { TestSession } from '@/features/testing/shared/services/TestSession';
+import { supabase } from '@/lib/supabase';
 
 export default function useSpeakingSessionPersistence(sessionId, initialContentData = null) {
   const activeSessionIdRef = useRef(null);
@@ -28,12 +28,18 @@ export default function useSpeakingSessionPersistence(sessionId, initialContentD
 
       const queuedUpdate = updateQueueRef.current
         .catch(() => undefined)
-        .then(() =>
-          TestSession.update(sessionId, {
-            ...mergedUpdates,
-            updated_at: new Date().toISOString(),
-          })
-        );
+        .then(async () => {
+          const { error } = await supabase
+            .from('test_sessions')
+            .update({
+              ...mergedUpdates,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', sessionId)
+            .eq('is_completed', false);
+          // An already queued autosave must never replace a server-saved report.
+          if (error) throw error;
+        });
 
       updateQueueRef.current = queuedUpdate;
 

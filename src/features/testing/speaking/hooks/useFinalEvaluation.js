@@ -14,7 +14,9 @@ import {
   handleQuotaOrRateLimit,
   handleGenericEvaluationError,
   isQuotaOrRateLimitError,
-  persistPendingEvaluation,
+  persistSpeakingEvaluationFailure,
+  getSavedSpeakingEvaluation,
+  releaseDeferredEvaluation,
 } from './speakingEvaluationHelpers';
 
 async function fetchEvaluation({
@@ -37,13 +39,18 @@ async function handleFailedResponse({
   response,
   session,
   conversationsToEvaluate,
-  saveSessionProgress,
   setEvaluationError,
 }) {
   console.warn('Evaluation returned success:false:', response);
   setEvaluationError(response.message || 'AI evaluation could not be processed. Please retry.');
-  await persistPendingEvaluation({ session, conversationsToEvaluate, saveSessionProgress });
-  await saveSessionProgress({ evaluation_status: 'failed' });
+  await persistSpeakingEvaluationFailure({
+    session,
+    conversationsToEvaluate,
+    failure: {
+      code: response.error || 'unsuccessful_response',
+      occurredAt: new Date().toISOString(),
+    },
+  });
 }
 
 async function handleEvaluationCatchError({ evalError, ctx }) {
@@ -56,7 +63,7 @@ async function handleEvaluationCatchError({ evalError, ctx }) {
       setShowUpgradeDialog: ctx.setShowUpgradeDialog,
       setIsTestComplete: ctx.setIsTestComplete,
     });
-    await ctx.saveSessionProgress({ evaluation_status: 'failed' });
+    await releaseDeferredEvaluation(ctx.session);
     return;
   }
 
@@ -120,6 +127,11 @@ export default function useFinalEvaluation({
       try {
         const claimed = await claimSpeakingEvaluation(session);
         if (!claimed) {
+          const saved = await getSavedSpeakingEvaluation(session);
+          if (saved) {
+            setFinalEvaluation(saved);
+            return;
+          }
           setEvaluationError('This response is already being analyzed or has feedback.');
           return;
         }
@@ -152,6 +164,18 @@ export default function useFinalEvaluation({
           setEvaluationError,
         });
       } catch (evalError) {
+        // The response may be lost after the server committed the report.
+        // Recover it before treating the request as a failed evaluation.
+        try {
+          const saved = await getSavedSpeakingEvaluation(session);
+          if (saved) {
+            setFinalEvaluation(saved);
+            setEvaluationError(null);
+            return;
+          }
+        } catch (recoveryError) {
+          console.warn('Could not check persisted speaking evaluation:', recoveryError);
+        }
         await handleEvaluationCatchError({
           evalError,
           ctx: {

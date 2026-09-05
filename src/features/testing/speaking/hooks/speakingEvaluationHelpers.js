@@ -125,6 +125,42 @@ export async function claimSpeakingEvaluation(session) {
   return Boolean(data);
 }
 
+export async function getSavedSpeakingEvaluation(session) {
+  const { data, error } = await supabase
+    .from('test_sessions')
+    .select('evaluation_status, content_data')
+    .eq('id', session.id)
+    .maybeSingle();
+  if (error) throw error;
+  const evaluation = data?.content_data?.finalEvaluation;
+  return data?.evaluation_status === 'complete' &&
+    evaluation?.evaluationVersion === CURRENT_EVALUATION_VERSION &&
+    evaluation?.speakingSessionId === session.id
+    ? evaluation
+    : null;
+}
+
+export async function persistSpeakingEvaluationFailure({
+  session,
+  conversationsToEvaluate,
+  failure,
+}) {
+  const { error } = await supabase
+    .from('test_sessions')
+    .update({
+      evaluation_status: 'failed',
+      content_data: {
+        ...session?.content_data,
+        allPartsConversation: conversationsToEvaluate,
+        evaluationPending: false,
+        evaluationFailure: failure,
+      },
+    })
+    .eq('id', session.id)
+    .eq('evaluation_status', 'pending');
+  if (error) throw error;
+}
+
 export async function persistPendingEvaluation({
   session,
   conversationsToEvaluate,
@@ -147,7 +183,18 @@ export function isQuotaOrRateLimitError(error) {
 }
 
 export function isQuotaError(error) {
-  return error.status === 403 || error.rateLimitType === 'quota';
+  return error.rateLimitType === 'quota';
+}
+
+export async function releaseDeferredEvaluation(session) {
+  // A rejected request has not run an evaluation. Keep it retryable, and never
+  // downgrade a report that the server completed while this response arrived.
+  const { error } = await supabase
+    .from('test_sessions')
+    .update({ evaluation_status: 'not_requested' })
+    .eq('id', session.id)
+    .eq('evaluation_status', 'pending');
+  if (error) throw error;
 }
 
 function isNetworkError(error) {
@@ -213,10 +260,14 @@ export function handleQuotaOrRateLimit({
 }) {
   if (isQuotaError(evalError)) {
     setEvaluationError(
-      'Your plan does not include speaking evaluation. Please upgrade to continue.'
+      'You have reached your current speaking allowance. Retry when it resets or upgrade for higher limits.'
     );
     setShowUpgradeDialog(true);
     setIsTestComplete(true);
+    return;
+  }
+  if (evalError.status === 403) {
+    setEvaluationError('This request was denied. Refresh your session and try again.');
     return;
   }
   toast.error('Too many requests', {
@@ -230,7 +281,6 @@ export async function handleGenericEvaluationError({
   evalError,
   session,
   conversationsToEvaluate,
-  saveSessionProgress,
   setEvaluationError,
 }) {
   const resolvedError = resolveEvaluationError(evalError);
@@ -239,12 +289,13 @@ export async function handleGenericEvaluationError({
     description: resolvedError.description,
     duration: 8000,
   });
-  await saveSessionProgress({
-    evaluation_status: 'failed',
-    content_data: {
-      ...session?.content_data,
-      allPartsConversation: conversationsToEvaluate,
-      evaluationPending: false,
+  await persistSpeakingEvaluationFailure({
+    session,
+    conversationsToEvaluate,
+    failure: {
+      status: evalError?.status || null,
+      code: String(evalError?.details?.error || evalError?.name || 'unknown').slice(0, 120),
+      occurredAt: new Date().toISOString(),
     },
   });
 }

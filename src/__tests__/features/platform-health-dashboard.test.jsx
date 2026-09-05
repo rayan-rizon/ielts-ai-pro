@@ -88,6 +88,29 @@ const health = {
 const render = (ui) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>);
 
 describe('PlatformHealthDashboard operations console', () => {
+  it('keeps recovered provider evidence visible and distinguishes it from an unresolved failure', async () => {
+    mocks.incidents.mockResolvedValueOnce([
+      {
+        service: 'speech_transcription',
+        message: 'Recovered provider error',
+        outcome: 'recovered',
+        occurrences: 3,
+        last_seen: '2026-08-02T00:00:00Z',
+      },
+      {
+        service: 'speech_transcription',
+        message: 'Unresolved provider error',
+        outcome: 'unresolved',
+        occurrences: 1,
+        last_seen: '2026-08-02T00:00:00Z',
+      },
+    ]);
+    render(<PlatformHealthDashboard />);
+    expect(await screen.findByText('Recovered provider error')).toBeInTheDocument();
+    expect(screen.getByText('Unresolved provider error')).toBeInTheDocument();
+    expect(screen.getAllByText('Recovered — a fallback returned a usable result.')).toHaveLength(1);
+  });
+
   beforeEach(() => {
     mocks.get.mockReset().mockResolvedValue(health);
     mocks.incidents.mockReset().mockResolvedValue([

@@ -687,6 +687,7 @@ export default function SpeakingTest() {
       isTestComplete={isTestComplete}
       navigate={navigate}
       reportProps={{
+        testDate: session?.completed_at || session?.created_at,
         finalEvaluation,
         isEvaluating,
         evaluationError,

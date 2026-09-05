@@ -1216,11 +1216,21 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
                   key={`${incident.service}-${i}`}
                   className="flex items-start gap-2.5 py-2.5 border-b border-stone-100 dark:border-white/5 last:border-0"
                 >
-                  <span className={cn('w-1 h-1 rounded-full mt-1.5 shrink-0', FAULT_BG)} />
+                  <span
+                    className={cn(
+                      'w-1 h-1 rounded-full mt-1.5 shrink-0',
+                      incident.outcome === 'recovered' ? 'bg-amber-500' : FAULT_BG
+                    )}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 wrap-break-word leading-snug">
                       {incident.message}
                     </p>
+                    {incident.outcome === 'recovered' && (
+                      <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                        Recovered — a fallback returned a usable result.
+                      </p>
+                    )}
                     <p className={cn(MICRO, 'mt-1 text-stone-500 dark:text-stone-400')}>
                       {serviceLabels[incident.service] || incident.service}
                     </p>
