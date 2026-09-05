@@ -210,17 +210,9 @@
 
           var startWhenIdle = function () {
             // Give the app time to paint and hydrate before third-party code runs.
-            // The fallback also works in browsers without requestIdleCallback.
-            var loadWhenIdle = function () {
-              if (typeof window.requestIdleCallback === 'function') {
-                window.requestIdleCallback(loadNow, { timeout: 4000 });
-                return;
-              }
-
-              loadNow();
-            };
-
-            window.setTimeout(loadWhenIdle, 3000);
+            // A plain timer avoids native requestIdleCallback recursion observed
+            // in the Google app's iOS webview while preserving the same deferral.
+            window.setTimeout(loadNow, 3000);
           };
 
           // Anyone who interacts is a real visitor worth measuring, and by then
@@ -241,7 +233,7 @@
         // A paid click is the one arrival we cannot afford to measure late.
         //
         // GTM owns the Meta Pixel, and the deferral above holds it until the
-        // load event plus an idle callback — measured at ~3.5s after `load`
+        // load event plus a short timer — measured at ~3s after `load`
         // on a fast desktop with a warm cache, and considerably worse inside
         // the Facebook in-app browser on mobile, which is where nearly all ad
         // traffic lands. A visitor who leaves before the Pixel initialises

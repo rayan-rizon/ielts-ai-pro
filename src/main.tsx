@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from '@/App.jsx';
 import { RootProviders } from './components/RootProviders';
 import { optionalPublicEnv } from '@/lib/publicEnv';
+import { shouldDropSentryEvent } from '@/lib/sentryFilters';
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 const isLiveProduction = import.meta.env.PROD && !isLocalHost;
@@ -88,31 +89,7 @@ const initSentry = () => {
       replaysOnErrorSampleRate: isLiveProduction ? 1.0 : 0,
       sendDefaultPii: false,
       beforeSend(event, hint) {
-        // Temporarily commented out to allow testing and verification in local development
-        /*
-        if (!isProduction) {
-          return null;
-        }
-        */
-
-        const error = hint.originalException;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-
-        // Filter out "Java object is gone" and other third-party noise
-        // related to in-app browsers like Instagram/Facebook on Android.
-        const noiseKeywords = [
-          'Java object is gone',
-          'postMessage',
-          'enableButtonsClickedMetaDataLogging',
-          '__show__deepen',
-          'atomic_css',
-        ];
-
-        if (noiseKeywords.some((keyword) => errorMessage.includes(keyword))) {
-          return null;
-        }
-
-        return event;
+        return shouldDropSentryEvent(event, hint) ? null : event;
       },
     });
   });

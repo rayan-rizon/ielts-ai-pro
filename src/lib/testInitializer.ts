@@ -65,6 +65,11 @@ interface CreateSessionParams {
   learningPathActivityId?: string | null;
 }
 
+const DATABASE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const isDatabaseId = (id: unknown): id is string =>
+  typeof id === 'string' && DATABASE_ID_PATTERN.test(id);
+
 /**
  * Initialize a test (Reading or Listening) with batched queries.
  */
@@ -77,6 +82,10 @@ export async function initializeTest({
 }: InitializeTestParams): Promise<InitializeTestResult> {
   if (!['reading', 'listening'].includes(type)) {
     throw new Error(`Invalid test type: ${type}`);
+  }
+
+  if (!isDatabaseId(id)) {
+    throw new Error(`Invalid ${type} test identifier`);
   }
 
   // Step 1: Parallel fetch - check session AND get user simultaneously

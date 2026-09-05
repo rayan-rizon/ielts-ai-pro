@@ -42,6 +42,25 @@ describe('Vercel security-header contract', () => {
     });
   });
 
+  it('revalidates the SPA shell while keeping fingerprinted assets immutable', () => {
+    const rootDocument = vercelConfig.headers.find((entry) => entry.source === '/');
+    const indexDocument = vercelConfig.headers.find((entry) => entry.source === '/index.html');
+    const fingerprintedAssets = vercelConfig.headers.find(
+      (entry) => entry.source === '/assets/(.*)'
+    );
+    const revalidate = {
+      key: 'Cache-Control',
+      value: 'public, max-age=0, must-revalidate',
+    };
+
+    expect(rootDocument.headers).toContainEqual(revalidate);
+    expect(indexDocument.headers).toContainEqual(revalidate);
+    expect(fingerprintedAssets.headers).toContainEqual({
+      key: 'Cache-Control',
+      value: 'public, max-age=31536000, immutable',
+    });
+  });
+
   it('keeps a same-origin CSP with pinned Supabase and payment connections', () => {
     const csp = headerValues['content-security-policy'];
 

@@ -82,7 +82,9 @@ describe('PostHog SDK bridge', () => {
         capture_exceptions: false,
         capture_pageleave: false,
         capture_pageview: false,
+        disable_external_dependency_loading: true,
         disable_session_recording: true,
+        advanced_disable_flags: true,
         person_profiles: 'identified_only',
       })
     );

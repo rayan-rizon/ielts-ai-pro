@@ -92,7 +92,11 @@ const loadClient = async () => {
         capture_pageview: false,
         capture_pageleave: false,
         capture_exceptions: false,
+        // Product analytics uses explicit capture calls only. Do not fetch
+        // config.js, flags, replay, surveys, or other optional remote bundles.
+        disable_external_dependency_loading: true,
         disable_session_recording: true,
+        advanced_disable_flags: true,
         person_profiles: 'identified_only',
         persistence: 'localStorage+cookie',
       });

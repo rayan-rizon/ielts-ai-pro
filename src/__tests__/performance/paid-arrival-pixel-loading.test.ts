@@ -35,9 +35,10 @@ describe('paid-arrival pixel loading', () => {
   });
 
   it('still defers GTM for organic and direct visits', () => {
-    // The idle path must survive — removing it would regress LCP for the
-    // overwhelming majority of sessions, which are not ad clicks.
-    expect(indexHtml).toContain('window.setTimeout(loadWhenIdle, 3000)');
+    // A single timer preserves the LCP deferral without entering the native
+    // requestIdleCallback loop that overflowed the Google iOS webview stack.
+    expect(indexHtml).toContain('window.setTimeout(loadNow, 3000)');
+    expect(indexHtml).not.toContain('window.requestIdleCallback(loadNow');
     expect(indexHtml).toMatch(/\} else \{\s*scheduleGtm\(\);\s*\}/);
   });
 
