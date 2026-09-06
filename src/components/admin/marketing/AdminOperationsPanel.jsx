@@ -38,7 +38,13 @@ const shortDateTime = (value) =>
     : '—';
 const modelName = (value) => {
   if (!value) return 'Not recorded';
-  return value.split('/').at(-1)?.replace('deepseek-v4-flash-0731', 'DeepSeek V4 Flash') || value;
+  return (
+    value
+      .split('/')
+      .at(-1)
+      ?.replace('deepseek-v4-flash-0731', 'DeepSeek V4 Flash')
+      .replace('glm-5.3-flash', 'GLM 5.3 Flash') || value
+  );
 };
 const examples = [
   'How are messages performing by channel?',

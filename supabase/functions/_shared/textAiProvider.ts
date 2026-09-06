@@ -43,6 +43,10 @@ type TextAiRequest = {
   prompt: string;
   systemPrompt?: string;
   openRouterApiKey?: string | null;
+  /** Optional route-specific OpenRouter model. Defaults to the shared DeepSeek primary. */
+  openRouterModel?: string;
+  /** Route-specific compatibility switches for models that cannot disable reasoning. */
+  openRouterDisableReasoning?: boolean;
   deepseekApiKey?: string | null;
   geminiApiKey?: string | null;
   temperature?: number;
@@ -678,7 +682,12 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
 function fallbackReason(error: unknown) {
   if (!(error instanceof TextAiProviderError)) return 'deepseek_provider_failure';
   const status = error.status ? `_http_${error.status}` : '';
-  const prefix = error.provider === 'openrouter-deepseek' ? 'openrouter_deepseek' : 'deepseek';
+  const prefix =
+    error.provider === 'openrouter-deepseek'
+      ? 'openrouter_deepseek'
+      : error.provider === 'openrouter'
+        ? 'openrouter'
+        : 'deepseek';
   return `${prefix}_${error.code}${status}`;
 }
 
@@ -694,10 +703,18 @@ export async function requestJsonWithGeminiFallback(request: TextAiRequest): Pro
 
   if (request.openRouterApiKey) {
     try {
-      return await requestOpenRouterDeepSeekJson({
-        ...request,
-        apiKey: request.openRouterApiKey,
-      });
+      return request.openRouterModel
+        ? await requestOpenRouterJson({
+            ...request,
+            apiKey: request.openRouterApiKey,
+            model: request.openRouterModel,
+            includeUsageAccounting: true,
+            disableReasoning: request.openRouterDisableReasoning,
+          })
+        : await requestOpenRouterDeepSeekJson({
+            ...request,
+            apiKey: request.openRouterApiKey,
+          });
     } catch (error) {
       primaryFailure = error;
     }

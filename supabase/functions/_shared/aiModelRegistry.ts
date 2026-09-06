@@ -54,6 +54,14 @@ export type AiRoute = {
 // --- Models -----------------------------------------------------------------
 
 export const MODELS: Record<string, ModelEntry> = {
+  'z-ai/glm-5.3-flash': {
+    id: 'z-ai/glm-5.3-flash',
+    vendor: 'Z.ai',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.075, cachedInputPerMillion: 0.015, outputPerMillion: 0.25 },
+    pricingSource:
+      'OpenRouter catalog price, verified 2026-09-06. Billed usage.cost wins when returned.',
+  },
   'deepseek/deepseek-v4-flash-0731': {
     id: 'deepseek/deepseek-v4-flash-0731',
     vendor: 'DeepSeek',
@@ -268,16 +276,16 @@ export const AI_ROUTES: AiRoute[] = [
     id: 'admin-marketing-question',
     surface: 'Admin Marketing: select an approved report from a question',
     file: 'supabase/functions/retention-autopilot/index.ts',
-    maxOutputTokens: 120,
-    timeoutMs: 8000,
+    maxOutputTokens: 256,
+    timeoutMs: 12000,
     steps: [
       {
-        model: 'deepseek/deepseek-v4-flash-0731',
+        model: 'z-ai/glm-5.3-flash',
         role: 'primary',
         when: 'Admin asks a reporting question.',
       },
       { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
-      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'DeepSeek routes failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'GLM and direct DeepSeek failed.' },
       {
         model: 'gemini-2.5-flash-lite',
         role: 'repair',

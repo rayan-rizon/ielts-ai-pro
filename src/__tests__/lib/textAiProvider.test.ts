@@ -143,6 +143,39 @@ describe('text AI provider routing', () => {
     });
   });
 
+  it('uses a route-specific OpenRouter model without changing shared routes', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        model: 'z-ai/glm-5.3-flash',
+        choices: [{ message: { content: '{"report":"delivery_health"}' } }],
+        usage: { prompt_tokens: 40, completion_tokens: 8, total_tokens: 48 },
+      })
+    );
+
+    const result = await requestJsonWithGeminiFallback({
+      prompt: 'Choose a report.',
+      openRouterApiKey: 'openrouter-test-key',
+      openRouterModel: 'z-ai/glm-5.3-flash',
+      openRouterDisableReasoning: false,
+      maxOutputTokens: 256,
+      validateJson: (value) => value?.report === 'delivery_health',
+      fetchImpl,
+    });
+
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toMatchObject({
+      model: 'z-ai/glm-5.3-flash',
+      response_format: { type: 'json_object' },
+      max_tokens: 256,
+    });
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).not.toHaveProperty('reasoning');
+    expect(result).toMatchObject({
+      provider: 'openrouter',
+      model: 'z-ai/glm-5.3-flash',
+      parsed: { report: 'delivery_health' },
+      fallbackUsed: false,
+    });
+  });
+
   it('falls back from OpenRouter to direct DeepSeek, then Gemini if needed', async () => {
     const fetchImpl = vi
       .fn()
