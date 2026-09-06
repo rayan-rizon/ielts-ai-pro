@@ -97,6 +97,15 @@ export async function initializeTest({
   ]);
 
   const sessionFromUrl = sessionResult?.data as TestSession | null;
+  if (sessionFromUrl?.paired_room_id) {
+    const { pairedRequest } = await import('@/features/testing/paired/pairedApi');
+    const room = await pairedRequest('get', String(sessionFromUrl.paired_room_id), {
+      include_snapshot: true,
+    });
+    if (room.state !== 'complete')
+      throw new Error('Open this attempt from its paired test invitation');
+    return { ...room.snapshot, session: sessionFromUrl, user: userData };
+  }
 
   // Determine passage ID
   const passageId: string =

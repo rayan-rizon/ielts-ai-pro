@@ -1,3 +1,4 @@
+import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useEffect, useRef } from 'react';
 import { EXAM_DURATION_SECONDS, getExamRemainingSeconds, getSessionTestMode } from '../testMode';
 
@@ -9,6 +10,9 @@ export function useExamDeadline({
   onExpire,
   onResumeExpired,
 }) {
+  const paired = usePairedTest();
+  const pairedRef = useRef(paired);
+  pairedRef.current = paired;
   const onTickRef = useRef(onTick);
   const onExpireRef = useRef(onExpire);
   const onResumeExpiredRef = useRef(onResumeExpired);
@@ -25,10 +29,18 @@ export function useExamDeadline({
     let expired = false;
     let isInitialSync = true;
     const syncDeadline = () => {
-      const remaining = getExamRemainingSeconds(session, durationSeconds);
+      const remaining = getExamRemainingSeconds(
+        session,
+        durationSeconds,
+        pairedRef.current?.now() ?? Date.now()
+      );
       onTickRef.current?.(remaining);
       if (remaining === 0 && !expired) {
         expired = true;
+        if (pairedRef.current) {
+          pairedRef.current.act('get').catch(() => {});
+          return;
+        }
         if (isInitialSync && onResumeExpiredRef.current) {
           onResumeExpiredRef.current();
         } else {

@@ -1,3 +1,4 @@
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -103,6 +104,7 @@ export default function ReadingCardGridView(props) {
           completedSession={completedSession}
         />
       </div>
+      <TakeWithFriend test={test} isLocked={isLocked} />
     </m.div>
   );
 }

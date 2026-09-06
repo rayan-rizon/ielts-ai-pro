@@ -1,0 +1,197 @@
+import { invitationPath, roomLobbyPath } from '@/features/testing/paired/pairedApi';
+import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import {
+  prepareSnapshot,
+  gradeSnapshot,
+  comparisonSummary,
+  withoutSolutions,
+  validateAnswers,
+  audioPosition,
+} from '../../../supabase/functions/_shared/objective-scoring/paired.js';
+import { publicRoom } from '../../../supabase/functions/_shared/objective-scoring/publicRoom.js';
+import { calculateTestResults } from '@/features/testing/reading/components/ReadingTest/utils/scoreCalculator';
+import { calculateListeningTestResults } from '@/features/testing/listening/components/ListeningTest/utils/scoreCalculator';
+import PairedRoomView from '@/features/testing/paired/PairedRoomView';
+
+function fixture(type = 'reading') {
+  const count = type === 'reading' ? 3 : 4;
+  const parts = Array.from({ length: count }, (_, i) => ({
+    section_number: i + 1,
+    title: `Part ${i + 1}`,
+    content: 'A passage',
+    audio_url: `https://media.ieltsai.pro/${i}.mp3`,
+  }));
+  const passage = {
+    id: 'test',
+    title: 'Practice',
+    test_type: type,
+    is_active: true,
+    content: JSON.stringify(parts),
+  };
+  const questions = Array.from({ length: 40 }, (_, i) => ({
+    id: `q${i}`,
+    type: 'multiple_choice',
+    question_number: i + 1,
+    section: Math.min(count, Math.floor(i / (type === 'reading' ? 14 : 10)) + 1),
+    correct_answer: 'A',
+  }));
+  return prepareSnapshot(passage, questions);
+}
+function serverRoom(state = 'running') {
+  return {
+    id: 'room',
+    actor_id: 'one',
+    host_id: 'one',
+    state,
+    test_type: 'reading',
+    title: 'Practice',
+    snapshot: fixture(),
+    duration_seconds: 3600,
+    invite_token: 'secret',
+    members: [
+      {
+        user_id: 'one',
+        auth_id: 'auth-one',
+        display_name: 'Alex',
+        answers: { q0: 'A' },
+        revision: 1,
+        session_id: 'own',
+        ready: true,
+        summary: comparisonSummary(gradeSnapshot(fixture(), { q0: 'A' })),
+      },
+      {
+        user_id: 'two',
+        auth_id: 'auth-two',
+        display_name: 'Sam',
+        answers: { q0: 'B' },
+        revision: 1,
+        session_id: 'peer',
+        ready: true,
+        summary: comparisonSummary(gradeSnapshot(fixture(), {})),
+      },
+    ],
+  };
+}
+describe('authoritative paired scoring', () => {
+  it.each(['reading', 'listening'])('uses the existing %s scoring rules', (type) => {
+    const snapshot = fixture(type),
+      answers = { q0: 'A', q1: 'B', q2: 'a' };
+    const actual = gradeSnapshot(snapshot, answers);
+    const expected =
+      type === 'reading'
+        ? calculateTestResults(snapshot.questions, answers, snapshot.testData.sections)
+        : calculateListeningTestResults(snapshot.questions, answers, snapshot.testData.content);
+    expect(actual).toEqual(expected);
+    expect(actual.correctAnswers).toBe(2);
+    expect(actual.totalQuestions).toBe(40);
+  });
+  it('rejects incomplete or disabled tests', () => {
+    expect(() => prepareSnapshot({ test_type: 'reading', is_active: false }, [])).toThrow();
+    expect(() =>
+      prepareSnapshot({ test_type: 'reading', is_active: true, content: '[]' }, [])
+    ).toThrow();
+  });
+  it('never returns another student answers, session identifier, or auth identity', () => {
+    const result = publicRoom(serverRoom());
+    expect(result.own.answers).toEqual({ q0: 'A' });
+    expect(result.members[1]).not.toHaveProperty('answers');
+    expect(result.members[1]).not.toHaveProperty('auth_id');
+    expect(result.members[1]).not.toHaveProperty('session_id');
+    expect(result.members[0].summary).toBeUndefined();
+    expect(result.invite_token).toBeUndefined();
+    expect(JSON.stringify(result.snapshot)).not.toContain('correct_answer');
+    expect(result.snapshot.testData.content).toBe('');
+  });
+  it('releases only allowlisted score summaries when the room completes', () => {
+    const result = publicRoom(serverRoom('complete'));
+    expect(result.members[0].summary.correctAnswers).toBe(1);
+    expect(result.members[1]).not.toHaveProperty('answers');
+    expect(Object.keys(result.members[0].summary).sort()).toEqual(
+      [
+        'bandScore',
+        'correctAnswers',
+        'percentage',
+        'sectionStats',
+        'totalQuestions',
+        'typeStats',
+      ].sort()
+    );
+  });
+  it('does not repeatedly transfer frozen test content during polling', () =>
+    expect(publicRoom(serverRoom(), false).snapshot).toBeUndefined());
+  it('strips nested solutions and transcripts', () =>
+    expect(
+      withoutSolutions({
+        question_groups: [
+          {
+            questions: [
+              { id: 'a', gap_fill: { answers: { 1: 'secret' } }, explanation_data: 'private' },
+            ],
+          },
+        ],
+        transcript: 'secret',
+      })
+    ).toEqual({ question_groups: [{ questions: [{ id: 'a', gap_fill: {} }] }] }));
+  it('bounds answer payloads and rejects structured score injection', () => {
+    expect(validateAnswers({ q1: ['A', 'B'] })).toEqual({ q1: ['A', 'B'] });
+    expect(() => validateAnswers({ q1: { score: 9 } })).toThrow();
+    expect(() => validateAnswers({ q1: 'x'.repeat(1001) })).toThrow();
+    expect(() => validateAnswers(JSON.parse('{"__proto__":"x"}'))).toThrow();
+  });
+  it('restores audio at part boundaries and the review interval', () => {
+    expect(audioPosition([100, 200, 300, 400], 150)).toEqual({
+      part: 1,
+      offset: 50,
+      review: false,
+    });
+    expect(audioPosition([100, 200], 100)).toEqual({ part: 1, offset: 0, review: false });
+    expect(audioPosition([100, 200], 300).review).toBe(true);
+    expect(audioPosition([100, 200], -5).offset).toBe(0);
+  });
+});
+describe('paired comparison interface', () => {
+  it('withholds comparison for an early submission', () => {
+    const source = serverRoom();
+    source.members[0].submitted_at = '2026-09-01';
+    render(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(source)} act={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.getByText(/Your answers are locked/)).toBeInTheDocument();
+    expect(screen.queryByText('estimated band')).not.toBeInTheDocument();
+  });
+  it('displays both results and links only to the owner private review', () => {
+    render(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(serverRoom('complete'))} act={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.getAllByText('estimated band')).toHaveLength(2);
+    expect(screen.getByRole('link', { name: 'My private review' }).getAttribute('href')).toContain(
+      '/reading-test/own?room=room'
+    );
+    expect(screen.queryByText('secret')).not.toBeInTheDocument();
+  });
+  it('disables start until both students are ready', () => {
+    const source = serverRoom('lobby');
+    source.members[1].ready = false;
+    render(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(source)} act={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole('button', { name: 'Start together' })).toBeDisabled();
+  });
+});
+
+describe('test-page entry points', () => {
+  it.each(['reading', 'listening'])('keeps %s invitations and lobbies on the test page', (type) => {
+    const room = { id: 'room', passage_id: 'test', test_type: type, invite_token: 'token' };
+    expect(invitationPath(room)).toBe(`/${type}-test/test#invite=token`);
+    expect(roomLobbyPath(room)).toBe(`/${type}-test/test?room=room`);
+  });
+});

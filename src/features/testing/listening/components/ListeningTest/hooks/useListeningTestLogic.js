@@ -1,3 +1,4 @@
+import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useListeningTestDispatch, useListeningTestState } from '../context/ListeningTestContext';
@@ -59,6 +60,7 @@ function loadAudioDuration(src) {
 }
 
 export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpired } = {}) => {
+  const paired = usePairedTest();
   const { id } = useParams();
   const navigate = useNavigate();
   const { session, answers, testData, questions, questionsWithNumbers, isFinished, activePart } =
@@ -104,14 +106,16 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
           questions,
           session: existingSession,
           user,
-        } = await initializeTest({
+        } = paired?.initial ||
+        (await initializeTest({
           type: 'listening',
           id: taskId,
           isRetake,
           viewResults,
           user: currentUser, // Pass user to avoid redundant User.me()
-        });
+        }));
 
+        if (paired) dispatch({ type: ACTIONS.RESET_TEST });
         // 1. PREPARE STORE STATE (Validate or Reset)
         if (currentUser && existingSession) {
           // Resume Mode: Validate session ID to prevent data mixing
@@ -222,7 +226,11 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
             }
 
             // Redirect if needed
-            if (!existingSession.is_completed && !location.pathname.includes(existingSession.id)) {
+            if (
+              !paired &&
+              !existingSession.is_completed &&
+              !location.pathname.includes(existingSession.id)
+            ) {
               navigate(`/listening-test/${existingSession.id}`, { replace: true });
             }
           } else {
@@ -268,7 +276,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
   const hasAutoPlayedRef = useRef(false);
   useEffect(() => {
     // Only trigger once per test load
-    if (hasAutoPlayedRef.current) return;
+    if (paired || hasAutoPlayedRef.current) return;
     if (!testData || !session || isFinished) return;
 
     const params = new URLSearchParams(window.location.search);
@@ -292,7 +300,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
   const prevActivePartRef = useRef(activePart);
   useEffect(() => {
     // Skip if this is the initial render (no previous part)
-    if (prevActivePartRef.current === activePart) return;
+    if (paired || prevActivePartRef.current === activePart) return;
 
     // Update the previous part ref
     prevActivePartRef.current = activePart;
@@ -367,6 +375,10 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
     dispatch({ type: ACTIONS.SET_SUBMITTING, payload: true });
 
     try {
+      if (paired) {
+        await paired.submit(useListeningTestStore.getState().answers);
+        return;
+      }
       // Stop the audio playback when test is submitted
       if (audioPlayerRef.current) {
         audioPlayerRef.current.pause();
@@ -550,7 +562,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
   });
 
   const handleExamAudioEnded = useCallback(() => {
-    if (getSessionTestMode(session) !== 'exam') return;
+    if (paired || getSessionTestMode(session) !== 'exam') return;
     if (activePart < getListeningParts(testData).length - 1) {
       dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: activePart + 1 });
     } else {
