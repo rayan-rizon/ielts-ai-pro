@@ -43,11 +43,7 @@ export default function CountryAutocomplete({ value, onChange, disabled }) {
           <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" data-oid="mw6r0e1" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="w-[200px] p-0 shadow-2xl border-border/50"
-        align="start"
-        data-oid="jnqf37g"
-      >
+      <PopoverContent className="w-[200px] p-0 shadow-md border-border/60" align="start">
         <Command className="bg-popover" data-oid="rxgpa9y">
           <CommandInput
             placeholder="Search country..."

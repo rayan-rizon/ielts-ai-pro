@@ -103,8 +103,13 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                       { weekday: 'short', month: 'short', day: 'numeric' }
                     )}`}
                   >
-                    <span
-                      className="aspect-square w-full cursor-default rounded-[3px] transition-transform duration-150 hover:scale-[1.2]"
+                    <button
+                      type="button"
+                      aria-label={`${day.count} session${day.count === 1 ? '' : 's'} on ${day.date.toLocaleDateString(
+                        undefined,
+                        { weekday: 'short', month: 'short', day: 'numeric' }
+                      )}`}
+                      className="aspect-square w-full rounded-[3px] transition-transform duration-150 hover:scale-[1.2] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]"
                       style={{
                         backgroundColor: `rgb(var(--panel-accent-tint) / ${opacityFor(day.count)})`,
                       }}
@@ -120,8 +125,8 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
       <PanelFootnote>
         {totalSessions > 0 ? (
           <>
-            <FootNum>{totalSessions}</FootNum> sessions across <FootNum>{activeDays}</FootNum> of 84
-            days
+            <FootNum>{totalSessions}</FootNum> sessions across <FootNum>{activeDays}</FootNum> of{' '}
+            <FootNum>84</FootNum> days
           </>
         ) : (
           <>nothing logged in the last 12 weeks</>

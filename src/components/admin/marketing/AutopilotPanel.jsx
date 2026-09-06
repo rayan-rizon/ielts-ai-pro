@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
+import AutopilotMessagePreviewDialog from './dialogs/AutopilotMessagePreviewDialog';
 import {
   AdminButton,
   BODY,
@@ -121,6 +122,7 @@ function Evidence({ evidence = [] }) {
 export default function AutopilotPanel({ autopilot, onRefresh }) {
   const [busy, setBusy] = useState('');
   const [previewResult, setPreviewResult] = useState(null);
+  const [previewPolicy, setPreviewPolicy] = useState(null);
   const policies = autopilot?.policies || [];
   const recommendations = autopilot?.recommendations || [];
   const interventions = autopilot?.interventions || [];
@@ -370,6 +372,13 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                     </Pill>
                   </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewPolicy(policy)}
+                  className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-[#5a63df] hover:text-[#4d56ca]"
+                >
+                  <Play className="h-3 w-3" /> Preview learner message
+                </button>
               </div>
             );
           })}
@@ -603,6 +612,11 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
           stayed quiet.
         </p>
       </div>
+      <AutopilotMessagePreviewDialog
+        policy={previewPolicy}
+        open={Boolean(previewPolicy)}
+        onOpenChange={(open) => !open && setPreviewPolicy(null)}
+      />
     </section>
   );
 }

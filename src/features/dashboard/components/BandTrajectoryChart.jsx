@@ -33,7 +33,7 @@ function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-lg dark:border-white/[0.14] dark:bg-[#242427]">
+    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-xs dark:border-white/[0.14] dark:bg-[#242427]">
       <p className={cn(MICRO, MUTED, 'capitalize')}>
         {point.module || 'Test'} · {point.dateLabel}
       </p>
@@ -110,7 +110,11 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
             : 'No scored tests yet — your band history charts here.'}
         </Empty>
       ) : (
-        <div className="min-h-[160px] w-full flex-1">
+        <div
+          role="region"
+          aria-label="Band trajectory score progression chart"
+          className="min-h-[160px] w-full flex-1"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 8, right: 8, left: -26, bottom: 0 }}>
               <CartesianGrid
@@ -124,37 +128,29 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
                 tickLine={false}
                 tick={AXIS_TICK}
                 dy={6}
-                interval="preserveStartEnd"
               />
               <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={AXIS_TICK}
-                width={44}
                 domain={[domainFloor, domainCeil]}
                 ticks={Array.from(
                   { length: Math.round(domainCeil - domainFloor) + 1 },
                   (_, i) => domainFloor + i
                 )}
+                axisLine={false}
+                tickLine={false}
+                tick={AXIS_TICK}
+                width={44}
               />
               <Tooltip
                 content={<ChartTooltip />}
                 cursor={{ stroke: ACCENT, strokeWidth: 1, strokeDasharray: '3 3', opacity: 0.6 }}
               />
+              {/* Target band hairline reference line */}
               {target != null ? (
                 <ReferenceLine
                   y={target}
-                  stroke="currentColor"
-                  className="text-[rgb(var(--signal-ok))]"
-                  strokeDasharray="4 4"
+                  stroke="#afb5ff"
+                  strokeDasharray="2 2"
                   strokeWidth={1.5}
-                  label={{
-                    value: `target ${target.toFixed(1)}`,
-                    position: 'insideTopRight',
-                    fontSize: 9,
-                    fontWeight: 800,
-                    fill: 'rgb(var(--chart-axis))',
-                  }}
                 />
               ) : null}
               <Line
@@ -173,7 +169,7 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
       <PanelFootnote>
         {change != null ? (
           <span className="inline-flex items-center gap-1.5">
-            <Delta value={change} /> across {data.length} scored tests
+            <Delta value={change} /> across <span className={NUM}>{data.length}</span> scored tests
           </span>
         ) : (
           <>score two tests to see movement</>

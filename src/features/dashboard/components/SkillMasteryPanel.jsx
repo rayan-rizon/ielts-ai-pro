@@ -85,6 +85,12 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
       {rows.length === 0 ? (
         <Empty icon={Crosshair} className="flex-1 content-center">
           No question types tracked yet — practise a test and this ranks your weak spots.
+          <Link
+            to={createPageUrl('Reading')}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#5a63df] hover:underline"
+          >
+            Start diagnostic test →
+          </Link>
         </Empty>
       ) : (
         <div className="flex-1 space-y-2">
@@ -92,7 +98,7 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
             <Tip key={row.key} content={`${row.label} — ${row.correct} of ${row.attempts} correct`}>
               <Link
                 to={createPageUrl(modulePage(row.module))}
-                className="group flex items-center gap-2.5"
+                className="group flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
               >
                 <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
                   <div

@@ -251,10 +251,11 @@ export default function AdminUserDetails() {
     >
       <m.div variants={FADE_UP}>
         <button
+          type="button"
           onClick={() => navigate(createPageUrl('AdminPanel') + '?tab=users')}
           className={cn(
             MICRO,
-            'inline-flex items-center gap-1 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors mb-2'
+            'inline-flex items-center gap-1 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors mb-2 rounded px-1 -mx-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
           )}
         >
           <ArrowLeft className="w-3 h-3" />
@@ -342,7 +343,13 @@ export default function AdminUserDetails() {
                 onValueChange={handleSubscriptionChange}
                 value={user.subscription_tier || 'free'}
               >
-                <SelectTrigger className={cn(FIELD_INPUT, 'w-28 h-8')}>
+                <SelectTrigger
+                  aria-label="Subscription plan"
+                  className={cn(
+                    FIELD_INPUT,
+                    'w-28 h-8 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
+                  )}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

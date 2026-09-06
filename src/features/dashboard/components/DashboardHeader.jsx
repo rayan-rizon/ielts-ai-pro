@@ -55,7 +55,7 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
 
       <Link
         to={recommended.href}
-        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
+        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
       >
         Practise {recommended.title}
         <ArrowRight className="h-3 w-3" />

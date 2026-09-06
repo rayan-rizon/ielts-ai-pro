@@ -181,7 +181,7 @@ const RevenueAnalytics = ({
                       cursor={{ stroke: 'rgba(120,113,108,0.35)' }}
                       content={({ active, payload, label }) =>
                         active && payload?.length ? (
-                          <div className={cn(PANEL, 'min-w-[160px] p-3 shadow-xl')}>
+                          <div className={cn(PANEL, 'min-w-[160px] p-3 shadow-xs')}>
                             <p className={cn(MICRO, MUTED, 'mb-1.5')}>{label}</p>
                             {payload.map((entry) => (
                               <div

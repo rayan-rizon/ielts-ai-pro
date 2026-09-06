@@ -49,9 +49,16 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
               type="button"
               onClick={() => setExpanded((value) => !value)}
               aria-expanded={expanded}
-              className={cn(MICRO, PANEL_LINK, 'gap-1')}
+              aria-controls="cambridge-tests-content"
+              className={cn(MICRO, PANEL_LINK, 'gap-1 min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
             >
-              {expanded ? 'Collapse' : `Expand · ${count}`}
+              {expanded ? (
+                'Collapse'
+              ) : (
+                <>
+                  Expand · <span className={NUM}>{count}</span>
+                </>
+              )}
               <ChevronDown
                 className={cn(
                   'h-3 w-3 transition-transform duration-200',
@@ -67,6 +74,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
         {expanded && (
           <motion.div
             key="tests"
+            id="cambridge-tests-content"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -115,7 +123,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
                         <Pill tone="accent">Official</Pill>
                         <span className={cn(MICRO, MUTED, 'flex items-center gap-1')}>
                           <Clock className="h-2.5 w-2.5 shrink-0" />
-                          60m
+                          <span className={NUM}>60</span>m
                         </span>
                       </div>
                       <h4

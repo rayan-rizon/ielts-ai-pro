@@ -297,7 +297,7 @@ const RichTextEditor = ({
               data-oid="k417t17"
             >
               <div
-                className="bg-white dark:bg-stone-900 rounded-xl shadow-2xl p-6 max-w-md w-full border dark:border-stone-700 animate-in fade-in zoom-in duration-200"
+                className="bg-white dark:bg-[#141319] rounded-xl shadow-lg p-6 max-w-md w-full border border-stone-200 dark:border-white/10 animate-in fade-in zoom-in duration-200"
                 onClick={(e) => e.stopPropagation()}
                 data-oid="igts.4p"
               >
@@ -889,7 +889,7 @@ const RichTextEditor = ({
                 data-oid="wbfxoik"
               >
                 <div
-                  className="bg-white dark:bg-stone-900 rounded-xl shadow-2xl p-6 max-w-md w-full border dark:border-stone-700 animate-in fade-in zoom-in duration-200"
+                  className="bg-white dark:bg-[#141319] rounded-xl shadow-lg p-6 max-w-md w-full border border-stone-200 dark:border-white/10 animate-in fade-in zoom-in duration-200"
                   onClick={(e) => e.stopPropagation()}
                   data-oid="44e2ohw"
                 >

@@ -123,6 +123,11 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
     return Date.now() - new Date(preferences.feeling_recorded_at).getTime() > 7 * 86_400_000;
   }, [preferences?.feeling_recorded_at]);
 
+  // Learners should never have to choose between two proactive surfaces. A
+  // prepared intervention is more immediately useful than an optional check-in;
+  // the check-in remains available on a later dashboard visit.
+  const showCheckIn = checkInDue && !banner && !notification;
+
   const act = async (key, task, success) => {
     setWorking(key);
     try {
@@ -170,7 +175,7 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
       'Practice preference saved'
     );
 
-  if (!banner && !notification && !checkInDue) return null;
+  if (!banner && !notification && !showCheckIn) return null;
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-2 px-4 pt-4 md:px-6">
@@ -274,21 +279,21 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
         </section>
       )}
 
-      {checkInDue && (
+      {showCheckIn && (
         <section
           className={cn(
             PANEL,
-            'flex flex-col gap-3 p-3.5 md:flex-row md:items-center md:justify-between'
+            'w-full md:mx-auto md:max-w-[1400px] flex flex-col gap-2.5 p-3 md:flex-row md:items-center md:justify-between'
           )}
         >
           <div>
             <p className={cn(MICRO, MUTED)}>Optional check-in</p>
-            <p className={cn(TITLE, 'mt-1')}>How does your practice feel today?</p>
-            <p className={cn(BODY, 'mt-0.5')}>
+            <p className={cn(TITLE, 'mt-0.5')}>How does your practice feel today?</p>
+            <p className={cn(BODY, 'mt-0')}>
               This adapts study support for seven days. It is not used to target upgrade offers.
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1">
             {FEELINGS.map(([value, label]) => (
               <button
                 key={value}
@@ -297,7 +302,7 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
                 onClick={() => saveFeeling(value)}
                 className={cn(
                   WELL,
-                  'rounded-md border border-[#e4e2f0] px-2.5 py-1.5 text-[10px] font-bold text-stone-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] disabled:opacity-50 dark:border-white/[0.07] dark:text-stone-300'
+                  'rounded-md border border-[#e4e2f0] px-2 py-1.5 text-[10px] font-bold text-stone-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] disabled:opacity-50 dark:border-white/[0.07] dark:text-stone-300'
                 )}
               >
                 {working === `feeling-${value}` ? 'Saving…' : label}
@@ -315,7 +320,7 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
                   'Practice reminders enabled'
                 )
               }
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold text-stone-500 hover:text-[#5a63df] disabled:opacity-50 dark:text-stone-400"
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 hover:text-[#5a63df] disabled:opacity-50 dark:text-stone-400"
             >
               <Bell className="h-3.5 w-3.5" /> Enable optional reminders
             </button>

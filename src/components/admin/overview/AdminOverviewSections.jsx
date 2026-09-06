@@ -362,7 +362,7 @@ const trendLabel = (key) => {
 const TrendTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-lg">
+    <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-xs">
       <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>{label}</p>
       {payload.map((entry) => (
         <p key={entry.dataKey} className="text-[11px] font-bold text-stone-800 dark:text-stone-100">

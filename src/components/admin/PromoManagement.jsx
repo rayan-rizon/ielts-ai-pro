@@ -3,6 +3,16 @@ import { m } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { PromoCode } from '@/entities';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Kpi, AdminButton, AdminPageHeader, STAGGER_CONTAINER, FADE_UP } from './ui/primitives';
 import { PromoCodeDialog } from './promo/PromoCodeDialog';
 import { PromoCodeGrid } from './promo/PromoCodeGrid';
@@ -106,20 +116,33 @@ const PromoManagement = () => {
     }
   };
 
-  const handleDeletePromo = async (promo) => {
+  const [promoToDelete, setPromoToDelete] = useState(null);
+  const [isDeletingPromo, setIsDeletingPromo] = useState(false);
+
+  const handleDeletePromo = (promo) => {
+    setPromoToDelete(promo);
+  };
+
+  const confirmDeletePromo = async () => {
+    if (!promoToDelete) return;
+    setIsDeletingPromo(true);
     try {
-      await PromoCode.delete(promo.id);
+      await PromoCode.delete(promoToDelete.id);
       await fetchPromoCodes();
       toast.success('Promo code deleted');
+      setPromoToDelete(null);
     } catch (error) {
       console.warn('Hard delete failed, attempting soft delete', error);
       try {
-        await PromoCode.update(promo.id, { is_active: false });
+        await PromoCode.update(promoToDelete.id, { is_active: false });
         await fetchPromoCodes();
         toast.success('Promo code deactivated');
+        setPromoToDelete(null);
       } catch {
         toast.error('Failed to remove promo code');
       }
+    } finally {
+      setIsDeletingPromo(false);
     }
   };
 
@@ -174,6 +197,30 @@ const PromoManagement = () => {
           intelligence={intelligence}
         />
       </m.div>
+      <AlertDialog open={!!promoToDelete} onOpenChange={(open) => !open && setPromoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Promo Code</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete promo code{' '}
+              <span className="font-mono font-bold text-stone-900 dark:text-stone-100">
+                {promoToDelete?.code}
+              </span>
+              ? Once deleted, learners will no longer be able to redeem this code.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingPromo}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeletePromo}
+              disabled={isDeletingPromo}
+              className="bg-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.9)] text-white"
+            >
+              {isDeletingPromo ? 'Deleting…' : 'Delete Code'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </m.div>
   );
 };

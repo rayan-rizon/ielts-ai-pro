@@ -84,7 +84,7 @@ const SessionLog = React.memo(({ recentTests }) => {
       <PanelTitle
         label="Recent attempts"
         tip="Your latest scored sessions. Open one to re-read the marked paper."
-        action={<span className={cn(MICRO, MUTED)}>tap to review</span>}
+        action={<span className={cn(MICRO, MUTED)}>select to review</span>}
       />
 
       {rows.length === 0 ? (
@@ -120,7 +120,14 @@ const SessionLog = React.memo(({ recentTests }) => {
                   <p className={cn(MICRO, MUTED, 'mt-1')}>
                     <span className="capitalize">{row.module}</span>
                     {row.dateLabel ? ` · ${row.dateLabel}` : ''}
-                    {row.minutes ? ` · ${row.minutes}m` : ''}
+                    {row.minutes ? (
+                      <>
+                        {' · '}
+                        <span className={NUM}>{row.minutes}</span>m
+                      </>
+                    ) : (
+                      ''
+                    )}
                   </p>
                 </div>
 

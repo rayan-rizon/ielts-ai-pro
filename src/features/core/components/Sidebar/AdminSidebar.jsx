@@ -44,7 +44,7 @@ const AdminNavItem = memo(
       if (isMobile) setOpenMobile(false);
     }, [isMobile, setOpenMobile]);
 
-    const btnClasses = `group transition-colors rounded-md mb-0.5 relative overflow-hidden ${
+    const btnClasses = `group transition-colors rounded-md mb-0.5 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] ${
       isActive
         ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
         : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
@@ -74,7 +74,7 @@ const AdminNavItem = memo(
                     ? `${pendingCount} pending payment approval${pendingCount === 1 ? '' : 's'}, ${stripePaymentCount} new Stripe payment${stripePaymentCount === 1 ? '' : 's'}, and ${stripeFailureCount} Stripe payment failure${stripeFailureCount === 1 ? '' : 's'}`
                     : `${badgeCount} payment alert${badgeCount === 1 ? '' : 's'}`
                 }
-                className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} ${
+                className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} font-mono tabular-nums tracking-tight ${
                   isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
                 }`}
               >
@@ -183,8 +183,8 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
         <ThemeToggle />
       </div>
 
-      <div className="bg-stone-50 dark:bg-white/3 hover:bg-stone-100 dark:hover:bg-white/6 p-2.5 rounded-md flex items-center gap-3 overflow-hidden cursor-pointer transition-colors border border-stone-200/70 dark:border-white/6 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 my-1">
-        <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center shrink-0">
+      <div className="bg-stone-50 dark:bg-white/3 hover:bg-stone-100 dark:hover:bg-white/6 p-2 rounded-xl flex items-center gap-3 overflow-hidden cursor-pointer transition-colors border border-stone-200/70 dark:border-white/6 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 my-1">
+        <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-lg flex items-center justify-center shrink-0">
           <span className="text-white dark:text-stone-50 font-bold text-xs">
             {user?.full_name?.[0] || 'A'}
           </span>
@@ -202,7 +202,9 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
 
       <SidebarMenuButton
         onClick={onLogoutClick}
-        className="group w-full justify-start gap-3 px-3 py-2 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium group-data-[collapsible=icon]:px-2.5"
+        aria-label="Sign out"
+        tooltip="Sign out"
+        className="group w-full justify-start gap-3 px-3 py-2 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:px-2.5"
       >
         <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
         <span className={`${COLLAPSIBLE_LABEL} text-[13px]`}>Sign out</span>

@@ -142,11 +142,12 @@ export default function PaymentManagement() {
     request.status === 'pending' ? (
       <div className={cn('flex items-center gap-2', full && 'pt-1')}>
         <button
+          type="button"
           disabled={isProcessing === request.id}
           onClick={() => handleStatusUpdate(request, 'approved')}
           className={cn(
             MICRO,
-            'inline-flex items-center justify-center gap-1.5 rounded-md text-white bg-[rgb(var(--signal-ok))] hover:opacity-90 transition-opacity disabled:opacity-40',
+            'inline-flex items-center justify-center gap-1.5 rounded-md text-white bg-[rgb(var(--signal-ok))] hover:opacity-90 transition-opacity disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-ok))]/50',
             full ? 'flex-1 h-9' : 'h-7 w-7'
           )}
           aria-label="Approve payment"
@@ -159,11 +160,12 @@ export default function PaymentManagement() {
           {full && <span>Approve</span>}
         </button>
         <button
+          type="button"
           disabled={isProcessing === request.id}
           onClick={() => handleStatusUpdate(request, 'rejected')}
           className={cn(
             MICRO,
-            'inline-flex items-center justify-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors disabled:opacity-40',
+            'inline-flex items-center justify-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50',
             full ? 'flex-1 h-9' : 'h-7 w-7'
           )}
           aria-label="Reject payment"
@@ -195,6 +197,7 @@ export default function PaymentManagement() {
         <div className="relative w-full sm:w-56">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
           <Input
+            aria-label="Search payments"
             placeholder="Search TrxID, phone, user…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -220,11 +223,12 @@ export default function PaymentManagement() {
       <div className="flex items-center gap-1.5">
         {FILTERS.map((f) => (
           <button
+            type="button"
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={cn(
               MICRO,
-              'rounded-md px-2.5 py-1.5 border transition-colors',
+              'rounded-md px-2.5 py-1.5 border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
               filter === f.value
                 ? 'border-stone-400 dark:border-white/30 text-stone-900 dark:text-stone-50 bg-stone-100 dark:bg-white/6'
                 : 'border-stone-200 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'

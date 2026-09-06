@@ -11,6 +11,16 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   AudioLines,
   BadgeCheck,
   Calendar,
@@ -149,14 +159,21 @@ export default function ReferralManagement() {
     }
   }
 
-  async function handleDelete(tier) {
-    if (!confirm(`Delete reward tier for ${tier.referrals_required} referral(s)?`)) return;
+  const [tierToDelete, setTierToDelete] = useState(null);
+  const [deletingTier, setDeletingTier] = useState(false);
+
+  async function confirmDeleteTier() {
+    if (!tierToDelete) return;
+    setDeletingTier(true);
     try {
-      await ReferralSettings.delete(tier.id);
+      await ReferralSettings.delete(tierToDelete.id);
       toast.success('Reward tier deleted');
       fetchData();
+      setTierToDelete(null);
     } catch (error) {
       toast.error('Failed to delete', { description: error.message });
+    } finally {
+      setDeletingTier(false);
     }
   }
 
@@ -255,7 +272,7 @@ export default function ReferralManagement() {
               className={cn(
                 'group relative flex flex-col gap-3 overflow-hidden rounded-lg border p-3.5 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between',
                 tier.is_active
-                  ? 'border-stone-200 bg-white shadow-[0_1px_0_rgba(28,25,23,0.03)] hover:border-violet-200 hover:shadow-[0_10px_28px_rgba(109,76,255,0.08)] dark:border-white/8 dark:bg-white/2.5 dark:hover:border-violet-400/30'
+                  ? 'border-stone-200 bg-white shadow-2xs hover:border-[#5a63df]/60 hover:shadow-xs dark:border-white/8 dark:bg-white/2.5 dark:hover:border-[#5a63df]/40'
                   : 'border-stone-100 bg-stone-50/60 opacity-60 dark:border-white/4 dark:bg-white/1.5'
               )}
             >
@@ -312,14 +329,18 @@ export default function ReferralManagement() {
                 </div>
                 <div className="flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 p-0.5 dark:border-white/8 dark:bg-white/4">
                   <button
+                    type="button"
+                    aria-label={`Edit ${tier.referrals_required} referrals tier`}
                     onClick={() => openEditModal(tier)}
-                    className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+                    className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(tier)}
-                    className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+                    type="button"
+                    aria-label={`Delete ${tier.referrals_required} referrals tier`}
+                    onClick={() => setTierToDelete(tier)}
+                    className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -405,7 +426,7 @@ export default function ReferralManagement() {
       )}
 
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl p-4 sm:p-5">
+        <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-lg p-4 sm:p-5">
           <DialogHeader className="space-y-0.5">
             <DialogTitle className="flex items-center gap-2 text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
               <Gift className="w-4 h-4 text-stone-500 dark:text-stone-400" />
@@ -492,6 +513,27 @@ export default function ReferralManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={!!tierToDelete} onOpenChange={(open) => !open && setTierToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Reward Tier</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the reward tier for {tierToDelete?.referrals_required}{' '}
+              referral(s)? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingTier}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteTier}
+              disabled={deletingTier}
+              className="bg-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.9)] text-white"
+            >
+              {deletingTier ? 'Deleting…' : 'Delete Tier'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -19,7 +19,7 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   const count = payload[0].value;
   return (
-    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-lg dark:border-white/[0.14] dark:bg-[#242427]">
+    <div className="rounded-lg border border-[#e4e2f0] bg-white px-2.5 py-1.5 shadow-xs dark:border-white/[0.14] dark:bg-[#242427]">
       <p className={cn(MICRO, MUTED)}>{label}</p>
       <p className={cn(NUM, 'mt-0.5 text-sm font-bold text-slate-900 dark:text-slate-50')}>
         {count} <span className={cn(MICRO, MUTED)}>{count === 1 ? 'test' : 'tests'}</span>
@@ -47,7 +47,7 @@ const WeeklyMomentumChart = React.memo(({ weeklyProgress }) => {
         action={
           <span className={cn(MICRO, MUTED)}>
             <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>{total}</span>{' '}
-            total · {activeDays}/7 days
+            total · <span className={NUM}>{activeDays}</span>/<span className={NUM}>7</span> days
           </span>
         }
       />
@@ -57,7 +57,11 @@ const WeeklyMomentumChart = React.memo(({ weeklyProgress }) => {
           No tests in the last seven days. Your daily volume charts here.
         </Empty>
       ) : (
-        <div className="min-h-[160px] w-full flex-1">
+        <div
+          role="region"
+          aria-label="Practice volume 7-day chart"
+          className="min-h-[160px] w-full flex-1"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 5, right: 4, left: -26, bottom: 0 }}>
               <defs>

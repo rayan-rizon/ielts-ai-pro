@@ -40,7 +40,7 @@ const NavItem = memo(({ item, isActive }) => {
       <SidebarMenuButton
         asChild
         className={cn(
-          'group relative mb-0.5 rounded-lg border border-transparent transition-all duration-200 ease-sidebar',
+          'group relative mb-0.5 rounded-lg border border-transparent transition-all duration-200 ease-sidebar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#100f15]',
           isActive ? ACCENT_ACTIVE : cn('text-slate-600 dark:text-slate-300', ACCENT_HOVER)
         )}
         tooltip={item.title}
@@ -162,12 +162,13 @@ const UpgradeCard = ({ isFree, onNavigate }) => {
   return (
     <Link
       to={createPageUrl('Pricing')}
-      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-linear-to-r/srgb from-[#5a63df]/8 via-[#7a82ed]/[0.14] to-[#5a63df]/6 p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-[0_6px_20px_-4px_rgba(90,99,223,0.25)] active:scale-[0.98] dark:border-[#8f97ff]/30 dark:from-[#5a63df]/22 dark:via-[#7a82ed]/16 dark:to-[#5a63df]/18 dark:hover:border-[#8f97ff]/60 dark:hover:shadow-[0_6px_20px_-4px_rgba(143,151,255,0.25)] group-data-[collapsible=icon]:py-2 group-data-[collapsible=icon]:px-0"
+      aria-label="Upgrade to Pro"
+      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-linear-to-r/srgb from-[#5a63df]/8 via-[#7a82ed]/[0.14] to-[#5a63df]/6 p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-xs active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:border-[#8f97ff]/30 dark:from-[#5a63df]/22 dark:via-[#7a82ed]/16 dark:to-[#5a63df]/18 dark:hover:border-[#8f97ff]/60 dark:focus-visible:ring-offset-[#100f15] group-data-[collapsible=icon]:py-2 group-data-[collapsible=icon]:px-0"
       onClick={onNavigate}
     >
       <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
         {/* Crown Icon Chip */}
-        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr/srgb from-[#5a63df] to-[#7880ed] text-white shadow-sm shadow-[#5a63df]/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 dark:from-[#6c74ec] dark:to-[#969dff]">
+        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr/srgb from-[#5a63df] to-[#7880ed] text-white shadow-xs transition-transform duration-300 group-hover:scale-105 dark:from-[#6c74ec] dark:to-[#969dff]">
           <Crown className="h-4 w-4 text-white" strokeWidth={2.2} />
         </div>
 
@@ -196,12 +197,17 @@ const getAvatarUrl = (user) =>
   `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || user?.full_name || 'default'}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
 const UserProfileLink = ({ user, onNavigate }) => (
-  <Link to={createPageUrl('Settings')} className="block" onClick={onNavigate}>
+  <Link
+    to={createPageUrl('Settings')}
+    aria-label="Account and profile settings"
+    className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#100f15]"
+    onClick={onNavigate}
+  >
     <div className="flex items-center gap-2.5 overflow-hidden rounded-xl border border-transparent px-2.5 py-2 transition-all duration-200 ease-sidebar hover:border-slate-200/80 hover:bg-slate-50/80 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 dark:hover:border-white/8 dark:hover:bg-white/5">
       <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-2 ring-slate-100 dark:bg-slate-800 dark:ring-slate-800">
         <img
           src={getAvatarUrl(user)}
-          alt=""
+          alt={user?.full_name ? `${user.full_name}'s avatar` : 'User avatar'}
           className="h-full w-full object-cover"
           loading="lazy"
         />
@@ -255,7 +261,9 @@ const UserSidebarFooter = ({ user, handleLogout }) => {
         <UserProfileLink user={user} onNavigate={closeMobileSidebar} />
         <SidebarMenuButton
           onClick={signOut}
-          className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-600 transition-colors duration-200 ease-sidebar hover:bg-red-50 hover:text-red-600 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+          aria-label="Sign out"
+          tooltip="Sign out"
+          className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-600 transition-colors duration-200 ease-sidebar hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400"
         >
           <LogOut className="h-4 w-4" strokeWidth={2} />
           <span className={cn('text-[13px] font-semibold', COLLAPSIBLE_LABEL)}>Sign out</span>

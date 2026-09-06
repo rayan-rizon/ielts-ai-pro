@@ -36,15 +36,23 @@ const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
         </span>
         <div className="flex items-center gap-0.5 shrink-0">
           <button
+            type="button"
             onClick={() => onToggle(promo.id, promo.is_active)}
-            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.08)] transition-colors"
+            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            aria-label={
+              promo.is_active
+                ? `Pause promo code ${promo.code}`
+                : `Activate promo code ${promo.code}`
+            }
             title={promo.is_active ? 'Pause' : 'Activate'}
           >
             <Power className="w-3 h-3" />
           </button>
           <button
+            type="button"
             onClick={() => onDelete(promo)}
-            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
+            aria-label={`Delete promo code ${promo.code}`}
             title="Delete"
           >
             <Trash2 className="w-3 h-3" />

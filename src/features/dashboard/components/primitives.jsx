@@ -33,7 +33,7 @@ export const TITLE = 'text-[13px] font-extrabold tracking-tight text-slate-800 d
  * job of showing where the light hits the panel.
  */
 export const PANEL =
-  'rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#131315] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]';
+  'rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15]';
 
 /** Quiet inset surface — meter tracks, nested rows, empty wells. */
 export const WELL = 'bg-[#f4f3fb] dark:bg-white/[0.07]';
@@ -55,12 +55,10 @@ export const MUTED = 'text-slate-500 dark:text-slate-400';
 export const FAINT = 'text-slate-400 dark:text-slate-500';
 
 /**
- * The "open this panel's full page" link in a PanelTitle action slot. The
- * brand indigo is a dark colour, so hovering it on a near-black panel used to
- * make the label *harder* to read; dark mode hovers to the lifted tint.
+ * The "open this panel's full page" link in a PanelTitle action slot.
  */
 export const PANEL_LINK =
-  'inline-flex items-center gap-0.5 text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff] cursor-pointer';
+  'inline-flex items-center gap-0.5 rounded-sm text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]';
 
 /** Chevron that brightens with its parent row/link. */
 export const ROW_CHEVRON =
@@ -68,12 +66,10 @@ export const ROW_CHEVRON =
 
 /**
  * Hover surface for a clickable row (attempt log entry, Cambridge test tile,
- * resource row). The dark hover used to be white/[0.03] — a single RGB step
- * on most panels, so a "clickable" row gave no feedback at all on dark. This
- * is the same lift the border/well tokens already moved to.
+ * resource row).
  */
 export const ROW_HOVER =
-  'hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:border-white/10 dark:hover:bg-white/6';
+  'hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:hover:border-white/10 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#08080a]';
 
 export const PILL_BASE =
   'inline-flex items-center gap-1 rounded-full border px-2 py-[2px] text-[9px] font-bold uppercase tracking-wide leading-normal';
@@ -192,7 +188,7 @@ export const Tip = ({ children, content, side = 'top' }) => (
     <TooltipTrigger asChild>{children}</TooltipTrigger>
     <TooltipContent
       side={side}
-      className="rounded-lg border border-[#e4e2f0] dark:border-white/[0.14] bg-white dark:bg-[#242427] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-slate-700 dark:text-slate-100 shadow-lg"
+      className="rounded-lg border border-[#e4e2f0] dark:border-white/[0.14] bg-white dark:bg-[#242427] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-slate-700 dark:text-slate-100 shadow-xs"
     >
       {content}
     </TooltipContent>
@@ -200,14 +196,14 @@ export const Tip = ({ children, content, side = 'top' }) => (
 );
 
 /** "What does this mean?" affordance next to a metric label. */
-export const InfoTip = ({ children, className }) => (
+export const InfoTip = ({ children, label = 'What this means', className }) => (
   <Tooltip delayDuration={150}>
     <TooltipTrigger asChild>
       <button
         type="button"
-        aria-label="What this means"
+        aria-label={label}
         className={cn(
-          'inline-grid place-items-center align-middle text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 transition-colors',
+          'inline-grid h-6 w-6 place-items-center -my-1 -mx-0.5 rounded-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
           className
         )}
       >
@@ -216,7 +212,7 @@ export const InfoTip = ({ children, className }) => (
     </TooltipTrigger>
     <TooltipContent
       side="top"
-      className="max-w-[190px] rounded-lg border border-[#e4e2f0] dark:border-white/[0.14] bg-white dark:bg-[#242427] px-2.5 py-1.5 text-[11px] font-medium leading-snug text-slate-700 dark:text-slate-100 shadow-lg"
+      className="max-w-[190px] rounded-lg border border-[#e4e2f0] dark:border-white/[0.14] bg-white dark:bg-[#242427] px-2.5 py-1.5 text-[11px] font-medium leading-snug text-slate-700 dark:text-slate-100 shadow-xs"
     >
       {children}
     </TooltipContent>
@@ -312,7 +308,7 @@ export const Stat = ({
     <div className="flex items-center gap-1.5">
       {icon && <IconChip icon={icon} tone={tone} size="sm" />}
       <p className={cn(MICRO, MUTED, bare && 'truncate')}>{label}</p>
-      {tip && <InfoTip>{tip}</InfoTip>}
+      {tip && <InfoTip label={`About ${label}`}>{tip}</InfoTip>}
     </div>
     <div
       className={cn(

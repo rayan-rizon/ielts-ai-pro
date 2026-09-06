@@ -439,7 +439,7 @@ const UserAnalytics = ({
                           ],
                         ];
                         return (
-                          <div className={cn(PANEL, 'min-w-[150px] p-3 shadow-xl')}>
+                          <div className={cn(PANEL, 'min-w-[150px] p-3 shadow-xs')}>
                             <p className={cn(MICRO, MUTED, 'mb-1.5')}>{label}</p>
                             {rows.map(([name, value, colour]) => (
                               <div

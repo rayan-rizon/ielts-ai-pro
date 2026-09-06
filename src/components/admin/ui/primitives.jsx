@@ -97,7 +97,7 @@ export const Tip = ({ children, content, side = 'top' }) => (
     <TooltipTrigger asChild>{children}</TooltipTrigger>
     <TooltipContent
       side={side}
-      className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#1b1b1e] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-stone-700 dark:text-stone-200 shadow-lg"
+      className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#1b1b1e] px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-stone-700 dark:text-stone-200 shadow-xs"
     >
       {content}
     </TooltipContent>
@@ -105,14 +105,14 @@ export const Tip = ({ children, content, side = 'top' }) => (
 );
 
 /** Small "what does this mean?" affordance next to a metric label. */
-export const InfoTip = ({ children, className }) => (
+export const InfoTip = ({ children, label = 'What this means', className }) => (
   <Tooltip delayDuration={150}>
     <TooltipTrigger asChild>
       <button
         type="button"
-        aria-label="What this means"
+        aria-label={label}
         className={cn(
-          'inline-grid place-items-center align-middle text-stone-400 hover:text-stone-600 dark:text-stone-600 dark:hover:text-stone-300 transition-colors',
+          'inline-grid h-6 w-6 place-items-center -my-1 -mx-0.5 rounded-sm text-stone-400 hover:text-stone-600 dark:text-stone-600 dark:hover:text-stone-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
           className
         )}
       >
@@ -121,7 +121,7 @@ export const InfoTip = ({ children, className }) => (
     </TooltipTrigger>
     <TooltipContent
       side="top"
-      className="max-w-[240px] rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#1b1b1e] px-2.5 py-2 text-[11px] font-medium leading-snug text-stone-700 dark:text-stone-200 shadow-lg"
+      className="max-w-[240px] rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#1b1b1e] px-2.5 py-2 text-[11px] font-medium leading-snug text-stone-700 dark:text-stone-200 shadow-xs"
     >
       {children}
     </TooltipContent>
@@ -344,7 +344,7 @@ export const ToggleChip = ({ active, onClick, children, className }) => (
     aria-pressed={active}
     onClick={onClick}
     className={cn(
-      'rounded-md border px-2.5 py-1.5 text-[10px] font-extrabold capitalize transition-colors active:scale-[0.97]',
+      'rounded-md border px-2.5 py-1.5 text-[10px] font-extrabold capitalize transition-colors active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]',
       active
         ? 'border-indigo-400/50 bg-indigo-500/8 text-indigo-600 dark:border-indigo-500/50 dark:text-indigo-300'
         : 'border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:border-white/10 dark:text-stone-400 dark:hover:text-stone-200',
@@ -444,7 +444,7 @@ export const AdminButton = forwardRef(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-1.5 rounded-md font-bold transition-all duration-150 active:scale-[0.96] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
+          'inline-flex items-center justify-center gap-1.5 rounded-md font-bold transition-all duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
           size === 'sm' ? 'h-7 px-2.5 text-[11px]' : 'h-8 px-3 text-xs',
           ADMIN_BUTTON_VARIANTS[variant] || ADMIN_BUTTON_VARIANTS.primary,
           className
@@ -463,7 +463,7 @@ AdminButton.displayName = 'AdminButton';
 export const ADMIN_TABS_LIST =
   'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/4 border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
 export const ADMIN_TAB_TRIGGER =
-  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-200 ease-out active:scale-[0.96] shrink-0';
+  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-200 ease-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] shrink-0';
 
 /**
  * Shared enter animation for admin pages/panels — a quiet staggered fade+rise

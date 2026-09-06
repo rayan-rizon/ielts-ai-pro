@@ -21,7 +21,7 @@ const CustomDailyTooltip = ({ active, payload, label }) => {
   const rate = total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
 
   return (
-    <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-lg min-w-[170px]">
+    <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-xs min-w-[170px]">
       <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-dashed border-stone-200 dark:border-white/10">
         <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{formattedDate}</span>
         <span className={cn(NUM, 'text-[10px] font-bold text-[rgb(var(--signal-ok))]')}>

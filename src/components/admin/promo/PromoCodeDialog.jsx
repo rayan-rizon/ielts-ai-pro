@@ -193,7 +193,7 @@ export const PromoCodeDialog = ({
   campaigns = [],
 }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5">
+    <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto p-4 sm:p-5">
       <DialogHeader className="space-y-0.5">
         <DialogTitle className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
           Create promo code

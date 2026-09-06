@@ -20,7 +20,10 @@ const FIELD_INPUT =
 
 const FilterSelect = ({ value, onValueChange, icon: Icon, placeholder, children }) => (
   <Select value={value} onValueChange={onValueChange}>
-    <SelectTrigger className={cn(FIELD_INPUT, 'w-full')}>
+    <SelectTrigger
+      aria-label={placeholder}
+      className={cn(FIELD_INPUT, 'w-full focus-visible:ring-2 focus-visible:ring-[#5a63df]/50')}
+    >
       <Icon className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1.5 shrink-0" />
       <SelectValue placeholder={placeholder} />
     </SelectTrigger>
@@ -64,9 +67,10 @@ export const ThemedDatePicker = ({ value, onChange, placeholder = 'Select date' 
       <PopoverTrigger asChild>
         <button
           type="button"
+          aria-label={placeholder}
           className={cn(
             FIELD_INPUT,
-            'h-8 px-2.5 min-w-[150px] inline-flex items-center justify-between gap-2 text-stone-800 dark:text-stone-100 hover:border-stone-400 dark:hover:border-white/30 transition-colors'
+            'h-8 px-2.5 min-w-[150px] inline-flex items-center justify-between gap-2 text-stone-800 dark:text-stone-100 hover:border-stone-400 dark:hover:border-white/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
           )}
         >
           <span
@@ -81,7 +85,7 @@ export const ThemedDatePicker = ({ value, onChange, placeholder = 'Select date' 
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-100 shadow-2xl rounded-xl"
+        className="w-auto p-0 border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-100 shadow-md rounded-xl"
         align="start"
       >
         <CalendarComponent
@@ -288,7 +292,13 @@ export const UserManagementFilters = ({
               value={filters.dateField || 'created_at'}
               onValueChange={(val) => updateFilter('dateField', val)}
             >
-              <SelectTrigger className={cn(FIELD_INPUT, 'h-8 text-[11px] w-[145px] px-2.5')}>
+              <SelectTrigger
+                aria-label="Filter Field"
+                className={cn(
+                  FIELD_INPUT,
+                  'h-8 text-[11px] w-[145px] px-2.5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
+                )}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

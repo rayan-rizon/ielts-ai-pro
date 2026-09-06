@@ -20,8 +20,7 @@ import { toast } from 'sonner';
 import { AdminSecurityService } from '@/features/admin/services/AdminSecurityService';
 
 import { Activity, CreditCard, HeartPulse, Gauge, Mail, Lock } from 'lucide-react';
-import { AdminPageHeader } from '@/components/admin/ui/primitives';
-import DashboardSkeleton from '@/features/dashboard/components/DashboardSkeleton';
+import { AdminPageHeader, AdminPageSkeleton } from '@/components/admin/ui/primitives';
 
 // Announcements used to live here as its own tab. It moved to Admin →
 // Communications, alongside broadcasts and maintenance mode, so the three
@@ -206,7 +205,7 @@ export default function GlobalSettings() {
 
   return (
     <>
-      {isInitialLoad && <DashboardSkeleton data-oid="settings-dashboard-skeleton" />}
+      {isInitialLoad && <AdminPageSkeleton kpis={5} panels={2} />}
       <motion.div
         variants={containerVariants}
         initial="hidden"

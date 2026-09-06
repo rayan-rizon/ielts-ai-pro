@@ -33,7 +33,7 @@ export const WarningDialog = ({
   onSend,
 }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl p-4 sm:p-5">
+    <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-lg p-4 sm:p-5">
       <DialogHeader className="space-y-0.5">
         <DialogTitle className="flex items-center gap-2 text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
           <Mail className="w-4 h-4 text-[rgb(var(--signal-warn))]" /> Send inactivity warning
@@ -178,7 +178,7 @@ export const UserEditorDialog = ({
   if (!creating && !editingUser) return null;
   return (
     <Dialog open onOpenChange={close}>
-      <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5">
+      <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto p-4 sm:p-5">
         <DialogHeader className="space-y-0.5">
           <DialogTitle className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
             {creating ? 'Create user' : 'Edit user'}

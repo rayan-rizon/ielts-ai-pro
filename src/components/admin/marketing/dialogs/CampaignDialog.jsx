@@ -145,7 +145,7 @@ const CampaignDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto border-stone-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#121115] shadow-2xl">
+      <DialogContent className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto border-stone-200/80 bg-white p-5 dark:border-white/10 dark:bg-[#121115] shadow-lg">
         <DialogHeader>
           <DialogTitle>{campaign ? 'Edit campaign' : 'New campaign'}</DialogTitle>
           <DialogDescription>

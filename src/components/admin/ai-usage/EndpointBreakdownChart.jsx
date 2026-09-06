@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload }) => {
   const color = endpointColors[data.endpoint] || '#6366f1';
 
   return (
-    <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-lg min-w-[190px]">
+    <div className="rounded-lg border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] px-3 py-2 shadow-xs min-w-[190px]">
       <div className="flex items-center gap-2 pb-1.5 mb-1.5 border-b border-dashed border-stone-200 dark:border-white/10">
         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
         <span className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100">

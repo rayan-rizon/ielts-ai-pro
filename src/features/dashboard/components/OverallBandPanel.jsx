@@ -89,6 +89,12 @@ const OverallBandPanel = React.memo(({ stats }) => {
       {overall == null ? (
         <Empty icon={Award} className="flex-1 content-center">
           No module scored yet — your overall band appears once a test is marked.
+          <Link
+            to={createPageUrl('Reading')}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#5a63df] hover:underline"
+          >
+            Take first test →
+          </Link>
         </Empty>
       ) : (
         <div className="flex flex-1 flex-col justify-between gap-3">
@@ -132,7 +138,10 @@ const OverallBandPanel = React.memo(({ stats }) => {
                 </p>
               </div>
             ) : (
-              <Link to={createPageUrl('Onboarding')} className={cn(MICRO, PANEL_LINK, 'shrink-0')}>
+              <Link
+                to={createPageUrl('Onboarding')}
+                className={cn(MICRO, PANEL_LINK, 'shrink-0 min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
+              >
                 set a target
               </Link>
             )}
@@ -151,7 +160,10 @@ const OverallBandPanel = React.memo(({ stats }) => {
                   row.band == null && 'opacity-60'
                 )}
               >
-                <span className={cn(MICRO, MUTED, 'leading-none')}>{row.short}</span>
+                <span className={cn(MICRO, MUTED, 'leading-none')} aria-hidden="true">
+                  {row.short}
+                </span>
+                <span className="sr-only">{row.label}</span>
                 <span
                   className={cn(
                     NUM,

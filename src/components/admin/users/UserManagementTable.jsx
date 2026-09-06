@@ -121,7 +121,11 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
       )}
     >
       <td className="py-3 px-4">
-        <Checkbox checked={selected} onCheckedChange={onToggle} />
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onToggle}
+          aria-label={`Select ${user.full_name || user.email || 'user'}`}
+        />
       </td>
       <td className="py-3 px-4">
         <div className="flex items-center gap-2.5">
@@ -190,16 +194,18 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
       <td className="py-3 px-4">
         <div className="flex justify-end items-center gap-1">
           <button
+            type="button"
             onClick={onEdit}
-            aria-label={`Edit ${user.full_name || user.email}`}
-            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors"
+            aria-label={`Edit ${user.full_name || user.email || 'user'}`}
+            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
           >
             <Edit className="w-3.5 h-3.5" />
           </button>
           <button
+            type="button"
             onClick={onDelete}
-            aria-label={`Delete ${user.full_name || user.email}`}
-            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
+            aria-label={`Delete ${user.full_name || user.email || 'user'}`}
+            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -281,24 +287,38 @@ export const UserManagementTable = ({
         <thead>
           <tr className="border-b border-stone-200 dark:border-white/[0.07]">
             <th className="py-2.5 px-4 w-10">
-              <Checkbox checked={selectAll} onCheckedChange={onToggleAll} />
+              <Checkbox
+                checked={selectAll}
+                onCheckedChange={onToggleAll}
+                aria-label="Select all users on this page"
+              />
             </th>
             {COLUMNS.map(({ field, label }) => (
               <th
                 key={field}
-                onClick={() => onSort(field)}
-                className={cn(
-                  MICRO,
-                  'py-2.5 px-4 cursor-pointer select-none transition-colors group',
+                aria-sort={
                   sortField === field
-                    ? 'text-stone-900 dark:text-stone-50'
-                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
-                )}
+                    ? sortDirection === 'asc'
+                      ? 'ascending'
+                      : 'descending'
+                    : 'none'
+                }
+                className="py-2 px-3"
               >
-                <span className="inline-flex items-center gap-1">
-                  {label}
+                <button
+                  type="button"
+                  onClick={() => onSort(field)}
+                  className={cn(
+                    MICRO,
+                    'inline-flex items-center gap-1 cursor-pointer select-none transition-colors group rounded px-1.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
+                    sortField === field
+                      ? 'text-stone-900 dark:text-stone-50 font-bold'
+                      : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                  )}
+                >
+                  <span>{label}</span>
                   <SortIcon active={sortField === field} direction={sortDirection} />
-                </span>
+                </button>
               </th>
             ))}
             <th className={cn(MICRO, 'py-2.5 px-4 text-stone-500 dark:text-stone-400 text-right')}>

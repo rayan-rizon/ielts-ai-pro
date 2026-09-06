@@ -1132,7 +1132,7 @@ const ExplanationImportModal = ({
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   {importing ? (
                     <>
-                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br/srgb from-stone-500 to-stone-500 flex items-center justify-center shadow-xl">
+                      <div className="w-16 h-16 rounded-2xl bg-linear-to-br/srgb from-stone-500 to-stone-500 flex items-center justify-center shadow-sm">
                         <Loader2 className="w-8 h-8 text-white animate-spin" />
                       </div>
                       <p className="text-sm font-semibold text-foreground">
@@ -1144,7 +1144,7 @@ const ExplanationImportModal = ({
                     <>
                       <div
                         className={cn(
-                          'w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl',
+                          'w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm',
                           importResults.failCount === 0
                             ? 'bg-[rgb(var(--signal-ok))]'
                             : 'bg-[rgb(var(--signal-warn))]'

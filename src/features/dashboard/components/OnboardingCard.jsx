@@ -29,14 +29,14 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
                     <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
                       {done}
                     </span>
-                    /{steps.length} done
+                    /<span className={NUM}>{steps.length}</span> done
                   </span>
                   <button
                     type="button"
                     onClick={dismissOnboarding}
                     className={cn(
                       MICRO,
-                      'text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                      'min-h-6 rounded-sm py-1 px-1.5 -my-1 -mx-1.5 text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-slate-400 dark:hover:text-slate-200'
                     )}
                   >
                     Dismiss
@@ -85,7 +85,7 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
                       to={step.href}
                       className={cn(
                         MICRO,
-                        'shrink-0 rounded-md bg-[#5a63df] px-2.5 py-1.5 text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.96]'
+                        'shrink-0 rounded-md bg-[#5a63df] px-2.5 py-1.5 text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#141319]'
                       )}
                     >
                       Start

@@ -428,7 +428,7 @@ export default function AdminEmailSettings() {
             ) : (
               <div
                 className={cn(
-                  'mx-auto overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_20px_50px_rgba(24,24,27,0.16)] transition-[max-width] duration-300',
+                  'mx-auto overflow-hidden rounded-xl border border-stone-200 bg-white shadow-md transition-[max-width] duration-300',
                   previewViewport === 'mobile' ? 'max-w-[390px]' : 'max-w-[640px]'
                 )}
               >

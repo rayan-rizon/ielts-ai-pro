@@ -723,7 +723,7 @@ const ResourceManagement = () => {
               </AdminButton>
             </DialogTrigger>
             <DialogContent
-              className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-lg overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto p-4 sm:p-5"
+              className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-lg overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto p-4 sm:p-5"
               data-oid="dtsedp6"
             >
               <DialogHeader className="space-y-0.5" data-oid="9ymdqci">
@@ -1075,7 +1075,7 @@ const ResourceManagement = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 bg-slate-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-start gap-2 sm:gap-4 border border-white/10 overflow-x-auto max-w-[calc(100vw-1.5rem)]"
+            className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 bg-stone-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-4 border border-white/15 overflow-x-auto max-w-[calc(100vw-1.5rem)]"
             data-oid="47a_a6n"
           >
             <span className="font-bold text-xs sm:text-sm whitespace-nowrap" data-oid="jhdg0tw">

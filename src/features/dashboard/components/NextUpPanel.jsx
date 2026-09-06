@@ -94,7 +94,13 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
       {actions.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
           <CheckCircle2 className="h-6 w-6 text-[rgb(var(--signal-ok))] opacity-60" />
-          <p className={cn('mt-2 text-xs font-medium', MUTED)}>Nothing waiting on you.</p>
+          <p className={cn('mt-2 text-xs font-medium', MUTED)}>All recommended tasks complete.</p>
+          <Link
+            to={createPageUrl('Reading')}
+            className="mt-2 text-xs font-bold text-[#5a63df] hover:underline"
+          >
+            Practice Cambridge papers →
+          </Link>
         </div>
       ) : (
         <div className="flex-1 space-y-1.5">
@@ -102,7 +108,7 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
             <Link
               key={action.key}
               to={action.to}
-              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] dark:hover:bg-white/6"
+              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#131315]"
             >
               <span
                 className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', RANK[index] || RANK[2])}
@@ -131,7 +137,10 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
       )}
 
       <PanelFootnote>
-        <Link to={createPageUrl('Onboarding')} className={PANEL_LINK}>
+        <Link
+          to={createPageUrl('Onboarding')}
+          className={cn(PANEL_LINK, 'min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
+        >
           Update goals
         </Link>
       </PanelFootnote>

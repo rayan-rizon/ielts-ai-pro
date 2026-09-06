@@ -90,7 +90,15 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
       />
 
       {scored.length === 0 ? (
-        <Empty>No scored modules yet — complete a test to start this chart.</Empty>
+        <Empty>
+          No scored modules yet — complete a test to start this chart.
+          <Link
+            to={createPageUrl('Reading')}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#5a63df] hover:underline"
+          >
+            Start Reading test →
+          </Link>
+        </Empty>
       ) : (
         // Four rows against a three-item neighbour left a void at the bottom of
         // the card; spreading them keeps the row heights honest and the panel full.
@@ -106,7 +114,10 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
                   : `${row.label} — not taken yet`
               }
             >
-              <Link to={createPageUrl(row.page)} className="group flex items-center gap-2.5">
+              <Link
+                to={createPageUrl(row.page)}
+                className="group flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
+              >
                 <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
                   <div
                     className={cn(
@@ -133,7 +144,7 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
                     'w-9 shrink-0 text-right text-sm font-bold',
                     row.avg != null
                       ? 'text-slate-900 dark:text-slate-50'
-                      : 'text-slate-300 dark:text-slate-600'
+                      : 'text-slate-400 dark:text-slate-500'
                   )}
                 >
                   {row.avg != null ? row.avg.toFixed(1) : '—'}

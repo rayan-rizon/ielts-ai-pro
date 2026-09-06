@@ -113,14 +113,19 @@ const BookTile = ({ item, onOpen }) => (
 
 const LibraryActions = ({ expanded, onExpand, onOpenLibrary }) => (
   <div className="flex items-center gap-3">
-    <button type="button" onClick={onOpenLibrary} className={cn(MICRO, PANEL_LINK)}>
+    <button
+      type="button"
+      onClick={onOpenLibrary}
+      className={cn(MICRO, PANEL_LINK, 'min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
+    >
       Full library <ChevronRight className="h-3 w-3" />
     </button>
     <button
       type="button"
       onClick={onExpand}
       aria-expanded={expanded}
-      className={cn(MICRO, PANEL_LINK, 'gap-1')}
+      aria-controls="study-library-content"
+      className={cn(MICRO, PANEL_LINK, 'gap-1 min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
     >
       {expanded ? 'Collapse' : 'Expand'}
       <ChevronDown
@@ -231,6 +236,7 @@ const StudyResourcesHub = React.memo(
           {expanded && (
             <motion.div
               key="library"
+              id="study-library-content"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}

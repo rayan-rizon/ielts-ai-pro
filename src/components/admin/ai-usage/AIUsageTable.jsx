@@ -43,23 +43,40 @@ const AIUsageTable = ({
             {COLUMNS.map((col) => (
               <th
                 key={col.label}
-                onClick={col.field ? () => handleSort(col.field) : undefined}
-                className={cn(
-                  MICRO,
-                  'px-4 py-2.5 text-stone-500 dark:text-stone-400 font-bold',
-                  col.field &&
-                    'cursor-pointer select-none hover:text-stone-700 dark:hover:text-stone-200'
-                )}
+                aria-sort={
+                  col.field
+                    ? sortField === col.field
+                      ? sortDirection === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : 'none'
+                    : undefined
+                }
+                className="px-3 py-2 text-stone-500 dark:text-stone-400 font-bold"
               >
-                <span className="inline-flex items-center gap-1">
-                  {col.label}
-                  {sortField === col.field &&
-                    (sortDirection === 'asc' ? (
-                      <ChevronUp className="w-2.5 h-2.5" />
-                    ) : (
-                      <ChevronDown className="w-2.5 h-2.5" />
-                    ))}
-                </span>
+                {col.field ? (
+                  <button
+                    type="button"
+                    onClick={() => handleSort(col.field)}
+                    className={cn(
+                      MICRO,
+                      'inline-flex items-center gap-1 cursor-pointer select-none transition-colors group rounded px-1.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
+                      sortField === col.field
+                        ? 'text-stone-900 dark:text-stone-50 font-bold'
+                        : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                    )}
+                  >
+                    <span>{col.label}</span>
+                    {sortField === col.field &&
+                      (sortDirection === 'asc' ? (
+                        <ChevronUp className="w-2.5 h-2.5" />
+                      ) : (
+                        <ChevronDown className="w-2.5 h-2.5" />
+                      ))}
+                  </button>
+                ) : (
+                  <span className={cn(MICRO, 'px-1.5 py-1 inline-block')}>{col.label}</span>
+                )}
               </th>
             ))}
           </tr>

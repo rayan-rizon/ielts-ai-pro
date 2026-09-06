@@ -83,7 +83,7 @@ describe('Admin AI Autopilot panel', () => {
         onRefresh={vi.fn()}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: /preview/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
 
     await waitFor(() => expect(screen.getByText('Preview results')).toBeInTheDocument());
     expect(screen.getByText(/No messages were sent/)).toBeInTheDocument();
@@ -91,5 +91,22 @@ describe('Admin AI Autopilot panel', () => {
     expect(screen.getByText('In app · 3')).toBeInTheDocument();
     expect(MarketingService.runAutopilot).toHaveBeenCalledWith({ dryRun: true });
     expect(MarketingService.runAutopilot).toHaveBeenCalledTimes(1);
+  });
+
+  it('previews each automation as a learner-facing message without queueing it', () => {
+    render(
+      <AutopilotPanel
+        autopilot={{ policies, recommendations: [], interventions: [], channels: [], counts: {} }}
+        onRefresh={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: /preview learner message/i })[0]);
+
+    expect(screen.getByRole('heading', { name: 'Message preview' })).toBeInTheDocument();
+    expect(screen.getByText(/No learner is selected, queued, or contacted/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /email/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /email/i }));
+    expect(screen.getByText('Inbox subject')).toBeInTheDocument();
   });
 });

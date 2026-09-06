@@ -86,7 +86,7 @@ export const ThemedDateTimePicker = ({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-100 shadow-2xl rounded-xl z-50"
+        className="w-auto p-0 border border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315] text-stone-900 dark:text-stone-100 shadow-md rounded-xl z-50"
         align="start"
       >
         <CalendarComponent
@@ -108,7 +108,10 @@ export const ThemedDateTimePicker = ({
               value={hoursStr}
               onValueChange={(val) => updateDateTime(dateObj, val, minutesStr, ampmStr)}
             >
-              <SelectTrigger className="h-7 w-[54px] px-1.5 text-xs bg-white dark:bg-[#1b1a20] border-stone-200 dark:border-white/10">
+              <SelectTrigger
+                aria-label="Hour"
+                className="h-7 w-[54px] px-1.5 text-xs bg-white dark:bg-[#1b1a20] border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="dark:bg-[#16151a] dark:border-white/10 max-h-48 z-50">
@@ -126,7 +129,10 @@ export const ThemedDateTimePicker = ({
               value={minutesStr}
               onValueChange={(val) => updateDateTime(dateObj, hoursStr, val, ampmStr)}
             >
-              <SelectTrigger className="h-7 w-[54px] px-1.5 text-xs bg-white dark:bg-[#1b1a20] border-stone-200 dark:border-white/10">
+              <SelectTrigger
+                aria-label="Minute"
+                className="h-7 w-[54px] px-1.5 text-xs bg-white dark:bg-[#1b1a20] border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="dark:bg-[#16151a] dark:border-white/10 max-h-48 z-50">
@@ -144,7 +150,10 @@ export const ThemedDateTimePicker = ({
               value={ampmStr}
               onValueChange={(val) => updateDateTime(dateObj, hoursStr, minutesStr, val)}
             >
-              <SelectTrigger className="h-7 w-[54px] px-1.5 text-xs bg-white dark:bg-[#1b1a20] border-stone-200 dark:border-white/10">
+              <SelectTrigger
+                aria-label="AM or PM"
+                className="h-7 w-[54px] px-1.5 text-xs bg-white dark:bg-[#1b1a20] border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="dark:bg-[#16151a] dark:border-white/10 z-50">
