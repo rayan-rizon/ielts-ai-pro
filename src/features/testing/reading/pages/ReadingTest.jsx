@@ -181,9 +181,13 @@ function ReadingTestContent() {
   const [highlightedAnswerQs, setHighlightedAnswerQs] = useState(null); // 'all' | Set<number> | null
   const isMobile = useIsMobile(); // Add useIsMobile hook
 
+  // Declared ahead of the feature hooks: useHighlighter anchors highlights to
+  // the passage body inside this container.
+  const passageRef = useRef(null);
+
   // --- Feature Hooks ---
   const wordDef = useWordDefinition(user, testData, currentPassageIndex);
-  const highlighter = useHighlighter();
+  const highlighter = useHighlighter({ passageRef, currentPassageIndex });
   const notesManager = useTestNotes();
 
   // Destructure for backward compatibility with existing render logic
@@ -203,6 +207,8 @@ function ReadingTestContent() {
     applyHighlight,
     removeHighlight,
     handleHighlightClick,
+    repaintHighlights,
+    passageBodyRef,
   } = highlighter;
 
   const { notes, setNotes, showNotes, setShowNotes, newNote, setNewNote, addNote, removeNote } =
@@ -238,7 +244,6 @@ function ReadingTestContent() {
   const [textSize, setTextSize] = useState('text-[15px]');
   const [paperTheme, setPaperTheme] = useState('light'); // light, sepia, dark
 
-  const passageRef = useRef(null);
   const containerRef = useRef(null);
   const timeRemainingRef = useRef(3600); // Only for compatibility, mainly unused
 
@@ -784,6 +789,15 @@ function ReadingTestContent() {
     );
   }, [testData, allQuestions, currentPassageIndex, currentPassage]);
 
+  // Highlights are painted onto the passage body, and PassagePanel rebuilds that
+  // body's HTML whenever the passage content, paper theme, or answer-reveal
+  // state changes — which wipes the painted spans. Repaint after each rebuild.
+  // (Adding/removing a highlight and switching passages are handled inside
+  // useHighlighter; these are the rebuilds it cannot see.)
+  useEffect(() => {
+    repaintHighlights();
+  }, [repaintHighlights, currentPassage?.content, paperTheme, highlightedAnswerQs]);
+
   if (isLoading) {
     return <PremiumLoading message="Initializing test..." />;
   }
@@ -895,6 +909,8 @@ function ReadingTestContent() {
                     content_data: {
                       ...session.content_data,
                       time_remaining: exitTime,
+                      highlights: getLatestState().highlights,
+                      notes: getLatestState().notes,
                       last_saved_at: new Date().toISOString(),
                     },
                   })
@@ -953,6 +969,7 @@ function ReadingTestContent() {
                 highlightedAnswerQs={highlightedAnswerQs}
                 onPaperThemeChange={setPaperTheme}
                 onTextSizeChange={setTextSize}
+                passageBodyRef={passageBodyRef}
               />
             </div>
 
@@ -1021,7 +1038,7 @@ function ReadingTestContent() {
           setShowNotes={setShowNotes}
           notes={notes}
           onRemoveNote={removeNote}
-          onAddNote={addNote}
+          onAddNote={() => addNote(currentPassageIndex)}
           newNote={newNote}
           setNewNote={setNewNote}
           onNavigateToRef={handleNavigateToRef}

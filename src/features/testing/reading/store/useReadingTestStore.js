@@ -47,7 +47,9 @@ export const useReadingTestStore = create(
         isSaving: false,
         lastSaved: null,
 
-        // ============ INTERACTION STATE (not persisted) ============
+        // ============ INTERACTION STATE (persisted) ============
+        // Highlights are serialisable anchors (see utils/passageHighlights.js),
+        // not DOM nodes, so they survive a passage switch and a refresh.
         highlights: [],
         notes: [],
 
@@ -198,14 +200,40 @@ export const useReadingTestStore = create(
         setPassageIndex: (index) => set({ currentPassageIndex: index }),
 
         /**
-         * Set highlights array
+         * Replace the highlights array (restoring from a saved session)
          */
-        setHighlights: (highlights) => set({ highlights }),
+        setHighlights: (highlights) =>
+          set({ highlights: Array.isArray(highlights) ? highlights : [] }),
 
         /**
-         * Set notes array
+         * Add a single highlight anchor
          */
-        setNotes: (notes) => set({ notes }),
+        addHighlight: (highlight) =>
+          set((state) => ({ highlights: [...state.highlights, highlight] })),
+
+        /**
+         * Remove a highlight by id
+         */
+        removeHighlight: (highlightId) =>
+          set((state) => ({
+            highlights: state.highlights.filter((highlight) => highlight.id !== highlightId),
+          })),
+
+        /**
+         * Replace the notes array (restoring from a saved session)
+         */
+        setNotes: (notes) => set({ notes: Array.isArray(notes) ? notes : [] }),
+
+        /**
+         * Add a single note
+         */
+        addNote: (note) => set((state) => ({ notes: [...state.notes, note] })),
+
+        /**
+         * Remove a note by id
+         */
+        removeNote: (noteId) =>
+          set((state) => ({ notes: state.notes.filter((note) => note.id !== noteId) })),
 
         /**
          * Show/hide results modal
@@ -287,6 +315,8 @@ export const useReadingTestStore = create(
           currentPassageIndex: state.currentPassageIndex,
           sessionId: state.sessionId,
           passageTimes: state.passageTimes,
+          highlights: state.highlights,
+          notes: state.notes,
         }),
 
         // Version for migrations if schema changes

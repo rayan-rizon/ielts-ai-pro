@@ -18,6 +18,7 @@ import {
   normalizePersistedAnswers,
 } from '@/features/testing/shared/utils/resultEvidence';
 import { supabase } from '@/lib/supabase';
+import { useReadingTestStore } from '@/features/testing/reading/store/useReadingTestStore';
 import {
   EXAM_DURATION_SECONDS,
   getReadingExamEligibility,
@@ -294,6 +295,16 @@ export function useReadingTestLogic(
               }
             }
 
+            // Restore the learner's own markup. Highlights are anchors, not DOM,
+            // so they can simply be handed back to the store and repainted.
+            const store = useReadingTestStore.getState();
+            if (Array.isArray(contentData.highlights) && contentData.highlights.length > 0) {
+              store.setHighlights(contentData.highlights);
+            }
+            if (Array.isArray(contentData.notes) && contentData.notes.length > 0) {
+              store.setNotes(contentData.notes);
+            }
+
             if (Object.keys(answersMapToRestore).length > 0) {
               dispatch({ type: 'SET_ANSWERS_BULK', payload: answersMapToRestore });
               console.log(
@@ -463,6 +474,8 @@ export function useReadingTestLogic(
             correctAnswers: results.correctAnswers,
             percentage: Math.round(results.percentage),
             savedAnswers: answers,
+            highlights: latestState.highlights,
+            notes: latestState.notes,
             passageTimes,
             answerChangeCounts,
             changedAnswersCount: errorPatterns.changedAnswers || 0,

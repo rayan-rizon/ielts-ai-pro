@@ -1,7 +1,29 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useReadingTestStore } from '@/features/testing/reading/store/useReadingTestStore';
+import {
+  getPassageBody,
+  paintHighlights,
+  rangeToOffsets,
+} from '@/features/testing/reading/components/ReadingTest/utils/passageHighlights';
 
-export const useHighlighter = () => {
-  const [highlights, setHighlights] = useState([]);
+/**
+ * Passage highlighting.
+ *
+ * Highlights live in the store as serialisable anchors, and the DOM is painted
+ * from them. Previously they were local component state plus a one-off DOM
+ * mutation, which meant a passage switch (which rebuilds the passage body) or a
+ * refresh silently discarded every highlight the learner had made.
+ *
+ * @param {Object}  options
+ * @param {React.RefObject} options.passageRef      Scroll container holding the passage body.
+ * @param {number}          options.currentPassageIndex Passage new highlights belong to.
+ */
+export const useHighlighter = ({ passageRef, currentPassageIndex = 0 } = {}) => {
+  const highlights = useReadingTestStore((s) => s.highlights);
+  const setHighlights = useReadingTestStore((s) => s.setHighlights);
+  const addHighlight = useReadingTestStore((s) => s.addHighlight);
+  const removeHighlightFromStore = useReadingTestStore((s) => s.removeHighlight);
+
   const [showHighlightMenu, setShowHighlightMenu] = useState(false);
   const [highlightMenuPosition, setHighlightMenuPosition] = useState({ x: 0, y: 0 });
   const [currentSelection, setCurrentSelection] = useState(null);
@@ -17,99 +39,115 @@ export const useHighlighter = () => {
     setShowHighlightMenu(true);
   }, []);
 
+  // Painted spans capture their click handler at paint time; the ref keeps them
+  // pointing at the current one without forcing a repaint.
+  const highlightClickRef = useRef(handleHighlightClick);
+  useEffect(() => {
+    highlightClickRef.current = handleHighlightClick;
+  }, [handleHighlightClick]);
+
+  const passageHighlights = useMemo(
+    () => highlights.filter((highlight) => highlight.passageIndex === currentPassageIndex),
+    [highlights, currentPassageIndex]
+  );
+
+  // The attached passage body. Held separately from `passageRef` because the
+  // body mounts inside a <Suspense> boundary: an effect can run before the body
+  // exists, and nothing re-runs it once the boundary resolves.
+  const bodyNodeRef = useRef(null);
+
+  const paint = useCallback(
+    (root) => {
+      if (!root) return;
+      paintHighlights(root, passageHighlights, {
+        onHighlightClick: (event, highlight) => highlightClickRef.current?.(event, highlight),
+      });
+    },
+    [passageHighlights]
+  );
+
+  /**
+   * Callback ref for the passage body element.
+   *
+   * React invokes this the moment the node attaches — after Suspense resolves,
+   * after a remount, after a rehydrated session renders — which is the only
+   * timing that reliably covers restoring highlights on load. Its identity also
+   * changes whenever `passageHighlights` does, so adding or removing a highlight
+   * re-runs it and repaints.
+   */
+  const passageBodyRef = useCallback(
+    (node) => {
+      bodyNodeRef.current = node;
+      paint(node);
+    },
+    [paint]
+  );
+
+  /**
+   * Repaint the current passage's highlights.
+   *
+   * Safe to call at any time — it clears whatever is painted before applying,
+   * so extra calls are idempotent. The caller must invoke this after any render
+   * that rebuilds the body's HTML in place (paper theme, answer reveal), which
+   * keeps the same element and so does not re-run the callback ref.
+   */
+  const repaintHighlights = useCallback(() => {
+    paint(bodyNodeRef.current || getPassageBody(passageRef?.current));
+  }, [paint, passageRef]);
+
+  // Covers switching passages, where the body element is reused but its
+  // contents are rebuilt from the new passage.
+  useEffect(() => {
+    repaintHighlights();
+  }, [repaintHighlights]);
+
+  const closeMenu = useCallback(() => {
+    setShowHighlightMenu(false);
+    setCurrentSelection(null);
+    window.getSelection()?.removeAllRanges();
+  }, []);
+
   const applyHighlight = useCallback(
     (color) => {
-      if (!currentSelection) return;
+      const root = bodyNodeRef.current || getPassageBody(passageRef?.current);
+      const range = currentSelection?.range;
 
-      const highlightId = Date.now().toString();
+      if (!root || !range || range.collapsed) {
+        closeMenu();
+        return null;
+      }
+
+      const anchor = rangeToOffsets(root, range);
+      if (!anchor) {
+        // Better to decline than to paint a highlight that cannot be restored.
+        console.warn('[ReadingTest] Selection could not be anchored to the passage.');
+        closeMenu();
+        return null;
+      }
+
       const highlight = {
-        id: highlightId,
-        text: currentSelection.text,
-        color: color,
+        id: `hl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        passageIndex: currentPassageIndex,
+        start: anchor.start,
+        end: anchor.end,
+        text: anchor.text,
+        color,
         timestamp: new Date().toISOString(),
       };
 
-      // Create highlight span
-      const span = document.createElement('span');
-      // Ensure text is readable with saturated colors
-      span.className =
-        'user-highlight cursor-pointer transition-all duration-200 ' +
-        'rounded-sm px-0.5 box-decoration-clone ';
-
-      // Apply different styles for light/dark mode via direct style manipulation if possible,
-      // but here we use a class-based approach or just standard styles.
-      span.style.backgroundColor = color;
-      // In light mode (standard), dark text on saturated colors works best.
-      // We'll rely on the selection fix in index.css for the active selection.
-      span.style.color = '#1a1a1a';
-      span.style.fontWeight = '500';
-      span.setAttribute('data-highlight-id', highlightId);
-
-      span.onclick = (e) => handleHighlightClick(e, highlight);
-
-      try {
-        // Check if the range is still valid and not collapsed
-        if (!currentSelection.range || currentSelection.range.collapsed) {
-          console.warn('Selection range is collapsed or invalid, cannot highlight');
-          setShowHighlightMenu(false);
-          setCurrentSelection(null);
-          window.getSelection().removeAllRanges();
-          return;
-        }
-
-        // Extract the contents and wrap them
-        const contents = currentSelection.range.extractContents();
-        span.appendChild(contents);
-        currentSelection.range.insertNode(span);
-
-        setHighlights((prev) => [...prev, highlight]);
-      } catch (error) {
-        console.error('Error applying highlight:', error);
-
-        // Fallback method - try to recreate the selection (less reliable but can catch some edge cases)
-        try {
-          const selection = window.getSelection();
-          if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            if (!range.collapsed) {
-              const contents = range.extractContents();
-              span.appendChild(contents);
-              range.insertNode(span);
-              setHighlights((prev) => [...prev, highlight]);
-            }
-          }
-        } catch (fallbackError) {
-          console.error('Fallback highlight method also failed:', fallbackError);
-        }
-      }
-
-      setShowHighlightMenu(false);
-      setCurrentSelection(null);
-      window.getSelection().removeAllRanges();
-
-      return span;
+      addHighlight(highlight);
+      closeMenu();
+      return highlight;
     },
-    [currentSelection, handleHighlightClick]
+    [passageRef, currentSelection, currentPassageIndex, addHighlight, closeMenu]
   );
 
   const removeHighlight = useCallback(() => {
     if (!selectedHighlight) return;
-
-    const highlightElement = document.querySelector(
-      `[data-highlight-id="${selectedHighlight.id}"]`
-    );
-    if (highlightElement) {
-      const parent = highlightElement.parentNode;
-      while (highlightElement.firstChild) {
-        parent.insertBefore(highlightElement.firstChild, highlightElement);
-      }
-      parent.removeChild(highlightElement);
-    }
-
-    setHighlights((prev) => prev.filter((h) => h.id !== selectedHighlight.id));
+    removeHighlightFromStore(selectedHighlight.id);
     setShowHighlightMenu(false);
     setSelectedHighlight(null);
-  }, [selectedHighlight]);
+  }, [selectedHighlight, removeHighlightFromStore]);
 
   return {
     highlights,
@@ -125,5 +163,7 @@ export const useHighlighter = () => {
     applyHighlight,
     removeHighlight,
     handleHighlightClick,
+    repaintHighlights,
+    passageBodyRef,
   };
 };

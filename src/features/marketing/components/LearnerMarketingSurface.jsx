@@ -80,6 +80,7 @@ function useVisibleImpression(ref, delivery) {
 export default function LearnerMarketingSurface({ user, dashboardOnly = false }) {
   const [deliveries, setDeliveries] = useState([]);
   const [preferences, setPreferences] = useState(null);
+  const [loadedUserId, setLoadedUserId] = useState(null);
   const [working, setWorking] = useState('');
   const cardRef = useRef(null);
   const bannerRef = useRef(null);
@@ -96,14 +97,21 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      MarketingDelivery.listActive(user?.id),
-      MarketingDelivery.getPreferences(user?.id),
-    ])
+    const userId = user?.id;
+
+    setLoadedUserId(null);
+    if (!userId) {
+      return () => {
+        active = false;
+      };
+    }
+
+    Promise.all([MarketingDelivery.listActive(userId), MarketingDelivery.getPreferences(userId)])
       .then(([nextDeliveries, nextPreferences]) => {
         if (!active) return;
         setDeliveries(nextDeliveries);
         setPreferences(nextPreferences);
+        setLoadedUserId(userId);
       })
       .catch((error) => console.warn('[marketing] Could not load learner guidance:', error));
     return () => {
@@ -127,7 +135,7 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
   // Learners should never have to choose between two proactive surfaces. A
   // prepared intervention is more immediately useful than an optional check-in;
   // the check-in remains available on a later dashboard visit.
-  const showCheckIn = checkInDue && !banner && !notification;
+  const showCheckIn = loadedUserId === user?.id && checkInDue && !banner && !notification;
 
   const act = async (key, task, success) => {
     setWorking(key);

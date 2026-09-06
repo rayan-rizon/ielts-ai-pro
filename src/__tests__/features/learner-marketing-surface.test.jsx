@@ -21,10 +21,35 @@ class TestIntersectionObserver {
   disconnect() {}
 }
 
+const deferred = () => {
+  let resolve;
+  const promise = new Promise((nextResolve) => {
+    resolve = nextResolve;
+  });
+  return { promise, resolve };
+};
+
 describe('Learner marketing surface', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IntersectionObserver = TestIntersectionObserver;
+  });
+
+  it('does not flash the optional check-in while learner data is loading', async () => {
+    const deliveries = deferred();
+    const preferences = deferred();
+    MarketingDelivery.listActive.mockReturnValue(deliveries.promise);
+    MarketingDelivery.getPreferences.mockReturnValue(preferences.promise);
+
+    render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
+
+    expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument();
+
+    deliveries.resolve([]);
+    preferences.resolve({ feeling_recorded_at: new Date().toISOString() });
+    await waitFor(() =>
+      expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
+    );
   });
 
   it('shows the optional check-in when no learner guidance is active', async () => {

@@ -70,6 +70,11 @@ export function ReadingTestProvider({ children }) {
   const getExtraData = useCallback(
     () => ({
       time_remaining: store.getState().timeRemaining,
+      // Annotations ride along with the answer autosave so that resuming on
+      // another day (or another device) restores the learner's own markup, not
+      // just their answers.
+      highlights: store.getState().highlights,
+      notes: store.getState().notes,
     }),
     [store]
   );

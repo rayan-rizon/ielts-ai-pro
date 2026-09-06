@@ -25,6 +25,7 @@ const ReadingTestAppearance = React.lazy(() => import('../../ReadingTestAppearan
  * @param {Set<number>|'all'|null} props.highlightedAnswerQs - Which answers to highlight in the passage
  * @param {Function} props.onPaperThemeChange - Callback to change paper theme
  * @param {Function} props.onTextSizeChange - Callback to change text size
+ * @param {Function} props.passageBodyRef - Callback ref for the element user highlights anchor to
  */
 const PassagePanel = memo(function PassagePanel({
   currentPassage,
@@ -39,6 +40,7 @@ const PassagePanel = memo(function PassagePanel({
   highlightedAnswerQs,
   onPaperThemeChange,
   onTextSizeChange,
+  passageBodyRef,
 }) {
   /**
    * Render passage content with proper formatting
@@ -139,7 +141,7 @@ const PassagePanel = memo(function PassagePanel({
               const firstQ = qNum.split(/[\s,]+/)[0].trim();
               const idAttr = isSpecificHighlight ? `id="highlighted-answer-${firstQ}"` : '';
 
-              return `<span ${idAttr} class="${highlightClass} ${textStyle} px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="inline-flex items-center justify-center ${badgeClass} text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-px">Q${qNum.trim()}</span></span>`;
+              return `<span ${idAttr} class="${highlightClass} ${textStyle} px-1 py-0.5 rounded-sm font-medium transition-all duration-200">${content.trim()}<span class="answer-marker-badge inline-flex items-center justify-center ${badgeClass} text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm select-none align-middle ml-0.5 transform -translate-y-px">Q${qNum.trim()}</span></span>`;
             })
             .trim();
 
@@ -166,11 +168,19 @@ const PassagePanel = memo(function PassagePanel({
     };
 
     return (
-      <div className="cursor-pointer max-w-none select-text" data-oid="asd14:q">
+      // data-passage-body marks the element user highlights are anchored to.
+      // Their character offsets are measured against this subtree's text, so it
+      // must contain the passage prose and nothing else.
+      <div
+        ref={passageBodyRef}
+        className="cursor-pointer max-w-none select-text"
+        data-passage-body=""
+        data-oid="asd14:q"
+      >
         {processFormattedText(content)}
       </div>
     );
-  }, [currentPassage.content, highlightedAnswerQs, paperTheme]);
+  }, [currentPassage.content, highlightedAnswerQs, paperTheme, passageBodyRef]);
 
   // Auto-scroll to highlight if a specific question was selected
   React.useEffect(() => {
