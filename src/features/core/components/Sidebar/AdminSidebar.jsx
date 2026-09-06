@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo, LogoIcon } from '@/components/shared/Logo';
 import { Plus, Crown, LogOut } from 'lucide-react';
@@ -18,8 +18,8 @@ import {
 import { createPageUrl } from '@/utils';
 import { adminNavigationItems, analyticsNavigationItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
-import { supabase } from '@/lib/supabase';
 import { getAuthUserId } from '@/features/auth/utils/adminAccess';
+import { useAdminPaymentAlerts } from './useAdminPaymentAlerts';
 
 /*
  * Same instrument-panel language as the rest of the admin area: graphite
@@ -214,134 +214,35 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
 });
 AdminSidebarFooter.displayName = 'AdminSidebarFooter';
 
+function checkIsActiveAdminRoute(currentPath, currentSearch, itemUrl) {
+  const fullPath = currentPath + currentSearch;
+  if (fullPath === itemUrl) return true;
+  if (!itemUrl.includes('AdminPanel')) return false;
+  if (!currentPath.includes('AdminPanel')) return false;
+
+  const hasTab = itemUrl.includes('tab=');
+  if (hasTab) {
+    const [, tabParam] = itemUrl.split('?');
+    return tabParam ? currentSearch.includes(tabParam) : false;
+  }
+
+  return !currentSearch.includes('tab=');
+}
+
 export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   const { isMobile, setOpenMobile } = useSidebar();
-  const [pendingCount, setPendingCount] = useState(0);
-  const [stripePaymentCount, setStripePaymentCount] = useState(0);
-  const [stripeFailureCount, setStripeFailureCount] = useState(0);
-
   const currentPath = location.pathname;
   const currentSearch = location.search || '';
   const isOnPaymentsTab = currentSearch.includes('tab=payments');
   const stripeSeenKey = `admin_stripe_payments_seen_at:${getAuthUserId(user) || 'admin'}`;
 
-  useEffect(() => {
-    let mounted = true;
-    let stripeSeenAt = new Date().toISOString();
+  const { pendingCount, stripePaymentCount, stripeFailureCount } = useAdminPaymentAlerts({
+    isOnPaymentsTab,
+    stripeSeenKey,
+  });
 
-    try {
-      const storedSeenAt = window.localStorage.getItem(stripeSeenKey);
-      if (storedSeenAt) {
-        stripeSeenAt = storedSeenAt;
-      } else {
-        window.localStorage.setItem(stripeSeenKey, stripeSeenAt);
-      }
-    } catch {
-      // Storage can be unavailable in private mode; realtime still covers this session.
-    }
-
-    const fetchPendingCount = async () => {
-      const { count, error } = await supabase
-        .from('payment_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      if (!mounted || error || isOnPaymentsTab) return;
-      setPendingCount(count || 0);
-    };
-
-    const fetchStripePaymentCount = async () => {
-      if (isOnPaymentsTab) {
-        if (mounted) setStripePaymentCount(0);
-        return;
-      }
-
-      const { count, error } = await supabase
-        .from('payment_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('payment_method', 'stripe')
-        .eq('status', 'approved')
-        .gt('created_at', stripeSeenAt);
-
-      if (!mounted || error) return;
-      setStripePaymentCount(count || 0);
-    };
-
-    const fetchStripeFailureCount = async () => {
-      const { count, error } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .not('payment_failed_at', 'is', null);
-
-      if (!mounted || error) return;
-      setStripeFailureCount(count || 0);
-    };
-
-    fetchPendingCount();
-    fetchStripePaymentCount();
-    fetchStripeFailureCount();
-    const stripeFailureRefresh = window.setInterval(fetchStripeFailureCount, 60_000);
-
-    let channel;
-    if (typeof window !== 'undefined' && window.WebSocket) {
-      try {
-        channel = supabase
-          .channel('payment_updates')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'payment_requests' },
-            () => {
-              fetchPendingCount();
-              fetchStripePaymentCount();
-              fetchStripeFailureCount();
-            }
-          )
-          .subscribe((status) => {
-            if (status === 'CHANNEL_ERROR') {
-              console.warn('Realtime subscription error in AdminSidebar: Connection failed');
-            }
-          });
-      } catch (err) {
-        console.warn('Failed to initialize Realtime subscription in AdminSidebar:', err.message);
-      }
-    } else {
-      console.info('WebSockets not available or disabled (AdminSidebar)');
-    }
-
-    return () => {
-      mounted = false;
-      window.clearInterval(stripeFailureRefresh);
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [isOnPaymentsTab, stripeSeenKey]);
-
-  useEffect(() => {
-    if (isOnPaymentsTab) {
-      setPendingCount(0);
-      setStripePaymentCount(0);
-      try {
-        window.localStorage.setItem(stripeSeenKey, new Date().toISOString());
-      } catch {
-        // Storage can be unavailable in private mode.
-      }
-    }
-  }, [isOnPaymentsTab, stripeSeenKey]);
-
-  const isActiveAdminRoute = useMemo(
-    () => (itemUrl) => {
-      const fullPath = currentPath + currentSearch;
-      if (fullPath === itemUrl) return true;
-      if (!itemUrl.includes('AdminPanel')) return false;
-      if (!currentPath.includes('AdminPanel')) return false;
-
-      const hasTab = itemUrl.includes('tab=');
-      if (hasTab && currentSearch.includes(itemUrl.split('?')[1])) return true;
-      if (!hasTab && !currentSearch.includes('tab=')) return true;
-
-      return false;
-    },
+  const isActiveAdminRoute = useCallback(
+    (itemUrl) => checkIsActiveAdminRoute(currentPath, currentSearch, itemUrl),
     [currentPath, currentSearch]
   );
 
