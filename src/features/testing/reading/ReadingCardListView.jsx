@@ -1,3 +1,4 @@
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -75,6 +76,8 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
           test={test}
         />
       </div>
+
+      <TakeWithFriend test={test} isLocked={isLocked} />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
+import PairedTestGate from '@/features/testing/paired/PairedTestGate';
 import React, { useState } from 'react';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -90,6 +92,11 @@ function ListeningTestInner() {
       className="h-full w-full flex flex-col flex-1 min-h-0 bg-background overflow-hidden font-sans antialiased text-foreground relative"
       data-oid="ocjmio6"
     >
+      {isAwaitingStart && examEligibility.eligible && (
+        <div className="px-4 pb-2">
+          <TakeWithFriend test={state.testData} />
+        </div>
+      )}
       <ListeningTestHeader
         testData={state.testData}
         activePart={state.activePart}
@@ -202,19 +209,21 @@ function ListeningTestInner() {
 
 export default function ListeningTest() {
   return (
-    <React.Suspense
-      fallback={<PremiumLoading message="Loading test module..." />}
-      data-oid="qv2lotf"
-    >
-      <ErrorBoundary
-        title="Listening Test Error"
-        fallbackMessage="Something went wrong while loading the listening test. Your progress has been auto-saved. Please try refreshing the page."
-        data-oid="oour:-e"
+    <PairedTestGate type="listening">
+      <React.Suspense
+        fallback={<PremiumLoading message="Loading test module..." />}
+        data-oid="qv2lotf"
       >
-        <ListeningTestProvider data-oid="cg29s21">
-          <ListeningTestInner data-oid="p3tqef:" />
-        </ListeningTestProvider>
-      </ErrorBoundary>
-    </React.Suspense>
+        <ErrorBoundary
+          title="Listening Test Error"
+          fallbackMessage="Something went wrong while loading the listening test. Your progress has been auto-saved. Please try refreshing the page."
+          data-oid="oour:-e"
+        >
+          <ListeningTestProvider data-oid="cg29s21">
+            <ListeningTestInner data-oid="p3tqef:" />
+          </ListeningTestProvider>
+        </ErrorBoundary>
+      </React.Suspense>
+    </PairedTestGate>
   );
 }

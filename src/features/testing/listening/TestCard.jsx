@@ -1,3 +1,4 @@
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React, { memo } from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -98,6 +99,7 @@ function TestCard({
           completedSession={completedSession}
         />
       </div>
+      <TakeWithFriend test={test} isLocked={isLocked} />
     </m.div>
   );
 }

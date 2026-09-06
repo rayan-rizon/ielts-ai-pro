@@ -1,3 +1,4 @@
+import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -184,6 +185,9 @@ export function useAutosave({
   onSaveSuccess,
   onSaveError,
 }: UseAutosaveOptions): UseAutosaveResult {
+  const paired = usePairedTest();
+  const pairedRef = useRef(paired);
+  pairedRef.current = paired;
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const lastSavedRef = useRef<Answers>({});
@@ -246,16 +250,20 @@ export function useAutosave({
       }
 
       try {
-        const { error } = await supabase
-          .from('test_sessions')
-          .update({
-            user_responses: answers,
-            content_data: contentData,
-          })
-          .eq('id', session.id)
-          .eq('is_completed', false);
+        if (pairedRef.current) {
+          await pairedRef.current.save(answers);
+        } else {
+          const { error } = await supabase
+            .from('test_sessions')
+            .update({
+              user_responses: answers,
+              content_data: contentData,
+            })
+            .eq('id', session.id)
+            .eq('is_completed', false);
 
-        if (error) throw error;
+          if (error) throw error;
+        }
 
         lastSavedRef.current = Array.isArray(answers) ? [...answers] : { ...answers };
         lastSaveTimeRef.current = Date.now();
@@ -381,7 +389,10 @@ export function useAutosave({
       return;
     }
 
-    const saveInterval = setInterval(() => performSaveCheck(), AUTOSAVE_INTERVAL_MS);
+    const saveInterval = setInterval(
+      () => performSaveCheck(),
+      session?.paired_room_id ? 5000 : AUTOSAVE_INTERVAL_MS
+    );
     return () => {
       clearInterval(saveInterval);
     };

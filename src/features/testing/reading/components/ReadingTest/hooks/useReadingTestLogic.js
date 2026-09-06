@@ -1,3 +1,4 @@
+import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
@@ -32,6 +33,7 @@ export function useReadingTestLogic(
   initialId,
   { awardXP, user: contextUser = null, flaggedQuestions = null }
 ) {
+  const paired = usePairedTest();
   const { dispatch } = useReadingTestDispatch();
   const { getLatestState } = useReadingTestDispatch(); // getLatestState is attached to dispatch object in context
   const ctxState = useReadingTestState();
@@ -92,14 +94,16 @@ export function useReadingTestLogic(
           questions,
           session: existingSession,
           user: userData,
-        } = await initializeTest({
+        } = paired?.initial ||
+        (await initializeTest({
           type: 'reading',
           id: taskIdOrSessionId,
           isRetake,
           viewResults,
           user: user || contextUser, // Pass user to avoid redundant User.me() inside initializeTest
-        });
+        }));
 
+        if (paired) dispatch({ type: 'RESET_TEST' });
         setTestData(passage);
         setAllQuestions(questions);
         setUser(userData || contextUser);
@@ -156,6 +160,7 @@ export function useReadingTestLogic(
             dispatch({ type: 'SET_SESSION', payload: existingSession });
 
             if (
+              !paired &&
               location.pathname !== `/reading-test/${existingSession.id}` &&
               !existingSession.is_completed
             ) {
@@ -333,7 +338,7 @@ export function useReadingTestLogic(
         initializingRef.current = false;
       }
     },
-    [dispatch, location.pathname, navigate]
+    [dispatch, location.pathname, navigate, paired?.initial]
   );
 
   const handleStartTest = useCallback(
@@ -377,6 +382,10 @@ export function useReadingTestLogic(
       setShowTimeUpDialog(false);
 
       try {
+        if (paired) {
+          await paired.submit(getLatestState().answers);
+          return;
+        }
         const results = calculateTestResults(
           allQuestions,
           answers,
@@ -540,6 +549,7 @@ export function useReadingTestLogic(
       user,
       dispatch,
       awardXP,
+      paired,
     ]
   );
 

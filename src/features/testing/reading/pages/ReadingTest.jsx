@@ -1,3 +1,6 @@
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
+import { usePairedTest } from '@/features/testing/paired/PairedContext';
+import PairedTestGate from '@/features/testing/paired/PairedTestGate';
 import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'react';
 import { useLocation, useParams, Link, useBlocker } from 'react-router-dom'; // Added Link, useParams
 import { createPageUrl } from '@/utils';
@@ -119,6 +122,7 @@ import { useReadingTestStore } from '../store/useReadingTestStore';
 // Animation variants moved to ReadingTestQuestionsSidebar.jsx
 
 function ReadingTestContent() {
+  const paired = usePairedTest();
   const { id } = useParams();
   const ctxState = useReadingTestState();
   const { isSaving, lastSaved } = ctxState;
@@ -860,7 +864,10 @@ function ReadingTestContent() {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-background" onClick={handleClearSelection}>
+    <div
+      className={cn('w-full flex flex-col bg-background', paired ? 'min-h-0 flex-1' : 'h-screen')}
+      onClick={handleClearSelection}
+    >
       <Suspense
         fallback={
           <div className="flex h-screen w-full items-center justify-center">
@@ -868,6 +875,11 @@ function ReadingTestContent() {
           </div>
         }
       >
+        {isAwaitingStart && examEligibility.eligible && (
+          <div className="px-4 pb-2">
+            <TakeWithFriend test={testData} />
+          </div>
+        )}
         {/* Gamification Components — confetti lives in TestResultsModal now. */}
         <XPNotification
           show={showXPNotification}
@@ -899,6 +911,11 @@ function ReadingTestContent() {
           lastSaved={lastSaved}
           theme={paperTheme}
           onExit={async () => {
+            if (paired) {
+              await paired.save(getLatestState().answers);
+              handleExit();
+              return;
+            }
             if (session && session.id) {
               const exitTime = getLatestState().timeRemaining;
               try {
@@ -1120,8 +1137,10 @@ function ReadingTestContent() {
 
 export default function ReadingTest() {
   return (
-    <ReadingTestProvider>
-      <ReadingTestContent />
-    </ReadingTestProvider>
+    <PairedTestGate type="reading">
+      <ReadingTestProvider>
+        <ReadingTestContent />
+      </ReadingTestProvider>
+    </PairedTestGate>
   );
 }

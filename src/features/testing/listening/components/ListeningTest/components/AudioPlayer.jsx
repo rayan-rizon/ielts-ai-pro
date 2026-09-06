@@ -1,3 +1,4 @@
+import { usePairedAudio } from '@/features/testing/paired/usePairedAudio';
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ const AudioPlayer = React.forwardRef(
     ref
   ) => {
     const audioRef = useRef(null);
+    const pairedAudio = usePairedAudio(audioRef, src);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -200,6 +202,19 @@ const AudioPlayer = React.forwardRef(
         />
 
         <audio ref={audioRef} src={src} data-oid="mjr6mvu" />
+        {pairedAudio.active && (
+          <div className="text-xs" role="status">
+            Audio follows the shared test timeline.
+            {pairedAudio.interrupted && (
+              <span> Playback was interrupted; you have rejoined at the current position.</span>
+            )}
+            {pairedAudio.blocked && (
+              <Button size="sm" onClick={pairedAudio.enable}>
+                Enable shared audio
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 sm:gap-4" data-oid="i9d8:lc">
           <div
