@@ -5,7 +5,6 @@ import {
   PenTool,
   Headphones,
   Mic,
-  BarChart3,
   CreditCard,
   Library,
   Brain,
@@ -24,6 +23,7 @@ import {
   Target,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { ReiconChart } from '@/components/icons/ReiconChart';
 
 export const userNavigationItems = [
   { title: 'Dashboard', url: createPageUrl('Dashboard'), icon: LayoutGrid },
@@ -32,7 +32,7 @@ export const userNavigationItems = [
   { title: 'Writing Practice', url: createPageUrl('Writing'), icon: PenTool },
   { title: 'Listening Tests', url: createPageUrl('Listening'), icon: Headphones },
   { title: 'Speaking Practice', url: createPageUrl('Speaking'), icon: Mic },
-  { title: 'Analytics', url: createPageUrl('Analytics'), icon: BarChart3 },
+  { title: 'Analytics', url: createPageUrl('Analytics'), icon: ReiconChart },
   { title: 'Pricing', url: createPageUrl('Pricing'), icon: CreditCard },
 ];
 

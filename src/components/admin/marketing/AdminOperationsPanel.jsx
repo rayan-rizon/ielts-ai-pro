@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, m } from 'framer-motion';
 import DOMPurify from 'dompurify';
 import {
   Sparkles,
@@ -10,8 +11,17 @@ import {
   Eye,
 } from 'lucide-react';
 import MarketingService from '@/features/admin/services/MarketingService';
-import { PANEL, TILE, TITLE, MICRO, MUTED, Pill } from '@/features/dashboard/components/primitives';
-import { AdminButton } from '@/components/admin/ui/primitives';
+import {
+  AdminButton,
+  PANEL,
+  PanelHeader,
+  TILE,
+  WELL,
+  TITLE,
+  MICRO,
+  MUTED,
+  Pill,
+} from '@/components/admin/ui/primitives';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +32,7 @@ import {
 import { cn } from '@/lib/cn';
 
 const inputClass =
-  'min-w-0 rounded-md border border-stone-200 bg-transparent px-3 py-2 text-base sm:text-sm dark:border-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
+  'h-8 min-w-0 rounded-lg border border-stone-200/90 bg-white/70 px-3 text-xs font-medium text-stone-900 placeholder:text-stone-400 transition-colors focus:border-[#5a63df] focus:bg-white focus:outline-none focus:ring-1 focus:ring-inset focus:ring-[#5a63df] dark:border-white/10 dark:bg-[#100f15] dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-[#5a63df] dark:focus:bg-[#131315]';
 const pretty = (value) => String(value || 'Unknown').replaceAll('_', ' ');
 const date = (value) => (value ? new Date(value).toLocaleString() : 'Not recorded');
 const shortDate = (value) =>
@@ -55,12 +65,17 @@ const report = (action, parameters) => MarketingService.adminReport(action, para
 
 function WindowSelect({ value, onChange, id, disabled }) {
   return (
-    <label className="text-xs">
-      <span className="sr-only">Reporting window</span>
+    <div className="relative inline-flex items-center">
+      <label htmlFor={id} className="sr-only">
+        Reporting window
+      </label>
       <select
         id={id}
         aria-label="Reporting window"
-        className={inputClass}
+        className={cn(
+          inputClass,
+          'appearance-none cursor-pointer pr-7 pl-3 font-medium rounded-lg'
+        )}
         disabled={disabled}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
@@ -71,7 +86,11 @@ function WindowSelect({ value, onChange, id, disabled }) {
           </option>
         ))}
       </select>
-    </label>
+      <ChevronDown
+        className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-stone-400 dark:text-stone-500"
+        aria-hidden="true"
+      />
+    </div>
   );
 }
 
@@ -86,7 +105,7 @@ function ReportFacts({ facts }) {
       (status) => presentStatuses.has(status)
     );
     return (
-      <div className="mt-2 overflow-x-auto rounded-md border border-stone-200 dark:border-white/10">
+      <div className="mt-2 overflow-x-auto rounded-lg border border-stone-200/80 bg-white dark:border-white/[0.07] dark:bg-[#131315]">
         <table className="w-full min-w-[34rem] text-left text-xs">
           <thead className="bg-stone-50 text-stone-500 dark:bg-white/[0.03] dark:text-stone-400">
             <tr>
@@ -131,11 +150,15 @@ function ReportFacts({ facts }) {
           <p className="truncate text-[11px] text-stone-500 dark:text-stone-400" title={fact.label}>
             {fact.label}
           </p>
-          <p className="font-mono text-base font-bold tabular-nums">{fact.value}</p>
+          <p className="font-mono text-sm font-bold tabular-nums text-stone-900 dark:text-stone-50">
+            {fact.value}
+          </p>
         </div>
       ))}
       {!visible.length && (
-        <p className="col-span-full py-2 text-sm">No activity recorded in this window.</p>
+        <p className="col-span-full py-2 text-xs text-stone-500">
+          No activity recorded in this window.
+        </p>
       )}
     </div>
   );
@@ -308,14 +331,14 @@ function LearnerTimeline() {
       : pretty(item.email_type || item.playbook_key || item.kind));
   return (
     <section className="min-w-0" id="learner-communications">
-      <label htmlFor="learner-search" className="text-xs font-semibold">
+      <label htmlFor="learner-search" className={cn(MICRO, MUTED, 'mb-1.5 block')}>
         Find learner
       </label>
-      <form onSubmit={searchUsers} className="mt-1 flex flex-wrap gap-2">
+      <form onSubmit={searchUsers} className="flex w-full items-center gap-2 p-0.5">
         <input
           id="learner-search"
           aria-label="Find learner"
-          className={cn(inputClass, 'flex-1')}
+          className={cn(inputClass, 'min-w-0 flex-1')}
           value={search}
           minLength={3}
           maxLength={120}
@@ -323,95 +346,121 @@ function LearnerTimeline() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name or full email"
         />
-        <AdminButton type="submit" loading={busy}>
+        <AdminButton
+          type="submit"
+          loading={busy}
+          className="h-8 shrink-0 rounded-lg whitespace-nowrap"
+        >
           Find learner
         </AdminButton>
       </form>
       {error && (
-        <p className="mt-2 text-sm" role="alert">
+        <p className="mt-2 text-xs font-semibold text-[rgb(var(--signal-fault))]" role="alert">
           {error} Try searching or refreshing again.
         </p>
       )}
       {!busy && !user && learners.length === 0 && search.length >= 3 && (
-        <p className="mt-2 text-xs">No results loaded. Search to find a learner.</p>
+        <p className="mt-2 text-xs text-stone-500">No results loaded. Search to find a learner.</p>
       )}
-      {!user && (
-        <div className="mt-2 max-h-48 overflow-y-auto">
+      {!user && learners.length > 0 && (
+        <div className="mt-2.5 max-h-48 overflow-y-auto divide-y divide-stone-100 rounded-lg border border-stone-200/80 bg-white dark:divide-white/[0.04] dark:border-white/[0.07] dark:bg-[#131315]">
           {learners.map((item) => (
             <button
-              className="block w-full rounded p-2 text-left text-xs hover:bg-stone-100 dark:hover:bg-white/5"
+              type="button"
+              className="flex w-full items-center justify-between p-2.5 text-left text-xs transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.04]"
               key={item.id}
               onClick={() => load(item, days)}
             >
-              {item.full_name || 'Learner'} · {item.email}
+              <span className="font-semibold text-stone-900 dark:text-stone-100">
+                {item.full_name || 'Learner'}
+              </span>
+              <span className={cn(MUTED, 'text-[11px]')}>{item.email}</span>
             </button>
           ))}
         </div>
       )}
       {user && (
         <>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <p className="min-w-0 flex-1 text-sm font-bold">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-stone-200/80 bg-stone-50/70 p-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+            <p className="min-w-0 flex-1 text-xs font-bold text-stone-900 dark:text-stone-100">
               {user.full_name || 'Learner'}
-              <bdi className={cn(MUTED, 'ml-1 font-normal')}>· {user.email}</bdi>
+              <bdi className={cn(MUTED, 'ml-1.5 font-normal text-[11px]')}>· {user.email}</bdi>
             </p>
-            <WindowSelect
-              value={days}
-              id="timeline-window"
-              onChange={(value) => load(user, value)}
-            />
-            <label className="text-xs">
-              <span className="sr-only">Channel</span>
-              <select
-                aria-label="Timeline channel"
-                value={channel}
-                onChange={(e) => setChannel(e.target.value)}
-                className={inputClass}
+            <div className="flex flex-wrap items-center gap-2">
+              <WindowSelect
+                value={days}
+                id="timeline-window"
+                onChange={(value) => load(user, value)}
+              />
+              <div className="relative inline-flex items-center">
+                <label htmlFor="timeline-channel" className="sr-only">
+                  Channel
+                </label>
+                <select
+                  id="timeline-channel"
+                  aria-label="Timeline channel"
+                  value={channel}
+                  onChange={(e) => setChannel(e.target.value)}
+                  className={cn(
+                    inputClass,
+                    'appearance-none cursor-pointer pr-7 pl-3 font-medium rounded-lg'
+                  )}
+                >
+                  {['all', 'in_app', 'banner', 'email', 'push', 'other'].map((value) => (
+                    <option key={value} value={value}>
+                      {pretty(value)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-stone-400 dark:text-stone-500"
+                  aria-hidden="true"
+                />
+              </div>
+              <AdminButton
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 rounded-lg p-0"
+                onClick={() => load(user, days)}
+                disabled={busy}
+                aria-label="Refresh timeline"
               >
-                {['all', 'in_app', 'banner', 'email', 'push', 'other'].map((value) => (
-                  <option key={value} value={value}>
-                    {pretty(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <AdminButton
-              variant="outline"
-              size="sm"
-              onClick={() => load(user, days)}
-              disabled={busy}
-              aria-label="Refresh timeline"
-            >
-              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-            </AdminButton>
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              </AdminButton>
+            </div>
           </div>
-          {busy && <p role="status">Loading communications…</p>}
+          {busy && (
+            <div className="flex items-center gap-2 py-3 text-xs text-stone-500">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              <p role="status">Loading communications…</p>
+            </div>
+          )}
           {timeline && (
             <>
-              <details className={cn(MUTED, 'my-2 text-xs')}>
-                <summary className="cursor-pointer py-1">
+              <details className={cn(MUTED, 'my-2 text-[11px]')}>
+                <summary className="cursor-pointer py-1 hover:text-stone-800 dark:hover:text-stone-200">
                   History coverage · {items.length} records
                 </summary>
-                <p>
+                <p className="mt-0.5">
                   {date(timeline.window.since)} – {date(timeline.window.until)}.{' '}
                   {timeline.limitation}
                 </p>
               </details>
               {timeline.truncated_sources.length > 0 && (
-                <p role="status" className="text-xs">
+                <p role="status" className="text-xs text-stone-500">
                   Some history is truncated ({timeline.truncated_sources.join(', ')}). Choose a
                   shorter window.
                 </p>
               )}
-              <div className="max-h-[28rem] overflow-y-auto rounded-md border border-stone-200 dark:border-white/10">
+              <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-stone-200/80 bg-white dark:border-white/[0.07] dark:bg-[#131315]">
                 {items.length === 0 && (
-                  <p className="py-4 text-sm">
+                  <p className="py-6 text-center text-xs text-stone-500">
                     No recorded communications in this window and channel.
                   </p>
                 )}
                 {items.map((item) => (
                   <article
-                    className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1 border-b border-stone-100 px-3 py-2 last:border-b-0 dark:border-white/5 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto_auto]"
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2.5 gap-y-1 border-b border-stone-100 px-3 py-2 last:border-b-0 dark:border-white/[0.04] sm:grid-cols-[auto_auto_minmax(0,1fr)_auto_auto]"
                     key={`${item.kind}:${item.id}`}
                   >
                     <Pill>
@@ -421,20 +470,23 @@ function LearnerTimeline() {
                           (item.kind === 'emails' ? 'email' : item.kind)
                       )}
                     </Pill>
-                    <span className="text-xs font-bold">
+                    <span className="text-[11px] font-bold text-stone-800 dark:text-stone-200">
                       {item.channel === 'email' && item.status === 'viewed'
                         ? 'Open signal'
                         : pretty(item.status || item.action || item.event_type)}
                     </span>
                     <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:row-auto">
-                      <p className="truncate text-xs font-bold" title={itemTitle(item)}>
+                      <p
+                        className="truncate text-xs font-bold text-stone-900 dark:text-stone-100"
+                        title={itemTitle(item)}
+                      >
                         {itemTitle(item)}
                       </p>
                       {(item.rationale ||
                         item.suppression_reason ||
                         item.failure_reason ||
                         item.error_message) && (
-                        <p className={cn(MUTED, 'truncate text-xs')}>
+                        <p className={cn(MUTED, 'truncate text-[10.5px]')}>
                           {pretty(
                             item.suppression_reason ||
                               item.failure_reason ||
@@ -444,7 +496,7 @@ function LearnerTimeline() {
                         </p>
                       )}
                       {item.snoozed_until && (
-                        <p className={cn(MUTED, 'text-xs')}>
+                        <p className={cn(MUTED, 'text-[10px]')}>
                           Snoozed until {shortDateTime(item.snoozed_until)}
                         </p>
                       )}
@@ -452,7 +504,7 @@ function LearnerTimeline() {
                     <time
                       className={cn(
                         MUTED,
-                        'col-start-3 row-start-1 whitespace-nowrap text-xs sm:col-auto sm:row-auto'
+                        'col-start-3 row-start-1 whitespace-nowrap text-[10.5px] font-mono sm:col-auto sm:row-auto'
                       )}
                     >
                       {shortDateTime(itemTime(item))}
@@ -461,7 +513,7 @@ function LearnerTimeline() {
                       <AdminButton
                         variant="ghost"
                         size="sm"
-                        className="col-start-3 row-start-2 sm:col-auto sm:row-auto"
+                        className="col-start-3 row-start-2 h-7 px-2 text-[11px] sm:col-auto sm:row-auto"
                         aria-label="Preview message"
                         onClick={() => setPreview(item)}
                       >
@@ -509,10 +561,10 @@ function AskAdminData() {
   };
   return (
     <section className="min-w-0">
-      <label htmlFor="admin-question" className="text-xs font-semibold">
+      <label htmlFor="admin-question" className={cn(MICRO, MUTED, 'mb-1.5 block')}>
         Ask your admin data
       </label>
-      <form onSubmit={ask} className="mt-1 flex flex-wrap items-center gap-2">
+      <form onSubmit={ask} className="flex w-full flex-wrap items-center gap-2">
         <input
           id="admin-question"
           aria-label="Your question"
@@ -534,16 +586,18 @@ function AskAdminData() {
             setAnswer(null);
           }}
         />
-        <AdminButton type="submit" loading={busy}>
+        <AdminButton type="submit" loading={busy} className="h-8 shrink-0 rounded-lg">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           Ask
         </AdminButton>
       </form>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <span className={cn(MICRO, MUTED, 'mr-0.5 text-[9px]')}>Suggestions:</span>
         {examples.map((text, index) => (
           <button
-            className="min-h-7 rounded-md border border-stone-200 px-2 text-xs text-stone-600 hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-white/10 dark:text-stone-300 dark:hover:bg-white/5"
             key={text}
+            type="button"
+            className="inline-flex items-center rounded-full border border-stone-200/80 bg-stone-50/70 px-2.5 py-0.5 text-[10px] font-semibold text-stone-600 transition-all hover:border-[#5a63df]/30 hover:bg-[#5a63df]/5 hover:text-[#5a63df] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-stone-300 dark:hover:border-[#5a63df]/40 dark:hover:bg-[#5a63df]/10 dark:hover:text-stone-100"
             onClick={() => {
               setQuestion(text);
               setAnswer(null);
@@ -555,47 +609,56 @@ function AskAdminData() {
         ))}
       </div>
       {error && (
-        <p role="alert" className="mt-3 text-sm">
+        <p role="alert" className="mt-2.5 text-xs font-semibold text-[rgb(var(--signal-fault))]">
           {error} Try asking again.
         </p>
       )}
       {busy && (
-        <p role="status" className="mt-3 text-sm">
-          Checking the figures…
-        </p>
+        <div className="mt-3 flex items-center gap-2 text-xs text-stone-500">
+          <RefreshCw className="h-3 w-3 animate-spin" />
+          <p role="status">Checking the figures…</p>
+        </div>
       )}
       {answer && (
-        <div className="mt-4" aria-live="polite">
+        <div
+          className="mt-3.5 rounded-lg border border-stone-200/80 bg-white p-3 dark:border-white/[0.07] dark:bg-[#131315]"
+          aria-live="polite"
+        >
           {answer.unsupported ? (
-            <p>{answer.message}</p>
+            <p className="text-xs text-stone-600 dark:text-stone-300">{answer.message}</p>
           ) : (
             <>
-              <h4 className={TITLE}>{answer.title}</h4>
+              <h4 className={cn(TITLE, 'text-[12.5px]')}>{answer.title}</h4>
               <ReportFacts facts={answer.facts} />
-              <details className="group mt-1 text-xs">
-                <summary className="flex cursor-pointer list-none items-center gap-1 py-1 font-semibold">
-                  <ChevronRight className="h-3.5 w-3.5 group-open:rotate-90" aria-hidden="true" />
+              <details className="group mt-2 text-xs">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 py-1 text-[11px] font-semibold text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200">
+                  <ChevronRight
+                    className="h-3 w-3 transition-transform duration-150 group-open:rotate-90"
+                    aria-hidden="true"
+                  />
                   Data details
                 </summary>
-                <div className={cn(TILE, 'mt-1 grid gap-2 p-2.5 sm:grid-cols-3')}>
+                <div className={cn(TILE, 'mt-1.5 grid gap-2 p-2.5 sm:grid-cols-3 text-xs')}>
                   <div>
-                    <span className={MUTED}>Period</span>
-                    <p>
+                    <span className={cn(MICRO, MUTED)}>Period</span>
+                    <p className="mt-0.5 font-medium text-stone-800 dark:text-stone-200">
                       {shortDate(answer.window.since)}–{shortDate(answer.window.until)}
                     </p>
                   </div>
                   <div>
-                    <span className={MUTED}>Source</span>
-                    <p className="break-all font-mono">{answer.source}</p>
+                    <span className={cn(MICRO, MUTED)}>Source</span>
+                    <p className="mt-0.5 break-all font-mono text-[11px] text-stone-800 dark:text-stone-200">
+                      {answer.source}
+                    </p>
                   </div>
                   <div title={`${answer.model} · ${answer.provider}`}>
-                    <span className={MUTED}>Model</span>
-                    <p>
+                    <span className={cn(MICRO, MUTED)}>Model</span>
+                    <p className="mt-0.5 font-medium text-stone-800 dark:text-stone-200">
                       {modelName(answer.model)}
                       {answer.fallback_used ? ' · fallback' : ''}
                     </p>
                   </div>
-                  <p className={cn(MUTED, 'sm:col-span-3')}>
+                  <p className={cn(MUTED, 'text-[10px] sm:col-span-3')}>
                     Server-calculated counts. Opens are signals, not confirmed reads.
                   </p>
                 </div>
@@ -639,102 +702,141 @@ export default function AdminOperationsPanel({ refreshKey }) {
     };
   }, [refreshKey]);
   return (
-    <div className={cn(PANEL, 'mb-4 min-w-0 p-3 sm:p-4')} id="admin-ai-workspace">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#5a63df] text-white">
-            <Sparkles aria-hidden="true" className="h-4 w-4" />
-          </span>
-          <h2 className={TITLE}>AI workspace</h2>
-          <span className={cn(MUTED, 'text-xs')}>Insights & messages</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <AdminButton
-            variant="outline"
-            onClick={() => setHistoryOpen(!historyOpen)}
-            aria-expanded={historyOpen}
-            aria-controls="admin-history-panel"
-          >
-            <History className="h-3.5 w-3.5" aria-hidden="true" /> Learner history
-            <ChevronDown
-              className={cn('h-3.5 w-3.5', historyOpen && 'rotate-180')}
-              aria-hidden="true"
-            />
-          </AdminButton>
-          <AdminButton
-            variant="outline"
-            loading={busy}
-            onClick={load}
-            aria-label="Refresh briefing"
-          >
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-          </AdminButton>
-        </div>
-      </div>
-      <AskAdminData />
-      {error && (
-        <p role="alert" className="mt-2 text-sm">
-          {error} Use Refresh briefing to retry.
-        </p>
-      )}
-      {!brief && !error && <p role="status">Loading briefing…</p>}
-      {brief && (
-        <>
-          {brief.items.length === 0 ? (
-            <div
-              className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-stone-200 px-3 py-2 text-xs dark:border-white/10"
-              title="No evidence-backed findings are available. This is not a full health check."
-            >
-              <CircleCheck className="h-4 w-4 text-[var(--signal-ok)]" aria-hidden="true" />
-              <span className="font-semibold">No new findings</span>
-              <span className={MUTED}>Last checked {date(brief.last_analysis?.created_at)}</span>
-            </div>
-          ) : (
-            <details className="group mt-3 rounded-md border border-stone-200 px-3 py-1 text-xs dark:border-white/10">
-              <summary className="flex cursor-pointer list-none items-center gap-1 py-2 font-semibold">
-                <ChevronRight className="h-3.5 w-3.5 group-open:rotate-90" aria-hidden="true" />
-                Needs attention ({brief.items.length})
-              </summary>
-              <div className="grid gap-2 py-2 lg:grid-cols-3">
-                {brief.items.map((item) => (
-                  <article className={cn(TILE, 'p-3')} key={item.id}>
-                    <Pill tone={item.severity === 'urgent' ? 'fault' : 'warn'}>
-                      {item.severity}
-                    </Pill>
-                    <h3 className={cn(TITLE, 'mt-2')}>{item.title}</h3>
-                    <p className="mt-2 text-xs">{item.summary}</p>
-                    <p className={cn(MUTED, 'mt-2 text-xs')}>
-                      Sample: {item.sample_size} · Created {date(item.created_at)} · Window:{' '}
-                      {item.measurement_window || 'Not recorded'}
-                    </p>
-                    <details className="mt-2 text-xs">
-                      <summary>Supporting evidence</summary>
-                      <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words">
-                        {JSON.stringify(item.evidence, null, 2)}
-                      </pre>
-                    </details>
-                    <p className="mt-2 text-xs font-semibold">
-                      Suggested step: {item.proposed_action}
-                    </p>
-                    <a
-                      href="#autopilot-recommendations"
-                      className="mt-2 inline-block text-xs text-[#5a63df] underline"
-                    >
-                      Review recommendation
-                    </a>
-                  </article>
-                ))}
+    <div className={cn(PANEL, 'mb-4 min-w-0 overflow-hidden')} id="admin-ai-workspace">
+      <PanelHeader label="AI Workspace" title="Insights & messages" accent="accent">
+        <AdminButton
+          variant={historyOpen ? 'primary' : 'outline'}
+          size="sm"
+          onClick={() => setHistoryOpen(!historyOpen)}
+          aria-expanded={historyOpen}
+          aria-controls="admin-history-panel"
+        >
+          <History className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Learner history</span>
+          <ChevronDown
+            className={cn(
+              'h-3.5 w-3.5 transition-transform duration-200 ease-out',
+              historyOpen && 'rotate-180'
+            )}
+            aria-hidden="true"
+          />
+        </AdminButton>
+        <AdminButton
+          variant="outline"
+          size="sm"
+          loading={busy}
+          onClick={load}
+          aria-label="Refresh briefing"
+        >
+          <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+        </AdminButton>
+      </PanelHeader>
+
+      <div className="p-3.5 sm:p-4">
+        <AskAdminData />
+        {error && (
+          <p role="alert" className="mt-2 text-xs font-semibold text-[rgb(var(--signal-fault))]">
+            {error} Use Refresh briefing to retry.
+          </p>
+        )}
+        {!brief && !error && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-stone-500">
+            <RefreshCw className="h-3 w-3 animate-spin" />
+            <p role="status">Loading briefing…</p>
+          </div>
+        )}
+        {brief && (
+          <>
+            {brief.items.length === 0 ? (
+              <div
+                className={cn(
+                  WELL,
+                  'mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-stone-200/80 px-3 py-2 text-xs dark:border-white/[0.07]'
+                )}
+                title="No evidence-backed findings are available. This is not a full health check."
+              >
+                <CircleCheck
+                  className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-ok))]"
+                  aria-hidden="true"
+                />
+                <span className="text-[11px] font-bold text-stone-900 dark:text-stone-100">
+                  No new findings
+                </span>
+                <span className={cn(MUTED, 'text-[10.5px]')}>
+                  Last checked {date(brief.last_analysis?.created_at)}
+                </span>
               </div>
-            </details>
+            ) : (
+              <details className="group mt-3 rounded-lg border border-stone-200/80 px-3 py-1.5 text-xs dark:border-white/[0.07]">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 py-1.5 text-[11px] font-bold text-stone-800 dark:text-stone-200">
+                  <ChevronRight
+                    className="h-3.5 w-3.5 transition-transform duration-150 group-open:rotate-90"
+                    aria-hidden="true"
+                  />
+                  Needs attention ({brief.items.length})
+                </summary>
+                <div className="grid gap-2 py-2 lg:grid-cols-3">
+                  {brief.items.map((item) => (
+                    <article className={cn(TILE, 'p-3')} key={item.id}>
+                      <Pill tone={item.severity === 'urgent' ? 'fault' : 'warn'}>
+                        {item.severity}
+                      </Pill>
+                      <h3 className={cn(TITLE, 'mt-2 text-[12px]')}>{item.title}</h3>
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
+                        {item.summary}
+                      </p>
+                      <p className={cn(MUTED, 'mt-2 text-[10px]')}>
+                        Sample: {item.sample_size} · Created {date(item.created_at)} · Window:{' '}
+                        {item.measurement_window || 'Not recorded'}
+                      </p>
+                      <details className="mt-2 text-[10.5px]">
+                        <summary className="cursor-pointer text-stone-500 hover:text-stone-800 dark:hover:text-stone-300">
+                          Supporting evidence
+                        </summary>
+                        <pre
+                          className={cn(
+                            WELL,
+                            'mt-1 max-h-40 overflow-auto rounded p-2 text-[10px] whitespace-pre-wrap break-words'
+                          )}
+                        >
+                          {JSON.stringify(item.evidence, null, 2)}
+                        </pre>
+                      </details>
+                      <p className="mt-2 text-[11px] font-semibold text-stone-800 dark:text-stone-200">
+                        Suggested step: {item.proposed_action}
+                      </p>
+                      <a
+                        href="#autopilot-recommendations"
+                        className="mt-2 inline-block text-[11px] font-semibold text-[#5a63df] hover:underline"
+                      >
+                        Review recommendation →
+                      </a>
+                    </article>
+                  ))}
+                </div>
+              </details>
+            )}
+          </>
+        )}
+        <AnimatePresence initial={false}>
+          {historyOpen && (
+            <m.div
+              id="admin-history-panel"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{
+                height: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
+                opacity: { duration: 0.2, ease: 'easeInOut' },
+              }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-stone-200/80 pt-3.5 mt-3.5 pb-3 px-1 dark:border-white/[0.07]">
+                <LearnerTimeline />
+              </div>
+            </m.div>
           )}
-        </>
-      )}
-      <div
-        id="admin-history-panel"
-        hidden={!historyOpen}
-        className="mt-3 border-t border-stone-200 pt-3 dark:border-white/10"
-      >
-        {historyOpen && <LearnerTimeline />}
+        </AnimatePresence>
       </div>
     </div>
   );

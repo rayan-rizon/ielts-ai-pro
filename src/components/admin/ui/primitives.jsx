@@ -444,7 +444,7 @@ export const AdminButton = forwardRef(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-1.5 rounded-md font-bold transition-all duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
+          'inline-flex items-center justify-center gap-1.5 rounded-lg font-bold transition-all duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
           size === 'sm' ? 'h-7 px-2.5 text-[11px]' : 'h-8 px-3 text-xs',
           ADMIN_BUTTON_VARIANTS[variant] || ADMIN_BUTTON_VARIANTS.primary,
           className

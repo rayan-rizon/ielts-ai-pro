@@ -139,7 +139,11 @@ export const TierBadge = ({ tier = 'pro', className }) => {
 
   return (
     <span
-      className={cn('dashboard-tier-badge', `dashboard-tier-badge--${normalizedTier}`, className)}
+      className={cn(
+        'dashboard-tier-badge w-fit',
+        `dashboard-tier-badge--${normalizedTier}`,
+        className
+      )}
       aria-label={`${label} plan`}
     >
       <span className="dashboard-tier-badge__wash" aria-hidden="true" />
@@ -151,7 +155,7 @@ export const TierBadge = ({ tier = 'pro', className }) => {
 /** Small AI capability marker used in navigation rows and compact feature lists. */
 export const AiBadge = ({ active = false, className }) => (
   <span
-    className={cn('dashboard-ai-badge', active && 'dashboard-ai-badge--active', className)}
+    className={cn('dashboard-ai-badge w-fit', active && 'dashboard-ai-badge--active', className)}
     aria-label="AI feature"
   >
     <span className="dashboard-ai-badge__wash" aria-hidden="true" />

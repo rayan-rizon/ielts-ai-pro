@@ -1085,8 +1085,13 @@
   position: relative;
   isolation: isolate;
   display: inline-flex;
+  width: fit-content;
+  max-width: fit-content;
+  flex-shrink: 0;
   min-height: 22px;
   align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   overflow: hidden;
   border: 0.5px solid transparent;
   border-radius: 9999px;
@@ -1198,10 +1203,14 @@
   position: relative;
   isolation: isolate;
   display: inline-flex;
+  width: fit-content;
+  max-width: fit-content;
+  flex-shrink: 0;
   min-height: 26px;
   min-width: 40px;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   overflow: hidden;
   border: 0.5px solid var(--ai-border);
   border-radius: 9999px;

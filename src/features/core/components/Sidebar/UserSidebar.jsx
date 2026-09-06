@@ -28,7 +28,7 @@ const ACCENT_HOVER =
 const COLLAPSIBLE_LABEL =
   'inline-flex min-w-0 max-w-[11rem] overflow-hidden whitespace-nowrap opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none';
 const COLLAPSIBLE_DETAILS =
-  'flex min-w-0 flex-1 flex-col overflow-hidden whitespace-nowrap opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none';
+  'flex min-w-0 flex-1 flex-col items-start overflow-hidden whitespace-nowrap opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none';
 
 /** One nav row. Every item shares the same accent — the group label above it does the wayfinding. */
 const NavItem = memo(({ item, isActive }) => {
@@ -213,13 +213,13 @@ const UserProfileLink = ({ user, onNavigate }) => (
         />
       </div>
       <div className={cn(COLLAPSIBLE_DETAILS, 'group-data-[collapsible=icon]:hidden')}>
-        <p className="truncate text-[13px] font-bold text-slate-800 dark:text-slate-100">
+        <p className="w-full truncate text-[13px] font-bold leading-tight text-slate-800 dark:text-slate-100">
           {user?.full_name || 'Student'}
         </p>
         {isPremiumUser(user) ? (
-          <TierBadge tier={user.subscription_tier} className="mt-0.5" />
+          <TierBadge tier={user.subscription_tier} className="mt-0.5 shrink-0" />
         ) : (
-          <span className="mt-0.5 inline-block rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+          <span className="mt-0.5 inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
             Free
           </span>
         )}

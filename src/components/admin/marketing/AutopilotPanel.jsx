@@ -276,7 +276,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                 </div>
               </div>
             </div>
-            <div className="mt-3 grid gap-1.5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-3 grid gap-1.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {(previewResult.automation_preview || []).map((item) => (
                 <div
                   key={item.playbook_key}
@@ -313,91 +313,167 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
             )}
           </div>
         )}
-        <div className="grid gap-px bg-stone-200/80 dark:bg-white/[0.07] md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-px bg-stone-200/80 dark:bg-white/[0.07] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {policies.map((policy) => {
             const copy = PLAYBOOK_COPY[policy.playbook_key] || {};
             return (
-              <div key={policy.id} className="bg-white p-3.5 dark:bg-[#131315]">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className={cn(MICRO, MUTED)}>{copy.short || policy.objective}</p>
-                    <p className="mt-1 text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
-                      {policy.name}
-                    </p>
+              <div
+                key={policy.id}
+                className={cn(
+                  'group relative flex flex-col justify-between bg-white p-4 transition-colors duration-150 dark:bg-[#131315]',
+                  !policy.enabled && 'bg-stone-50/50 dark:bg-[#111113]'
+                )}
+              >
+                {/* Upper content zone */}
+                <div className="flex flex-1 flex-col">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className={cn(MICRO, MUTED, 'truncate')}>
+                          {copy.short || policy.objective}
+                        </p>
+                        {!policy.enabled && (
+                          <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-stone-600 dark:bg-white/[0.06] dark:text-stone-300">
+                            Paused
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[13px] font-extrabold tracking-tight text-stone-900 line-clamp-1 dark:text-stone-50">
+                        {policy.name}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={policy.enabled}
+                      disabled={busy === policy.id}
+                      aria-label={`Enable ${policy.name}`}
+                      onCheckedChange={(checked) =>
+                        execute(
+                          policy.id,
+                          () =>
+                            MarketingService.updateAutopilotPolicy(policy.id, { enabled: checked }),
+                          checked ? `${policy.name} enabled` : `${policy.name} paused`
+                        )
+                      }
+                      className="shrink-0"
+                    />
                   </div>
-                  <Switch
-                    checked={policy.enabled}
-                    disabled={busy === policy.id}
-                    aria-label={`Enable ${policy.name}`}
-                    onCheckedChange={(checked) =>
-                      execute(
-                        policy.id,
-                        () =>
-                          MarketingService.updateAutopilotPolicy(policy.id, { enabled: checked }),
-                        checked ? `${policy.name} enabled` : `${policy.name} paused`
-                      )
-                    }
-                  />
+
+                  <p
+                    className={cn(
+                      BODY,
+                      'mt-2 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300'
+                    )}
+                  >
+                    {copy.detail}
+                  </p>
+
+                  <div className="mt-auto pt-3">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="h-2.5 w-2.5 shrink-0 text-indigo-500/80 dark:text-indigo-400/80" />
+                      <span
+                        className={cn(
+                          MICRO,
+                          'text-[9px] font-bold text-indigo-600 dark:text-indigo-400'
+                        )}
+                      >
+                        One channel per learner
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {policyChannels(policy).map((channel, index) => {
+                        const Icon = channelIcon[channel];
+                        return (
+                          <Pill
+                            key={channel}
+                            tone={index === 0 ? 'accent' : 'neutral'}
+                            className="inline-flex items-center gap-1 text-[8.5px] font-medium py-0.5"
+                          >
+                            {Icon && <Icon className="h-2.5 w-2.5 shrink-0 opacity-75" />}
+                            <span>
+                              {index === 0 ? 'Preferred' : 'Fallback'} · {channelLabel(channel)}
+                            </span>
+                          </Pill>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-                <p className={cn(BODY, 'mt-2')}>{copy.detail}</p>
-                <p className={cn(MICRO, 'mt-3 text-indigo-600 dark:text-indigo-300')}>
-                  One channel per learner
-                </p>
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {policyChannels(policy).map((channel, index) => (
-                    <Pill key={channel}>
-                      {index === 0 ? 'Preferred' : 'Fallback'} · {channelLabel(channel)}
-                    </Pill>
-                  ))}
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t border-stone-200/80 pt-2.5 dark:border-white/[0.07]">
-                  <span className={cn(MICRO, MUTED)}>Mode</span>
+
+                {/* Lower pinned zone */}
+                <div className="mt-4 border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
+                  <div className="flex items-center justify-between">
+                    <span className={cn(MICRO, MUTED)}>Mode</span>
+                    <button
+                      type="button"
+                      disabled={!policy.enabled || busy === policy.id}
+                      title={
+                        policy.enabled
+                          ? 'Click to toggle between Auto-Guarded and Review-First'
+                          : 'Enable automation to change mode'
+                      }
+                      aria-label={`Toggle mode: currently ${policy.mode === 'review' ? 'review first' : 'auto guarded'}`}
+                      onClick={() =>
+                        execute(
+                          policy.id,
+                          () =>
+                            MarketingService.updateAutopilotPolicy(policy.id, {
+                              mode: policy.mode === 'review' ? 'guardrailed_auto' : 'review',
+                            }),
+                          'Automation mode updated'
+                        )
+                      }
+                      className={cn(
+                        'group/mode inline-flex items-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500',
+                        policy.enabled
+                          ? 'cursor-pointer hover:brightness-95 active:scale-95 dark:hover:brightness-110'
+                          : 'cursor-not-allowed opacity-50'
+                      )}
+                    >
+                      <Pill tone={policy.mode === 'guardrailed_auto' ? 'ok' : 'warn'}>
+                        {policy.mode === 'review' ? 'review first' : 'auto · guarded'}
+                      </Pill>
+                    </button>
+                  </div>
+
                   <button
                     type="button"
-                    disabled={!policy.enabled || busy === policy.id}
-                    onClick={() =>
-                      execute(
-                        policy.id,
-                        () =>
-                          MarketingService.updateAutopilotPolicy(policy.id, {
-                            mode: policy.mode === 'review' ? 'guardrailed_auto' : 'review',
-                          }),
-                        'Automation mode updated'
-                      )
-                    }
-                    className="disabled:opacity-40"
+                    onClick={() => setPreviewPolicy(policy)}
+                    className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-stone-200/90 bg-stone-50/70 py-1.5 px-2.5 text-[10.5px] font-bold text-stone-700 transition-all hover:border-[#5a63df]/30 hover:bg-[#5a63df]/5 hover:text-[#5a63df] active:scale-[0.99] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-stone-300 dark:hover:border-[#5a63df]/40 dark:hover:bg-[#5a63df]/10 dark:hover:text-stone-100"
                   >
-                    <Pill tone={policy.mode === 'guardrailed_auto' ? 'ok' : 'warn'}>
-                      {policy.mode === 'review' ? 'review first' : 'auto · guarded'}
-                    </Pill>
+                    <Play className="h-3 w-3 fill-current opacity-70" />
+                    <span>Preview learner message</span>
                   </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setPreviewPolicy(policy)}
-                  className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-[#5a63df] hover:text-[#4d56ca]"
-                >
-                  <Play className="h-3 w-3" /> Preview learner message
-                </button>
               </div>
             );
           })}
         </div>
-        <div className="grid gap-px border-t border-stone-200/80 bg-stone-200/80 dark:border-white/[0.07] dark:bg-white/[0.07] md:grid-cols-2">
-          <div className="bg-white p-3.5 dark:bg-[#131315]">
-            <p className={cn(MICRO, MUTED)}>Always-on protection</p>
-            <p className="mt-1 text-[11px] font-extrabold">Broken-flow protection</p>
-            <p className={cn(BODY, 'mt-1')}>
-              Holds back checkout promotion while payment is pending and surfaces delivery failures
-              for admin review.
-            </p>
+        <div className="grid gap-px border-t border-stone-200/80 bg-stone-200/80 dark:border-white/[0.07] dark:bg-white/[0.07] sm:grid-cols-2">
+          <div className="flex items-start gap-3 bg-white p-3.5 dark:bg-[#131315]">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-ok))]" />
+            <div>
+              <p className={cn(MICRO, MUTED)}>Always-on protection</p>
+              <p className="mt-0.5 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
+                Broken-flow protection
+              </p>
+              <p className={cn(BODY, 'mt-1 text-[10.5px]')}>
+                Holds back checkout promotion while payment is pending and surfaces delivery
+                failures for admin review.
+              </p>
+            </div>
           </div>
-          <div className="bg-white p-3.5 dark:bg-[#131315]">
-            <p className={cn(MICRO, MUTED)}>Always-on protection</p>
-            <p className="mt-1 text-[11px] font-extrabold">Contact-pressure protection</p>
-            <p className={cn(BODY, 'mt-1')}>
-              Coordinates limits, snoozes, dismissals, and negative feedback across every channel.
-            </p>
+          <div className="flex items-start gap-3 bg-white p-3.5 dark:bg-[#131315]">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-ok))]" />
+            <div>
+              <p className={cn(MICRO, MUTED)}>Always-on protection</p>
+              <p className="mt-0.5 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
+                Contact-pressure protection
+              </p>
+              <p className={cn(BODY, 'mt-1 text-[10.5px]')}>
+                Coordinates limits, snoozes, dismissals, and negative feedback across every channel.
+              </p>
+            </div>
           </div>
         </div>
       </div>
