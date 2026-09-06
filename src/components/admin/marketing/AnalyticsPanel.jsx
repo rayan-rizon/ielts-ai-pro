@@ -149,6 +149,15 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-2 border-b border-stone-200/80 pb-2 dark:border-white/[0.07]">
+        <div>
+          <p className={cn(MICRO, MUTED)}>Measured outcomes</p>
+          <h2 className="mt-1 text-sm font-extrabold text-stone-900 dark:text-stone-50">
+            Campaign performance
+          </h2>
+        </div>
+        <p className={cn(MICRO, MUTED)}>Server-confirmed attribution · last 30 days</p>
+      </div>
       {/* The headline totals live once, in the hub's command strip above the
           tabs — repeating them here put the same figures on screen twice
           under two different labels. Overview starts at the funnel. */}

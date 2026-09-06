@@ -117,7 +117,21 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
   );
 
   return (
-    <div className="space-y-4">
+    <section className="mb-4 space-y-4" aria-labelledby="retention-autopilot-title">
+      <div className="flex flex-wrap items-end justify-between gap-2 border-b border-stone-200/80 pb-2 dark:border-white/[0.07]">
+        <div>
+          <p className={cn(MICRO, MUTED)}>Personalized retention</p>
+          <h2
+            id="retention-autopilot-title"
+            className="mt-1 text-sm font-extrabold text-stone-900 dark:text-stone-50"
+          >
+            AI Autopilot
+          </h2>
+        </div>
+        <p className={cn(BODY, 'max-w-xl text-right text-[10px]')}>
+          Evidence-led learner help, review controls, and cross-channel outcomes in one overview.
+        </p>
+      </div>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <Kpi
           label="Playbooks enabled"
@@ -452,6 +466,6 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
           stayed quiet.
         </p>
       </div>
-    </div>
+    </section>
   );
 }

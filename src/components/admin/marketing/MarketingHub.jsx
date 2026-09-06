@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { m } from 'framer-motion';
-import { BarChart3, Bot, FileText, Megaphone, RefreshCcw, Users, Workflow } from 'lucide-react';
+import { BarChart3, FileText, Megaphone, RefreshCcw, Users, Workflow } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/cn';
@@ -31,7 +31,6 @@ import AutopilotPanel from './AutopilotPanel';
  */
 const TABS = [
   ['overview', 'Overview', BarChart3],
-  ['autopilot', 'AI Autopilot', Bot],
   ['campaigns', 'Campaigns', Megaphone],
   ['audiences', 'Audiences', Users],
   ['templates', 'Templates', FileText],
@@ -138,6 +137,7 @@ export default function MarketingHub() {
           journeys={data.journeys}
           recovery={data.recovery}
           dashboard={data.dashboard}
+          autopilot={data.autopilot}
           onNavigate={setTab}
         />
       </m.div>
@@ -192,6 +192,7 @@ export default function MarketingHub() {
           </div>
 
           <TabsContent value="overview" className="mt-0 outline-none">
+            <AutopilotPanel autopilot={data.autopilot} onRefresh={load} />
             <AnalyticsPanel
               dashboard={data.dashboard}
               intelligence={data.intelligence}
@@ -207,9 +208,6 @@ export default function MarketingHub() {
               templates={data.templates}
               onRefresh={load}
             />
-          </TabsContent>
-          <TabsContent value="autopilot" className="mt-0 outline-none">
-            <AutopilotPanel autopilot={data.autopilot} onRefresh={load} />
           </TabsContent>
           <TabsContent value="audiences" className="mt-0 outline-none">
             <SegmentsPanel segments={data.segments} onRefresh={load} />

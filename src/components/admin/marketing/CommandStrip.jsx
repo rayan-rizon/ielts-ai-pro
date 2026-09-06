@@ -25,7 +25,7 @@ import { blockingIssue, journeyState } from './shared';
  * Every figure is derived from loaded records. Nothing is estimated, and when
  * nothing is wrong the rail says so rather than padding itself with filler.
  */
-const CommandStrip = ({ campaigns, journeys, recovery, dashboard, onNavigate }) => {
+const CommandStrip = ({ campaigns, journeys, recovery, dashboard, autopilot, onNavigate }) => {
   const live = campaigns.filter((campaign) => campaign.status === 'active');
   const liveConversion = live.filter((campaign) => campaign.objective === 'paid_conversion');
 
@@ -39,6 +39,22 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, onNavigate }) 
 
   const attention = useMemo(() => {
     const items = [];
+
+    const prepared = Number(autopilot?.counts?.prepared || 0);
+    const recommendations = (autopilot?.recommendations || []).length;
+    if (prepared || recommendations) {
+      items.push({
+        tone: prepared ? 'warn' : 'accent',
+        label: prepared
+          ? `${prepared} personalized intervention${prepared === 1 ? '' : 's'} need review`
+          : `${recommendations} Autopilot recommendation${recommendations === 1 ? '' : 's'} ready`,
+        detail: prepared
+          ? 'Evidence and learner-facing copy are prepared in Overview'
+          : 'New evidence-led steps are available in Overview',
+        action: 'Review',
+        tab: 'overview',
+      });
+    }
 
     // A journey armed against a campaign that is not active is the worst state
     // in the hub: the scheduler picks it up every fifteen minutes and the
@@ -114,7 +130,7 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, onNavigate }) 
     }
 
     return items;
-  }, [campaigns, journeys, recovery, liveConversion.length]);
+  }, [autopilot, campaigns, journeys, recovery, liveConversion.length]);
 
   const counts = [
     {

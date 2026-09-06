@@ -57,6 +57,7 @@ const marketingFile = (name: string) =>
 const campaignsPanel = marketingFile('CampaignsPanel.jsx');
 const segmentsPanel = marketingFile('SegmentsPanel.jsx');
 const analyticsPanel = marketingFile('AnalyticsPanel.jsx');
+const autopilotPanel = marketingFile('AutopilotPanel.jsx');
 const commandStrip = marketingFile('CommandStrip.jsx');
 const emailPreviewDialog = marketingFile('dialogs/EmailPreviewDialog.jsx');
 const marketingPanels = [
@@ -90,6 +91,15 @@ const scheduledEmails = readFileSync(
 );
 
 describe('Admin Marketing Hub contracts', () => {
+  it('keeps performance and AI Autopilot in one Overview workspace', () => {
+    expect(marketingHub).not.toContain("['autopilot', 'AI Autopilot'");
+    expect(marketingHub).toMatch(
+      /<TabsContent value="overview"[\s\S]*<AutopilotPanel[\s\S]*<AnalyticsPanel/
+    );
+    expect(autopilotPanel).toContain('Evidence-led learner help');
+    expect(commandStrip).toContain('personalized intervention');
+  });
+
   it('keeps campaign writes admin-only and learner delivery reads owner-scoped', () => {
     expect(migration).toContain('marketing_campaigns_admin_all');
     expect(migration).toContain('marketing_deliveries_owner_select');
