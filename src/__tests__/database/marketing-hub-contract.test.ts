@@ -96,7 +96,7 @@ describe('Admin Marketing Hub contracts', () => {
     expect(marketingHub).toMatch(
       /<TabsContent value="overview"[\s\S]*<AutopilotPanel[\s\S]*<AnalyticsPanel/
     );
-    expect(autopilotPanel).toContain('Evidence-led learner help');
+    expect(autopilotPanel).toContain('Primary coordinator');
     expect(commandStrip).toContain('personalized intervention');
   });
 

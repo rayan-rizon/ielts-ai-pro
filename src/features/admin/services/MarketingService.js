@@ -19,6 +19,21 @@ const normalizeCampaign = (campaign) => ({
   promo_code_id: campaign.promo_code_id || null,
 });
 
+const throwInvocationError = async (error) => {
+  if (!error) return;
+  let message = error.message || 'The server action failed';
+  const response = error.context;
+  if (response && typeof response.clone === 'function') {
+    try {
+      const payload = await response.clone().json();
+      if (typeof payload?.error === 'string' && payload.error.trim()) message = payload.error;
+    } catch {
+      // Keep the SDK message when the function did not return JSON.
+    }
+  }
+  throw new Error(message);
+};
+
 export const MarketingService = {
   async listCampaigns() {
     const { data, error } = await supabase
@@ -197,12 +212,11 @@ export const MarketingService = {
   },
 
   async updateAutopilotPolicy(id, patch) {
-    const { data, error } = await supabase
-      .from('marketing_autopilot_policies')
-      .update({ ...patch, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('set_marketing_autopilot_policy_state', {
+      p_policy_id: id,
+      p_enabled: typeof patch.enabled === 'boolean' ? patch.enabled : null,
+      p_mode: patch.mode || null,
+    });
     if (error) throw error;
     return data;
   },
@@ -211,7 +225,7 @@ export const MarketingService = {
     const { data, error } = await supabase.functions.invoke('retention-autopilot', {
       body: { dry_run: dryRun },
     });
-    if (error) throw error;
+    await throwInvocationError(error);
     if (data?.error) throw new Error(data.error);
     return data;
   },
@@ -220,7 +234,7 @@ export const MarketingService = {
     const { data, error } = await supabase.functions.invoke('retention-autopilot', {
       body: { action: 'analyze' },
     });
-    if (error) throw error;
+    await throwInvocationError(error);
     if (data?.error) throw new Error(data.error);
     return data;
   },
@@ -229,7 +243,7 @@ export const MarketingService = {
     const { data, error } = await supabase.functions.invoke('retention-autopilot', {
       body: { action: 'approve', intervention_id: id },
     });
-    if (error) throw error;
+    await throwInvocationError(error);
     if (data?.error) throw new Error(data.error);
     return data;
   },
@@ -238,7 +252,7 @@ export const MarketingService = {
     const { data, error } = await supabase.functions.invoke('retention-autopilot', {
       body: { action: 'generate_copy', intervention_id: id },
     });
-    if (error) throw error;
+    await throwInvocationError(error);
     if (data?.error) throw new Error(data.error);
     return data;
   },

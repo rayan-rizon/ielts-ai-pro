@@ -33,20 +33,20 @@ import {
 
 const PLAYBOOK_COPY = {
   score_plateau: {
-    short: 'Plateau',
-    detail: 'Three comparable, distinct results below target plus four quiet days.',
+    short: 'Score support',
+    detail: 'Offers focused practice after a repeated score pattern and a short break.',
   },
   incomplete_test: {
-    short: 'Resume',
-    detail: 'Saved answers remain resumable after two inactive hours.',
+    short: 'Saved test',
+    detail: 'Reminds a learner when meaningful test progress is safely saved.',
   },
   exam_countdown: {
-    short: 'Countdown',
-    detail: 'A confirmed exam date reaches 30, 15, or 7 days.',
+    short: 'Exam plan',
+    detail: 'Adapts the study plan at 30, 15, and 7 days before a confirmed exam.',
   },
   checkout_recovery: {
-    short: 'Checkout',
-    detail: 'A server-recorded checkout remains unsettled after 30 minutes.',
+    short: 'Checkout help',
+    detail: 'Offers payment help when a started checkout remains incomplete.',
   },
 };
 
@@ -128,13 +128,16 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
             AI Autopilot
           </h2>
         </div>
-        <p className={cn(BODY, 'max-w-xl text-right text-[10px]')}>
-          Evidence-led learner help, review controls, and cross-channel outcomes in one overview.
-        </p>
+        <div className="max-w-xl text-right">
+          <Pill tone="accent">Primary coordinator</Pill>
+          <p className={cn(BODY, 'mt-1 text-[10px]')}>
+            Coordinates learner help, existing journeys, contact limits, and channel outcomes.
+          </p>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <Kpi
-          label="Playbooks enabled"
+          label="Automations active"
           value={`${enabled}/${policies.length}`}
           sub={`${auto} guardrailed auto`}
         />
@@ -244,7 +247,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                           MarketingService.updateAutopilotPolicy(policy.id, {
                             mode: policy.mode === 'review' ? 'guardrailed_auto' : 'review',
                           }),
-                        'Playbook mode updated'
+                        'Automation mode updated'
                       )
                     }
                     className="disabled:opacity-40"
@@ -451,7 +454,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
               ))
             ) : (
               <Empty icon={CirclePause} title="Queue is clear">
-                Enabled review-mode playbooks will place eligible interventions here.
+                Active review-first automations will place eligible suggestions here.
               </Empty>
             )}
           </div>
