@@ -265,6 +265,28 @@ export const AI_ROUTES: AiRoute[] = [
       'Eligibility, percentages, destinations, offers, contact caps, and dispatch remain deterministic server decisions.',
   },
   {
+    id: 'admin-marketing-question',
+    surface: 'Admin Marketing: select an approved report from a question',
+    file: 'supabase/functions/retention-autopilot/index.ts',
+    maxOutputTokens: 120,
+    timeoutMs: 8000,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'Admin asks a reporting question.',
+      },
+      { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'DeepSeek routes failed.' },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'repair',
+        when: 'Retry malformed JSON at temperature zero.',
+      },
+    ],
+    notes: 'AI selects a report key only; the server runs fixed queries and returns exact counts.',
+  },
+  {
     id: 'retention-autopilot-copy',
     surface: 'Admin Marketing: evidence-bounded learner copy draft',
     file: 'supabase/functions/retention-autopilot/index.ts',

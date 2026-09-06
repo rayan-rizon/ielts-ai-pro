@@ -403,7 +403,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className={cn(PANEL, 'overflow-hidden')}>
+        <div id="autopilot-recommendations" className={cn(PANEL, 'overflow-hidden')}>
           <PanelHeader
             label="Admin recommendations"
             title="What deserves attention"

@@ -219,7 +219,9 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, autopilot, onN
 
       <div className="border-t border-stone-200/80 dark:border-white/[0.07]">
         <div className="flex items-center justify-between gap-2 px-3.5 pb-1 pt-3">
-          <SectionLabel accent={attention.length ? 'warn' : 'ok'}>Needs attention</SectionLabel>
+          <SectionLabel accent={attention.length ? 'warn' : 'ok'}>
+            Configuration checks
+          </SectionLabel>
           {attention.length > 0 && (
             <span className={cn(MICRO, MUTED)}>
               {attention.length} item{attention.length === 1 ? '' : 's'}
@@ -245,8 +247,8 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, autopilot, onN
           <div className="flex items-center gap-2 px-3.5 pb-4 pt-1">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-[rgb(var(--signal-ok))]" />
             <p className={cn('text-[11px] font-medium', MUTED)}>
-              Nothing is blocked. Every campaign has an audience, every journey has an active
-              campaign, and checkout recovery is armed.
+              No configuration issues detected by these checks. Delivery health and learner outcomes
+              are reviewed below.
             </p>
           </div>
         )}

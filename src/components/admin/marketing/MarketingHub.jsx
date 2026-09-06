@@ -22,6 +22,7 @@ import SegmentsPanel from './SegmentsPanel';
 import TemplatesPanel from './TemplatesPanel';
 import JourneysPanel from './JourneysPanel';
 import AutopilotPanel from './AutopilotPanel';
+import AdminOperationsPanel from './AdminOperationsPanel';
 
 /**
  * Tab order follows the operator's loop rather than the data model: read the
@@ -192,6 +193,7 @@ export default function MarketingHub() {
           </div>
 
           <TabsContent value="overview" className="mt-0 outline-none">
+            <AdminOperationsPanel refreshKey={data.autopilot} />
             <AutopilotPanel autopilot={data.autopilot} onRefresh={load} />
             <AnalyticsPanel
               dashboard={data.dashboard}

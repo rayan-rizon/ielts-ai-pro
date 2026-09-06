@@ -35,6 +35,14 @@ const throwInvocationError = async (error) => {
 };
 
 export const MarketingService = {
+  async adminReport(action, parameters = {}) {
+    const { data, error } = await supabase.functions.invoke('retention-autopilot', {
+      body: { ...parameters, action },
+    });
+    await throwInvocationError(error);
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
   async listCampaigns() {
     const { data, error } = await supabase
       .from('marketing_campaigns')
