@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, Pill } from '@/components/admin/ui/primitives';
+import { channelLabel, deliveryStrategyFor } from '../autopilotDeliveryStrategy';
 
 // These are deliberately generic examples. The worker fills only validated,
 // learner-specific fields at delivery time; this preview never exposes a learner.
@@ -70,14 +71,13 @@ const EXAMPLES = {
   ],
 };
 
-const channelName = { in_app: 'In-app card', banner: 'Banner', email: 'Email', push: 'Push' };
 const channelIcon = { in_app: Megaphone, banner: MonitorSmartphone, email: Mail, push: Bell };
 
 export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChange }) {
-  const allowedChannels = useMemo(
-    () => policy?.allowed_channels || ['in_app'],
-    [policy?.allowed_channels]
-  );
+  const allowedChannels = useMemo(() => {
+    const strategy = deliveryStrategyFor(policy);
+    return [...new Set([...strategy.active, ...strategy.away, ...strategy.remaining])];
+  }, [policy]);
   const [channel, setChannel] = useState('in_app');
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChan
         <DialogHeader>
           <DialogTitle>Message preview</DialogTitle>
           <DialogDescription>
-            A generic example of this automation. No learner is selected, queued, or contacted.
+            A generic example only. No learner is selected, queued, or contacted.
           </DialogDescription>
         </DialogHeader>
 
@@ -117,7 +117,7 @@ export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChan
                     : 'border-stone-200 text-stone-600 dark:border-white/[0.1] dark:text-stone-300'
                 )}
               >
-                <ItemIcon className="h-3.5 w-3.5" /> {channelName[item] || item}
+                <ItemIcon className="h-3.5 w-3.5" /> {channelLabel(item)}
               </button>
             );
           })}
@@ -163,7 +163,7 @@ export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChan
           </div>
         ) : (
           <div className="rounded-xl border border-[#e4e2f0] bg-[#faf9ff] p-3.5 dark:border-white/[0.07] dark:bg-[#100f15]">
-            {channel === 'banner' && <Pill tone="accent">Dashboard highlight</Pill>}
+            {channel === 'banner' && <Pill tone="accent">Dashboard banner</Pill>}
             <div className="mt-2 flex items-start gap-3">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#ececff] text-[#5a63df]">
                 <Icon className="h-4 w-4" />
@@ -188,8 +188,8 @@ export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChan
           </div>
         )}
         <p className={cn(MICRO, MUTED)}>
-          The server chooses one eligible channel at delivery time, rechecks learner state, and
-          applies contact limits.
+          The server chooses one eligible route, checks current learner state, and applies contact
+          limits before delivery.
         </p>
       </DialogContent>
     </Dialog>

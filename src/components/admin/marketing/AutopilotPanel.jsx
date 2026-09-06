@@ -3,7 +3,6 @@ import {
   Activity,
   BrainCircuit,
   Check,
-  CirclePause,
   FlaskConical,
   Mail,
   MessageSquare,
@@ -17,6 +16,8 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
 import AutopilotMessagePreviewDialog from './dialogs/AutopilotMessagePreviewDialog';
+import { channelLabel, deliveryPathLabel, deliveryStrategyFor } from './autopilotDeliveryStrategy';
+import { familiarRecommendationText, familiarRecommendationTitle } from './recommendationLanguage';
 import {
   AdminButton,
   BODY,
@@ -34,64 +35,74 @@ import {
 
 const PLAYBOOK_COPY = {
   first_practice: {
-    short: 'Getting started',
-    detail: 'Helps a learner choose a useful first activity after onboarding.',
+    short: 'First practice',
+    title: 'Choose a first activity',
+    detail: 'Offers one useful place to start after onboarding.',
   },
   next_practice: {
-    short: 'Next step',
-    detail: 'Uses the first saved result to suggest one relevant follow-up activity.',
+    short: 'Next practice',
+    title: 'Suggest a next activity',
+    detail: 'Builds on a learner’s first saved result.',
   },
   subscriber_feature_help: {
-    short: 'Plan guidance',
-    detail: 'Helps paid learners find useful features already included in their plan.',
+    short: 'Plan features',
+    title: 'Help learners use their plan',
+    detail: 'Points paid learners to a feature they already have.',
   },
   quota_upgrade: {
-    short: 'AI feedback access',
-    detail: 'Explains plan options only after a free learner repeatedly reaches a verified limit.',
+    short: 'More AI feedback',
+    title: 'Explain AI feedback options',
+    detail: 'Shows plan options only after a verified free limit.',
   },
   re_engagement: {
-    short: 'Return support',
-    detail: 'Offers one manageable next step to a learner with established practice history.',
+    short: 'Return to practice',
+    title: 'Make returning easy',
+    detail: 'Offers one manageable next step after a break.',
   },
   cancellation_support: {
     short: 'Plan ending',
-    detail: 'Shows progress and plan settings before a scheduled subscription end.',
+    title: 'Support a plan ending',
+    detail: 'Shows progress and plan settings before access changes.',
   },
   referral_bonus_reminder: {
-    short: 'Bonus reminder',
-    detail: 'Shows verified unused referral credits shortly before they expire.',
+    short: 'Referral credit',
+    title: 'Remind about referral credit',
+    detail: 'Shows a verified credit before it expires.',
   },
   score_plateau: {
-    short: 'Steady score support',
-    detail:
-      'Suggests focused practice when comparable results stay steady below the learner’s goal.',
+    short: 'Improve a steady score',
+    title: 'Focus on one weak area',
+    detail: 'Suggests focused practice after similar results below a learner’s goal.',
   },
   incomplete_test: {
     short: 'Saved test',
-    detail: 'Reminds a learner when meaningful test progress is safely saved.',
+    title: 'Continue a saved test',
+    detail: 'Brings learners back only when their saved progress can be resumed.',
   },
   exam_countdown: {
     short: 'Exam plan',
-    detail: 'Adapts the study plan at 30, 15, and 7 days before a confirmed exam.',
+    title: 'Prepare for an upcoming exam',
+    detail: 'Updates the study plan at 30, 15, and 7 days before a confirmed exam.',
   },
   checkout_recovery: {
-    short: 'Checkout help',
-    detail: 'Offers payment help when a started checkout remains incomplete.',
+    short: 'Upgrade help',
+    title: 'Help finish an upgrade',
+    detail: 'Offers payment help when a checkout is still incomplete.',
+  },
+};
+
+const RECOMMENDATION_LABELS = {
+  severity: { urgent: 'Urgent', attention: 'Check', opportunity: 'Idea' },
+  category: {
+    messaging: 'Messages',
+    journey: 'Automation',
+    product: 'Product',
+    payment: 'Payment',
+    channel: 'Channel',
   },
 };
 
 const channelIcon = { email: Mail, in_app: MessageSquare, banner: Activity, push: Sparkles };
-const channelLabel = (channel) =>
-  ({ in_app: 'In app', banner: 'Dashboard banner', email: 'Email', push: 'Opt-in push' })[
-    channel
-  ] || channel;
-const policyChannels = (policy) => {
-  const allowed = policy.allowed_channels || [];
-  const configured = Array.isArray(policy.config?.channel_priority)
-    ? policy.config.channel_priority.filter((channel) => allowed.includes(channel))
-    : [];
-  return [...configured, ...allowed.filter((channel) => !configured.includes(channel))];
-};
 const statusTone = (status) => {
   if (['sent', 'approved', 'implemented', 'resolved'].includes(status)) return 'ok';
   if (['failed', 'urgent'].includes(status)) return 'fault';
@@ -123,6 +134,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
   const [busy, setBusy] = useState('');
   const [previewResult, setPreviewResult] = useState(null);
   const [previewPolicy, setPreviewPolicy] = useState(null);
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const policies = autopilot?.policies || [];
   const recommendations = autopilot?.recommendations || [];
   const interventions = autopilot?.interventions || [];
@@ -180,43 +192,47 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
             id="retention-autopilot-title"
             className="mt-1 text-sm font-extrabold text-stone-900 dark:text-stone-50"
           >
-            AI Autopilot
+            Learner Autopilot
           </h2>
         </div>
         <div className="max-w-xl text-right">
           <Pill tone="accent">Primary coordinator</Pill>
           <p className={cn(BODY, 'mt-1 text-[10px]')}>
-            Coordinates learner help, existing journeys, contact limits, and channel outcomes.
+            Chooses one useful route and keeps existing journeys from doubling up.
           </p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <Kpi
-          label="Automations active"
+          label="Active"
           value={`${enabled}/${policies.length}`}
-          sub={`${auto} guardrailed auto`}
+          sub={`${auto} auto-send`}
+          className="py-2"
         />
         <Kpi
-          label="Needs review"
+          label="To review"
           value={Number(counts.prepared || 0).toLocaleString()}
-          sub="Prepared from current evidence"
+          sub="Ready for approval"
+          className="py-2"
         />
         <Kpi
-          label="Sent · 30 days"
+          label="Sent · 30d"
           value={Number(counts.sent || 0).toLocaleString()}
-          sub="Across coordinated channels"
+          sub="One route per learner"
+          className="py-2"
         />
         <Kpi
-          label="Stayed quiet"
+          label="Held back"
           value={Number(counts.suppressed || 0).toLocaleString()}
-          sub="Expired, cancelled, or suppressed"
+          sub="Limits or changed context"
+          className="py-2"
         />
       </div>
 
       <div className={cn(PANEL, 'overflow-hidden')}>
         <PanelHeader
-          label="Control room"
-          title="Observe, help, measure"
+          label="Automation controls"
+          title="Review delivery and learner help"
           accent={enabled ? 'ok' : 'idle'}
         >
           <AdminButton variant="outline" loading={busy === 'preview'} onClick={runPreview}>
@@ -316,11 +332,13 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
         <div className="grid gap-px bg-stone-200/80 dark:bg-white/[0.07] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {policies.map((policy) => {
             const copy = PLAYBOOK_COPY[policy.playbook_key] || {};
+            const path = deliveryPathLabel(policy);
+            const strategy = deliveryStrategyFor(policy);
             return (
               <div
                 key={policy.id}
                 className={cn(
-                  'group relative flex flex-col justify-between bg-white p-4 transition-colors duration-150 dark:bg-[#131315]',
+                  'group relative flex flex-col justify-between bg-white p-3 transition-colors duration-150 dark:bg-[#131315]',
                   !policy.enabled && 'bg-stone-50/50 dark:bg-[#111113]'
                 )}
               >
@@ -338,173 +356,145 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-[13px] font-extrabold tracking-tight text-stone-900 line-clamp-1 dark:text-stone-50">
-                        {policy.name}
+                      <p className="mt-1 text-[12px] font-extrabold tracking-tight text-stone-900 line-clamp-1 dark:text-stone-50">
+                        {copy.title || policy.name}
                       </p>
                     </div>
                     <Switch
                       checked={policy.enabled}
                       disabled={busy === policy.id}
-                      aria-label={`Enable ${policy.name}`}
+                      aria-label={`Enable ${copy.title || policy.name}`}
                       onCheckedChange={(checked) =>
                         execute(
                           policy.id,
                           () =>
                             MarketingService.updateAutopilotPolicy(policy.id, { enabled: checked }),
-                          checked ? `${policy.name} enabled` : `${policy.name} paused`
+                          checked
+                            ? `${copy.title || policy.name} enabled`
+                            : `${copy.title || policy.name} paused`
                         )
                       }
                       className="shrink-0"
                     />
                   </div>
 
-                  <p
-                    className={cn(
-                      BODY,
-                      'mt-2 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300'
-                    )}
-                  >
+                  <p className={cn(BODY, 'mt-1.5 line-clamp-2 text-[10px] leading-snug')}>
                     {copy.detail}
                   </p>
 
-                  <div className="mt-auto pt-3">
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles className="h-2.5 w-2.5 shrink-0 text-indigo-500/80 dark:text-indigo-400/80" />
-                      <span
-                        className={cn(
-                          MICRO,
-                          'text-[9px] font-bold text-indigo-600 dark:text-indigo-400'
-                        )}
-                      >
-                        One channel per learner
-                      </span>
+                  <div className={cn(WELL, 'mt-2 rounded-md px-2 py-1.5')}>
+                    <div className="flex items-center gap-1.5 text-[9px] font-semibold text-stone-600 dark:text-stone-300">
+                      <MessageSquare className="h-3 w-3 shrink-0 text-[#5a63df]" />
+                      <span className="truncate">Active: {path.active}</span>
                     </div>
-
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {policyChannels(policy).map((channel, index) => {
-                        const Icon = channelIcon[channel];
-                        return (
-                          <Pill
-                            key={channel}
-                            tone={index === 0 ? 'accent' : 'neutral'}
-                            className="inline-flex items-center gap-1 text-[8.5px] font-medium py-0.5"
-                          >
-                            {Icon && <Icon className="h-2.5 w-2.5 shrink-0 opacity-75" />}
-                            <span>
-                              {index === 0 ? 'Preferred' : 'Fallback'} · {channelLabel(channel)}
-                            </span>
-                          </Pill>
-                        );
-                      })}
+                    <div className="mt-0.5 flex items-center gap-1.5 text-[9px] font-semibold text-stone-500 dark:text-stone-400">
+                      <Mail className="h-3 w-3 shrink-0" />
+                      <span className="truncate">Away: {path.away}</span>
                     </div>
+                    {strategy.remaining.length > 0 && (
+                      <p className={cn(MICRO, MUTED, 'mt-1 text-[8px]')}>
+                        Backup: {strategy.remaining.map(channelLabel).join(' + ')}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Lower pinned zone */}
-                <div className="mt-4 border-t border-stone-200/80 pt-3 dark:border-white/[0.07]">
-                  <div className="flex items-center justify-between">
-                    <span className={cn(MICRO, MUTED)}>Mode</span>
-                    <button
-                      type="button"
-                      disabled={!policy.enabled || busy === policy.id}
-                      title={
-                        policy.enabled
-                          ? 'Click to toggle between Auto-Guarded and Review-First'
-                          : 'Enable automation to change mode'
-                      }
-                      aria-label={`Toggle mode: currently ${policy.mode === 'review' ? 'review first' : 'auto guarded'}`}
-                      onClick={() =>
-                        execute(
-                          policy.id,
-                          () =>
-                            MarketingService.updateAutopilotPolicy(policy.id, {
-                              mode: policy.mode === 'review' ? 'guardrailed_auto' : 'review',
-                            }),
-                          'Automation mode updated'
-                        )
-                      }
-                      className={cn(
-                        'group/mode inline-flex items-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500',
-                        policy.enabled
-                          ? 'cursor-pointer hover:brightness-95 active:scale-95 dark:hover:brightness-110'
-                          : 'cursor-not-allowed opacity-50'
-                      )}
-                    >
-                      <Pill tone={policy.mode === 'guardrailed_auto' ? 'ok' : 'warn'}>
-                        {policy.mode === 'review' ? 'review first' : 'auto · guarded'}
-                      </Pill>
-                    </button>
-                  </div>
+                <div className="mt-2 flex items-center justify-between gap-2 border-t border-stone-200/80 pt-2 dark:border-white/[0.07]">
+                  <button
+                    type="button"
+                    disabled={!policy.enabled || busy === policy.id}
+                    aria-label={`Change ${copy.title || policy.name} mode; currently ${policy.mode === 'review' ? 'review first' : 'auto send'}`}
+                    onClick={() =>
+                      execute(
+                        policy.id,
+                        () =>
+                          MarketingService.updateAutopilotPolicy(policy.id, {
+                            mode: policy.mode === 'review' ? 'guardrailed_auto' : 'review',
+                          }),
+                        'Automation mode updated'
+                      )
+                    }
+                    className={cn(
+                      'group/mode inline-flex items-center rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+                      policy.enabled
+                        ? 'cursor-pointer hover:brightness-95 active:scale-95 dark:hover:brightness-110'
+                        : 'cursor-not-allowed opacity-50'
+                    )}
+                  >
+                    <Pill tone={policy.mode === 'guardrailed_auto' ? 'ok' : 'warn'}>
+                      {policy.mode === 'review' ? 'Review first' : 'Auto send'}
+                    </Pill>
+                  </button>
 
                   <button
                     type="button"
                     onClick={() => setPreviewPolicy(policy)}
-                    className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-stone-200/90 bg-stone-50/70 py-1.5 px-2.5 text-[10.5px] font-bold text-stone-700 transition-all hover:border-[#5a63df]/30 hover:bg-[#5a63df]/5 hover:text-[#5a63df] active:scale-[0.99] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-stone-300 dark:hover:border-[#5a63df]/40 dark:hover:bg-[#5a63df]/10 dark:hover:text-stone-100"
+                    className="inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-bold text-stone-500 transition-colors hover:bg-[#5a63df]/6 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-stone-400"
                   >
                     <Play className="h-3 w-3 fill-current opacity-70" />
-                    <span>Preview learner message</span>
+                    <span>Preview</span>
                   </button>
                 </div>
               </div>
             );
           })}
         </div>
-        <div className="grid gap-px border-t border-stone-200/80 bg-stone-200/80 dark:border-white/[0.07] dark:bg-white/[0.07] sm:grid-cols-2">
-          <div className="flex items-start gap-3 bg-white p-3.5 dark:bg-[#131315]">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-ok))]" />
-            <div>
-              <p className={cn(MICRO, MUTED)}>Always-on protection</p>
-              <p className="mt-0.5 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
-                Broken-flow protection
-              </p>
-              <p className={cn(BODY, 'mt-1 text-[10.5px]')}>
-                Holds back checkout promotion while payment is pending and surfaces delivery
-                failures for admin review.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 bg-white p-3.5 dark:bg-[#131315]">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-ok))]" />
-            <div>
-              <p className={cn(MICRO, MUTED)}>Always-on protection</p>
-              <p className="mt-0.5 text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
-                Contact-pressure protection
-              </p>
-              <p className={cn(BODY, 'mt-1 text-[10.5px]')}>
-                Coordinates limits, snoozes, dismissals, and negative feedback across every channel.
-              </p>
-            </div>
-          </div>
+        <div className="flex items-center gap-2 border-t border-stone-200/80 bg-stone-50/60 px-3 py-2 dark:border-white/[0.07] dark:bg-white/[0.025]">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-ok))]" />
+          <p className="text-[10px] font-medium text-stone-600 dark:text-stone-300">
+            One helpful message at a time. Payment checks, quiet hours, snoozes, and contact limits
+            are checked again before delivery.
+          </p>
         </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <div id="autopilot-recommendations" className={cn(PANEL, 'overflow-hidden')}>
           <PanelHeader
-            label="Admin recommendations"
-            title="What deserves attention"
+            label="AI recommendations"
+            title="Clear next steps"
             accent={recommendations.length ? 'warn' : 'ok'}
           >
-            <Pill tone={recommendations.length ? 'warn' : 'ok'}>
-              {recommendations.length || 'clear'}
-            </Pill>
+            <div className="flex items-center gap-2">
+              {recommendations.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllRecommendations((shown) => !shown)}
+                  className="text-[10px] font-bold text-[#5a63df] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                >
+                  {showAllRecommendations ? 'Show less' : `Show all ${recommendations.length}`}
+                </button>
+              )}
+              <Pill tone={recommendations.length ? 'warn' : 'ok'}>
+                {recommendations.length || 'clear'}
+              </Pill>
+            </div>
           </PanelHeader>
           {recommendations.length ? (
             <div className="divide-y divide-stone-200/80 dark:divide-white/[0.07]">
-              {recommendations.slice(0, 8).map((recommendation) => (
-                <div key={recommendation.id} className="p-3.5">
+              {recommendations.slice(0, showAllRecommendations ? 5 : 3).map((recommendation) => (
+                <div
+                  key={recommendation.id}
+                  id={`recommendation-${recommendation.id}`}
+                  className="scroll-mt-4 p-3"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <Pill tone={statusTone(recommendation.severity)}>
-                          {recommendation.severity}
+                          {RECOMMENDATION_LABELS.severity[recommendation.severity] || 'Check'}
                         </Pill>
-                        <span className={cn(MICRO, MUTED)}>{recommendation.category}</span>
+                        <span className={cn(MICRO, MUTED)}>
+                          {RECOMMENDATION_LABELS.category[recommendation.category] || 'Autopilot'}
+                        </span>
                       </div>
-                      <p className="mt-2 text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
-                        {recommendation.title}
+                      <p className="mt-1.5 text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+                        {familiarRecommendationTitle(recommendation.title)}
                       </p>
-                      <p className={cn(BODY, 'mt-1')}>{recommendation.summary}</p>
+                      <p className={cn(BODY, 'mt-1 text-[10px] leading-snug')}>
+                        {familiarRecommendationText(recommendation.summary)}
+                      </p>
                     </div>
                     <span
                       className={cn(
@@ -512,16 +502,20 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                         'shrink-0 text-[11px] font-bold text-stone-700 dark:text-stone-200'
                       )}
                     >
-                      n={Number(recommendation.sample_size || 0)}
+                      {Number(recommendation.sample_size || 0)}{' '}
+                      {Number(recommendation.sample_size || 0) === 1 ? 'learner' : 'learners'}
                     </span>
                   </div>
-                  <div className={cn(WELL, 'mt-3 rounded-lg p-2.5')}>
-                    <p className={cn(MICRO, MUTED)}>Suggested step</p>
-                    <p className="mt-1 text-[11px] font-semibold text-stone-700 dark:text-stone-200">
-                      {recommendation.proposed_action}
-                    </p>
-                  </div>
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className={cn(
+                        WELL,
+                        'min-w-0 flex-1 rounded-md px-2 py-1 text-[10px] font-semibold text-stone-700 dark:text-stone-200'
+                      )}
+                    >
+                      <span className="text-stone-500 dark:text-stone-400">Next step: </span>
+                      {familiarRecommendationText(recommendation.proposed_action)}
+                    </span>
                     <AdminButton
                       size="sm"
                       variant="outline"
@@ -530,11 +524,11 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                           `rec-${recommendation.id}`,
                           () =>
                             MarketingService.updateRecommendation(recommendation.id, 'accepted'),
-                          'Recommendation accepted'
+                          'Recommendation marked as reviewed'
                         )
                       }
                     >
-                      <Check className="h-3 w-3" /> Accept
+                      <Check className="h-3 w-3" /> Mark reviewed
                     </AdminButton>
                     <AdminButton
                       size="sm"
@@ -544,11 +538,11 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                           `rec-${recommendation.id}`,
                           () =>
                             MarketingService.updateRecommendation(recommendation.id, 'dismissed'),
-                          'Recommendation dismissed'
+                          'Recommendation hidden'
                         )
                       }
                     >
-                      Dismiss
+                      Hide
                     </AdminButton>
                   </div>
                 </div>
@@ -672,22 +666,14 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                 </div>
               ))
             ) : (
-              <Empty icon={CirclePause} title="Queue is clear">
-                Active review-first automations will place eligible suggestions here.
+              <Empty icon={ShieldCheck} title="Nothing waiting for review">
+                Review-first automations place eligible learner suggestions here.
               </Empty>
             )}
           </div>
         </div>
       </div>
 
-      <div className={cn(TILE, 'flex items-start gap-2 p-3')}>
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-ok))]" />
-        <p className={cn(BODY, 'text-[10px]')}>
-          The server rechecks eligibility before delivery, shares one cross-channel contact limit,
-          keeps learner-reported feelings out of commercial targeting, and records why it sent or
-          stayed quiet.
-        </p>
-      </div>
       <AutopilotMessagePreviewDialog
         policy={previewPolicy}
         open={Boolean(previewPolicy)}

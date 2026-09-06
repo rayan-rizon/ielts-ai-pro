@@ -10,9 +10,18 @@ const coordinatorMigration = read(
 const journeyExpansionMigration = read(
   'supabase/migrations/20260906031224_expand_retention_autopilot_journeys.sql'
 );
+const deliveryStrategyMigration = read(
+  'supabase/migrations/20260906163336_refine_autopilot_delivery_strategy.sql'
+);
 const worker = read('supabase/functions/retention-autopilot/index.ts');
 const dispatcher = read('supabase/functions/marketing-campaign-dispatch/index.ts');
-const learnerSurface = read('src/features/marketing/components/LearnerMarketingSurface.jsx');
+const learnerSurface = [
+  'src/features/marketing/components/LearnerMarketingSurface.jsx',
+  'src/features/marketing/components/LearnerInAppNotification.jsx',
+  'src/features/marketing/hooks/useVisibleImpression.js',
+]
+  .map(read)
+  .join('\n');
 const deliveryService = read('src/features/marketing/services/MarketingDelivery.js');
 const adminPanel = read('src/components/admin/marketing/AutopilotPanel.jsx');
 const marketingService = read('src/features/admin/services/MarketingService.js');
@@ -111,13 +120,17 @@ describe('Personalized retention autopilot contracts', () => {
     expect(dispatcher).toMatch(/journey\s*\?\s*\[\s*chooseJourneyChannel/);
   });
 
-  it('chooses one policy-specific channel and explains that choice in the admin UI', () => {
+  it('chooses one policy-specific channel and explains the active and away routes in the admin UI', () => {
     expect(journeyExpansionMigration).toContain("'channel_priority'");
     expect(worker).toContain('channelPriority');
+    expect(worker).toContain('deliveryStrategy');
+    expect(worker).toContain('email is attempted first');
     expect(worker).toContain('return channel;');
-    expect(adminPanel).toContain('One channel per learner');
-    expect(adminPanel).toContain('Preferred');
-    expect(adminPanel).toContain('Fallback');
+    expect(adminPanel).toContain('Active:');
+    expect(adminPanel).toContain('Away:');
+    expect(deliveryStrategyMigration).toContain("'exam_countdown'");
+    expect(deliveryStrategyMigration).toContain('\'["banner"]\'::jsonb');
+    expect(deliveryStrategyMigration).toContain('\'["email", "push"]\'::jsonb');
   });
 
   it('returns a useful privacy-safe preview instead of only a toast count', () => {
@@ -172,10 +185,10 @@ describe('Personalized retention autopilot contracts', () => {
   });
 
   it('provides admin monitoring, evidence, review, and quiet decisions', () => {
-    expect(adminPanel).toContain('Observe, help, measure');
-    expect(adminPanel).toContain('What deserves attention');
-    expect(adminPanel).toContain('Stayed quiet');
-    expect(adminPanel).toContain('Approve');
+    expect(adminPanel).toContain('Review delivery and learner help');
+    expect(adminPanel).toContain('Clear next steps');
+    expect(adminPanel).toContain('Held back');
+    expect(adminPanel).toContain('Mark reviewed');
     expect(worker).toContain('claim causality, diagnose emotions');
     expect(worker).toContain('experiment_holdout');
     expect(worker).toContain("body.action === 'generate_copy'");
@@ -190,5 +203,11 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).toContain('never expose internal keys or the word "playbook"');
     expect(worker).toContain('groundedRecommendations.length');
     expect(worker).toContain('recommendations: groundedRecommendations');
+    expect(worker).toContain("RETENTION_ANALYSIS_VERSION = '2026-09-07-plain-language-v2'");
+  });
+
+  it('uses GLM for every AI task in the Marketing Autopilot', () => {
+    expect(worker.match(/openRouterModel: 'z-ai\/glm-5\.3-flash'/g)).toHaveLength(3);
+    expect(worker.match(/openRouterDisableReasoning: false/g)).toHaveLength(3);
   });
 });

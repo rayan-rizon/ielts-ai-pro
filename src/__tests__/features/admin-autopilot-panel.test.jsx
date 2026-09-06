@@ -52,11 +52,11 @@ describe('Admin AI Autopilot panel', () => {
       />
     );
 
-    expect(screen.getByText('Score improvement support')).toBeInTheDocument();
-    expect(screen.getByText('Plan ending support')).toBeInTheDocument();
-    expect(screen.getAllByText('One channel per learner')).toHaveLength(11);
-    expect(screen.getAllByText('Preferred · Opt-in push')).toHaveLength(2);
-    expect(screen.getByText('Contact-pressure protection')).toBeInTheDocument();
+    expect(screen.getByText('Focus on one weak area')).toBeInTheDocument();
+    expect(screen.getByText('Support a plan ending')).toBeInTheDocument();
+    expect(screen.getAllByText(/Active: Bottom-right suggestion/)).not.toHaveLength(0);
+    expect(screen.getAllByText(/Away: Email/)).not.toHaveLength(0);
+    expect(screen.getByText(/One helpful message at a time/)).toBeInTheDocument();
   });
 
   it('renders a privacy-safe preview report and does not reconcile', async () => {
@@ -83,17 +83,17 @@ describe('Admin AI Autopilot panel', () => {
         onRefresh={vi.fn()}
       />
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[0]);
 
     await waitFor(() => expect(screen.getByText('Preview results')).toBeInTheDocument());
     expect(screen.getByText(/No messages were sent/)).toBeInTheDocument();
     expect(screen.getByText('120')).toBeInTheDocument();
-    expect(screen.getByText('In app · 3')).toBeInTheDocument();
+    expect(screen.getByText('Bottom-right suggestion · 3')).toBeInTheDocument();
     expect(MarketingService.runAutopilot).toHaveBeenCalledWith({ dryRun: true });
     expect(MarketingService.runAutopilot).toHaveBeenCalledTimes(1);
   });
 
-  it('previews each automation as a learner-facing message without queueing it', () => {
+  it('previews each automation as a learner-facing message without queueing it', async () => {
     render(
       <AutopilotPanel
         autopilot={{ policies, recommendations: [], interventions: [], channels: [], counts: {} }}
@@ -101,9 +101,11 @@ describe('Admin AI Autopilot panel', () => {
       />
     );
 
-    fireEvent.click(screen.getAllByRole('button', { name: /preview learner message/i })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[1]);
 
-    expect(screen.getByRole('heading', { name: 'Message preview' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Message preview' })).toBeInTheDocument()
+    );
     expect(screen.getByText(/No learner is selected, queued, or contacted/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /email/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /email/i }));

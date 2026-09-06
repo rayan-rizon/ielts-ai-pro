@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import LearnerMarketingSurface from '@/features/marketing/components/LearnerMarketingSurface';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
@@ -84,5 +84,54 @@ describe('Learner marketing surface', () => {
     await waitFor(() =>
       expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
     );
+  });
+
+  it('renders announcement banner and allows dismissing it', async () => {
+    const bannerDelivery = {
+      id: 'banner-1',
+      channel: 'banner',
+      content: {
+        title: 'Platform Maintenance Notice',
+        message: 'Scheduled downtime tonight.',
+        cta_label: 'Learn more',
+        cta_url: '/status',
+      },
+    };
+    MarketingDelivery.listActive.mockResolvedValue([bannerDelivery]);
+    MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
+
+    render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
+
+    expect(await screen.findByText('Platform Maintenance Notice')).toBeInTheDocument();
+    const dismissBtn = screen.getByRole('button', { name: 'Dismiss message' });
+    await act(async () => {
+      fireEvent.click(dismissBtn);
+    });
+
+    await waitFor(() => {
+      expect(MarketingDelivery.feedback).toHaveBeenCalledWith(bannerDelivery, 'dismissed', {
+        snoozedUntil: null,
+      });
+    });
+  });
+
+  it('saves practice feeling when clicking a check-in option', async () => {
+    MarketingDelivery.listActive.mockResolvedValue([]);
+    MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
+    MarketingDelivery.savePreferences.mockResolvedValue({ ok: true });
+
+    render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
+
+    const goingWellBtn = await screen.findByRole('button', { name: 'Going well' });
+    await act(async () => {
+      fireEvent.click(goingWellBtn);
+    });
+
+    await waitFor(() => {
+      expect(MarketingDelivery.savePreferences).toHaveBeenCalledWith(
+        'learner-1',
+        expect.objectContaining({ feeling: 'going_well' })
+      );
+    });
   });
 });

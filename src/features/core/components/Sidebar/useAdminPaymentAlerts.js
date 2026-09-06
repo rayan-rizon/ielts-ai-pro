@@ -1,18 +1,36 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-function getInitialStripeSeenAt(stripeSeenKey) {
+const NO_STRIPE_PAYMENTS_SEEN_AT = '1970-01-01T00:00:00.000Z';
+
+function getStoredStripeSeenAt(stripeSeenKey) {
   try {
-    const storedSeenAt = window.localStorage.getItem(stripeSeenKey);
-    if (storedSeenAt) {
-      return storedSeenAt;
-    }
-    const initialSeenAt = new Date().toISOString();
-    window.localStorage.setItem(stripeSeenKey, initialSeenAt);
-    return initialSeenAt;
+    return window.localStorage.getItem(stripeSeenKey);
   } catch {
-    return new Date().toISOString();
+    return null;
   }
+}
+
+function storeStripeSeenAt(stripeSeenKey, seenAt) {
+  try {
+    window.localStorage.setItem(stripeSeenKey, seenAt);
+  } catch {
+    // Storage can be unavailable in private mode. Keep the in-memory baseline.
+  }
+}
+
+async function fetchLatestStripePaymentAt() {
+  const { data, error } = await supabase
+    .from('payment_requests')
+    .select('created_at')
+    .eq('payment_method', 'stripe')
+    .eq('status', 'approved')
+    .not('created_at', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (error) return null;
+  return data?.[0]?.created_at || NO_STRIPE_PAYMENTS_SEEN_AT;
 }
 
 function subscribeToPaymentChanges(supabaseClient, onUpdate) {
@@ -44,7 +62,16 @@ export function useAdminPaymentAlerts({ isOnPaymentsTab, stripeSeenKey }) {
 
   useEffect(() => {
     let mounted = true;
-    const stripeSeenAt = getInitialStripeSeenAt(stripeSeenKey);
+    let stripeSeenAt = getStoredStripeSeenAt(stripeSeenKey);
+
+    const syncStripeSeenToLatest = async () => {
+      const latestStripePaymentAt = await fetchLatestStripePaymentAt();
+      if (!mounted || !latestStripePaymentAt) return null;
+
+      stripeSeenAt = latestStripePaymentAt;
+      storeStripeSeenAt(stripeSeenKey, latestStripePaymentAt);
+      return latestStripePaymentAt;
+    };
 
     const fetchPendingCount = async () => {
       const { count, error } = await supabase
@@ -62,7 +89,9 @@ export function useAdminPaymentAlerts({ isOnPaymentsTab, stripeSeenKey }) {
     const fetchStripePaymentCount = async () => {
       if (!mounted) return;
 
-      if (isOnPaymentsTab) {
+      if (isOnPaymentsTab || !stripeSeenAt) {
+        await syncStripeSeenToLatest();
+        if (!mounted) return;
         setStripePaymentCount(0);
         return;
       }
@@ -116,12 +145,7 @@ export function useAdminPaymentAlerts({ isOnPaymentsTab, stripeSeenKey }) {
 
     setPendingCount(0);
     setStripePaymentCount(0);
-    try {
-      window.localStorage.setItem(stripeSeenKey, new Date().toISOString());
-    } catch {
-      // Storage can be unavailable in private mode.
-    }
-  }, [isOnPaymentsTab, stripeSeenKey]);
+  }, [isOnPaymentsTab]);
 
   return {
     pendingCount,

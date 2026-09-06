@@ -1,7 +1,22 @@
 import { CircleCheck, ChevronRight } from 'lucide-react';
-import { WELL, TILE, TITLE, MUTED, Pill } from '@/components/admin/ui/primitives';
+import { WELL, MUTED, Pill } from '@/components/admin/ui/primitives';
 import { cn } from '@/lib/cn';
+import { familiarRecommendationTitle } from '../recommendationLanguage';
 import { date } from './operationsConstants';
+
+const SEVERITY_LABELS = {
+  urgent: 'Urgent',
+  attention: 'Check',
+  opportunity: 'Idea',
+};
+
+const CATEGORY_LABELS = {
+  messaging: 'Messages',
+  journey: 'Automation',
+  product: 'Product',
+  payment: 'Payment',
+  channel: 'Channel',
+};
 
 function EmptyBriefingWell({ lastAnalysisAt }) {
   return (
@@ -26,39 +41,24 @@ function EmptyBriefingWell({ lastAnalysisAt }) {
 
 function BriefingFindingCard({ item }) {
   const tone = item.severity === 'urgent' ? 'fault' : 'warn';
-  const windowLabel = item.measurement_window || 'Not recorded';
 
   return (
-    <article className={cn(TILE, 'p-3')}>
-      <Pill tone={tone}>{item.severity}</Pill>
-      <h3 className={cn(TITLE, 'mt-2 text-[12px]')}>{item.title}</h3>
-      <p className="mt-1.5 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
-        {item.summary}
-      </p>
-      <p className={cn(MUTED, 'mt-2 text-[10px]')}>
-        Sample: {item.sample_size} · Created {date(item.created_at)} · Window: {windowLabel}
-      </p>
-      <details className="mt-2 text-[10.5px]">
-        <summary className="cursor-pointer text-stone-500 hover:text-stone-800 dark:hover:text-stone-300">
-          Supporting evidence
-        </summary>
-        <pre
-          className={cn(
-            WELL,
-            'mt-1 max-h-40 overflow-auto rounded p-2 text-[10px] whitespace-pre-wrap break-words'
-          )}
-        >
-          {JSON.stringify(item.evidence, null, 2)}
-        </pre>
-      </details>
-      <p className="mt-2 text-[11px] font-semibold text-stone-800 dark:text-stone-200">
-        Suggested step: {item.proposed_action}
-      </p>
+    <article className="flex min-w-0 items-center gap-2 border-t border-stone-200/80 py-2 first:border-t-0 dark:border-white/[0.07]">
+      <Pill tone={tone}>{SEVERITY_LABELS[item.severity] || 'Check'}</Pill>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[11px] font-bold text-stone-900 dark:text-stone-100">
+          {familiarRecommendationTitle(item.title)}
+        </p>
+        <p className={cn(MUTED, 'text-[9px]')}>
+          {CATEGORY_LABELS[item.category] || 'Autopilot'} · {Number(item.sample_size || 0)}{' '}
+          {Number(item.sample_size || 0) === 1 ? 'learner' : 'learners'}
+        </p>
+      </div>
       <a
-        href="#autopilot-recommendations"
-        className="mt-2 inline-block text-[11px] font-semibold text-[#5a63df] hover:underline"
+        href={`#recommendation-${item.id}`}
+        className="shrink-0 text-[10px] font-bold text-[#5a63df] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
       >
-        Review recommendation →
+        Review
       </a>
     </article>
   );
@@ -66,15 +66,15 @@ function BriefingFindingCard({ item }) {
 
 function BriefingFindingsList({ items }) {
   return (
-    <details className="group mt-3 rounded-lg border border-stone-200/80 px-3 py-1.5 text-xs dark:border-white/[0.07]">
+    <details className="group mt-3 rounded-lg border border-stone-200/80 px-3 py-1 text-xs dark:border-white/[0.07]">
       <summary className="flex cursor-pointer list-none items-center gap-1.5 py-1.5 text-[11px] font-bold text-stone-800 dark:text-stone-200">
         <ChevronRight
           className="h-3.5 w-3.5 transition-transform duration-150 group-open:rotate-90"
           aria-hidden="true"
         />
-        Needs attention ({items.length})
+        {items.length} {items.length === 1 ? 'item' : 'items'} to review
       </summary>
-      <div className="grid gap-2 py-2 lg:grid-cols-3">
+      <div className="pb-1">
         {items.map((item) => (
           <BriefingFindingCard key={item.id} item={item} />
         ))}

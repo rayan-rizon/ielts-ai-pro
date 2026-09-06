@@ -254,15 +254,15 @@ export const AI_ROUTES: AiRoute[] = [
     surface: 'Admin Marketing: evidence-grounded retention recommendations',
     file: 'supabase/functions/retention-autopilot/index.ts',
     maxOutputTokens: 1800,
-    timeoutMs: 8000,
+    timeoutMs: 20000,
     steps: [
       {
-        model: 'deepseek/deepseek-v4-flash-0731',
+        model: 'z-ai/glm-5.3-flash',
         role: 'primary',
         when: 'OPENROUTER_API_KEY set and the aggregate evidence snapshot changed.',
       },
       { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
-      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'GLM and direct DeepSeek failed.' },
       {
         model: 'gemini-2.5-flash-lite',
         role: 'repair',
@@ -299,15 +299,15 @@ export const AI_ROUTES: AiRoute[] = [
     surface: 'Admin Marketing: evidence-bounded learner copy draft',
     file: 'supabase/functions/retention-autopilot/index.ts',
     maxOutputTokens: 450,
-    timeoutMs: 8000,
+    timeoutMs: 12000,
     steps: [
       {
-        model: 'deepseek/deepseek-v4-flash-0731',
+        model: 'z-ai/glm-5.3-flash',
         role: 'primary',
         when: 'An admin explicitly requests an improved draft.',
       },
       { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
-      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'GLM and direct DeepSeek failed.' },
       {
         model: 'gemini-2.5-flash-lite',
         role: 'repair',
