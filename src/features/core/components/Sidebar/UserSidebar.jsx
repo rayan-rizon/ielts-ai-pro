@@ -97,15 +97,15 @@ const resolveMainNavigation = (user) =>
   });
 
 const UserSidebarHeader = () => (
-  <SidebarHeader className="border-b border-slate-100 p-4 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 dark:border-white/6">
+  <SidebarHeader className="border-b border-slate-100 p-4 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 dark:border-white/6">
     <Link
       to="/dashboard"
-      className="relative flex h-8 w-full items-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center"
+      className="relative flex h-8 w-full items-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto"
     >
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center scale-95 opacity-0 transition-[opacity,transform] duration-150 ease-sidebar group-data-[collapsible=icon]:scale-100 group-data-[collapsible=icon]:opacity-100">
         <LogoIcon className="h-8 w-8" />
       </div>
-      <div className="flex max-w-[12rem] items-center overflow-hidden opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0">
+      <div className="flex max-w-[12rem] items-center overflow-hidden opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden">
         <Logo size="md" />
       </div>
     </Link>
@@ -162,17 +162,17 @@ const UpgradeCard = ({ isFree, onNavigate }) => {
   return (
     <Link
       to={createPageUrl('Pricing')}
-      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-linear-to-r/srgb from-[#5a63df]/8 via-[#7a82ed]/[0.14] to-[#5a63df]/6 p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-[0_6px_20px_-4px_rgba(90,99,223,0.25)] active:scale-[0.98] dark:border-[#8f97ff]/30 dark:from-[#5a63df]/22 dark:via-[#7a82ed]/16 dark:to-[#5a63df]/18 dark:hover:border-[#8f97ff]/60 dark:hover:shadow-[0_6px_20px_-4px_rgba(143,151,255,0.25)]"
+      className="group relative block overflow-hidden rounded-xl border border-[#5a63df]/30 bg-linear-to-r/srgb from-[#5a63df]/8 via-[#7a82ed]/[0.14] to-[#5a63df]/6 p-2.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[#5a63df]/60 hover:shadow-[0_6px_20px_-4px_rgba(90,99,223,0.25)] active:scale-[0.98] dark:border-[#8f97ff]/30 dark:from-[#5a63df]/22 dark:via-[#7a82ed]/16 dark:to-[#5a63df]/18 dark:hover:border-[#8f97ff]/60 dark:hover:shadow-[0_6px_20px_-4px_rgba(143,151,255,0.25)] group-data-[collapsible=icon]:py-2 group-data-[collapsible=icon]:px-0"
       onClick={onNavigate}
     >
-      <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center">
+      <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
         {/* Crown Icon Chip */}
         <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-tr/srgb from-[#5a63df] to-[#7880ed] text-white shadow-sm shadow-[#5a63df]/30 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 dark:from-[#6c74ec] dark:to-[#969dff]">
           <Crown className="h-4 w-4 text-white" strokeWidth={2.2} />
         </div>
 
         {/* Text Details */}
-        <div className={COLLAPSIBLE_DETAILS}>
+        <div className={cn(COLLAPSIBLE_DETAILS, 'group-data-[collapsible=icon]:hidden')}>
           <div className="flex items-center gap-1.5">
             <p className="text-[12px] font-extrabold leading-tight text-[#3c44c7] transition-colors duration-200 group-hover:text-[#2a31b0] dark:text-[#d4d7ff] dark:group-hover:text-white">
               Upgrade to
@@ -197,7 +197,7 @@ const getAvatarUrl = (user) =>
 
 const UserProfileLink = ({ user, onNavigate }) => (
   <Link to={createPageUrl('Settings')} className="block" onClick={onNavigate}>
-    <div className="flex items-center gap-2.5 overflow-hidden rounded-xl border border-transparent px-2.5 py-2 transition-all duration-200 ease-sidebar hover:border-slate-200/80 hover:bg-slate-50/80 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 dark:hover:border-white/8 dark:hover:bg-white/5">
+    <div className="flex items-center gap-2.5 overflow-hidden rounded-xl border border-transparent px-2.5 py-2 transition-all duration-200 ease-sidebar hover:border-slate-200/80 hover:bg-slate-50/80 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 dark:hover:border-white/8 dark:hover:bg-white/5">
       <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-2 ring-slate-100 dark:bg-slate-800 dark:ring-slate-800">
         <img
           src={getAvatarUrl(user)}
@@ -206,7 +206,7 @@ const UserProfileLink = ({ user, onNavigate }) => (
           loading="lazy"
         />
       </div>
-      <div className={COLLAPSIBLE_DETAILS}>
+      <div className={cn(COLLAPSIBLE_DETAILS, 'group-data-[collapsible=icon]:hidden')}>
         <p className="truncate text-[13px] font-bold text-slate-800 dark:text-slate-100">
           {user?.full_name || 'Student'}
         </p>
@@ -220,7 +220,7 @@ const UserProfileLink = ({ user, onNavigate }) => (
       </div>
       <UserIcon
         className={cn(
-          'h-3.5 w-3.5 shrink-0 text-slate-400 transition-[color,max-width,opacity] duration-150 ease-sidebar group-hover:text-slate-600 dark:group-hover:text-slate-300 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none',
+          'h-3.5 w-3.5 shrink-0 text-slate-400 transition-[color,max-width,opacity] duration-150 ease-sidebar group-hover:text-slate-600 dark:group-hover:text-slate-300 group-data-[collapsible=icon]:hidden',
           'group-data-[collapsible=icon]:overflow-hidden'
         )}
       />

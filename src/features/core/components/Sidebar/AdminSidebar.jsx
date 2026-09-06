@@ -90,16 +90,16 @@ const AdminNavItem = memo(
 AdminNavItem.displayName = 'AdminNavItem';
 
 const AdminSidebarHeader = memo(() => (
-  <SidebarHeader className="border-b border-stone-200/70 dark:border-white/6 p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+  <SidebarHeader className="border-b border-stone-200/70 dark:border-white/6 p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
     <div className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center">
       <Link
         to={createPageUrl('AdminPanel')}
-        className="relative flex h-8 items-center w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8"
+        className="relative flex h-8 items-center w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:mx-auto"
       >
         <div className="absolute inset-0 flex items-center justify-center opacity-0 scale-95 transition-[opacity,transform] duration-150 ease-sidebar pointer-events-none group-data-[collapsible=icon]:opacity-100 group-data-[collapsible=icon]:scale-100">
           <LogoIcon className="w-8 h-8" />
         </div>
-        <div className="flex items-center gap-2 max-w-[12rem] overflow-hidden opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
+        <div className="flex items-center gap-2 max-w-[12rem] overflow-hidden opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:hidden">
           <Logo size="sm" />
           <span
             className={`${MICRO} text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 border border-stone-200 dark:border-white/10 px-1.5 py-0.5 rounded-md shrink-0`}

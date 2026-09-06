@@ -22,7 +22,14 @@ describe('evaluationUtils', () => {
         targetBandTips: 'Speak for 1.5 minutes with developed examples.',
       },
       {},
-      { score: 6, sampleCount: 2, partCount: 2 }
+      {
+        score: 6,
+        sampleCount: 2,
+        partCount: 2,
+        summary: '',
+        problematicSounds: [],
+        wordIssues: [],
+      }
     );
     expect(result.improvements[0].tip).toBe('Use plurals, e.g. books are useful.');
     expect(result.targetBandTips).toBe('Speak for 1.5 minutes with developed examples.');

@@ -3,21 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
-  Gift,
-  Loader2,
-  Check,
-  Trash2,
-  Sparkles,
-  Ticket,
-  ArrowRight,
-  ShieldCheck,
-  PartyPopper,
-  AlertCircle,
-  X,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Ticket, Loader2, Check, Trash2, Sparkles, ArrowRight, AlertCircle, X } from 'lucide-react';
+import { Pill, NUM, MICRO } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 import { toast } from 'sonner';
 
@@ -47,8 +41,8 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
     if (!code) {
       setFeedback({
         type: 'error',
-        message: 'No code entered',
-        details: 'Please type your promo code first.',
+        message: 'No Code Entered',
+        details: 'Please enter a valid promo code before applying.',
       });
       return;
     }
@@ -68,11 +62,11 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
 
       setFeedback({
         type: 'success',
-        message: data.message || 'Verification Successful!',
+        message: data.message || 'Promo Code Applied!',
         details:
           data.type === 'grant'
-            ? `Your plan has been boosted to ${data.subscription.toUpperCase()}.`
-            : `A ${data.discount_value}${data.discount_type === 'percentage' ? '%' : '$'} discount has been attached to your profile.`,
+            ? `Your account has been upgraded to the ${data.subscription?.toUpperCase() || 'PREMIUM'} plan.`
+            : `An exclusive ${data.discount_value}${data.discount_type === 'percentage' ? '%' : '$'} discount has been applied to your plan.`,
       });
 
       setIsSuccess(true);
@@ -81,18 +75,27 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
       // Notify parent to refresh user data
       if (onPromoApplied) onPromoApplied(data);
 
-      toast.success(data.message || 'Promotion applied successfully!');
+      toast.success(data.message || 'Promo code applied successfully!');
     } catch (error) {
       console.error('Redemption failed:', error);
       let errorMessage = 'Invalid Code';
-      let errorDetails = 'This promo code is either expired, inactive, or already used.';
+      let errorDetails = 'This promo code is either expired, inactive, or not recognized.';
 
-      if (error.message?.includes('already used')) {
+      const rawMsg = error?.message || '';
+      if (rawMsg.includes('Not logged in') || rawMsg.includes('User not found')) {
+        errorMessage = 'Sign In Required';
+        errorDetails = 'Please sign in to your account to redeem promo codes.';
+      } else if (rawMsg.includes('already used') || rawMsg.includes('already applied')) {
         errorMessage = 'Already Redeemed';
-        errorDetails = 'This code has already been applied to your account.';
+        errorDetails = 'This promo code has already been applied to your account.';
+      } else if (rawMsg.includes('fully claimed') || rawMsg.includes('expired')) {
+        errorMessage = 'Offer Expired';
+        errorDetails = 'This promo code has expired or reached its maximum redemptions.';
+      } else if (rawMsg && rawMsg !== 'Invalid promo code') {
+        errorDetails = rawMsg;
       }
 
-      setFeedback({ type: 'error', message: errorMessage, details: error.message || errorDetails });
+      setFeedback({ type: 'error', message: errorMessage, details: errorDetails });
     } finally {
       setIsRedeeming(false);
     }
@@ -126,129 +129,100 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen} data-oid=":rb.orf">
-      <DialogTrigger asChild data-oid="wuvjy4w">
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
         <button
           type="button"
           className={cn(
-            'group relative inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-xs font-black transition-all duration-300 border overflow-hidden active:scale-95 cursor-pointer',
+            'group relative inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 border cursor-pointer active:scale-[0.98]',
             existingDiscount
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40 shadow-[0_4px_14px_-4px_rgba(16,185,129,0.20)]'
-              : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-[#ded9ff] dark:border-white/10 hover:border-[#b8b0ff] hover:text-[#5e50ee] dark:hover:text-indigo-400 shadow-[0_4px_14px_-4px_rgba(98,86,239,0.12)] hover:shadow-[0_6px_18px_-4px_rgba(98,86,239,0.22)]'
+              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/15'
+              : 'bg-white dark:bg-[#131315] text-slate-700 dark:text-slate-200 border-[#e4e2f0] dark:border-white/10 hover:border-[#5a63df]/40 hover:text-[#5a63df] dark:hover:border-[#5a63df]/40 dark:hover:text-[#afb5ff]'
           )}
-          data-oid="zhja.eo"
         >
-          {/* Animated background gradient contained within button pill */}
-          <div
-            className="absolute inset-0 rounded-full bg-linear-to-r/srgb from-indigo-500/10 via-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-            data-oid="wje94bm"
-          />
-
           <div
             className={cn(
-              'relative z-10 p-1 rounded-full shrink-0 transition-transform duration-300 group-hover:scale-110',
+              'p-1 rounded-full shrink-0 transition-transform duration-200 group-hover:scale-105',
               existingDiscount
-                ? 'bg-emerald-500/15 text-emerald-600'
-                : 'bg-[#6256ef]/10 text-[#6256ef] dark:text-indigo-400'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]'
             )}
-            data-oid="t9nsl7w"
           >
             {existingDiscount ? (
-              <Sparkles className="w-3.5 h-3.5" data-oid="f6x7-a9" />
+              <Sparkles className="w-3.5 h-3.5" />
             ) : (
-              <Ticket className="w-3.5 h-3.5" data-oid="ypmsyli" />
+              <Ticket className="w-3.5 h-3.5" />
             )}
           </div>
 
-          <span
-            className="relative z-10 tracking-wider uppercase font-extrabold"
-            data-oid="dblrs-j"
-          >
+          <span className="tracking-wide uppercase text-[11px] font-bold">
             {existingDiscount ? 'Manage Offer' : 'Redeem Code'}
           </span>
-          <ArrowRight
-            className="w-3.5 h-3.5 relative z-10 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-300"
-            data-oid=":pmhadq"
-          />
+          <ArrowRight className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
         </button>
       </DialogTrigger>
 
       <DialogContent
         hideClose
         className="max-h-[calc(100dvh-2rem)] w-full overflow-y-auto border-0 bg-transparent p-4 shadow-none focus-visible:outline-none sm:max-w-[400px]"
-        data-oid="d.jj_fd"
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          initial={{ opacity: 0, scale: 0.95, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative bg-white dark:bg-slate-950 p-6 sm:p-7 rounded-2xl border border-slate-200/90 dark:border-white/10 shadow-2xl overflow-hidden"
-          data-oid="dnm.-.7"
+          exit={{ opacity: 0, scale: 0.95, y: 8 }}
+          className="relative rounded-2xl border border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#131315] p-6 sm:p-7 shadow-xl overflow-hidden"
         >
           {/* Close Button */}
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center z-30 shadow-2xs"
+            className="absolute top-4 right-4 w-7 h-7 rounded-lg border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/5 text-slate-400 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors flex items-center justify-center z-30"
             aria-label="Close"
-            data-oid="-3l2dpx"
           >
-            <X className="w-4 h-4 stroke-[2.5]" data-oid="ofgdfe9" />
+            <X className="w-3.5 h-3.5" />
           </button>
 
-          {/* Ambient Lighting */}
-          <div
-            className="absolute -top-20 -right-20 w-52 h-52 bg-[#6d55e8]/10 blur-2xl rounded-full pointer-events-none"
-            data-oid="k7d-qjd"
-          />
-
-          <div className="relative z-10" data-oid="9w-nwjb">
-            <AnimatePresence mode="wait" data-oid="g1_hmzu">
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
               {isSuccess ? (
                 <motion.div
                   key="success-view"
-                  initial={{ opacity: 0, scale: 0.9, y: 8 }}
+                  initial={{ opacity: 0, scale: 0.94, y: 6 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -8 }}
+                  exit={{ opacity: 0, scale: 0.94, y: -6 }}
                   className="flex flex-col items-center text-center py-1"
-                  data-oid="041ri:8"
                 >
-                  <div className="relative mb-5" data-oid="rrrcyol">
+                  <div className="relative mb-4">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: 'spring', damping: 14, stiffness: 200, delay: 0.1 }}
-                      className="w-14 h-14 rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/25 flex items-center justify-center relative z-10"
-                      data-oid="gad-pb."
+                      transition={{ type: 'spring', damping: 14, stiffness: 200, delay: 0.05 }}
+                      className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center relative z-10"
                     >
-                      <Check className="w-7 h-7 stroke-[3px]" data-oid="4depepg" />
+                      <Check className="w-6 h-6 stroke-[2.5]" />
                     </motion.div>
                   </div>
 
-                  <h2
-                    className="text-2xl font-extrabold text-slate-950 dark:text-white mb-2 tracking-tight"
-                    data-oid="at5nzb7"
-                  >
-                    Congratulations!
-                  </h2>
-                  <p
-                    className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium leading-relaxed mb-6 max-w-[280px]"
-                    data-oid="ja5cu15"
-                  >
-                    {feedback.message}
-                    <span
-                      className="block text-xs font-normal text-slate-500 dark:text-slate-400 mt-1"
-                      data-oid="l:o.-91"
-                    >
-                      {feedback.details}
-                    </span>
-                  </p>
+                  <DialogTitle asChild>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1.5 tracking-tight">
+                      Offer Activated!
+                    </h2>
+                  </DialogTitle>
+                  <DialogDescription asChild>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-[13px] font-medium leading-relaxed mb-6 max-w-[280px]">
+                      {feedback.message}
+                      {feedback.details && (
+                        <span className="block text-xs font-normal text-slate-400 dark:text-slate-500 mt-1">
+                          {feedback.details}
+                        </span>
+                      )}
+                    </p>
+                  </DialogDescription>
 
                   <Button
                     onClick={handleClose}
-                    className="w-full h-12 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 font-bold text-xs uppercase tracking-wider shadow-sm hover:bg-slate-800 transition-all"
-                    data-oid="h4r4dhd"
+                    className="w-full h-11 rounded-xl bg-[#5a63df] hover:bg-[#4b54d1] text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.99]"
                   >
-                    Start Learning Now
+                    Continue
                   </Button>
                 </motion.div>
               ) : (
@@ -257,87 +231,73 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  data-oid="jy:s.ey"
                 >
-                  <div className="flex flex-col items-center mb-6 text-center" data-oid="_6.3v0k">
-                    <div
-                      className="w-12 h-12 rounded-2xl bg-[#6d55e8]/10 text-[#6d55e8] dark:bg-[#6d55e8]/20 dark:text-[#8875f0] flex items-center justify-center mb-3.5 shadow-2xs"
-                      data-oid="2a-3up2"
-                    >
-                      <Gift className="w-6 h-6" data-oid="0ox.klh" />
+                  <div className="flex flex-col items-center mb-5 text-center">
+                    <div className="w-11 h-11 rounded-xl border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff] flex items-center justify-center mb-3">
+                      <Ticket className="w-5 h-5" />
                     </div>
-                    <h2
-                      className="text-2xl font-bold text-slate-950 dark:text-white mb-1.5 tracking-tight"
-                      data-oid="psasrtn"
-                    >
-                      {existingDiscount && !showNewCodeInput ? 'Promotion Active' : 'Special Offer'}
-                    </h2>
-                    <p
-                      className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium max-w-[280px] leading-relaxed"
-                      data-oid="a8rjaze"
-                    >
-                      {existingDiscount && !showNewCodeInput
-                        ? 'You have an exclusive discount applied to your account.'
-                        : 'Unlock your full potential with a premium promo code.'}
-                    </p>
+                    <DialogTitle asChild>
+                      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">
+                        {existingDiscount && !showNewCodeInput
+                          ? 'Active Promotion'
+                          : 'Redeem Promo Code'}
+                      </h2>
+                    </DialogTitle>
+                    <DialogDescription asChild>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-[13px] font-medium max-w-[290px] leading-relaxed">
+                        {existingDiscount && !showNewCodeInput
+                          ? 'You have an active promotional discount applied to your account.'
+                          : 'Enter your code to unlock exclusive discounts or subscription upgrades.'}
+                      </p>
+                    </DialogDescription>
                   </div>
 
-                  <AnimatePresence mode="wait" data-oid="ca08wno">
+                  <AnimatePresence mode="wait">
                     {existingDiscount && !showNewCodeInput ? (
                       <motion.div
                         key="active-state"
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
+                        exit={{ opacity: 0, y: -6 }}
                         className="space-y-4"
-                        data-oid="05mjv0c"
                       >
-                        <div
-                          className="p-4.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 flex flex-col items-center gap-1.5 text-center"
-                          data-oid="ngf0koc"
-                        >
-                          <span
-                            className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest"
-                            data-oid="t2ljl63"
-                          >
-                            Active Coupon
+                        <div className="p-4 rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/5 flex flex-col items-center gap-1.5 text-center">
+                          <span className={cn(MICRO, 'text-slate-500 dark:text-slate-400')}>
+                            Applied Promo Code
                           </span>
                           <span
-                            className="text-xl font-mono font-bold text-slate-950 dark:text-white tracking-widest"
-                            data-oid="r.bewj:"
+                            className={cn(
+                              NUM,
+                              'text-xl font-bold text-slate-900 dark:text-white tracking-widest'
+                            )}
                           >
                             {existingDiscount.code}
                           </span>
-                          <Badge
-                            variant="secondary"
-                            className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 py-0.5 px-3 text-[10px] font-extrabold rounded-full border border-emerald-500/20 uppercase"
-                            data-oid="fapc5jy"
-                          >
+                          <Pill tone="emerald">
                             {existingDiscount.discount_value}
                             {existingDiscount.discount_type === 'percentage' ? '%' : '$'} OFF
-                          </Badge>
+                          </Pill>
                         </div>
 
-                        <div className="flex gap-3" data-oid="_:u_g-0">
+                        <div className="flex gap-2.5">
                           <Button
                             variant="outline"
-                            className="flex-1 rounded-xl h-11 text-xs font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800"
+                            className="flex-1 rounded-xl h-10 text-xs font-bold uppercase tracking-wider border-[#e4e2f0] dark:border-white/10 hover:bg-[#f4f3fb] dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
                             onClick={() => setShowNewCodeInput(true)}
-                            data-oid="w22221s"
                           >
                             Use Different Code
                           </Button>
                           <Button
-                            variant="ghost"
-                            className="h-11 w-11 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 p-0"
+                            variant="outline"
+                            className="h-10 w-10 rounded-xl border-[#e4e2f0] dark:border-white/10 text-rose-500 hover:text-rose-600 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 p-0"
                             onClick={handleRemoveCode}
                             disabled={isRemoving}
-                            data-oid="pvo4dyg"
+                            title="Remove promo code"
                           >
                             {isRemoving ? (
-                              <Loader2 className="w-4 h-4 animate-spin" data-oid="f7bj2_z" />
+                              <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                              <Trash2 className="w-4 h-4" data-oid="0s4svbk" />
+                              <Trash2 className="w-4 h-4" />
                             )}
                           </Button>
                         </div>
@@ -345,16 +305,15 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                     ) : (
                       <motion.div
                         key="input-state"
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="space-y-4"
-                        data-oid="t9y6feo"
+                        exit={{ opacity: 0, y: -6 }}
+                        className="space-y-3.5"
                       >
-                        <div className="relative" data-oid="za:ms2m">
+                        <div>
                           <Input
                             ref={inputRef}
-                            placeholder="Enter Promo Code"
+                            placeholder="ENTER PROMO CODE"
                             value={promoCode}
                             onChange={(e) => {
                               setPromoCode(e.target.value.toUpperCase());
@@ -362,35 +321,27 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                                 setFeedback({ type: 'idle', message: '', details: '' });
                               }
                             }}
-                            className="h-12 sm:h-13 text-center font-mono text-base font-extrabold tracking-widest uppercase rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 focus-visible:ring-2 focus-visible:ring-[#6d55e8]/20 focus-visible:border-[#6d55e8] transition-all placeholder:font-sans placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-400 placeholder:text-xs sm:placeholder:text-sm"
+                            className="h-11 text-center font-mono text-sm font-bold tracking-widest uppercase rounded-xl border border-[#e4e2f0] dark:border-white/10 bg-[#f4f3fb] dark:bg-white/5 text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#5a63df]/30 focus-visible:border-[#5a63df] transition-all placeholder:font-sans placeholder:tracking-normal placeholder:font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:text-xs"
                             onKeyDown={(e) => e.key === 'Enter' && handleRedeemCode()}
-                            data-oid="vgjrmku"
                           />
                         </div>
 
-                        <AnimatePresence data-oid="rx:wgw8">
+                        <AnimatePresence>
                           {feedback.type === 'error' && (
                             <motion.div
-                              initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                              initial={{ opacity: 0, scale: 0.97, y: -4 }}
                               animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.96, y: -4 }}
-                              className="p-3.5 rounded-xl bg-rose-50/90 dark:bg-rose-950/50 border border-rose-200/90 dark:border-rose-800/60 flex items-center gap-3 text-left shadow-2xs"
-                              data-oid="x6oux5_"
+                              exit={{ opacity: 0, scale: 0.97, y: -4 }}
+                              className="p-3 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/90 dark:bg-rose-950/30 flex items-start gap-2.5 text-left"
                             >
-                              <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center shrink-0">
-                                <AlertCircle className="w-4.5 h-4.5 text-rose-600 dark:text-rose-400 stroke-[2.5]" />
+                              <div className="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 stroke-[2.5]" />
                               </div>
-                              <div className="space-y-0.5">
-                                <div
-                                  className="text-rose-700 dark:text-rose-300 font-extrabold text-[11px] uppercase tracking-wider"
-                                  data-oid="4wzwf93"
-                                >
+                              <div className="min-w-0 flex-1 space-y-0.5">
+                                <div className="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
                                   {feedback.message}
                                 </div>
-                                <div
-                                  className="text-rose-600/90 dark:text-rose-400/90 text-xs font-semibold leading-tight"
-                                  data-oid="t7qq33z"
-                                >
+                                <div className="text-xs font-medium text-rose-600 dark:text-rose-300 leading-snug">
                                   {feedback.details}
                                 </div>
                               </div>
@@ -398,21 +349,20 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                           )}
                         </AnimatePresence>
 
-                        <div className="space-y-3 pt-0.5" data-oid="hp0f9op">
+                        <div className="space-y-2 pt-1">
                           <Button
                             onClick={handleRedeemCode}
                             disabled={isRedeeming || !promoCode.trim()}
-                            className="w-full h-12 rounded-xl bg-[#6d55e8] hover:bg-[#5b43d6] text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-[#6d55e8]/20 transition-all flex items-center justify-center gap-2 disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:shadow-none disabled:cursor-not-allowed"
-                            data-oid="yzl01m3"
+                            className="w-full h-11 rounded-xl bg-[#5a63df] hover:bg-[#4b54d1] text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
                           >
                             {isRedeeming ? (
-                              <div className="flex items-center gap-2" data-oid="52_5gqg">
-                                <Loader2 className="w-4 h-4 animate-spin" data-oid="bl7ef4r" />
-                                <span data-oid="t6m:ruz">VERIFYING...</span>
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Validating...</span>
                               </div>
                             ) : (
                               <>
-                                <span>Apply Promotion</span>
+                                <span>Apply Promo Code</span>
                                 <ArrowRight className="w-4 h-4" />
                               </>
                             )}
@@ -421,10 +371,9 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                           {existingDiscount && (
                             <button
                               onClick={() => setShowNewCodeInput(false)}
-                              className="w-full text-xs font-bold text-slate-400 hover:text-indigo-500 transition-colors py-1.5 uppercase tracking-wider"
-                              data-oid="6t9k5mn"
+                              className="w-full text-xs font-semibold text-slate-400 hover:text-[#5a63df] dark:hover:text-[#afb5ff] transition-colors py-1 uppercase tracking-wider"
                             >
-                              Go Back
+                              Back to current offer
                             </button>
                           )}
                         </div>
@@ -434,14 +383,6 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                 </motion.div>
               )}
             </AnimatePresence>
-
-            <div
-              className="mt-7 pt-4.5 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest gap-2"
-              data-oid="691cwg-"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-500" data-oid="jnd2cj." />
-              Secure Bank-Grade Validation
-            </div>
           </div>
         </motion.div>
       </DialogContent>
