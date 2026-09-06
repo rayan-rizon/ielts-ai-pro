@@ -210,10 +210,6 @@ export default function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        {!isAdminView && user && (
-          <LearnerMarketingSurface user={user} dashboardOnly={isDashboardPage} />
-        )}
-
         <SidebarProvider
           defaultOpen={!isTestPage}
           className="flex-1 flex overflow-hidden h-full min-h-0"
@@ -302,6 +298,9 @@ export default function Layout({ children, currentPageName }) {
                     className="animate-panel-in min-h-full"
                     data-oid="page-transition"
                   >
+                    {!isAdminView && user && isDashboardPage && (
+                      <LearnerMarketingSurface user={user} dashboardOnly />
+                    )}
                     {children}
                   </div>
                 )}

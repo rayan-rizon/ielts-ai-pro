@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { m } from 'framer-motion';
-import { Mail, ShieldCheck } from 'lucide-react';
+import { Bell, Mail, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
 import { IconChip, MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
+import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 
 /**
  * Email preferences.
@@ -22,22 +23,31 @@ import { IconChip, MUTED, PANEL, TILE } from '@/features/dashboard/components/pr
  */
 export default function EmailPreferencesSection() {
   const [subscribed, setSubscribed] = useState(null);
+  const [profileId, setProfileId] = useState(null);
+  const [pushEnabled, setPushEnabled] = useState(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
     supabase
       .from('users')
-      .select('marketing_email_unsubscribed_at')
+      .select('id,marketing_email_unsubscribed_at')
       .maybeSingle()
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (!active) return;
         if (error) {
           console.warn('[settings] Could not load email preferences:', error.message);
           setSubscribed(true);
           return;
         }
+        setProfileId(data?.id || null);
         setSubscribed(!data?.marketing_email_unsubscribed_at);
+        const preference = data?.id ? await MarketingDelivery.getPreferences(data.id) : null;
+        if (active) setPushEnabled(Boolean(preference?.push_enabled));
+      })
+      .catch((error) => {
+        console.warn('[settings] Could not load communication preferences:', error.message);
+        if (active) setPushEnabled(false);
       });
     return () => {
       active = false;
@@ -53,10 +63,28 @@ export default function EmailPreferencesSection() {
         p_subscribed: next,
       });
       if (error) throw error;
+      if (profileId) await MarketingDelivery.savePreferences(profileId, { email_enabled: next });
       toast.success(next ? 'Subscribed to product email' : 'Unsubscribed from product email');
     } catch (error) {
       setSubscribed(previous);
       toast.error(error.message || 'Could not save your email preference');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const togglePush = async (next) => {
+    if (!profileId) return;
+    const previous = pushEnabled;
+    setPushEnabled(next);
+    setSaving(true);
+    try {
+      if (next) await MarketingDelivery.enablePush(profileId);
+      else await MarketingDelivery.disablePush(profileId);
+      toast.success(next ? 'Push practice reminders enabled' : 'Push reminders disabled');
+    } catch (error) {
+      setPushEnabled(previous);
+      toast.error(error.message || 'Could not save your push preference');
     } finally {
       setSaving(false);
     }
@@ -75,7 +103,7 @@ export default function EmailPreferencesSection() {
           <IconChip icon={Mail} tone="accent" size="md" />
           <div className="min-w-0">
             <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-              Email preferences
+              Communication preferences
             </h2>
             <p className={cn('mt-1 text-[13px] leading-relaxed', MUTED)}>
               Choose what lands in your inbox. Changes apply immediately.
@@ -103,6 +131,32 @@ export default function EmailPreferencesSection() {
             disabled={subscribed === null || saving}
             onCheckedChange={toggle}
             aria-label="Practice tips and offers by email"
+          />
+        </label>
+
+        <label
+          className={cn(
+            TILE,
+            'mt-3 flex cursor-pointer items-center justify-between gap-4 rounded-xl p-4'
+          )}
+        >
+          <span className="flex min-w-0 items-start gap-3">
+            <Bell className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+            <span>
+              <span className="block text-sm font-bold text-slate-900 dark:text-slate-50">
+                Push practice reminders
+              </span>
+              <span className={cn('mt-1 block text-[12px] leading-relaxed', MUTED)}>
+                Optional, generic lock-screen reminders. Enabling this asks for browser permission;
+                turning it off removes this browser subscription.
+              </span>
+            </span>
+          </span>
+          <Switch
+            checked={Boolean(pushEnabled)}
+            disabled={pushEnabled === null || saving}
+            onCheckedChange={togglePush}
+            aria-label="Push practice reminders"
           />
         </label>
 

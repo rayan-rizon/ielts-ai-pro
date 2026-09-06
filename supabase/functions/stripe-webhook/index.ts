@@ -255,6 +255,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
   });
 
   if (requireClaimedStripeEvent(data, error, 'checkout.session.completed')) {
+    const { error: intentError } = await supabase
+      .from('marketing_checkout_intents')
+      .update({ status: 'settled', updated_at: new Date().toISOString() })
+      .eq('external_session_id', session.id);
+    if (intentError) console.warn('[Webhook] Checkout intent update failed:', intentError.message);
     console.log(`[Webhook] ✅ User ${authId} upgraded to ${tier} successfully`);
     await recordMarketingPurchase(session, userId);
     // promo_discount is cleared atomically inside the RPC — no need for a separate update

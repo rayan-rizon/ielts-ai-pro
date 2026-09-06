@@ -94,6 +94,21 @@ async function mapLimit<T>(items: T[], limit: number, task: (item: T) => Promise
   }
 }
 
+function externalContactWindowOpen(preference: Record<string, any> | undefined, now: Date) {
+  try {
+    const hour = Number(
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: preference?.timezone || 'Asia/Dhaka',
+        hour: '2-digit',
+        hourCycle: 'h23',
+      }).format(now)
+    );
+    return hour >= 9 && hour < 19;
+  } catch {
+    return false;
+  }
+}
+
 async function dispatchCampaign(campaignId: string, journey: Record<string, any> | null = null) {
   const { data: campaign, error: campaignError } = await admin
     .from('marketing_campaigns')
@@ -162,18 +177,26 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
     ? await admin.from('users').select('id,username').in('id', userIds)
     : { data: [] };
   const usernames = new Map((usernameRows || []).map((row: any) => [row.id, row.username]));
+  const { data: preferenceRows } = userIds.length
+    ? await admin.from('learner_marketing_preferences').select('*').in('user_id', userIds)
+    : { data: [] };
+  const preferenceByUser = new Map((preferenceRows || []).map((row: any) => [row.user_id, row]));
   const { data: history } = userIds.length
     ? await admin
         .from('marketing_deliveries')
-        .select('user_id,channel,campaign_id,attempt,status,failure_reason,created_at')
+        .select(
+          'user_id,channel,campaign_id,attempt,status,failure_reason,created_at,campaign:marketing_campaigns(objective)'
+        )
         .in('user_id', userIds)
         .order('created_at', { ascending: false })
     : { data: [] };
 
   const existing = new Map<string, any[]>();
+  const historyByUser = new Map<string, any[]>();
   (history || []).forEach((row: any) => {
     const key = `${row.user_id}:${row.channel}`;
     existing.set(key, [...(existing.get(key) || []), row]);
+    historyByUser.set(row.user_id, [...(historyByUser.get(row.user_id) || []), row]);
   });
 
   const staticOffer = campaign.promo?.code
@@ -184,6 +207,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
   const stats = { accepted: 0, skipped: 0, failed: 0 };
   await mapLimit(audience, 5, async (member: any) => {
     const recipient = { ...member, username: usernames.get(member.user_id) || null };
+    const preference = preferenceByUser.get(member.user_id);
     if (
       journey?.delay_hours > 0 &&
       member.triggered_at &&
@@ -195,6 +219,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
     for (const channel of campaign.channels) {
       const key = `${member.user_id}:${channel}`;
       const rows = existing.get(key) || [];
+      const allUserRows = historyByUser.get(member.user_id) || [];
       const allCampaignRows = rows.filter((row) => row.campaign_id === campaign.id);
       const campaignRows = allCampaignRows.filter(
         (row) => !['skipped', 'failed'].includes(row.status)
@@ -205,8 +230,35 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
       const cooldownHours = journey?.cooldown_hours ?? campaign.cooldown_hours;
       const cooldownOpen =
         latest && now.getTime() - new Date(latest.created_at).getTime() < cooldownHours * 3_600_000;
+      const latestCrossChannel = allUserRows.find((row: any) =>
+        ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status)
+      );
+      const crossChannelCooldownOpen =
+        latestCrossChannel &&
+        now.getTime() - new Date(latestCrossChannel.created_at).getTime() < 72 * 3_600_000;
+      const contactCapReached =
+        allUserRows.filter(
+          (row: any) =>
+            ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status) &&
+            now.getTime() - new Date(row.created_at).getTime() < 7 * 24 * 3_600_000
+        ).length >= 2;
+      const upgradePromotionCapReached =
+        campaign.objective === 'paid_conversion' &&
+        allUserRows.some(
+          (row: any) =>
+            row.campaign?.objective === 'paid_conversion' &&
+            ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status) &&
+            now.getTime() - new Date(row.created_at).getTime() < 7 * 24 * 3_600_000
+        );
       const overCap = campaignRows.length >= campaign.frequency_cap;
       const lacksConsent = channel === 'email' && !member.consent_marketing;
+      const learnerPaused =
+        preference?.proactive_paused_until && new Date(preference.proactive_paused_until) > now;
+      const channelDisabled =
+        (channel === 'email' && preference?.email_enabled === false) ||
+        (['in_app', 'banner'].includes(channel) && preference?.in_app_enabled === false);
+      const outsideContactWindow =
+        channel === 'email' && !externalContactWindowOpen(preference, now);
       const attempt = allCampaignRows.length + 1;
       const content = {
         title: campaign.title,
@@ -217,12 +269,34 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         promo_code: staticOffer?.code || null,
       };
 
-      if (cooldownOpen || overCap || lacksConsent) {
-        const reason = lacksConsent
-          ? 'marketing_consent_required'
-          : overCap
-            ? 'frequency_cap'
-            : 'cooldown';
+      if (
+        cooldownOpen ||
+        crossChannelCooldownOpen ||
+        contactCapReached ||
+        upgradePromotionCapReached ||
+        overCap ||
+        lacksConsent ||
+        learnerPaused ||
+        channelDisabled ||
+        outsideContactWindow
+      ) {
+        const reason = learnerPaused
+          ? 'learner_paused'
+          : channelDisabled
+            ? 'channel_disabled'
+            : outsideContactWindow
+              ? 'outside_contact_window'
+              : lacksConsent
+                ? 'marketing_consent_required'
+                : overCap
+                  ? 'frequency_cap'
+                  : upgradePromotionCapReached
+                    ? 'upgrade_promotion_cap'
+                    : contactCapReached
+                      ? 'cross_channel_contact_cap'
+                      : crossChannelCooldownOpen
+                        ? 'cross_channel_cooldown'
+                        : 'cooldown';
         const alreadyRecorded = allCampaignRows.some(
           (row) => row.status === 'skipped' && row.failure_reason === reason
         );

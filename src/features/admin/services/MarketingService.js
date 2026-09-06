@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { readAdminRpc } from './adminReadRpc';
 
 // Both directions are linked in the schema: a campaign can select a promo and
 // a promo can record its owning campaign. Pin the embed to the campaign's
@@ -169,6 +170,88 @@ export const MarketingService = {
     const { data, error } = await supabase.rpc('get_marketing_journey_metrics', { p_days: days });
     if (error) throw error;
     return data || [];
+  },
+
+  async getAutopilotSnapshot(days = 30) {
+    try {
+      return (
+        (await readAdminRpc(supabase, 'get_marketing_autopilot_snapshot', { p_days: days })) || {
+          policies: [],
+          recommendations: [],
+          interventions: [],
+          channels: [],
+          counts: {},
+        }
+      );
+    } catch (error) {
+      if (['42883', 'PGRST202'].includes(error?.code))
+        return {
+          policies: [],
+          recommendations: [],
+          interventions: [],
+          channels: [],
+          counts: {},
+        };
+      throw error;
+    }
+  },
+
+  async updateAutopilotPolicy(id, patch) {
+    const { data, error } = await supabase
+      .from('marketing_autopilot_policies')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async runAutopilot({ dryRun = false } = {}) {
+    const { data, error } = await supabase.functions.invoke('retention-autopilot', {
+      body: { dry_run: dryRun },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
+
+  async analyzeAutopilot() {
+    const { data, error } = await supabase.functions.invoke('retention-autopilot', {
+      body: { action: 'analyze' },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
+
+  async approveIntervention(id) {
+    const { data, error } = await supabase.functions.invoke('retention-autopilot', {
+      body: { action: 'approve', intervention_id: id },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
+
+  async generateInterventionCopy(id) {
+    const { data, error } = await supabase.functions.invoke('retention-autopilot', {
+      body: { action: 'generate_copy', intervention_id: id },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
+
+  async updateRecommendation(id, status) {
+    const { data, error } = await supabase
+      .from('marketing_admin_recommendations')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
   async listJourneys() {

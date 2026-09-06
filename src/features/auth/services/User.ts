@@ -457,6 +457,10 @@ export const User = {
       const out = { ...payload };
       if ('test_date' in out) {
         out.test_date = out.test_date ? out.test_date : null;
+        if (out.test_date && !('test_date_source' in out)) {
+          out.test_date_source = 'confirmed';
+          out.test_date_confirmed_at = new Date().toISOString();
+        }
       }
       // Ensure onboarding_completed is a proper boolean
       if ('onboarding_completed' in out) {

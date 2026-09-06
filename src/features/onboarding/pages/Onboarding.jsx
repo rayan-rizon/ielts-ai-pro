@@ -529,6 +529,9 @@ function buildOnboardingPayload(formData) {
 
   if (actualTestDate) {
     payload.test_date = actualTestDate.toISOString();
+    payload.test_date_source = formData.timeline_type === 'specific' ? 'confirmed' : 'estimated';
+    payload.test_date_confirmed_at =
+      formData.timeline_type === 'specific' ? new Date().toISOString() : null;
   }
   if (formData.weak_area) {
     payload.weak_area = formData.weak_area;

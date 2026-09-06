@@ -320,6 +320,9 @@ verify_jwt = false
 [functions.marketing-campaign-dispatch]
 verify_jwt = false
 
+[functions.retention-autopilot]
+verify_jwt = false
+
 [functions.marketing-track]
 verify_jwt = false
 

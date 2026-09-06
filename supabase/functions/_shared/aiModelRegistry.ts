@@ -242,6 +242,52 @@ export const AI_ROUTES: AiRoute[] = [
     ],
   },
   {
+    id: 'retention-autopilot-analysis',
+    surface: 'Admin Marketing: evidence-grounded retention recommendations',
+    file: 'supabase/functions/retention-autopilot/index.ts',
+    maxOutputTokens: 1800,
+    timeoutMs: 8000,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'OPENROUTER_API_KEY set and the aggregate evidence snapshot changed.',
+      },
+      { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'repair',
+        when: 'One retry at temperature 0 on malformed JSON.',
+      },
+    ],
+    notes:
+      'Eligibility, percentages, destinations, offers, contact caps, and dispatch remain deterministic server decisions.',
+  },
+  {
+    id: 'retention-autopilot-copy',
+    surface: 'Admin Marketing: evidence-bounded learner copy draft',
+    file: 'supabase/functions/retention-autopilot/index.ts',
+    maxOutputTokens: 450,
+    timeoutMs: 8000,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'primary',
+        when: 'An admin explicitly requests an improved draft.',
+      },
+      { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'Both DeepSeek routes failed.' },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'repair',
+        when: 'One retry at temperature 0 on malformed JSON.',
+      },
+    ],
+    notes:
+      'Names are added at delivery; AI drafts cannot alter validated destinations or evidence.',
+  },
+  {
     id: 'adaptive-learning-path',
     surface: 'Study plan: adaptive learning path ranking',
     file: 'supabase/functions/generateAdaptiveLearningPath/index.ts',

@@ -54,6 +54,7 @@ const PRODUCT_IDS: Record<string, string> = {
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
 // SECURITY: Hardcoded frontend URL prevents open redirect attacks
 // The Origin header is user-controlled and MUST NOT be used for redirect URLs
@@ -592,6 +593,26 @@ Deno.serve(async (req: Request) => {
     if (!sessionData.url || !sessionData.id || !Number.isFinite(amountInMinorUnits)) {
       console.error('[Checkout] Stripe returned an incomplete checkout session');
       return errorResponse('Failed to initialize payment. Please try again.', 500, corsHeaders);
+    }
+
+    const { error: intentError } = await serviceClient.from('marketing_checkout_intents').upsert(
+      {
+        user_id: userData.id,
+        provider: 'stripe',
+        external_session_id: sessionData.id,
+        plan_tier: tier,
+        billing_interval: interval,
+        status: 'initiated',
+        metadata: {
+          currency: String(sessionData.currency || validatedCurrency).toUpperCase(),
+          amount: amountInMinorUnits / 100,
+        },
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'external_session_id' }
+    );
+    if (intentError) {
+      console.warn('[Checkout] Could not persist recovery intent:', intentError.message);
     }
 
     return successResponse(

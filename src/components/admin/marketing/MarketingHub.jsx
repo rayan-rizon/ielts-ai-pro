@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { m } from 'framer-motion';
-import { BarChart3, FileText, Megaphone, RefreshCcw, Users, Workflow } from 'lucide-react';
+import { BarChart3, Bot, FileText, Megaphone, RefreshCcw, Users, Workflow } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/cn';
@@ -21,6 +21,7 @@ import CampaignsPanel from './CampaignsPanel';
 import SegmentsPanel from './SegmentsPanel';
 import TemplatesPanel from './TemplatesPanel';
 import JourneysPanel from './JourneysPanel';
+import AutopilotPanel from './AutopilotPanel';
 
 /**
  * Tab order follows the operator's loop rather than the data model: read the
@@ -30,6 +31,7 @@ import JourneysPanel from './JourneysPanel';
  */
 const TABS = [
   ['overview', 'Overview', BarChart3],
+  ['autopilot', 'AI Autopilot', Bot],
   ['campaigns', 'Campaigns', Megaphone],
   ['audiences', 'Audiences', Users],
   ['templates', 'Templates', FileText],
@@ -47,6 +49,7 @@ const EMPTY_DATA = {
   breakdowns: { delivery_channels: [], acquisition_sources: [], plans: [], first_touch: [] },
   journeyMetrics: [],
   recovery: { waiting: 0, eligible: 0, sent: 0, recovered: 0, conversion_rate: 0 },
+  autopilot: { policies: [], recommendations: [], interventions: [], channels: [], counts: {} },
 };
 
 export default function MarketingHub() {
@@ -68,6 +71,7 @@ export default function MarketingHub() {
         breakdowns,
         journeyMetrics,
         recovery,
+        autopilot,
       ] = await Promise.all([
         MarketingService.listCampaigns(),
         MarketingService.listSegments(),
@@ -79,6 +83,7 @@ export default function MarketingHub() {
         MarketingService.getBreakdowns(30),
         MarketingService.getJourneyMetrics(30),
         MarketingService.getCheckoutRecoveryDashboard(),
+        MarketingService.getAutopilotSnapshot(30),
       ]);
       setData({
         campaigns,
@@ -91,6 +96,7 @@ export default function MarketingHub() {
         breakdowns,
         journeyMetrics,
         recovery,
+        autopilot,
       });
     } catch (error) {
       console.error('Marketing hub load failed:', error);
@@ -201,6 +207,9 @@ export default function MarketingHub() {
               templates={data.templates}
               onRefresh={load}
             />
+          </TabsContent>
+          <TabsContent value="autopilot" className="mt-0 outline-none">
+            <AutopilotPanel autopilot={data.autopilot} onRefresh={load} />
           </TabsContent>
           <TabsContent value="audiences" className="mt-0 outline-none">
             <SegmentsPanel segments={data.segments} onRefresh={load} />

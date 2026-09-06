@@ -1,82 +1,167 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Megaphone, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowRight, Bell, CalendarClock, Megaphone, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
-import { IconChip, MICRO, PANEL, Pill, TITLE } from '@/features/dashboard/components/primitives';
+import {
+  IconChip,
+  MICRO,
+  MUTED,
+  PANEL,
+  Pill,
+  TITLE,
+  WELL,
+} from '@/features/dashboard/components/primitives';
 
-const DISMISSED_KEY = 'dismissed_marketing_deliveries';
-const readDismissed = () => {
-  try {
-    const value = JSON.parse(window.localStorage.getItem(DISMISSED_KEY) || '[]');
-    return Array.isArray(value) ? value : [];
-  } catch {
-    return [];
-  }
-};
+const BODY = 'text-[11px] leading-relaxed text-slate-600 dark:text-slate-300';
+
+const FEELINGS = [
+  ['going_well', 'Going well'],
+  ['stuck', 'Stuck'],
+  ['short_on_time', 'Short on time'],
+  ['taking_a_break', 'Taking a break'],
+];
+
+function useVisibleImpression(ref, delivery) {
+  const recorded = useRef(new Set());
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || !delivery?.id || recorded.current.has(delivery.id)) return undefined;
+    let timer;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        clearTimeout(timer);
+        if (
+          entry.isIntersecting &&
+          entry.intersectionRatio >= 0.5 &&
+          document.visibilityState === 'visible'
+        ) {
+          timer = window.setTimeout(() => {
+            if (recorded.current.has(delivery.id) || document.visibilityState !== 'visible') return;
+            recorded.current.add(delivery.id);
+            Promise.allSettled([
+              MarketingDelivery.record(delivery, 'viewed', {
+                surface: delivery.channel,
+                visibility: '50_percent_1_second',
+              }),
+              MarketingDelivery.feedback(delivery, 'viewed', {
+                metadata: { surface: delivery.channel },
+              }),
+            ]);
+          }, 1000);
+        }
+      },
+      { threshold: [0.5] }
+    );
+    observer.observe(element);
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [delivery, ref]);
+}
 
 export default function LearnerMarketingSurface({ user, dashboardOnly = false }) {
   const [deliveries, setDeliveries] = useState([]);
-  const [dismissed, setDismissed] = useState(readDismissed);
+  const [preferences, setPreferences] = useState(null);
+  const [working, setWorking] = useState('');
+  const cardRef = useRef(null);
+  const bannerRef = useRef(null);
+
+  const load = async () => {
+    if (!user?.id) return;
+    const [nextDeliveries, nextPreferences] = await Promise.all([
+      MarketingDelivery.listActive(user.id),
+      MarketingDelivery.getPreferences(user.id),
+    ]);
+    setDeliveries(nextDeliveries);
+    setPreferences(nextPreferences);
+  };
 
   useEffect(() => {
     let active = true;
-    MarketingDelivery.listActive(user?.id)
-      .then((rows) => active && setDeliveries(rows))
-      .catch((error) => console.warn('[marketing] Could not load learner deliveries:', error));
+    Promise.all([
+      MarketingDelivery.listActive(user?.id),
+      MarketingDelivery.getPreferences(user?.id),
+    ])
+      .then(([nextDeliveries, nextPreferences]) => {
+        if (!active) return;
+        setDeliveries(nextDeliveries);
+        setPreferences(nextPreferences);
+      })
+      .catch((error) => console.warn('[marketing] Could not load learner guidance:', error));
     return () => {
       active = false;
     };
   }, [user?.id]);
 
-  const visible = useMemo(
-    () => deliveries.filter((delivery) => !dismissed.includes(delivery.id)),
-    [deliveries, dismissed]
-  );
-  const banner = dashboardOnly ? visible.find((delivery) => delivery.channel === 'banner') : null;
-  // A campaign configured for both `banner` and `in_app` produces one delivery
-  // row per channel, and both used to render at once — the same headline as a
-  // bar across the top and again as a card in the corner. One campaign gets one
-  // surface; the banner wins because it is the less interruptive of the two.
-  const notification = dashboardOnly
-    ? visible.find(
-        (delivery) => delivery.channel === 'in_app' && delivery.campaign_id !== banner?.campaign_id
-      )
+  const primarySurface = dashboardOnly
+    ? deliveries.find((delivery) => ['in_app', 'banner'].includes(delivery.channel))
     : null;
+  const banner = primarySurface?.channel === 'banner' ? primarySurface : null;
+  const notification = primarySurface?.channel === 'in_app' ? primarySurface : null;
+  useVisibleImpression(cardRef, notification);
+  useVisibleImpression(bannerRef, banner);
 
-  useEffect(() => {
-    [banner, notification].filter(Boolean).forEach((delivery) => {
-      MarketingDelivery.record(delivery, 'viewed', { surface: delivery.channel }).catch(() => {});
-    });
-  }, [banner, notification]);
+  const checkInDue = useMemo(() => {
+    if (!preferences?.feeling_recorded_at) return true;
+    return Date.now() - new Date(preferences.feeling_recorded_at).getTime() > 7 * 86_400_000;
+  }, [preferences?.feeling_recorded_at]);
 
-  const dismiss = (delivery) => {
-    const next = Array.from(new Set([...dismissed, delivery.id])).slice(-50);
-    setDismissed(next);
+  const act = async (key, task, success) => {
+    setWorking(key);
     try {
-      window.localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
-    } catch {
-      /* no-op */
+      await task();
+      if (success) toast.success(success);
+      await load();
+    } catch (error) {
+      toast.error(error.message || 'Could not save your preference');
+    } finally {
+      setWorking('');
     }
-    MarketingDelivery.record(delivery, 'exited', { surface: delivery.channel }).catch(() => {});
   };
+
+  const feedback = (delivery, action, snoozedUntil = null) =>
+    act(
+      action,
+      () => MarketingDelivery.feedback(delivery, action, { snoozedUntil }),
+      action === 'snoozed' ? 'We will remind you next week' : null
+    );
 
   const click = (delivery) => {
-    MarketingDelivery.record(delivery, 'clicked', { destination: delivery.content?.cta_url }).catch(
-      () => {}
-    );
+    Promise.allSettled([
+      MarketingDelivery.record(delivery, 'clicked', {
+        destination: delivery.content?.cta_url,
+      }),
+      MarketingDelivery.feedback(delivery, 'clicked', {
+        metadata: { destination: delivery.content?.cta_url },
+      }),
+    ]);
   };
 
+  const saveFeeling = (feeling) =>
+    act(
+      `feeling-${feeling}`,
+      () =>
+        MarketingDelivery.savePreferences(user.id, {
+          feeling,
+          feeling_recorded_at: new Date().toISOString(),
+          ...(feeling === 'taking_a_break'
+            ? {
+                proactive_paused_until: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+              }
+            : {}),
+        }),
+      'Practice preference saved'
+    );
+
+  if (!banner && !notification && !checkInDue) return null;
+
   return (
-    <>
+    <div className="mx-auto w-full max-w-[1600px] space-y-2 px-4 pt-4 md:px-6">
       {banner && (
-        <div
-          className="relative z-20 w-full shrink-0"
-          onClick={(event) => {
-            if (event.target.closest('a')) click(banner);
-          }}
-        >
+        <div className="relative" ref={bannerRef}>
           <AnnouncementBanner
             announcement={{
               enabled: true,
@@ -91,67 +176,137 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
           />
           <button
             type="button"
-            onClick={() => dismiss(banner)}
-            aria-label="Dismiss campaign banner"
-            className="absolute right-3 top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-stone-200 bg-white/80 text-stone-500 dark:border-white/10 dark:bg-[#131315]/90 dark:text-stone-300"
+            onClick={() => feedback(banner, 'dismissed')}
+            aria-label="Dismiss message"
+            className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-stone-200 bg-white text-stone-500 dark:border-white/10 dark:bg-[#131315] dark:text-stone-300"
           >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       )}
 
-      <AnimatePresence>
-        {notification && (
-          <motion.aside
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            className={cn(PANEL, 'fixed bottom-4 right-4 z-70 w-[calc(100vw-2rem)] max-w-sm p-3.5')}
-            role="status"
-          >
-            <div className="flex items-start gap-3">
-              <IconChip icon={Megaphone} tone="accent" size="md" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className={TITLE}>{notification.content?.title}</p>
-                    <p className="mt-1 text-[12px] leading-relaxed text-slate-600 dark:text-slate-300">
-                      {notification.content?.message}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => dismiss(notification)}
-                    aria-label="Dismiss message"
-                    className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <Pill tone="accent">For you</Pill>
-                    {notification.content?.promo_code && (
-                      <Pill tone="amber">{notification.content.promo_code}</Pill>
+      {notification && (
+        <section
+          ref={cardRef}
+          className={cn(PANEL, 'overflow-hidden')}
+          aria-labelledby={`guidance-${notification.id}`}
+        >
+          <div className="flex items-start gap-3 p-3.5 md:p-4">
+            <IconChip icon={Megaphone} tone="accent" size="md" />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="max-w-2xl">
+                  <div className="flex items-center gap-2">
+                    <Pill tone="accent">Suggested for you</Pill>
+                    {notification.intervention?.playbook_key && (
+                      <span className={cn(MICRO, MUTED)}>
+                        {notification.intervention.playbook_key.replaceAll('_', ' ')}
+                      </span>
                     )}
                   </div>
-                  {notification.content?.cta_url && (
-                    <a
-                      href={MarketingDelivery.linkFor(notification)}
-                      onClick={() => click(notification)}
-                      className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#5a63df] dark:text-[#afb5ff]"
-                    >
-                      {notification.content?.cta_label || 'Open'}
-                      <ArrowRight className="h-3 w-3" />
-                    </a>
-                  )}
+                  <h2 id={`guidance-${notification.id}`} className={cn(TITLE, 'mt-2')}>
+                    {notification.content?.title}
+                  </h2>
+                  <p className={cn(BODY, 'mt-1')}>{notification.content?.message}</p>
                 </div>
-                <p className={cn(MICRO, 'mt-2 text-slate-400')}>Personalized campaign</p>
+                {notification.content?.cta_url && (
+                  <a
+                    href={MarketingDelivery.linkFor(notification)}
+                    onClick={() => click(notification)}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-[11px] font-extrabold text-white hover:bg-[#4d56ca]"
+                  >
+                    {notification.content?.cta_label || 'Open'}
+                    <ArrowRight className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#e4e2f0] pt-2.5 dark:border-white/[0.07]">
+                <button
+                  type="button"
+                  disabled={working === 'snoozed'}
+                  onClick={() =>
+                    feedback(
+                      notification,
+                      'snoozed',
+                      new Date(Date.now() + 7 * 86_400_000).toISOString()
+                    )
+                  }
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 hover:text-stone-800 disabled:opacity-50 dark:text-stone-400 dark:hover:text-stone-200"
+                >
+                  <CalendarClock className="h-3 w-3" /> Remind me next week
+                </button>
+                <span className="text-stone-300 dark:text-stone-700">·</span>
+                <button
+                  type="button"
+                  disabled={working === 'not_interested'}
+                  onClick={() => feedback(notification, 'not_interested')}
+                  className="text-[10px] font-bold text-stone-500 hover:text-stone-800 disabled:opacity-50 dark:text-stone-400 dark:hover:text-stone-200"
+                >
+                  Not interested
+                </button>
+                <button
+                  type="button"
+                  disabled={working === 'dismissed'}
+                  onClick={() => feedback(notification, 'dismissed')}
+                  className="ml-auto inline-grid h-6 w-6 place-items-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+                  aria-label="Dismiss suggestion"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
-    </>
+          </div>
+        </section>
+      )}
+
+      {checkInDue && (
+        <section
+          className={cn(
+            PANEL,
+            'flex flex-col gap-3 p-3.5 md:flex-row md:items-center md:justify-between'
+          )}
+        >
+          <div>
+            <p className={cn(MICRO, MUTED)}>Optional check-in</p>
+            <p className={cn(TITLE, 'mt-1')}>How does your practice feel today?</p>
+            <p className={cn(BODY, 'mt-0.5')}>
+              This adapts study support for seven days. It is not used to target upgrade offers.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {FEELINGS.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                disabled={working.startsWith('feeling-')}
+                onClick={() => saveFeeling(value)}
+                className={cn(
+                  WELL,
+                  'rounded-md border border-[#e4e2f0] px-2.5 py-1.5 text-[10px] font-bold text-stone-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] disabled:opacity-50 dark:border-white/[0.07] dark:text-stone-300'
+                )}
+              >
+                {working === `feeling-${value}` ? 'Saving…' : label}
+              </button>
+            ))}
+          </div>
+          {typeof Notification !== 'undefined' && Notification.permission === 'default' && (
+            <button
+              type="button"
+              disabled={working === 'push'}
+              onClick={() =>
+                act(
+                  'push',
+                  () => MarketingDelivery.enablePush(user.id),
+                  'Practice reminders enabled'
+                )
+              }
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold text-stone-500 hover:text-[#5a63df] disabled:opacity-50 dark:text-stone-400"
+            >
+              <Bell className="h-3.5 w-3.5" /> Enable optional reminders
+            </button>
+          )}
+        </section>
+      )}
+    </div>
   );
 }
