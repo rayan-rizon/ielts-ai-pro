@@ -32,9 +32,38 @@ import {
 } from '@/components/admin/ui/primitives';
 
 const PLAYBOOK_COPY = {
+  first_practice: {
+    short: 'Getting started',
+    detail: 'Helps a learner choose a useful first activity after onboarding.',
+  },
+  next_practice: {
+    short: 'Next step',
+    detail: 'Uses the first saved result to suggest one relevant follow-up activity.',
+  },
+  subscriber_feature_help: {
+    short: 'Plan guidance',
+    detail: 'Helps paid learners find useful features already included in their plan.',
+  },
+  quota_upgrade: {
+    short: 'AI feedback access',
+    detail: 'Explains plan options only after a free learner repeatedly reaches a verified limit.',
+  },
+  re_engagement: {
+    short: 'Return support',
+    detail: 'Offers one manageable next step to a learner with established practice history.',
+  },
+  cancellation_support: {
+    short: 'Plan ending',
+    detail: 'Shows progress and plan settings before a scheduled subscription end.',
+  },
+  referral_bonus_reminder: {
+    short: 'Bonus reminder',
+    detail: 'Shows verified unused referral credits shortly before they expire.',
+  },
   score_plateau: {
-    short: 'Score support',
-    detail: 'Offers focused practice after a repeated score pattern and a short break.',
+    short: 'Steady score support',
+    detail:
+      'Suggests focused practice when comparable results stay steady below the learner’s goal.',
   },
   incomplete_test: {
     short: 'Saved test',
@@ -51,6 +80,17 @@ const PLAYBOOK_COPY = {
 };
 
 const channelIcon = { email: Mail, in_app: MessageSquare, banner: Activity, push: Sparkles };
+const channelLabel = (channel) =>
+  ({ in_app: 'In app', banner: 'Dashboard banner', email: 'Email', push: 'Opt-in push' })[
+    channel
+  ] || channel;
+const policyChannels = (policy) => {
+  const allowed = policy.allowed_channels || [];
+  const configured = Array.isArray(policy.config?.channel_priority)
+    ? policy.config.channel_priority.filter((channel) => allowed.includes(channel))
+    : [];
+  return [...configured, ...allowed.filter((channel) => !configured.includes(channel))];
+};
 const statusTone = (status) => {
   if (['sent', 'approved', 'implemented', 'resolved'].includes(status)) return 'ok';
   if (['failed', 'urgent'].includes(status)) return 'fault';
@@ -80,10 +120,10 @@ function Evidence({ evidence = [] }) {
 
 export default function AutopilotPanel({ autopilot, onRefresh }) {
   const [busy, setBusy] = useState('');
+  const [previewResult, setPreviewResult] = useState(null);
   const policies = autopilot?.policies || [];
   const recommendations = autopilot?.recommendations || [];
   const interventions = autopilot?.interventions || [];
-  const channels = autopilot?.channels || [];
   const counts = autopilot?.counts || {};
 
   const enabled = policies.filter((policy) => policy.enabled).length;
@@ -105,15 +145,28 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
     }
   };
 
+  const runPreview = async () => {
+    setBusy('preview');
+    try {
+      const result = await MarketingService.runAutopilot({ dryRun: true });
+      setPreviewResult(result);
+      toast.success('Preview refreshed — nothing was sent');
+    } catch (error) {
+      toast.error(error.message || 'Could not prepare the preview');
+    } finally {
+      setBusy('');
+    }
+  };
+
   const channelTotals = useMemo(
     () =>
-      channels.map((row) => ({
+      (autopilot?.channels || []).map((row) => ({
         ...row,
         rate: Number(row.deliveries)
           ? (100 * Number(row.clicked || 0)) / Number(row.deliveries)
           : 0,
       })),
-    [channels]
+    [autopilot?.channels]
   );
 
   return (
@@ -164,17 +217,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
           title="Observe, help, measure"
           accent={enabled ? 'ok' : 'idle'}
         >
-          <AdminButton
-            variant="outline"
-            loading={busy === 'preview'}
-            onClick={() =>
-              execute(
-                'preview',
-                () => MarketingService.runAutopilot({ dryRun: true }),
-                (result) => `${result.matched || 0} eligible learners in this preview`
-              )
-            }
-          >
+          <AdminButton variant="outline" loading={busy === 'preview'} onClick={runPreview}>
             <FlaskConical className="h-3.5 w-3.5" /> Preview
           </AdminButton>
           <AdminButton
@@ -203,7 +246,72 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
             <RefreshCcw className="h-3.5 w-3.5" /> Reconcile now
           </AdminButton>
         </PanelHeader>
-        <div className="grid gap-px bg-stone-200/80 dark:bg-white/[0.07] md:grid-cols-4">
+        {previewResult && (
+          <div className="border-b border-stone-200/80 bg-[#faf9ff] p-3.5 dark:border-white/[0.07] dark:bg-[#100f15]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className={cn(MICRO, MUTED)}>Preview results</p>
+                <p className="mt-1 text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+                  {Number(previewResult.matched || 0).toLocaleString()} learners have one next
+                  action
+                </p>
+                <p className={cn(BODY, 'mt-1')}>
+                  No messages were sent. The preview contains counts only, never learner names.
+                </p>
+              </div>
+              <div className="flex gap-4 text-right">
+                <div>
+                  <p className={cn(NUM, 'text-sm font-extrabold')}>
+                    {Number(previewResult.learners_scanned || 0).toLocaleString()}
+                  </p>
+                  <p className={cn(MICRO, MUTED)}>checked</p>
+                </div>
+                <div>
+                  <p className={cn(NUM, 'text-sm font-extrabold')}>
+                    {Number(previewResult.suppressed || 0).toLocaleString()}
+                  </p>
+                  <p className={cn(MICRO, MUTED)}>held back</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-1.5 md:grid-cols-2 xl:grid-cols-3">
+              {(previewResult.automation_preview || []).map((item) => (
+                <div
+                  key={item.playbook_key}
+                  className={cn(
+                    TILE,
+                    'flex items-center justify-between gap-3 rounded-md px-2.5 py-2'
+                  )}
+                >
+                  <span className="truncate text-[11px] font-bold text-stone-700 dark:text-stone-200">
+                    {PLAYBOOK_COPY[item.playbook_key]?.short || item.name}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {!item.enabled && <Pill>Paused</Pill>}
+                    {Object.entries(item.selected_channels || {}).map(([channel, count]) => (
+                      <Pill key={channel}>
+                        {channelLabel(channel)} · {count}
+                      </Pill>
+                    ))}
+                    <span className={cn(NUM, 'text-[11px] font-extrabold')}>
+                      {item.matched || 0}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {!!Object.keys(previewResult.suppressed_by_reason || {}).length && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {Object.entries(previewResult.suppressed_by_reason).map(([reason, count]) => (
+                  <Pill key={reason}>
+                    {reason.replaceAll('_', ' ')} · {count}
+                  </Pill>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        <div className="grid gap-px bg-stone-200/80 dark:bg-white/[0.07] md:grid-cols-2 xl:grid-cols-3">
           {policies.map((policy) => {
             const copy = PLAYBOOK_COPY[policy.playbook_key] || {};
             return (
@@ -230,9 +338,14 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                   />
                 </div>
                 <p className={cn(BODY, 'mt-2')}>{copy.detail}</p>
+                <p className={cn(MICRO, 'mt-3 text-indigo-600 dark:text-indigo-300')}>
+                  One channel per learner
+                </p>
                 <div className="mt-3 flex flex-wrap gap-1">
-                  {(policy.allowed_channels || []).map((channel) => (
-                    <Pill key={channel}>{channel.replace('_', ' ')}</Pill>
+                  {policyChannels(policy).map((channel, index) => (
+                    <Pill key={channel}>
+                      {index === 0 ? 'Preferred' : 'Fallback'} · {channelLabel(channel)}
+                    </Pill>
                   ))}
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-stone-200/80 pt-2.5 dark:border-white/[0.07]">
@@ -260,6 +373,23 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
               </div>
             );
           })}
+        </div>
+        <div className="grid gap-px border-t border-stone-200/80 bg-stone-200/80 dark:border-white/[0.07] dark:bg-white/[0.07] md:grid-cols-2">
+          <div className="bg-white p-3.5 dark:bg-[#131315]">
+            <p className={cn(MICRO, MUTED)}>Always-on protection</p>
+            <p className="mt-1 text-[11px] font-extrabold">Broken-flow protection</p>
+            <p className={cn(BODY, 'mt-1')}>
+              Holds back checkout promotion while payment is pending and surfaces delivery failures
+              for admin review.
+            </p>
+          </div>
+          <div className="bg-white p-3.5 dark:bg-[#131315]">
+            <p className={cn(MICRO, MUTED)}>Always-on protection</p>
+            <p className="mt-1 text-[11px] font-extrabold">Contact-pressure protection</p>
+            <p className={cn(BODY, 'mt-1')}>
+              Coordinates limits, snoozes, dismissals, and negative feedback across every channel.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -355,7 +485,7 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                 return (
                   <div
                     key={row.channel}
-                    className="grid grid-cols-[1fr_repeat(3,auto)] items-center gap-4 border-t border-stone-200/80 px-3.5 py-3 dark:border-white/[0.07]"
+                    className="grid grid-cols-[1fr_repeat(4,auto)] items-center gap-3 border-t border-stone-200/80 px-3.5 py-3 dark:border-white/[0.07]"
                   >
                     <div className="flex items-center gap-2">
                       <Icon className="h-3.5 w-3.5 text-indigo-500" />
@@ -376,6 +506,10 @@ export default function AutopilotPanel({ autopilot, onRefresh }) {
                         {Number(row.negative || 0)}
                       </p>
                       <p className={cn(MICRO, MUTED)}>negative</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={cn(NUM, 'text-[11px] font-bold')}>{Number(row.failed || 0)}</p>
+                      <p className={cn(MICRO, MUTED)}>failed</p>
                     </div>
                   </div>
                 );

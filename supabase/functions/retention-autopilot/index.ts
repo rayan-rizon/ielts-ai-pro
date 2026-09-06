@@ -16,7 +16,7 @@ type Candidate = {
   policy: Json;
   playbook: string;
   objective: string;
-  channel: 'in_app' | 'email' | 'push';
+  channel: 'in_app' | 'banner' | 'email' | 'push';
   content: Json;
   evidence: Json[];
   rationale: string;
@@ -125,24 +125,44 @@ function supportedWeakness(sessions: Json[], minimum: number) {
   );
 }
 
-function chooseChannel(policy: Json, preference: Json | undefined, activeRecently: boolean) {
+function channelPriority(policy: Json) {
   const allowed: string[] = policy.allowed_channels || ['in_app'];
-  if (activeRecently && preference?.in_app_enabled !== false && allowed.includes('in_app'))
-    return 'in_app';
+  const configured = Array.isArray(policy.config?.channel_priority)
+    ? policy.config.channel_priority.filter((channel: string) => allowed.includes(channel))
+    : [];
+  return [...configured, ...allowed.filter((channel) => !configured.includes(channel))];
+}
+
+function chooseChannel(
+  policy: Json,
+  preference: Json | undefined,
+  activeRecently: boolean,
+  user: Json
+) {
+  const priority = channelPriority(policy);
   const externalWindowOpen = isExternalContactWindow(preference);
-  if (externalWindowOpen && preference?.email_enabled !== false && allowed.includes('email'))
-    return 'email';
-  if (externalWindowOpen && preference?.push_enabled && allowed.includes('push')) return 'push';
-  if (preference?.in_app_enabled !== false && allowed.includes('in_app')) return 'in_app';
+  const isEligible = (channel: string) => {
+    if (['in_app', 'banner'].includes(channel)) return preference?.in_app_enabled !== false;
+    if (channel === 'push') return externalWindowOpen && preference?.push_enabled === true;
+    if (channel === 'email')
+      return (
+        externalWindowOpen &&
+        preference?.email_enabled !== false &&
+        Boolean(user.consent_marketing) &&
+        !user.marketing_email_unsubscribed_at
+      );
+    return false;
+  };
+  const local = priority.filter((channel) => ['in_app', 'banner'].includes(channel));
+  const external = priority.filter((channel) => ['push', 'email'].includes(channel));
+  const ordered = activeRecently ? [...local, ...external] : [...external, ...local];
+  for (const channel of ordered) {
+    if (isEligible(channel)) return channel;
+  }
   return null;
 }
 
-function plateauCandidate(
-  user: Json,
-  policy: Json,
-  sessions: Json[],
-  channel: Candidate['channel']
-) {
+function plateauCandidate(user: Json, policy: Json, sessions: Json[]) {
   const complete = sessions
     .filter((s) => s.is_completed && Number.isFinite(Number(s.score ?? s.band_score)))
     .sort(
@@ -306,11 +326,267 @@ function checkoutCandidate(user: Json, checkout: Json | undefined) {
   };
 }
 
+function firstPracticeCandidate(user: Json, sessions: Json[]) {
+  const accountHours = hoursAgo(user.created_at);
+  if (
+    user.onboarding_completed !== true ||
+    accountHours < 24 ||
+    accountHours > 7 * 24 ||
+    sessions.some((session) => session.is_completed)
+  )
+    return null;
+  return {
+    content: {
+      title: 'Choose your first practice',
+      message: 'Start with one short activity to create a useful baseline for your study plan.',
+      cta_label: 'Choose practice',
+      cta_url: '/dashboard',
+    },
+    evidence: [
+      { metric: 'completed_practice_count', value: 0 },
+      { metric: 'account_age_hours', value: Math.floor(accountHours) },
+    ],
+    rationale:
+      'Onboarding is complete, but no completed practice is available after the first day.',
+    destination: '/dashboard',
+    dedupeKey: `first_practice:${user.id}`,
+  };
+}
+
+function nextPracticeCandidate(user: Json, sessions: Json[]) {
+  if (hoursAgo(user.created_at) > 30 * 24) return null;
+  const completed = sessions
+    .filter((session) => session.is_completed)
+    .sort(
+      (a, b) =>
+        +new Date(b.completed_at || b.updated_at) - +new Date(a.completed_at || a.updated_at)
+    );
+  if (completed.length !== 1) return null;
+  const first = completed[0];
+  const age = hoursAgo(first.completed_at || first.updated_at);
+  if (age < 6 || age > 7 * 24) return null;
+  const moduleName = String(first.test_type || first.module || 'practice');
+  return {
+    content: {
+      title: 'Build on your first result',
+      message: `Your first ${moduleName} result is saved. Review it to choose one useful next activity.`,
+      cta_label: 'Review next step',
+      cta_url: '/analytics',
+    },
+    evidence: [
+      { metric: 'completed_practice_count', value: 1 },
+      { metric: 'source_session_id', value: first.id },
+    ],
+    rationale:
+      'One completed result is available and no second completed activity has followed it yet.',
+    destination: '/analytics',
+    dedupeKey: `next_practice:${user.id}:${first.id}`,
+  };
+}
+
+function subscriberFeatureCandidate(user: Json, sessions: Json[], usage: Json[]) {
+  if (!['pro', 'premium'].includes(String(user.subscription_tier).toLowerCase())) return null;
+  if (hoursAgo(user.subscription_start_date) < 3 * 24) return null;
+  const recentPractice = sessions.some(
+    (session) =>
+      hoursAgo(session.completed_at || session.updated_at || session.created_at) <= 7 * 24
+  );
+  const recentUsage = usage.some((entry) => hoursAgo(entry.created_at) <= 7 * 24);
+  if (recentPractice || recentUsage) return null;
+  return {
+    content: {
+      title: 'Make more of your plan',
+      message:
+        'Your plan includes guided practice and AI feedback. Choose a short activity when you are ready.',
+      cta_label: 'View my dashboard',
+      cta_url: '/dashboard',
+    },
+    evidence: [
+      { metric: 'included_feature_activity_days_7d', value: 0 },
+      { metric: 'subscription_tier', value: user.subscription_tier },
+    ],
+    rationale:
+      'A paid learner has not used practice or AI feedback recently, so the suggestion explains existing access.',
+    destination: '/dashboard',
+    dedupeKey: `subscriber_feature_help:${user.id}:${String(user.subscription_start_date).slice(0, 10)}`,
+  };
+}
+
+function quotaUpgradeCandidate(user: Json, usage: Json[], tierLimit: Json | undefined) {
+  if (String(user.subscription_tier || 'free').toLowerCase() !== 'free' || !tierLimit) return null;
+  const dailyLimit = Number(tierLimit.daily_limit || 0);
+  if (dailyLimit <= 0) return null;
+  const byDay = new Map<string, number>();
+  for (const entry of usage) {
+    if (hoursAgo(entry.created_at) > 7 * 24) continue;
+    const day = String(entry.created_at).slice(0, 10);
+    byDay.set(day, (byDay.get(day) || 0) + 1);
+  }
+  const constrainedDays = [...byDay.entries()]
+    .filter(([, count]) => count >= dailyLimit)
+    .map(([day]) => day);
+  if (constrainedDays.length < 2) return null;
+  return {
+    content: {
+      title: 'Keep using AI feedback',
+      message:
+        'You reached your current AI feedback allowance on more than one study day. Compare plans if more feedback would be useful.',
+      cta_label: 'Compare plans',
+      cta_url: '/pricing',
+    },
+    evidence: [
+      { metric: 'daily_limit', value: dailyLimit },
+      { metric: 'days_at_limit', value: constrainedDays.length, days: constrainedDays },
+    ],
+    rationale:
+      'Server-recorded usage reached the learner’s current daily allowance on at least two distinct days.',
+    destination: '/pricing',
+    dedupeKey: `quota_upgrade:${user.id}:${constrainedDays.sort().join(':')}`,
+  };
+}
+
+function reEngagementCandidate(user: Json, sessions: Json[]) {
+  const completed = sessions.filter((session) => session.is_completed);
+  if (completed.length < 2) return null;
+  const lastPractice = completed
+    .map((session) => session.completed_at || session.updated_at)
+    .sort((a, b) => +new Date(b) - +new Date(a))[0];
+  const inactiveDays = hoursAgo(lastPractice) / 24;
+  if (inactiveDays < 7 || inactiveDays > 30) return null;
+  if (user.test_date_source === 'confirmed' && user.test_date && daysUntil(user.test_date) < 0)
+    return null;
+  return {
+    content: {
+      title: 'A short next step is ready',
+      message: 'Continue from your saved progress with one manageable practice activity.',
+      cta_label: 'Continue learning',
+      cta_url: '/dashboard',
+    },
+    evidence: [
+      { metric: 'completed_practice_count_30d', value: completed.length },
+      { metric: 'days_since_practice', value: Math.floor(inactiveDays) },
+    ],
+    rationale:
+      'The learner has established practice history but no completed practice in the last seven days.',
+    destination: '/dashboard',
+    dedupeKey: `re_engagement:${user.id}:${String(lastPractice).slice(0, 10)}`,
+  };
+}
+
+function cancellationSupportCandidate(user: Json) {
+  if (
+    !['pro', 'premium'].includes(String(user.subscription_tier).toLowerCase()) ||
+    !user.cancel_at_period_end ||
+    !user.subscription_end_date
+  )
+    return null;
+  const remaining = Math.ceil(
+    (new Date(user.subscription_end_date).getTime() - Date.now()) / 86_400_000
+  );
+  if (remaining < 1 || remaining > 14) return null;
+  return {
+    content: {
+      title: 'Review your plan before it ends',
+      message: `Your current access remains available for ${remaining} more day${remaining === 1 ? '' : 's'}. Review your progress and plan settings when ready.`,
+      cta_label: 'Review my plan',
+      cta_url: '/settings?tab=subscription',
+    },
+    evidence: [
+      { metric: 'subscription_days_remaining', value: remaining },
+      { metric: 'cancellation_scheduled', value: true },
+    ],
+    rationale:
+      'The subscription is confirmed to end within fourteen days; this is support, not a discount offer.',
+    destination: '/settings?tab=subscription',
+    dedupeKey: `cancellation_support:${user.id}:${String(user.subscription_end_date).slice(0, 10)}`,
+  };
+}
+
+function referralBonusCandidate(user: Json) {
+  if (!user.referral_bonus_expires_at) return null;
+  const credits =
+    Number(user.bonus_writing_credits || 0) + Number(user.bonus_speaking_credits || 0);
+  const remaining = Math.ceil(
+    (new Date(user.referral_bonus_expires_at).getTime() - Date.now()) / 86_400_000
+  );
+  if (credits <= 0 || remaining < 1 || remaining > 3) return null;
+  return {
+    content: {
+      title: 'Your referral bonus is still available',
+      message: `You have ${credits} bonus ${credits === 1 ? 'credit' : 'credits'} available before the bonus period ends.`,
+      cta_label: 'View my rewards',
+      cta_url: '/settings?tab=referrals',
+    },
+    evidence: [
+      { metric: 'bonus_credits_remaining', value: credits },
+      { metric: 'bonus_days_remaining', value: remaining },
+    ],
+    rationale: 'A verified referral bonus has unused credits and expires within three days.',
+    destination: '/settings?tab=referrals',
+    dedupeKey: `referral_bonus_reminder:${user.id}:${String(user.referral_bonus_expires_at).slice(0, 10)}`,
+  };
+}
+
 function evidenceValue(candidate: Candidate, metric: string) {
   return candidate.evidence.find((item) => item.metric === metric)?.value;
 }
 
 async function recheckCandidate(candidate: Candidate) {
+  if (
+    ['first_practice', 'next_practice', 'subscriber_feature_help', 're_engagement'].includes(
+      candidate.playbook
+    )
+  ) {
+    const { data: latest } = await admin
+      .from('test_sessions')
+      .select('id,is_completed,created_at,updated_at,completed_at')
+      .eq('user_id', candidate.user.id)
+      .order('updated_at', { ascending: false })
+      .limit(2);
+    const preparedAt = new Date(candidate.eligibleAt);
+    if (
+      (latest || []).some(
+        (session) =>
+          new Date(session.completed_at || session.updated_at || session.created_at) > preparedAt
+      )
+    )
+      return { eligible: false, reason: 'learner_progress_changed' };
+  }
+  if (candidate.playbook === 'quota_upgrade') {
+    const { data: user } = await admin
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', candidate.user.id)
+      .maybeSingle();
+    if (!user || String(user.subscription_tier).toLowerCase() !== 'free')
+      return { eligible: false, reason: 'subscription_changed' };
+  }
+  if (candidate.playbook === 'cancellation_support') {
+    const { data: user } = await admin
+      .from('users')
+      .select('cancel_at_period_end,subscription_end_date')
+      .eq('id', candidate.user.id)
+      .maybeSingle();
+    if (
+      !user?.cancel_at_period_end ||
+      !user.subscription_end_date ||
+      new Date(user.subscription_end_date) <= new Date()
+    )
+      return { eligible: false, reason: 'subscription_status_changed' };
+  }
+  if (candidate.playbook === 'referral_bonus_reminder') {
+    const { data: user } = await admin
+      .from('users')
+      .select('referral_bonus_expires_at,bonus_writing_credits,bonus_speaking_credits')
+      .eq('id', candidate.user.id)
+      .maybeSingle();
+    if (
+      !user?.referral_bonus_expires_at ||
+      new Date(user.referral_bonus_expires_at) <= new Date() ||
+      Number(user.bonus_writing_credits || 0) + Number(user.bonus_speaking_credits || 0) <= 0
+    )
+      return { eligible: false, reason: 'referral_bonus_changed' };
+  }
   if (candidate.playbook === 'incomplete_test') {
     const sessionId = evidenceValue(candidate, 'session_id');
     const { data: session } = await admin
@@ -406,6 +682,7 @@ async function createDelivery(candidate: Candidate, intervention: Json) {
     .eq('campaign_id', campaignId)
     .eq('user_id', candidate.user.id)
     .eq('channel', candidate.channel);
+  const localSurface = ['in_app', 'banner'].includes(candidate.channel);
   const { data: delivery, error } = await admin
     .from('marketing_deliveries')
     .insert({
@@ -413,10 +690,10 @@ async function createDelivery(candidate: Candidate, intervention: Json) {
       intervention_id: intervention.id,
       user_id: candidate.user.id,
       channel: candidate.channel,
-      status: candidate.channel === 'in_app' ? 'accepted' : 'processing',
+      status: localSurface ? 'accepted' : 'processing',
       content: candidate.content,
       attempt: Number(previousAttempts || 0) + 1,
-      delivered_at: candidate.channel === 'in_app' ? new Date().toISOString() : null,
+      delivered_at: localSurface ? new Date().toISOString() : null,
     })
     .select('*')
     .single();
@@ -521,7 +798,7 @@ async function createDelivery(candidate: Candidate, intervention: Json) {
     delivery_id: delivery.id,
     user_id: candidate.user.id,
     event_type: 'delivered',
-    channel: 'in_app',
+    channel: candidate.channel,
     dedupe_key: `${delivery.id}:delivered`,
     metadata: { source: 'retention_autopilot' },
   });
@@ -644,6 +921,12 @@ async function analyzeForAdmin(profileId: string, headers: Record<string, string
     const deliveries = Number(channel.deliveries || 0);
     const exposed = Number(channel.exposed || 0);
     addFact(`${channelId}.deliveries`, `${channel.channel} deliveries`, deliveries, deliveries);
+    addFact(
+      `${channelId}.failed`,
+      `${channel.channel} failed deliveries`,
+      Number(channel.failed || 0),
+      deliveries
+    );
     addFact(`${channelId}.exposed`, `${channel.channel} confirmed exposures`, exposed, deliveries);
     addFact(
       `${channelId}.clicked`,
@@ -896,12 +1179,14 @@ async function reconcile(dryRun = false) {
     { data: experiments },
     { data: learningPaths },
     { data: legacyEmailContacts },
+    { data: aiUsage },
+    { data: tierLimits },
   ] = await Promise.all([
     admin.from('marketing_autopilot_policies').select('*').order('priority', { ascending: false }),
     admin
       .from('users')
       .select(
-        'id,email,full_name,role,subscription_tier,target_band_score,test_date,test_date_source,test_date_confirmed_at,study_hours_goal,study_availability,weak_area,last_active,marketing_email_unsubscribed_at'
+        'id,email,full_name,role,subscription_tier,target_band_score,test_date,test_date_source,test_date_confirmed_at,study_hours_goal,study_availability,weak_area,last_active,created_at,onboarding_completed,consent_marketing,subscription_start_date,subscription_end_date,cancel_at_period_end,referral_bonus_expires_at,bonus_writing_credits,bonus_speaking_credits,marketing_email_unsubscribed_at'
       )
       .neq('role', 'admin')
       .limit(1000),
@@ -952,6 +1237,16 @@ async function reconcile(dryRun = false) {
       .eq('status', 'accepted')
       .gte('created_at', new Date(Date.now() - 7 * 86_400_000).toISOString())
       .limit(5000),
+    admin
+      .from('ai_api_usage')
+      .select('user_id,endpoint,created_at')
+      .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+      .limit(10000),
+    admin
+      .from('tier_rate_limits')
+      .select(
+        'tier,daily_limit,monthly_limit,writing_daily_limit,writing_monthly_limit,speaking_daily_limit,speaking_monthly_limit'
+      ),
   ]);
   const enabledPolicies = (policies || []).filter((p: Json) => p.enabled || dryRun);
   const userById = new Map((users || []).map((user: Json) => [user.id, user]));
@@ -962,6 +1257,12 @@ async function reconcile(dryRun = false) {
   for (const session of sessions || [])
     sessionsByUser.set(session.user_id, [...(sessionsByUser.get(session.user_id) || []), session]);
   const prefByUser = new Map((preferences || []).map((p: Json) => [p.user_id, p]));
+  const usageByUser = new Map<string, Json[]>();
+  for (const entry of aiUsage || [])
+    usageByUser.set(entry.user_id, [...(usageByUser.get(entry.user_id) || []), entry]);
+  const limitByTier = new Map(
+    (tierLimits || []).map((limit: Json) => [String(limit.tier).toLowerCase(), limit])
+  );
   const contactsByUser = new Map<string, Json[]>();
   for (const item of recent || [])
     contactsByUser.set(item.user_id, [...(contactsByUser.get(item.user_id) || []), item]);
@@ -1045,7 +1346,20 @@ async function reconcile(dryRun = false) {
           currentUser.test_date_source !== 'confirmed' ||
           ![30, 15, 7].includes(daysUntil(currentUser.test_date)) ||
           pathByUser.get(intervention.user_id)?.id !== sourcePathId)) ||
-      (intervention.playbook_key === 'score_plateau' && sessionsAfter.length > 0);
+      (intervention.playbook_key === 'score_plateau' && sessionsAfter.length > 0) ||
+      (['first_practice', 'next_practice', 'subscriber_feature_help', 're_engagement'].includes(
+        intervention.playbook_key
+      ) &&
+        sessionsAfter.length > 0) ||
+      (intervention.playbook_key === 'quota_upgrade' && purchasesAfter.length > 0) ||
+      (intervention.playbook_key === 'cancellation_support' &&
+        !currentUser?.cancel_at_period_end) ||
+      (intervention.playbook_key === 'referral_bonus_reminder' &&
+        (!currentUser?.referral_bonus_expires_at ||
+          new Date(currentUser.referral_bonus_expires_at) <= new Date() ||
+          Number(currentUser.bonus_writing_credits || 0) +
+            Number(currentUser.bonus_speaking_credits || 0) <=
+            0));
     const outcome = {
       practice_returned: sessionsAfter.length > 0,
       completed_tests: sessionsAfter.filter((session) => session.is_completed).length,
@@ -1083,18 +1397,28 @@ async function reconcile(dryRun = false) {
     }
     const activeRecently = hoursAgo(user.last_active) <= 24;
     for (const policy of enabledPolicies) {
-      const channel = (
-        policy.playbook_key === 'checkout_recovery' &&
-        policy.allowed_channels?.includes('in_app') &&
-        preference?.in_app_enabled !== false
-          ? 'in_app'
-          : chooseChannel(policy, preference, activeRecently)
-      ) as Candidate['channel'] | null;
-      if (!channel) continue;
       const userSessions = sessionsByUser.get(user.id) || [];
+      const userUsage = usageByUser.get(user.id) || [];
       let match: Json | null = null;
+      if (policy.playbook_key === 'first_practice')
+        match = firstPracticeCandidate(user, userSessions);
+      if (policy.playbook_key === 'next_practice')
+        match = nextPracticeCandidate(user, userSessions);
+      if (policy.playbook_key === 'subscriber_feature_help')
+        match = subscriberFeatureCandidate(user, userSessions, userUsage);
+      if (policy.playbook_key === 'quota_upgrade')
+        match = quotaUpgradeCandidate(
+          user,
+          userUsage,
+          limitByTier.get(String(user.subscription_tier || 'free').toLowerCase())
+        );
+      if (policy.playbook_key === 're_engagement')
+        match = reEngagementCandidate(user, userSessions);
+      if (policy.playbook_key === 'cancellation_support')
+        match = cancellationSupportCandidate(user);
+      if (policy.playbook_key === 'referral_bonus_reminder') match = referralBonusCandidate(user);
       if (policy.playbook_key === 'score_plateau')
-        match = plateauCandidate(user, policy, userSessions, channel);
+        match = plateauCandidate(user, policy, userSessions);
       if (policy.playbook_key === 'incomplete_test')
         match = incompleteCandidate(user, policy, userSessions);
       if (policy.playbook_key === 'exam_countdown')
@@ -1102,6 +1426,17 @@ async function reconcile(dryRun = false) {
       if (policy.playbook_key === 'checkout_recovery')
         match = checkoutCandidate(user, checkoutByUser.get(user.id));
       if (!match) continue;
+      const channel = chooseChannel(policy, preference, activeRecently, user) as
+        | Candidate['channel']
+        | null;
+      if (!channel) {
+        suppressed.push({
+          user_id: user.id,
+          playbook_key: policy.playbook_key,
+          reason: 'no_eligible_channel',
+        });
+        continue;
+      }
       if (
         policy.objective === 'paid_conversion' &&
         contacts.some(
@@ -1141,11 +1476,33 @@ async function reconcile(dryRun = false) {
       counts[candidate.playbook] = (counts[candidate.playbook] || 0) + 1;
       return counts;
     }, {});
+    const suppressionReasons = suppressed.reduce<Record<string, number>>((counts, item) => {
+      counts[item.reason] = (counts[item.reason] || 0) + 1;
+      return counts;
+    }, {});
+    const automationPreview = enabledPolicies.map((policy: Json) => {
+      const matches = prepared.filter((candidate) => candidate.playbook === policy.playbook_key);
+      const selectedChannels = matches.reduce<Record<string, number>>((counts, candidate) => {
+        counts[candidate.channel] = (counts[candidate.channel] || 0) + 1;
+        return counts;
+      }, {});
+      return {
+        playbook_key: policy.playbook_key,
+        name: policy.name,
+        enabled: policy.enabled,
+        mode: policy.mode,
+        matched: matches.length,
+        selected_channels: selectedChannels,
+      };
+    });
     return {
       dry_run: true,
+      learners_scanned: (users || []).length,
       matched: prepared.length,
       suppressed: suppressed.length,
       by_playbook: byPlaybook,
+      automation_preview: automationPreview,
+      suppressed_by_reason: suppressionReasons,
     };
   }
 

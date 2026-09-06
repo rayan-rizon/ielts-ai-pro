@@ -7,6 +7,9 @@ const migration = read('supabase/migrations/20260906014911_personalized_retentio
 const coordinatorMigration = read(
   'supabase/migrations/20260906024932_make_retention_autopilot_primary_coordinator.sql'
 );
+const journeyExpansionMigration = read(
+  'supabase/migrations/20260906031224_expand_retention_autopilot_journeys.sql'
+);
 const worker = read('supabase/functions/retention-autopilot/index.ts');
 const dispatcher = read('supabase/functions/marketing-campaign-dispatch/index.ts');
 const learnerSurface = read('src/features/marketing/components/LearnerMarketingSurface.jsx');
@@ -17,14 +20,21 @@ const checkout = read('supabase/functions/create-checkout-session/index.ts');
 const stripeWebhook = read('supabase/functions/stripe-webhook/index.ts');
 
 describe('Personalized retention autopilot contracts', () => {
-  it('ships all playbooks disabled and review-first', () => {
+  it('ships the full learner journey set disabled and review-first', () => {
     for (const playbook of [
+      'first_practice',
+      'next_practice',
+      'subscriber_feature_help',
+      'quota_upgrade',
+      're_engagement',
+      'cancellation_support',
+      'referral_bonus_reminder',
       'score_plateau',
       'incomplete_test',
       'exam_countdown',
       'checkout_recovery',
     ]) {
-      expect(migration).toContain(`'${playbook}'`);
+      expect(`${migration}\n${journeyExpansionMigration}`).toContain(`'${playbook}'`);
     }
     expect(migration).toContain('enabled boolean NOT NULL DEFAULT false');
     expect(migration).toContain("mode text NOT NULL DEFAULT 'review'");
@@ -97,6 +107,35 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).toContain(".from('email_delivery_events')");
     expect(migration).toContain('pg_advisory_xact_lock');
     expect(migration).toContain('marketing_contact_reservations');
+    expect(dispatcher).toContain('chooseJourneyChannel');
+    expect(dispatcher).toMatch(/journey\s*\?\s*\[\s*chooseJourneyChannel/);
+  });
+
+  it('chooses one policy-specific channel and explains that choice in the admin UI', () => {
+    expect(journeyExpansionMigration).toContain("'channel_priority'");
+    expect(worker).toContain('channelPriority');
+    expect(worker).toContain('return channel;');
+    expect(adminPanel).toContain('One channel per learner');
+    expect(adminPanel).toContain('Preferred');
+    expect(adminPanel).toContain('Fallback');
+  });
+
+  it('returns a useful privacy-safe preview instead of only a toast count', () => {
+    expect(worker).toContain('automation_preview');
+    expect(worker).toContain('suppressed_by_reason');
+    expect(adminPanel).toContain('Preview results');
+    expect(adminPanel).toContain('No messages were sent');
+    expect(adminPanel).toContain('setPreviewResult');
+  });
+
+  it('implements the additional learner situations from the extended plan', () => {
+    expect(worker).toContain('firstPracticeCandidate');
+    expect(worker).toContain('nextPracticeCandidate');
+    expect(worker).toContain('subscriberFeatureCandidate');
+    expect(worker).toContain('quotaUpgradeCandidate');
+    expect(worker).toContain('reEngagementCandidate');
+    expect(worker).toContain('cancellationSupportCandidate');
+    expect(worker).toContain('referralBonusCandidate');
   });
 
   it('adds push only with opt-in storage, delivery, and cleanup', () => {
@@ -111,7 +150,10 @@ describe('Personalized retention autopilot contracts', () => {
 
   it('keeps checkout assistance and the approved 15 percent offer in one intervention', () => {
     expect(worker).toContain("policy.playbook_key === 'checkout_recovery'");
-    expect(worker).toContain("? 'in_app'");
+    expect(journeyExpansionMigration).toContain(
+      `WHEN 'checkout_recovery' THEN jsonb_build_array('in_app','email')`
+    );
+    expect(worker).toContain('chooseChannel(policy, preference, activeRecently, user)');
     expect(worker).toContain('provision_autopilot_checkout_offer');
     expect(migration).toContain("'percentage', 15");
     expect(worker).toContain('promo_code: offer.code');

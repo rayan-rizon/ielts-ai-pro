@@ -109,6 +109,29 @@ function externalContactWindowOpen(preference: Record<string, any> | undefined, 
   }
 }
 
+function chooseJourneyChannel(
+  channels: string[],
+  preference: Record<string, any> | undefined,
+  member: Record<string, any>,
+  triggerType: string | undefined,
+  now: Date
+) {
+  const eligible = channels.filter((channel) => {
+    if (['in_app', 'banner'].includes(channel)) return preference?.in_app_enabled !== false;
+    if (channel === 'email')
+      return (
+        member.consent_marketing &&
+        preference?.email_enabled !== false &&
+        externalContactWindowOpen(preference, now)
+      );
+    return false;
+  });
+  const priority = ['inactivity', 'trial_expiry'].includes(String(triggerType))
+    ? ['email', 'in_app', 'banner']
+    : ['in_app', 'banner', 'email'];
+  return priority.find((channel) => eligible.includes(channel)) || null;
+}
+
 async function dispatchCampaign(campaignId: string, journey: Record<string, any> | null = null) {
   const { data: campaign, error: campaignError } = await admin
     .from('marketing_campaigns')
@@ -213,10 +236,44 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
       member.triggered_at &&
       now.getTime() < new Date(member.triggered_at).getTime() + journey.delay_hours * 3_600_000
     ) {
-      stats.skipped += campaign.channels.length;
+      stats.skipped += 1;
       return;
     }
-    for (const channel of campaign.channels) {
+    const selectedChannels = journey
+      ? [
+          chooseJourneyChannel(campaign.channels, preference, member, journey.trigger_type, now),
+        ].filter((channel): channel is string => Boolean(channel))
+      : campaign.channels;
+    if (!selectedChannels.length) {
+      const fallbackChannel = campaign.channels[0] || 'in_app';
+      const priorSkip = (existing.get(`${member.user_id}:${fallbackChannel}`) || []).some(
+        (row) =>
+          row.campaign_id === campaign.id &&
+          row.status === 'skipped' &&
+          row.failure_reason === 'no_eligible_channel'
+      );
+      if (!priorSkip) {
+        await admin.from('marketing_deliveries').insert({
+          campaign_id: campaign.id,
+          journey_id: journey?.id || null,
+          user_id: member.user_id,
+          channel: fallbackChannel,
+          attempt: 1,
+          status: 'skipped',
+          content: {
+            title: campaign.title,
+            message: campaign.message,
+            subject: campaign.subject || campaign.title,
+            cta_label: campaign.cta_label,
+            cta_url: campaign.cta_url,
+          },
+          failure_reason: 'no_eligible_channel',
+        });
+      }
+      stats.skipped += 1;
+      return;
+    }
+    for (const channel of selectedChannels) {
       const key = `${member.user_id}:${channel}`;
       const rows = existing.get(key) || [];
       const allUserRows = historyByUser.get(member.user_id) || [];
@@ -480,7 +537,7 @@ serve(async (req) => {
         return errorResponse('Scheduler access required', 403, corsHeaders);
       const { data: journeys, error } = await admin
         .from('marketing_journeys')
-        .select('id,name,segment_id,campaign_id,delay_hours,cooldown_hours')
+        .select('id,name,segment_id,campaign_id,delay_hours,cooldown_hours,trigger_type')
         .eq('is_active', true)
         .not('campaign_id', 'is', null);
       if (error) throw error;

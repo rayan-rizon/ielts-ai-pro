@@ -23,6 +23,20 @@ const FEELINGS = [
   ['taking_a_break', 'Taking a break'],
 ];
 
+const AUTOMATION_LABELS = {
+  first_practice: 'Getting started',
+  next_practice: 'Your next step',
+  subscriber_feature_help: 'Plan guidance',
+  quota_upgrade: 'AI feedback access',
+  re_engagement: 'Return support',
+  cancellation_support: 'Plan ending support',
+  referral_bonus_reminder: 'Referral bonus',
+  score_plateau: 'Steady score support',
+  incomplete_test: 'Saved test',
+  exam_countdown: 'Exam plan',
+  checkout_recovery: 'Checkout help',
+};
+
 function useVisibleImpression(ref, delivery) {
   const recorded = useRef(new Set());
   useEffect(() => {
@@ -200,7 +214,8 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
                     <Pill tone="accent">Suggested for you</Pill>
                     {notification.intervention?.playbook_key && (
                       <span className={cn(MICRO, MUTED)}>
-                        {notification.intervention.playbook_key.replaceAll('_', ' ')}
+                        {AUTOMATION_LABELS[notification.intervention.playbook_key] ||
+                          'Learning support'}
                       </span>
                     )}
                   </div>
