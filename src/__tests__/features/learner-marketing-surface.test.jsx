@@ -33,7 +33,7 @@ describe('Learner marketing surface', () => {
 
     render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
 
-    expect(await screen.findByText('How does your practice feel today?')).toBeInTheDocument();
+    expect(await screen.findByText('How is your practice going?')).toBeInTheDocument();
   });
 
   it('does not stack an optional check-in with an active in-app suggestion', async () => {
@@ -55,8 +55,9 @@ describe('Learner marketing surface', () => {
     render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
 
     expect(await screen.findByText('Your next practice is ready')).toBeInTheDocument();
+    expect(screen.getByTestId('learner-in-app-notification')).toHaveClass('fixed', 'md:right-4');
     await waitFor(() =>
-      expect(screen.queryByText('How does your practice feel today?')).not.toBeInTheDocument()
+      expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
     );
   });
 });

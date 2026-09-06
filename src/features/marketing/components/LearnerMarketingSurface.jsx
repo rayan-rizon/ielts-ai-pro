@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowRight, Bell, CalendarClock, Megaphone, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
@@ -177,156 +178,166 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
 
   if (!banner && !notification && !showCheckIn) return null;
 
-  return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-2 px-4 pt-4 md:px-6">
-      {banner && (
-        <div className="relative" ref={bannerRef}>
-          <AnnouncementBanner
-            announcement={{
-              enabled: true,
-              type: 'info',
-              title: banner.content?.title,
-              message: banner.content?.message,
-              link_url: MarketingDelivery.linkFor(banner),
-              link_label: banner.content?.cta_label,
-              promo_code: banner.content?.promo_code,
-              dismissible: false,
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => feedback(banner, 'dismissed')}
-            aria-label="Dismiss message"
-            className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-stone-200 bg-white text-stone-500 dark:border-white/10 dark:bg-[#131315] dark:text-stone-300"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
+  const notificationSurface = notification && (
+    <section
+      ref={cardRef}
+      data-testid="learner-in-app-notification"
+      className={cn(
+        PANEL,
+        'fixed inset-x-3 bottom-3 z-50 max-h-[min(80vh,28rem)] overflow-y-auto overflow-x-hidden md:inset-x-auto md:bottom-4 md:right-4 md:w-[min(26rem,calc(100vw-2rem))]'
       )}
-
-      {notification && (
-        <section
-          ref={cardRef}
-          className={cn(PANEL, 'overflow-hidden')}
-          aria-labelledby={`guidance-${notification.id}`}
-        >
-          <div className="flex items-start gap-3 p-3.5 md:p-4">
-            <IconChip icon={Megaphone} tone="accent" size="md" />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="max-w-2xl">
-                  <div className="flex items-center gap-2">
-                    <Pill tone="accent">Suggested for you</Pill>
-                    {notification.intervention?.playbook_key && (
-                      <span className={cn(MICRO, MUTED)}>
-                        {AUTOMATION_LABELS[notification.intervention.playbook_key] ||
-                          'Learning support'}
-                      </span>
-                    )}
-                  </div>
-                  <h2 id={`guidance-${notification.id}`} className={cn(TITLE, 'mt-2')}>
-                    {notification.content?.title}
-                  </h2>
-                  <p className={cn(BODY, 'mt-1')}>{notification.content?.message}</p>
-                </div>
-                {notification.content?.cta_url && (
-                  <a
-                    href={MarketingDelivery.linkFor(notification)}
-                    onClick={() => click(notification)}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-[11px] font-extrabold text-white hover:bg-[#4d56ca]"
-                  >
-                    {notification.content?.cta_label || 'Open'}
-                    <ArrowRight className="h-3 w-3" />
-                  </a>
+      aria-labelledby={`guidance-${notification.id}`}
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-3 p-3.5 md:p-4">
+        <IconChip icon={Megaphone} tone="accent" size="md" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2">
+                <Pill tone="accent">Suggested for you</Pill>
+                {notification.intervention?.playbook_key && (
+                  <span className={cn(MICRO, MUTED)}>
+                    {AUTOMATION_LABELS[notification.intervention.playbook_key] ||
+                      'Learning support'}
+                  </span>
                 )}
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#e4e2f0] pt-2.5 dark:border-white/[0.07]">
-                <button
-                  type="button"
-                  disabled={working === 'snoozed'}
-                  onClick={() =>
-                    feedback(
-                      notification,
-                      'snoozed',
-                      new Date(Date.now() + 7 * 86_400_000).toISOString()
-                    )
-                  }
-                  className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 hover:text-stone-800 disabled:opacity-50 dark:text-stone-400 dark:hover:text-stone-200"
-                >
-                  <CalendarClock className="h-3 w-3" /> Remind me next week
-                </button>
-                <span className="text-stone-300 dark:text-stone-700">·</span>
-                <button
-                  type="button"
-                  disabled={working === 'not_interested'}
-                  onClick={() => feedback(notification, 'not_interested')}
-                  className="text-[10px] font-bold text-stone-500 hover:text-stone-800 disabled:opacity-50 dark:text-stone-400 dark:hover:text-stone-200"
-                >
-                  Not interested
-                </button>
-                <button
-                  type="button"
-                  disabled={working === 'dismissed'}
-                  onClick={() => feedback(notification, 'dismissed')}
-                  className="ml-auto inline-grid h-6 w-6 place-items-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
-                  aria-label="Dismiss suggestion"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+              <h2 id={`guidance-${notification.id}`} className={cn(TITLE, 'mt-2')}>
+                {notification.content?.title}
+              </h2>
+              <p className={cn(BODY, 'mt-1')}>{notification.content?.message}</p>
             </div>
-          </div>
-        </section>
-      )}
-
-      {showCheckIn && (
-        <section
-          className={cn(
-            PANEL,
-            'w-full md:mx-auto md:max-w-[1400px] flex flex-col gap-2.5 p-3 md:flex-row md:items-center md:justify-between'
-          )}
-        >
-          <div>
-            <p className={cn(MICRO, MUTED)}>Optional check-in</p>
-            <p className={cn(TITLE, 'mt-0.5')}>How does your practice feel today?</p>
-            <p className={cn(BODY, 'mt-0')}>
-              This adapts study support for seven days. It is not used to target upgrade offers.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {FEELINGS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                disabled={working.startsWith('feeling-')}
-                onClick={() => saveFeeling(value)}
-                className={cn(
-                  WELL,
-                  'rounded-md border border-[#e4e2f0] px-2 py-1.5 text-[10px] font-bold text-stone-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] disabled:opacity-50 dark:border-white/[0.07] dark:text-stone-300'
-                )}
+            {notification.content?.cta_url && (
+              <a
+                href={MarketingDelivery.linkFor(notification)}
+                onClick={() => click(notification)}
+                className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-[11px] font-extrabold text-white hover:bg-[#4d56ca]"
               >
-                {working === `feeling-${value}` ? 'Saving…' : label}
-              </button>
-            ))}
+                {notification.content?.cta_label || 'Open'}
+                <ArrowRight className="h-3 w-3" />
+              </a>
+            )}
           </div>
-          {typeof Notification !== 'undefined' && Notification.permission === 'default' && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#e4e2f0] pt-2.5 dark:border-white/[0.07]">
             <button
               type="button"
-              disabled={working === 'push'}
+              disabled={working === 'snoozed'}
               onClick={() =>
-                act(
-                  'push',
-                  () => MarketingDelivery.enablePush(user.id),
-                  'Practice reminders enabled'
+                feedback(
+                  notification,
+                  'snoozed',
+                  new Date(Date.now() + 7 * 86_400_000).toISOString()
                 )
               }
-              className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 hover:text-[#5a63df] disabled:opacity-50 dark:text-stone-400"
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-500 hover:text-stone-800 disabled:opacity-50 dark:text-stone-400 dark:hover:text-stone-200"
             >
-              <Bell className="h-3.5 w-3.5" /> Enable optional reminders
+              <CalendarClock className="h-3 w-3" /> Remind me next week
             </button>
-          )}
-        </section>
-      )}
-    </div>
+            <span className="text-stone-300 dark:text-stone-700">·</span>
+            <button
+              type="button"
+              disabled={working === 'not_interested'}
+              onClick={() => feedback(notification, 'not_interested')}
+              className="text-[10px] font-bold text-stone-500 hover:text-stone-800 disabled:opacity-50 dark:text-stone-400 dark:hover:text-stone-200"
+            >
+              Not interested
+            </button>
+            <button
+              type="button"
+              disabled={working === 'dismissed'}
+              onClick={() => feedback(notification, 'dismissed')}
+              className="ml-auto inline-grid h-6 w-6 place-items-center text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+              aria-label="Dismiss suggestion"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  return (
+    <>
+      <div className="mx-auto w-full max-w-[1600px] space-y-2 px-4 pt-4 md:px-6">
+        {banner && (
+          <div className="relative" ref={bannerRef}>
+            <AnnouncementBanner
+              announcement={{
+                enabled: true,
+                type: 'info',
+                title: banner.content?.title,
+                message: banner.content?.message,
+                link_url: MarketingDelivery.linkFor(banner),
+                link_label: banner.content?.cta_label,
+                promo_code: banner.content?.promo_code,
+                dismissible: false,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => feedback(banner, 'dismissed')}
+              aria-label="Dismiss message"
+              className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-stone-200 bg-white text-stone-500 dark:border-white/10 dark:bg-[#131315] dark:text-stone-300"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
+        {showCheckIn && (
+          <section
+            className={cn(
+              PANEL,
+              'w-full md:mx-auto md:max-w-[1400px] flex flex-col gap-2 p-2.5 md:flex-row md:items-center md:justify-between'
+            )}
+          >
+            <div className="min-w-0 flex-1 md:flex md:items-baseline md:gap-2">
+              <p className={cn(MICRO, MUTED)}>Optional check-in</p>
+              <p className={cn(TITLE, 'mt-0.5 text-[12px] md:mt-0')}>How is your practice going?</p>
+              <p className={cn(BODY, 'mt-0.5 truncate text-[10px] md:mt-0')}>
+                Helps tailor study support for seven days; never used for upgrade offers.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1 md:justify-end">
+              {FEELINGS.map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  disabled={working.startsWith('feeling-')}
+                  onClick={() => saveFeeling(value)}
+                  className={cn(
+                    WELL,
+                    'rounded-md border border-[#e4e2f0] px-2 py-1 text-[10px] font-bold text-stone-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] disabled:opacity-50 dark:border-white/[0.07] dark:text-stone-300'
+                  )}
+                >
+                  {working === `feeling-${value}` ? 'Saving…' : label}
+                </button>
+              ))}
+            </div>
+            {typeof Notification !== 'undefined' && Notification.permission === 'default' && (
+              <button
+                type="button"
+                disabled={working === 'push'}
+                onClick={() =>
+                  act(
+                    'push',
+                    () => MarketingDelivery.enablePush(user.id),
+                    'Practice reminders enabled'
+                  )
+                }
+                className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-bold text-stone-500 hover:text-[#5a63df] disabled:opacity-50 dark:text-stone-400"
+              >
+                <Bell className="h-3.5 w-3.5" /> Study reminders
+              </button>
+            )}
+          </section>
+        )}
+      </div>
+      {notificationSurface &&
+        typeof document !== 'undefined' &&
+        createPortal(notificationSurface, document.body)}
+    </>
   );
 }
