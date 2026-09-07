@@ -17,6 +17,7 @@ import { calculateListeningTestResults } from '@/features/testing/listening/comp
 import * as pairedApi from '@/features/testing/paired/pairedApi';
 import PairedTestEntry from '@/features/testing/paired/PairedTestEntry';
 import PairedRoomView from '@/features/testing/paired/PairedRoomView';
+import PairedRoomHeader from '@/features/testing/paired/components/PairedRoomHeader';
 import SessionSteps from '@/features/testing/paired/components/SessionSteps';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
@@ -261,6 +262,50 @@ describe('paired comparison interface', () => {
       screen.queryByText(/Reviewing these question types together will boost/)
     ).not.toBeInTheDocument();
   });
+  it('returns to the previous page from shared results when it exists', () => {
+    const room = publicRoom(serverRoom('complete'));
+    render(
+      <MemoryRouter
+        initialEntries={[
+          { pathname: '/reading', key: 'library' },
+          { pathname: '/reading-test/own', search: '?room=room', key: 'shared-results' },
+        ]}
+        initialIndex={1}
+      >
+        <Routes>
+          <Route
+            path="/reading-test/own"
+            element={<PairedRoomHeader room={room} bothComplete onlineCount={1} />}
+          />
+          <Route path="/reading" element={<p>Reading Library</p>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Reading Library' }));
+    expect(screen.getByText('Reading Library')).toBeInTheDocument();
+  });
+
+  it('uses the test library when shared results are opened directly', () => {
+    const room = publicRoom(serverRoom('complete'));
+    render(
+      <MemoryRouter
+        initialEntries={[{ pathname: '/reading-test/own', search: '?room=room', key: 'default' }]}
+      >
+        <Routes>
+          <Route
+            path="/reading-test/own"
+            element={<PairedRoomHeader room={room} bothComplete onlineCount={1} />}
+          />
+          <Route path="/reading" element={<p>Reading Library</p>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Reading Library' }));
+    expect(screen.getByText('Reading Library')).toBeInTheDocument();
+  });
+
   it('disables start until both students are ready', () => {
     const source = serverRoom('lobby');
     source.members[1].ready = false;

@@ -48,4 +48,24 @@ describe('Reading resume restart action', () => {
       restartHref
     );
   });
+
+  it('marks a completed paired attempt and opens its shared comparison', () => {
+    const pairedSession = { id: 'reading-session-1', paired_room_id: 'paired-room-1' };
+    render(
+      <MemoryRouter>
+        <GridActions
+          isLocked={false}
+          isResuming={false}
+          isCompleted
+          test={test}
+          completedSession={pairedSession}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: 'Compare Results' }).closest('a')).toHaveAttribute(
+      'href',
+      '/reading-test/reading-session-1?room=paired-room-1'
+    );
+  });
 });

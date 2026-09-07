@@ -107,6 +107,14 @@ export function GridMetaBar({
               <span className={cn(MICRO, MUTED)}>/ 9.0</span>
             </div>
           </div>
+          {completedSession.paired_room_id && (
+            <div className="mt-2 flex items-center gap-1.5">
+              <Pill tone="accent">
+                <Users className="h-3 w-3" /> Paired session
+              </Pill>
+              <span className={cn(MICRO, MUTED)}>Comparison ready</span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -160,9 +168,13 @@ export function GridActions({
     );
   }
   if (isCompleted) {
+    const pairedRoomId = completedSession?.paired_room_id;
+    const resultsPath = pairedRoomId
+      ? `/reading-test/${completedSession.id}?room=${pairedRoomId}`
+      : `/reading-test/${completedSession.id}?view-results=true`;
     return (
       <div className="flex gap-2">
-        <Link to={`/reading-test/${completedSession.id}?view-results=true`} className="flex-1">
+        <Link to={resultsPath} className="flex-1">
           <button
             type="button"
             className={cn(
@@ -170,7 +182,8 @@ export function GridActions({
               'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/12 cursor-pointer'
             )}
           >
-            View Results <ArrowRight className="h-4 w-4" />
+            {pairedRoomId ? 'Compare Results' : 'View Results'}{' '}
+            {pairedRoomId ? <Users className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </button>
         </Link>
         <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>

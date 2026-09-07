@@ -86,4 +86,21 @@ describe('resume restart actions', () => {
       '/writing-task?taskId=test-1&new_attempt=true'
     );
   });
+
+  it('opens the shared comparison from a completed Listening pair attempt', () => {
+    renderCard(
+      <ListeningActions
+        isLocked={false}
+        isResuming={false}
+        isCompleted
+        test={test}
+        completedSession={{ id: 'session-1', paired_room_id: 'paired-room-1' }}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Compare Results' }).closest('a')).toHaveAttribute(
+      'href',
+      '/listening-test/session-1?room=paired-room-1'
+    );
+  });
 });

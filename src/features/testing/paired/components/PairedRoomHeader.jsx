@@ -1,6 +1,8 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MICRO, MUTED, Pill } from '@/features/dashboard/components/primitives.jsx';
 import {
+  ReiconArrowLeft,
   ReiconBookOpen,
   ReiconClock,
   ReiconHeadphones,
@@ -139,14 +141,35 @@ function roomDescription(room) {
 }
 
 export default function PairedRoomHeader({ room, state, bothComplete, onlineCount }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const roomStatus = state || STATE_MAP[room?.state] || STATE_MAP.lobby;
   const durationMinutes = Math.ceil((room.duration_seconds || 3600) / 60);
+  const libraryPath = `/${room.test_type}`;
+  const hasPreviousPage = location.key !== 'default';
+
+  const goBack = () => {
+    if (hasPreviousPage) {
+      navigate(-1);
+      return;
+    }
+    navigate(libraryPath);
+  };
 
   return (
     <header className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white shadow-xs dark:border-white/[0.08] dark:bg-[#121118]">
       <div className="border-t-2 border-[#5a63df] p-3.5 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <button
+              type="button"
+              onClick={goBack}
+              className="group inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-[#fbfbfe] px-2 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#5a63df]/30 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-[#afb5ff]"
+              aria-label={`Back to ${displayType(room.test_type)} Library`}
+            >
+              <ReiconArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+              <span className="hidden sm:inline">Back</span>
+            </button>
             <div className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
               {room.test_type === 'listening' ? (
                 <ReiconHeadphones className="h-4.5 w-4.5 sm:h-5 sm:w-5" />

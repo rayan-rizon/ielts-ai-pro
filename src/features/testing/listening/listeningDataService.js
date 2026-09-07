@@ -48,7 +48,7 @@ async function fetchUserSessions(user, passageIds) {
   const { data, error } = await supabase
     .from('test_sessions')
     .select(
-      'id, passage_id, is_completed, score, content_data, created_at, completed_at, user_responses'
+      'id, passage_id, is_completed, score, paired_room_id, content_data, created_at, completed_at, user_responses'
     )
     .eq('user_id', user.id)
     .eq('test_type', 'listening')
@@ -80,6 +80,7 @@ function buildSessionsByPassage(sessionsData) {
       passage_id: pId,
       is_completed: s.is_completed,
       score: s.score,
+      paired_room_id: s.paired_room_id || s.content_data?.paired_room_id || null,
       progress: 0,
       content_data: s.content_data || { passage_id: pId },
       user_responses: s.user_responses || {},
