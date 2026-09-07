@@ -12,11 +12,14 @@ const ALLOWED_ORIGINS = [
   'https://www.ieltsai.pro',
 ];
 
-// Vercel deployment hostnames are scoped by team. Restrict preview access to
-// this project's deployment naming scheme instead of accepting every hostname
-// beginning with `ielts-ai-pro` on the public Vercel domain.
-const VERCEL_PROJECT_ORIGIN =
-  /^https:\/\/ielts-ai-pro-[a-z0-9-]+-rayan-rizons-projects\.vercel\.app$/;
+// Vercel deployment hostnames are scoped by team. This project has both the
+// stable `ielts-ai-pro` aliases and generated `ielts-ai-<deployment>` URLs.
+// Keep the team suffix and project prefixes exact so look-alike public Vercel
+// domains cannot pass the origin check.
+const VERCEL_PROJECT_ORIGINS = [
+  /^https:\/\/ielts-ai-pro(?:-[a-z0-9-]+)?-rayan-rizons-projects\.vercel\.app$/,
+  /^https:\/\/ielts-ai-[a-z0-9-]+-rayan-rizons-projects\.vercel\.app$/,
+];
 
 /**
  * Hosted functions must never reflect a loopback origin. Local development can
@@ -41,5 +44,8 @@ export function isAllowedOrigin(origin: string, allowLoopback = allowsLoopbackOr
     return false;
   }
 
-  return ALLOWED_ORIGINS.includes(origin) || VERCEL_PROJECT_ORIGIN.test(origin);
+  return (
+    ALLOWED_ORIGINS.includes(origin) ||
+    VERCEL_PROJECT_ORIGINS.some((pattern) => pattern.test(origin))
+  );
 }

@@ -11,6 +11,10 @@ describe('AI edge security controls', () => {
     expect(
       isAllowedOrigin('https://ielts-ai-pro-preview-123-rayan-rizons-projects.vercel.app')
     ).toBe(true);
+    expect(isAllowedOrigin('https://ielts-ai-pro-rayan-rizons-projects.vercel.app')).toBe(true);
+    expect(isAllowedOrigin('https://ielts-ai-kgv121tmq-rayan-rizons-projects.vercel.app')).toBe(
+      true
+    );
   });
 
   it('requires an explicit local-only opt-in before allowing loopback origins', () => {
@@ -25,6 +29,7 @@ describe('AI edge security controls', () => {
     expect(isAllowedOrigin('https://127.0.0.1.attacker.example')).toBe(false);
     expect(isAllowedOrigin('https://ielts-ai-pro-preview-123.vercelx.app')).toBe(false);
     expect(isAllowedOrigin('https://ielts-ai-pro.attacker.vercel.app')).toBe(false);
+    expect(isAllowedOrigin('https://ielts-ai-anything-attacker.vercel.app')).toBe(false);
   });
 
   it('keeps atomic quota reservation service-role-only and lock-backed', () => {
