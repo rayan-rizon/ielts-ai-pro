@@ -159,50 +159,21 @@ export default function PairedRoomHeader({ room, state, bothComplete, onlineCoun
   return (
     <header className="overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white shadow-xs dark:border-white/[0.08] dark:bg-[#121118]">
       <div className="border-t-2 border-[#5a63df] p-3.5 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
-          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={goBack}
-              className="group inline-flex h-8 shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-[#fbfbfe] px-2 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#5a63df]/30 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-slate-300 dark:hover:text-[#afb5ff]"
-              aria-label={`Back to ${displayType(room.test_type)} Library`}
-            >
-              <ReiconArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-              <span className="hidden sm:inline">Back</span>
-            </button>
-            <div className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
-              {room.test_type === 'listening' ? (
-                <ReiconHeadphones className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
-              ) : (
-                <ReiconBookOpen className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p
-                className={cn(
-                  MICRO,
-                  'flex items-center gap-1.5 font-bold tracking-wider text-[#5a63df] dark:text-[#afb5ff]'
-                )}
-              >
-                <span>Study partners</span>
-                <span className="h-1 w-1 rounded-full bg-[#5a63df]/40" />
-                <span>{displayType(room.test_type)}</span>
-              </p>
-              <h1 className="mt-0.5 text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-                {room.title}
-              </h1>
-              {!bothComplete && (
-                <p
-                  className={cn(
-                    MUTED,
-                    'mt-0.5 max-w-xl text-[11px] leading-normal hidden sm:block'
-                  )}
-                >
-                  {roomDescription(room)}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* Top utility row: Navigation Breadcrumb + Status Pill */}
+        <div className="flex items-center justify-between gap-3 pb-2.5 mb-3 border-b border-[#eceafa] dark:border-white/[0.06]">
+          <button
+            type="button"
+            onClick={goBack}
+            className="group -ml-1 inline-flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-[#5a63df] active:scale-[0.98] dark:text-slate-400 dark:hover:bg-white/[0.05] dark:hover:text-[#afb5ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+            aria-label={`Back to ${displayType(room.test_type)} Library`}
+          >
+            <span className="grid h-6 w-6 place-items-center rounded-md border border-[#e4e2f0] bg-white text-slate-500 shadow-2xs transition-all duration-200 group-hover:-translate-x-0.5 group-hover:border-[#5a63df]/30 group-hover:bg-[#5a63df]/5 group-hover:text-[#5a63df] dark:border-white/10 dark:bg-[#15141e] dark:text-slate-400 dark:group-hover:text-[#afb5ff]">
+              <ReiconArrowLeft className="h-3.5 w-3.5" />
+            </span>
+            <span className="truncate font-semibold text-slate-700 transition-colors group-hover:text-[#5a63df] dark:text-slate-300 dark:group-hover:text-[#afb5ff]">
+              Back to {displayType(room.test_type)} tests
+            </span>
+          </button>
 
           <Pill tone={roomStatus.tone}>
             <span
@@ -217,6 +188,39 @@ export default function PairedRoomHeader({ room, state, bothComplete, onlineCoun
             />
             {roomStatus.label}
           </Pill>
+        </div>
+
+        {/* Room Title & Primary Identity */}
+        <div className="flex items-start gap-3 sm:gap-3.5">
+          <div className="grid h-10 w-10 sm:h-11 sm:w-11 shrink-0 place-items-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] shadow-2xs dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
+            {room.test_type === 'listening' ? (
+              <ReiconHeadphones className="h-5 w-5" />
+            ) : (
+              <ReiconBookOpen className="h-5 w-5" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p
+              className={cn(
+                MICRO,
+                'flex items-center gap-1.5 font-bold tracking-wider text-[#5a63df] dark:text-[#afb5ff]'
+              )}
+            >
+              <span>Study partners</span>
+              <span className="h-1 w-1 rounded-full bg-[#5a63df]/40" />
+              <span>{displayType(room.test_type)}</span>
+            </p>
+            <h1 className="mt-0.5 text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+              {room.title}
+            </h1>
+            {!bothComplete && (
+              <p
+                className={cn(MUTED, 'mt-0.5 max-w-xl text-[11px] leading-normal hidden sm:block')}
+              >
+                {roomDescription(room)}
+              </p>
+            )}
+          </div>
         </div>
 
         {bothComplete ? (

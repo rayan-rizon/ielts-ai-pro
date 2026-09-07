@@ -32,6 +32,7 @@ export function publicRoom(room, includeSnapshot = true) {
     members: room.members.map((m) => ({
       user_id: m.user_id,
       display_name: m.display_name,
+      avatar_url: m.avatar_url || null,
       ready: m.ready,
       submitted_at: m.submitted_at,
       finish_reason: m.finish_reason,

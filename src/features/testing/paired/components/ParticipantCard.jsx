@@ -1,17 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MICRO, MUTED, NUM, Pill, WELL } from '@/features/dashboard/components/primitives.jsx';
 import { ReiconCheck } from '@/components/ui/reicon';
 import { CheckCircle2, Clock3, LoaderCircle, UserRound } from 'lucide-react';
 import { cn } from '@/lib/cn';
-
-function initials(name) {
-  const cleaned = (name || '?').replace(/[()]/g, '').trim();
-  const parts = cleaned.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return cleaned.slice(0, 2).toUpperCase();
-}
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { getMemberAvatarUrl, initials } from '../utils/avatar';
 
 function getMemberState(member, roomState, isMine) {
   if (member.submitted_at) {
@@ -29,24 +24,37 @@ function getMemberState(member, roomState, isMine) {
   return { label: 'Not ready', tone: 'neutral', icon: UserRound };
 }
 
-function ParticipantCardHeader({ displayName, isMine, status }) {
+function ParticipantCardHeader({ displayName, isMine, status, avatarUrl }) {
   const StatusIcon = status.icon;
   const alreadyHasYou = /\byou\b/i.test(displayName);
 
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2.5">
-        <div
+        <Avatar
           className={cn(
-            'grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-bold',
+            'h-9 w-9 shrink-0 border',
             isMine
-              ? 'bg-[#5a63df] text-white shadow-2xs'
-              : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200'
+              ? 'border-[#5a63df]/40 ring-2 ring-[#5a63df]/20 dark:border-[#8f97ff]/40'
+              : 'border-[#e4e2f0] dark:border-white/10'
           )}
-          aria-hidden="true"
         >
-          {initials(displayName)}
-        </div>
+          <AvatarImage
+            src={avatarUrl}
+            alt={displayName}
+            className="aspect-square h-full w-full object-cover"
+          />
+          <AvatarFallback
+            className={cn(
+              'text-xs font-bold',
+              isMine
+                ? 'bg-[#5a63df] text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200'
+            )}
+          >
+            {initials(displayName)}
+          </AvatarFallback>
+        </Avatar>
         <div className="min-w-0">
           <h3 className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
             {displayName}
@@ -225,8 +233,34 @@ export default function ParticipantCard({
   roomState = 'lobby',
   partnerConnected = false,
 }) {
+  const { userProfile } = useAuth();
+  const [partnerAvatar, setPartnerAvatar] = useState(null);
   const status = getMemberState(member, roomState, isMine);
   const displayName = member.display_name || 'Anonymous';
+
+  useEffect(() => {
+    if (member?.avatar_url || isMine || !member?.user_id) return;
+    let active = true;
+    supabase
+      .from('users')
+      .select('avatar_url')
+      .eq('id', member.user_id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active || error || !data?.avatar_url) return;
+        setPartnerAvatar(data.avatar_url);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [member?.avatar_url, member?.user_id, isMine]);
+
+  const avatarUrl = getMemberAvatarUrl(
+    partnerAvatar ? { ...member, avatar_url: partnerAvatar } : member,
+    isMine,
+    userProfile
+  );
 
   return (
     <section
@@ -238,7 +272,12 @@ export default function ParticipantCard({
       )}
     >
       <div>
-        <ParticipantCardHeader displayName={displayName} isMine={isMine} status={status} />
+        <ParticipantCardHeader
+          displayName={displayName}
+          isMine={isMine}
+          status={status}
+          avatarUrl={avatarUrl}
+        />
         {complete && member.summary ? (
           <ParticipantScoreStats summary={member.summary} displayName={displayName} />
         ) : (

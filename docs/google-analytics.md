@@ -89,6 +89,45 @@ A synthetic `purchase` was **not** fired: it would have written fake revenue
 into the property. That tag is structurally identical to the verified one and
 differs only in its trigger and static event name.
 
+## Property configuration
+
+| Setting              | State                                                     |
+| -------------------- | --------------------------------------------------------- |
+| Custom dimensions    | 5 event-scoped (above)                                    |
+| Custom metrics       | none — deliberately                                       |
+| Key events           | `purchase` only, until `signup_completed` can be starred  |
+| Event data retention | 14 months (was the 2-month default)                       |
+| Unwanted referrals   | `accounts.google.com`, `checkout.stripe.com`              |
+| Reporting identity   | Blended                                                   |
+| Search Console       | linked to the `ieltsai.pro` domain property               |
+| Audiences            | GA4 defaults only (All Users, Purchasers, 7-day inactive) |
+| Annotations          | one, marking the 2026-09-07 repair                        |
+
+GA4 had auto-created two key events, `close_convert_lead` and `qualify_lead`,
+that this app never fires. Both were unmarked so the Key events list contains
+only events that actually exist.
+
+The annotation matters more than it looks: every report that spans 2026-09-07
+straddles a property that was structurally broken on one side of the line. Do
+not read a "spike" in page views or key events as a real change in behaviour.
+
+## Deliberately not added
+
+Keeping the property lean is a decision, not an oversight. See
+`analytics-scope-preference` — the rule is that a dimension, metric, audience or
+report has to change a decision to earn its place.
+
+- **`overall_band` and `word_count` as custom metrics.** The app emits both, but
+  they are per-session product outcomes, not acquisition or revenue signals, and
+  custom definitions are capped per property. Product depth belongs in PostHog
+  and the admin dashboard, which already hold it.
+- **Extra audiences.** GA4 audiences are chiefly a Google Ads remarketing
+  mechanism, and this account advertises on Meta. "Started checkout, did not
+  purchase" would be the one worth adding _if_ Google Ads is ever linked.
+- **A saved funnel exploration.** With `page_view` and the funnel events only
+  hours old there is nothing to plot yet, and Explore builds one from a template
+  in a few clicks once a week of data exists.
+
 ## Still to do
 
 - **Mark `signup_completed` as a key event.** GA4 only lets an event be starred
@@ -138,3 +177,82 @@ places (see `docs/meta-conversions-api.md`), and the GTM host-gate trigger uses
 
 Neither was removed, because deleting a container is irreversible and neither
 costs anything while idle.
+
+## Google Ads
+
+Google Ads account `355-953-4576` is linked to the property (Sep 7 2026,
+personalized advertising enabled, auto-tagging on the recommended setting). The
+account has never run a campaign.
+
+**One conversion action, imported from GA4:** "Ielts Ai Pro (web) purchase",
+sourced from the GA4 `purchase` key event, category Purchase, primary. No
+Google Ads-native tag was installed alongside it — a second delivery path for
+the same conversion invites double counting, and GA4 is already the source of
+truth.
+
+Purchase is the **only** account-default goal. Three others were removed or
+demoted, because account-default goals steer bidding on every campaign
+created later:
+
+| Goal                       | Was                      | Action                                                                                                                                                     |
+| -------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Submit lead forms → "Form" | Primary, account-default | **Removed.** It imported `ads_conversion_Form_1` from a GA4 property named _Quantbyte_ — a different project entirely — and was permanently misconfigured. |
+| Contacts (3 call actions)  | Account-default          | Account-default turned off. The actions are Google-hosted and cannot be deleted; they only fire on call assets this account does not use.                  |
+| Get directions (2 actions) | Not account-default      | Left alone.                                                                                                                                                |
+
+`gclid` capture is verified end to end: loading
+`https://www.ieltsai.pro/?gclid=…` writes `_gcl_aw=GCL.<ts>.<gclid>` and
+records the click id in the `attribution_first_touch` payload. `isPaidArrival()`
+in `index.html` already treats `gclid` as a paid arrival and loads GTM eagerly,
+so the Google tag reads the query string before the router rewrites it — the
+same failure that once silently killed `fbclid`.
+
+## The subscription funnel
+
+Saved as the **Subscription funnel** exploration, two tabs — _By channel_
+(breakdown: First user primary channel group) and _By country_ — over a rolling
+`Sun – Today` window. Segments: Direct, Organic, Paid.
+
+| Step                | GA4 event(s)                                        | Fired by                                               |
+| ------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| 1. Visited site     | `session_start`                                     | Enhanced Measurement                                   |
+| 2. Signed up        | `signup_completed`                                  | `trackSignupCompleted`, once per user from `User.me()` |
+| 3. Chose a plan     | `plan_selected`                                     | `Pricing.jsx`, both payment paths                      |
+| 4. Started checkout | `checkout_started` **or** `manual_checkout_started` | Stripe path / manual bKash path                        |
+| 5. Subscribed       | `purchase`                                          | GTM renames `subscription_purchase` → `purchase`       |
+
+Step 4 must carry both events. The bKash path calls
+`trackAuthenticatedAppEvent('manual_checkout_started', …)` and never emits
+`checkout_started` — the `checkout_started` string that appears beside it in
+`startManualBdCheckout` is a `MarketingDelivery.record` label, not an analytics
+event. A funnel built on `checkout_started` alone would drop Bangladesh, the
+largest market, at step 4.
+
+Step 5 is safe for both paths: Stripe fires `subscription_purchase` from
+`SubscriptionSuccess.jsx`, and manual bKash activations fire it from the
+upgrade-detection effect in `AuthContext.jsx` (`source: 'manual_bangladesh'`).
+
+`checkout_started`, `manual_checkout_started` and `purchase` had to be defined
+by name in the step editor — GA4 has not received one yet, because the tagging
+was only repaired on Sep 7. They resolve automatically once the events arrive.
+
+### Cross-check against the code
+
+The `GA4 - App Events` trigger regex matches exactly the 14 events that survive
+`DROPPED_EVENTS` in `src/lib/tracking.js`, and deliberately excludes
+`subscription_purchase`, which the separate `GA4 - Purchase` tag owns. 14 + 1 is
+the whole live event surface — nothing missing, nothing firing twice.
+
+## Attribution settings
+
+Verified Sep 7 2026, all at Google's recommended values; nothing changed:
+
+| Setting                         | Value                                   |
+| ------------------------------- | --------------------------------------- |
+| Reporting attribution model     | Data-driven (paid and organic channels) |
+| Acquisition key events lookback | 30 days                                 |
+| All other key events lookback   | 90 days                                 |
+| Engaged-view key events         | 3 days (fixed)                          |
+
+The 90-day window is the right one for this product — an IELTS candidate
+researches for weeks before paying.

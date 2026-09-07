@@ -18,6 +18,7 @@ import * as pairedApi from '@/features/testing/paired/pairedApi';
 import PairedTestEntry from '@/features/testing/paired/PairedTestEntry';
 import PairedRoomView from '@/features/testing/paired/PairedRoomView';
 import PairedRoomHeader from '@/features/testing/paired/components/PairedRoomHeader';
+import ParticipantCard from '@/features/testing/paired/components/ParticipantCard';
 import SessionSteps from '@/features/testing/paired/components/SessionSteps';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
@@ -116,6 +117,14 @@ describe('authoritative paired scoring', () => {
     expect(result.invite_token).toBeUndefined();
     expect(JSON.stringify(result.snapshot)).not.toContain('correct_answer');
     expect(result.snapshot.testData.content).toBe('');
+  });
+  it('preserves avatar_url on room members', () => {
+    const room = serverRoom();
+    room.members[0].avatar_url = 'https://example.com/avatar1.png';
+    room.members[1].avatar_url = 'https://example.com/avatar2.png';
+    const result = publicRoom(room);
+    expect(result.members[0].avatar_url).toBe('https://example.com/avatar1.png');
+    expect(result.members[1].avatar_url).toBe('https://example.com/avatar2.png');
   });
   it('returns a lobby invitation only to the host', () => {
     const hostRoom = serverRoom('lobby');
@@ -261,6 +270,22 @@ describe('paired comparison interface', () => {
     expect(
       screen.queryByText(/Reviewing these question types together will boost/)
     ).not.toBeInTheDocument();
+  });
+  it('renders student actual avatar and fallbacks in participant cards', () => {
+    const member = {
+      user_id: 'one',
+      display_name: 'hexron',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=hexron',
+      ready: true,
+    };
+    render(
+      <MemoryRouter>
+        <ParticipantCard member={member} isMine={true} />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('hexron')).toBeInTheDocument();
+    expect(screen.getByText('(you)')).toBeInTheDocument();
+    expect(screen.getByText('HE')).toBeInTheDocument();
   });
   it('returns to the previous page from shared results when it exists', () => {
     const room = publicRoom(serverRoom('complete'));
