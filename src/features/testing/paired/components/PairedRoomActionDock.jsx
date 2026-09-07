@@ -12,19 +12,34 @@ import {
 import { cn } from '@/lib/cn';
 import { testRoomPath } from '../pairedApi';
 
-function getNextActionTitle(bothComplete, roomState) {
+function getNextActionTitle(bothComplete, room, mine, partner, isHost) {
   if (bothComplete) return 'Keep the momentum going';
-  if (roomState === 'lobby') return 'Get both students ready';
-  if (roomState === 'running') return 'Stay focused on your attempt';
+  if (room.state === 'lobby') {
+    if (room.members.length < 2) return 'Invite your friend to continue';
+    if (!mine.ready) return 'Mark yourself ready';
+    if (!partner?.ready) return 'Waiting for your partner to get ready';
+    return isHost ? 'Both ready — start the test' : 'Both ready — waiting for the host';
+  }
+  if (room.state === 'running') return 'Continue your test';
   return 'Your comparison is almost ready';
 }
 
-export default function PairedRoomActionDock({ room, bothComplete, mine, busy, ready, run }) {
+export default function PairedRoomActionDock({
+  room,
+  bothComplete,
+  mine,
+  partner,
+  busy,
+  ready,
+  run,
+}) {
   const navigate = useNavigate();
-  const nextActionTitle = getNextActionTitle(bothComplete, room.state);
   const isHost = room.host_id === room.actor_id;
+  const nextActionTitle = getNextActionTitle(bothComplete, room, mine, partner, isHost);
   const canStart =
     !busy && room.members.length === 2 && room.members.every((member) => member.ready);
+
+  if ((room.state === 'running' && mine.submitted_at) || room.state === 'grading') return null;
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-[#e4e2f0] bg-white p-3.5 sm:p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#121118] sm:flex-row sm:items-center sm:justify-between">
@@ -41,30 +56,32 @@ export default function PairedRoomActionDock({ room, bothComplete, mine, busy, r
       <div className="flex flex-wrap items-center gap-2">
         {room.state === 'lobby' && (
           <>
-            <Button
-              disabled={busy}
-              onClick={ready}
-              className={cn(
-                'gap-1.5 font-semibold transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
-                mine.ready
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-2xs'
-                  : 'bg-[#5a63df] text-white hover:bg-[#4d55c7]'
-              )}
-            >
-              {busy ? (
-                'Checking…'
-              ) : mine.ready ? (
-                <>
-                  <ReiconCheck className="h-4 w-4" /> Ready (click to cancel)
-                </>
-              ) : room.test_type === 'listening' ? (
-                'Check audio & ready'
-              ) : (
-                'Ready'
-              )}
-            </Button>
+            {room.members.length === 2 && (
+              <Button
+                disabled={busy}
+                onClick={ready}
+                className={cn(
+                  'gap-1.5 font-semibold transition-all active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+                  mine.ready
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-2xs'
+                    : 'bg-[#5a63df] text-white hover:bg-[#4d55c7]'
+                )}
+              >
+                {busy ? (
+                  'Checking…'
+                ) : mine.ready ? (
+                  <>
+                    <ReiconCheck className="h-4 w-4" /> Ready · undo
+                  </>
+                ) : room.test_type === 'listening' ? (
+                  'Check audio & ready'
+                ) : (
+                  'I’m ready'
+                )}
+              </Button>
+            )}
 
-            {isHost && (
+            {isHost && room.members.length === 2 && (
               <Button
                 variant="secondary"
                 disabled={!canStart}
@@ -117,15 +134,17 @@ export default function PairedRoomActionDock({ room, bothComplete, mine, busy, r
           </>
         )}
 
-        <Button
-          asChild
-          variant="ghost"
-          className="gap-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-        >
-          <Link to={`/${room.test_type}`}>
-            <ReiconBookOpen className="h-4 w-4" /> Browse tests
-          </Link>
-        </Button>
+        {(room.state === 'lobby' || bothComplete) && (
+          <Button
+            asChild
+            variant="ghost"
+            className="gap-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+          >
+            <Link to={`/${room.test_type}`}>
+              <ReiconBookOpen className="h-4 w-4" /> Browse tests
+            </Link>
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import {
   ReiconClock,
   ReiconHeadphones,
   ReiconLock,
+  ReiconPlay,
   ReiconUsers,
 } from '@/components/ui/reicon';
 import { cn } from '@/lib/cn';
@@ -54,7 +55,14 @@ function CompletedMetricStrip({ durationMinutes, memberCount, onlineCount }) {
   );
 }
 
-function InProgressMetricGrid({ durationMinutes, memberCount, onlineCount }) {
+function InProgressMetricGrid({ durationMinutes, memberCount, onlineCount, roomState }) {
+  const finalMetric =
+    roomState === 'lobby'
+      ? { label: 'Start', value: 'Together' }
+      : roomState === 'running'
+        ? { label: 'Results', value: 'After both finish' }
+        : { label: 'Results', value: 'Preparing' };
+
   return (
     <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.06]">
       <div className="flex items-center gap-2 rounded-lg border border-[#e8e6f5] bg-[#f8f7fd] px-2.5 py-1.5 dark:border-white/[0.06] dark:bg-white/[0.02]">
@@ -95,12 +103,14 @@ function InProgressMetricGrid({ durationMinutes, memberCount, onlineCount }) {
 
       <div className="flex items-center gap-2 rounded-lg border border-[#e8e6f5] bg-[#f8f7fd] px-2.5 py-1.5 dark:border-white/[0.06] dark:bg-white/[0.02]">
         <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white border border-[#e8e6f5] text-slate-500 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-400">
-          <ReiconLock className="h-3 w-3" />
+          <ReiconPlay className="h-3 w-3" />
         </div>
         <div className="min-w-0">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Privacy</p>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+            {finalMetric.label}
+          </p>
           <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
-            Answers private
+            {finalMetric.value}
           </p>
         </div>
       </div>
@@ -114,6 +124,19 @@ const STATE_MAP = {
   grading: { label: 'Locking scores', tone: 'warn', step: 3 },
   complete: { label: 'Results ready', tone: 'ok', step: 4 },
 };
+
+function roomDescription(room) {
+  if (room.state === 'lobby') {
+    return room.members.length === 2
+      ? 'Both students are here. Mark ready, then the host can start the shared countdown.'
+      : 'Invite one friend to this private room, then mark ready together.';
+  }
+  if (room.state === 'running') {
+    return 'The test is live. Your comparison appears after both students finish.';
+  }
+  if (room.state === 'grading') return 'Both tests are finished. Preparing your comparison.';
+  return '';
+}
 
 export default function PairedRoomHeader({ room, state, bothComplete, onlineCount }) {
   const roomStatus = state || STATE_MAP[room?.state] || STATE_MAP.lobby;
@@ -152,8 +175,7 @@ export default function PairedRoomHeader({ room, state, bothComplete, onlineCoun
                     'mt-0.5 max-w-xl text-[11px] leading-normal hidden sm:block'
                   )}
                 >
-                  Work independently, start together, and compare skills. Your submitted answers
-                  stay private.
+                  {roomDescription(room)}
                 </p>
               )}
             </div>
@@ -185,6 +207,7 @@ export default function PairedRoomHeader({ room, state, bothComplete, onlineCoun
             durationMinutes={durationMinutes}
             memberCount={room.members.length}
             onlineCount={onlineCount}
+            roomState={room.state}
           />
         )}
 

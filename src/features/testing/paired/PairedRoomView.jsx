@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
-import { ReiconLock } from '@/components/ui/reicon';
+import { Clock3, ShieldCheck } from 'lucide-react';
 import { TITLE } from '@/features/dashboard/components/primitives.jsx';
 import { cn } from '@/lib/cn';
 import { invitationPath } from './pairedApi';
@@ -33,6 +32,10 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
   const correctDelta =
     (mine?.summary?.correctAnswers ?? 0) - (partner?.summary?.correctAnswers ?? 0);
   const bothComplete = room.state === 'complete';
+  const isHost = room.host_id === room.actor_id;
+  const partnerConnected = onlineCount >= 2;
+  const canInvite =
+    room.state === 'lobby' && isHost && room.members.length === 1 && Boolean(invitationPath(room));
 
   useEffect(() => {
     if (bothComplete) {
@@ -84,8 +87,13 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
   };
 
   const copyInvitation = async () => {
+    const path = invitationPath(room);
+    if (!path) {
+      setNotice('The invitation is no longer available.');
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}${invitationPath(room)}`);
+      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
@@ -100,7 +108,7 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:gap-3.5">
         <PairedRoomHeader room={room} onlineCount={onlineCount} bothComplete={bothComplete} />
 
-        {room.state === 'lobby' && (
+        {canInvite && (
           <PairedRoomInviteHero room={room} copied={copied} copyInvitation={copyInvitation} />
         )}
 
@@ -119,7 +127,13 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df]" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                {bothComplete ? 'Your shared result' : 'Ready when you are'}
+                {bothComplete
+                  ? 'Your shared result'
+                  : room.state === 'running'
+                    ? 'Live test progress'
+                    : room.members.length === 2
+                      ? 'Both students are here'
+                      : 'Waiting for your friend'}
               </h2>
             </div>
             {!bothComplete && (
@@ -131,7 +145,15 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
                   )}
                 />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  {room.members.length === 2 ? 'Both students joined' : 'Waiting for one student'}
+                  {room.state === 'running' && mine?.submitted_at
+                    ? partner?.submitted_at
+                      ? 'Both tests finished'
+                      : partnerConnected
+                        ? 'Partner is still testing'
+                        : 'Partner has not submitted'
+                    : room.members.length === 2
+                      ? 'Both students joined'
+                      : 'Waiting for one student'}
                 </span>
               </div>
             )}
@@ -144,11 +166,11 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
                 member={member}
                 isMine={member.user_id === room.actor_id}
                 complete={bothComplete}
+                roomState={room.state}
+                partnerConnected={partnerConnected}
               />
             ))}
-            {room.members.length === 1 && !bothComplete && (
-              <WaitingPartnerCard copyInvitation={copyInvitation} copied={copied} />
-            )}
+            {room.members.length === 1 && !bothComplete && <WaitingPartnerCard />}
           </div>
         </section>
 
@@ -164,20 +186,22 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
           />
         )}
 
-        {room.state === 'running' && mine?.submitted_at && (
+        {room.state === 'running' && mine?.submitted_at && !partner?.submitted_at && (
           <div
-            className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 sm:p-4 dark:border-emerald-500/20 dark:bg-emerald-950/20"
+            className="flex items-center gap-3 rounded-xl border border-[#5a63df]/25 bg-[#5a63df]/[0.06] p-3.5 sm:p-4 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.1]"
             role="status"
           >
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-              <ReiconLock className="h-4 w-4" />
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
+              <Clock3 className="h-4 w-4" />
             </div>
             <div>
-              <p className={cn(TITLE, 'text-emerald-900 dark:text-emerald-200')}>
-                Your answers are locked
+              <p className={cn(TITLE, 'text-slate-900 dark:text-slate-100')}>
+                You’re finished. {partnerName} is still taking the test.
               </p>
-              <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                Waiting for your partner or the deadline.
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                {partnerConnected
+                  ? 'They are online. This page will show your comparison as soon as they submit.'
+                  : 'They have not submitted yet and may be reconnecting. The deadline continues normally.'}
               </p>
             </div>
           </div>
@@ -187,6 +211,7 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
           room={room}
           bothComplete={bothComplete}
           mine={mine}
+          partner={partner}
           busy={busy}
           ready={ready}
           run={run}

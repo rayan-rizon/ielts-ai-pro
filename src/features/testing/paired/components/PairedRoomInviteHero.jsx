@@ -1,12 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ReiconCheck,
-  ReiconClock,
-  ReiconCopy,
-  ReiconLock,
-  ReiconShare,
-} from '@/components/ui/reicon';
+import { ReiconCheck, ReiconClock, ReiconCopy, ReiconShare } from '@/components/ui/reicon';
 import { invitationPath } from '../pairedApi';
 
 export default function PairedRoomInviteHero({ room, copyInvitation, onCopyInvitation, copied }) {
@@ -22,19 +16,15 @@ export default function PairedRoomInviteHero({ room, copyInvitation, onCopyInvit
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded bg-[#5a63df]/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#5a63df] dark:bg-[#5a63df]/25 dark:text-[#afb5ff]">
-                Primary Action · Step 1
-              </span>
               <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-                • Awaiting study partner
+                Awaiting one friend
               </span>
             </div>
             <h2 className="mt-1 text-base font-bold text-slate-900 dark:text-white">
-              Invite your partner to start together
+              Invite a friend
             </h2>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              Share this private link. Both of you will take the same test with synchronized audio &
-              timer.
+              Send this private link. Your friend signs in and joins this test.
             </p>
           </div>
         </div>
@@ -100,22 +90,6 @@ export default function PairedRoomInviteHero({ room, copyInvitation, onCopyInvit
           </AnimatePresence>
         </motion.button>
       </motion.div>
-
-      {/* Trust Assurance Strip */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#eceafa] pt-2.5 text-xs text-slate-500 dark:border-white/[0.06] dark:text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <ReiconLock className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#afb5ff]" />
-          <span>
-            <strong className="font-semibold text-slate-700 dark:text-slate-300">
-              Answers stay private:
-            </strong>{' '}
-            Your partner only sees final band score, correct total, and skill breakdown.
-          </span>
-        </div>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
-          Single-use private session
-        </span>
-      </div>
     </section>
   );
 }

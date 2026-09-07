@@ -57,6 +57,7 @@ function serverRoom(state = 'running') {
     host_id: 'one',
     state,
     test_type: 'reading',
+    passage_id: 'test',
     title: 'Practice',
     snapshot: fixture(),
     duration_seconds: 3600,
@@ -114,6 +115,13 @@ describe('authoritative paired scoring', () => {
     expect(result.invite_token).toBeUndefined();
     expect(JSON.stringify(result.snapshot)).not.toContain('correct_answer');
     expect(result.snapshot.testData.content).toBe('');
+  });
+  it('returns a lobby invitation only to the host', () => {
+    const hostRoom = serverRoom('lobby');
+    expect(publicRoom(hostRoom).invite_token).toBe('secret');
+
+    const partnerRoom = { ...hostRoom, actor_id: 'two' };
+    expect(publicRoom(partnerRoom).invite_token).toBeUndefined();
   });
   it('releases only allowlisted score summaries when the room completes', () => {
     const result = publicRoom(serverRoom('complete'));
@@ -185,6 +193,46 @@ describe('paired comparison interface', () => {
     expect(screen.getByText(/Your answers are locked/)).toBeInTheDocument();
     expect(screen.queryByText('estimated band')).not.toBeInTheDocument();
   });
+  it('shows live partner progress after the current student submits', () => {
+    const source = serverRoom();
+    source.members[0].submitted_at = '2026-09-01';
+    render(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(source)} act={vi.fn()} onlineCount={2} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Sam is still taking the test/i)).toBeInTheDocument();
+    expect(screen.getByText('Taking test')).toBeInTheDocument();
+    expect(screen.queryByText('Ready to start')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Browse tests' })).not.toBeInTheDocument();
+  });
+  it('only shows invitation controls to a host with an open seat', () => {
+    const source = serverRoom('lobby');
+    source.members = [source.members[0]];
+    const { rerender } = render(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(source)} act={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.getByLabelText('Private invitation link').value).not.toContain('undefined');
+    expect(screen.queryByRole('button', { name: 'I’m ready' })).not.toBeInTheDocument();
+
+    const fullRoom = serverRoom('lobby');
+    rerender(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(fullRoom)} act={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.queryByLabelText('Private invitation link')).not.toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom({ ...fullRoom, actor_id: 'two' })} act={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.queryByLabelText('Private invitation link')).not.toBeInTheDocument();
+  });
   it('displays both results and links only to the owner private review', () => {
     render(
       <MemoryRouter>
@@ -214,6 +262,7 @@ describe('test-page entry points', () => {
     const room = { id: 'room', passage_id: 'test', test_type: type, invite_token: 'token' };
     expect(invitationPath(room)).toBe(`/${type}-test/test#invite=token`);
     expect(roomLobbyPath(room)).toBe(`/${type}-test/test?room=room`);
+    expect(invitationPath({ ...room, invite_token: undefined })).toBe('');
   });
 
   it.each(['reading', 'listening'])(

@@ -20,6 +20,7 @@ export function testRoomPath(room) {
 }
 
 export function invitationPath(room) {
+  if (!room?.invite_token || !room?.test_type || !room?.passage_id) return '';
   return `/${room.test_type}-test/${room.passage_id}#invite=${room.invite_token}`;
 }
 export function roomLobbyPath(room) {

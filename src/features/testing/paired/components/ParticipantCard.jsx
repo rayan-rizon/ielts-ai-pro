@@ -1,7 +1,7 @@
 import React from 'react';
 import { MICRO, MUTED, NUM, Pill, WELL } from '@/features/dashboard/components/primitives.jsx';
 import { ReiconCheck } from '@/components/ui/reicon';
-import { CheckCircle2, UserRound } from 'lucide-react';
+import { CheckCircle2, Clock3, LoaderCircle, UserRound } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 function initials(name) {
@@ -13,9 +13,15 @@ function initials(name) {
   return cleaned.slice(0, 2).toUpperCase();
 }
 
-function getMemberState(member) {
+function getMemberState(member, roomState, isMine) {
   if (member.submitted_at) {
-    return { label: 'Submitted', tone: 'ok', icon: CheckCircle2 };
+    return { label: isMine ? 'Submitted' : 'Finished', tone: 'ok', icon: CheckCircle2 };
+  }
+  if (roomState === 'running') {
+    return { label: 'Taking test', tone: 'accent', icon: Clock3 };
+  }
+  if (roomState === 'grading') {
+    return { label: 'Processing', tone: 'accent', icon: LoaderCircle };
   }
   if (member.ready) {
     return { label: 'Ready', tone: 'accent', icon: ReiconCheck };
@@ -127,18 +133,42 @@ function ParticipantScoreStats({ summary, displayName }) {
   );
 }
 
-function ParticipantLobbyStatus({ member, StatusIcon }) {
+function ParticipantActivityStatus({ member, StatusIcon, roomState, isMine, partnerConnected }) {
   const isLocked = Boolean(member.submitted_at);
-  const title = isLocked
-    ? 'Attempt locked'
-    : member.ready
-      ? 'Ready to start'
-      : 'Waiting for readiness';
-  const description = isLocked
-    ? 'Your answers are safely saved.'
-    : member.ready
-      ? 'You will start on the shared countdown.'
-      : 'This student has not joined the start line yet.';
+  const isTakingTest = roomState === 'running' && !isLocked;
+  let title;
+  let description;
+
+  if (roomState === 'running') {
+    title = isLocked
+      ? isMine
+        ? 'Your test is submitted'
+        : 'Partner finished'
+      : isMine
+        ? 'Test in progress'
+        : 'Still taking the test';
+    description = isLocked
+      ? isMine
+        ? 'Your answers are locked while your partner finishes.'
+        : 'Their answers are locked.'
+      : isMine
+        ? 'Continue from the test page.'
+        : partnerConnected
+          ? 'Your partner is online and still working.'
+          : 'They have not submitted and may be reconnecting.';
+  } else if (roomState === 'grading') {
+    title = 'Test finished';
+    description = 'Preparing the shared comparison.';
+  } else {
+    title = member.ready ? 'Ready to start' : 'Not ready yet';
+    description = member.ready
+      ? isMine
+        ? 'You will start on the shared countdown.'
+        : 'Your partner is ready.'
+      : isMine
+        ? 'Mark yourself ready when you can begin.'
+        : 'Waiting for your partner to mark ready.';
+  }
 
   return (
     <div
@@ -150,9 +180,11 @@ function ParticipantLobbyStatus({ member, StatusIcon }) {
       <div
         className={cn(
           'grid h-7 w-7 shrink-0 place-items-center rounded-md',
-          member.ready
-            ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
-            : 'bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400'
+          isTakingTest
+            ? 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]'
+            : isLocked || member.ready || roomState === 'grading'
+              ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+              : 'bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400'
         )}
       >
         <StatusIcon className="h-3.5 w-3.5" />
@@ -186,8 +218,14 @@ function ParticipantCardFooter({ member }) {
   return null;
 }
 
-export default function ParticipantCard({ member, isMine, complete }) {
-  const status = getMemberState(member);
+export default function ParticipantCard({
+  member,
+  isMine,
+  complete,
+  roomState = 'lobby',
+  partnerConnected = false,
+}) {
+  const status = getMemberState(member, roomState, isMine);
   const displayName = member.display_name || 'Anonymous';
 
   return (
@@ -204,7 +242,13 @@ export default function ParticipantCard({ member, isMine, complete }) {
         {complete && member.summary ? (
           <ParticipantScoreStats summary={member.summary} displayName={displayName} />
         ) : (
-          <ParticipantLobbyStatus member={member} StatusIcon={status.icon} />
+          <ParticipantActivityStatus
+            member={member}
+            StatusIcon={status.icon}
+            roomState={roomState}
+            isMine={isMine}
+            partnerConnected={partnerConnected}
+          />
         )}
       </div>
       <ParticipantCardFooter member={member} />
