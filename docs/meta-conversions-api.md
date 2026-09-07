@@ -91,6 +91,28 @@ Events Manager → the dataset → Settings → Conversions API Gateway / Open B
 `tmSimo-GTM-WebTemplate` template). Once it is gone from the Pixel config the
 requests stop being attempted and the console errors disappear on their own.
 
+## Removed with the Stape migration
+
+`https://tag.ieltsai.pro` — the Stape server-side tagging domain — was still
+granted in `script-src`, `connect-src` and `frame-src` long after the Vercel
+relay replaced it. The subdomain has no DNS record of any kind, so nothing could
+load from it; the grants were dead permissions. Removed, along with three other
+hosts confirmed unused (no code reference, no reference in any of the 104
+`resources` rows, and never requested across full desktop and mobile page
+loads):
+
+| Host                                    | Directive              | Why it went                                                                              |
+| --------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------- |
+| `https://tag.ieltsai.pro`               | script, connect, frame | Stape tagging domain; no DNS record                                                      |
+| `https://static.cloudflareinsights.com` | script                 | Cloudflare Web Analytics; the site is on Vercel                                          |
+| `https://*.cloudflare.com`              | img                    | No browser-side Cloudflare URLs (Workers AI is called server-side from an edge function) |
+| `https://ssl.google-analytics.com`      | script                 | Universal Analytics endpoint, sunset 2023; GA4 does not use it                           |
+
+Deliberately **kept**: `https://tagmanager.google.com` (GTM Preview/debug mode)
+and `https://us-assets.i.posthog.com` (PostHog fetches recorder/survey
+extensions from there on demand, so it is absent from a plain landing-page load
+without being unused).
+
 ## Verifying the relay
 
 `/api/meta-capi` rejects before it ever sends an event, so it can be probed

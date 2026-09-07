@@ -1,7 +1,7 @@
 import { invitationPath, roomLobbyPath } from '@/features/testing/paired/pairedApi';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import {
   prepareSnapshot,
@@ -14,9 +14,15 @@ import {
 import { publicRoom } from '../../../supabase/functions/_shared/objective-scoring/publicRoom.js';
 import { calculateTestResults } from '@/features/testing/reading/components/ReadingTest/utils/scoreCalculator';
 import { calculateListeningTestResults } from '@/features/testing/listening/components/ListeningTest/utils/scoreCalculator';
+import * as pairedApi from '@/features/testing/paired/pairedApi';
+import PairedTestEntry from '@/features/testing/paired/PairedTestEntry';
 import PairedRoomView from '@/features/testing/paired/PairedRoomView';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
+
+vi.mock('@/features/auth/context/AuthContext', () => ({
+  useAuth: () => ({ userProfile: { full_name: 'Alex Rivera' } }),
+}));
 
 function fixture(type = 'reading') {
   const count = type === 'reading' ? 3 : 4;
@@ -229,5 +235,75 @@ describe('test-page entry points', () => {
       </MemoryRouter>
     );
     expect(screen.queryByRole('link', { name: 'Take with a friend' })).not.toBeInTheDocument();
+  });
+});
+
+describe('PairedTestEntry component', () => {
+  it('renders correctly with Learner Panel elements and unified 3-step rail', async () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <PairedTestEntry type="reading" />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Back to Reading tests')).toBeInTheDocument();
+    });
+    expect(screen.getByText('READING · PRACTICE TOGETHER')).toBeInTheDocument();
+    expect(screen.getByText('Test with a friend')).toBeInTheDocument();
+    expect(screen.getByText('01')).toBeInTheDocument();
+    expect(screen.getByText('02')).toBeInTheDocument();
+    expect(screen.getByText('03')).toBeInTheDocument();
+    expect(screen.getByText('Create & invite')).toBeInTheDocument();
+    expect(screen.getByText('Start together')).toBeInTheDocument();
+    expect(screen.getByText('Compare scores')).toBeInTheDocument();
+    expect(screen.getByText(/Answers stay private:/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Create room & invite/i })).toBeInTheDocument();
+  });
+
+  it('prompts user when attempting to proceed without consent', async () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <PairedTestEntry type="reading" />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Create room & invite/i })).toBeInTheDocument();
+    });
+
+    const submitBtn = screen.getByRole('button', { name: /Create room & invite/i });
+    fireEvent.click(submitBtn);
+
+    expect(
+      screen.getByText('Please check this box to agree before continuing.')
+    ).toBeInTheDocument();
+  });
+
+  it('displays human-friendly recovery message and try again button on error', async () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockRejectedValue(new Error('Invalid request origin'));
+
+    render(
+      <MemoryRouter>
+        <PairedTestEntry type="reading" />
+      </MemoryRouter>
+    );
+
+    const checkbox = screen.getByLabelText(/I agree to share my final test results/i);
+    fireEvent.click(checkbox);
+
+    const submitBtn = screen.getByRole('button', { name: /Create room & invite/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Unable to reach the paired study service from this address/i)
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument();
   });
 });
