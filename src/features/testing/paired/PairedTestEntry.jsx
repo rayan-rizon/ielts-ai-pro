@@ -10,7 +10,6 @@ import {
   ROW_CHEVRON,
   ROW_HOVER,
   TILE,
-  WELL,
 } from '@/features/dashboard/components/primitives.jsx';
 import {
   ReiconAlertCircle,

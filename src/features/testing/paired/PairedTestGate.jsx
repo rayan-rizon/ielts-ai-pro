@@ -1,48 +1,50 @@
-import PairedTestEntry from './PairedTestEntry';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import {
-  IconChip,
-  MICRO,
-  MUTED,
-  PANEL,
-  Pill,
-} from '@/features/dashboard/components/primitives.jsx';
-import { Headphones, LockKeyhole, Wifi } from 'lucide-react';
-import { cn } from '@/lib/cn';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { PairedContext } from './PairedContext';
 import { testRoomPath, roomLobbyPath } from './pairedApi';
 import { usePairedRoom } from './usePairedRoom';
 import PairedRoomView, { RoomLoading } from './PairedRoomView';
+import PairedRoomError from './PairedRoomError';
+import PairedTestEntry from './PairedTestEntry';
+import ActiveGateHeader from './components/ActiveGateHeader';
+import ActiveGateContent from './components/ActiveGateContent';
 
 function ActiveGate({ id, review, children, type }) {
   const state = usePairedRoom(id);
   const navigate = useNavigate();
   const route = useParams();
   const { room, act, error, conflict, now } = state;
+
   useEffect(() => {
     if (room && room.test_type !== type) {
       navigate(roomLobbyPath(room), { replace: true });
       return;
     }
-    if (room?.state === 'running' && room.own.session_id && route.id !== room.own.session_id) {
+    const isRunning = room?.state === 'running';
+    const ownSessionId = room?.own?.session_id;
+    const isDifferentSession = Boolean(ownSessionId) && route.id !== ownSessionId;
+    if (isRunning && isDifferentSession) {
       navigate(testRoomPath(room), { replace: true });
     }
   }, [room, route.id, navigate, type]);
 
   const { userProfile } = useAuth();
+
   useEffect(() => {
-    if (review && room?.state === 'complete') act('review').catch(() => {});
+    if (review && room?.state === 'complete') {
+      act('review').catch(() => {});
+    }
   }, [review, room?.state, act]);
+
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => setTick((t) => t + 1), 500);
     return () => clearInterval(timer);
   }, []);
+
   const initial = useMemo(() => {
-    if (!room?.snapshot || !room.own.session_id) return null;
+    if (!room?.snapshot || !room.own?.session_id) return null;
     return {
       testData: room.snapshot.testData,
       questions: room.snapshot.questions,
@@ -69,7 +71,8 @@ function ActiveGate({ id, review, children, type }) {
     };
     // Freeze the initial restore snapshot; polling must never overwrite unsaved local input.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room?.own.session_id, room?.state === 'complete', userProfile?.id]);
+  }, [room?.own?.session_id, room?.state === 'complete', userProfile?.id]);
+
   const value = useMemo(
     () => ({
       room,
@@ -81,100 +84,103 @@ function ActiveGate({ id, review, children, type }) {
     }),
     [room, initial, now, act]
   );
-  if (!room)
+
+  if (!room) {
+    if (error) {
+      return <PairedRoomError error={error} act={act} type={type} />;
+    }
     return (
-      <>
+      <div className="flex flex-col flex-1 h-full min-h-0 overflow-y-auto">
         <RoomLoading />
-        {error && (
-          <div role="alert" className="p-4">
-            {error}
-            <Button onClick={() => act('get').catch(() => {})}>Retry</Button>
-          </div>
-        )}
-      </>
+      </div>
     );
-  if (room.test_type !== type) return <RoomLoading />;
-  const waiting = room.own.submitted_at || !['running', 'complete'].includes(room.state);
-  if ((waiting || room.state === 'complete') && !(review && room.state === 'complete'))
-    return <PairedRoomView {...state} />;
+  }
+
+  if (room.test_type !== type) {
+    return (
+      <div className="flex flex-col flex-1 h-full min-h-0 overflow-y-auto">
+        <RoomLoading />
+      </div>
+    );
+  }
+
+  const isAwaitingSubmission = Boolean(room.own?.submitted_at);
+  const isInActiveTest = room.state === 'running' || room.state === 'complete';
+  const isLobbyOrPreparing = !isInActiveTest;
+  const isWaiting = isAwaitingSubmission || isLobbyOrPreparing;
+
+  const isCompleted = room.state === 'complete';
+  const isReviewMode = review && isCompleted;
+  const shouldRenderRoomView = (isWaiting || isCompleted) && !isReviewMode;
+
+  if (shouldRenderRoomView) {
+    return (
+      <div className="flex flex-col flex-1 h-full min-h-0 overflow-y-auto">
+        <PairedRoomView {...state} />
+      </div>
+    );
+  }
+
   const countdown = Math.max(0, Math.ceil((Date.parse(room.started_at) - now()) / 1000));
   const expired = room.state === 'running' && now() >= Date.parse(room.deadline);
+  const partner = room.members.find((m) => m.user_id !== room.actor_id);
+  const partnerSubmitted = Boolean(partner?.submitted_at);
+
   return (
     <PairedContext.Provider value={value}>
-      <div
-        className={`${PANEL} shrink-0 flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 text-sm`}
-        data-tick={tick % 2}
-        role="status"
-      >
-        <div className="flex items-center gap-2">
-          <IconChip icon={type === 'listening' ? Headphones : LockKeyhole} tone="accent" />
-          <div>
-            <p className={MICRO}>Study partners</p>
-            <p className={cn(MUTED, 'text-xs')}>Shared test session</p>
-          </div>
-        </div>
-        <span className="hidden h-7 w-px bg-slate-200 dark:bg-white/10 sm:block" />
-        <span className={cn(MICRO, 'flex items-center gap-1.5')}>
-          <Wifi className="h-3 w-3 text-[rgb(var(--signal-ok))]" />
-          {state.onlineCount} connected
-        </span>
-        {!state.connected && (
-          <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
-            Reconnecting live updates
-          </span>
-        )}
-        <Pill
-          tone={
-            room.members.find((m) => m.user_id !== room.actor_id)?.submitted_at ? 'ok' : 'neutral'
-          }
-        >
-          {room.members.find((m) => m.user_id !== room.actor_id)?.submitted_at
-            ? 'Partner submitted'
-            : 'Partner is taking the test'}
-        </Pill>
-        {!review && (
-          <Button size="sm" variant="ghost" onClick={() => act('leave').catch(() => {})}>
-            Finish with saved answers & leave
-          </Button>
-        )}
-      </div>
+      <ActiveGateHeader
+        type={type}
+        onlineCount={state.onlineCount}
+        connected={state.connected}
+        partnerSubmitted={partnerSubmitted}
+        review={review}
+        tick={tick}
+        onLeave={() => act('leave').catch(() => {})}
+      />
+
       {error && (
-        <div role="alert" className="p-2 text-sm">
+        <div role="alert" className="p-2 text-sm text-[rgb(var(--signal-fault))] text-center">
           {error}
         </div>
       )}
-      {conflict ? (
-        <div role="alert" className="p-4">
-          This attempt changed in another tab. Reload to restore its latest saved answers.
-          <Button onClick={() => window.location.reload()}>Reload</Button>
-        </div>
-      ) : countdown > 0 ? (
-        <div className="p-8 text-center" role="status">
-          Starting together in {countdown}…
-        </div>
-      ) : expired ? (
-        <div className="p-4" role="status">
-          Time is up. Your last server-saved answers are being finalized.
-          <Button onClick={() => act('get').catch(() => {})}>Check results</Button>
-        </div>
-      ) : initial ? (
-        children
-      ) : (
-        <RoomLoading />
-      )}
+
+      <ActiveGateContent
+        conflict={conflict}
+        countdown={countdown}
+        expired={expired}
+        initial={initial}
+        onCheckResults={() => act('get').catch(() => {})}
+      >
+        {children}
+      </ActiveGateContent>
     </PairedContext.Provider>
   );
 }
+
 export default function PairedTestGate({ children, type }) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const id = params.get('room');
   const invitation = new URLSearchParams(location.hash.slice(1)).get('invite');
   const together = params.get('together') === 'true';
-  if (!id && !invitation && !together) return children;
-  if (!id) return <PairedTestEntry type={type} invitation={invitation} />;
+
+  const isPairedFlow = Boolean(id || invitation || together);
+  if (!isPairedFlow) {
+    return children;
+  }
+
+  if (!id) {
+    return (
+      <div className="flex flex-col flex-1 h-full min-h-0 overflow-y-auto">
+        <PairedTestEntry type={type} invitation={invitation} />
+      </div>
+    );
+  }
+
+  const isReview = params.get('review') === 'true';
+
   return (
-    <ActiveGate key={id} id={id} type={type} review={params.get('review') === 'true'}>
+    <ActiveGate key={id} id={id} type={type} review={isReview}>
       {children}
     </ActiveGate>
   );

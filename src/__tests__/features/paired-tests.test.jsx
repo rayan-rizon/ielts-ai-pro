@@ -2,7 +2,7 @@ import { invitationPath, roomLobbyPath } from '@/features/testing/paired/pairedA
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import {
   prepareSnapshot,
   gradeSnapshot,
@@ -19,6 +19,7 @@ import PairedTestEntry from '@/features/testing/paired/PairedTestEntry';
 import PairedRoomView from '@/features/testing/paired/PairedRoomView';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
+import PairedTestGate from '@/features/testing/paired/PairedTestGate';
 
 vi.mock('@/features/auth/context/AuthContext', () => ({
   useAuth: () => ({ userProfile: { full_name: 'Alex Rivera' } }),
@@ -305,5 +306,105 @@ describe('PairedTestEntry component', () => {
       ).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument();
+  });
+});
+
+describe('PairedTestGate and PairedRoomError', () => {
+  it('renders loading skeleton while room is fetching with no errors', () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockImplementation(() => new Promise(() => {}));
+
+    render(
+      <MemoryRouter initialEntries={['/reading-test/test?room=test-room']}>
+        <PairedTestGate type="reading">
+          <div>Test Content</div>
+        </PairedTestGate>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByLabelText('Loading study room')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('renders PairedRoomError instead of skeletons when room loading fails', async () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockRejectedValue(new Error('Invalid room'));
+
+    render(
+      <MemoryRouter initialEntries={['/reading-test/test?room=test']}>
+        <PairedTestGate type="reading">
+          <div>Test Content</div>
+        </PairedTestGate>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    // Should NOT show pulsing skeletons
+    expect(screen.queryByLabelText('Loading study room')).not.toBeInTheDocument();
+    expect(screen.getByText('Study room not found')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Take test solo' })).toHaveAttribute(
+      'href',
+      '/reading'
+    );
+    expect(screen.getByRole('link', { name: /Back to Reading tests/i })).toHaveAttribute(
+      'href',
+      '/reading'
+    );
+  });
+
+  it('routes Take test solo to specific test runner when a valid test ID is in route', async () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockRejectedValue(new Error('Invalid room'));
+    const testUuid = '11111111-2222-3333-4444-555566667777';
+
+    render(
+      <MemoryRouter initialEntries={[`/reading-test/${testUuid}?room=test`]}>
+        <Routes>
+          <Route
+            path="/reading-test/:id"
+            element={
+              <PairedTestGate type="reading">
+                <div>Test Content</div>
+              </PairedTestGate>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('link', { name: 'Take test solo' })).toHaveAttribute(
+      'href',
+      `/reading-test?test-id=${testUuid}`
+    );
+  });
+
+  it('provides try again button on network or origin errors', async () => {
+    vi.spyOn(pairedApi, 'pairedRequest').mockRejectedValue(new Error('Invalid request origin'));
+
+    render(
+      <MemoryRouter initialEntries={['/reading-test/test?room=test']}>
+        <PairedTestGate type="reading">
+          <div>Test Content</div>
+        </PairedTestGate>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Connection error')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Unable to reach the study room service from this address/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Take test solo' })).toHaveAttribute(
+      'href',
+      '/reading'
+    );
   });
 });

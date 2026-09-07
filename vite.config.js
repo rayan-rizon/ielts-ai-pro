@@ -35,6 +35,9 @@ export default defineConfig({
             '/__supabase/functions': {
               target: SUPABASE_PROXY_TARGET,
               changeOrigin: true,
+              headers: {
+                origin: 'https://ieltsai.pro',
+              },
               rewrite: (requestPath) =>
                 requestPath.replace(/^\/__supabase\/functions/, '/functions/v1'),
             },
