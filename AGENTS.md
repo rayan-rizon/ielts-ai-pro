@@ -36,3 +36,21 @@ place changes it everywhere.
 
 When a route's model, fallback order or output budget changes, update the registry
 in the same commit.
+
+## Meta measurement and the Content-Security-Policy
+
+`docs/meta-conversions-api.md` is the reference for how the Pixel and the
+first-party Conversions API relay (`api/meta-capi.js`) fit together.
+
+The CSP in `vercel.json` **deliberately** blocks Meta's Open Bridge
+(Conversions API Gateway) endpoints and its client param builder. Those blocked
+requests appear as console errors and cost a Lighthouse Best Practices point,
+so they read like a bug. They are not.
+
+Do not add `https://*.on.aws`, `https://*.run.app`, or
+`capi-automation.s3.us-east-2.amazonaws.com` to the CSP to silence them. The
+wildcards would let the page POST to any AWS ECS or Cloud Run host, and the
+gateway is stale infrastructure from the Stape setup the relay replaced — it
+would duplicate relay events and ship visitor identifiers off-site. Remove the
+Open Bridge endpoint in Meta Events Manager instead; the requests then stop at
+source. See the doc before changing anything measurement-related in the CSP.

@@ -103,6 +103,18 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Vite's `__vitePreload` helper (\0vite/preload-helper.js) is a tiny
+          // virtual module that the entry chunk and every lazy route import
+          // depend on. It lives outside node_modules, so it fell through this
+          // function and Rollup was free to park it in whichever chunk claimed
+          // it first — in practice pdf-export-vendor. The entry then had to
+          // statically import 125 KB (386 KB unzipped) of jsPDF on every page
+          // load just to reach the helper, and Lighthouse measured that chunk
+          // as 86% unused on the landing page. Pin it to its own chunk for the
+          // same reason clsx and prop-types are pinned below.
+          if (id.includes('vite/preload-helper')) {
+            return 'vite-preload-helper';
+          }
           if (id.includes('node_modules')) {
             // Small shared helpers must be split before larger vendors that also import them.
             // Otherwise Rollup can place them inside a heavy async chunk, forcing the entry

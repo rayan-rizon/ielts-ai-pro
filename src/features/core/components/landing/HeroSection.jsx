@@ -117,7 +117,14 @@ function AiEvaluationCard() {
       <div className="mt-2.5 space-y-2">
         <div className={cn(WELL, 'flex items-center justify-between rounded-lg p-1.5')}>
           <div>
-            <p className={cn(MICRO, MUTED)}>Estimated Band</p>
+            {/*
+              MICRO is 9px bold, and on the light WELL fill slate-500 lands at
+              4.32:1 - just under the 4.5:1 WCAG AA threshold, which Lighthouse
+              flags. One step darker clears it at 6.88:1. Overridden here rather
+              than on the shared MUTED token so the dashboard's own palette is
+              left alone; dark mode already passes and is untouched.
+            */}
+            <p className={cn(MICRO, MUTED, 'text-slate-600')}>Estimated Band</p>
             <p
               className={cn(
                 NUM,
@@ -127,7 +134,10 @@ function AiEvaluationCard() {
               7.5
             </p>
           </div>
-          <Pill tone="sky">Good</Pill>
+          {/* sky-600 on the pill's tinted fill is 3.43:1 at 9px bold; sky-700 is 4.99:1. */}
+          <Pill tone="sky" className="text-sky-700">
+            Good
+          </Pill>
         </div>
 
         <div className="grid grid-cols-2 gap-1.5">

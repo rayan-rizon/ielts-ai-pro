@@ -7,6 +7,14 @@ import { cn } from '@/lib/cn';
 const LOGO_WIDTH = 300;
 const LOGO_HEIGHT = 72;
 
+// Lighthouse measures this logo as the LCP element on the landing page, so it
+// gets the browser's top image priority. Spread as a lowercase attribute rather
+// than written as a JSX prop: React 18 forwards the HTML-standard lowercase
+// name untouched, while the camel-cased `fetchPriority` prop it would warn
+// about is only mapped in later React versions. Same approach as the hero
+// artwork in landing/HeroSection.jsx.
+const logoPriorityProps = { fetchpriority: 'high' };
+
 export function LogoIcon({ className = 'w-8 h-8', variant = 'auto' }) {
   return (
     <svg
@@ -189,6 +197,7 @@ export function Logo({
           alt="IELTS AI Pro Logo"
           width={LOGO_WIDTH}
           height={LOGO_HEIGHT}
+          {...logoPriorityProps}
           className={cn(
             'w-auto object-contain transition-transform duration-300',
             animated && 'group-hover:scale-[1.03]',
@@ -207,6 +216,7 @@ export function Logo({
         alt="IELTS AI Pro Logo"
         width={LOGO_WIDTH}
         height={LOGO_HEIGHT}
+        {...logoPriorityProps}
         className={cn(
           'dark:hidden w-auto object-contain transition-transform duration-300',
           animated && 'group-hover:scale-[1.03]',

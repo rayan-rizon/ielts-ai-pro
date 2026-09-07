@@ -267,6 +267,14 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://zvrmvycajimjxghrnpgy.supabase.co" crossorigin />
+    <!--
+      PostHog is the only third party that fires inside the LCP window (~530ms;
+      GTM and the Pixel are deferred to ~3.4s and need no hint). Without this the
+      connection is opened cold and Lighthouse measured 370ms of LCP sitting in
+      DNS + TLS. Everything else stays on dns-prefetch so we do not spend
+      handshakes on hosts that are not on the critical path.
+    -->
+    <link rel="preconnect" href="https://us.i.posthog.com" crossorigin />
     <link rel="dns-prefetch" href="https://o4511451727331328.ingest.us.sentry.io" />
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -291,6 +299,16 @@
       crossorigin
       fetchpriority="high"
     />
+    <!--
+      Lighthouse measures the header logo - not the hero image - as the LCP
+      element on both mobile and desktop, because the nav paints before the hero
+      artwork decodes. It is rendered by React, so it is invisible to the preload
+      scanner: the request only starts once the entry bundle has booted, which
+      cost 514ms of pure load delay. Preloading makes it discoverable in the
+      initial document. It is 4KB, so the dark-theme visitor who ends up using
+      footer.svg instead loses a negligible amount.
+    -->
+    <link rel="preload" href="/logo.svg" as="image" type="image/svg+xml" fetchpriority="high" />
     <link
       rel="preload"
       href="/ielts-hero-student-640.webp"

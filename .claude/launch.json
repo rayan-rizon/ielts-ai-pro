@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "preview",
+      "runtimeExecutable": "./node_modules/.bin/vite",
+      "runtimeArgs": ["preview", "--port", "4173", "--strictPort"],
+      "port": 4173
     }
   ]
 }
