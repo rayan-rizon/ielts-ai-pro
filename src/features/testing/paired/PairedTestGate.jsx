@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { PairedContext } from './PairedContext';
@@ -7,7 +7,6 @@ import { usePairedRoom } from './usePairedRoom';
 import PairedRoomView, { RoomLoading } from './PairedRoomView';
 import PairedRoomError from './PairedRoomError';
 import PairedTestEntry from './PairedTestEntry';
-import ActiveGateHeader from './components/ActiveGateHeader';
 import ActiveGateContent from './components/ActiveGateContent';
 
 function ActiveGate({ id, review, children, type }) {
@@ -36,12 +35,6 @@ function ActiveGate({ id, review, children, type }) {
       act('review').catch(() => {});
     }
   }, [review, room?.state, act]);
-
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => setTick((t) => t + 1), 500);
-    return () => clearInterval(timer);
-  }, []);
 
   const initial = useMemo(() => {
     if (!room?.snapshot || !room.own?.session_id) return null;
@@ -73,6 +66,9 @@ function ActiveGate({ id, review, children, type }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.own?.session_id, room?.state === 'complete', userProfile?.id]);
 
+  const partner = room?.members?.find((member) => member.user_id !== room.actor_id);
+  const partnerSubmitted = Boolean(partner?.submitted_at);
+
   const value = useMemo(
     () => ({
       room,
@@ -81,8 +77,15 @@ function ActiveGate({ id, review, children, type }) {
       act,
       save: (answers) => act('save', { answers }),
       submit: (answers) => act('submit', { answers }),
+      status: {
+        onlineCount: state.onlineCount,
+        connected: state.connected,
+        partnerSubmitted,
+        review,
+        onLeave: () => act('leave').catch(() => {}),
+      },
     }),
-    [room, initial, now, act]
+    [room, initial, now, act, state.onlineCount, state.connected, partnerSubmitted, review]
   );
 
   if (!room) {
@@ -123,21 +126,8 @@ function ActiveGate({ id, review, children, type }) {
 
   const countdown = Math.max(0, Math.ceil((Date.parse(room.started_at) - now()) / 1000));
   const expired = room.state === 'running' && now() >= Date.parse(room.deadline);
-  const partner = room.members.find((m) => m.user_id !== room.actor_id);
-  const partnerSubmitted = Boolean(partner?.submitted_at);
-
   return (
     <PairedContext.Provider value={value}>
-      <ActiveGateHeader
-        type={type}
-        onlineCount={state.onlineCount}
-        connected={state.connected}
-        partnerSubmitted={partnerSubmitted}
-        review={review}
-        tick={tick}
-        onLeave={() => act('leave').catch(() => {})}
-      />
-
       {error && (
         <div role="alert" className="p-2 text-sm text-[rgb(var(--signal-fault))] text-center">
           {error}

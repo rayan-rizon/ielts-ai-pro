@@ -8,7 +8,6 @@ import { preloadListeningAudios } from './utils/audioPreloader';
 
 import PairedRoomHeader from './components/PairedRoomHeader';
 import PairedRoomInviteHero from './components/PairedRoomInviteHero';
-import SessionSteps from './components/SessionSteps';
 import ParticipantCard from './components/ParticipantCard';
 import WaitingPartnerCard from './components/WaitingPartnerCard';
 import PairedRoomComparison from './components/PairedRoomComparison';
@@ -104,8 +103,6 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
         {room.state === 'lobby' && (
           <PairedRoomInviteHero room={room} copied={copied} copyInvitation={copyInvitation} />
         )}
-
-        <SessionSteps state={room.state} />
 
         {(error || (!bothComplete && notice)) && (
           <div

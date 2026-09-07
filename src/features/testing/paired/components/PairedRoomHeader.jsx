@@ -8,6 +8,7 @@ import {
   ReiconUsers,
 } from '@/components/ui/reicon';
 import { cn } from '@/lib/cn';
+import SessionSteps from './SessionSteps';
 
 function displayType(type) {
   return type === 'listening' ? 'Listening' : 'Reading';
@@ -186,6 +187,8 @@ export default function PairedRoomHeader({ room, state, bothComplete, onlineCoun
             onlineCount={onlineCount}
           />
         )}
+
+        <SessionSteps state={room.state} />
       </div>
     </header>
   );

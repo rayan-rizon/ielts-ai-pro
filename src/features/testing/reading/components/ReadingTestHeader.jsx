@@ -18,6 +18,7 @@ import { getQuestionCount } from '@/lib/utils';
 import { useReadingTestTimer } from './ReadingTest/context/ReadingTestContext';
 import PacingIndicator from './ReadingTest/components/PacingIndicator';
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
+import ActiveGateHeader from '@/features/testing/paired/components/ActiveGateHeader';
 import {
   TEST_HEADER_AUTOSAVE,
   TEST_HEADER_BADGE,
@@ -367,13 +368,14 @@ const ReadingTestHeader = ({
             />
           ) : (
             <>
+              <ActiveGateHeader />
               {/* Autosave Indicator */}
               <div className={TEST_HEADER_AUTOSAVE} data-oid="jev398y">
                 {isSaving ? (
                   <Loader2 className="w-3 h-3 text-[#5a63df] animate-spin" data-oid="4osmwi5" />
                 ) : (
                   <div
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300 dark:bg-slate-600'}`}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${lastSaved ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
                     data-oid="lcjcowv"
                   />
                 )}

@@ -6,7 +6,7 @@
  * colour reserved for an active state or a time warning.
  */
 export const TEST_HEADER_SHELL =
-  'w-full rounded-xl border border-[#e4e2f0] bg-white/90 backdrop-blur-md transition-all duration-300 dark:border-white/10 dark:bg-[#131315]/95 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]';
+  'w-full rounded-xl border border-[#e4e2f0] bg-white transition-all duration-300 dark:border-white/10 dark:bg-[#131315] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]';
 
 export const TEST_HEADER_BACK =
   'group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0 text-slate-700 shadow-none transition-all duration-200 hover:border-[#c8c9e6] hover:bg-[#ebeaf7] hover:text-[#5a63df] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/25 dark:border-white/12 dark:bg-white/5.5 dark:text-slate-200 dark:hover:border-white/24 dark:hover:bg-white/9 dark:hover:text-[#afb5ff]';

@@ -17,6 +17,7 @@ import { calculateListeningTestResults } from '@/features/testing/listening/comp
 import * as pairedApi from '@/features/testing/paired/pairedApi';
 import PairedTestEntry from '@/features/testing/paired/PairedTestEntry';
 import PairedRoomView from '@/features/testing/paired/PairedRoomView';
+import SessionSteps from '@/features/testing/paired/components/SessionSteps';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 import PairedTestGate from '@/features/testing/paired/PairedTestGate';
@@ -162,6 +163,17 @@ describe('authoritative paired scoring', () => {
   });
 });
 describe('paired comparison interface', () => {
+  it.each([
+    ['lobby', 'Join lobby'],
+    ['running', 'Take test'],
+    ['grading', 'Compare results'],
+    ['complete', 'Compare results'],
+  ])('tracks the %s room state in the session progress rail', (state, currentLabel) => {
+    render(<SessionSteps state={state} />);
+
+    expect(screen.getByText(currentLabel).closest('li')).toHaveAttribute('aria-current', 'step');
+  });
+
   it('withholds comparison for an early submission', () => {
     const source = serverRoom();
     source.members[0].submitted_at = '2026-09-01';
