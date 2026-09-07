@@ -1,5 +1,5 @@
 import React from 'react';
-import { MICRO, NUM } from '@/features/dashboard/components/primitives.jsx';
+import { MICRO, NUM, Pill } from '@/features/dashboard/components/primitives.jsx';
 import { cn } from '@/lib/cn';
 
 function initials(name) {
@@ -44,15 +44,15 @@ function AccuracyMeterRow({ label, correct, total, meterLabel }) {
   );
 }
 
-export default function Breakdown({ member }) {
+export default function Breakdown({ member, isMine = false }) {
   const summary = member.summary;
   if (!summary) return null;
 
   const displayName = (member.display_name || 'Anonymous').replace(/[()]/g, '').trim();
 
   return (
-    <section className="rounded-2xl border border-[#e4e2f0] bg-white p-3.5 sm:p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#121118]">
-      <div className="flex items-center justify-between pb-2.5 border-b border-[#eceafa] dark:border-white/[0.06]">
+    <section className="rounded-xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 dark:border-white/[0.07] dark:from-[#141319] dark:to-[#100f15]">
+      <div className="flex items-start justify-between gap-3 pb-2.5 border-b border-[#eceafa] dark:border-white/[0.06]">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700 font-bold text-xs dark:bg-white/[0.08] dark:text-slate-200">
             {initials(displayName)}
@@ -61,9 +61,12 @@ export default function Breakdown({ member }) {
             <h3 className="truncate text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
               {displayName}'s skill breakdown
             </h3>
-            <p className="truncate text-[10px] text-slate-500 dark:text-slate-400">
-              Accuracy by test part and question category
-            </p>
+            <div className="mt-1 flex items-center gap-1.5">
+              <Pill tone={isMine ? 'accent' : 'neutral'}>
+                {isMine ? 'Your result' : 'Study partner'}
+              </Pill>
+              <span className={cn(MICRO, 'text-emerald-600 dark:text-emerald-400')}>Locked</span>
+            </div>
           </div>
         </div>
         <span

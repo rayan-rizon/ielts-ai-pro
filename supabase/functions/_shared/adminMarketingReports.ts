@@ -29,7 +29,7 @@ async function rows(query: any) {
   return result.data || [];
 }
 export async function runReport(db: any, report: string, days: unknown) {
-  if (!Object.hasOwn(REPORTS, report)) throw new Error('Unsupported report');
+  if (!Object.prototype.hasOwnProperty.call(REPORTS, report)) throw new Error('Unsupported report');
   const window = reportWindow(days);
   const definitions: Record<
     string,
@@ -104,7 +104,7 @@ export async function runReport(db: any, report: string, days: unknown) {
           throw new Error('Report counts are unavailable. Please retry.');
         return {
           id: `${report}.${channel || 'all'}.${status}`,
-          label: [channel?.replaceAll('_', ' '), status.replaceAll('_', ' ')]
+          label: [channel?.split('_').join(' '), status.split('_').join(' ')]
             .filter(Boolean)
             .join(' · '),
           value: result.count,

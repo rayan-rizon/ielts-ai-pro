@@ -1,12 +1,23 @@
 import React from 'react';
-import { CheckCircle2, Sparkles } from 'lucide-react';
+import { CheckCircle2, LockKeyhole, Sparkles } from 'lucide-react';
 import { ReiconAlertCircle, ReiconTrophy } from '@/components/ui/reicon';
-import { MICRO, NUM, Pill } from '@/features/dashboard/components/primitives.jsx';
+import {
+  IconChip,
+  MICRO,
+  NUM,
+  PANEL,
+  Pill,
+  TILE,
+} from '@/features/dashboard/components/primitives.jsx';
 import { cn } from '@/lib/cn';
 import Breakdown from './Breakdown';
 
 function displayQuestionType(type) {
   return type.replaceAll('_', ' ');
+}
+
+function focusLabel(item) {
+  return displayQuestionType(item.type);
 }
 
 export default function PairedRoomComparison({
@@ -20,7 +31,7 @@ export default function PairedRoomComparison({
 }) {
   return (
     <>
-      <section className="rounded-2xl border border-[#e4e2f0] bg-white p-3 sm:p-3.5 shadow-xs dark:border-white/[0.08] dark:bg-[#121118]">
+      <section className={cn(PANEL, 'p-3 sm:p-3.5')}>
         <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 border-b border-[#eceafa] dark:border-white/[0.06]">
           <div className="flex items-center gap-2">
             <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
@@ -35,14 +46,23 @@ export default function PairedRoomComparison({
               </p>
             </div>
           </div>
-          <Pill tone="ok">
-            <CheckCircle2 className="h-3 w-3" /> Both finished
-          </Pill>
+          <div className="flex items-center gap-1.5">
+            <Pill tone="ok">
+              <CheckCircle2 className="h-3 w-3" /> Both finished
+            </Pill>
+            <span
+              className={cn(
+                MICRO,
+                'inline-flex items-center gap-1 text-slate-400 dark:text-slate-500'
+              )}
+            >
+              <LockKeyhole className="h-3 w-3" /> Locked
+            </span>
+          </div>
         </div>
 
-        <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5">
-          {/* Tile 1: Your Result */}
-          <div className="rounded-xl border border-[#5a63df]/25 bg-[#5a63df]/[0.04] py-2 px-2.5 sm:py-2.5 sm:px-3 dark:border-[#8f97ff]/30 dark:bg-[#5a63df]/10">
+        <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5">
+          <div className="rounded-lg border border-[#5a63df]/25 bg-[#5a63df]/[0.04] py-2 px-2.5 sm:py-2.5 sm:px-3 dark:border-[#8f97ff]/30 dark:bg-[#5a63df]/10">
             <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>Your band</p>
             <p
               className={cn(
@@ -57,8 +77,7 @@ export default function PairedRoomComparison({
             </p>
           </div>
 
-          {/* Tile 2: Partner's Result */}
-          <div className="rounded-xl border border-[#e8e6f5] bg-[#f8f7fd] py-2 px-2.5 sm:py-2.5 sm:px-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+          <div className="rounded-lg border border-[#e8e6f5] bg-[#f8f7fd] py-2 px-2.5 sm:py-2.5 sm:px-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
             <p className={cn(MICRO, 'text-slate-400 dark:text-slate-400 truncate')}>
               {partnerName}'s band
             </p>
@@ -76,8 +95,7 @@ export default function PairedRoomComparison({
             </p>
           </div>
 
-          {/* Tile 3: Comparative Band Delta */}
-          <div className="rounded-xl border border-[#e8e6f5] bg-[#f8f7fd] py-2 px-2.5 sm:py-2.5 sm:px-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+          <div className="col-span-2 rounded-lg border border-[#e8e6f5] bg-[#f8f7fd] py-2 px-2.5 sm:col-span-1 sm:py-2.5 sm:px-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
             <p className={cn(MICRO, 'text-slate-400 dark:text-slate-400')}>Band delta</p>
             <p
               className={cn(
@@ -104,35 +122,25 @@ export default function PairedRoomComparison({
                   : `${Math.abs(correctDelta)} questions gap`}
             </p>
           </div>
-
-          {/* Tile 4: Room Status */}
-          <div className="rounded-xl border border-[#e8e6f5] bg-[#f8f7fd] py-2 px-2.5 sm:py-2.5 sm:px-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
-            <p className={cn(MICRO, 'text-slate-400 dark:text-slate-400')}>Room status</p>
-            <p className="mt-0.5 flex items-center gap-1 text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Complete
-            </p>
-            <p className="mt-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-              All answers locked
-            </p>
-          </div>
         </div>
       </section>
 
       {/* Side-by-side Participant Breakdowns */}
       <div className="grid gap-4 lg:grid-cols-2">
         {room.members.map((member) => (
-          <Breakdown key={member.user_id} member={member} />
+          <Breakdown
+            key={member.user_id}
+            member={member}
+            isMine={member.user_id === room.actor_id}
+          />
         ))}
       </div>
 
-      {/* Shared Practice Signal for Common Weak Areas */}
       {commonWeak.length > 0 && (
-        <section className="rounded-2xl border border-[#5a63df]/25 bg-gradient-to-br from-[#5a63df]/[0.05] via-white to-white p-3.5 sm:p-4 shadow-xs dark:border-[#5a63df]/35 dark:from-[#5a63df]/15 dark:via-[#121118] dark:to-[#121118]">
+        <section className={cn(PANEL, 'border-[#5a63df]/25 p-3.5 sm:p-4 dark:border-[#5a63df]/35')}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#5a63df] text-white shadow-2xs">
-                <Sparkles className="h-4 w-4" />
-              </div>
+              <IconChip icon={Sparkles} tone="accent" size="lg" />
               <div>
                 <div className="flex items-center gap-2">
                   <span
@@ -143,39 +151,42 @@ export default function PairedRoomComparison({
                   >
                     Shared Practice Signal
                   </span>
-                  <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-                    • Common focus areas
-                  </span>
+                  <Pill tone="amber">
+                    {commonWeak.length} shared focus {commonWeak.length === 1 ? 'area' : 'areas'}
+                  </Pill>
                 </div>
                 <h3 className="mt-1 text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                  Practice these question types together next
+                  Choose one shared skill for your next practice
                 </h3>
                 <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
-                  Both of you scored below 60% in{' '}
-                  <span className="font-semibold text-slate-800 dark:text-slate-100">
-                    {commonWeak.map(displayQuestionType).join(', ')}
-                  </span>
-                  . Reviewing these question types together will boost both of your band scores.
+                  Each skill below is below the 60% practice target for both students.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.06]">
-            {commonWeak.map((type) => (
-              <div
-                key={type}
-                className="inline-flex items-center gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-800 dark:border-amber-500/35 dark:bg-amber-500/15 dark:text-amber-300"
-              >
-                <ReiconAlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                <span className="capitalize">{displayQuestionType(type)}</span>
+          <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#eceafa] pt-2.5 lg:grid-cols-3 dark:border-white/[0.06]">
+            {commonWeak.map((item) => (
+              <div key={item.type} className={cn(TILE, 'flex items-center gap-2 px-2.5 py-2')}>
+                <ReiconAlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div className="min-w-0 flex-1">
+                  <p
+                    title={focusLabel(item)}
+                    className="truncate text-[11px] font-bold capitalize text-slate-800 dark:text-slate-100"
+                  >
+                    {focusLabel(item)}
+                  </p>
+                  <p className={cn(MICRO, 'mt-0.5 text-amber-600 dark:text-amber-300')}>
+                    Both below target
+                  </p>
+                </div>
                 <span
                   className={cn(
                     NUM,
-                    'rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold'
+                    'shrink-0 text-[11px] font-bold text-slate-500 dark:text-slate-300'
                   )}
                 >
-                  &lt; 60% accuracy
+                  {item.mine}% / {item.partner}%
                 </span>
               </div>
             ))}

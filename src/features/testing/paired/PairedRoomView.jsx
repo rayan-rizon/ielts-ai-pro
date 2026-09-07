@@ -50,13 +50,22 @@ export default function PairedRoomView({ room, act, error, onlineCount = 0 }) {
 
   const commonWeak = useMemo(() => {
     if (summaries.length !== 2) return [];
-    return Object.keys(summaries[0].typeStats || {}).filter((type) =>
-      summaries.every(
-        (summary) =>
-          summary.typeStats?.[type]?.total > 0 &&
-          summary.typeStats[type].correct / summary.typeStats[type].total < 0.6
-      )
-    );
+    return Object.keys(summaries[0].typeStats || {})
+      .map((type) => {
+        const scores = summaries.map((summary) => summary.typeStats?.[type]);
+        if (scores.some((score) => !score?.total || score.correct / score.total >= 0.6)) {
+          return null;
+        }
+        const accuracy = scores.map((score) => Math.round((score.correct / score.total) * 100));
+        return {
+          type,
+          mine: accuracy[0],
+          partner: accuracy[1],
+          average: Math.round((accuracy[0] + accuracy[1]) / 2),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.average - b.average);
   }, [summaries]);
 
   const run = async (action, data = {}) => {

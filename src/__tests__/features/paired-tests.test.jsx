@@ -245,6 +245,22 @@ describe('paired comparison interface', () => {
     );
     expect(screen.queryByText('secret')).not.toBeInTheDocument();
   });
+  it('labels locked results and turns shared weaknesses into concise practice signals', () => {
+    render(
+      <MemoryRouter>
+        <PairedRoomView room={publicRoom(serverRoom('complete'))} act={vi.fn()} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Both finished')).toBeInTheDocument();
+    expect(screen.getByText('Your result')).toBeInTheDocument();
+    expect(screen.getAllByText('Study partner')).toHaveLength(2);
+    expect(screen.getByText('1 shared focus area')).toBeInTheDocument();
+    expect(screen.getByText('Both below target')).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Reviewing these question types together will boost/)
+    ).not.toBeInTheDocument();
+  });
   it('disables start until both students are ready', () => {
     const source = serverRoom('lobby');
     source.members[1].ready = false;
