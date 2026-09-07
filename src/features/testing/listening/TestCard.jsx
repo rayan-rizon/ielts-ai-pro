@@ -99,7 +99,7 @@ function TestCard({
           completedSession={completedSession}
         />
       </div>
-      <TakeWithFriend test={test} isLocked={isLocked} />
+      <TakeWithFriend test={test} type="listening" isLocked={isLocked} />
     </m.div>
   );
 }

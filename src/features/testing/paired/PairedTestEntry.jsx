@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
+  ArrowLeft,
   ArrowRight,
-  Check,
   Clock3,
   Headphones,
   LockKeyhole,
@@ -14,17 +14,13 @@ import {
   IconChip,
   MICRO,
   MUTED,
-  NUM,
   PANEL,
-  PanelTitle,
   Pill,
   TILE,
   TITLE,
-  WELL,
 } from '@/features/dashboard/components/primitives.jsx';
 import { cn } from '@/lib/cn';
 import { pairedRequest, roomLobbyPath } from './pairedApi';
-import { RoomLoading } from './PairedRoomView';
 
 function testLabel(type) {
   return type === 'listening' ? 'Listening' : 'Reading';
@@ -83,121 +79,100 @@ export default function PairedTestEntry({ type, invitation }) {
 
   return (
     <main className="min-h-full w-full bg-[#f7f7fb] dark:bg-[#0b0b0e]">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className={cn(PANEL, 'overflow-hidden')}>
-          <div className="border-t-2 border-[#5a63df] p-5 sm:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex min-w-0 items-start gap-3">
-                <IconChip
-                  icon={type === 'listening' ? Headphones : Users}
-                  tone="accent"
-                  size="md"
-                />
-                <div className="min-w-0">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 py-5 sm:px-6 sm:py-7">
+        <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit">
+          <Link to={`/${type}`}>
+            <ArrowLeft className="h-4 w-4" /> Back to {type} tests
+          </Link>
+        </Button>
+
+        <section className={cn(PANEL, 'overflow-hidden border-[#5a63df]/25')}>
+          <div className="border-t-2 border-[#5a63df] p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <IconChip icon={type === 'listening' ? Headphones : Users} tone="accent" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
                   <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>
-                    {testLabel(type)} · paired practice
+                    {testLabel(type)} · practice together
                   </p>
-                  <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                    {preview?.title || 'Take this test together'}
-                  </h1>
-                  <p className={cn(MUTED, 'mt-2 max-w-2xl text-sm leading-relaxed')}>
-                    Invite one study partner, start from the same countdown, and turn one practice
-                    test into a shared next step.
-                  </p>
+                  <Pill tone="accent" className="px-1.5 py-0 text-[8px]">
+                    2 students
+                  </Pill>
                 </div>
-              </div>
-              <Pill tone="accent">Two students</Pill>
-            </div>
-            <div className="mt-6 grid grid-cols-3 gap-2">
-              <div className={cn(TILE, 'p-3')}>
-                <Clock3 className="h-4 w-4 text-[#5a63df]" />
-                <p className={cn(MICRO, 'mt-2')}>Shared start</p>
-                <p className="mt-0.5 text-xs font-semibold">One countdown</p>
-              </div>
-              <div className={cn(TILE, 'p-3')}>
-                <Users className="h-4 w-4 text-[#5a63df]" />
-                <p className={cn(MICRO, 'mt-2')}>Capacity</p>
-                <p className={cn(NUM, 'mt-0.5 text-xs')}>2 students</p>
-              </div>
-              <div className={cn(TILE, 'p-3')}>
-                <LockKeyhole className="h-4 w-4 text-slate-500" />
-                <p className={cn(MICRO, 'mt-2')}>Privacy</p>
-                <p className="mt-0.5 text-xs font-semibold">Answers private</p>
+                <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                  {preview?.title || 'Test with a friend'}
+                </h1>
+                <p className={cn(MUTED, 'mt-1 text-sm leading-relaxed')}>
+                  Invite one friend, start together, and compare scores after both finish.
+                </p>
               </div>
             </div>
-          </div>
-        </header>
 
-        {error && (
-          <div
-            role="alert"
-            className={cn(
-              TILE,
-              'flex items-start gap-2 border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.08)] p-3 text-sm'
-            )}
-          >
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-warn))]" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {loading ? (
-          <RoomLoading />
-        ) : (
-          <section className={cn(PANEL, 'p-4 sm:p-5')}>
-            <PanelTitle
-              label={invitation ? 'Review the invitation' : 'Create your private room'}
-              accent
-            />
-            <p className={cn(MUTED, 'max-w-2xl text-sm leading-relaxed')}>
-              Both students use their own account and access. When both attempts are locked, you
-              will share estimated bands, correct-answer totals, and skill breakdowns. Submitted
-              answers never appear to your partner.
-            </p>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 flex flex-wrap gap-1.5">
               {[
-                ['01', 'Join the lobby', 'Use a private invite link.'],
-                ['02', 'Take it separately', 'Your answers stay yours.'],
-                ['03', 'Review together', 'Compare skills at the end.'],
-              ].map(([number, title, copy]) => (
-                <div key={number} className={cn(TILE, 'flex gap-3 p-3')}>
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#5a63df]/10 text-[10px] font-bold text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
-                    {number}
-                  </span>
-                  <div>
-                    <p className={TITLE}>{title}</p>
-                    <p className={cn(MUTED, 'mt-0.5 text-xs')}>{copy}</p>
-                  </div>
-                </div>
+                [Clock3, 'Shared start'],
+                [LockKeyhole, 'Private answers'],
+                [Users, 'Compare scores'],
+              ].map(([Icon, label]) => (
+                <span
+                  key={label}
+                  className={cn(
+                    TILE,
+                    'inline-flex items-center gap-1.5 px-2 py-1.5 text-[10px] font-bold'
+                  )}
+                >
+                  <Icon className="h-3 w-3 text-[#5a63df]" /> {label}
+                </span>
               ))}
             </div>
 
-            <label
-              className={cn(
-                TILE,
-                'mt-5 flex cursor-pointer items-start gap-3 p-3 transition-colors hover:border-[#5a63df]/35'
-              )}
-            >
+            <div className="my-5 border-t border-[#eceafa] dark:border-white/[0.07]" />
+
+            <h2 className={cn(TITLE, 'text-sm')}>
+              {invitation ? 'Join this private test' : 'Create a private room'}
+            </h2>
+            <p className={cn(MUTED, 'mt-1 text-xs leading-relaxed')}>
+              Your friend sees your final band, correct total, and skill breakdown. Your answers
+              stay private.
+            </p>
+
+            <ol className="mt-3 grid gap-1.5 sm:grid-cols-3" aria-label="How paired practice works">
+              {['Invite a friend', 'Take the test', 'Compare results'].map((label, index) => (
+                <li key={label} className={cn(TILE, 'flex items-center gap-2 px-2.5 py-2')}>
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#5a63df]/10 text-[9px] font-bold text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
+                    {index + 1}
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
+                    {label}
+                  </span>
+                </li>
+              ))}
+            </ol>
+
+            <label className="mt-3 flex cursor-pointer items-start gap-2.5 rounded-lg border border-[#e4e2f0] px-3 py-2.5 transition-colors hover:border-[#5a63df]/35 dark:border-white/[0.07]">
               <input
-                className="mt-0.5 h-4 w-4 accent-[#5a63df]"
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#5a63df]"
                 type="checkbox"
                 checked={consent}
                 onChange={(event) => setConsent(event.target.checked)}
               />
-              <span>
-                <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  I agree to share my results with my study partner.
-                </span>
-                <span className={cn(MUTED, 'mt-1 block text-xs')}>
-                  This includes estimated band, total correct, and section/question-type breakdowns
-                  only.
-                </span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                I agree to share my final results with my study partner.
               </span>
             </label>
 
+            {error && (
+              <div
+                role="alert"
+                className="mt-3 flex items-center gap-2 rounded-lg border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.08)] px-3 py-2 text-xs"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-warn))]" />
+                <span>{error}</span>
+              </div>
+            )}
+
             {preview && !preview.can_access ? (
-              <p className="mt-4 text-sm">
+              <p className="mt-3 text-xs">
                 Your account needs access to this test before joining.{' '}
                 <Link
                   className="font-semibold text-[#5a63df] underline underline-offset-2"
@@ -207,48 +182,36 @@ export default function PairedTestEntry({ type, invitation }) {
                 </Link>
               </p>
             ) : (
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Button disabled={busy || !consent || (!!invitation && !preview)} onClick={proceed}>
-                  {busy
-                    ? 'Preparing test…'
-                    : invitation
-                      ? 'Join private test'
-                      : 'Create invitation'}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Button
+                  disabled={busy || loading || !consent || (!!invitation && !preview)}
+                  onClick={proceed}
+                >
+                  {busy ? 'Preparing…' : invitation ? 'Join test' : 'Create invitation'}
                   {!busy && <ArrowRight className="h-4 w-4" />}
                 </Button>
-                <Button asChild variant="ghost">
-                  <Link to={`/${type}`}>Back to {type} tests</Link>
-                </Button>
+                {loading && <span className={cn(MICRO, MUTED)}>Checking availability…</span>}
               </div>
             )}
-          </section>
-        )}
+          </div>
+        </section>
 
-        {!invitation && !loading && (
+        {!invitation && !loading && history.length > 0 && (
           <section className={cn(PANEL, 'p-4 sm:p-5')}>
-            <PanelTitle label="Your paired attempts" />
-            {history.length === 0 ? (
-              <div className={cn(WELL, 'flex items-center gap-3 rounded-lg p-4')}>
-                <Check className="h-4 w-4 text-slate-400" />
-                <p className={cn(MUTED, 'text-sm')}>
-                  Your first paired {type} attempt starts here.
-                </p>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {history.map((room) => (
-                  <li key={room.id} className={cn(TILE, 'p-3')}>
-                    <Link
-                      className="flex items-center justify-between gap-3 text-sm"
-                      to={`/${type}-test/${id}?room=${room.id}`}
-                    >
-                      <span className="truncate font-semibold">{room.title}</span>
-                      <Pill tone={room.state === 'complete' ? 'ok' : 'neutral'}>{room.state}</Pill>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className={cn(MICRO, MUTED)}>Recent paired tests</p>
+            <ul className="mt-2 space-y-1.5">
+              {history.map((room) => (
+                <li key={room.id} className={cn(TILE, 'px-3 py-2')}>
+                  <Link
+                    className="flex items-center justify-between gap-3 text-xs"
+                    to={`/${type}-test/${id}?room=${room.id}`}
+                  >
+                    <span className="truncate font-semibold">{room.title}</span>
+                    <Pill tone={room.state === 'complete' ? 'ok' : 'neutral'}>{room.state}</Pill>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
       </div>

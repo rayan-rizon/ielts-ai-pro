@@ -9,6 +9,7 @@ import { useReadingData } from '@/features/testing/reading/useReadingData';
 import { filterReadingTests } from '@/features/testing/reading/readingFilterUtils';
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
+import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 
 export default function Reading() {
   const { userProfile: userData, isAdmin, loading: authLoading } = useAuth();
@@ -58,23 +59,27 @@ export default function Reading() {
           onViewModeChange={setViewMode}
         />
 
-        {isLoading ? (
-          <SkeletonGrid viewMode={viewMode} />
-        ) : (
-          <TestsGrid
-            filteredTests={filteredTests}
-            sessions={sessions}
-            testCounts={testCounts}
-            questionCounts={questionCounts}
-            durations={durations}
-            userData={userData}
-            isAdmin={isAdmin}
-            hasMounted={hasMounted}
-            viewMode={viewMode}
-            searchQuery={searchQuery}
-            activeTab={activeTab}
-          />
-        )}
+        <PairedPracticeSpotlight type="reading" />
+
+        <div id="available-tests" className="scroll-mt-4">
+          {isLoading ? (
+            <SkeletonGrid viewMode={viewMode} />
+          ) : (
+            <TestsGrid
+              filteredTests={filteredTests}
+              sessions={sessions}
+              testCounts={testCounts}
+              questionCounts={questionCounts}
+              durations={durations}
+              userData={userData}
+              isAdmin={isAdmin}
+              hasMounted={hasMounted}
+              viewMode={viewMode}
+              searchQuery={searchQuery}
+              activeTab={activeTab}
+            />
+          )}
+        </div>
 
         {!isLoading && readingData?.hasMore && (
           <div className="flex justify-center pt-2">

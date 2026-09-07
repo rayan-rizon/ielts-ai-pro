@@ -13,7 +13,7 @@ import { Headphones, LockKeyhole, Wifi } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { PairedContext } from './PairedContext';
-import { pairedTestsEnabled, testRoomPath, roomLobbyPath } from './pairedApi';
+import { testRoomPath, roomLobbyPath } from './pairedApi';
 import { usePairedRoom } from './usePairedRoom';
 import PairedRoomView, { RoomLoading } from './PairedRoomView';
 
@@ -172,7 +172,6 @@ export default function PairedTestGate({ children, type }) {
   const invitation = new URLSearchParams(location.hash.slice(1)).get('invite');
   const together = params.get('together') === 'true';
   if (!id && !invitation && !together) return children;
-  if (!pairedTestsEnabled) return <p className="p-6">Paired practice is not available yet.</p>;
   if (!id) return <PairedTestEntry type={type} invitation={invitation} />;
   return (
     <ActiveGate key={id} id={id} type={type} review={params.get('review') === 'true'}>

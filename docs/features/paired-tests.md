@@ -4,7 +4,7 @@ Private two-person exam practice lives directly in the existing Reading and List
 
 ## Routes and operation
 
-- Test cards and the eligible test's pre-start screen expose **Take with a friend** when `VITE_PAIRED_TESTS_ENABLED=true`.
+- Reading and Listening libraries introduce the feature above the test grid. Every eligible full-test card exposes **Take with a friend**; compact volume rows expose **Together**.
 - `/reading-test/:passageId?together=true` (and the Listening equivalent) opens creation, consent and previous paired attempts for that skill.
 - Invitations use the same test route with `#invite=<token>`. The fragment survives the existing sign-in return flow and is not sent as an HTTP URL query or referrer.
 - `?room=<id>` opens the lobby/countdown/current test/waiting/comparison, based on server state. Active attempts use their own session ID. `&review=true&view-results=true` opens private review after both finish.
@@ -28,11 +28,11 @@ There is one active room per student and two students per room, with database-en
 
 ## Release procedure
 
-1. Keep both flags off initially: frontend `VITE_PAIRED_TESTS_ENABLED=false` and Edge secret `PAIRED_TESTS_ENABLED=false`.
+1. Use the Edge secret `PAIRED_TESTS_ENABLED=false` as the emergency kill switch. The discovery UI remains visible so students can understand the feature; the server remains authoritative for availability.
 2. Review/apply `20260906204606_paired_test_rooms.sql` to a non-production Supabase environment; deploy `paired-tests`. Its JWT gateway verification is off because the handler verifies each token itself. Keep the service key server-only. For local function development only, set `ALLOW_LOOPBACK_ORIGINS=true`.
 3. Run `supabase/tests/paired_rooms.sql` in an isolated database. Run the paired frontend/scoring tests and normal test regressions, then perform two-account end-to-end QA with real Realtime and audio. Verify actual production-schema triggers and advisors in that environment.
-4. Enable the two flags in staging, test desktop/mobile and throttled connections, and only then enable production through a separately authorized deployment.
-5. Disable the frontend flag to stop new entries while existing rooms finish. A backend emergency disable also stops saves and room reads; use that only for an incident, and disclose that interrupted attempts retain their last saved answers. Keep stored attempts and room records when rolling back UI.
+4. Enable the Edge secret in staging, test desktop/mobile and throttled connections, and only then enable production.
+5. A backend emergency disable stops new entries, saves and room reads; use it only for an incident, and disclose that interrupted attempts retain their last saved answers. Keep stored attempts and room records when rolling back UI.
 
 ## Required end-to-end cases
 

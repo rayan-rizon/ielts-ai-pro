@@ -1,4 +1,5 @@
 import React from 'react';
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { Award } from 'lucide-react';
@@ -69,6 +70,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
+        <TakeWithFriend test={test} type="listening" isLocked={isLocked} compact />
         <TestRowAction
           isLocked={isLocked}
           isResuming={isResuming}

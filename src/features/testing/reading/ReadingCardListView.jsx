@@ -77,7 +77,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
         />
       </div>
 
-      <TakeWithFriend test={test} isLocked={isLocked} />
+      <TakeWithFriend test={test} type="reading" isLocked={isLocked} compact />
     </div>
   );
 }

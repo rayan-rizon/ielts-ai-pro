@@ -104,7 +104,7 @@ export default function ReadingCardGridView(props) {
           completedSession={completedSession}
         />
       </div>
-      <TakeWithFriend test={test} isLocked={isLocked} />
+      <TakeWithFriend test={test} type="reading" isLocked={isLocked} />
     </m.div>
   );
 }

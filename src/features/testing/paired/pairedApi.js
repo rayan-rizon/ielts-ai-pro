@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-export const pairedTestsEnabled = import.meta.env.VITE_PAIRED_TESTS_ENABLED === 'true';
 export async function pairedRequest(action, room = null, data = {}) {
   const { data: result, error } = await supabase.functions.invoke('paired-tests', {
     body: { action, room, data },

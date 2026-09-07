@@ -15,6 +15,8 @@ import { publicRoom } from '../../../supabase/functions/_shared/objective-scorin
 import { calculateTestResults } from '@/features/testing/reading/components/ReadingTest/utils/scoreCalculator';
 import { calculateListeningTestResults } from '@/features/testing/listening/components/ListeningTest/utils/scoreCalculator';
 import PairedRoomView from '@/features/testing/paired/PairedRoomView';
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
+import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 
 function fixture(type = 'reading') {
   const count = type === 'reading' ? 3 : 4;
@@ -193,5 +195,39 @@ describe('test-page entry points', () => {
     const room = { id: 'room', passage_id: 'test', test_type: type, invite_token: 'token' };
     expect(invitationPath(room)).toBe(`/${type}-test/test#invite=token`);
     expect(roomLobbyPath(room)).toBe(`/${type}-test/test?room=room`);
+  });
+
+  it.each(['reading', 'listening'])(
+    'shows the new paired-practice discovery and a working %s card action',
+    (type) => {
+      render(
+        <MemoryRouter>
+          <PairedPracticeSpotlight type={type} />
+          <TakeWithFriend test={{ id: 'test', title: 'Practice Test' }} type={type} />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText(`Take a ${type} test with a friend`)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Take with a friend' })).toHaveAttribute(
+        'href',
+        `/${type}-test/test?together=true`
+      );
+    }
+  );
+
+  it('does not offer paired practice for locked or incomplete tests', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <TakeWithFriend test={{ id: 'locked' }} type="reading" isLocked />
+      </MemoryRouter>
+    );
+    expect(screen.queryByRole('link', { name: 'Take with a friend' })).not.toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <TakeWithFriend test={{ id: 'short', total_questions: 20 }} type="reading" />
+      </MemoryRouter>
+    );
+    expect(screen.queryByRole('link', { name: 'Take with a friend' })).not.toBeInTheDocument();
   });
 });

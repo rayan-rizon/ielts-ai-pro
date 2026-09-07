@@ -8,6 +8,7 @@ import {
   ListeningSkeletonGrid,
   ListeningTestsGrid,
 } from '@/features/testing/listening/ListeningGrid';
+import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 
 // ---------------------------------------------------------------------------
 // Tab-matching logic (pure, module-level)
@@ -99,23 +100,27 @@ export default function Listening() {
           onViewModeChange={setViewMode}
         />
 
-        {isLoading ? (
-          <ListeningSkeletonGrid />
-        ) : (
-          <ListeningTestsGrid
-            activeTab={activeTab}
-            filteredTests={filteredTests}
-            sessions={sessions}
-            testCounts={testCounts}
-            questionCounts={questionCounts}
-            durations={durations}
-            userData={userData}
-            isAdmin={isAdmin}
-            hasMounted={hasMounted}
-            searchQuery={searchQuery}
-            viewMode={viewMode}
-          />
-        )}
+        <PairedPracticeSpotlight type="listening" />
+
+        <div id="available-tests" className="scroll-mt-4">
+          {isLoading ? (
+            <ListeningSkeletonGrid />
+          ) : (
+            <ListeningTestsGrid
+              activeTab={activeTab}
+              filteredTests={filteredTests}
+              sessions={sessions}
+              testCounts={testCounts}
+              questionCounts={questionCounts}
+              durations={durations}
+              userData={userData}
+              isAdmin={isAdmin}
+              hasMounted={hasMounted}
+              searchQuery={searchQuery}
+              viewMode={viewMode}
+            />
+          )}
+        </div>
 
         {listeningData?.hasMore && (
           <div className="flex justify-center pt-2">
