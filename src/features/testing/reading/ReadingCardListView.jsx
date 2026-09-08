@@ -55,6 +55,9 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
         <ContainerLink {...linkProps} className="block min-w-0">
           <span className="block truncate text-xs font-bold text-slate-800 transition-colors hover:text-[#5a63df] dark:text-slate-200">
             {testName}
+            {test.partly_practised && (
+              <span className="block font-normal text-muted-foreground">Partly practised</span>
+            )}
           </span>
         </ContainerLink>
 

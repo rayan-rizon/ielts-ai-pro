@@ -26,6 +26,11 @@ function GridCardTitleBody({ isLocked, displayTitle, test, ContainerLink, linkPr
           className={cn(TITLE, 'mb-2 line-clamp-2 text-base font-bold leading-6 tracking-[0.01em]')}
         >
           {displayTitle}
+          {test.partly_practised && (
+            <span className="block text-xs font-normal text-muted-foreground">
+              Partly practised
+            </span>
+          )}
         </h3>
       </ContainerLink>
       <p className={cn('line-clamp-2 text-xs font-medium leading-relaxed', MUTED)}>

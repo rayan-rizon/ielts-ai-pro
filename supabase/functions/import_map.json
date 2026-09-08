@@ -2,6 +2,7 @@
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
     "https://esm.sh/@supabase/supabase-js@2": "npm:@supabase/supabase-js@2",
+    "https://esm.sh/@supabase/supabase-js@2.39.0": "npm:@supabase/supabase-js@2.112.3",
     "stripe": "https://esm.sh/stripe@14.14.0?target=deno"
   }
 }

@@ -1,6 +1,11 @@
 import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+  objectiveRequest,
+  objectiveMetadata,
+  serverScoringEnabled,
+} from '@/features/testing/shared/services/objectiveTests';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
@@ -252,6 +257,15 @@ export function useAutosave({
       try {
         if (pairedRef.current) {
           await pairedRef.current.save(answers);
+        } else if (
+          serverScoringEnabled() &&
+          ['reading', 'listening'].includes(String(session.test_type))
+        ) {
+          await objectiveRequest('save', {
+            sessionId: session.id,
+            answers,
+            metadata: objectiveMetadata(contentData),
+          });
         } else {
           const { error } = await supabase
             .from('test_sessions')
@@ -291,7 +305,7 @@ export function useAutosave({
         return false;
       }
     },
-    [session?.id, onSaveSuccess, onSaveError]
+    [session?.id, session?.test_type, onSaveSuccess, onSaveError]
   );
 
   const runSave = useCallback(

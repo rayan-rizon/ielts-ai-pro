@@ -41,7 +41,7 @@ export const learningToolsItems = [
   { title: 'Resources', url: createPageUrl('Resources'), icon: Library },
   { title: 'Vocabulary', url: createPageUrl('Vocabulary'), icon: Brain },
   { title: 'Leaderboards', url: createPageUrl('Leaderboard'), icon: Trophy },
-  { title: 'Study Groups', url: createPageUrl('StudyGroups'), icon: Users },
+  { title: 'Practice Lab', url: createPageUrl('SkillLab'), icon: FlaskConical },
 ];
 
 export const adminNavigationItems = [

@@ -2,7 +2,7 @@ import { calculateTestResults, scoreQuestion } from './reading.js';
 import { calculateListeningTestResults } from './listening.js';
 import { computeQuestionNumbers } from './questionProcessing.js';
 
-export function prepareSnapshot(passage, rows) {
+export function prepareObjectiveSnapshot(passage, rows) {
   const type = passage.test_type;
   if (!['reading', 'listening'].includes(type) || !passage.is_active)
     throw new Error('Test unavailable');
@@ -12,8 +12,8 @@ export function prepareSnapshot(passage, rows) {
   } catch {
     throw new Error('A full test is required');
   }
-  if (!Array.isArray(content) || content.length !== (type === 'reading' ? 3 : 4))
-    throw new Error('A full test is required');
+  if (!Array.isArray(content) || content.length === 0)
+    throw new Error('Test content is unavailable');
   const sections = content.map((s, i) => ({
     ...s,
     section_number: s.section_number || i + 1,
@@ -55,6 +55,15 @@ export function prepareSnapshot(passage, rows) {
     },
     questions,
   };
+  return snapshot;
+}
+
+export function prepareSnapshot(passage, rows) {
+  const snapshot = prepareObjectiveSnapshot(passage, rows);
+  const sections =
+    passage.test_type === 'reading' ? snapshot.testData.sections : snapshot.testData.content;
+  if (sections.length !== (passage.test_type === 'reading' ? 3 : 4))
+    throw new Error('A full test is required');
   const empty = gradeSnapshot(snapshot, {});
   if (
     empty.totalQuestions !== 40 ||
@@ -83,9 +92,15 @@ const HIDDEN = new Set([
   'explanation_data',
   'transcript',
   'transcript_segments',
+  'transcript_highlights',
+  'srt_content',
+  'why_correct',
+  'other_accepted_answers',
+  'sample_answer',
 ]);
 export function withoutSolutions(value) {
   if (Array.isArray(value)) return value.map(withoutSolutions);
+  if (typeof value === 'string') return value.replace(/\[\/?answer\b[^\]]*\]/gi, '');
   if (!value || typeof value !== 'object') return value;
   return Object.fromEntries(
     Object.entries(value)

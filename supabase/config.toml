@@ -375,3 +375,13 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.paired-tests]
 verify_jwt = false # Handler validates the bearer token with auth.getUser().
+
+[functions.skill-lab]
+verify_jwt = true
+
+[functions.objective-tests]
+verify_jwt = true
+
+# Dedicated scheduler secret is checked inside the function before any storage access.
+[functions.skill-lab-cleanup]
+verify_jwt = false

@@ -207,6 +207,7 @@ export default function SpeakingReport({
           {/* Main Content Area */}
           <div className="space-y-3 p-3 sm:p-4 lg:p-5">
             <SpeakingReportSummary
+              sourceId={testId}
               finalEvaluation={finalEvaluation}
               pronunciationBreakdown={pronunciationBreakdown}
             />

@@ -205,6 +205,42 @@ export const AI_ROUTES: AiRoute[] = [
     ],
   },
   {
+    id: 'skill-lab-teacher',
+    surface: 'Skill Lab: progress-aware teaching and supported practice feedback',
+    file: 'supabase/functions/skill-lab/index.ts',
+    maxOutputTokens: 1200,
+    timeoutMs: 20000,
+    steps: [
+      {
+        model: 'z-ai/glm-5.3-flash',
+        role: 'primary',
+        when: 'GLM first through OpenRouter; one attempt.',
+      },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'fallback',
+        when: 'Primary unavailable or invalid JSON; one attempt, no repair loop.',
+      },
+    ],
+    notes:
+      'Progress only, no chat memory. Objective answers use reviewed server keys. Independent checks cannot call the teacher.',
+  },
+  {
+    id: 'skill-lab-transcription',
+    surface: 'Skill Lab: up to 60 seconds of recorded speech',
+    file: 'supabase/functions/skill-lab/index.ts',
+    maxOutputTokens: 1000,
+    timeoutMs: 8000,
+    steps: [
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'primary',
+        when: 'Reuse speaking transcription adapter, one attempt. Combined transcription and feedback have at most three provider calls.',
+      },
+    ],
+    notes: 'Transcript-based language feedback only. No pronunciation or pause score.',
+  },
+  {
     id: 'grammar-transfer',
     surface: 'Grammar Lab: transfer evaluation',
     file: 'supabase/functions/evaluateGrammarTransfer/index.ts',

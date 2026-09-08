@@ -5,6 +5,8 @@ const SDK_DEFAULTS = '2026-05-30';
 // Decision-grade lifecycle events only. Adding a call site is not enough to
 // start collecting a new event: it must also be reviewed and added here.
 const PRODUCT_EVENTS = new Set([
+  'skill_lab_session_started',
+  'skill_lab_session_completed',
   'billing_portal_opened',
   'checkout_started',
   'manual_checkout_started',
@@ -24,6 +26,10 @@ const PRODUCT_EVENTS = new Set([
 ]);
 
 const SAFE_EVENT_PROPERTIES = new Set([
+  'skill_code',
+  'independent_count',
+  'independent_correct',
+  'repeat_practice',
   'billing_interval',
   'channel',
   'currency',

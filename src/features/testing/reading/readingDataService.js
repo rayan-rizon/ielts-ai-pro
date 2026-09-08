@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import { serverScoringEnabled } from '../shared/services/objectiveTests';
+import { markPartlyPractised } from '../shared/services/practiceExposure';
 
 // ---------------------------------------------------------------------------
 // Supabase query helpers
@@ -7,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 async function fetchPassages(page, pageSize) {
   const offset = (page - 1) * pageSize;
   const { data, count, error } = await supabase
-    .from('passages')
+    .from(serverScoringEnabled() ? 'library_passages' : 'passages')
     .select(
       'id, title, is_official_cambridge, cambridge_year, cambridge_test_number, test_type, test_format, is_active, total_questions, created_at',
       { count: 'exact' }
@@ -143,7 +145,7 @@ export async function fetchReadingData(user, page = 1, pageSize = 32, existingDa
     testsData
   );
   const allSessions = mergeSessions(prior.sessions, sessionsByPassage);
-  const allPassages = mergePassages(prior.passages, testsData);
+  const allPassages = mergePassages(prior.passages, await markPartlyPractised(testsData, user));
 
   return {
     passages: allPassages,

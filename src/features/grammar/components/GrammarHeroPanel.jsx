@@ -1,17 +1,76 @@
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronRight,
   ClipboardCheck,
   LockKeyhole,
   RefreshCw,
+  RotateCcw,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Pill } from '@/features/dashboard/components/primitives';
+import { PILL_BASE, Pill, pillTone } from '@/features/dashboard/components/primitives';
+import { cn } from '@/lib/cn';
+
+// A 9px pill is a fine label but a poor tap target, so the due-reviews chip
+// keeps the pill's shape and grows to a ~24px hit area once it does something.
+const CHIP_SIZE = 'gap-1.5 px-2.5 py-1 text-[10px]';
 
 function allowanceCopy(access) {
   if (access?.isPaid) return 'Unlimited practice';
   return `${access?.dailyRemaining ?? 0} of 5 free questions left today`;
+}
+
+/**
+ * "N reviews due" used to be a dead orange label — the one number on the panel
+ * that named an action and then refused to perform it. It is now the panel's
+ * secondary control: a pill button that starts the review set straight away,
+ * and that says why it cannot when it is out of reach (no allowance left, or a
+ * start already in flight) instead of just dimming.
+ */
+function DueReviewsChip({ dueReviews, dueSkillLabels, disabledReason, onStartReview }) {
+  const label = `${dueReviews} review${dueReviews === 1 ? '' : 's'} due`;
+  const skillHint = dueSkillLabels?.length ? ` · ${dueSkillLabels.join(', ')}` : '';
+
+  if (disabledReason) {
+    return (
+      <span
+        title={`${label}${skillHint}. ${disabledReason}`}
+        className={cn(PILL_BASE, pillTone('amber'), CHIP_SIZE, 'cursor-not-allowed opacity-70')}
+      >
+        <RotateCcw className="h-3 w-3" aria-hidden="true" />
+        {label}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onStartReview}
+      title={`Start a 5-question review${skillHint}`}
+      aria-label={`Start a review of ${label}`}
+      className={cn(
+        PILL_BASE,
+        pillTone('amber'),
+        CHIP_SIZE,
+        'group cursor-pointer pr-2 transition duration-200',
+        'hover:border-amber-500/50 hover:bg-amber-500/[0.14] hover:text-amber-700',
+        'dark:hover:bg-amber-400/[0.22] dark:hover:text-amber-200',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50'
+      )}
+    >
+      <RotateCcw
+        className="h-3 w-3 transition duration-300 group-hover:-rotate-45"
+        aria-hidden="true"
+      />
+      {label}
+      <ChevronRight
+        className="h-3 w-3 opacity-50 transition duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
+        aria-hidden="true"
+      />
+    </button>
+  );
 }
 
 /**
@@ -28,9 +87,21 @@ export default function GrammarHeroPanel({
   dailyLimitReached,
   access,
   dueReviews,
+  dueSkillLabels,
   retestTarget,
   onStart,
+  onStartReview,
 }) {
+  const reviewCount = Number(dueReviews || 0);
+  const noAllowance = !access?.isPaid && Number(access?.dailyRemaining || 0) <= 0;
+  const reviewDisabledReason = isStarting
+    ? 'Starting a set already.'
+    : isResuming
+      ? 'Resuming your attempt.'
+      : noAllowance
+        ? 'Your free questions for today are used — reviews unlock again tomorrow, or with a paid plan.'
+        : null;
+
   return (
     <div className="relative h-full min-h-[248px] overflow-hidden bg-[#f4f1fb] px-5 py-6 dark:bg-[#131315] sm:px-7 sm:py-7">
       <img
@@ -43,10 +114,13 @@ export default function GrammarHeroPanel({
       <div className="relative max-w-[525px]">
         <div className="flex flex-wrap items-center gap-2">
           <Pill tone="accent">Today's grammar plan</Pill>
-          {dueReviews > 0 && (
-            <span className="text-xs font-extrabold text-amber-700 dark:text-amber-400">
-              {dueReviews} review{dueReviews === 1 ? '' : 's'} due
-            </span>
+          {reviewCount > 0 && (
+            <DueReviewsChip
+              dueReviews={reviewCount}
+              dueSkillLabels={dueSkillLabels}
+              disabledReason={reviewDisabledReason}
+              onStartReview={onStartReview}
+            />
           )}
         </div>
         <h2 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-3xl">

@@ -40,6 +40,8 @@ export default function GrammarDashboard({
     retestTarget,
     startPrimary,
     startPathStage,
+    startReview,
+    dueSkillLabels,
   } = useGrammarDashboard({
     dashboard,
     recommendedSkill,
@@ -66,8 +68,10 @@ export default function GrammarDashboard({
             dailyLimitReached={dailyLimitReached}
             access={access}
             dueReviews={dashboard?.dueReviews}
+            dueSkillLabels={dueSkillLabels}
             retestTarget={retestTarget}
             onStart={startPrimary}
+            onStartReview={startReview}
           />
         </div>
         <GrammarLearningPathCard

@@ -124,12 +124,24 @@ function FeatureList({ plan, isPricingLoading }) {
 
   return (
     <div className="mb-6 space-y-3">
-      {plan.features.map((feature, i) => (
+      {plan.features.slice(0, 6).map((feature, i) => (
         <PricingFeature key={i} label={feature} unavailable={false} />
       ))}
-      {plan.limitations?.map((lim, i) => (
-        <PricingFeature key={i} label={lim} unavailable={true} />
-      ))}
+      {(plan.features.length > 6 || plan.limitations?.length > 0) && (
+        <details className="text-xs text-slate-500 dark:text-slate-400">
+          <summary className="cursor-pointer rounded-sm py-1 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]">
+            All features & limits
+          </summary>
+          <div className="mt-3 space-y-3">
+            {plan.features.slice(6).map((feature) => (
+              <PricingFeature key={feature} label={feature} unavailable={false} />
+            ))}
+            {plan.limitations?.map((lim) => (
+              <PricingFeature key={lim} label={lim} unavailable={true} />
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
@@ -149,7 +161,7 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
         isActive
           ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500 cursor-default'
           : isPro
-            ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:shadow-lg hover:shadow-[#5a63df]/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]'
+            ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]'
             : 'cursor-pointer border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#5a63df]/40 hover:bg-[#5a63df]/5 hover:text-[#5a63df] hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.99] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:border-[#5a63df]/40 dark:hover:bg-white/10 dark:hover:text-white'
       )}
     >

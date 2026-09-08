@@ -1,3 +1,4 @@
+import PracticeSkillLink from '@/features/skill-lab/components/PracticeSkillLink';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -516,8 +517,8 @@ function StrengthsCard({ strengths, expandedItems, onToggleExpand }) {
 }
 
 function PriorityItemActions({ priority, index, isExpanded, onToggleExpand, onShowInEssay }) {
+  const sourceId = useWritingTestStore((state) => state.session?.id);
   const showExpand = priority.issue.isTruncated || priority.action.isTruncated;
-  if (!showExpand && !priority.annotation) return null;
 
   return (
     <div className="ml-7 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -533,6 +534,7 @@ function PriorityItemActions({ priority, index, isExpanded, onToggleExpand, onSh
           {isExpanded ? 'Less' : 'More'}
         </button>
       )}
+      <PracticeSkillLink module="writing" skill={priority.criterion} sourceId={sourceId} />
       {priority.annotation && onShowInEssay && (
         <button
           type="button"
@@ -612,6 +614,7 @@ function PrioritiesCard({ priorities, expandedItems, onToggleExpand, onShowInEss
 }
 
 function ImprovementRow({ item }) {
+  const sourceId = useWritingTestStore((state) => state.session?.id);
   return (
     <div className="pt-3 first:pt-0 space-y-1.5">
       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -632,6 +635,7 @@ function ImprovementRow({ item }) {
         </strong>
         {item.explanation}
       </p>
+      <PracticeSkillLink module="writing" skill={item.explanation} sourceId={sourceId} />
     </div>
   );
 }

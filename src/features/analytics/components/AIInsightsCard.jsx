@@ -1,3 +1,4 @@
+import { SKILL_LAB_ENABLED, skillLabUrl } from '@/features/skill-lab/skills';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
@@ -156,7 +157,7 @@ function FocusAreaLink({ to, icon: Icon, title, tag, tagTone = 'accent', subtitl
             <Pill tone={tagTone}>{tag}</Pill>
             {mastery != null ? (
               <span className={cn(NUM, 'text-[10px] font-bold text-[#5a63df] dark:text-[#a9afff]')}>
-                {mastery}% mastery
+                {mastery}% estimated progress
               </span>
             ) : null}
           </div>
@@ -214,7 +215,14 @@ export default function AIInsightsCard({ stats, aiLoading }) {
                         : null;
                       return (
                         <FocusAreaLink
-                          to={createPageUrl('LearningPath')}
+                          to={
+                            SKILL_LAB_ENABLED && info.name !== 'Grammar'
+                              ? skillLabUrl({
+                                  module: info.name.toLowerCase(),
+                                  skill: primaryFocus.skillCode,
+                                })
+                              : createPageUrl('LearningPath')
+                          }
                           icon={info.icon}
                           title={title}
                           tag={isMeasured ? 'Confirmed' : 'Needs results'}

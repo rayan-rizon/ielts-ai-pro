@@ -17,6 +17,18 @@ const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
 );
 
+function PracticeLabRedirect() {
+  const location = useLocation();
+  return (
+    <Navigate
+      replace
+      to={
+        location.pathname.replace('/skill-lab', '/practice-lab') + location.search + location.hash
+      }
+    />
+  );
+}
+
 const RouteLoading = ({ message = 'Loading...', fullScreen = true }) => (
   <PremiumLoading message={message} fullScreen={fullScreen} />
 );
@@ -153,7 +165,7 @@ const GrammarLab = lazyWithRetry(() => import('@/features/grammar/pages/GrammarL
 const SpeakingTest = lazyWithRetry(
   () => import('@/features/testing/speaking/pages/SpeakingTest.jsx')
 );
-const StudyGroups = lazyWithRetry(() => import('@/features/community/pages/StudyGroups.jsx'));
+const PracticeLab = lazyWithRetry(() => import('@/features/skill-lab/pages/SkillLab.jsx'));
 const WritingTask = lazyWithRetry(() => import('@/features/testing/writing/pages/WritingTask.jsx'));
 const Pricing = lazyWithRetry(() => import('@/features/subscription/pages/Pricing.jsx'));
 const Upgrade = lazyWithRetry(() => import('@/features/subscription/pages/Upgrade.jsx'));
@@ -609,18 +621,23 @@ const router = createBrowserRouter(
         </ProtectedRoute>
       ),
     },
-    {
-      path: '/study-groups',
+    ...['/skill-lab', '/skill-lab/session/:sessionId'].map((path) => ({
+      path,
+      element: <PracticeLabRedirect />,
+    })),
+    { path: '/study-groups', element: <Navigate to="/practice-lab" replace /> },
+    ...['/practice-lab', '/practice-lab/session/:sessionId'].map((path) => ({
+      path,
       element: (
-        <ProtectedRoute data-oid="ovfj..s">
-          <Layout currentPageName="StudyGroups" data-oid="guzb9op">
-            <LazyPage data-oid="3caj98-">
-              <StudyGroups data-oid="1xlwwva" />
+        <ProtectedRoute>
+          <Layout currentPageName="PracticeLab">
+            <LazyPage>
+              <PracticeLab />
             </LazyPage>
           </Layout>
         </ProtectedRoute>
       ),
-    },
+    })),
     {
       path: '/writing',
       element: (

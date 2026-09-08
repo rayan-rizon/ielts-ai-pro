@@ -1,4 +1,5 @@
 import React, { useState, memo, useMemo } from 'react';
+import { serverScoringEnabled } from '../services/objectiveTests';
 import { m, motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import {
@@ -325,7 +326,7 @@ const fetchCambridgeTestData = async () => {
 
   const [passagesResult, sessionsResult] = await Promise.all([
     supabase
-      .from('passages')
+      .from(serverScoringEnabled() ? 'library_passages' : 'passages')
       .select(
         'id, title, test_type, cambridge_year, cambridge_test_number, is_official_cambridge, is_active'
       )
