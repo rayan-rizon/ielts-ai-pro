@@ -10,6 +10,10 @@ import { createPageUrl } from '@/utils';
 // Eagerly loaded components (Top of the page)
 import Navbar from '@/features/core/components/landing/Navbar';
 import HeroSection from '@/features/core/components/landing/HeroSection';
+import {
+  sectionIdFromHref,
+  smoothScrollToSection,
+} from '@/features/core/components/landing/sectionScroll';
 
 // Lazy loaded sections
 const Footer = lazy(() => import('@/features/core/components/landing/Footer'));
@@ -220,6 +224,38 @@ export default function LandingPage() {
     }
   }, [authCheckComplete, isSignedIn, user?.onboarding_completed, navigate]);
 
+  // Every in-page anchor on this page (navbar, mobile menu, footer) goes through
+  // the corrected scroll rather than the browser's one-shot jump, which lands
+  // short whenever a lazy section grows past its placeholder mid-animation.
+  useEffect(() => {
+    const handleAnchorClick = (event) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const anchor = event.target?.closest?.('a[href]');
+      if (!anchor || anchor.target === '_blank') return;
+
+      const id = sectionIdFromHref(anchor.getAttribute('href'));
+      if (!id) return;
+
+      if (smoothScrollToSection(id)) {
+        event.preventDefault();
+        window.history.replaceState(null, '', `#${id}`);
+      }
+    };
+
+    document.addEventListener('click', handleAnchorClick);
+    return () => document.removeEventListener('click', handleAnchorClick);
+  }, []);
+
+  // Arriving with a hash already in the URL (e.g. /#pricing from another page).
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return undefined;
+    const frame = requestAnimationFrame(() => smoothScrollToSection(decodeURIComponent(id)));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   const handlePrimaryCta = () => {
     navigate(createPageUrl(isSignedIn ? 'Dashboard' : 'SignUp'));
   };
@@ -242,7 +278,7 @@ export default function LandingPage() {
       navigate(createPageUrl('Pricing'));
       return;
     }
-    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    smoothScrollToSection('pricing');
   };
 
   return (

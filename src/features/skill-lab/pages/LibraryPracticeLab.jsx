@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import PracticeHome from '../components/PracticeHome';
 import { Sparkles, X, ArrowUp, ArrowLeft, ArrowRight, Check, CircleX } from 'lucide-react';
 import { focusLabel } from '../practiceLabels';
@@ -528,6 +529,7 @@ export default function LibraryPracticeLab() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [completedResult, setCompletedResult] = useState(null);
+  const shouldReduceMotion = useReducedMotion();
   const startId = useRef(null);
   const hydratedSession = useRef(null);
   const saveQueue = useRef(Promise.resolve());
@@ -604,9 +606,15 @@ export default function LibraryPracticeLab() {
       <div
         role="status"
         aria-label="Loading your practice"
-        className="mx-auto max-w-7xl space-y-3 p-4 md:p-6 motion-safe:animate-pulse"
+        className="mx-auto max-w-7xl space-y-3.5 p-4 md:p-6 motion-safe:animate-pulse"
       >
-        <div className={`${WELL} h-12 rounded-lg`} />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <div className="h-3 w-36 rounded bg-slate-200 dark:bg-white/10" />
+            <div className="h-7 w-48 rounded bg-slate-200 dark:bg-white/10" />
+          </div>
+          <div className="h-8 w-32 rounded bg-slate-200 dark:bg-white/10" />
+        </div>
         {!sessionId && (
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
@@ -614,14 +622,14 @@ export default function LibraryPracticeLab() {
             ))}
           </div>
         )}
-        <div className="grid grid-cols-12 gap-3">
+        <div className="grid grid-cols-12 gap-3.5">
           <div className={`${PANEL} col-span-12 h-80 lg:col-span-8`} />
           <div className={`${PANEL} col-span-12 h-80 lg:col-span-4`} />
         </div>
         {!sessionId && (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className={`${PANEL} h-24`} />
+              <div key={i} className={`${PANEL} h-28`} />
             ))}
           </div>
         )}
@@ -739,13 +747,16 @@ export default function LibraryPracticeLab() {
         {alert}
         {stage === 3 && gradedResult && (
           <section
-            className={`${WELL} flex flex-wrap items-center justify-between gap-3 rounded-lg px-3 py-2.5`}
+            className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4`}
             aria-label="Practice result"
           >
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className={`${NUM} text-lg font-semibold`}>
-                {gradedResult.correct} of {gradedResult.total} correct
-              </h2>
+              <div>
+                <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Diagnostic Result</p>
+                <h2 className={`${NUM} text-lg font-bold text-slate-900 dark:text-slate-50`}>
+                  {gradedResult.correct} of {gradedResult.total} correct
+                </h2>
+              </div>
               <Pill tone={gradedResult.correct === gradedResult.total ? 'ok' : 'fault'}>
                 {gradedResult.total - gradedResult.correct} to review
               </Pill>
@@ -757,9 +768,21 @@ export default function LibraryPracticeLab() {
                     : 'Repeated questions'}
               </span>
             </div>
-            <div className="flex flex-wrap gap-3 text-xs font-semibold text-[#5a63df] dark:text-[#afb5ff]">
-              {data.activity_id && <Link to="/learning-path">Learning path →</Link>}
-              <Link to="/practice-lab">Your next step →</Link>
+            <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-[#5a63df] dark:text-[#afb5ff]">
+              {data.activity_id && (
+                <Link
+                  to="/learning-path"
+                  className="inline-flex items-center gap-1 hover:underline"
+                >
+                  Learning path <ArrowRight size={12} aria-hidden="true" />
+                </Link>
+              )}
+              <Link
+                to="/practice-lab"
+                className="inline-flex items-center gap-1 rounded-md bg-[#5a63df] px-3 py-1.5 font-bold text-white shadow-xs transition-all hover:bg-[#4c55cd]"
+              >
+                Your next step <ArrowRight size={12} aria-hidden="true" />
+              </Link>
             </div>
           </section>
         )}
@@ -804,13 +827,57 @@ export default function LibraryPracticeLab() {
           </section>
         ) : (
           <>
-            <div className="flex gap-2 md:hidden">
-              <Button variant="outline" onClick={() => setTab('passage')}>
-                Passage / audio
-              </Button>
-              <Button variant="outline" onClick={() => setTab('questions')}>
-                Questions
-              </Button>
+            <div
+              className={`${WELL} relative flex gap-1 rounded-lg p-1 md:hidden`}
+              role="group"
+              aria-label="Content view"
+            >
+              <button
+                type="button"
+                aria-pressed={tab === 'passage'}
+                onClick={() => setTab('passage')}
+                className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                  tab === 'passage'
+                    ? 'text-[#5a63df] dark:text-[#afb5ff]'
+                    : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
+                }`}
+              >
+                {tab === 'passage' && (
+                  <motion.span
+                    layoutId="mobile-practice-active-tab"
+                    className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 480, damping: 32 }
+                    }
+                  />
+                )}
+                <span className="relative z-10">Passage / audio</span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={tab === 'questions'}
+                onClick={() => setTab('questions')}
+                className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                  tab === 'questions'
+                    ? 'text-[#5a63df] dark:text-[#afb5ff]'
+                    : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
+                }`}
+              >
+                {tab === 'questions' && (
+                  <motion.span
+                    layoutId="mobile-practice-active-tab"
+                    className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 480, damping: 32 }
+                    }
+                  />
+                )}
+                <span className="relative z-10">Questions</span>
+              </button>
             </div>
             <div className="grid items-start gap-3 md:grid-cols-2">
               <div
