@@ -50,6 +50,70 @@ const familiarity = (value) =>
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]';
 
+function getFamiliarityColorClass(value) {
+  if (value === 'new') return 'font-medium text-emerald-600 dark:text-emerald-400';
+  if (value === 'familiar') return 'font-medium text-amber-600 dark:text-amber-400';
+  return 'font-normal text-slate-400 dark:text-slate-500';
+}
+
+function computeNextNavIndex(key, currentIndex, length) {
+  if (key === 'Home') return 0;
+  if (key === 'End') return length - 1;
+  const delta = key === 'ArrowDown' ? 1 : -1;
+  return (currentIndex + delta + length) % length;
+}
+
+function usePickerDismiss(pickerRef, triggerRef, setOpen) {
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (!pickerRef.current?.contains(event.target)) setOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && pickerRef.current?.contains(event.target)) {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [pickerRef, triggerRef, setOpen]);
+}
+
+function SourceSetOption({ set, index, isActive, isSelected, onSelect, setOptionRef }) {
+  const optionLabel = `${set.title} · ${focusLabel(set.focus)} · ${familiarity(set.familiarity)}`;
+  const badgeClass = getFamiliarityColorClass(set.familiarity);
+  const stateClass = isSelected
+    ? 'bg-[#5a63df]/10 font-bold text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]'
+    : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]';
+
+  return (
+    <button
+      id={`practice-source-option-${set.id}`}
+      ref={(element) => setOptionRef(index, element)}
+      tabIndex={isActive ? 0 : -1}
+      type="button"
+      role="option"
+      aria-label={optionLabel}
+      aria-selected={isSelected}
+      onClick={() => onSelect(set.id)}
+      className={`${focusRing} flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${stateClass}`}
+    >
+      <span className="min-w-0">
+        <span className="block font-semibold text-slate-800 dark:text-slate-100">{set.title}</span>
+        <span className={`mt-0.5 block text-[11px] ${MUTED}`}>
+          {focusLabel(set.focus)} ·{' '}
+          <span className={badgeClass}>{familiarity(set.familiarity)}</span>
+        </span>
+      </span>
+      {isSelected && <Check size={14} className="shrink-0 text-[#5a63df] dark:text-[#afb5ff]" />}
+    </button>
+  );
+}
+
 function SourceSetPicker({ sets, value, onChange }) {
   const [open, setOpen] = useState(false);
   const pickerRef = useRef(null);
@@ -58,27 +122,52 @@ function SourceSetPicker({ sets, value, onChange }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const selected = sets.find((set) => set.id === value) || sets[0];
 
-  useEffect(() => {
-    const close = (event) => {
-      if (!pickerRef.current?.contains(event.target)) setOpen(false);
-    };
-    const escape = (event) => {
-      if (event.key === 'Escape' && pickerRef.current?.contains(event.target)) {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', escape);
-    return () => {
-      document.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', escape);
-    };
-  }, []);
+  usePickerDismiss(pickerRef, triggerRef, setOpen);
 
   useEffect(() => {
     if (open) optionRefs.current[activeIndex]?.focus();
   }, [open, activeIndex]);
+
+  const selectedIndex = Math.max(
+    0,
+    sets.findIndex((set) => set.id === selected?.id)
+  );
+
+  const openPicker = () => {
+    setActiveIndex(selectedIndex);
+    setOpen((prev) => !prev);
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
+      event.preventDefault();
+      setActiveIndex(selectedIndex);
+      setOpen(true);
+    }
+  };
+
+  const handleListboxKeyDown = (event) => {
+    const navKeys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+    if (!navKeys.includes(event.key)) return;
+    event.preventDefault();
+    setActiveIndex((prev) => computeNextNavIndex(event.key, prev, sets.length));
+  };
+
+  const handleSelect = (id) => {
+    onChange(id);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  const setOptionRef = (index, element) => {
+    optionRefs.current[index] = element;
+  };
+
+  const activeOptionId =
+    open && sets[activeIndex] ? `practice-source-option-${sets[activeIndex].id}` : undefined;
+  const triggerBorderClass = open
+    ? 'border-[#5a63df] ring-2 ring-[#5a63df]/20 dark:border-[#8f97ff] dark:ring-[#8f97ff]/25'
+    : '';
 
   return (
     <div ref={pickerRef} className="relative">
@@ -90,35 +179,10 @@ function SourceSetPicker({ sets, value, onChange }) {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls="practice-source-options"
-        aria-activedescendant={
-          open && sets[activeIndex] ? `practice-source-option-${sets[activeIndex].id}` : undefined
-        }
-        onClick={() => {
-          setActiveIndex(
-            Math.max(
-              0,
-              sets.findIndex((set) => set.id === selected?.id)
-            )
-          );
-          setOpen((current) => !current);
-        }}
-        onKeyDown={(event) => {
-          if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
-            event.preventDefault();
-            setActiveIndex(
-              Math.max(
-                0,
-                sets.findIndex((set) => set.id === selected?.id)
-              )
-            );
-            setOpen(true);
-          }
-        }}
-        className={`${focusRing} flex min-h-[42px] w-full items-center justify-between gap-3 rounded-lg border border-[#cfcddf] bg-white px-3 py-2 text-left text-xs shadow-xs transition-all duration-150 hover:border-[#5a63df] hover:shadow-sm dark:border-white/20 dark:bg-[#15141c] dark:hover:border-[#8f97ff] ${
-          open
-            ? 'border-[#5a63df] ring-2 ring-[#5a63df]/20 dark:border-[#8f97ff] dark:ring-[#8f97ff]/25'
-            : ''
-        }`}
+        aria-activedescendant={activeOptionId}
+        onClick={openPicker}
+        onKeyDown={handleTriggerKeyDown}
+        className={`${focusRing} flex min-h-[42px] w-full items-center justify-between gap-3 rounded-lg border border-[#cfcddf] bg-white px-3 py-2 text-left text-xs shadow-xs transition-all duration-150 hover:border-[#5a63df] hover:shadow-sm dark:border-white/20 dark:bg-[#15141c] dark:hover:border-[#8f97ff] ${triggerBorderClass}`}
       >
         <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
           <span className="truncate font-semibold text-slate-800 dark:text-slate-100">
@@ -142,71 +206,20 @@ function SourceSetPicker({ sets, value, onChange }) {
           id="practice-source-options"
           role="listbox"
           aria-label="Available source sets"
-          onKeyDown={(event) => {
-            const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
-            if (!keys.includes(event.key)) return;
-            event.preventDefault();
-            setActiveIndex((index) =>
-              event.key === 'Home'
-                ? 0
-                : event.key === 'End'
-                  ? sets.length - 1
-                  : (index + (event.key === 'ArrowDown' ? 1 : -1) + sets.length) % sets.length
-            );
-          }}
+          onKeyDown={handleListboxKeyDown}
           className="absolute inset-x-0 top-[calc(100%+0.35rem)] z-30 max-h-60 overflow-y-auto rounded-xl border border-[#cfcddf] bg-white p-1.5 shadow-xl dark:border-white/15 dark:bg-[#15141c]"
         >
-          {sets.map((set, index) => {
-            const optionLabel = `${set.title} · ${focusLabel(set.focus)} · ${familiarity(set.familiarity)}`;
-            const isSelected = set.id === selected?.id;
-            return (
-              <button
-                key={set.id}
-                id={`practice-source-option-${set.id}`}
-                ref={(element) => {
-                  optionRefs.current[index] = element;
-                }}
-                tabIndex={index === activeIndex ? 0 : -1}
-                type="button"
-                role="option"
-                aria-label={optionLabel}
-                aria-selected={isSelected}
-                onClick={() => {
-                  onChange(set.id);
-                  setOpen(false);
-                  triggerRef.current?.focus();
-                }}
-                className={`${focusRing} flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
-                  isSelected
-                    ? 'bg-[#5a63df]/10 font-bold text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]'
-                    : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]'
-                }`}
-              >
-                <span className="min-w-0">
-                  <span className="block font-semibold text-slate-800 dark:text-slate-100">
-                    {set.title}
-                  </span>
-                  <span className={`mt-0.5 block text-[11px] ${MUTED}`}>
-                    {focusLabel(set.focus)} ·{' '}
-                    <span
-                      className={
-                        set.familiarity === 'new'
-                          ? 'font-medium text-emerald-600 dark:text-emerald-400'
-                          : set.familiarity === 'familiar'
-                            ? 'font-medium text-amber-600 dark:text-amber-400'
-                            : 'font-normal text-slate-400 dark:text-slate-500'
-                      }
-                    >
-                      {familiarity(set.familiarity)}
-                    </span>
-                  </span>
-                </span>
-                {isSelected && (
-                  <Check size={14} className="shrink-0 text-[#5a63df] dark:text-[#afb5ff]" />
-                )}
-              </button>
-            );
-          })}
+          {sets.map((set, index) => (
+            <SourceSetOption
+              key={set.id}
+              set={set}
+              index={index}
+              isActive={index === activeIndex}
+              isSelected={set.id === selected?.id}
+              onSelect={handleSelect}
+              setOptionRef={setOptionRef}
+            />
+          ))}
         </div>
       )}
     </div>
