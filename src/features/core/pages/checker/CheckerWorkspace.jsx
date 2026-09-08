@@ -65,7 +65,6 @@ export default function CheckerWorkspace({ user, authLoading }) {
       saveRequestedDestination(CHECKER_PATH, { crossTab: true });
       trackAppEvent('writing_checker_signup_gate_viewed', {
         task_type: activeTask,
-        word_count: wordCount,
       });
       navigate('/signup', { state: { from: location } });
     } catch (storageError) {
@@ -74,7 +73,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
           'We could not preserve this draft across signup. Keep this tab open and try again.'
       );
     }
-  }, [activeTask, location, navigate, persistDraft, taskImageFile, wordCount]);
+  }, [activeTask, location, navigate, persistDraft, taskImageFile]);
 
   // Stable setter bag — useState setters are referentially stable; object is memoised to satisfy exhaustive-deps.
   const setters = React.useMemo(
@@ -170,7 +169,6 @@ export default function CheckerWorkspace({ user, authLoading }) {
       setShowSignupGate(true);
       trackAppEvent('writing_checker_feedback_preview_requested', {
         task_type: activeTask,
-        word_count: wordCount,
       });
       window.setTimeout(() => {
         if (typeof document === 'undefined') return;

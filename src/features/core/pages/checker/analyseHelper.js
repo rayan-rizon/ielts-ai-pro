@@ -122,7 +122,6 @@ export async function runAnalysis({
     await clearPendingCheckerDraft();
     trackAppEvent('writing_checker_feedback_revealed', {
       task_type: selectedTask,
-      word_count: countWords(selectedDraft.essay),
     });
 
     window.setTimeout(() => {
