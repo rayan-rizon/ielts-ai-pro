@@ -12,6 +12,7 @@ import {
   MICRO,
   MUTED,
   NUM,
+  TITLE,
   AiBadge,
   Pill,
 } from '@/features/dashboard/components/primitives';
@@ -179,12 +180,26 @@ function SkillLab() {
   }
   if (!SKILL_LAB_ENABLED)
     return (
-      <main className="p-5">
-        <h1 className="text-2xl font-bold">Practice Lab</h1>
-        <p className="mt-2">Your new learning space is being prepared.</p>
-        <Link to="/learning-path" className="mt-4 inline-block text-[#5a63df]">
-          Open your learning path
-        </Link>
+      <main className="mx-auto max-w-3xl p-4 md:p-6">
+        <section className={`${PANEL} p-4 md:p-5`} role="status">
+          <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Practice Lab</p>
+          <h1 className={`${TITLE} mt-1 text-lg`}>Your practice space is taking a short break</h1>
+          <p className={`mt-2 max-w-xl text-sm leading-relaxed ${MUTED}`}>
+            Your test results and saved learning progress are safe. Try again shortly, or continue
+            with your Learning Path while we reconnect your practice sets.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button type="button" onClick={() => window.location.reload()}>
+              Try again
+            </Button>
+            <Link
+              to="/learning-path"
+              className="inline-flex items-center rounded-md border border-[#e4e2f0] bg-white px-3 py-2 text-sm font-semibold text-[#5a63df] dark:border-white/[0.1] dark:bg-white/[0.03] dark:text-[#afb5ff]"
+            >
+              Open Learning Path
+            </Link>
+          </div>
+        </section>
       </main>
     );
   if (dashboard.isLoading || (sessionId && session.isLoading)) return <Skeleton />;

@@ -613,8 +613,8 @@ const router = createBrowserRouter(
       element: <PracticeLabRedirect />,
     })),
     { path: '/study-groups', element: <Navigate to="/practice-lab" replace /> },
-    ...['/practice-lab', '/practice-lab/session/:sessionId'].map((path) => ({
-      path,
+    {
+      path: '/practice-lab',
       element: (
         <ProtectedRoute>
           <Layout currentPageName="PracticeLab">
@@ -624,7 +624,19 @@ const router = createBrowserRouter(
           </Layout>
         </ProtectedRoute>
       ),
-    })),
+    },
+    {
+      path: '/practice-lab/session/:sessionId',
+      element: (
+        <ProtectedRoute>
+          <Layout currentPageName="PracticeLab">
+            <LazyPage>
+              <PracticeLab />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
     {
       path: '/writing',
       element: (

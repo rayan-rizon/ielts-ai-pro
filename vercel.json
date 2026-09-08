@@ -212,6 +212,15 @@
       ]
     },
     {
+      "source": "/practice-lab/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
       "source": "/500",
       "headers": [
         {
@@ -230,7 +239,7 @@
       ]
     },
     {
-      "source": "/(dashboard|login|signup|register|forgot-password|update-password|settings|upgrade|pricing|onboarding)",
+      "source": "/(dashboard|login|signup|register|forgot-password|update-password|settings|upgrade|pricing|onboarding|practice-lab)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -331,6 +340,14 @@
     },
     {
       "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/practice-lab",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/practice-lab/session/:sessionId",
       "destination": "/index.html"
     },
     {
