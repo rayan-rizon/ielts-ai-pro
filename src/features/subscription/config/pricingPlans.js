@@ -1,3 +1,5 @@
+import { PRACTICE_LIBRARY_ENABLED, SKILL_LAB_ENABLED } from '@/features/skill-lab/skills';
+const libraryPractice = PRACTICE_LIBRARY_ENABLED;
 export const DEFAULT_PRICING_PLANS = [
   {
     name: 'Free',
@@ -5,6 +7,9 @@ export const DEFAULT_PRICING_PLANS = [
     description: 'Start practising IELTS and see how you are improving.',
     features: [
       'Reading & Listening Practice',
+      ...(SKILL_LAB_ENABLED
+        ? [libraryPractice ? '2 Library Practice Sets/Day' : '2 Basic Practice Lab Lessons/Day']
+        : []),
       'Cambridge Reading & Listening Tests',
       '0 AI Speaking Sessions/month',
       '1 AI Writing Evaluation/month',
@@ -24,6 +29,11 @@ export const DEFAULT_PRICING_PLANS = [
     description: 'Get more AI help and a study plan that fits your needs.',
     features: [
       'Everything in Free',
+      ...(SKILL_LAB_ENABLED
+        ? libraryPractice
+          ? ['10 Library Practice Sets/Day', 'Personalised AI Explanations']
+          : ['10 Practice Lab Lessons/Day', 'Practice Lab AI Help & Short Speaking Feedback']
+        : []),
       '100 AI Writing Evaluations/month',
       '50 AI Speaking Sessions/month',
       '300 Saved Vocabulary Words',
@@ -46,6 +56,9 @@ export const DEFAULT_PRICING_PLANS = [
     description: 'More AI practice and support for every part of your IELTS prep.',
     features: [
       'Everything in Pro',
+      ...(SKILL_LAB_ENABLED
+        ? [libraryPractice ? '20 Library Practice Sets/Day' : '20 Practice Lab Lessons/Day']
+        : []),
       '200 AI Writing Evaluations/month',
       '100 AI Speaking Sessions/month',
       'Unlimited Saved Vocabulary Words',

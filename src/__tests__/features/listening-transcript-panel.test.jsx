@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import TranscriptPanel from '@/features/testing/listening/components/ListeningTest/components/TranscriptPanel';
@@ -61,18 +61,37 @@ describe('Listening TranscriptPanel exam visibility', () => {
     expect(screen.queryByText('newspaper')).not.toBeInTheDocument();
   });
 
-  it('shows the audioscript and numbered answer highlight after submission', () => {
+  it('shows the audioscript after submission with answers hidden until revealed', () => {
     render(<TranscriptPanel {...sharedProps} examMode isFinished />);
 
     expect(screen.getByText('Audioscript')).toBeInTheDocument();
     expect(screen.getByText('Newspaper Survey')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Answer evidence 1')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTitle(/reveal answer evidence/i));
+
     expect(screen.getByLabelText('Answer evidence 1')).toBeInTheDocument();
   });
 
-  it('shows official source highlights during Practice Mode', () => {
+  it('keeps official source highlights hidden in Practice Mode until toggled', () => {
     render(<TranscriptPanel {...sharedProps} examMode={false} isFinished={false} />);
 
     expect(screen.getByText('Newspaper Survey')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Answer evidence 1')).not.toBeInTheDocument();
+
+    const toggle = screen.getByTitle(/reveal answer evidence/i);
+    fireEvent.click(toggle);
     expect(screen.getByLabelText('Answer evidence 1')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTitle(/hide answer evidence/i));
+    expect(screen.queryByLabelText('Answer evidence 1')).not.toBeInTheDocument();
+  });
+
+  it('hides the answers toggle while the audioscript is collapsed', () => {
+    listeningState.showTranscript = false;
+    render(<TranscriptPanel {...sharedProps} examMode={false} isFinished={false} />);
+
+    expect(screen.queryByTitle(/answer evidence/i)).not.toBeInTheDocument();
+    expect(screen.getByTitle(/expand the audioscript/i)).toBeInTheDocument();
   });
 });

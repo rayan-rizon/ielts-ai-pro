@@ -9,6 +9,10 @@ import {
 } from '@/features/testing/shared/activityContext';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import { calculateTestResults } from '../utils'; // Fixed import path
+import {
+  objectiveRequest,
+  serverScoringEnabled,
+} from '@/features/testing/shared/services/objectiveTests';
 import { removeFromCache } from '@/lib/apiCache';
 import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
@@ -181,7 +185,9 @@ export function useReadingTestLogic(
               // Reconstruct or Recalculate test results
               let results;
 
-              if (contentData.sectionStats && contentData.sectionStats.length > 0) {
+              if (passage.serverResult) {
+                results = passage.serverResult;
+              } else if (contentData.sectionStats && contentData.sectionStats.length > 0) {
                 // Use stored data if available
                 results = {
                   bandScore: existingSession.score,
@@ -225,11 +231,10 @@ export function useReadingTestLogic(
 
               // Recalculate answer validation from the current question bank. Stored maps can
               // contain stale imported keys after a content correction, even for completed tests.
-              const caMap = calculateTestResults(
-                questions,
-                persistedAnswers,
-                passage.sections || []
-              ).correctAnswersMap;
+              const caMap =
+                passage.serverResult?.correctAnswersMap ||
+                calculateTestResults(questions, persistedAnswers, passage.sections || [])
+                  .correctAnswersMap;
 
               if (caMap && Object.keys(caMap).length > 0) {
                 setCorrectAnswersMap(caMap);
@@ -386,12 +391,25 @@ export function useReadingTestLogic(
           await paired.submit(getLatestState().answers);
           return;
         }
-        const results = calculateTestResults(
-          allQuestions,
-          answers,
-          testData.sections || [],
-          flaggedQuestions
-        );
+        const serverSubmission = serverScoringEnabled()
+          ? await objectiveRequest('submit', {
+              sessionId: session.id,
+              answers: getLatestState().answers,
+              metadata: {
+                time_remaining: getLatestState().timeRemaining,
+                highlights: getLatestState().highlights,
+                notes: getLatestState().notes,
+                answerChangeCounts: getLatestState().answerChangeCounts,
+              },
+            })
+          : null;
+        const results =
+          serverSubmission?.result ||
+          calculateTestResults(allQuestions, answers, testData.sections || [], flaggedQuestions);
+        if (serverSubmission?.snapshot) {
+          setAllQuestions(serverSubmission.snapshot.questions);
+          setTestData(serverSubmission.snapshot.testData);
+        }
 
         // Calculate duration
         const durationMins = session && session.duration_minutes ? session.duration_minutes : 60;
@@ -496,7 +514,9 @@ export function useReadingTestLogic(
           },
         };
 
-        const didComplete = await TestSession.complete(session.id, updateData);
+        const didComplete = serverSubmission
+          ? serverSubmission.completedNow
+          : await TestSession.complete(session.id, updateData);
         removeFromCache('reading-tests-list');
         if (didComplete) invalidateLearnerPracticeQueries();
 

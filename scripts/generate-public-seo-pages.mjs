@@ -1,9 +1,31 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
+import {
+  SEO_LANDING_CONTENT,
+  toPrerenderConfig,
+} from '../src/features/core/components/seo-landing/seoLandingContent.js';
+
 const root = process.cwd();
 const distDirectory = path.join(root, 'dist');
 const sourcePage = readFileSync(path.join(distDirectory, 'index.html'), 'utf8');
+
+/*
+ * The two search-landing routes share their copy with the React page that renders
+ * them (src/features/core/components/seo-landing/seoLandingContent.js). Keeping a
+ * second hand-written copy here is how the static FAQPage JSON-LD ended up
+ * advertising questions the hydrated page no longer showed.
+ */
+function seoLandingPage(content) {
+  return {
+    path: content.path.replace(/^\//, ''),
+    title: `${content.title} | IELTS Ai Pro`,
+    description: content.description,
+    canonical: `https://www.ieltsai.pro${content.path}`,
+    imageAlt: content.heroAlt,
+    prerender: toPrerenderConfig(content),
+  };
+}
 
 const publicPages = [
   {
@@ -58,98 +80,8 @@ const publicPages = [
       ],
     },
   },
-  {
-    path: 'ielts-speaking-practice-ai',
-    title: 'AI IELTS Speaking Practice with Feedback | IELTS Ai Pro',
-    description:
-      'Practise IELTS Speaking Parts 1–3 with an AI simulator, estimated band guidance, and focused feedback on fluency, vocabulary, grammar, and pronunciation.',
-    canonical: 'https://www.ieltsai.pro/ielts-speaking-practice-ai',
-    imageAlt: 'Adult IELTS learner practising a speaking response with a laptop',
-    prerender: {
-      heading: 'Practise IELTS Speaking with feedback you can act on',
-      intro:
-        'IELTS Ai Pro simulates Speaking Parts 1–3, records your response, and turns the available speech and transcript evidence into estimated criterion-level feedback. You get a clear next step instead of a single unexplained score.',
-      sections: [
-        {
-          heading: 'What IELTS speaking practice includes',
-          items: [
-            '<strong>Real speaking flow:</strong> move from short personal questions to a two-minute Part 2 response and deeper Part 3 discussion.',
-            '<strong>Criterion-level guidance:</strong> review fluency, vocabulary, grammar, and pronunciation evidence with transparent limitations.',
-            '<strong>A useful next drill:</strong> turn the report into one focused action for your next answer instead of repeating the full test blindly.',
-          ],
-        },
-        {
-          heading: 'How to practise IELTS Speaking effectively',
-          ordered: true,
-          items: [
-            '<strong>Choose a speaking test:</strong> select a realistic Part 1–3 practice set and prepare your microphone.',
-            '<strong>Answer naturally:</strong> speak at normal pace without memorising a script or forcing advanced words.',
-            '<strong>Review and repeat:</strong> use the strongest evidence in the report to plan one measurable improvement.',
-          ],
-        },
-      ],
-      faqs: [
-        [
-          'Can AI accurately score IELTS Speaking?',
-          'AI can provide useful practice estimates and pattern-based feedback, but it cannot issue an official IELTS result. IELTS Ai Pro labels practice estimates and explains when pronunciation evidence is limited.',
-        ],
-        [
-          'Does the practice cover all three IELTS Speaking parts?',
-          'Yes. Practice sets can include short Part 1 questions, a Part 2 cue-card response, and more analytical Part 3 follow-up questions.',
-        ],
-        [
-          'How should I use the feedback?',
-          'Choose one priority from the report, practise it in a shorter drill, then record another answer and compare the evidence. Small focused repetitions are more useful than chasing a score after every response.',
-        ],
-      ],
-    },
-  },
-  {
-    path: 'cambridge-ielts-practice-tests',
-    title: 'Cambridge IELTS Practice Tests Online | IELTS Ai Pro',
-    description:
-      'Take Cambridge-style IELTS Reading and Listening practice tests online, review answers, estimate band scores, and track the mistakes that affect your result.',
-    canonical: 'https://www.ieltsai.pro/cambridge-ielts-practice-tests',
-    imageAlt: 'Adult IELTS learner reviewing a computer-based practice test',
-    prerender: {
-      heading: 'Cambridge-style IELTS practice with a review loop',
-      intro:
-        'IELTS Ai Pro gives you timed Reading and Listening practice online in a computer-based workspace, then helps you review question-level mistakes and estimated band progress. Use a full mock test to diagnose; use focused sets to improve.',
-      sections: [
-        {
-          heading: 'What these online IELTS practice tests cover',
-          items: [
-            '<strong>Reading practice:</strong> work through common IELTS question types in a focused, computer-based test workspace.',
-            '<strong>Listening practice:</strong> practise following the question sequence, predicting answer forms, and recovering after a missed answer.',
-            '<strong>Review that changes the next test:</strong> use answer evidence and progress analytics to separate knowledge gaps from timing and question-type errors.',
-          ],
-        },
-        {
-          heading: 'How to use a mock test properly',
-          ordered: true,
-          items: [
-            '<strong>Take a diagnostic set:</strong> complete one realistic section without pausing or checking answers.',
-            '<strong>Classify every error:</strong> label the cause — vocabulary, evidence, spelling, timing, or question technique.',
-            '<strong>Repeat a focused drill:</strong> practise the weakest pattern before taking another complete mock test.',
-          ],
-        },
-      ],
-      faqs: [
-        [
-          'Are these official Cambridge IELTS tests?',
-          'No. IELTS Ai Pro is an independent preparation platform and is not affiliated with Cambridge, IELTS, IDP, or the British Council. The practice experience is designed around familiar IELTS-style skills and question formats.',
-        ],
-        [
-          'Can I practise IELTS Reading and Listening for free?',
-          'A free account provides access to selected practice. Availability and limits can vary by plan, and the app shows the current allowance before you begin.',
-        ],
-        [
-          'Should I take a full mock test every day?',
-          'Usually not. Use full tests to measure readiness, then spend more time on short drills that target the exact question types and error causes found in your review.',
-        ],
-      ],
-    },
-  },
+  seoLandingPage(SEO_LANDING_CONTENT.speaking),
+  seoLandingPage(SEO_LANDING_CONTENT.practice),
   /*
    * The five routes below are plain SPA routes: vercel.json used to rewrite them
    * straight to the untouched Vite shell, so crawlers that do not run JavaScript

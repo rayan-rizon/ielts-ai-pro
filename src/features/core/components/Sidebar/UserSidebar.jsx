@@ -33,7 +33,10 @@ const COLLAPSIBLE_DETAILS =
 /** One nav row. Every item shares the same accent — the group label above it does the wayfinding. */
 const NavItem = memo(({ item, isActive }) => {
   const { isMobile, setOpenMobile } = useSidebar();
-  const isNew = item.title === 'Writing Practice' || item.title === 'AI Learning Path';
+  const hasAiBadge =
+    item.title === 'Writing Practice' ||
+    item.title === 'AI Learning Path' ||
+    item.title === 'Practice Lab';
 
   return (
     <SidebarMenuItem>
@@ -66,7 +69,7 @@ const NavItem = memo(({ item, isActive }) => {
 
           <span className={cn('truncate font-semibold', COLLAPSIBLE_LABEL)}>{item.title}</span>
 
-          {isNew ? (
+          {hasAiBadge ? (
             <AiBadge active={isActive} className={cn('ml-auto', COLLAPSIBLE_LABEL)} />
           ) : null}
 

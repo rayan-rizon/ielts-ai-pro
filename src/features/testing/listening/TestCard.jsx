@@ -69,6 +69,11 @@ function TestCard({
               )}
             >
               {displayTitle}
+              {test.partly_practised && (
+                <span className="block text-xs font-normal text-muted-foreground">
+                  Partly practised
+                </span>
+              )}
             </h3>
           </ContainerLink>
           <p className={cn('line-clamp-2 text-xs font-medium leading-relaxed', MUTED)}>

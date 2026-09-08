@@ -1,6 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { FileText, AlertCircle } from 'lucide-react';
+import { FileText, AlertCircle, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import SyncedTranscript from './SyncedTranscript';
 import { MICRO, PANEL, TITLE } from '@/features/dashboard/components/primitives.jsx';
@@ -24,6 +23,9 @@ const TranscriptPanel = ({
   onAudioEnded,
 }) => {
   const { showTranscript } = useListeningTestState();
+  // Answer evidence stays hidden until the learner asks for it, so the audioscript
+  // can be read cold first.
+  const [showAnswers, setShowAnswers] = React.useState(false);
   // Use the dedicated audio-time hook (audioCurrentTime is intentionally excluded
   // from useListeningTestState to prevent render loops on every timeupdate).
   const audioCurrentTime = useListeningAudioTime();
@@ -49,7 +51,8 @@ const TranscriptPanel = ({
   }, [correctAnswersMap, sectionQuestions]);
   const hasAnswerEvidence =
     sourceHighlights.length > 0 || Object.keys(sectionCorrectAnswersMap).length > 0;
-  const shouldShowAnswerHighlights = isFinished || (!examMode && hasAnswerEvidence);
+  const canRevealAnswers = isFinished || (!examMode && hasAnswerEvidence);
+  const shouldShowAnswerHighlights = canRevealAnswers && showAnswers;
 
   return (
     <div
@@ -87,10 +90,10 @@ const TranscriptPanel = ({
         <div className={`${PANEL} flex min-h-0 flex-1 flex-col overflow-hidden`} data-oid="qpvv9b:">
           {/* Header */}
           <div
-            className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb]/60 dark:bg-white/4 shrink-0"
+            className="flex items-center justify-between gap-3 px-3.5 py-2.5 border-b border-[#e4e2f0] dark:border-white/[0.07] bg-[#f4f3fb]/60 dark:bg-white/4 shrink-0"
             data-oid="u.w7c68"
           >
-            <div className="flex items-center gap-2.5" data-oid="35buee3">
+            <div className="flex min-w-0 items-center gap-2.5" data-oid="35buee3">
               <div
                 className="p-1.5 rounded-lg bg-[#5a63df]/10 border border-[#5a63df]/20 dark:border-[#5a63df]/25"
                 data-oid="xxf0fo6"
@@ -100,7 +103,7 @@ const TranscriptPanel = ({
                   data-oid="z6f5zjp"
                 />
               </div>
-              <div data-oid="u_ye_06">
+              <div className="min-w-0" data-oid="u_ye_06">
                 <h3 className={TITLE} data-oid="6.0lfsc">
                   Audioscript
                 </h3>
@@ -108,23 +111,60 @@ const TranscriptPanel = ({
                   className={`${MICRO} mt-0.5 normal-case tracking-normal text-slate-500 dark:text-slate-400`}
                   data-oid="3:e_l1s"
                 >
-                  {sourceHighlights.length
-                    ? 'Official answer evidence is highlighted in green'
-                    : hasAnswerEvidence
-                      ? 'Correct answer phrases are highlighted in green'
-                      : 'Click sentences to jump to audio'}
+                  {!canRevealAnswers
+                    ? 'Click sentences to jump to audio'
+                    : shouldShowAnswerHighlights
+                      ? sourceHighlights.length
+                        ? 'Official answer evidence is highlighted in green'
+                        : 'Correct answer phrases are highlighted in green'
+                      : 'Answer evidence is hidden — reveal it when you are ready'}
                 </p>
               </div>
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => dispatch({ type: ACTIONS.TOGGLE_TRANSCRIPT })}
-              className="text-[#5a63df] dark:text-[#a9afff] h-7 px-3 rounded-lg font-bold text-[11px] bg-white dark:bg-white/6 border border-[#e4e2f0] dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all duration-200 shadow-2xs"
-              data-oid="wvgykuk"
-            >
-              {showTranscript ? 'Hide' : 'Show'}
-            </Button>
+
+            <div className="flex shrink-0 items-center gap-1.5" data-oid="transcript-actions">
+              {canRevealAnswers && showTranscript && (
+                <button
+                  type="button"
+                  onClick={() => setShowAnswers((value) => !value)}
+                  aria-pressed={shouldShowAnswerHighlights}
+                  title={
+                    shouldShowAnswerHighlights
+                      ? 'Hide answer evidence in the audioscript'
+                      : 'Reveal answer evidence in the audioscript'
+                  }
+                  className={`inline-flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-bold transition-all duration-200 shadow-2xs ${
+                    shouldShowAnswerHighlights
+                      ? 'border-[rgb(var(--signal-ok)/0.35)] bg-[rgb(var(--signal-ok)/0.14)] text-[rgb(var(--signal-ok))]'
+                      : 'border-[#e4e2f0] bg-white text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:bg-white/6 dark:text-slate-300 dark:hover:bg-white/10'
+                  }`}
+                  data-oid="toggle-answers"
+                >
+                  {shouldShowAnswerHighlights ? (
+                    <Eye className="h-3.5 w-3.5" />
+                  ) : (
+                    <EyeOff className="h-3.5 w-3.5" />
+                  )}
+                  <span className="hidden sm:inline">Answers</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => dispatch({ type: ACTIONS.TOGGLE_TRANSCRIPT })}
+                aria-expanded={showTranscript}
+                title={showTranscript ? 'Collapse the audioscript' : 'Expand the audioscript'}
+                className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-[#e4e2f0] bg-white px-2.5 text-[11px] font-bold text-[#5a63df] shadow-2xs transition-all duration-200 hover:bg-slate-50 dark:border-white/10 dark:bg-white/6 dark:text-[#a9afff] dark:hover:bg-white/10"
+                data-oid="wvgykuk"
+              >
+                <span>{showTranscript ? 'Hide' : 'Show'}</span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                    showTranscript ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           {showTranscript && (

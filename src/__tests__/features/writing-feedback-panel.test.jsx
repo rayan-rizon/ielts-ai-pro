@@ -1,8 +1,11 @@
+import { MemoryRouter } from 'react-router-dom';
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render as renderComponent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackPanel } from '@/features/testing/writing/components/WritingTest/components/FeedbackPanel';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
+
+const render = (ui) => renderComponent(<MemoryRouter>{ui}</MemoryRouter>);
 
 const feedback = {
   overallBand: 6,
@@ -81,6 +84,17 @@ describe('Writing feedback panel', () => {
     expect(screen.getByText('Agreement errors recur in key sentences.')).toBeInTheDocument();
     expect(screen.queryByText('Areas to Improve')).not.toBeInTheDocument();
     expect(screen.queryByText('Tips for Next Time')).not.toBeInTheDocument();
+  });
+
+  it('connects grammar and idea-development feedback to the appropriate practice', () => {
+    render(<FeedbackPanel feedback={feedback} />);
+    const destinations = screen
+      .getAllByRole('link', { name: /Practise this skill/ })
+      .map((link) => link.getAttribute('href'));
+    expect(destinations).toContain('/grammar');
+    expect(
+      destinations.some((href) => href.startsWith('/practice-lab?skill=writing_paragraph_support'))
+    ).toBe(true);
   });
 
   it('shows why each correction matters without another click', () => {

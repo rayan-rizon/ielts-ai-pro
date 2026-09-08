@@ -924,16 +924,20 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
   );
 };
 
-const MarketSnapshotPanel = ({ markets, summary, displayDays }) => {
-  const knownMarkets = markets.filter(
+const MarketSnapshotPanel = ({ markets, marketMap, summary, displayDays }) => {
+  const visibleMarkets = markets
+    .filter((market) => market.country && market.country !== 'unknown')
+    .slice(0, 8);
+  // The list is a top-8 ranking; the choropleth shades every identified
+  // country in the window, so long windows do not leave most of the map blank.
+  const mapMarkets = (marketMap?.length ? marketMap : markets).filter(
     (market) => market.country && WORLD_MAP_CODES.has(market.country.toLowerCase())
   );
-  const visibleMarkets = knownMarkets.slice(0, 8);
-  const mapData = knownMarkets.map((market) => ({
+  const mapData = mapMarkets.map((market) => ({
     country: market.country.toLowerCase(),
     value: market.signups ?? 0,
   }));
-  const maxSignups = Math.max(...knownMarkets.map((market) => market.signups ?? 0), 1);
+  const maxSignups = Math.max(...mapMarkets.map((market) => market.signups ?? 0), 1);
 
   const countryStyle = ({ countryValue }) => {
     const intensity = countryValue ? 0.28 + 0.72 * (countryValue / maxSignups) : 0;
@@ -1124,6 +1128,7 @@ export const AdminOverviewSections = ({
         <SignupChannelsPanel channels={arrayOrEmpty(data.channels)} displayDays={displayDays} />
         <MarketSnapshotPanel
           markets={arrayOrEmpty(data.markets)}
+          marketMap={arrayOrEmpty(data.marketMap)}
           summary={objectOrEmpty(data.geoSummary)}
           displayDays={displayDays}
         />

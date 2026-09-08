@@ -408,10 +408,11 @@ function scoreFlowchartQuestion(q, answers, result) {
 function scoreSentenceSingle(q, answers, blankCount, result) {
   result.total++;
   let correctBlanks = 0;
+  const parts = sentenceAnswerParts(q, blankCount);
 
   for (let i = 0; i < blankCount; i++) {
     const answerKey = `${q.id}_blank_${i + 1}`;
-    const correctAnswer = q.correct_answers?.[i] || '';
+    const correctAnswer = parts[i] || '';
     const isCorrect = isAnswerCorrect(answers[answerKey], correctAnswer);
     if (isCorrect) correctBlanks++;
 
@@ -428,10 +429,11 @@ function scoreSentenceSingle(q, answers, blankCount, result) {
 }
 
 function scoreSentenceMulti(q, answers, blankCount, result) {
+  const parts = sentenceAnswerParts(q, blankCount);
   for (let i = 0; i < blankCount; i++) {
     result.total++;
     const answerKey = `${q.id}_blank_${i + 1}`;
-    const correctAnswer = q.correct_answers?.[i] || '';
+    const correctAnswer = parts[i] || '';
     const isCorrect = isAnswerCorrect(answers[answerKey], correctAnswer);
 
     if (isCorrect) result.correct++;
@@ -443,6 +445,14 @@ function scoreSentenceMulti(q, answers, blankCount, result) {
       isCorrect,
     });
   }
+}
+
+function sentenceAnswerParts(q, blankCount) {
+  if (Array.isArray(q.correct_answers)) return q.correct_answers;
+  // The library stores some multi-blank answers in the main text column.
+  const parts =
+    typeof q.correct_answer === 'string' ? q.correct_answer.split(',').map((p) => p.trim()) : [];
+  return parts.length === blankCount && parts.every(Boolean) ? parts : [];
 }
 
 function scoreSentenceCompletionQuestion(q, answers, result) {
@@ -484,6 +494,8 @@ function parseMultiAnswers(rawAnswer) {
   }
 
   if (Array.isArray(parsed)) return parsed.map(normalizeMultiChoiceAnswer);
+  if (/^[A-E](?:\s*\/\s*[A-E])+$/i.test(String(rawAnswer).trim()))
+    return String(rawAnswer).split('/').map(normalizeMultiChoiceAnswer);
   return String(rawAnswer).split(/[,;]/).map(normalizeMultiChoiceAnswer).filter(Boolean);
 }
 

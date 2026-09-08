@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PRACTICE_LIBRARY_ENABLED } from '@/features/skill-lab/skills';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { configurePricingPlans } from '@/features/subscription/hooks/usePricing';
 import { calculateCheckoutAmount, getPlanPriceAndMeta, getPriceData } from '@/lib/pricingUtils';
@@ -22,6 +23,26 @@ describe('pricing plan configuration', () => {
     );
     expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'pro').features).toContain(
       'Advanced Weakness & Readiness Analytics'
+    );
+    const practiceLabels = PRACTICE_LIBRARY_ENABLED
+      ? [
+          '2 Library Practice Sets/Day',
+          '10 Library Practice Sets/Day',
+          '20 Library Practice Sets/Day',
+        ]
+      : [
+          '2 Basic Practice Lab Lessons/Day',
+          '10 Practice Lab Lessons/Day',
+          '20 Practice Lab Lessons/Day',
+        ];
+    expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'free').features).toContain(
+      practiceLabels[0]
+    );
+    expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'pro').features).toContain(
+      practiceLabels[1]
+    );
+    expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'premium').features).toContain(
+      practiceLabels[2]
     );
   });
 

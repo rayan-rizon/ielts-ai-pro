@@ -7,6 +7,7 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
+import { isChunkLoadError } from '@/lib/chunkLoadRecovery';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import MaintenanceGate from '@/components/shared/MaintenanceGate';
@@ -16,6 +17,18 @@ import LandingPage from '@/features/core/pages/LandingPage.jsx';
 const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
 );
+
+function PracticeLabRedirect() {
+  const location = useLocation();
+  return (
+    <Navigate
+      replace
+      to={
+        location.pathname.replace('/skill-lab', '/practice-lab') + location.search + location.hash
+      }
+    />
+  );
+}
 
 const RouteLoading = ({ message = 'Loading...', fullScreen = true }) => (
   <PremiumLoading message={message} fullScreen={fullScreen} />
@@ -44,18 +57,6 @@ const IdleToaster = () => {
     </Suspense>
   );
 };
-
-/**
- * Detects chunk load failures caused by stale caches after deployments.
- */
-function isChunkLoadError(error) {
-  const errorString = error?.toString() || '';
-  return (
-    errorString.includes('Failed to fetch dynamically imported module') ||
-    errorString.includes('Importing a module script failed') ||
-    errorString.includes('error loading dynamically imported module')
-  );
-}
 
 function hasAlreadyForceRefreshed() {
   return JSON.parse(window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false');
@@ -93,9 +94,7 @@ const Error500 = lazyWithRetry(() => import('@/features/core/pages/Error500.jsx'
 const GlobalErrorElement = () => {
   const error = useRouteError();
 
-  const isRecoverableChunkError =
-    isChunkLoadError(error) ||
-    (error instanceof Error && (error.name === 'TypeError' || error.name === 'ChunkLoadError'));
+  const isRecoverableChunkError = isChunkLoadError(error);
 
   if (isRecoverableChunkError && !hasAlreadyForceRefreshed()) {
     console.warn('[GlobalErrorElement] Detected chunk load failure. Refreshing...', error);
@@ -153,7 +152,7 @@ const GrammarLab = lazyWithRetry(() => import('@/features/grammar/pages/GrammarL
 const SpeakingTest = lazyWithRetry(
   () => import('@/features/testing/speaking/pages/SpeakingTest.jsx')
 );
-const StudyGroups = lazyWithRetry(() => import('@/features/community/pages/StudyGroups.jsx'));
+const PracticeLab = lazyWithRetry(() => import('@/features/skill-lab/pages/SkillLab.jsx'));
 const WritingTask = lazyWithRetry(() => import('@/features/testing/writing/pages/WritingTask.jsx'));
 const Pricing = lazyWithRetry(() => import('@/features/subscription/pages/Pricing.jsx'));
 const Upgrade = lazyWithRetry(() => import('@/features/subscription/pages/Upgrade.jsx'));
@@ -609,18 +608,23 @@ const router = createBrowserRouter(
         </ProtectedRoute>
       ),
     },
-    {
-      path: '/study-groups',
+    ...['/skill-lab', '/skill-lab/session/:sessionId'].map((path) => ({
+      path,
+      element: <PracticeLabRedirect />,
+    })),
+    { path: '/study-groups', element: <Navigate to="/practice-lab" replace /> },
+    ...['/practice-lab', '/practice-lab/session/:sessionId'].map((path) => ({
+      path,
       element: (
-        <ProtectedRoute data-oid="ovfj..s">
-          <Layout currentPageName="StudyGroups" data-oid="guzb9op">
-            <LazyPage data-oid="3caj98-">
-              <StudyGroups data-oid="1xlwwva" />
+        <ProtectedRoute>
+          <Layout currentPageName="PracticeLab">
+            <LazyPage>
+              <PracticeLab />
             </LazyPage>
           </Layout>
         </ProtectedRoute>
       ),
-    },
+    })),
     {
       path: '/writing',
       element: (

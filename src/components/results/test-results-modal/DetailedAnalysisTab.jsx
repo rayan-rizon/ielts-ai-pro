@@ -1,3 +1,4 @@
+import PracticeSkillLink from '@/features/skill-lab/components/PracticeSkillLink';
 import React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -165,7 +166,7 @@ function TargetGapStrip({ analysis, testResults, currentBand, selectedTarget }) 
   );
 }
 
-function MistakeQueue({ analysis, onReviewQuestion }) {
+function MistakeQueue({ analysis, onReviewQuestion, testType, sessionId }) {
   return (
     <section className={`${CARD} flex h-full flex-col p-3.5 sm:p-4 space-y-3`}>
       <SectionHeading
@@ -297,6 +298,7 @@ function MistakeQueue({ analysis, onReviewQuestion }) {
                       </TooltipContent>
                     </Tooltip>
                   </div>
+                  <PracticeSkillLink module={testType} skill={item.type} sourceId={sessionId} />
                   <Button
                     onClick={() => onReviewQuestion(item)}
                     className="h-8.5 px-3.5 rounded-xl bg-[#5a63df] hover:bg-[#4a52c9] text-white font-extrabold text-xs shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1 shrink-0"
@@ -782,6 +784,7 @@ export function DetailedAnalysisTab({
         attempts.
       */}
       <div className="mx-auto max-w-[1400px] space-y-3">
+        <PracticeSkillLink module={testType} sourceId={sessionId} />
         <TargetGapStrip
           analysis={analysis}
           testResults={testResults}
@@ -797,7 +800,12 @@ export function DetailedAnalysisTab({
         */}
         <div className="grid items-stretch gap-3 lg:grid-cols-12">
           <div className="flex min-w-0 flex-col lg:col-span-7">
-            <MistakeQueue analysis={analysis} onReviewQuestion={handleReview} />
+            <MistakeQueue
+              analysis={analysis}
+              onReviewQuestion={handleReview}
+              testType={testType}
+              sessionId={sessionId}
+            />
           </div>
           <div className="flex min-w-0 flex-col gap-3 lg:col-span-5">
             {/*

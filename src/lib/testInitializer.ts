@@ -5,6 +5,10 @@
 
 import { supabase } from '@/lib/supabase';
 import { Passage, Question, User } from '@/entities';
+import {
+  objectiveRequest,
+  serverScoringEnabled,
+} from '@/features/testing/shared/services/objectiveTests';
 
 // Use looser types that are compatible with the actual entity responses
 interface TestSession {
@@ -113,6 +117,39 @@ export async function initializeTest({
     sessionFromUrl?.content_data?.passage_id ||
     sessionFromUrl?.content_data?.id ||
     id;
+
+  if (serverScoringEnabled()) {
+    let resolvedSession = sessionFromUrl;
+    if (!resolvedSession && userData && !isRetake) {
+      const { data: sessions, error } = await supabase
+        .from('test_sessions')
+        .select('*')
+        .eq('user_id', userData.id)
+        .eq('test_type', type)
+        .eq('passage_id', passageId)
+        .eq('is_completed', viewResults)
+        .is('paired_room_id', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      resolvedSession = sessions?.[0] || null;
+    }
+    const loaded = await objectiveRequest(
+      'load',
+      resolvedSession ? { sessionId: resolvedSession.id } : { passageId }
+    );
+    if (loaded.snapshot.testData.test_type !== type)
+      throw new Error('This link belongs to a different test');
+    return {
+      ...loaded.snapshot,
+      testData: { ...loaded.snapshot.testData, serverResult: loaded.result },
+      session:
+        resolvedSession && loaded.answers
+          ? { ...resolvedSession, user_responses: loaded.answers }
+          : resolvedSession,
+      user: userData,
+    };
+  }
 
   // Step 2: Parallel fetch - get passage AND questions
   // Use type assertions at runtime to handle the entity methods
@@ -315,5 +352,6 @@ export async function createTestSession({
     .single();
 
   if (error) throw error;
+  if (serverScoringEnabled()) await objectiveRequest('load', { sessionId: data.id });
   return data as TestSession;
 }

@@ -160,4 +160,59 @@ describe('GrammarDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Take a Speaking test' }));
     expect(onRetest).toHaveBeenCalledWith('speaking');
   });
+
+  it('starts a review set from the hero due-reviews chip', () => {
+    const onStart = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <GrammarDashboard
+          dashboard={dashboard}
+          recommendedSkill={dashboard.skills[0]}
+          criterionDiagnosticNeeded={false}
+          defaultMode={null}
+          defaultSkill={null}
+          isStarting={false}
+          isResuming={false}
+          onStart={onStart}
+          onRetest={vi.fn()}
+          onResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    const chip = screen.getByRole('button', { name: /Start a review of 1 review due/i });
+    fireEvent.click(chip);
+    expect(onStart).toHaveBeenCalledWith({ mode: 'review', targetSkills: null, questionCount: 5 });
+  });
+
+  it('explains the hero due-reviews chip instead of starting when the daily allowance is used', () => {
+    const onStart = vi.fn();
+    const cappedDashboard = {
+      ...dashboard,
+      access: { ...dashboard.access, isPaid: false, dailyRemaining: 0 },
+    };
+
+    render(
+      <MemoryRouter>
+        <GrammarDashboard
+          dashboard={cappedDashboard}
+          recommendedSkill={cappedDashboard.skills[0]}
+          criterionDiagnosticNeeded={false}
+          defaultMode={null}
+          defaultSkill={null}
+          isStarting={false}
+          isResuming={false}
+          onStart={onStart}
+          onRetest={vi.fn()}
+          onResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.queryByRole('button', { name: /Start a review of 1 review due/i })
+    ).not.toBeInTheDocument();
+    expect(screen.getByTitle(/free questions for today are used/i)).toBeInTheDocument();
+  });
 });

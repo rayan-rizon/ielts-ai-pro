@@ -123,6 +123,14 @@ export function useGrammarDashboard({
     });
   };
 
+  // The hero's "N reviews due" chip and the skills panel both start the same
+  // mixed review set, so the action lives here rather than being re-derived.
+  const startReview = () => onStart({ mode: 'review', targetSkills: null, questionCount: 5 });
+
+  const dueSkillLabels = skills
+    .filter((skill) => skill.isDue)
+    .map((skill) => skill.label || skillLabel(skill.skillCode));
+
   const startPathStage = (stage) => {
     if (stage === 'retest') {
       onRetest(retestTarget);
@@ -161,5 +169,7 @@ export function useGrammarDashboard({
     repairsSinceLastTest,
     startPrimary,
     startPathStage,
+    startReview,
+    dueSkillLabels,
   };
 }

@@ -10,6 +10,10 @@ import {
 } from '@/features/testing/shared/activityContext';
 import { computeQuestionNumbers } from '../utils/questionProcessing';
 import { calculateListeningTestResults } from '../utils/scoreCalculator';
+import {
+  objectiveRequest,
+  serverScoringEnabled,
+} from '@/features/testing/shared/services/objectiveTests';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { ANALYSIS_SCHEMA_VERSION } from '@/features/testing/shared/utils/resultEvidence';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -175,15 +179,17 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
               dispatch({ type: ACTIONS.FINISH_TEST });
 
               const processedQuestions = computeQuestionNumbers(questions);
-              const results = calculateListeningTestResults(
-                processedQuestions,
-                existingSession.user_responses || {},
-                Array.isArray(testData.content)
-                  ? testData.content
-                  : testData.audio_url
-                    ? [testData]
-                    : []
-              );
+              const results =
+                testData.serverResult ||
+                calculateListeningTestResults(
+                  processedQuestions,
+                  existingSession.user_responses || {},
+                  Array.isArray(testData.content)
+                    ? testData.content
+                    : testData.audio_url
+                      ? [testData]
+                      : []
+                );
               const storedMetrics = existingSession.content_data || {};
               const hydratedResults = {
                 ...results,
@@ -385,12 +391,33 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
       }
 
       const submissionState = useListeningTestStore.getState();
-      const results = calculateListeningTestResults(
-        questionsWithNumbers,
-        answers,
-        Array.isArray(testData?.content) ? testData.content : testData?.audio_url ? [testData] : [],
-        submissionState.flaggedQuestions
-      );
+      const serverSubmission = serverScoringEnabled()
+        ? await objectiveRequest('submit', {
+            sessionId: session.id,
+            answers: submissionState.answers,
+            metadata: { time_remaining: submissionState.timeRemaining },
+          })
+        : null;
+      const results =
+        serverSubmission?.result ||
+        calculateListeningTestResults(
+          questionsWithNumbers,
+          answers,
+          Array.isArray(testData?.content)
+            ? testData.content
+            : testData?.audio_url
+              ? [testData]
+              : [],
+          submissionState.flaggedQuestions
+        );
+      if (serverSubmission?.snapshot)
+        dispatch({
+          type: ACTIONS.SET_TEST_DATA,
+          payload: {
+            passage: serverSubmission.snapshot.testData,
+            questions: serverSubmission.snapshot.questions,
+          },
+        });
 
       dispatch({ type: ACTIONS.SET_CORRECT_ANSWERS_MAP, payload: results.answersMap });
       dispatch({ type: ACTIONS.SET_RESULTS, payload: results });
@@ -411,29 +438,31 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
           },
         });
 
-        const didComplete = await TestSession.complete(session.id, {
-          score: results.bandScore,
-          completed_at: new Date().toISOString(),
-          duration_minutes: actualTimeSpentMinutes,
-          actual_duration_seconds: actualTimeSpentSeconds,
-          user_responses: answers || {},
-          content_data: {
-            ...session.content_data,
-            analysisSchemaVersion: ANALYSIS_SCHEMA_VERSION,
-            // Core metrics
-            correctAnswersMap: results.answersMap || {},
-            responseDetails: results.responseDetails || [],
-            totalQuestions: results.totalQuestions || 40,
-            correctAnswers: results.correctAnswers || 0,
-            percentage: results.percentage || 0,
-            savedAnswers: answers || {},
-            sectionStats: results.sectionStats || [],
-            typeStats: results.typeStats || {},
-            // Listening audio controls pace; only total elapsed time is measured.
-            timeMetrics: { totalTimeSpent: actualTimeSpentSeconds },
-            errorPatterns: results.errorPatterns || {},
-          },
-        });
+        const didComplete = serverSubmission
+          ? serverSubmission.completedNow
+          : await TestSession.complete(session.id, {
+              score: results.bandScore,
+              completed_at: new Date().toISOString(),
+              duration_minutes: actualTimeSpentMinutes,
+              actual_duration_seconds: actualTimeSpentSeconds,
+              user_responses: answers || {},
+              content_data: {
+                ...session.content_data,
+                analysisSchemaVersion: ANALYSIS_SCHEMA_VERSION,
+                // Core metrics
+                correctAnswersMap: results.answersMap || {},
+                responseDetails: results.responseDetails || [],
+                totalQuestions: results.totalQuestions || 40,
+                correctAnswers: results.correctAnswers || 0,
+                percentage: results.percentage || 0,
+                savedAnswers: answers || {},
+                sectionStats: results.sectionStats || [],
+                typeStats: results.typeStats || {},
+                // Listening audio controls pace; only total elapsed time is measured.
+                timeMetrics: { totalTimeSpent: actualTimeSpentSeconds },
+                errorPatterns: results.errorPatterns || {},
+              },
+            });
 
         const { removeFromCache } = await import('@/lib/apiCache');
         removeFromCache('listening-tests-list');

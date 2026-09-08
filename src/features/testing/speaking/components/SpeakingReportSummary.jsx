@@ -1,3 +1,4 @@
+import PracticeSkillLink from '@/features/skill-lab/components/PracticeSkillLink';
 import React, { useMemo } from 'react';
 import { OverallScoreRing, CoachSummaryCard, PerformanceMetricsPanel } from './ScoreSection';
 import {
@@ -10,7 +11,11 @@ import { buildSpeakingReportSummary } from '../utils/speakingReportSummary';
 import { cn } from '@/lib/cn';
 import { MUTED, PANEL, Pill, TITLE } from '@/features/dashboard/components/primitives';
 
-export default function SpeakingReportSummary({ finalEvaluation, pronunciationBreakdown }) {
+export default function SpeakingReportSummary({
+  finalEvaluation,
+  pronunciationBreakdown,
+  sourceId,
+}) {
   const summary = useMemo(() => buildSpeakingReportSummary(finalEvaluation), [finalEvaluation]);
 
   if (finalEvaluation?.assessmentStatus === 'insufficient_evidence') {
@@ -43,6 +48,7 @@ export default function SpeakingReportSummary({ finalEvaluation, pronunciationBr
       </div>
 
       <PartByPartSection parts={summary.parts} />
+      <PracticeSkillLink module="speaking" sourceId={sourceId} />
 
       <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 sm:gap-3">
         <StrengthsSection conciseStrengths={summary.strengths} />

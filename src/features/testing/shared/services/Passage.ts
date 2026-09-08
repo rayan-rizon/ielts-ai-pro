@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { withCache, CACHE_TTL } from '@/lib/apiCache';
 import { Passage as PassageType } from '@/types';
+import { serverScoringEnabled } from './objectiveTests';
 
 interface ListOptions {
   page?: number | null;
@@ -18,7 +19,7 @@ export const PassageService = {
     select: string = '*'
   ): Promise<any> {
     let query = supabase
-      .from('passages')
+      .from(serverScoringEnabled() ? 'library_passages' : 'passages')
       .select(select, { count: page !== null ? 'exact' : undefined });
 
     Object.keys(filters).forEach((key) => {
@@ -86,7 +87,11 @@ export const PassageService = {
 
   async getById(id: string): Promise<PassageType> {
     console.log('[Passage.getById] Fetching passage:', id);
-    const { data, error } = await supabase.from('passages').select('*').eq('id', id).single();
+    const { data, error } = await supabase
+      .from(serverScoringEnabled() ? 'library_passages' : 'passages')
+      .select('*')
+      .eq('id', id)
+      .single();
     if (error) {
       console.error('[Passage.getById] Error:', error);
       throw error;
@@ -98,7 +103,11 @@ export const PassageService = {
   // Cached version for test pages - passages rarely change (1 hour TTL)
   getByIdCached: withCache(
     async (id: string) => {
-      const { data, error } = await supabase.from('passages').select('*').eq('id', id).single();
+      const { data, error } = await supabase
+        .from(serverScoringEnabled() ? 'library_passages' : 'passages')
+        .select('*')
+        .eq('id', id)
+        .single();
       if (error) throw error;
       return data as PassageType;
     },
