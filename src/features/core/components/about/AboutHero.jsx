@@ -1,66 +1,70 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { Sparkles, FileText, Mic, BookOpen, Calculator } from 'lucide-react';
+import Sparkles from 'lucide-react/icons/sparkles';
+import { landingReveal, landingStagger } from '../landing/LandingSection';
+import { INK, MUTED } from './aboutTokens';
 
+/**
+ * About page opening.
+ *
+ * The old hero led with "The Future of IELTS Preparation" — a slogan, and the
+ * same promise the landing hero already makes. An About page's first line
+ * should say what the thing *is*, so this states the product and the problem it
+ * exists for, in the landing's own display type. The four feature chips are
+ * gone: they repeated, verbatim, the four cards that followed immediately
+ * below them.
+ */
 export default function AboutHero() {
   return (
-    <section className="relative pt-4 sm:pt-6 pb-12 md:pb-16 px-6">
-      <div className="max-w-5xl mx-auto text-center relative z-10">
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-6"
-        >
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 bg-linear-to-r/srgb from-indigo-50/90 via-purple-50/80 to-white/90 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-indigo-600 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/4 dark:bg-none dark:text-indigo-300">
-            <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
-            <span>Smart IELTS Preparation</span>
-          </div>
+    <section className="relative overflow-hidden bg-[#fcfdff] px-5 pb-16 pt-10 dark:bg-[#08080a] md:px-8 md:pb-24 md:pt-16">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-40 -top-24 h-96 w-96 rounded-full bg-[#c9f3eb]/45 blur-[100px] dark:bg-[#5a63df]/8"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 top-0 h-112 w-112 rounded-full bg-[#d8ddff]/55 blur-[110px] dark:bg-[#5a63df]/10"
+      />
 
-          <h1 className="text-[clamp(2.4rem,6.8vw,3.9rem)] font-black leading-[1.03] tracking-tighter text-slate-950 dark:text-white">
-            <span className="block">The Future of</span>
-            <span className="relative inline-block font-handwritten mt-2 bg-linear-to-r/srgb from-[#a456ef] via-[#6951ed] to-[#3e70f3] bg-clip-text pb-3 text-[1.05em] leading-[1.08] tracking-tight text-transparent drop-shadow-sm">
-              IELTS Preparation
-              <svg
-                className="absolute bottom-0 left-0 w-full h-3 text-[#7384f8]"
-                viewBox="0 0 200 10"
-                fill="none"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M2 4C60 8 140 8 198 4"
-                  stroke="currentColor"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg font-medium leading-relaxed text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Stop waiting days for essay feedback. Get instant, criterion-based practice feedback for
-            Writing, Speaking, Reading, and Listening—giving you a clearer roadmap for improvement.
-          </p>
-
-          {/* Quick highlight feature badges */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
-            {[
-              { icon: FileText, text: 'Writing Task 1 & 2' },
-              { icon: Mic, text: 'AI Speaking Examiner' },
-              { icon: BookOpen, text: 'Full Mock Test Suite' },
-              { icon: Calculator, text: 'Target Band Analytics' },
-            ].map((chip, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-white/4 px-3 py-1.5 shadow-sm dark:shadow-none backdrop-blur-md dark:backdrop-blur-none transition-all hover:scale-105"
-              >
-                <chip.icon className="h-3.5 w-3.5 text-indigo-500" />
-                {chip.text}
-              </span>
-            ))}
-          </div>
+      <m.div
+        initial="hidden"
+        animate="show"
+        variants={landingStagger}
+        className="relative z-10 mx-auto max-w-4xl text-center"
+      >
+        <m.div variants={landingReveal}>
+          <span className="inline-flex items-center gap-2.5 rounded-full border border-[#ded9ff] bg-[#f2f0ff]/75 px-5 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#5e50ee] shadow-[0_8px_24px_-8px_rgba(98,86,239,0.22)] backdrop-blur-md dark:border-violet-500/30 dark:bg-violet-950/50 dark:text-violet-300">
+            <Sparkles
+              className="h-4 w-4 shrink-0 text-[#6256ef] dark:text-violet-300"
+              aria-hidden
+            />
+            About IELTS Ai Pro
+          </span>
         </m.div>
-      </div>
+
+        <m.h1
+          variants={landingReveal}
+          className={`mt-5 text-balance text-[clamp(2.35rem,5vw,4.35rem)] font-black leading-[0.98] tracking-[-0.055em] ${INK}`}
+        >
+          Every IELTS learner deserves{' '}
+          <span className="font-handwritten relative inline-block tracking-[-0.03em] text-[#5262ef]">
+            a real examiner.
+            <span
+              aria-hidden
+              className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-linear-to-r/srgb from-[#89d9d0] to-[#7086f6] opacity-70"
+            />
+          </span>
+        </m.h1>
+
+        <m.p
+          variants={landingReveal}
+          className={`mx-auto mt-6 max-w-2xl text-[15px] font-medium leading-7 md:text-[17px] ${MUTED}`}
+        >
+          IELTS Ai Pro is a web-based practice platform for Reading, Listening, Writing and
+          Speaking. It scores your work against the public IELTS band descriptors and, more
+          importantly, shows you the evidence behind every band it gives.
+        </m.p>
+      </m.div>
     </section>
   );
 }

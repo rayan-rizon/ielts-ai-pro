@@ -296,8 +296,10 @@ export const Stat = ({
   size = 'md',
   bare = false,
   className,
+  ...rest
 }) => (
   <div
+    {...rest}
     className={cn(
       bare
         ? 'px-3 py-2.5'
@@ -555,11 +557,15 @@ export const FootNum = ({ children }) => (
   <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>{children}</span>
 );
 
-/** Honest empty state — never let "no data" read as a broken panel. */
-export const Empty = ({ icon: Icon, children, className }) => (
-  <div className={cn('flex flex-col items-center gap-2 py-8 text-center', className)}>
+export const Empty = ({ icon: Icon, title, message, children, className }) => (
+  <div className={cn('flex flex-col items-center gap-1.5 py-6 text-center', className)}>
     {Icon && <Icon className={cn('h-5 w-5', FAINT)} />}
-    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{children}</p>
+    {title && <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{title}</p>}
+    {(children || message) && (
+      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+        {children || message}
+      </p>
+    )}
   </div>
 );
 

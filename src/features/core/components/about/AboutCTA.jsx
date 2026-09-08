@@ -1,81 +1,101 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { Sparkles, ArrowRight, Check } from 'lucide-react';
+import ArrowRight from 'lucide-react/icons/arrow-right';
+import Sparkles from 'lucide-react/icons/sparkles';
+import Check from 'lucide-react/icons/check';
+import { ABOUT_VIEWPORT, INK, INSET, MUTED, RULE } from './aboutTokens';
+
+/**
+ * Closing call to action.
+ *
+ * Two revisions on from the original saturated gradient slab. The centred
+ * version that replaced it put pill, headline, paragraph, two buttons and three
+ * assurances in one narrow column, so the actions sat at the bottom of a stack
+ * of text with nothing to separate them from it — and the long script clause
+ * wrapped mid-phrase, stranding "is" at the start of the second line.
+ *
+ * Now a split banner: the argument on the left, a bordered action panel on the
+ * right holding the buttons and what you get with them. The headline is short
+ * enough that the handwritten clause always sets on one line.
+ */
+const ASSURANCES = [
+  'Free practice included',
+  'Instant estimated band scores',
+  'Aligned to the public descriptors',
+];
 
 export default function AboutCTA({ onSignup, onPricing }) {
   return (
-    <section className="py-6 md:py-10 px-6 relative">
-      <div className="max-w-4xl mx-auto">
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-linear-to-br/srgb from-[#4f38ea] via-[#5c47f0] to-[#216ff0] text-white rounded-[28px] md:rounded-[36px] p-6 sm:p-8 md:p-10 border border-white/15 shadow-[0_25px_60px_-15px_rgba(79,70,229,0.4)] dark:shadow-[0_35px_75px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden text-center group"
-        >
-          {/* Subtle Grid overlay */}
-          <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none">
-            <svg
-              className="w-full h-full"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100"
-              height="100"
-              viewBox="0 0 100 100"
-            >
-              <pattern id="grid-cta" width="20" height="20" patternUnits="userSpaceOnUse">
-                <rect width="20" height="20" fill="none" />
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1" />
-              </pattern>
-              <rect width="100%" height="100%" fill="url(#grid-cta)" />
-            </svg>
-          </div>
+    <section className="relative overflow-hidden bg-[#fcfdff] px-5 pb-20 pt-4 dark:bg-[#08080a] md:px-8 md:pb-28">
+      <m.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={ABOUT_VIEWPORT}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 mx-auto grid max-w-[1100px] items-center gap-8 rounded-[26px] border border-[#e2e5fa] bg-white/95 p-6 shadow-[0_20px_50px_-25px_rgba(79,66,220,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-[#131315] dark:shadow-none dark:backdrop-blur-none sm:p-9 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:p-10"
+      >
+        {/* The argument. */}
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#ded9ff] bg-[#f2f0ff]/75 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#5e50ee] dark:border-violet-500/30 dark:bg-violet-950/50 dark:text-violet-300">
+            <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            Start practising
+          </span>
 
-          <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-white/20 blur-3xl pointer-events-none" />
-          <div className="absolute -left-16 -bottom-16 h-52 w-52 rounded-full bg-indigo-400/30 blur-3xl pointer-events-none" />
-          <Sparkles className="absolute left-8 top-8 h-5 w-5 text-white/25 animate-pulse pointer-events-none hidden md:block" />
-          <Sparkles className="absolute right-10 bottom-8 h-6 w-6 text-white/30 animate-pulse pointer-events-none hidden md:block" />
-
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-[-0.035em] relative z-10 max-w-2xl mx-auto">
-            Ready to Reach Your{' '}
-            <span className="bg-linear-to-r/srgb from-[#a6edff] to-[#dcf9ff] bg-clip-text text-transparent drop-shadow-sm">
-              Target Band 7.5+?
+          <h2
+            className={`mt-5 text-balance text-[clamp(1.7rem,3vw,2.5rem)] font-black leading-[1.06] tracking-[-0.045em] ${INK}`}
+          >
+            Find the one criterion{' '}
+            <span className="font-handwritten relative inline-block whitespace-nowrap tracking-[-0.03em] text-[#5262ef]">
+              holding you back.
+              <span
+                aria-hidden
+                className="absolute -bottom-1 left-[3%] h-[3px] w-[94%] -rotate-1 rounded-full bg-linear-to-r/srgb from-[#89d9d0] to-[#7086f6] opacity-70"
+              />
             </span>
           </h2>
 
-          <p className="text-white/85 text-xs sm:text-sm font-medium mt-2 mb-6 max-w-md mx-auto relative z-10 leading-relaxed">
-            Join thousands of candidates accelerating their IELTS preparation with real-time AI
-            examiner feedback.
+          <p className={`mt-5 max-w-md text-sm font-medium leading-6 ${MUTED}`}>
+            Write one Task 2 response and read the report it comes back with. That is the fastest
+            way to judge whether any of this is useful to you.
           </p>
+        </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center relative z-10">
-            <button
-              onClick={onSignup}
-              className="h-12 px-7 rounded-[14px] bg-white text-slate-950 hover:bg-slate-50 font-extrabold text-sm shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 group/btn"
-            >
-              <span>Start Free Practice</span>
-              <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={onPricing}
-              className="h-12 px-7 rounded-[14px] border border-white/25 bg-white/10 text-white hover:bg-white/15 font-extrabold text-sm backdrop-blur-sm shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              View Pricing Plans
-            </button>
-          </div>
+        {/* The action panel. */}
+        <div className={`${INSET} p-5 sm:p-6`}>
+          <button
+            type="button"
+            onClick={onSignup}
+            className="group/btn inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#6256ef] px-6 text-sm font-black text-white shadow-md shadow-[#6256ef]/25 transition-all duration-200 hover:bg-[#5246e0] active:scale-[0.98]"
+          >
+            Start free practice
+            <ArrowRight
+              className="h-4 w-4 stroke-[2.5] transition-transform group-hover/btn:translate-x-0.5"
+              aria-hidden
+            />
+          </button>
 
-          <div className="mt-6 pt-4 border-t border-white/15 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold text-white/80 relative z-10">
-            <span className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-cyan-300" /> Free practice included
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-cyan-300" /> Instant Band score estimation
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-cyan-300" /> Cambridge rubric aligned
-            </span>
-          </div>
-        </m.div>
-      </div>
+          <button
+            type="button"
+            onClick={onPricing}
+            className={`mt-2.5 inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-xl border border-[#ded9ff] bg-white px-6 text-sm font-black transition-all duration-200 hover:border-[#6256ef]/40 hover:bg-[#f2f0ff] active:scale-[0.98] dark:border-white/12 dark:bg-white/5 dark:hover:border-violet-400/30 dark:hover:bg-white/8 ${INK}`}
+          >
+            Compare the plans
+          </button>
+
+          <ul className={`mt-5 space-y-2.5 border-t pt-4 ${RULE}`}>
+            {ASSURANCES.map((item) => (
+              <li key={item} className={`flex items-center gap-2 text-xs font-semibold ${MUTED}`}>
+                <Check
+                  className="h-3.5 w-3.5 shrink-0 text-[#6256ef] dark:text-violet-300"
+                  strokeWidth={3}
+                  aria-hidden
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </m.div>
     </section>
   );
 }

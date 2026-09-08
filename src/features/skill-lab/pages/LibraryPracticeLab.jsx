@@ -1,7 +1,18 @@
 import { createPortal } from 'react-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import PracticeHome from '../components/PracticeHome';
-import { Sparkles, X, ArrowUp, ArrowLeft, ArrowRight, Check, CircleX } from 'lucide-react';
+import {
+  Sparkles,
+  X,
+  ArrowUp,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CircleX,
+  HelpCircle,
+  Info,
+  Lightbulb,
+} from 'lucide-react';
 import { focusLabel } from '../practiceLabels';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -11,6 +22,8 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { formatLibraryText } from '../libraryText';
 import { getSupabaseFunctionHeaders } from '@/lib/csrf';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/cn';
+import { ReiconTarget } from '@/components/icons/ReiconTarget';
 import {
   PANEL,
   WELL,
@@ -216,6 +229,70 @@ function hasRenderableQuestion(question, module) {
   return true;
 }
 
+export function parseGroupInstructions(rawInstructions) {
+  if (!rawInstructions) return { range: null, body: '' };
+  let text = String(rawInstructions).replace(/\\n/g, '\n').trim();
+
+  // Strip wrapping BBCode [heading]...[/heading] if present at the start
+  const bbHeadingMatch = text.match(/^\[(?:heading|title)\]([\s\S]*?)\[\/(?:heading|title)\]\s*/i);
+  let range = null;
+  if (bbHeadingMatch) {
+    range = bbHeadingMatch[1].trim();
+    text = text.slice(bbHeadingMatch[0].length).trim();
+  }
+
+  // If no BBCode heading, check for plain "Questions X-Y" or "Questions X to Y"
+  if (!range) {
+    const rangeMatch = text.match(
+      /^(Questions?\s+\d+(?:[\s–\-\u2013\u2014to]+\d+)?)(?:\s*[:.\-–—]\s*|\s*\n+|$)/i
+    );
+    if (rangeMatch) {
+      range = rangeMatch[1].trim();
+      text = text.slice(rangeMatch[0].length).trim();
+    }
+  }
+
+  return { range, body: text };
+}
+
+export function QuestionGroupInstructions({ instructions }) {
+  if (!instructions || !String(instructions).trim()) return null;
+
+  const { range, body } = parseGroupInstructions(instructions);
+  const formattedHtml = body ? formatLibraryText(body) : null;
+
+  return (
+    <div
+      className="relative mb-3.5 overflow-hidden rounded-xl border border-[#5a63df]/20 bg-linear-to-b from-[#5a63df]/[0.04] to-[#faf9ff] p-3 pl-3.5 sm:p-3.5 sm:pl-4 dark:border-[#8f97ff]/25 dark:from-[#171622] dark:to-[#121118]"
+      role="region"
+      aria-label={range ? `Instructions for ${range}` : 'Question instructions'}
+    >
+      <span
+        className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#5a63df] dark:bg-[#8f97ff]"
+        aria-hidden="true"
+      />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]">
+            <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+          </div>
+          <h3 className={cn(TITLE, 'text-[13px] font-bold text-slate-800 dark:text-slate-100')}>
+            {range || 'Task Instructions'}
+          </h3>
+        </div>
+        <Pill tone="accent">Directive</Pill>
+      </div>
+
+      {formattedHtml && (
+        <div
+          className="mt-2 text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line [&_strong]:font-semibold [&_strong]:text-slate-900 dark:[&_strong]:text-white [&_strong]:px-1 [&_strong]:py-0.5 [&_strong]:rounded [&_strong]:bg-[#5a63df]/10 dark:[&_strong]:bg-[#8f97ff]/18 [&_hr]:my-2 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_p]:my-1"
+          dangerouslySetInnerHTML={{ __html: formattedHtml }}
+        />
+      )}
+    </div>
+  );
+}
+
 function Questions({ questions, module, answers, onChange, result, explanations = [] }) {
   return questions.map((question, index) => {
     const items = reviewItems(question);
@@ -247,10 +324,7 @@ function Questions({ questions, module, answers, onChange, result, explanations 
       >
         {question.group_instructions &&
           questions[index - 1]?.group_instructions !== question.group_instructions && (
-            <div
-              className={`border-b border-[#e4e2f0] pb-2.5 text-[13px] leading-relaxed whitespace-pre-line [&_strong]:mr-1 dark:border-white/[0.07]`}
-              dangerouslySetInnerHTML={{ __html: formatLibraryText(question.group_instructions) }}
-            />
+            <QuestionGroupInstructions instructions={question.group_instructions} />
           )}
         {!result && question.question_text && (
           <p className="text-sm font-semibold leading-snug">
@@ -301,11 +375,16 @@ function Source({ source }) {
   const [audioError, setAudioError] = useState(false);
   const passageTitle = sourcePassageTitle(source);
   return (
-    <section className={`${PANEL} p-3 space-y-2`} aria-label="Original passage or audio">
-      <h2 className={TITLE}>
-        {passageTitle || (source.audio_url ? 'Listening audio' : 'Reading passage')}
-        {source.section ? ` · Part ${source.section}` : ''}
-      </h2>
+    <section
+      className={`${PANEL} flex flex-col flex-1 h-full p-3.5 sm:p-4 space-y-2.5`}
+      aria-label="Original passage or audio"
+    >
+      <div className="border-b border-[#eeedf7] pb-2 dark:border-white/[0.08]">
+        <h2 className={`${TITLE} text-center`}>
+          {passageTitle || (source.audio_url ? 'Listening audio' : 'Reading passage')}
+          {source.section ? ` · Part ${source.section}` : ''}
+        </h2>
+      </div>
       {source.audio_url && (
         <p className={`text-xs ${MUTED}`}>
           {source.audio_scope === 'full_test'
@@ -332,10 +411,16 @@ function Source({ source }) {
       )}
       {!source.audio_url && (
         <div
-          className="whitespace-pre-wrap break-words text-sm leading-7 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
+          className="flex-1 whitespace-pre-wrap break-words text-sm leading-7 text-slate-800 dark:text-slate-200 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
           dangerouslySetInnerHTML={{ __html: formatLibraryText(source.content) }}
         />
       )}
+      <div className="mt-auto pt-2.5 border-t border-[#eeedf7] dark:border-white/[0.08] flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+        <span>{source.audio_url ? 'Listening Audio Source' : 'Reading Passage'}</span>
+        <span className={`${NUM} font-semibold text-[#5a63df] dark:text-[#afb5ff]`}>
+          {source.section ? `Part ${source.section}` : 'Reference'}
+        </span>
+      </div>
     </section>
   );
 }
@@ -603,45 +688,63 @@ export default function LibraryPracticeLab() {
   }
   if (query.isPending)
     return (
-      <div
-        role="status"
-        aria-label="Loading your practice"
-        className="mx-auto max-w-7xl space-y-3.5 p-4 md:p-6 motion-safe:animate-pulse"
-      >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <div className="h-3 w-36 rounded bg-slate-200 dark:bg-white/10" />
-            <div className="h-7 w-48 rounded bg-slate-200 dark:bg-white/10" />
+      <div className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        />
+        <div
+          role="status"
+          aria-label="Loading your practice"
+          className="relative z-10 mx-auto max-w-7xl space-y-3.5 motion-safe:animate-pulse"
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <div className="h-3 w-36 rounded bg-slate-200 dark:bg-white/10" />
+              <div className="h-7 w-48 rounded bg-slate-200 dark:bg-white/10" />
+            </div>
+            <div className="h-8 w-32 rounded bg-slate-200 dark:bg-white/10" />
           </div>
-          <div className="h-8 w-32 rounded bg-slate-200 dark:bg-white/10" />
+          {!sessionId && (
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className={`${PANEL} h-20`} />
+              ))}
+            </div>
+          )}
+          <div className="grid grid-cols-12 gap-3.5">
+            <div className={`${PANEL} col-span-12 h-80 lg:col-span-8`} />
+            <div className={`${PANEL} col-span-12 h-80 lg:col-span-4`} />
+          </div>
+          {!sessionId && (
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className={`${PANEL} h-28`} />
+              ))}
+            </div>
+          )}
+          <span className="sr-only">Loading your practice…</span>
         </div>
-        {!sessionId && (
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className={`${PANEL} h-20`} />
-            ))}
-          </div>
-        )}
-        <div className="grid grid-cols-12 gap-3.5">
-          <div className={`${PANEL} col-span-12 h-80 lg:col-span-8`} />
-          <div className={`${PANEL} col-span-12 h-80 lg:col-span-4`} />
-        </div>
-        {!sessionId && (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className={`${PANEL} h-28`} />
-            ))}
-          </div>
-        )}
-        <span className="sr-only">Loading your practice…</span>
       </div>
     );
   if (query.error)
     return (
-      <div className={`${PANEL} m-4 p-5`} role="alert">
-        <p>{query.error.message}</p>
-        <Button onClick={() => query.refetch()}>Try again</Button>
-      </div>
+      <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
+        <div className="relative z-10 mx-auto max-w-lg">
+          <div className={`${PANEL} p-5 text-center`} role="alert">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              {query.error.message}
+            </p>
+            <Button className="mt-4" onClick={() => query.refetch()}>
+              Try again
+            </Button>
+          </div>
+        </div>
+      </main>
     );
   const data = query.data;
   const tips = Array.isArray(data.tips) ? data.tips : [];
@@ -686,10 +789,9 @@ export default function LibraryPracticeLab() {
       });
     return (
       <main className="mx-auto max-w-7xl space-y-2.5 px-3 py-2 pb-16 md:px-5 md:py-3 md:pb-16">
-        <header
-          className={`flex flex-wrap items-center justify-between gap-2 border-b border-[#e4e2f0] pb-2 dark:border-white/[0.07]`}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <header className="space-y-2 border-b border-[#e4e2f0] pb-2.5 dark:border-white/[0.07]">
+          {/* Row 1: Navigation and actions */}
+          <div className="flex items-center justify-between gap-2">
             <Button
               variant="outline"
               disabled={busy}
@@ -701,64 +803,90 @@ export default function LibraryPracticeLab() {
               <span className="sm:hidden">Back</span>
               <span className="hidden sm:inline">Back to Practice Lab</span>
             </Button>
-            <span
-              className="hidden h-7 w-px bg-[#e4e2f0] sm:block dark:bg-white/[0.09]"
-              aria-hidden="true"
-            />
-            <div className="min-w-0">
-              <p className={MICRO}>Practice Lab · {title(data.focus)}</p>
-              <h1
-                className="max-w-[42rem] break-words text-lg font-semibold leading-tight sm:text-xl"
-                tabIndex={-1}
+            {data.source_session_id && (
+              <Link
+                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#5a63df] transition-colors hover:border-[#5a63df]/40 hover:bg-[#f7f6fd] dark:border-white/[0.09] dark:bg-white/[0.03] dark:text-[#afb5ff] dark:hover:bg-white/[0.07]"
+                to={`/${data.focus.split(':')[0]}-test/${data.source_session_id}?view-results=true`}
               >
-                {data.source.title}
-              </h1>
-              <p className={`mt-0.5 text-[11px] ${MUTED}`}>
-                Step {stage + 1} of 4 · {labels[stage]}
-              </p>
-            </div>
+                View test result
+                <ArrowRight size={12} aria-hidden="true" />
+              </Link>
+            )}
           </div>
-          {data.source_session_id && (
-            <Link
-              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#5a63df] transition-colors hover:border-[#5a63df]/40 hover:bg-[#f7f6fd] dark:border-white/[0.09] dark:bg-white/[0.03] dark:text-[#afb5ff] dark:hover:bg-white/[0.07]"
-              to={`/${data.focus.split(':')[0]}-test/${data.source_session_id}?view-results=true`}
+
+          {/* Row 2: Title and session progress */}
+          <div className="min-w-0">
+            <p className={MICRO}>Practice Lab · {title(data.focus)}</p>
+            <h1
+              className="max-w-[42rem] break-words text-lg font-semibold leading-tight sm:text-xl"
+              tabIndex={-1}
             >
-              View test result
-              <ArrowRight size={12} aria-hidden="true" />
-            </Link>
-          )}
+              {data.source.title}
+            </h1>
+            <p className={`mt-0.5 text-[11px] ${MUTED}`}>
+              Step {stage + 1} of 4 · {labels[stage]}
+            </p>
+          </div>
         </header>
-        <ol className={`${WELL} grid grid-cols-2 gap-1 rounded-lg p-1 sm:grid-cols-4`}>
-          {labels.map((label, index) => (
-            <li
-              key={label}
-              aria-current={index === stage ? 'step' : undefined}
-              className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs ${index === stage ? 'bg-white font-semibold text-[#5a63df] dark:bg-white/[0.08] dark:text-[#afb5ff]' : MUTED}`}
-            >
-              <span
-                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] ${index === stage ? 'bg-[#5a63df] font-bold text-white' : 'bg-white/70 dark:bg-white/[0.08]'}`}
+        <ol
+          className={`${WELL} grid grid-cols-2 gap-1.5 rounded-xl p-1.5 sm:grid-cols-4`}
+          aria-label="Practice workflow stages"
+        >
+          {labels.map((label, index) => {
+            const isCurrent = index === stage;
+            const isCompleted = index < stage;
+            return (
+              <li
+                key={label}
+                aria-current={isCurrent ? 'step' : undefined}
+                className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-all duration-150 ${
+                  isCurrent
+                    ? 'bg-white font-bold text-[#5a63df] shadow-xs dark:bg-white/[0.10] dark:text-[#afb5ff]'
+                    : isCompleted
+                      ? 'font-medium text-slate-700 dark:text-slate-300'
+                      : MUTED
+                }`}
               >
-                {index + 1}
-              </span>
-              <span className="truncate">{label}</span>
-            </li>
-          ))}
+                <span
+                  className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold transition-colors ${
+                    isCurrent
+                      ? 'bg-[#5a63df] text-white shadow-3xs'
+                      : isCompleted
+                        ? 'bg-emerald-600 text-white dark:bg-emerald-500'
+                        : 'bg-white/70 text-slate-500 dark:bg-white/[0.08] dark:text-slate-400'
+                  }`}
+                >
+                  {isCompleted ? <Check size={11} strokeWidth={2.5} /> : index + 1}
+                </span>
+                <span className="truncate">{label}</span>
+              </li>
+            );
+          })}
         </ol>
         {alert}
         {stage === 3 && gradedResult && (
           <section
-            className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4`}
+            className={`${PANEL} flex flex-wrap items-center justify-between gap-3.5 p-4 sm:p-5`}
             aria-label="Practice result"
           >
-            <div className="flex flex-wrap items-center gap-3">
-              <div>
-                <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Diagnostic Result</p>
-                <h2 className={`${NUM} text-lg font-bold text-slate-900 dark:text-slate-50`}>
-                  {gradedResult.correct} of {gradedResult.total} correct
-                </h2>
+            <div className="flex flex-wrap items-center gap-3.5">
+              <div className="flex items-center gap-3">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
+                  <ReiconTarget size={22} />
+                </div>
+                <div>
+                  <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Diagnostic Result</p>
+                  <h2
+                    className={`${NUM} text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50`}
+                  >
+                    {gradedResult.correct} of {gradedResult.total} correct
+                  </h2>
+                </div>
               </div>
               <Pill tone={gradedResult.correct === gradedResult.total ? 'ok' : 'fault'}>
-                {gradedResult.total - gradedResult.correct} to review
+                {gradedResult.total - gradedResult.correct === 0
+                  ? 'All correct'
+                  : `${gradedResult.total - gradedResult.correct} to review`}
               </Pill>
               <span className={`text-xs ${MUTED}`}>
                 {data.familiarity === 'new'
@@ -768,59 +896,129 @@ export default function LibraryPracticeLab() {
                     : 'Repeated questions'}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-[#5a63df] dark:text-[#afb5ff]">
+            <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold">
               {data.activity_id && (
                 <Link
                   to="/learning-path"
-                  className="inline-flex items-center gap-1 hover:underline"
+                  className="inline-flex items-center gap-1 text-[#5a63df] hover:underline dark:text-[#afb5ff]"
                 >
                   Learning path <ArrowRight size={12} aria-hidden="true" />
                 </Link>
               )}
               <Link
                 to="/practice-lab"
-                className="inline-flex items-center gap-1 rounded-md bg-[#5a63df] px-3 py-1.5 font-bold text-white shadow-xs transition-all hover:bg-[#4c55cd]"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-linear-to-r from-[#5a63df] to-[#6d75ed] px-3.5 py-2 font-bold text-white shadow-xs transition-all hover:from-[#4f58d4] hover:to-[#5e66e0] active:scale-[0.99]"
               >
-                Your next step <ArrowRight size={12} aria-hidden="true" />
+                <span>Your next step</span>
+                <ArrowRight size={13} aria-hidden="true" />
               </Link>
             </div>
           </section>
         )}
         {stage === 1 ? (
-          <section className={`${PANEL} space-y-3 p-3 sm:p-4`}>
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>
-                  Step 2 · Learn a way to try
-                </p>
-                <h2 aria-label="An approach to try" className="mt-1 font-semibold">
-                  Try this approach
-                </h2>
+          <section className={`${PANEL} space-y-4 p-4 sm:p-5`} aria-label="Strategy and approach">
+            {/* Header */}
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#eeedf7] pb-3.5 dark:border-white/[0.08]">
+              <div className="flex items-start gap-2.5">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]">
+                  <Lightbulb className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>
+                    Step 2 of 4 · Learn a way to try
+                  </p>
+                  <h2
+                    aria-label="An approach to try"
+                    className="mt-0.5 text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100"
+                  >
+                    Try this approach
+                  </h2>
+                  <p className={`mt-0.5 text-xs ${MUTED}`}>
+                    Recommended strategies and techniques to apply before starting this question
+                    set.
+                  </p>
+                </div>
               </div>
               <Pill tone="accent">{tips.length} tips</Pill>
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
+
+            {/* Tip Tiles */}
+            <div className="grid gap-3 sm:grid-cols-3">
               {tips.map((tip, index) => (
                 <div
                   key={tip}
-                  className={`${TILE} flex items-start gap-2 p-2.5 text-[13px] leading-relaxed`}
+                  className="group relative flex flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white/70 p-3.5 sm:p-4 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/35 hover:bg-white hover:shadow-xs dark:border-white/[0.08] dark:bg-white/[0.03] dark:hover:border-[#8f97ff]/40 dark:hover:bg-white/[0.06]"
                 >
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#5a63df]/10 text-[10px] font-bold text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
-                    {index + 1}
-                  </span>
-                  <span>{tip}</span>
+                  <div>
+                    <div className="mb-2.5 flex items-center justify-between gap-2">
+                      <span
+                        className={`${NUM} inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#5a63df]/10 text-xs font-bold text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]`}
+                      >
+                        0{index + 1}
+                      </span>
+                      <span className={`${MICRO} text-slate-400 dark:text-slate-500`}>
+                        Tip {index + 1}
+                      </span>
+                    </div>
+                    <p className="text-[13px] sm:text-sm font-medium leading-relaxed text-slate-800 dark:text-slate-200">
+                      {tip}
+                    </p>
+                  </div>
+                  <div
+                    className="mt-3.5 h-0.5 w-6 rounded-full bg-[#5a63df]/20 transition-all duration-200 group-hover:w-10 group-hover:bg-[#5a63df] dark:bg-[#8f97ff]/25 dark:group-hover:bg-[#8f97ff]"
+                    aria-hidden="true"
+                  />
                 </div>
               ))}
             </div>
-            <p className={`text-[11px] leading-relaxed ${MUTED}`}>
-              Use these ideas on the next set. They are suggestions, not a guess about why you made
-              a mistake.
-            </p>
+
+            {/* Explanatory note */}
+            <div className="flex items-center gap-2 rounded-lg border border-[#e4e2f0]/80 bg-[#f8f7fd] px-3 py-2 text-xs text-slate-600 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-400">
+              <Info
+                className="h-3.5 w-3.5 shrink-0 text-[#5a63df] dark:text-[#afb5ff]"
+                aria-hidden="true"
+              />
+              <span>
+                Use these ideas on the next set. They are suggestions, not a guess about why you
+                made a mistake.
+              </span>
+            </div>
+
+            {/* Integrated Action Footer */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eeedf7] pt-3.5 dark:border-white/[0.08]">
+              <div>
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                  Ready? Use this approach on a fresh question set.
+                </p>
+                <p className={`text-[11px] ${MUTED}`}>
+                  Apply these techniques on the next practice questions.
+                </p>
+              </div>
+              <Button
+                disabled={busy}
+                className="ml-auto shrink-0 gap-1.5 bg-[#5a63df] font-semibold text-white shadow-xs transition-all hover:bg-[#4c55cd] active:scale-[0.99] dark:bg-[#5a63df] dark:hover:bg-[#4c55cd]"
+                onClick={() =>
+                  run(async () => {
+                    await action('save', { sessionId, answers, stage: stage + 1 });
+                    setStage(stage + 1);
+                  })
+                }
+              >
+                Start the questions
+                <ArrowRight size={14} aria-hidden="true" />
+              </Button>
+            </div>
           </section>
         ) : stage === 0 && !data.mistake ? (
-          <section className={`${PANEL} p-5`}>
-            <h2 className="font-semibold">Your starting point</h2>
-            <p>
+          <section className={`${PANEL} space-y-2 p-4 sm:p-5`}>
+            <div className="flex items-center gap-2">
+              <span
+                className="h-4 w-[3px] rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
+                aria-hidden="true"
+              />
+              <h2 className={TITLE}>Your starting point</h2>
+            </div>
+            <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300">
               There is no saved answer to review for this set. Start with a few tips, then try the
               original library questions.
             </p>
@@ -879,9 +1077,9 @@ export default function LibraryPracticeLab() {
                 <span className="relative z-10">Questions</span>
               </button>
             </div>
-            <div className="grid items-start gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2 md:items-stretch">
               <div
-                className={`${tab !== 'passage' ? 'hidden md:block' : ''} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto`}
+                className={`${tab !== 'passage' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto h-full`}
               >
                 <Source
                   key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
@@ -889,7 +1087,7 @@ export default function LibraryPracticeLab() {
                 />
               </div>
               <div
-                className={`${tab !== 'questions' ? 'hidden md:block' : ''} ${PANEL} min-w-0 px-3`}
+                className={`${tab !== 'questions' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} ${PANEL} min-w-0 p-3.5 sm:p-4 h-full`}
               >
                 <Questions
                   questions={reviewing ? data.mistake.questions : data.questions}
@@ -903,14 +1101,12 @@ export default function LibraryPracticeLab() {
             </div>
           </>
         )}
-        {stage < 2 && (
+        {stage === 0 && (
           <div
             className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3`}
           >
             <p className={`text-xs ${MUTED}`}>
-              {stage === 0
-                ? 'Review the question and answer, then learn a way to try it.'
-                : 'Ready? Use this approach on a fresh question set.'}
+              Review the question and answer, then learn a way to try it.
             </p>
             <Button
               disabled={busy}
@@ -922,7 +1118,7 @@ export default function LibraryPracticeLab() {
                 })
               }
             >
-              {stage === 0 ? 'See the approach' : 'Start the questions'}
+              See the approach
               <ArrowRight size={14} />
             </Button>
           </div>

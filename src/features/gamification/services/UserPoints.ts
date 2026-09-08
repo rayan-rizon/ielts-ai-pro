@@ -51,6 +51,7 @@ export const UserPoints = {
     if (error) throw error;
 
     // Map flat RPC result to the expected format for the frontend
+    const totalCount = data?.[0]?.total_count ?? 0;
     const formattedData = (data || []).map((row: any, index: number) => ({
       user_id: row.is_me ? 'current_user' : `rank_${from + index}`,
       is_me: row.is_me,
@@ -64,12 +65,9 @@ export const UserPoints = {
       real_avg_score: row.real_avg_score || 0,
     }));
 
-    // Use estimated count for performance — avoids full table scan on every call
-    const { count } = await supabase
-      .from('user_points')
-      .select('*', { count: 'estimated', head: true });
-
-    return { data: formattedData, count: count };
+    // The RPC count is filtered by both timeframe and learner role. Counting
+    // user_points separately would include admins and disagree with the rows.
+    return { data: formattedData, count: Number(totalCount) };
   },
 
   async getById(id: string): Promise<UserPointsType> {

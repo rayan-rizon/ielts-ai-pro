@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { UserPoints } from '../services/UserPoints';
 
 const PAGE_SIZE = 25;
@@ -49,6 +49,7 @@ export function useLeaderboard(timeFilter = 'all_time', currentUserId = null) {
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: keepPreviousData,
   });
 
   const users = useMemo(() => {

@@ -83,7 +83,7 @@ export default function Leaderboard() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-                Global leaderboard
+                Global Leaderboard
               </h1>
               <Pill tone="amber">Top learners</Pill>
             </div>
@@ -92,22 +92,37 @@ export default function Leaderboard() {
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-1 rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
+          <div
+            role="tablist"
+            aria-label="Leaderboard timeframe"
+            className="inline-flex items-center gap-1 rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4"
+          >
             {TIME_FILTERS.map((tf) => {
               const isActive = timeFilter === tf.id;
               return (
-                <button
+                <m.button
                   key={tf.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setTimeFilter(tf.id)}
                   className={cn(
-                    'rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors duration-200',
+                    'relative rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
                     isActive
-                      ? 'bg-[#5a63df] text-white'
+                      ? 'text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                   )}
                 >
-                  {tf.label}
-                </button>
+                  {isActive && (
+                    <m.span
+                      layoutId="leaderboardTimeFilterPill"
+                      className="absolute inset-0 rounded-full bg-[#5a63df]"
+                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{tf.label}</span>
+                </m.button>
               );
             })}
           </div>

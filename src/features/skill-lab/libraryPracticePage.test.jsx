@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import LibraryPracticeLab from './pages/LibraryPracticeLab';
+import LibraryPracticeLab, {
+  parseGroupInstructions,
+  QuestionGroupInstructions,
+} from './pages/LibraryPracticeLab';
 
 const { invoke, auth } = vi.hoisted(() => ({ invoke: vi.fn(), auth: { user: { id: 'student' } } }));
 vi.mock('@/lib/supabase', () => ({ supabase: { functions: { invoke } } }));
@@ -298,5 +301,33 @@ describe('library practice page', () => {
     mount('/practice-lab/session/session?library=1');
     expect(await screen.findByText(/missing its original question details/i)).toBeInTheDocument();
     expect(screen.queryByText('Paragraph A')).not.toBeInTheDocument();
+  });
+
+  it('parses question ranges from group instructions and renders structured card UI', () => {
+    const raw =
+      'Questions 31–34\nComplete each sentence with the correct ending, A–F, below.\nWrite the correct letter, A–F , in boxes 31–34 on your answer sheet.';
+    const { range, body } = parseGroupInstructions(raw);
+    expect(range).toBe('Questions 31–34');
+    expect(body).toContain('Complete each sentence');
+    expect(body).toContain('Write the correct letter');
+
+    const singleLine = 'Questions 1-5: Complete the notes below.';
+    expect(parseGroupInstructions(singleLine)).toEqual({
+      range: 'Questions 1-5',
+      body: 'Complete the notes below.',
+    });
+
+    const noRange = 'Which paragraph contains the following information?';
+    expect(parseGroupInstructions(noRange)).toEqual({
+      range: null,
+      body: 'Which paragraph contains the following information?',
+    });
+
+    render(<QuestionGroupInstructions instructions={raw} />);
+    expect(
+      screen.getByRole('region', { name: /instructions for questions 31–34/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Questions 31–34')).toBeInTheDocument();
+    expect(screen.getByText('Directive')).toBeInTheDocument();
   });
 });

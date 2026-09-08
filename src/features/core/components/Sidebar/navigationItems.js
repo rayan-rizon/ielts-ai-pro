@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { ReiconChart } from '@/components/icons/ReiconChart';
+import { ReiconTarget } from '@/components/icons/ReiconTarget';
 
 export const userNavigationItems = [
   { title: 'Dashboard', url: createPageUrl('Dashboard'), icon: LayoutGrid },
@@ -41,7 +42,7 @@ export const learningToolsItems = [
   { title: 'Resources', url: createPageUrl('Resources'), icon: Library },
   { title: 'Vocabulary', url: createPageUrl('Vocabulary'), icon: Brain },
   { title: 'Leaderboards', url: createPageUrl('Leaderboard'), icon: Trophy },
-  { title: 'Practice Lab', url: createPageUrl('SkillLab'), icon: FlaskConical },
+  { title: 'Practice Lab', url: createPageUrl('SkillLab'), icon: ReiconTarget },
 ];
 
 export const adminNavigationItems = [
