@@ -42,7 +42,7 @@ const PricingSkeleton = () => (
           <div className="mb-4 h-4 w-full animate-pulse rounded bg-slate-100 dark:bg-white/6" />
           <div className="mb-4 h-px bg-[#eeedf7] dark:bg-white/[0.07]" />
           <div className="mb-6 space-y-3">
-            {[1, 2, 3, 4, 5].map((s) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
               <div key={s} className="flex items-center gap-3">
                 <div className="h-5 w-5 shrink-0 animate-pulse rounded-full bg-slate-100 dark:bg-white/6" />
                 <div

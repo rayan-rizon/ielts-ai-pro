@@ -1,5 +1,3 @@
-import { PRACTICE_LIBRARY_ENABLED, SKILL_LAB_ENABLED } from '@/features/skill-lab/skills';
-import { PANEL } from '@/features/dashboard/components/primitives';
 import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -472,46 +470,6 @@ export default function Pricing() {
             handleOpenPortal={handleOpenPortal}
           />
 
-          {SKILL_LAB_ENABLED && (
-            <section
-              className={`${PANEL} mx-auto mb-8 max-w-5xl p-5`}
-              aria-labelledby="practice-lab-pricing"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 id="practice-lab-pricing" className="text-sm font-bold">
-                    Practice Lab
-                  </h2>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {PRACTICE_LIBRARY_ENABLED
-                      ? 'Real Reading & Listening questions, chosen around your progress.'
-                      : 'Focused lessons, chosen around your progress.'}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {['Free · 2/day', 'Pro · 10/day', 'Premium · 20/day'].map((label) => (
-                    <span
-                      key={label}
-                      className="rounded-md border border-[#e4e2f0] px-3 py-2 dark:border-white/10"
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <p className="mt-3 text-xs">Pro & Premium include personalised AI explanations.</p>
-              <details className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                <summary className="cursor-pointer py-1">How daily limits work</summary>
-                <p className="mt-2 leading-relaxed">
-                  {PRACTICE_LIBRARY_ENABLED
-                    ? 'One set uses one session. Each paid set includes 3 AI questions. Access follows your library plan.'
-                    : 'Each paid lesson includes 3 AI questions and 6 feedback submissions.'}{' '}
-                  Limits reset at 00:00 UTC. Saved work and feedback are free to revisit. Full-test
-                  credits are separate.
-                </p>
-              </details>
-            </section>
-          )}
           <FAQSection />
         </m.div>
 

@@ -29,7 +29,11 @@ const viewport = { once: true, amount: 0.12 };
 const faqs = [
   {
     q: 'What can I practice for free?',
-    a: 'The Free plan includes IELTS Reading and Listening practice, Cambridge test sets available to free learners, one AI Writing evaluation per month, vocabulary tools, and basic progress analytics. Current limits are always shown on the pricing page.',
+    a: 'The Free plan includes unlimited Cambridge IELTS Reading and Listening practice tests, 2 Practice Lab AI tests per day, 1 AI Writing evaluation per month, vocabulary tools, and basic progress analytics.',
+  },
+  {
+    q: 'How do daily Practice Lab limits work?',
+    a: 'Full Cambridge IELTS practice tests are always 100% free and unlimited for all learners. Daily limits only apply to Practice Lab AI tests, which provide targeted question sets and AI diagnostic feedback. Free accounts include 2 Practice Lab AI tests/day, Pro includes 10/day with personalised AI explanations, and Premium includes 20/day.',
   },
   {
     q: 'How does the IELTS Writing feedback work?',
@@ -220,6 +224,18 @@ export default function LandingPage() {
     navigate(createPageUrl(isSignedIn ? 'Dashboard' : 'SignUp'));
   };
 
+  const handlePricingCta = (tier) => {
+    if (isSignedIn) {
+      if (tier === 'free') {
+        navigate(createPageUrl('Dashboard'));
+      } else {
+        navigate(createPageUrl('Pricing'));
+      }
+      return;
+    }
+    navigate(createPageUrl('SignUp'));
+  };
+
   const handlePricing = () => {
     // /pricing is auth-gated; anonymous visitors compare plans on the landing page itself
     if (isSignedIn) {
@@ -288,7 +304,7 @@ export default function LandingPage() {
 
             <LazySection id="pricing" className="scroll-mt-28" minHeight="850px" data-oid="txw9f10">
               <PricingSection
-                handlePrimaryCta={handlePrimaryCta}
+                handlePrimaryCta={handlePricingCta}
                 viewport={viewport}
                 data-oid="zr_aidp"
               />

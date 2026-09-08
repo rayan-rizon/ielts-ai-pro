@@ -30,6 +30,11 @@ const faqs = [
     answer:
       'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
   },
+  {
+    question: 'How do daily Practice Lab limits work?',
+    answer:
+      'Full Cambridge IELTS practice tests are always 100% free and unlimited for all learners. Daily limits only apply to Practice Lab AI tests, which provide targeted question sets and AI diagnostic feedback. Free accounts include 2 Practice Lab AI tests/day, Pro includes 10/day with personalised AI explanations, and Premium includes 20/day. Limits reset at 00:00 UTC, and previously completed tests and feedback remain free to revisit anytime.',
+  },
 ];
 
 export default function FAQSection() {

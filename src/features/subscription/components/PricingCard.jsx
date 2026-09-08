@@ -112,7 +112,7 @@ function FeatureList({ plan, isPricingLoading }) {
   if (isPricingLoading) {
     return (
       <div className="mb-6 space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
             <Skeleton className="h-5 w-5 shrink-0 rounded-full" />
             <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
@@ -124,24 +124,12 @@ function FeatureList({ plan, isPricingLoading }) {
 
   return (
     <div className="mb-6 space-y-3">
-      {plan.features.slice(0, 6).map((feature, i) => (
+      {plan.features.map((feature, i) => (
         <PricingFeature key={i} label={feature} unavailable={false} />
       ))}
-      {(plan.features.length > 6 || plan.limitations?.length > 0) && (
-        <details className="text-xs text-slate-500 dark:text-slate-400">
-          <summary className="cursor-pointer rounded-sm py-1 font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]">
-            All features & limits
-          </summary>
-          <div className="mt-3 space-y-3">
-            {plan.features.slice(6).map((feature) => (
-              <PricingFeature key={feature} label={feature} unavailable={false} />
-            ))}
-            {plan.limitations?.map((lim) => (
-              <PricingFeature key={lim} label={lim} unavailable={true} />
-            ))}
-          </div>
-        </details>
-      )}
+      {plan.limitations?.map((lim, i) => (
+        <PricingFeature key={`lim-${i}`} label={lim} unavailable={true} />
+      ))}
     </div>
   );
 }
