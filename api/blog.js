@@ -550,10 +550,22 @@ function layout({
         ad_personalization: 'granted',
       });
       window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+
+      var head = document.head || document.getElementsByTagName('head')[0];
+      var query = '?id=' + encodeURIComponent(GTM_ID);
+
+      // Mirrors index.html: first-party via the /mx rewrite, falling back to
+      // Google's host if the proxy is unavailable.
       var script = document.createElement('script');
       script.async = true;
-      script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(GTM_ID);
-      (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
+      script.src = '/mx/gtm.js' + query;
+      script.onerror = function () {
+        var fallback = document.createElement('script');
+        fallback.async = true;
+        fallback.src = 'https://www.googletagmanager.com/gtm.js' + query;
+        head.appendChild(fallback);
+      };
+      head.appendChild(script);
     })();
   </script>
   <title>${escapeHtml(fullTitle)}</title>

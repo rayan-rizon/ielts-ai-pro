@@ -75,10 +75,23 @@
             event: 'gtm.js',
           });
 
+          var head = document.head || document.getElementsByTagName('head')[0];
+          var query = '?id=' + encodeURIComponent(gtmId);
+
+          // Served through our own origin (see the /mx rewrites in vercel.json)
+          // so domain-level blockers and ITP treat the container as first-party.
+          // A proxy failure falls back to Google's host, so this can never leave
+          // measurement worse off than loading from googletagmanager.com directly.
           var script = document.createElement('script');
           script.async = true;
-          script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId);
-          (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
+          script.src = '/mx/gtm.js' + query;
+          script.onerror = function () {
+            var fallback = document.createElement('script');
+            fallback.async = true;
+            fallback.src = 'https://www.googletagmanager.com/gtm.js' + query;
+            head.appendChild(fallback);
+          };
+          head.appendChild(script);
           window.__gtmLoaded = true;
         };
 

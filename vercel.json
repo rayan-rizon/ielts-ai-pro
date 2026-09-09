@@ -259,6 +259,18 @@
   ],
   "rewrites": [
     {
+      "source": "/mx/gtm.js",
+      "destination": "https://www.googletagmanager.com/gtm.js"
+    },
+    {
+      "source": "/mx/gtag/js",
+      "destination": "https://www.googletagmanager.com/gtag/js"
+    },
+    {
+      "source": "/mx/g/collect",
+      "destination": "https://www.google-analytics.com/g/collect"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     },
