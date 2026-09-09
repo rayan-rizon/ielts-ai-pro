@@ -1166,7 +1166,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                 </div>
                 <TabsContent
                   value={activeTab}
-                  className="flex-1 flex flex-col p-4 md:p-6 gap-6 overflow-y-auto m-0 custom-scrollbar"
+                  className="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto m-0 min-h-0 custom-scrollbar"
                 >
                   {/* Audio Section */}
                   <div className="shrink-0 space-y-3">
@@ -1185,7 +1185,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   </div>
 
                   {/* Audioscript Section */}
-                  <div className="flex-1 flex flex-col min-h-0 space-y-3 pt-4 border-t border-stone-200/60 dark:border-stone-800">
+                  <div className="flex-1 flex flex-col min-h-0 gap-3 pt-3 border-t border-stone-200/60 dark:border-stone-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-stone-100 dark:bg-stone-950/40 rounded-lg text-stone-600 dark:text-stone-400">
@@ -1230,16 +1230,12 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     />
 
                     {/* Quick Tip */}
-                    <div className="p-4 bg-linear-to-br/srgb from-stone-50/50 to-stone-50/50 dark:from-stone-800/50 dark:to-stone-900/50 rounded-2xl border border-stone-100/50 dark:border-stone-800">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="h-2 w-2 rounded-full bg-stone-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-stone-600 dark:text-stone-400 uppercase tracking-widest">
-                          Quick Tip
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-stone-500 leading-relaxed font-medium">
-                        Highlight view hides timestamps without changing synchronization. Select the
-                        spoken evidence, enter its question number, then save the test.
+                    <div className="shrink-0 flex items-center gap-2 rounded-xl border border-stone-100/70 bg-stone-50/60 px-3 py-2 dark:border-stone-800 dark:bg-stone-900/40">
+                      <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-stone-500" />
+                      <p className="text-[10px] font-medium leading-4 text-stone-500">
+                        Select spoken evidence and enter its question number. Click a highlight to
+                        renumber or remove it, and drag its blue edges to resize. Timestamps stay
+                        under Edit SRT.
                       </p>
                     </div>
                   </div>

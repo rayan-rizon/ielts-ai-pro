@@ -330,6 +330,8 @@ export function splitTranscriptHighlights(text, highlights, usedHighlightKeys = 
       questionNumber: match.questionNumber,
       ...(match.questionNumbers?.length > 1 ? { questionNumbers: match.questionNumbers } : {}),
       showBadge: match.showBadge,
+      // Admin tooling maps a rendered mark back to its saved evidence entry.
+      highlightKey: match.highlightKey,
     });
     cursor = match.end;
   }

@@ -104,6 +104,95 @@ describe('Listening admin transcript highlighter', () => {
     ).toBeInTheDocument();
   });
 
+  it('edits a saved highlight straight from the transcript without scrolling to the list', () => {
+    const onHighlightsChange = vi.fn();
+    render(
+      <ListeningTranscriptHighlighter
+        srtContent={SRT}
+        highlights={[
+          {
+            question_number: 21,
+            phrase: 'The lecture focused on long-term issues.',
+            source_index: 0,
+          },
+        ]}
+        onSrtChange={vi.fn()}
+        onHighlightsChange={onHighlightsChange}
+        questionStart={21}
+        questionEnd={30}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('Answer evidence 21'));
+    fireEvent.change(screen.getByLabelText('Question numbers'), { target: { value: '23,24' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save answer highlight' }));
+
+    expect(onHighlightsChange.mock.calls.at(-1)[0]).toEqual([
+      {
+        question_number: 23,
+        question_numbers: [23, 24],
+        phrase: 'The lecture focused on long-term issues.',
+        source_index: 0,
+      },
+    ]);
+  });
+
+  it('removes a saved highlight from the transcript popover', () => {
+    const onHighlightsChange = vi.fn();
+    render(
+      <ListeningTranscriptHighlighter
+        srtContent={SRT}
+        highlights={[
+          {
+            question_number: 21,
+            phrase: 'The lecture focused on long-term issues.',
+            source_index: 0,
+          },
+          { question_number: 22, phrase: 'That was the strongest answer.', source_index: 1 },
+        ]}
+        onSrtChange={vi.fn()}
+        onHighlightsChange={onHighlightsChange}
+        questionStart={21}
+        questionEnd={30}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText('Answer evidence 21'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove this answer highlight' }));
+
+    expect(onHighlightsChange.mock.calls.at(-1)[0]).toEqual([
+      { question_number: 22, phrase: 'That was the strongest answer.', source_index: 1 },
+    ]);
+  });
+
+  it('removes every chunk of a multi-segment highlight together', () => {
+    const onHighlightsChange = vi.fn();
+    const grouped = [
+      {
+        question_number: 21,
+        phrase: 'The lecture focused on long-term issues.',
+        source_index: 0,
+        show_badge: false,
+      },
+      { question_number: 21, phrase: 'That was the strongest answer.', source_index: 1 },
+    ];
+
+    render(
+      <ListeningTranscriptHighlighter
+        srtContent={SRT}
+        highlights={grouped}
+        onSrtChange={vi.fn()}
+        onHighlightsChange={onHighlightsChange}
+        questionStart={21}
+        questionEnd={30}
+      />
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove answer evidence 21' })[0]);
+
+    expect(onHighlightsChange.mock.calls.at(-1)[0]).toEqual([]);
+  });
+
   it('saves selected evidence and renders it through the learner transcript contract', () => {
     const onHighlightsChange = vi.fn();
     const { unmount } = render(

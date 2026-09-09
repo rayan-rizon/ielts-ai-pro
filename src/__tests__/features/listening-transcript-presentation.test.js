@@ -18,11 +18,13 @@ describe('Listening transcript answer presentation', () => {
 
     const highlighted = buildHighlightedTranscript(segments, answersMap);
 
-    expect(highlighted[0].displayParts).toContainEqual({
-      text: 'newspaper',
-      questionNumber: 2,
-      showBadge: true,
-    });
+    expect(highlighted[0].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: 'newspaper',
+        questionNumber: 2,
+        showBadge: true,
+      })
+    );
     expect(highlighted[1].displayParts.every((part) => part.questionNumber === null)).toBe(true);
   });
 
@@ -62,11 +64,13 @@ describe('Listening transcript answer presentation', () => {
       [{ question_number: 26, phrase: 'The internal walls are movable.' }]
     );
 
-    expect(highlighted[0].displayParts).toContainEqual({
-      text: 'The internal walls are movable',
-      questionNumber: 26,
-      showBadge: true,
-    });
+    expect(highlighted[0].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: 'The internal walls are movable',
+        questionNumber: 26,
+        showBadge: true,
+      })
+    );
   });
 
   it('matches repeated short source phrases in transcript order', () => {
@@ -93,16 +97,20 @@ describe('Listening transcript answer presentation', () => {
     );
 
     expect(highlighted[0].displayParts.every((part) => part.questionNumber === null)).toBe(true);
-    expect(highlighted[2].displayParts).toContainEqual({
-      text: 'Well',
-      questionNumber: 8,
-      showBadge: false,
-    });
-    expect(highlighted[3].displayParts).toContainEqual({
-      text: "I think we have enough clothing shops, but there's only one place that sells books at the moment",
-      questionNumber: 8,
-      showBadge: true,
-    });
+    expect(highlighted[2].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: 'Well',
+        questionNumber: 8,
+        showBadge: false,
+      })
+    );
+    expect(highlighted[3].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: "I think we have enough clothing shops, but there's only one place that sells books at the moment",
+        questionNumber: 8,
+        showBadge: true,
+      })
+    );
   });
 
   it('uses the manually selected transcript segment when evidence text repeats', () => {
@@ -116,11 +124,13 @@ describe('Listening transcript answer presentation', () => {
     );
 
     expect(highlighted[0].displayParts.every((part) => part.questionNumber === null)).toBe(true);
-    expect(highlighted[1].displayParts).toContainEqual({
-      text: 'That is the answer',
-      questionNumber: 8,
-      showBadge: true,
-    });
+    expect(highlighted[1].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: 'That is the answer',
+        questionNumber: 8,
+        showBadge: true,
+      })
+    );
   });
 
   it('renders grouped source-image question badges as one evidence mark', () => {
@@ -137,12 +147,14 @@ describe('Listening transcript answer presentation', () => {
       sourceHighlights
     );
 
-    expect(highlighted[0].displayParts).toContainEqual({
-      text: 'The lecture focused on more long-term issues',
-      questionNumber: 21,
-      questionNumbers: [21, 22],
-      showBadge: true,
-    });
+    expect(highlighted[0].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: 'The lecture focused on more long-term issues',
+        questionNumber: 21,
+        questionNumbers: [21, 22],
+        showBadge: true,
+      })
+    );
   });
 
   it('fills question numbers missing from source-image metadata with scored answers', () => {
@@ -159,10 +171,12 @@ describe('Listening transcript answer presentation', () => {
     );
 
     expect(highlighted[0].displayParts.some((part) => part.questionNumber === 1)).toBe(true);
-    expect(highlighted[1].displayParts).toContainEqual({
-      text: 'Monday',
-      questionNumber: 2,
-      showBadge: true,
-    });
+    expect(highlighted[1].displayParts).toContainEqual(
+      expect.objectContaining({
+        text: 'Monday',
+        questionNumber: 2,
+        showBadge: true,
+      })
+    );
   });
 });
