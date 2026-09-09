@@ -28,9 +28,9 @@ export default function FocusStep({ weakArea, onChangeWeakArea }) {
             onClick={() => onChangeWeakArea(m.id)}
             className={cn(
               TILE,
-              'relative flex h-32 flex-col justify-between p-4 text-left transition-all duration-200',
+              'relative flex min-h-[124px] flex-col justify-between p-3.5 sm:p-4 text-left transition-all duration-200',
               isSelected
-                ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
+                ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:border-[#8f97ff]/60 dark:bg-[#8f97ff]/12'
                 : 'hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/15'
             )}
           >

@@ -74,7 +74,7 @@ export default function StudyAvailabilityEditor({
               aria-pressed={selected}
               onClick={() => toggleDay(day)}
               className={cn(
-                'rounded-lg border px-2 py-2 text-xs font-mono font-bold tracking-tight transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+                'rounded-lg border px-2 py-2 text-xs font-mono font-bold tracking-tight transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:focus-visible:ring-[#8f97ff]',
                 selected
                   ? 'border-[#5a63df] bg-[#5a63df] text-white shadow-xs'
                   : 'border-[#e4e2f0] bg-[#f4f3fb] text-slate-600 hover:border-[#5a63df]/40 hover:text-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
@@ -103,7 +103,7 @@ export default function StudyAvailabilityEditor({
                 step="5"
                 value={availability.days[day]}
                 onChange={(event) => updateMinutes(day, event.target.value)}
-                className="h-8 w-20 rounded-lg border border-[#e4e2f0] bg-white px-2.5 text-right font-mono tabular-nums font-bold text-slate-900 outline-none focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-[#141319] dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="h-8 w-20 rounded-lg border border-[#e4e2f0] bg-white px-2.5 text-right font-mono tabular-nums font-bold text-slate-900 outline-none focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-[#141319] dark:text-white dark:focus:border-[#8f97ff] dark:focus:ring-[#8f97ff]/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 aria-label={`${day} available minutes`}
               />
               min

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackAuthenticatedAppEvent } from '@/lib/tracking';
-import { m, AnimatePresence } from 'framer-motion';
+import { m } from 'framer-motion';
 import { User } from '@/entities';
 import { addWeeks } from 'date-fns';
 import {
@@ -235,27 +235,7 @@ export default function Onboarding() {
     return true;
   };
 
-  const stepVariants = {
-    enter: (dir) => ({
-      x: dir > 0 ? 60 : -60,
-      opacity: 0,
-      scale: 0.98,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-    },
-    exit: (dir) => ({
-      x: dir < 0 ? 60 : -60,
-      opacity: 0,
-      scale: 0.98,
-    }),
-  };
-
-  const renderStepContent = () => {
-    const stepId = steps[currentStep]?.id;
-
+  const renderStepContent = (stepId) => {
     switch (stepId) {
       case 'welcome':
         return <WelcomeStep />;
@@ -322,7 +302,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f8f8fb] p-4 pb-8 pt-16 dark:bg-[#08080a] sm:items-center sm:py-4">
+    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f8f8fb] p-4 pb-8 pt-12 dark:bg-[#08080a] sm:items-center sm:p-6 sm:py-8">
       {/* Same dot-grid + glow language as every other authenticated page. */}
       <div
         aria-hidden="true"
@@ -348,13 +328,15 @@ export default function Onboarding() {
               aria-hidden="true"
               className={cn(
                 'h-1 flex-1 rounded-full transition-colors duration-300',
-                index <= currentStep ? 'bg-[#5a63df]' : 'bg-[#eceafa] dark:bg-white/[0.07]'
+                index <= currentStep
+                  ? 'bg-[#5a63df] dark:bg-[#8f97ff]'
+                  : 'bg-[#eceafa] dark:bg-white/[0.07]'
               )}
             />
           ))}
         </div>
 
-        <div className="flex items-center justify-between px-4 pt-3 sm:px-6">
+        <div className="flex items-center justify-between px-4 pt-3.5 sm:px-6">
           <div className="flex items-center gap-2.5">
             <IconChip icon={StepIcon} tone="accent" size="md" />
             <span className={cn(MICRO, MUTED)}>
@@ -368,7 +350,7 @@ export default function Onboarding() {
               disabled={isLoading}
               className={cn(
                 MICRO,
-                'text-slate-400 transition-colors hover:text-slate-600 disabled:opacity-50 dark:text-slate-500 dark:hover:text-slate-300'
+                'inline-flex min-h-[28px] items-center rounded-sm px-1 text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:text-slate-200'
               )}
             >
               Skip for now
@@ -377,33 +359,47 @@ export default function Onboarding() {
         </div>
 
         <div className="px-4 pb-6 pt-3 sm:px-6 sm:pb-7">
-          <div className="mb-4">
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              {steps[currentStep].title}
-            </h1>
-            <p className={cn('mt-1 text-[13px] font-medium', MUTED)}>
-              {steps[currentStep].description}
-            </p>
+          <div className="relative min-h-[380px] w-full overflow-hidden pt-1 sm:min-h-[400px]">
+            <m.div
+              className="flex w-full items-start"
+              initial={false}
+              animate={{ x: `-${currentStep * 100}%` }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {steps.map((step, index) => {
+                const isCentered = step.id === 'welcome' || step.id === 'complete';
+                const isActive = currentStep === index;
+
+                return (
+                  <div
+                    key={step.id}
+                    className="w-full min-w-full shrink-0"
+                    aria-hidden={!isActive}
+                    inert={!isActive ? '' : undefined}
+                  >
+                    <div className={cn('mb-4', isCentered && 'text-center')}>
+                      <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                        {step.title}
+                      </h1>
+                      <p
+                        className={cn(
+                          'mt-1 text-[13px] font-medium',
+                          MUTED,
+                          isCentered && 'mx-auto max-w-sm'
+                        )}
+                      >
+                        {step.description}
+                      </p>
+                    </div>
+
+                    {renderStepContent(step.id)}
+                  </div>
+                );
+              })}
+            </m.div>
           </div>
 
-          <div className="flex min-h-[220px] flex-col justify-center sm:min-h-[260px]">
-            <AnimatePresence mode="wait" custom={direction}>
-              <m.div
-                key={currentStep}
-                custom={direction}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="w-full"
-              >
-                {renderStepContent()}
-              </m.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#eceafa] pt-4 dark:border-white/[0.07] sm:flex-row">
+          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#eceafa] pt-4 dark:border-white/[0.07]">
             {currentStep > 0 ? (
               <button
                 type="button"
@@ -415,7 +411,7 @@ export default function Onboarding() {
                 Back
               </button>
             ) : (
-              <div />
+              <div aria-hidden="true" className="w-10" />
             )}
 
             <button
@@ -423,9 +419,8 @@ export default function Onboarding() {
               onClick={handleNext}
               disabled={!canProceed() || isLoading}
               className={cn(
-                'inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg px-7 text-sm font-bold text-white transition-all duration-150',
-                'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50',
-                'sm:w-auto'
+                'inline-flex h-11 items-center justify-center gap-2 rounded-lg px-7 text-sm font-bold text-white transition-all duration-150',
+                'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50'
               )}
             >
               {isLoading ? (

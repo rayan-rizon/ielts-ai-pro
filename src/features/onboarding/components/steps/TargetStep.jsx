@@ -1,5 +1,4 @@
 import React from 'react';
-import { m } from 'framer-motion';
 import { Slider } from '@/components/ui/slider';
 import { Target } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -13,18 +12,14 @@ export default function TargetStep({ targetBandScore, onChangeTargetBand }) {
 
   return (
     <div className="space-y-7 py-2">
-      <m.div
-        initial={{ scale: 0.92, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="text-center"
-      >
+      <div className="text-center">
         <div className={cn(NUM, 'text-6xl font-extrabold text-slate-900 dark:text-white')}>
           {targetBandScore.toFixed(1)}
         </div>
         <Pill tone="accent" className="mt-2">
           {label}
         </Pill>
-      </m.div>
+      </div>
 
       <div className="space-y-5 px-1">
         <div className="pt-2">
@@ -37,7 +32,7 @@ export default function TargetStep({ targetBandScore, onChangeTargetBand }) {
             className="w-full"
           />
         </div>
-        <div className="flex justify-between px-1">
+        <div className="flex justify-between px-2.5">
           {MARKS.map((score) => {
             const isActive = targetBandScore === score;
             return (
@@ -45,7 +40,9 @@ export default function TargetStep({ targetBandScore, onChangeTargetBand }) {
                 <span
                   className={cn(
                     'h-1 w-1 rounded-full transition-all duration-200',
-                    isActive ? 'scale-150 bg-[#5a63df]' : 'bg-slate-300 dark:bg-white/20'
+                    isActive
+                      ? 'scale-150 bg-[#5a63df] dark:bg-[#8f97ff]'
+                      : 'bg-slate-300 dark:bg-white/20'
                   )}
                 />
                 <span
@@ -54,7 +51,7 @@ export default function TargetStep({ targetBandScore, onChangeTargetBand }) {
                     'text-[11px] font-bold transition-colors',
                     isActive
                       ? 'text-[#5a63df] dark:text-[#a9afff]'
-                      : 'text-slate-400 dark:text-slate-500'
+                      : 'text-slate-500 dark:text-slate-400'
                   )}
                 >
                   {score.toFixed(1)}

@@ -3,19 +3,20 @@ import { m } from 'framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, addWeeks } from 'date-fns';
-import { CalendarIcon, Check, ChevronRight, Timer } from 'lucide-react';
+import { CalendarIcon, Check, ChevronRight, Compass, Timer, Zap } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { IconChip, MICRO, MUTED, NUM, TILE } from '@/features/dashboard/components/primitives';
 
 const timelineOptions = [
-  { id: '2weeks', label: '2 weeks', weeks: 2, description: 'Intensive prep' },
-  { id: '1month', label: '1 month', weeks: 4, description: 'Focused study' },
-  { id: '2months', label: '2 months', weeks: 8, description: 'Balanced pace' },
-  { id: '3months', label: '3 months', weeks: 12, description: 'Comprehensive' },
+  { id: '2weeks', label: '2 weeks', weeks: 2, description: 'Intensive prep', icon: Zap },
+  { id: '1month', label: '1 month', weeks: 4, description: 'Focused study', icon: Timer },
+  { id: '2months', label: '2 months', weeks: 8, description: 'Balanced pace', icon: CalendarIcon },
+  { id: '3months', label: '3 months', weeks: 12, description: 'Comprehensive', icon: Compass },
 ];
 
 function TimelineOptionButton({ option, timelineType, estimatedWeeks, onChangeTimeline }) {
   const isSelected = timelineType === 'estimated' && estimatedWeeks === option.weeks;
+  const Icon = option.icon || Timer;
   return (
     <button
       type="button"
@@ -30,11 +31,11 @@ function TimelineOptionButton({ option, timelineType, estimatedWeeks, onChangeTi
         TILE,
         'relative flex flex-col gap-2 p-3.5 text-left transition-all duration-200',
         isSelected
-          ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
+          ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:border-[#8f97ff]/60 dark:bg-[#8f97ff]/12'
           : 'hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/15'
       )}
     >
-      <IconChip icon={Timer} tone={isSelected ? 'accent' : 'neutral'} size="md" />
+      <IconChip icon={Icon} tone={isSelected ? 'accent' : 'neutral'} size="md" />
       <div>
         <p className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100">
           {option.label}
@@ -66,7 +67,7 @@ function SpecificDatePicker({ timelineType, testDate, onChangeTimeline }) {
             TILE,
             'flex w-full items-center justify-between p-3.5 text-left transition-all duration-200',
             isSpecific
-              ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
+              ? 'border-[#5a63df]/50 bg-[#5a63df]/6 dark:border-[#8f97ff]/60 dark:bg-[#8f97ff]/12'
               : 'hover:border-[#c9cdf3] dark:hover:border-white/15'
           )}
         >
@@ -83,7 +84,7 @@ function SpecificDatePicker({ timelineType, testDate, onChangeTimeline }) {
           </div>
           <ChevronRight
             className={cn(
-              'h-4 w-4 text-slate-300 transition-transform duration-200 dark:text-slate-600',
+              'h-4 w-4 text-slate-400 transition-transform duration-200 dark:text-slate-400',
               open && 'rotate-90'
             )}
           />
