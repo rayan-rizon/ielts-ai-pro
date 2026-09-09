@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase';
 
+const IGNORABLE_DB_CODES = new Set(['23505', '42P01']);
+const DISMISSIVE_ACTIONS = new Set(['dismissed', 'not_interested', 'not_useful']);
+const ACTIVE_INTERVENTIONS = new Set(['approved', 'queued', 'sent']);
+const ACTIVE_CAMPAIGNS = new Set(['active', 'scheduled']);
+
 const appendCampaignParams = (url, campaignId, deliveryId) => {
   if (!url) return '';
   try {
@@ -14,61 +19,129 @@ const appendCampaignParams = (url, campaignId, deliveryId) => {
   }
 };
 
+const isCompleteDelivery = (delivery) => {
+  if (!delivery?.id) return false;
+  if (!delivery.campaign_id) return false;
+  return Boolean(delivery.user_id);
+};
+
+const isIgnorableDatabaseError = (error) => {
+  if (!error) return true;
+  return IGNORABLE_DB_CODES.has(error.code);
+};
+
+const isSnoozedFeedback = (item, now) => {
+  if (item.action !== 'snoozed') return false;
+  if (!item.snoozed_until) return false;
+  return new Date(item.snoozed_until).getTime() > now;
+};
+
+const isSuppressedFeedback = (item, now) => {
+  if (DISMISSIVE_ACTIONS.has(item.action)) return true;
+  return isSnoozedFeedback(item, now);
+};
+
+const fetchSuppressedDeliveryIds = async (deliveryIds, now) => {
+  if (!deliveryIds.length) return new Set();
+  const { data: feedback } = await supabase
+    .from('marketing_contact_feedback')
+    .select('delivery_id,action,snoozed_until')
+    .in('delivery_id', deliveryIds);
+
+  const suppressed = (feedback || [])
+    .filter((item) => isSuppressedFeedback(item, now))
+    .map((item) => item.delivery_id);
+
+  return new Set(suppressed);
+};
+
+const fetchDeliveriesForUser = async (userId) => {
+  const { data, error } = await supabase
+    .from('marketing_deliveries')
+    .select(
+      '*, campaign:marketing_campaigns(id,name,status,starts_at,ends_at), intervention:marketing_interventions(id,status,playbook_key,expires_at)'
+    )
+    .eq('user_id', userId)
+    .in('status', ['accepted', 'delivered', 'viewed'])
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error?.code === '42P01') return [];
+  if (error) throw error;
+  return data || [];
+};
+
+const isInterventionActive = (intervention) => {
+  return Boolean(intervention?.status && ACTIVE_INTERVENTIONS.has(intervention.status));
+};
+
+const isCampaignStatusActive = (campaign, hasActiveIntervention) => {
+  if (!campaign?.status) return false;
+  if (hasActiveIntervention) return true;
+  return ACTIVE_CAMPAIGNS.has(campaign.status);
+};
+
+const isTimingActive = (campaign, intervention, now) => {
+  const startsAt = campaign.starts_at ? new Date(campaign.starts_at).getTime() : 0;
+  if (startsAt > now) return false;
+
+  const expiresAt = intervention?.expires_at
+    ? new Date(intervention.expires_at).getTime()
+    : Infinity;
+  if (expiresAt <= now) return false;
+
+  const endsAt = campaign.ends_at ? new Date(campaign.ends_at).getTime() : Infinity;
+  return endsAt > now;
+};
+
+const isDeliveryPlayable = (delivery, hiddenIds, now) => {
+  if (hiddenIds.has(delivery.id)) return false;
+  const campaign = delivery.campaign;
+  if (!campaign) return false;
+  const activeIntervention = isInterventionActive(delivery.intervention);
+  if (!isCampaignStatusActive(campaign, activeIntervention)) return false;
+  return isTimingActive(campaign, delivery.intervention, now);
+};
+
+const urlBase64ToUint8Array = (base64String) => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from(rawData, (char) => char.charCodeAt(0));
+};
+
+const assertPushSupported = (publicKey) => {
+  if (!publicKey) {
+    throw new Error('Push reminders are not configured yet');
+  }
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    throw new Error('Push reminders are not supported by this browser');
+  }
+};
+
+const createPushSubscription = async (registration, publicKey) => {
+  const applicationServerKey = urlBase64ToUint8Array(publicKey);
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey,
+  });
+};
+
 export const MarketingDelivery = {
   async listActive(userId) {
     if (!userId) return [];
-    const { data, error } = await supabase
-      .from('marketing_deliveries')
-      .select(
-        '*, campaign:marketing_campaigns(id,name,status,starts_at,ends_at), intervention:marketing_interventions(id,status,playbook_key,expires_at)'
-      )
-      .eq('user_id', userId)
-      .in('status', ['accepted', 'delivered', 'viewed'])
-      .order('created_at', { ascending: false })
-      .limit(20);
-    if (error?.code === '42P01') return [];
-    if (error) throw error;
+    const deliveries = await fetchDeliveriesForUser(userId);
+    if (!deliveries.length) return [];
 
     const now = Date.now();
-    const deliveryIds = (data || []).map((delivery) => delivery.id);
-    const { data: feedback } = deliveryIds.length
-      ? await supabase
-          .from('marketing_contact_feedback')
-          .select('delivery_id,action,snoozed_until')
-          .in('delivery_id', deliveryIds)
-      : { data: [] };
-    const hidden = new Set(
-      (feedback || [])
-        .filter(
-          (item) =>
-            ['dismissed', 'not_interested', 'not_useful'].includes(item.action) ||
-            (item.action === 'snoozed' &&
-              item.snoozed_until &&
-              new Date(item.snoozed_until) > new Date())
-        )
-        .map((item) => item.delivery_id)
-    );
+    const deliveryIds = deliveries.map((delivery) => delivery.id);
+    const hiddenIds = await fetchSuppressedDeliveryIds(deliveryIds, now);
 
-    return (data || []).filter((delivery) => {
-      const campaign = delivery.campaign;
-      if (hidden.has(delivery.id)) return false;
-      const activeIntervention =
-        delivery.intervention &&
-        ['approved', 'queued', 'sent'].includes(delivery.intervention.status);
-      if (!campaign || (!activeIntervention && !['active', 'scheduled'].includes(campaign.status)))
-        return false;
-      if (campaign.starts_at && new Date(campaign.starts_at).getTime() > now) return false;
-      if (
-        delivery.intervention?.expires_at &&
-        new Date(delivery.intervention.expires_at).getTime() <= now
-      )
-        return false;
-      return !campaign.ends_at || new Date(campaign.ends_at).getTime() > now;
-    });
+    return deliveries.filter((delivery) => isDeliveryPlayable(delivery, hiddenIds, now));
   },
 
   async record(delivery, eventType, metadata = {}) {
-    if (!delivery?.id || !delivery?.campaign_id || !delivery?.user_id) return;
+    if (!isCompleteDelivery(delivery)) return;
     const dedupeKey = `${delivery.id}:${eventType}`;
     const { error } = await supabase.from('marketing_events').insert({
       campaign_id: delivery.campaign_id,
@@ -79,7 +152,9 @@ export const MarketingDelivery = {
       dedupe_key: dedupeKey,
       metadata,
     });
-    if (error && error.code !== '23505' && error.code !== '42P01') throw error;
+    if (!isIgnorableDatabaseError(error)) {
+      throw error;
+    }
   },
 
   async feedback(delivery, action, { snoozedUntil = null, metadata = {} } = {}) {
@@ -121,21 +196,15 @@ export const MarketingDelivery = {
 
   async enablePush(userId) {
     const publicKey = import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY;
-    if (!publicKey) throw new Error('Push reminders are not configured yet');
-    if (!('serviceWorker' in navigator) || !('PushManager' in window))
-      throw new Error('Push reminders are not supported by this browser');
+    assertPushSupported(publicKey);
+
     const registration = await navigator.serviceWorker.register('/marketing-push-sw.js');
     const permission = await Notification.requestPermission();
-    if (permission !== 'granted') throw new Error('Push permission was not granted');
-    const padding = '='.repeat((4 - (publicKey.length % 4)) % 4);
-    const bytes = Uint8Array.from(
-      atob((publicKey + padding).replace(/-/g, '+').replace(/_/g, '/')),
-      (character) => character.charCodeAt(0)
-    );
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: bytes,
-    });
+    if (permission !== 'granted') {
+      throw new Error('Push permission was not granted');
+    }
+
+    const subscription = await createPushSubscription(registration, publicKey);
     const json = subscription.toJSON();
     const { error } = await supabase.rpc('replace_my_marketing_push_subscription', {
       p_endpoint: json.endpoint,
