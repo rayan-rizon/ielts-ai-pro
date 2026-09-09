@@ -292,7 +292,7 @@ export default function Onboarding() {
 
   if (isCheckingStatus) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8f8fb] dark:bg-[#08080a]">
+      <div className="flex min-h-screen items-center justify-center bg-[#f1f0f7] dark:bg-[#08080a]">
         <div className="space-y-3 text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#5a63df]/25 border-t-[#5a63df]" />
           <p className={cn(MICRO, MUTED)}>Loading</p>
@@ -302,22 +302,28 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f8f8fb] p-4 pb-8 pt-12 dark:bg-[#08080a] sm:items-center sm:p-6 sm:py-8">
-      {/* Same dot-grid + glow language as every other authenticated page. */}
+    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f1f0f7] p-4 pb-8 pt-12 dark:bg-[#08080a] sm:items-center sm:p-6 sm:py-8">
+      {/* Subtle dot-grid + ambient depth */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.14]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
+        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(90,99,223,0.07),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 -left-24 z-0 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.4),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
+        className="pointer-events-none absolute -bottom-24 -left-24 z-0 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(90,99,223,0.05),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
       />
 
-      <div className={cn(PANEL, 'relative z-10 w-full max-w-xl overflow-hidden')}>
+      <div
+        className={cn(
+          'relative z-10 w-full max-w-xl overflow-hidden rounded-2xl',
+          'border border-[#cecbe2] bg-white shadow-[0_12px_40px_-6px_rgba(25,20,60,0.09),0_2px_8px_-2px_rgba(25,20,60,0.04)]',
+          'dark:border-white/[0.08] dark:bg-linear-to-b dark:from-[#141319] dark:to-[#100f15] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)]'
+        )}
+      >
         {/* Step rail — one segment per step, filled up to the current one. A
             plain percentage bar doesn't tell you how many steps remain; six
             discrete segments do at a glance. */}
@@ -330,7 +336,7 @@ export default function Onboarding() {
                 'h-1 flex-1 rounded-full transition-colors duration-300',
                 index <= currentStep
                   ? 'bg-[#5a63df] dark:bg-[#8f97ff]'
-                  : 'bg-[#eceafa] dark:bg-white/[0.07]'
+                  : 'bg-[#e2e0f0] dark:bg-white/[0.07]'
               )}
             />
           ))}
@@ -399,7 +405,7 @@ export default function Onboarding() {
             </m.div>
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#eceafa] pt-4 dark:border-white/[0.07]">
+          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#e2e0f0] pt-4 dark:border-white/[0.07]">
             {currentStep > 0 ? (
               <button
                 type="button"

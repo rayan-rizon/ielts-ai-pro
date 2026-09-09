@@ -39,7 +39,10 @@ export default function WelcomeStep() {
 
       <div className="grid gap-2 pt-1 text-left">
         {VALUE_PROPS.map((item) => (
-          <div key={item.title} className={cn(TILE, 'flex items-start gap-3.5 p-3.5')}>
+          <div
+            key={item.title}
+            className="flex items-start gap-3.5 rounded-xl border border-[#e2e0f0] bg-[#f8f7fd] p-3.5 transition-colors duration-150 dark:border-white/11 dark:bg-white/5.5"
+          >
             <IconChip icon={item.icon} tone="accent" size="md" className="mt-0.5" />
             <div className="min-w-0">
               <p className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100">
