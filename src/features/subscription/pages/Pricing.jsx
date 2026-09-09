@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { m } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { getPlanPriceAndMeta, calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
@@ -473,14 +473,16 @@ export default function Pricing() {
           <FAQSection />
         </m.div>
 
-        {showManualPayment && manualPaymentData && (
-          <ManualPayment
-            isOpen={showManualPayment}
-            onClose={() => setShowManualPayment(false)}
-            planData={manualPaymentData}
-            userId={user?.auth_id}
-          />
-        )}
+        <AnimatePresence>
+          {showManualPayment && manualPaymentData && (
+            <ManualPayment
+              isOpen={showManualPayment}
+              onClose={() => setShowManualPayment(false)}
+              planData={manualPaymentData}
+              userId={user?.auth_id}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

@@ -129,7 +129,11 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8'
             )}
           >
-            <Link to={createPageUrl('Index')} className="relative z-101" data-oid="6et:210">
+            <Link
+              to={createPageUrl('Index')}
+              className="relative z-101 shrink-0"
+              data-oid="6et:210"
+            >
               <Logo size="md" />
             </Link>
 
@@ -140,7 +144,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               <Button
                 variant="ghost"
                 className={cn(
-                  'relative h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center p-0',
+                  'relative h-10 w-10 sm:h-9 sm:w-9 rounded-full flex items-center justify-center p-0',
                   'bg-[#f4f3fb] dark:bg-white/5 border border-[#e4e2f0] dark:border-white/10',
                   'transition-all duration-200 ease-sidebar hover:-translate-y-0.5 hover:shadow-sm active:scale-95 cursor-pointer overflow-hidden',
                   'hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30'
@@ -162,7 +166,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               </Button>
 
               <Button
-                className="hidden sm:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 ease-sidebar bg-[#5a63df] hover:bg-[#4a52c9] text-white cursor-pointer"
+                className="hidden lg:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 ease-sidebar bg-[#5a63df] hover:bg-[#4a52c9] text-white cursor-pointer"
                 onClick={handlePrimaryCta}
                 data-oid="g5n7eo4"
               >
@@ -177,9 +181,11 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                   the X gets a quarter-turn so closing has the same bit of
                   delight opening does. */}
               <button
-                className="group lg:hidden h-8 w-8 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/8 dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all duration-200 ease-sidebar"
+                className="group lg:hidden h-10 w-10 sm:h-9 sm:w-9 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/8 dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all duration-200 ease-sidebar"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={mobileMenuOpen}
+                aria-controls="public-navbar-menu"
                 data-oid="bqhg9k2"
               >
                 {mobileMenuOpen ? (
@@ -204,6 +210,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
             links={NAV_LINKS}
             isSignedIn={isSignedIn}
             handlePrimaryCta={handlePrimaryCta}
+            isScrolled={isScrolled}
           />
         </div>
       </div>

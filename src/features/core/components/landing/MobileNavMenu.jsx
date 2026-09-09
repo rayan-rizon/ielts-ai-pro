@@ -19,8 +19,17 @@ import { Button } from '@/components/ui/button';
  * block for `position: fixed` descendants per spec, which otherwise makes
  * this popover position itself relative to the bar instead of the viewport.
  */
-export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, handlePrimaryCta }) {
+export default function MobileNavMenu({
+  isOpen,
+  onClose,
+  links,
+  isSignedIn,
+  handlePrimaryCta,
+  isScrolled,
+}) {
   if (typeof document === 'undefined') return null;
+
+  const menuTop = isScrolled ? 'top-16 sm:top-18' : 'top-14 sm:top-16';
 
   return createPortal(
     isOpen ? (
@@ -29,14 +38,17 @@ export default function MobileNavMenu({ isOpen, onClose, links, isSignedIn, hand
               dim, not a page-wide blur; nothing needs to be legible through
               it, so there's nothing to blur. */}
         <div
-          className="fixed inset-0 top-14 z-90 animate-in fade-in bg-slate-950/60 duration-200 sm:top-16 lg:hidden"
+          className={`fixed inset-0 ${menuTop} z-90 animate-in fade-in bg-slate-950/60 duration-200 lg:hidden`}
           onClick={onClose}
         />
 
         {/* Compact mobile navigation card. `top-16`/`top-18` reproduce
               the old `top-full` + `mt-2` gap under the (unscrolled) navbar
               height now that this sits outside the bar to measure against. */}
-        <div className="fixed left-3 right-3 top-16 z-99 animate-in fade-in slide-in-from-top-3 zoom-in-95 overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white p-3.5 duration-200 dark:border-white/10 dark:bg-[#131315] sm:top-18 lg:hidden">
+        <div
+          id="public-navbar-menu"
+          className={`fixed left-3 right-3 ${menuTop} z-99 animate-in fade-in slide-in-from-top-3 zoom-in-95 overflow-hidden rounded-2xl border border-[#e4e2f0] bg-white p-3.5 duration-200 dark:border-white/10 dark:bg-[#131315] sm:left-1/2 sm:right-auto sm:w-[min(32rem,calc(100vw-1.5rem))] sm:-translate-x-1/2 lg:hidden`}
+        >
           {/* Top header bar */}
           <div className="flex items-center gap-1.5 border-b border-[#eceafa] pb-2.5 dark:border-white/8">
             <span className="flex h-5 w-5 items-center justify-center rounded-md border border-[#5a63df]/20 bg-[#5a63df]/10 text-[#5a63df] transition-transform duration-300 hover:rotate-12 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.14] dark:text-[#a9afff]">

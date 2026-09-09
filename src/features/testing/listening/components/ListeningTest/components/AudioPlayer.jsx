@@ -1,6 +1,6 @@
 import { usePairedAudio } from '@/features/testing/paired/usePairedAudio';
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, RotateCw, Volume2 } from 'lucide-react';
+import { AlertCircle, Play, Pause, RotateCcw, RotateCw, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 
@@ -38,6 +38,43 @@ const AudioPlayer = React.forwardRef(
     const [duration, setDuration] = useState(0);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [volume, setVolume] = useState(1);
+    const [audioError, setAudioError] = useState(null);
+
+    const setPlaybackFailure = React.useCallback((error) => {
+      if (error?.name === 'AbortError') return;
+      setIsPlaying(false);
+      setAudioError('Audio could not be played. Please try again.');
+    }, []);
+
+    const playAudio = React.useCallback(() => {
+      if (isAwaitingStart || !audioRef.current) return Promise.resolve(false);
+
+      try {
+        const playPromise = audioRef.current.play();
+        return Promise.resolve(playPromise)
+          .then(() => {
+            setAudioError(null);
+            setIsPlaying(true);
+            return true;
+          })
+          .catch((error) => {
+            setPlaybackFailure(error);
+            return false;
+          });
+      } catch (error) {
+        setPlaybackFailure(error);
+        return Promise.resolve(false);
+      }
+    }, [isAwaitingStart, setPlaybackFailure]);
+
+    const handleAudioError = React.useCallback(() => {
+      setPlaybackFailure(new Error('The audio element could not load its source.'));
+    }, [setPlaybackFailure]);
+
+    const retryAudio = () => {
+      setAudioError(null);
+      audioRef.current?.load();
+    };
 
     // Store callbacks in refs to avoid useEffect dependency issues
     const onTimeUpdateRef = useRef(onTimeUpdate);
@@ -54,42 +91,40 @@ const AudioPlayer = React.forwardRef(
     }, [onEnded]);
 
     // Expose seek, play, and pause functions via ref
-    React.useImperativeHandle(ref, () => ({
-      seek: (time) => {
-        if (audioRef.current) {
-          audioRef.current.currentTime = time;
-          setCurrentTime(time);
-          // Immediately propagate the new time to Zustand so SyncedTranscript
-          // highlights the correct sentence without waiting for async timeupdate.
-          if (onTimeUpdateRef.current) onTimeUpdateRef.current(time);
-        }
-      },
-      play: () => {
-        if (!isAwaitingStart && audioRef.current) {
-          audioRef.current
-            .play()
-            .then(() => setIsPlaying(true))
-            .catch(() => {
-              // Error handled silently
-            });
-        }
-      },
-      pause: () => {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          setIsPlaying(false);
-        }
-      },
-      getCurrentTime: () => {
-        return audioRef.current?.currentTime || 0;
-      },
-    }));
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        seek: (time) => {
+          if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+            // Immediately propagate the new time to Zustand so SyncedTranscript
+            // highlights the correct sentence without waiting for async timeupdate.
+            if (onTimeUpdateRef.current) onTimeUpdateRef.current(time);
+          }
+        },
+        play: () => {
+          void playAudio();
+        },
+        pause: () => {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+          }
+        },
+        getCurrentTime: () => {
+          return audioRef.current?.currentTime || 0;
+        },
+      }),
+      [playAudio]
+    );
 
     // Reset state when src changes (new part/section)
     useEffect(() => {
       setCurrentTime(0);
       setDuration(0);
       setIsPlaying(false);
+      setAudioError(null);
 
       // Ensure audio element reloads with new source
       if (audioRef.current) {
@@ -159,8 +194,7 @@ const AudioPlayer = React.forwardRef(
     const togglePlay = () => {
       if (isAwaitingStart || !audioRef.current) return;
       if (audioRef.current.paused) {
-        audioRef.current.play();
-        setIsPlaying(true);
+        void playAudio();
       } else {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -201,7 +235,27 @@ const AudioPlayer = React.forwardRef(
           data-oid="_gx.skv"
         />
 
-        <audio ref={audioRef} src={src} data-oid="mjr6mvu" />
+        <audio
+          ref={audioRef}
+          src={src}
+          preload="metadata"
+          onError={handleAudioError}
+          data-oid="mjr6mvu"
+        />
+        {audioError && (
+          <div
+            className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+            role="alert"
+          >
+            <span className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {audioError}
+            </span>
+            <Button type="button" size="sm" variant="outline" onClick={retryAudio}>
+              Retry audio
+            </Button>
+          </div>
+        )}
         {pairedAudio.active && (
           <div className="text-xs" role="status">
             Audio follows the shared test timeline.
@@ -277,10 +331,7 @@ const AudioPlayer = React.forwardRef(
                       disabled={isAwaitingStart}
                       onClick={() => {
                         if (isAwaitingStart) return;
-                        audioRef.current
-                          ?.play()
-                          .then(() => setIsPlaying(true))
-                          .catch(() => {});
+                        void playAudio();
                       }}
                       className="rounded-full bg-[#5a63df] px-4 text-[10px] font-black uppercase tracking-wider text-white hover:bg-[#4a52c9]"
                     >

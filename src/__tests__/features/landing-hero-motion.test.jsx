@@ -62,4 +62,19 @@ describe('landing hero motion', () => {
     expect(features).toContain('y: [0, -190]');
     expect(features).toContain('flex h-[34px] items-center');
   });
+
+  it('keeps generated feature illustrations tied to real product capabilities', () => {
+    const features = readSource('src/features/core/components/landing/FeaturesSection.jsx');
+
+    for (const asset of [
+      'ai-writing-feedback.png',
+      'ai-speaking-practice.png',
+      'progress-analytics.png',
+    ]) {
+      expect(features).toContain(`/landing-illustrations/${asset}`);
+      expect(fs.existsSync(path.resolve('public/landing-illustrations', asset))).toBe(true);
+    }
+
+    expect(features).toContain('aria-hidden="true"');
+  });
 });

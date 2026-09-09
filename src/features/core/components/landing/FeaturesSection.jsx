@@ -35,6 +35,16 @@ function WritingCard({ reduceMotion }) {
   ];
   return (
     <article className={`${cardClass} min-h-[390px]`}>
+      <img
+        src="/landing-illustrations/ai-writing-feedback.png"
+        alt=""
+        aria-hidden="true"
+        width="1254"
+        height="1254"
+        loading="lazy"
+        decoding="async"
+        className="pointer-events-none absolute -right-10 -top-10 z-0 h-36 w-36 object-contain opacity-[0.1] transition-opacity duration-300 group-hover:opacity-[0.16] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]"
+      />
       <FeatureHeader
         icon={PenTool}
         title="AI Writing Feedback"
@@ -135,6 +145,16 @@ const rightWaveform = [12, 18, 9, 15, 24, 8, 18, 38, 26, 10, 20, 32, 14, 22, 12,
 function SpeakingCard({ reduceMotion }) {
   return (
     <article className={`${cardClass} min-h-[390px]`}>
+      <img
+        src="/landing-illustrations/ai-speaking-practice.png"
+        alt=""
+        aria-hidden="true"
+        width="1254"
+        height="1254"
+        loading="lazy"
+        decoding="async"
+        className="pointer-events-none absolute -right-8 -top-8 z-0 h-36 w-36 object-contain opacity-[0.1] transition-opacity duration-300 group-hover:opacity-[0.16] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]"
+      />
       <FeatureHeader
         icon={Mic}
         title="Speaking Practice"
@@ -339,6 +359,16 @@ function TestsCard({ reduceMotion }) {
 function AnalyticsCard({ reduceMotion }) {
   return (
     <article className={`${cardClass} min-h-[390px]`}>
+      <img
+        src="/landing-illustrations/progress-analytics.png"
+        alt=""
+        aria-hidden="true"
+        width="1254"
+        height="1254"
+        loading="lazy"
+        decoding="async"
+        className="pointer-events-none absolute -right-10 -top-10 z-0 h-36 w-36 object-contain opacity-[0.1] transition-opacity duration-300 group-hover:opacity-[0.16] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]"
+      />
       <FeatureHeader
         icon={TrendingUp}
         title="Progress Analytics"

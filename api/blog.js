@@ -524,6 +524,38 @@ function layout({
   return `<!doctype html>
 <html lang="en"><head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <script>
+    (function () {
+      var GTM_ID = 'GTM-TR6XQ2R3';
+      var MEASURED_HOSTS = ['ieltsai.pro', 'www.ieltsai.pro'];
+      var trackingEnabled = false;
+      try {
+        trackingEnabled = MEASURED_HOSTS.indexOf(window.location.hostname) !== -1;
+      } catch (e) {
+        trackingEnabled = false;
+      }
+      window.__TRACKING_ENABLED__ = trackingEnabled;
+      if (!trackingEnabled) return;
+
+      window.dataLayer = window.dataLayer || [];
+      window.gtag =
+        window.gtag ||
+        function () {
+          window.dataLayer.push(arguments);
+        };
+      window.gtag('consent', 'default', {
+        analytics_storage: 'granted',
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+      });
+      window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(GTM_ID);
+      (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
+    })();
+  </script>
   <title>${escapeHtml(fullTitle)}</title>
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="${escapeHtml(robots)}">
@@ -538,6 +570,7 @@ function layout({
   <script>try{if(localStorage.getItem('vite-ui-theme')==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.add('light')}catch(_){document.documentElement.classList.add('light')}</script>
   <link rel="stylesheet" href="/blog.css?v=${BLOG_CSS_VERSION}">
 </head><body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TR6XQ2R3" title="Google Tag Manager" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   ${iconSprite()}
   <a class="skip" href="#main">Skip to content</a>
   <header id="public-header">

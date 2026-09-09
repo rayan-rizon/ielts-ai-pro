@@ -26,4 +26,13 @@ describe('error page indexing', () => {
       value: 'noindex, nofollow, noarchive',
     });
   });
+
+  it('keeps the chunk-load fallback out of a separately loadable route chunk', () => {
+    const appSource = readSource('src/App.jsx');
+
+    expect(appSource).toContain("import Error500 from '@/features/core/pages/Error500.jsx'");
+    expect(appSource).not.toContain(
+      "const Error500 = lazyWithRetry(() => import('@/features/core/pages/Error500.jsx'))"
+    );
+  });
 });

@@ -13,6 +13,7 @@ import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import MaintenanceGate from '@/components/shared/MaintenanceGate';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import LandingPage from '@/features/core/pages/LandingPage.jsx';
+import Error500 from '@/features/core/pages/Error500.jsx';
 
 const LazySonnerToaster = lazy(() =>
   import('@/components/ui/sonner').then((module) => ({ default: module.Toaster }))
@@ -89,8 +90,6 @@ const lazyWithRetry = (componentImport) => {
  * Root level Error Element for React Router.
  * Handles errors that bubble up to the route level, specifically chunk load failures.
  */
-const Error500 = lazyWithRetry(() => import('@/features/core/pages/Error500.jsx'));
-
 const GlobalErrorElement = () => {
   const error = useRouteError();
 

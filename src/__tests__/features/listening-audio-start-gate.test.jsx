@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AudioPlayer from '@/features/testing/listening/components/ListeningTest/components/AudioPlayer';
 
@@ -39,5 +39,24 @@ describe('Listening audio start gate', () => {
       ref.current.play();
     });
     expect(play).toHaveBeenCalledTimes(1);
+  });
+
+  it('turns an unsupported media rejection into a visible recovery state', async () => {
+    const play = vi
+      .spyOn(HTMLMediaElement.prototype, 'play')
+      .mockRejectedValue(new DOMException('No supported source', 'NotSupportedError'));
+    vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+
+    render(<AudioPlayer src="/listening-audio.mp3" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Play audio' }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('alert')).toHaveTextContent(/could not be played/i);
   });
 });
