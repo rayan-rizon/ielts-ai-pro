@@ -124,6 +124,23 @@ describe('reading word definitions', () => {
     expect(container.querySelector('.rounded-xl')).toBeInTheDocument();
   });
 
+  it('shows a neutral contextual loader without mounting an old definition card', () => {
+    render(
+      <WordDefinitionPopover
+        wordDefinition={{
+          word: 'evidence',
+          definition: 'Loading...',
+          position: { x: 220, y: 180 },
+        }}
+        addToVocabulary={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Finding meaning here…')).toBeInTheDocument();
+    expect(screen.queryByText('Dictionary')).not.toBeInTheDocument();
+    expect(screen.queryByText('Meaning')).not.toBeInTheDocument();
+  });
+
   it('shows one contextual definition first when AI succeeds', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -175,6 +192,7 @@ describe('reading word definitions', () => {
       />
     );
     expect(screen.getByText('Meaning here')).toBeInTheDocument();
+    expect(screen.getByText('Contextual AI')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Play pronunciation of plain' })).toBeEnabled();
   });
 });

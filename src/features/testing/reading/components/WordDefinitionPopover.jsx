@@ -16,6 +16,31 @@ import {
 export default function WordDefinitionPopover({ wordDefinition, addToVocabulary }) {
   if (!wordDefinition || !wordDefinition.position) return null;
 
+  if (wordDefinition.definition === 'Loading...') {
+    return (
+      <m.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          position: 'fixed',
+          top: Math.max(12, Math.min(window.innerHeight - 56, wordDefinition.position.y + 12)),
+          left: Math.max(12, Math.min(window.innerWidth - 220, wordDefinition.position.x - 90)),
+          zIndex: 200,
+        }}
+        className={cn(
+          WELL,
+          'flex items-center gap-2 rounded-lg border border-[#dedcf0] px-3 py-2 text-xs font-semibold text-slate-700 dark:border-white/[0.09] dark:text-slate-200'
+        )}
+        role="status"
+        aria-live="polite"
+        aria-label={`Finding contextual meaning for ${wordDefinition.word}`}
+      >
+        <LoaderCircle className="size-3.5 shrink-0 animate-spin text-[#5a63df]" />
+        Finding meaning here…
+      </m.div>
+    );
+  }
+
   return (
     <AnimatePresence>
       <m.div
@@ -39,7 +64,9 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
         >
           <div className="mb-3 flex items-start justify-between gap-2 border-b border-[#eceafa] pb-2.5 dark:border-white/[0.07]">
             <div className="min-w-0">
-              <p className={cn(MICRO, MUTED)}>Dictionary</p>
+              <p className={cn(MICRO, MUTED)}>
+                {wordDefinition.contextual ? 'Contextual AI' : 'Dictionary'}
+              </p>
               <h5 className={cn(TITLE, 'mt-0.5 truncate text-[15px]')}>{wordDefinition.word}</h5>
             </div>
             {wordDefinition.part_of_speech && (
@@ -91,20 +118,6 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
                 <BookOpen className="size-4" />
               </div>
               <p className={TITLE}>Already in Word Bank</p>
-            </div>
-          ) : wordDefinition.definition === 'Loading...' ? (
-            <div
-              className={cn(TILE, 'flex items-center gap-2.5 px-3 py-3')}
-              role="status"
-              aria-live="polite"
-            >
-              <LoaderCircle className="size-4 shrink-0 animate-spin text-[#5a63df]" />
-              <div>
-                <p className={cn(MICRO, MUTED)}>Definition lookup</p>
-                <p className="mt-0.5 text-[12px] font-medium text-slate-700 dark:text-slate-200">
-                  Looking up definition…
-                </p>
-              </div>
             </div>
           ) : (
             <>

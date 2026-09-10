@@ -15,6 +15,9 @@ const cacheKey = (userId, payload) =>
     payload.passageIndex,
     payload.selectionStart,
     payload.selectionEnd,
+    String(payload.selectedText || '')
+      .trim()
+      .toLowerCase(),
     payload.action,
     payload.targetLanguage || '',
   ]);
