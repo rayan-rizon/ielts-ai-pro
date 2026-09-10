@@ -203,8 +203,8 @@ const PassagePanel = memo(function PassagePanel({
       ref={passageRef}
       className={`flex-1 overflow-auto px-6 pt-1 pb-8 md:px-8 md:pt-2 md:pb-12 relative h-full transition-colors duration-300 scroll-smooth scrollbar-thin scrollbar-thumb-border/50 hover:scrollbar-thumb-border/80
         ${paperTheme === 'sepia' ? 'bg-[#f4ecd8]' : ''}
-        ${paperTheme === 'dark' ? 'bg-slate-950' : ''}
-        ${paperTheme === 'light' ? 'bg-white/50 dark:bg-slate-950/40' : ''}
+        ${paperTheme === 'dark' ? 'bg-[#121214] dark:bg-[#121214]' : ''}
+        ${paperTheme === 'light' ? 'bg-white dark:bg-[#121214]' : ''}
       `}
       onClick={onTextSelection}
       data-oid="1h7mx9k"
@@ -246,12 +246,12 @@ const PassagePanel = memo(function PassagePanel({
           }
           ${
             paperTheme === 'dark'
-              ? 'prose-invert text-slate-200 prose-headings:text-white prose-p:text-slate-200 prose-strong:text-slate-100 prose-a:text-[#a9afff] selection:bg-[#5a63df]/60 selection:text-white'
+              ? 'prose-invert text-[#e2e2e8] prose-headings:text-[#f3f3f6] prose-p:text-[#d4d4dc] prose-p:leading-[1.8] prose-strong:text-white prose-a:text-[#afb5ff] selection:bg-[#5a63df]/60 selection:text-white'
               : ''
           }
           ${
             paperTheme === 'light'
-              ? 'text-slate-900 prose-headings:text-slate-900 prose-p:text-slate-800 prose-strong:text-slate-900 prose-a:text-[#5a63df] selection:bg-[#5a63df]/20 selection:text-[#3a3f9e] dark:text-slate-100 dark:prose-headings:text-white dark:prose-p:text-slate-300 dark:prose-strong:text-white dark:prose-a:text-[#a9afff] dark:selection:bg-[#5a63df]/50 dark:selection:text-white'
+              ? 'text-slate-900 prose-headings:text-slate-900 prose-p:text-slate-800 prose-strong:text-slate-900 prose-a:text-[#5a63df] selection:bg-[#5a63df]/20 selection:text-[#3a3f9e] dark:text-[#e2e2e8] dark:prose-headings:text-[#f3f3f6] dark:prose-p:text-[#d4d4dc] dark:prose-p:leading-[1.8] dark:prose-strong:text-white dark:prose-a:text-[#afb5ff] dark:selection:bg-[#5a63df]/50 dark:selection:text-white'
               : ''
           }
         `}
@@ -268,7 +268,7 @@ const PassagePanel = memo(function PassagePanel({
         />
 
         <h1
-          className="text-lg @sm:text-xl @md:text-2xl @lg:text-3xl leading-snug text-center font-bold mb-3 @md:mb-4 pt-2 @md:pt-3 px-12 @sm:px-14 @md:px-16 @lg:px-20 @xl:px-24 text-foreground"
+          className="text-lg @sm:text-xl @md:text-2xl @lg:text-3xl leading-snug text-center font-bold mb-3 @md:mb-4 pt-2 @md:pt-3 px-12 @sm:px-14 @md:px-16 @lg:px-20 @xl:px-24 text-foreground dark:text-[#f3f3f6]"
           data-oid="q._2bvq"
         >
           {currentPassage.passage_name || currentPassage.title || `Passage ${passageIndex + 1}`}

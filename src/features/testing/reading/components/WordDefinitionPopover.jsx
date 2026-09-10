@@ -76,15 +76,15 @@ function WordDefinitionLoading({ position, word }) {
       animate={{ opacity: 1, y: 0 }}
       style={getLoadingPopoverStyle(position)}
       className={cn(
-        WELL,
-        'flex items-center gap-2 rounded-lg border border-[#e4e2f0] px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-md shadow-slate-900/5 dark:border-white/[0.09] dark:text-slate-200 dark:shadow-black/40'
+        'flex items-center gap-2 rounded-xl border border-[#e4e2f0] bg-white/95 px-3.5 py-2 text-xs font-bold text-slate-800 shadow-xl shadow-slate-900/10 backdrop-blur-md',
+        'dark:border-white/16 dark:bg-[#1a1a1f]/95 dark:text-slate-100 dark:shadow-2xl dark:shadow-black/70 dark:ring-1 dark:ring-white/10'
       )}
       role="status"
       aria-live="polite"
       aria-label={`Finding contextual meaning for ${word}`}
     >
-      <LoaderCircle className="size-3.5 shrink-0 animate-spin text-[#5a63df]" />
-      <span>Finding meaning here…</span>
+      <LoaderCircle className="size-4 shrink-0 animate-spin text-[#5a63df] dark:text-[#8f97ff]" />
+      <span className="tracking-tight text-slate-900 dark:text-white">Finding meaning here…</span>
     </m.div>
   );
 }

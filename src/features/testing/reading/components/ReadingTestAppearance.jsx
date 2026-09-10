@@ -192,9 +192,9 @@ const ReadingTestAppearance = ({ textSize, setTextSize, theme, setTheme }) => {
                     <Check className="w-2 h-2 stroke-3" />
                   </span>
                 )}
-                <div className="flex w-full flex-col justify-center gap-0.5 overflow-hidden rounded-md border border-white/[0.14] bg-[#0f1118] px-1.5 shadow-2xs dark:border-white/16">
-                  <div className="h-0.5 w-full bg-slate-600/80 rounded-full" />
-                  <div className="h-0.5 w-3/4 bg-slate-700 rounded-full" />
+                <div className="flex w-full flex-col justify-center gap-0.5 overflow-hidden rounded-md border border-white/[0.14] bg-[#121214] px-1.5 shadow-2xs dark:border-white/16">
+                  <div className="h-0.5 w-full bg-zinc-600/80 rounded-full" />
+                  <div className="h-0.5 w-3/4 bg-zinc-700 rounded-full" />
                 </div>
                 <div className="flex items-center gap-0.5">
                   <Moon className="w-2.5 h-2.5 text-indigo-400" />

@@ -90,6 +90,202 @@ const LayoutSkeleton = () => (
 
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
+const ADMIN_PAGES = ['AdminPanel', 'AdminLogin'];
+const TEST_PAGES = [
+  'ReadingTest',
+  'WritingTask',
+  'ListeningTest',
+  'SpeakingTest',
+  'CambridgeFullTest',
+];
+const PUBLIC_PAGES = [
+  'Index',
+  'LandingPage',
+  'Login',
+  'SignUp',
+  'ForgotPassword',
+  'UpdatePassword',
+  'AdminLogin',
+];
+
+function isDashboardRoute(currentPageName, pathname) {
+  return currentPageName === 'Dashboard' || pathname === '/dashboard';
+}
+
+function shouldShowAnnouncementBanner({ isDashboard, isAdminView, announcement, user }) {
+  if (!isDashboard || isAdminView) return false;
+  return isAnnouncementLive(announcement, {
+    isAuthenticated: Boolean(user),
+    tier: user?.subscription_tier,
+  });
+}
+
+function shouldRedirectAuthenticatedUser({
+  isPublicPage,
+  isAdminLogin,
+  user,
+  authLoading,
+  authCheckComplete,
+}) {
+  if (!isPublicPage || isAdminLogin) return false;
+  return Boolean(user && !authLoading && authCheckComplete);
+}
+
+function isRedirectingPublicUser(isPublicPage, user, isAdminLogin) {
+  return Boolean(isPublicPage && user && !isAdminLogin);
+}
+
+function isPublicGuestView(isPublicPage, user, isAdminLogin) {
+  if (!isPublicPage) return false;
+  return !user || isAdminLogin;
+}
+
+function isShellHydrating(authLoading, authCheckComplete, user) {
+  return (authLoading || !authCheckComplete) && !user;
+}
+
+function PublicRedirectSpinner() {
+  return (
+    <SidebarStyles data-oid="e.45e4l">
+      <div
+        className="min-h-screen bg-background flex items-center justify-center"
+        data-oid="tmuqbni"
+      >
+        <div
+          className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"
+          data-oid="4-6iuek"
+        />
+      </div>
+    </SidebarStyles>
+  );
+}
+
+function PublicGuestContainer({ children }) {
+  return (
+    <SidebarStyles data-oid="166-bqh">
+      <div className="min-h-screen bg-background text-foreground" data-oid="bamjetg">
+        {children}
+      </div>
+    </SidebarStyles>
+  );
+}
+
+function HydrationSkeletonShell({ showAnnouncement, announcement }) {
+  return (
+    <SidebarStyles data-oid="8o5cs_-">
+      <div
+        className="flex flex-col h-screen w-full bg-slate-50 dark:bg-[#070913] text-foreground overflow-hidden"
+        data-oid="69ossux-skel"
+      >
+        <OfflineBanner data-oid="-4d:8tg-skel" />
+
+        {showAnnouncement && (
+          <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl-skel">
+            <AnnouncementBanner announcement={announcement} data-oid="z:9x0:g-skel" />
+          </div>
+        )}
+
+        <LayoutSkeleton data-oid="-url2yn" />
+      </div>
+    </SidebarStyles>
+  );
+}
+
+function AppSidebar({ isAdminView, user, location, handleLogout }) {
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-[#e4e2f0] bg-white dark:border-white/[0.07] dark:bg-[#100f15] sidebar-style"
+      data-oid="4vw2urk"
+    >
+      <Suspense
+        fallback={
+          <div className="p-4 space-y-4" data-oid="sidebar-loading">
+            <Skeleton className="w-12 h-12 rounded-2xl" data-oid="sb-logo" />
+            <div className="space-y-2" data-oid="sb-items">
+              <Skeleton className="h-4 w-full" data-oid="sb-item-1" />
+              <Skeleton className="h-4 w-[90%]" data-oid="sb-item-2" />
+              <Skeleton className="h-4 w-[80%]" data-oid="sb-item-3" />
+            </div>
+          </div>
+        }
+        data-oid="sidebar-suspense"
+      >
+        {isAdminView ? (
+          <AdminSidebar
+            user={user}
+            location={location}
+            handleLogout={handleLogout}
+            data-oid="sel28vx"
+          />
+        ) : (
+          <UserSidebar
+            user={user}
+            location={location}
+            handleLogout={handleLogout}
+            data-oid="45utb8k"
+          />
+        )}
+      </Suspense>
+      <SidebarRail data-oid="j3nz7xm" />
+    </Sidebar>
+  );
+}
+
+function MainContentArea({
+  children,
+  isTestPage,
+  isAdminView,
+  user,
+  isDashboardPage,
+  locationPathname,
+  mainContentRef,
+}) {
+  return (
+    <main className="flex-1 flex flex-col overflow-hidden relative" data-oid="ikt0z38">
+      {/* Minimal floating toggle for mobile (Hidden on test pages to avoid header overlap) */}
+      {!isTestPage && (
+        <div
+          className="pointer-events-none absolute top-4 left-4 z-50 flex items-center gap-2 md:hidden"
+          data-oid="9gb208j"
+        >
+          <div className="pointer-events-auto rounded-xl border border-border bg-background p-1">
+            <SidebarTrigger
+              className="h-11 w-11 text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+              aria-label="Open mobile menu"
+              data-oid="u0ntjik"
+            />
+          </div>
+        </div>
+      )}
+
+      <div
+        ref={mainContentRef}
+        className={cn(
+          'flex-1 bg-[#f8f8fb] dark:bg-[#08080a]',
+          isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto'
+        )}
+        data-oid="at8d7y7"
+      >
+        {isTestPage ? (
+          children
+        ) : (
+          <div
+            key={locationPathname}
+            className="animate-panel-in min-h-full"
+            data-oid="page-transition"
+          >
+            {!isAdminView && user && isDashboardPage && (
+              <LearnerMarketingSurface user={user} dashboardOnly />
+            )}
+            {children}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -109,44 +305,30 @@ export default function Layout({ children, currentPageName }) {
 
   const { user, loading: authLoading, signOut, authCheckComplete, announcement } = useAuth();
 
-  const adminPages = ['AdminPanel', 'AdminLogin'];
-  const testPages = [
-    'ReadingTest',
-    'WritingTask',
-    'ListeningTest',
-    'SpeakingTest',
-    'CambridgeFullTest',
-  ];
-
-  const isAdminView = adminPages.includes(currentPageName);
-  const isTestPage = testPages.includes(currentPageName);
+  const isAdminView = ADMIN_PAGES.includes(currentPageName);
+  const isTestPage = TEST_PAGES.includes(currentPageName);
   const isAdminLogin = currentPageName === 'AdminLogin';
+  const isPublicPage = PUBLIC_PAGES.includes(currentPageName);
+  const isDashboardPage = isDashboardRoute(currentPageName, location.pathname);
 
-  const isDashboardPage = currentPageName === 'Dashboard' || location.pathname === '/dashboard';
-
-  // The site banner is learner/marketing copy, shown exclusively on the main dashboard.
-  const showAnnouncement =
-    isDashboardPage &&
-    !isAdminView &&
-    isAnnouncementLive(announcement, {
-      isAuthenticated: Boolean(user),
-      tier: user?.subscription_tier,
-    });
-
-  // 2. Public/Minimal layout for non-authenticated public pages
-  const isPublicPage = [
-    'Index',
-    'LandingPage',
-    'Login',
-    'SignUp',
-    'ForgotPassword',
-    'UpdatePassword',
-    'AdminLogin',
-  ].includes(currentPageName);
+  const showAnnouncement = shouldShowAnnouncementBanner({
+    isDashboard: isDashboardPage,
+    isAdminView,
+    announcement,
+    user,
+  });
 
   // Anti-Flash & auto-redirect for authenticated users on public pages
   useEffect(() => {
-    if (isPublicPage && !isAdminLogin && user && !authLoading && authCheckComplete) {
+    if (
+      shouldRedirectAuthenticatedUser({
+        isPublicPage,
+        isAdminLogin,
+        user,
+        authLoading,
+        authCheckComplete,
+      })
+    ) {
       navigate(createPageUrl('Dashboard'), { replace: true });
     }
   }, [isPublicPage, isAdminLogin, user, authLoading, authCheckComplete, navigate]);
@@ -156,59 +338,17 @@ export default function Layout({ children, currentPageName }) {
     navigate(isAdminView ? createPageUrl('AdminLogin') : createPageUrl('Index'));
   };
 
-  // Maintenance is enforced by <MaintenanceGate> around the router in App.jsx
-  // so that public routes — which never mount this Layout — are covered too.
-
-  // If user is authenticated but on a public page, show spinner while redirecting
-  if (isPublicPage && user && !isAdminLogin) {
-    return (
-      <SidebarStyles data-oid="e.45e4l">
-        <div
-          className="min-h-screen bg-background flex items-center justify-center"
-          data-oid="tmuqbni"
-        >
-          {/* Simple spinner to bridge the gap before redirect */}
-          <div
-            className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"
-            data-oid="4-6iuek"
-          />
-        </div>
-      </SidebarStyles>
-    );
+  if (isRedirectingPublicUser(isPublicPage, user, isAdminLogin)) {
+    return <PublicRedirectSpinner />;
   }
 
-  // If not user, show the public content (Form)
-  if (isPublicPage && (!user || isAdminLogin)) {
-    return (
-      <SidebarStyles data-oid="166-bqh">
-        <div className="min-h-screen bg-background text-foreground" data-oid="bamjetg">
-          {children}
-        </div>
-      </SidebarStyles>
-    );
+  if (isPublicGuestView(isPublicPage, user, isAdminLogin)) {
+    return <PublicGuestContainer>{children}</PublicGuestContainer>;
   }
 
-  // 3. Show high-fidelity skeleton during initial hydration ONLY if we don't have a cached profile yet
-  // If we have a user (cached), we show the real Shell (Sidebar/Header) and let the children skeletonize
-  const isHydrating = (authLoading || !authCheckComplete) && !user;
-  if (isHydrating) {
+  if (isShellHydrating(authLoading, authCheckComplete, user)) {
     return (
-      <SidebarStyles data-oid="8o5cs_-">
-        <div
-          className="flex flex-col h-screen w-full bg-slate-50 dark:bg-[#070913] text-foreground overflow-hidden"
-          data-oid="69ossux-skel"
-        >
-          <OfflineBanner data-oid="-4d:8tg-skel" />
-
-          {showAnnouncement && (
-            <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl-skel">
-              <AnnouncementBanner announcement={announcement} data-oid="z:9x0:g-skel" />
-            </div>
-          )}
-
-          <LayoutSkeleton data-oid="-url2yn" />
-        </div>
-      </SidebarStyles>
+      <HydrationSkeletonShell showAnnouncement={showAnnouncement} announcement={announcement} />
     );
   }
 
@@ -231,97 +371,26 @@ export default function Layout({ children, currentPageName }) {
           className="flex-1 flex overflow-hidden h-full min-h-0"
           data-oid="yyayifw"
         >
-          {/* Inner component to handle imperative sidebar state changes based on route */}
           <SidebarController isTestPage={isTestPage} data-oid="6tzf2_b" />
 
           <div className="flex w-full flex-1" data-oid="3ubb_cx">
-            <Sidebar
-              collapsible="icon"
-              className="border-r border-[#e4e2f0] bg-white dark:border-white/[0.07] dark:bg-[#100f15] sidebar-style"
-              data-oid="4vw2urk"
+            <AppSidebar
+              isAdminView={isAdminView}
+              user={user}
+              location={location}
+              handleLogout={handleLogout}
+            />
+
+            <MainContentArea
+              isTestPage={isTestPage}
+              isAdminView={isAdminView}
+              user={user}
+              isDashboardPage={isDashboardPage}
+              locationPathname={location.pathname}
+              mainContentRef={mainContentRef}
             >
-              <Suspense
-                fallback={
-                  <div className="p-4 space-y-4" data-oid="sidebar-loading">
-                    <Skeleton className="w-12 h-12 rounded-2xl" data-oid="sb-logo" />
-                    <div className="space-y-2" data-oid="sb-items">
-                      <Skeleton className="h-4 w-full" data-oid="sb-item-1" />
-                      <Skeleton className="h-4 w-[90%]" data-oid="sb-item-2" />
-                      <Skeleton className="h-4 w-[80%]" data-oid="sb-item-3" />
-                    </div>
-                  </div>
-                }
-                data-oid="sidebar-suspense"
-              >
-                {isAdminView ? (
-                  <AdminSidebar
-                    user={user}
-                    location={location}
-                    handleLogout={handleLogout}
-                    data-oid="sel28vx"
-                  />
-                ) : (
-                  <UserSidebar
-                    user={user}
-                    location={location}
-                    handleLogout={handleLogout}
-                    data-oid="45utb8k"
-                  />
-                )}
-              </Suspense>
-              <SidebarRail data-oid="j3nz7xm" />
-            </Sidebar>
-
-            <main className="flex-1 flex flex-col overflow-hidden relative" data-oid="ikt0z38">
-              {/* Minimal floating toggle for mobile (Hidden on test pages to avoid header overlap) */}
-              {!isTestPage && (
-                <div
-                  className="pointer-events-none absolute top-4 left-4 z-50 flex items-center gap-2 md:hidden"
-                  data-oid="9gb208j"
-                >
-                  <div className="pointer-events-auto rounded-xl border border-border bg-background p-1">
-                    <SidebarTrigger
-                      className="h-11 w-11 text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300"
-                      aria-label="Open mobile menu"
-                      data-oid="u0ntjik"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div
-                ref={mainContentRef}
-                className={cn(
-                  'flex-1 bg-[#f8f8fb] dark:bg-[#08080a]',
-                  isTestPage ? 'flex flex-col h-full min-h-0 overflow-hidden' : 'overflow-auto'
-                )}
-                data-oid="at8d7y7"
-              >
-                {isTestPage ? (
-                  children
-                ) : (
-                  // Timed test flows stay instant (excluded above) — everywhere
-                  // else a route swap used to be a hard cut with no transition
-                  // at all, which read as a flash. Keyed on pathname so every
-                  // navigation (not just admin) gets the same quick settle.
-                  // Plain CSS, not framer-motion: this sits above the
-                  // MotionProvider/LazyMotion boundary (that's mounted one
-                  // level deeper, inside LazyPage in App.jsx), so an `m.div`
-                  // here has no animation engine attached and silently
-                  // freezes at its `initial` style instead of animating.
-                  <div
-                    key={location.pathname}
-                    className="animate-panel-in min-h-full"
-                    data-oid="page-transition"
-                  >
-                    {!isAdminView && user && isDashboardPage && (
-                      <LearnerMarketingSurface user={user} dashboardOnly />
-                    )}
-                    {children}
-                  </div>
-                )}
-              </div>
-            </main>
+              {children}
+            </MainContentArea>
           </div>
         </SidebarProvider>
       </div>
@@ -350,11 +419,14 @@ function SidebarController({ isTestPage }) {
         savedOpenRef.current = true;
         setOpen(false);
       }
-    } else {
-      if (savedOpenRef.current === true && !open) {
-        setOpen(true);
-        savedOpenRef.current = null;
-      }
+      return;
+    }
+
+    if (!savedOpenRef.current) return;
+
+    if (!open) {
+      setOpen(true);
+      savedOpenRef.current = null;
     }
   }, [isTestPage, open, setOpen]);
 
