@@ -192,7 +192,7 @@ export default function GrammarGuidesPanel({
       )}
 
       {visibleGuides.length ? (
-        <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
           {visibleGuides.map((resource) => {
             const visual = SKILL_VISUALS[resource.skill_code] || SKILL_VISUALS.grammar_word_forms;
             const isLocked = !hasContentAccess(user, resource.access_tier);
@@ -203,7 +203,10 @@ export default function GrammarGuidesPanel({
                 key={resource.id}
                 to={`/grammar/guides/${resource.slug}`}
                 className={cn(
-                  'group flex min-h-[174px] flex-col justify-between rounded-xl border border-[#eceafa] bg-linear-to-br/srgb p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
+                  'group flex min-h-[174px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
+                  recommendation
+                    ? 'border-[#5a63df]/40 shadow-xs dark:border-[#8f97ff]/40'
+                    : 'border-[#eceafa] dark:border-white/10',
                   visual.panelClass,
                   visual.cardClass
                 )}
@@ -216,17 +219,18 @@ export default function GrammarGuidesPanel({
                       slug={resource.slug}
                       compact
                     />
-                    <div className="flex flex-col items-end gap-1">
-                      <ContentStatusBadge
-                        user={user}
-                        requiredTier={resource.access_tier}
-                        completed={isCompleted}
-                      />
-                      <RecommendationBadge recommendation={recommendation} />
-                    </div>
+                    <ContentStatusBadge
+                      user={user}
+                      requiredTier={resource.access_tier}
+                      completed={isCompleted}
+                      className="shrink-0"
+                    />
                   </div>
-                  <div className="mt-2.5 text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
-                    {skillLabel(resource.skill_code)}
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    {recommendation && <RecommendationBadge recommendation={recommendation} />}
+                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
+                      {skillLabel(resource.skill_code)}
+                    </span>
                   </div>
                   <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">
                     {resource.title}

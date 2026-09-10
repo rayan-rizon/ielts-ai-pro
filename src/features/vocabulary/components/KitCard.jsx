@@ -48,35 +48,34 @@ const KitCard = memo(function KitCard({
         to={`/vocabulary/kits/${kit.slug || kit.id}`}
         aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}${recommendation ? ', recommended from your results' : ''}`}
         className={cn(
-          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5',
+          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
+          recommendation ? 'border-[#5a63df]/40 shadow-xs dark:border-[#8f97ff]/40' : theme.border,
           theme.panel,
-          theme.border,
           theme.hoverGlow
         )}
       >
         <div>
           {/* Top Bar: illustration plus learner-specific status. */}
           <div className="flex items-start justify-between gap-2">
-            <span className="relative shrink-0 flex items-center justify-center overflow-hidden bg-white/80 p-1 shadow-sm ring-1 ring-black/5 dark:bg-white/5 dark:ring-white/10 h-13 w-20 sm:w-22 rounded-xl">
+            <span className="relative flex h-12 w-18 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/80 p-1 shadow-sm ring-1 ring-black/5 dark:bg-white/5 dark:ring-white/10">
               <div className="flex h-full w-full items-center justify-center p-0.5 scale-105">
                 <Kit3DIcon kit={kit} />
               </div>
             </span>
-            <div className="flex flex-col items-end gap-1">
-              <ContentStatusBadge
-                user={user}
-                requiredTier={kit.access_tier}
-                completed={progress.isComplete}
-              />
-              <RecommendationBadge recommendation={recommendation} />
-            </div>
+            <ContentStatusBadge
+              user={user}
+              requiredTier={kit.access_tier}
+              completed={progress.isComplete}
+              className="shrink-0"
+            />
           </div>
 
-          {/* Category Tag */}
-          <div
-            className={cn('mt-2 text-[9px] font-extrabold uppercase tracking-widest', theme.tag)}
-          >
-            {kit.category || 'Vocabulary Kit'}
+          {/* Category Tag & Recommendation */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {recommendation && <RecommendationBadge recommendation={recommendation} />}
+            <span className={cn('text-[9px] font-extrabold uppercase tracking-widest', theme.tag)}>
+              {kit.category || 'Vocabulary Kit'}
+            </span>
           </div>
 
           {/* Cleaned Kit Title */}

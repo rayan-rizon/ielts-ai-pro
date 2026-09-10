@@ -1502,9 +1502,7 @@ function FallbackWordFormsVisual() {
 }
 
 export default function SkillVisual({ skillCode, unitNumber, slug, compact = false }) {
-  const containerClass = compact
-    ? 'h-13 w-20 sm:w-22 rounded-2xl'
-    : 'h-16 w-24 sm:w-28 rounded-2xl';
+  const containerClass = compact ? 'h-12 w-18 rounded-xl' : 'h-16 w-24 sm:w-28 rounded-2xl';
 
   const symbol = (() => {
     // 1. Precise mapping by Unit Number (1 to 18) or Slug

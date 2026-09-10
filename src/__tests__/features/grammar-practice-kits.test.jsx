@@ -34,7 +34,7 @@ describe('GrammarPracticeKitsPanel', () => {
     });
   });
 
-  it('sends a free learner to plans for a paid practice kit', () => {
+  it('sends a free learner to plans for a paid practice kit with a single unlock CTA', () => {
     render(
       <MemoryRouter>
         <GrammarPracticeKitsPanel
@@ -45,10 +45,30 @@ describe('GrammarPracticeKitsPanel', () => {
       </MemoryRouter>
     );
 
+    expect(
+      screen.queryByRole('button', { name: 'Practise Sentence Foundations' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Unlock Sentence Foundations with Pro' })
+    ).toHaveAttribute('href', '/pricing');
+  });
+
+  it('disables practise button when daily allowance is exhausted for an unlocked kit', () => {
+    render(
+      <MemoryRouter>
+        <GrammarPracticeKitsPanel
+          user={{ subscription_tier: 'pro' }}
+          access={{ isPaid: false, dailyRemaining: 0 }}
+          isStarting={false}
+          onStart={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
     expect(screen.getByRole('button', { name: 'Practise Sentence Foundations' })).toBeDisabled();
-    expect(screen.getByRole('link', { name: 'Unlock Sentence Foundations' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Start Sentence Foundations guide' })).toHaveAttribute(
       'href',
-      '/pricing'
+      '/grammar/guides/complete-sentences-and-clauses'
     );
   });
 

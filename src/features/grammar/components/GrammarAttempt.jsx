@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
   CheckCircle2,
   CircleAlert,
   ClipboardCheck,
+  Copy,
   Lightbulb,
   Loader2,
   MessageSquareQuote,
@@ -24,9 +26,16 @@ import {
 } from '../constants';
 import { MUTED, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 
+function cleanPunctuation(str) {
+  return String(str || '')
+    .replace(/\s+([.,!?;:])/g, '$1')
+    .trim();
+}
+
 function Sentence({ value }) {
-  const parts = String(value || '').split('___');
-  if (parts.length === 1) return value;
+  const normalized = cleanPunctuation(value);
+  const parts = normalized.split('___');
+  if (parts.length === 1) return normalized;
   return parts.map((part, index) => (
     <span key={`${part}-${index}`}>
       {part}
@@ -37,6 +46,20 @@ function Sentence({ value }) {
       )}
     </span>
   ));
+}
+
+function getQuestionGuidance(format, hasOptions) {
+  if (hasOptions) {
+    return 'Select the option that makes this academic sentence grammatically accurate.';
+  }
+  switch (format) {
+    case 'error_correction':
+      return 'Find the fragment or grammatical error in the sentence below and write the corrected version. You can use "Copy to edit" to start with the original text.';
+    case 'sentence_completion':
+      return 'Type the missing word or phrase to complete the sentence grammatically.';
+    default:
+      return 'Review the sentence carefully and supply the accurate grammatical form.';
+  }
 }
 
 function statusClasses({ current, submitted, isCorrect, diagnostic }) {
@@ -65,7 +88,9 @@ export default function GrammarAttempt({
   const [answers, setAnswers] = useState({});
   const [feedback, setFeedback] = useState({});
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
   const headingRef = useRef(null);
+  const inputRef = useRef(null);
   const item = items[position];
   const answer = item ? (answers[item.id] ?? '') : '';
   const currentFeedback = item ? feedback[item.id] : null;
@@ -75,6 +100,18 @@ export default function GrammarAttempt({
   const presentation = grammarQuestionPresentation(item);
   const context = grammarContextPresentation(item?.academicContext);
   const skill = skillMeta(item?.skillCode);
+
+  const cleanSentence = useMemo(() => {
+    return cleanPunctuation(presentation.sentence);
+  }, [presentation.sentence]);
+
+  const handleCopySentence = () => {
+    if (!cleanSentence) return;
+    setAnswers((current) => ({ ...current, [item.id]: cleanSentence }));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    inputRef.current?.focus();
+  };
 
   useEffect(() => {
     const savedAnswers = {};
@@ -172,9 +209,13 @@ export default function GrammarAttempt({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
         <section className={cn(PANEL, 'overflow-hidden')}>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#eeedf7] px-5 py-3.5 dark:border-white/[0.07] sm:px-7">
-            <div className="text-sm font-extrabold text-slate-900 dark:text-white">
-              Question {position + 1}
-              <span className="font-bold text-slate-400"> / {items.length}</span>
+            <div className="flex items-center gap-2 text-sm font-extrabold text-slate-900 dark:text-white">
+              <span>Question {position + 1}</span>
+              <span className="font-bold text-slate-400">/ {items.length}</span>
+              <span className="mx-1 hidden h-3.5 w-px bg-[#eeedf7] dark:bg-white/10 sm:inline-block" />
+              <span className="hidden text-xs font-bold text-slate-500 dark:text-slate-400 sm:inline-block">
+                {skillLabel(item.skillCode)}
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Pill tone="accent">{context.shortLabel}</Pill>
@@ -187,36 +228,69 @@ export default function GrammarAttempt({
           </div>
 
           <div className="px-5 py-5 sm:px-7 sm:py-6">
-            <div className="max-w-4xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#e2e5f2] bg-[#f4f3fb] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-                  {skillLabel(item.skillCode)}
+            <div className="max-w-4xl space-y-4">
+              {/* Task Directive Card */}
+              <div className="rounded-xl border border-[#5a63df]/20 bg-linear-to-r from-[#5a63df]/[0.05] to-transparent p-4 dark:border-white/10 dark:from-white/[0.04]">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-indigo-500/20 dark:text-indigo-300">
+                    <Lightbulb className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h2
+                      ref={headingRef}
+                      tabIndex={-1}
+                      className="text-sm font-extrabold text-slate-900 outline-none dark:text-white sm:text-base"
+                    >
+                      {presentation.instruction}
+                    </h2>
+                    <p className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">
+                      {getQuestionGuidance(item.questionFormat, hasOptions)}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-slate-400">
-                  {presentation.responseHint}
-                </span>
               </div>
 
-              <div className="mt-3.5 flex items-start gap-3 rounded-lg border border-amber-200/70 bg-amber-50/70 px-4 py-3 text-sm font-semibold leading-6 text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
-                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                <h2 ref={headingRef} tabIndex={-1} className="outline-none">
-                  <span className="font-black text-amber-950 dark:text-amber-100">Your task:</span>{' '}
-                  {presentation.instruction}
-                </h2>
-              </div>
-
-              <div className={cn(TILE, 'mt-4 overflow-hidden')}>
-                <div className="flex items-center gap-2 border-b border-[#ebeaf7] px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider text-[#5a63df] dark:border-white/10">
-                  <MessageSquareQuote className="h-4 w-4" />
-                  Sentence to check
+              {/* Sentence Card with interactive 'Copy to edit' */}
+              <div className={cn(TILE, 'overflow-hidden border-[#e4e2f0] dark:border-white/10')}>
+                <div className="flex items-center justify-between border-b border-[#ebeaf7] bg-white/60 px-4 py-2.5 dark:border-white/10 dark:bg-white/5">
+                  <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-wider text-[#5a63df] dark:text-indigo-400">
+                    <MessageSquareQuote className="h-4 w-4" />
+                    <span>Sentence to check</span>
+                  </div>
+                  {!hasOptions && (
+                    <button
+                      type="button"
+                      onClick={handleCopySentence}
+                      disabled={Boolean(currentFeedback?.submitted)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-[#5a63df]/25 bg-white px-2.5 py-1 text-xs font-bold text-[#5a63df] transition-all hover:bg-[#5a63df]/5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/15 dark:bg-[#1a1924] dark:text-indigo-300 dark:hover:bg-white/10"
+                      title="Copy original sentence into your answer field to edit it quickly"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span className="text-emerald-600 dark:text-emerald-400">
+                            Copied into answer!
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>Copy sentence to edit</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
+
                 <blockquote className="px-5 py-4 text-base font-bold leading-relaxed text-slate-900 dark:text-white sm:px-6 sm:text-lg">
-                  <Sentence value={presentation.sentence} />
+                  <Sentence value={cleanSentence} />
                 </blockquote>
+
+                <div className="flex items-center justify-between border-t border-[#ebeaf7] bg-[#fbfbfe]/70 px-4 py-2 text-[11px] font-semibold text-slate-400 dark:border-white/5 dark:bg-white/2">
+                  <span>No specialist topic knowledge is needed.</span>
+                  <span className="hidden sm:inline">Change only what is necessary</span>
+                </div>
               </div>
-              <p className="mt-2 text-[11px] font-semibold text-slate-400">
-                No specialist topic knowledge is needed.
-              </p>
             </div>
 
             <div className="mt-5 max-w-4xl">
@@ -257,23 +331,43 @@ export default function GrammarAttempt({
                 </div>
               ) : (
                 <div>
-                  <label
-                    htmlFor={`grammar-answer-${item.id}`}
-                    className="mb-2 block text-xs font-extrabold text-slate-600 dark:text-slate-300"
-                  >
-                    {presentation.responseHint}
-                  </label>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label
+                      htmlFor={`grammar-answer-${item.id}`}
+                      className="text-xs font-extrabold text-slate-700 dark:text-slate-200"
+                    >
+                      {item.questionFormat === 'error_correction'
+                        ? 'Your corrected sentence:'
+                        : item.questionFormat === 'sentence_completion'
+                          ? 'Your answer:'
+                          : presentation.responseHint}
+                    </label>
+                    <span className="hidden text-[11px] font-medium text-slate-400 sm:inline">
+                      Press{' '}
+                      <kbd className="rounded border border-[#e2e5f2] bg-white px-1.5 py-0.5 font-mono text-[10px] text-slate-500 shadow-2xs dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+                        Enter ↵
+                      </kbd>{' '}
+                      to submit
+                    </span>
+                  </div>
                   <Input
+                    ref={inputRef}
                     id={`grammar-answer-${item.id}`}
                     value={answer}
                     disabled={Boolean(currentFeedback?.submitted)}
                     onChange={(event) =>
                       setAnswers((current) => ({ ...current, [item.id]: event.target.value }))
                     }
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !isSubmitting && !currentFeedback?.submitted) {
+                        event.preventDefault();
+                        submitCurrent();
+                      }
+                    }}
                     placeholder={
                       item.questionFormat === 'error_correction'
-                        ? 'Write the complete corrected sentence'
-                        : 'Type the missing word or phrase'
+                        ? 'Type or paste the corrected sentence here...'
+                        : 'Type the missing word or phrase...'
                     }
                     className="h-11 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] px-4 font-semibold text-slate-900 transition-all focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/2.5 dark:text-white"
                   />
@@ -383,46 +477,100 @@ export default function GrammarAttempt({
         </section>
 
         <aside className="space-y-3 xl:sticky xl:top-6">
-          <div className={cn(PANEL, 'flex items-center justify-around p-4')}>
-            <div className="text-center">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                Questions
+          <div className={cn(PANEL, 'overflow-hidden')}>
+            {/* Quick Metrics Header */}
+            <div className="grid grid-cols-2 divide-x divide-[#eeedf7] border-b border-[#eeedf7] dark:divide-white/10 dark:border-white/10">
+              <div className="p-3.5 text-center">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Questions
+                </div>
+                <div className="mt-0.5 text-base font-extrabold text-slate-900 dark:text-white">
+                  {items.length}
+                </div>
               </div>
-              <div className="mt-0.5 text-sm font-extrabold text-slate-900 dark:text-white">
-                {items.length}
+              <div className="p-3.5 text-center">
+                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Difficulty
+                </div>
+                <div className="mt-0.5 text-base font-extrabold text-slate-900 dark:text-white">
+                  Level {item.difficulty}
+                </div>
               </div>
             </div>
-            <div className="h-7 w-px bg-[#eeedf7] dark:bg-white/10" />
-            <div className="text-center">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                Difficulty
-              </div>
-              <div className="mt-0.5 text-sm font-extrabold text-slate-900 dark:text-white">
-                Level {item.difficulty}
-              </div>
-            </div>
-          </div>
 
-          <section className={cn(PANEL, 'p-4 sm:p-5')}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
-                Your progress
-              </h2>
-              <span className="text-xs font-extrabold text-[#5a63df] dark:text-indigo-400">
-                {answeredCount} / {items.length}
-              </span>
+            {/* Progress Section */}
+            <div className="border-b border-[#eeedf7] p-4 sm:p-5 dark:border-white/10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  Your progress
+                </h2>
+                <span className="text-xs font-extrabold text-[#5a63df] dark:text-indigo-400">
+                  {answeredCount} / {items.length}
+                </span>
+              </div>
+              <Progress
+                aria-label={`${answeredCount} of ${items.length} questions saved`}
+                value={(answeredCount / items.length) * 100}
+                className="mt-3 h-2 bg-[#f4f3fb] dark:bg-white/10"
+                indicatorClassName="bg-[#5a63df]"
+              />
+              <div className="mt-2.5 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                <span>{answeredCount} saved</span>
+                <span>{items.length - answeredCount} remaining</span>
+              </div>
             </div>
-            <Progress
-              aria-label={`${answeredCount} of ${items.length} questions saved`}
-              value={(answeredCount / items.length) * 100}
-              className="mt-3 h-2 bg-[#f4f3fb] dark:bg-white/10"
-              indicatorClassName="bg-[#5a63df]"
-            />
-            <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-slate-400">
-              <span>{answeredCount} saved</span>
-              <span>{items.length - answeredCount} remaining</span>
-            </div>
-          </section>
+
+            {/* Questions Grid */}
+            <nav aria-label="Question navigator" className="p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">Questions</h3>
+                <span className="text-[11px] font-bold text-slate-400">
+                  Step {position + 1} of {items.length}
+                </span>
+              </div>
+              <div className="mt-3.5 grid grid-cols-5 justify-items-center gap-2">
+                {items.map((question, index) => {
+                  const state = feedback[question.id];
+                  return (
+                    <button
+                      key={question.id}
+                      type="button"
+                      onClick={() => goTo(index)}
+                      aria-label={`Question ${index + 1}${
+                        state?.submitted ? ', answer saved' : ''
+                      }${index === position ? ', current question' : ''}`}
+                      aria-current={index === position ? 'step' : undefined}
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2',
+                        statusClasses({
+                          current: index === position,
+                          submitted: state?.submitted,
+                          isCorrect: state?.isCorrect,
+                          diagnostic,
+                        })
+                      )}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-[#eeedf7] pt-3 text-[10px] font-bold text-slate-400 dark:border-white/[0.07]">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full border-2 border-[#5a63df] bg-[#5a63df]/10" />{' '}
+                  Current
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-[#5a63df]/15 dark:bg-indigo-500/30" />{' '}
+                  Saved
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full border border-slate-300 bg-white dark:border-white/20 dark:bg-transparent" />{' '}
+                  Remaining
+                </span>
+              </div>
+            </nav>
+          </div>
 
           {familyProgress.length > 1 && (
             <section className={cn(PANEL, 'p-4 sm:p-5')}>
@@ -453,51 +601,6 @@ export default function GrammarAttempt({
               </div>
             </section>
           )}
-
-          <nav aria-label="Question navigator" className={cn(PANEL, 'p-4 sm:p-5')}>
-            <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Questions</h2>
-            <div className="mt-4 grid grid-cols-5 justify-items-center gap-2.5">
-              {items.map((question, index) => {
-                const state = feedback[question.id];
-                return (
-                  <button
-                    key={question.id}
-                    type="button"
-                    onClick={() => goTo(index)}
-                    aria-label={`Question ${index + 1}${
-                      state?.submitted ? ', answer saved' : ''
-                    }${index === position ? ', current question' : ''}`}
-                    aria-current={index === position ? 'step' : undefined}
-                    className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-full border text-xs font-black transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2',
-                      statusClasses({
-                        current: index === position,
-                        submitted: state?.submitted,
-                        isCorrect: state?.isCorrect,
-                        diagnostic,
-                      })
-                    )}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-[#eeedf7] pt-3 text-[10px] font-bold text-slate-400 dark:border-white/[0.07]">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full border-2 border-[#5a63df] bg-[#5a63df]/10" />{' '}
-                Current
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-[#5a63df]/15 dark:bg-indigo-500/30" />{' '}
-                Saved
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full border border-slate-300 bg-white dark:border-white/20 dark:bg-transparent" />{' '}
-                Remaining
-              </span>
-            </div>
-          </nav>
         </aside>
       </div>
     </div>

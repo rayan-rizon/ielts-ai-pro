@@ -156,4 +156,65 @@ describe('GrammarGuidePage', () => {
     expect(screen.getByRole('heading', { name: 'Pro grammar guide' })).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
+
+  it('renders underscore-delimited examples as styled italics without raw underscore characters', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('complete-sentences-and-clauses')}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    // Verify italic example is rendered inside an <em> element
+    const italicExample = screen.getByText('Public transport reduces congestion.');
+    expect(italicExample.tagName).toBe('EM');
+    expect(italicExample).toHaveClass('italic');
+
+    // Ensure raw underscores are not rendered around the text
+    expect(screen.queryByText(/_Public transport reduces congestion._/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/_The policy failed._/)).not.toBeInTheDocument();
+
+    const secondItalic = screen.getByText('The policy failed.');
+    expect(secondItalic.tagName).toBe('EM');
+  });
+
+  it('renders unified practice cards with sentence prompts, option chips, and clean 1-based numbering', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('complete-sentences-and-clauses')}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    // Verify 01 question badge and sentence text are rendered
+    expect(screen.getByText('01')).toBeInTheDocument();
+    expect(screen.getByText('Renewable energy creates jobs.')).toBeInTheDocument();
+
+    // Verify the question numbers are NOT shifted by earlier block counts (not 24, 25, etc.)
+    expect(screen.queryByText('24')).not.toBeInTheDocument();
+    expect(screen.queryByText('25')).not.toBeInTheDocument();
+
+    // Verify clickable choice options are available
+    const simpleChoice = screen.getAllByRole('button', { name: 'simple' })[0];
+    expect(simpleChoice).toBeInTheDocument();
+
+    // Select an option
+    fireEvent.click(simpleChoice);
+    expect(simpleChoice).toHaveClass('bg-[#5a63df]');
+
+    // Compare answer
+    fireEvent.click(screen.getByRole('button', { name: 'Compare answer for question 1' }));
+    expect(screen.getByText('Suggested answer 1')).toBeInTheDocument();
+    expect(screen.getByText(/Matches your choice/i)).toBeInTheDocument();
+  });
 });

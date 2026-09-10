@@ -1,8 +1,16 @@
-import { ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Layers3, RefreshCw } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpenCheck,
+  CheckCircle2,
+  Clock3,
+  Layers3,
+  LockKeyhole,
+  RefreshCw,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 import { GRAMMAR_GUIDE_KITS, getGrammarGuide } from '../data/grammarGuideCatalog';
-import { hasContentAccess } from '@/features/subscription/config/contentAccess';
+import { contentTierLabel, hasContentAccess } from '@/features/subscription/config/contentAccess';
 import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
 import { MUTED, Pill } from '@/features/dashboard/components/primitives';
 
@@ -105,35 +113,48 @@ export default function GrammarPracticeKitsPanel({
                   <Clock3 className="h-3.5 w-3.5 text-slate-400" /> {kit.minutes} min reading
                 </span>
               </div>
-              <div className="relative mt-3 grid grid-cols-2 gap-2 pt-1">
-                <Link
-                  to={isLocked ? '/pricing' : `/grammar/guides/${firstGuide.slug}`}
-                  aria-label={isLocked ? `Unlock ${kit.title}` : `Start ${kit.title} guide`}
-                  className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white/90 px-2.5 text-[10px] font-bold text-slate-700 transition hover:border-[#c9cdf3] hover:bg-slate-50 hover:text-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
-                >
-                  {isLocked ? 'Unlock' : 'Start guide'}
-                </Link>
-                <button
-                  type="button"
-                  aria-label={`Practise ${kit.title}`}
-                  onClick={() =>
-                    onStart({
-                      mode: 'practice',
-                      targetSkills: kit.skills,
-                      questionCount: 5,
-                    })
-                  }
-                  disabled={isStarting || noAllowance || isLocked}
-                  className="inline-flex h-8 items-center justify-center rounded-lg bg-[#5a63df] px-2.5 text-[10px] font-bold text-white transition hover:bg-[#4a52c9] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  {isStarting ? (
-                    <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
-                  )}
-                  {isLocked ? 'Unlock' : 'Practise'}
-                </button>
-              </div>
+              {isLocked ? (
+                <div className="relative mt-auto pt-3">
+                  <Link
+                    to="/pricing"
+                    aria-label={`Unlock ${kit.title} with ${contentTierLabel(kit.access_tier)}`}
+                    className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-[#5a63df] px-3 text-[11px] font-bold text-white shadow-xs transition-all duration-150 hover:bg-[#4a52c9] hover:shadow-sm active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#100f15]"
+                  >
+                    <LockKeyhole className="h-3.5 w-3.5 shrink-0" />
+                    Unlock with {contentTierLabel(kit.access_tier)}
+                  </Link>
+                </div>
+              ) : (
+                <div className="relative mt-auto grid grid-cols-2 gap-2 pt-3">
+                  <Link
+                    to={`/grammar/guides/${firstGuide.slug}`}
+                    aria-label={`Start ${kit.title} guide`}
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white/90 px-2.5 text-[10px] font-bold text-slate-700 transition-all duration-150 hover:border-[#c9cdf3] hover:bg-slate-50 hover:text-[#5a63df] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 dark:focus-visible:ring-offset-[#100f15]"
+                  >
+                    Start guide
+                  </Link>
+                  <button
+                    type="button"
+                    aria-label={`Practise ${kit.title}`}
+                    onClick={() =>
+                      onStart({
+                        mode: 'practice',
+                        targetSkills: kit.skills,
+                        questionCount: 5,
+                      })
+                    }
+                    disabled={isStarting || noAllowance}
+                    className="inline-flex h-8 items-center justify-center rounded-lg bg-[#5a63df] px-2.5 text-[10px] font-bold text-white shadow-xs transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 dark:focus-visible:ring-offset-[#100f15]"
+                  >
+                    {isStarting ? (
+                      <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
+                    )}
+                    Practise
+                  </button>
+                </div>
+              )}
             </article>
           );
         })}

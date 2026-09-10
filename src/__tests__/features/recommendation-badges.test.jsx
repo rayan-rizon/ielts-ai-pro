@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import GrammarGuidesPanel from '@/features/grammar/components/GrammarGuidesPanel';
@@ -74,5 +74,35 @@ describe('result recommendation badges', () => {
     expect(
       screen.getByRole('link', { name: /recommended from your results/i })
     ).toBeInTheDocument();
+  });
+
+  it('renders both ContentStatusBadge and RecommendationBadge cleanly inside a recommended grammar guide card', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidesPanel
+          user={null}
+          completedGuideSlugs={[]}
+          recommendations={[
+            {
+              slug: 'complete-sentences-and-clauses',
+              reason: 'Fix fragments and run-on sentences.',
+            },
+          ]}
+        />
+      </MemoryRouter>
+    );
+
+    const recommendedGuideLink = screen.getByRole('link', {
+      name: /complete sentences and clauses/i,
+    });
+    expect(recommendedGuideLink).toBeInTheDocument();
+
+    // Both badges are present inside the card
+    const recBadge = screen.getByText('Recommended');
+    expect(recommendedGuideLink).toContainElement(recBadge);
+
+    // Recommendation badge is housed in the metadata row alongside skill category
+    const skillCategory = within(recommendedGuideLink).getByText('Sentence boundaries');
+    expect(recBadge.closest('div')).toContainElement(skillCategory);
   });
 });

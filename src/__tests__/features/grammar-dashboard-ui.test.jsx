@@ -4,6 +4,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import GrammarDashboard from '@/features/grammar/components/GrammarDashboard';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 const skillCodes = [
   'grammar_sentence_boundaries',
   'grammar_verb_forms',
@@ -214,5 +223,78 @@ describe('GrammarDashboard', () => {
       screen.queryByRole('button', { name: /Start a review of 1 review due/i })
     ).not.toBeInTheDocument();
     expect(screen.getByTitle(/free questions for today are used/i)).toBeInTheDocument();
+  });
+
+  it('renders quota-exhausted states on skill cards and prompts upgrade on click', () => {
+    const onStart = vi.fn();
+    const cappedDashboard = {
+      ...dashboard,
+      access: { ...dashboard.access, isPaid: false, dailyRemaining: 0 },
+    };
+
+    render(
+      <MemoryRouter>
+        <GrammarDashboard
+          dashboard={cappedDashboard}
+          recommendedSkill={cappedDashboard.skills[0]}
+          criterionDiagnosticNeeded={false}
+          defaultMode={null}
+          defaultSkill={null}
+          isStarting={false}
+          isResuming={false}
+          onStart={onStart}
+          onRetest={vi.fn()}
+          onResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: /Daily limit reached/i })).toBeInTheDocument();
+    const sentenceBoundariesBtn = screen.getByRole('button', {
+      name: /Sentence boundaries: daily practice limit reached/i,
+    });
+    expect(sentenceBoundariesBtn).toBeInTheDocument();
+
+    fireEvent.click(sentenceBoundariesBtn);
+    expect(onStart).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('/pricing');
+  });
+
+  it('allows practicing a skill card when daily allowance is available', () => {
+    const onStart = vi.fn();
+    const freeDashboard = {
+      ...dashboard,
+      access: { ...dashboard.access, isPaid: false, dailyRemaining: 3 },
+    };
+
+    render(
+      <MemoryRouter>
+        <GrammarDashboard
+          dashboard={freeDashboard}
+          recommendedSkill={freeDashboard.skills[0]}
+          criterionDiagnosticNeeded={false}
+          defaultMode={null}
+          defaultSkill={null}
+          isStarting={false}
+          isResuming={false}
+          onStart={onStart}
+          onRetest={vi.fn()}
+          onResume={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/3 of 5 free today/i)).toBeInTheDocument();
+    const verbFormsBtn = screen.getByRole('button', {
+      name: /Practise Verb forms/i,
+    });
+    expect(verbFormsBtn).toBeInTheDocument();
+
+    fireEvent.click(verbFormsBtn);
+    expect(onStart).toHaveBeenCalledWith({
+      mode: 'practice',
+      targetSkills: ['grammar_verb_forms'],
+      questionCount: 5,
+    });
   });
 });

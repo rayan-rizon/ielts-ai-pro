@@ -1,7 +1,8 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2, LockKeyhole, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/cn';
-import { MUTED } from '@/features/dashboard/components/primitives';
+import { MUTED, PILL_BASE, pillTone } from '@/features/dashboard/components/primitives';
 import GrammarEvidenceBadge from './GrammarEvidenceBadge';
 import SkillVisual from './SkillVisual';
 
@@ -45,24 +46,72 @@ export default function GrammarSkillsPanel({
   dueReviews,
   onStart,
 }) {
+  const navigate = useNavigate();
+  const isPaid = Boolean(access?.isPaid);
+  const dailyRemaining = Number(access?.dailyRemaining || 0);
+  const noAllowance = !isPaid && dailyRemaining <= 0;
+
+  const subtitleCopy = () => {
+    if (shouldDiagnose) {
+      if (noAllowance) {
+        return 'Start with the 24-question baseline diagnostic above, or unlock unlimited individual practice with Pro.';
+      }
+      return 'Complete your baseline diagnostic first, or practice individual skills below.';
+    }
+    if (noAllowance) {
+      return 'Daily free practice limit reached (5/5). Resets at midnight, or upgrade to Pro for unlimited practice.';
+    }
+    return 'Each result shows how much practice it is based on.';
+  };
+
   return (
     <div id="grammar-skills" className="scroll-mt-6 p-4 sm:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Six grammar skills
-          </h2>
-          <p className={cn('mt-1 text-xs font-medium', MUTED)}>
-            Each result shows how much practice it is based on.
-          </p>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Six grammar skills
+            </h2>
+            {noAllowance ? (
+              <Link
+                to="/pricing"
+                className={cn(
+                  PILL_BASE,
+                  pillTone('amber'),
+                  'transition-all duration-150 hover:border-amber-500/50 hover:bg-amber-500/[0.12] active:scale-95 cursor-pointer'
+                )}
+                title="Your 5 free daily questions are used. Unlock unlimited practice with Pro."
+              >
+                <LockKeyhole className="h-2.5 w-2.5 shrink-0" />
+                <span>Daily limit reached</span>
+                <span className="opacity-40">·</span>
+                <span className="hover:underline">Upgrade</span>
+              </Link>
+            ) : !isPaid ? (
+              <span className={cn(PILL_BASE, pillTone('accent'))}>
+                <Sparkles className="h-2.5 w-2.5 shrink-0 text-[#5a63df]" />
+                <span>{dailyRemaining} of 5 free today</span>
+              </span>
+            ) : (
+              <span className={cn(PILL_BASE, pillTone('ok'))}>
+                <CheckCircle2 className="h-2.5 w-2.5 shrink-0" />
+                <span>Pro unlimited</span>
+              </span>
+            )}
+          </div>
+          <p className={cn('mt-1 text-xs font-medium', MUTED)}>{subtitleCopy()}</p>
         </div>
         <button
           type="button"
-          onClick={() => onStart({ mode: 'review', targetSkills: null, questionCount: 5 })}
-          disabled={
-            isStarting || !dueReviews || (!access.isPaid && Number(access.dailyRemaining || 0) <= 0)
-          }
-          className="rounded-lg border border-[#e2e5f2] px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#c9cdf3] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
+          onClick={() => {
+            if (noAllowance) {
+              navigate('/pricing');
+              return;
+            }
+            onStart({ mode: 'review', targetSkills: null, questionCount: 5 });
+          }}
+          disabled={isStarting || !dueReviews}
+          className="cursor-pointer rounded-lg border border-[#e2e5f2] px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#c9cdf3] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
         >
           Review due items
         </button>
@@ -76,20 +125,33 @@ export default function GrammarSkillsPanel({
               ? Math.round((skill.correctCount / skill.observations) * 100)
               : null;
           const isRecommended = skill.skillCode === recommended?.skillCode && !shouldDiagnose;
+
+          const handleSkillClick = () => {
+            if (isStarting) return;
+            if (noAllowance) {
+              navigate('/pricing');
+              return;
+            }
+            onStart({
+              mode: skill.isDue ? 'review' : 'practice',
+              targetSkills: [skill.skillCode],
+              questionCount: 5,
+            });
+          };
+
           return (
             <button
               key={skill.skillCode}
               type="button"
-              onClick={() =>
-                onStart({
-                  mode: skill.isDue ? 'review' : 'practice',
-                  targetSkills: [skill.skillCode],
-                  questionCount: 5,
-                })
+              onClick={handleSkillClick}
+              disabled={isStarting}
+              aria-label={
+                noAllowance
+                  ? `${skill.label}: daily practice limit reached. Click to view upgrade plans.`
+                  : `Practise ${skill.label} (5 questions)`
               }
-              disabled={isStarting || (!access.isPaid && Number(access.dailyRemaining || 0) <= 0)}
               className={cn(
-                'group flex min-h-[108px] items-center gap-3 rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:bg-white/2.5',
+                'group flex min-h-[108px] cursor-pointer items-center gap-3 rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.99] dark:bg-white/2.5',
                 visual.panelClass,
                 visual.cardClass,
                 isRecommended
@@ -103,7 +165,16 @@ export default function GrammarSkillsPanel({
                   <div className="text-sm font-extrabold leading-4 text-slate-900 dark:text-white">
                     {skill.label}
                   </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#5a63df]" />
+                  {noAllowance ? (
+                    <span
+                      title="Daily limit reached · Click to upgrade"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400"
+                    >
+                      <LockKeyhole className="h-3.5 w-3.5" />
+                    </span>
+                  ) : (
+                    <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#5a63df]" />
+                  )}
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <GrammarEvidenceBadge
@@ -118,7 +189,7 @@ export default function GrammarSkillsPanel({
                   )}
                 </div>
                 {accuracy === null ? (
-                  <div className="mt-2 text-[10px] font-semibold leading-4 text-slate-400">
+                  <div className="mt-2 text-[10px] font-semibold leading-4 text-slate-400 dark:text-slate-500">
                     Start with a short baseline
                   </div>
                 ) : (

@@ -212,7 +212,7 @@ function KitsLibrary() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -3 }}
                   transition={{ duration: 0.16, ease: 'easeOut' }}
-                  className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+                  className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6"
                 >
                   {visibleKits.map((kit, index) => (
                     <KitCard

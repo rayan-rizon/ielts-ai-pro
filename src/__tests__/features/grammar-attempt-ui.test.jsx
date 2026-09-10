@@ -141,4 +141,66 @@ describe('GrammarAttempt', () => {
     expect(screen.queryByRole('button', { name: 'Save answer' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Complete level check' })).toBeEnabled();
   });
+
+  it('normalizes punctuation spacing and supports copying sentence to edit and Enter submission', async () => {
+    const onSubmit = vi.fn().mockResolvedValue({
+      accepted: true,
+      isCorrect: true,
+      feedback: { explanation: 'Well done.' },
+    });
+
+    render(
+      <GrammarAttempt
+        attemptData={{
+          attempt: { id: 'practice-error-correction', mode: 'practice', totalQuestions: 1 },
+          items: [
+            {
+              id: 'question-ec',
+              skillCode: 'grammar_sentence_boundaries',
+              difficulty: 5,
+              questionFormat: 'error_correction',
+              prompt:
+                'Correct the grammatical error in this Academic IELTS Writing task 2 sentence. Change only what is necessary: “Because fewer commuters need to drive .”',
+              options: null,
+              academicContext: {
+                module: 'writing',
+                task: 'task_2',
+                scenario: 'public transport argument',
+              },
+            },
+          ],
+        }}
+        isSubmitting={false}
+        isCompleting={false}
+        onSubmit={onSubmit}
+        onComplete={vi.fn()}
+        onExit={vi.fn()}
+      />
+    );
+
+    // Verify spacing before period is cleanly stripped
+    expect(screen.getByText('Because fewer commuters need to drive.')).toBeInTheDocument();
+    expect(screen.queryByText('Because fewer commuters need to drive .')).not.toBeInTheDocument();
+
+    // Verify "Copy sentence to edit" button
+    const copyButton = screen.getByRole('button', { name: /Copy sentence to edit/i });
+    fireEvent.click(copyButton);
+
+    expect(await screen.findByText('Copied into answer!')).toBeInTheDocument();
+
+    const input = screen.getByRole('textbox', { name: /Your corrected sentence:/i });
+    expect(input).toHaveValue('Because fewer commuters need to drive.');
+
+    // Edit input and submit with Enter
+    fireEvent.change(input, { target: { value: 'Fewer commuters need to drive.' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith({
+        attemptId: 'practice-error-correction',
+        itemId: 'question-ec',
+        answer: 'Fewer commuters need to drive.',
+      })
+    );
+  });
 });
