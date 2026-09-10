@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   buildReadingPrompt,
   normalizePassageText,
@@ -20,6 +22,10 @@ import { READING_TRANSLATION_LANGUAGES } from '@/features/testing/reading/servic
 
 const SESSION_ID = 'c8100000-0000-4000-8000-000000000001';
 const REQUEST_ID = 'd8100000-0000-4000-8000-000000000001';
+const functionSource = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/reading-assistant/index.ts'),
+  'utf8'
+);
 
 describe('Reading assistant contract', () => {
   it('derives a verified selection and context from server passage content', () => {
@@ -132,5 +138,13 @@ describe('Reading assistant contract', () => {
     expect(prompt).toMatch(/untrusted source text/i);
     expect(prompt).toMatch(/Preserve negation/i);
     expect(prompt).toContain('The claim was not proven.');
+  });
+
+  it('versions and expires validated server cache entries', () => {
+    expect(functionSource).toContain("const CACHE_VERSION = 'reading-assistant-v2-gpt-oss'");
+    expect(functionSource).toContain(".gt('expires_at', new Date().toISOString())");
+    expect(functionSource).toContain(
+      'validateAssistantResult(input.action, cachedRow?.feedback_json)'
+    );
   });
 });

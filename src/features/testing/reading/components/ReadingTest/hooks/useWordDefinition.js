@@ -5,11 +5,33 @@ import { requestReadingAssistance } from '@/features/testing/reading/services/re
 
 // Simple in-memory cache for word definitions to prevent redundant API calls
 const definitionCache = new Map();
+const MAX_DEFINITION_CACHE_ENTRIES = 250;
+const DEFINITION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const DATAMUSE_API_URL = 'https://api.datamuse.com/words';
 const LOOKUP_TIMEOUT_MS = 2500;
 const FALLBACK_STAGGER_MS = 150;
 const CONTEXTUAL_LOOKUP_DEADLINE_MS = 5000;
+
+function readCachedDefinition(word) {
+  const entry = definitionCache.get(word);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    definitionCache.delete(word);
+    return null;
+  }
+  definitionCache.delete(word);
+  definitionCache.set(word, entry);
+  return entry.value;
+}
+
+function cacheDefinition(word, value) {
+  definitionCache.delete(word);
+  if (definitionCache.size >= MAX_DEFINITION_CACHE_ENTRIES) {
+    definitionCache.delete(definitionCache.keys().next().value);
+  }
+  definitionCache.set(word, { value, expiresAt: Date.now() + DEFINITION_CACHE_TTL_MS });
+}
 
 async function fetchJsonWithTimeout(url, signal) {
   const timeoutController = new AbortController();
@@ -179,11 +201,12 @@ export const useWordDefinition = (
         }
 
         let result;
-        if (definitionCache.has(cleanWord)) {
-          result = definitionCache.get(cleanWord);
+        const cachedDefinition = readCachedDefinition(cleanWord);
+        if (cachedDefinition) {
+          result = cachedDefinition;
         } else {
           result = await fetchFastDefinition(cleanWord, controller.signal);
-          definitionCache.set(cleanWord, result);
+          cacheDefinition(cleanWord, result);
         }
 
         if (requestId === requestIdRef.current)

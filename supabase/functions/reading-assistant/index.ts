@@ -25,7 +25,7 @@ import {
 } from './validation.ts';
 
 declare const Deno: any;
-const CACHE_VERSION = 'reading-assistant-v1';
+const CACHE_VERSION = 'reading-assistant-v2-gpt-oss';
 
 const response = (data: unknown, status: number, headers: Record<string, string>) =>
   new Response(JSON.stringify(data), {
