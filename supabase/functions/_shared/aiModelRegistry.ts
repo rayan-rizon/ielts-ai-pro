@@ -86,6 +86,14 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingSource:
       'OpenRouter catalog base price, verified 2026-08-27. One OpenAI endpoint serves it at half these rates; billed cost from usage.cost wins when returned.',
   },
+  'openai/gpt-oss-120b': {
+    id: 'openai/gpt-oss-120b',
+    vendor: 'OpenAI',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.037, cachedInputPerMillion: 0.037, outputPerMillion: 0.17 },
+    pricingSource:
+      'OpenRouter catalog price, verified 2026-09-10. Billed usage.cost wins when returned.',
+  },
   'gemini-2.5-flash': {
     id: 'gemini-2.5-flash',
     vendor: 'Google',
@@ -122,6 +130,17 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingNote: 'Billed per character (Studio tier). Results are cached by SHA-1 of voice+text.',
   },
 };
+
+// Reading assistance uses the measured GPT OSS primary plus bounded provider fallbacks.
+// Exporting the ids keeps the Edge Function, benchmark, pricing, and route map
+// on one source of truth.
+export const READING_ASSISTANT_PRIMARY_MODEL = 'openai/gpt-oss-120b';
+export const READING_ASSISTANT_LUNA_FALLBACK_MODEL = 'openai/gpt-5.6-luna';
+export const READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL = 'deepseek/deepseek-v4-flash-0731';
+export const READING_ASSISTANT_GEMINI_FALLBACK_MODEL = 'gemini-2.5-flash';
+export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
+// Backwards-compatible alias for callers that only need the first fallback.
+export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
 
 // --- Routes -----------------------------------------------------------------
 
@@ -224,6 +243,42 @@ export const AI_ROUTES: AiRoute[] = [
     ],
     notes:
       'Progress only, no chat memory. Objective answers use reviewed server keys. Independent checks cannot call the teacher.',
+  },
+  {
+    id: 'reading-assistant',
+    surface: 'Reading: contextual dictionary and sentence assistance',
+    file: 'supabase/functions/reading-assistant/index.ts',
+    maxOutputTokens: 1000,
+    timeoutMs: 12000,
+    steps: [
+      {
+        model: READING_ASSISTANT_PRIMARY_MODEL,
+        role: 'primary',
+        when: 'GPT OSS 120B first through OpenRouter with low reasoning and the validated JSON contract.',
+      },
+      {
+        model: READING_ASSISTANT_LUNA_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'GPT OSS is unavailable or invalid; use the previously validated Luna route.',
+      },
+      {
+        model: READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'GPT OSS and Luna are unavailable or invalid; try DeepSeek Flash.',
+      },
+      {
+        model: READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'The OpenRouter routes are unavailable or invalid; use Gemini as a later recovery path.',
+      },
+      {
+        model: READING_ASSISTANT_GLM_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'All earlier providers are unavailable or invalid; use GLM with low reasoning as the last resort.',
+      },
+    ],
+    notes:
+      'Dictionary falls back to the existing public dictionary lookup. Exam mode is server-blocked; completed review is allowed. Provider order is GPT OSS 120B -> Luna -> DeepSeek -> Gemini -> GLM.',
   },
   {
     id: 'skill-lab-transcription',

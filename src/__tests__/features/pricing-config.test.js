@@ -37,6 +37,18 @@ describe('pricing plan configuration', () => {
     expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'premium').features).toContain(
       practiceLabels[2]
     );
+
+    const readingAiFeatures = DEFAULT_PRICING_PLANS.flatMap((plan) => plan.features).filter(
+      (feature) => feature.toLowerCase().includes('ai reading assistant')
+    );
+    expect(readingAiFeatures).toEqual([
+      '5 AI Reading Assistant requests/day',
+      'Unlimited AI Reading Assistant',
+      'Unlimited AI Reading Assistant',
+    ]);
+    expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'pro').features).toContain(
+      'Simplify, translate & break down sentences'
+    );
   });
 
   it('applies the same admin limits to the shared pricing catalog', () => {

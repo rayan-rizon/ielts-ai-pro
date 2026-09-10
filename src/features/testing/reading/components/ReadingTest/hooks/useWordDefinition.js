@@ -1,12 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { UserPoints } from '@/features/gamification/services/UserPoints';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
+import { requestReadingAssistance } from '@/features/testing/reading/services/readingAiService';
 
 // Simple in-memory cache for word definitions to prevent redundant API calls
 const definitionCache = new Map();
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const DATAMUSE_API_URL = 'https://api.datamuse.com/words';
-const LOOKUP_TIMEOUT_MS = 4000;
+const LOOKUP_TIMEOUT_MS = 2500;
+const FALLBACK_STAGGER_MS = 150;
+const CONTEXTUAL_LOOKUP_DEADLINE_MS = 5000;
 
 async function fetchJsonWithTimeout(url, signal) {
   const timeoutController = new AbortController();
@@ -64,7 +67,49 @@ function datamuseResult(entries, word) {
   };
 }
 
-export const useWordDefinition = (user, testData, currentPassageIndex) => {
+async function fetchFastDefinition(word, signal) {
+  const lookupController = new AbortController();
+  const onAbort = () => lookupController.abort();
+  signal.addEventListener('abort', onAbort, { once: true });
+
+  const primary = fetchJsonWithTimeout(
+    `${DICTIONARY_API_URL}/${encodeURIComponent(word)}`,
+    lookupController.signal
+  ).then((data) => dictionaryResult(data[0]));
+  const fallback = new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      fetchJsonWithTimeout(
+        `${DATAMUSE_API_URL}?sp=${encodeURIComponent(word)}&md=d&max=5`,
+        lookupController.signal
+      )
+        .then((data) => datamuseResult(data, word))
+        .then(resolve, reject);
+    }, FALLBACK_STAGGER_MS);
+    lookupController.signal.addEventListener(
+      'abort',
+      () => {
+        window.clearTimeout(timer);
+        reject(new DOMException('Request aborted', 'AbortError'));
+      },
+      { once: true }
+    );
+  });
+
+  try {
+    return await Promise.any([primary, fallback]);
+  } finally {
+    lookupController.abort();
+    signal.removeEventListener('abort', onAbort);
+  }
+}
+
+export const useWordDefinition = (
+  user,
+  testData,
+  currentPassageIndex,
+  sessionId = null,
+  assistantEnabled = false
+) => {
   const [wordDefinition, setWordDefinition] = useState(null);
   const requestControllerRef = useRef(null);
   const clearTimerRef = useRef(null);
@@ -86,55 +131,88 @@ export const useWordDefinition = (user, testData, currentPassageIndex) => {
     []
   );
 
-  const fetchWordDefinition = useCallback(async (word) => {
-    requestControllerRef.current?.abort();
-    const controller = new AbortController();
-    requestControllerRef.current = controller;
-    const requestId = ++requestIdRef.current;
+  const fetchWordDefinition = useCallback(
+    async (word, selection = null) => {
+      requestControllerRef.current?.abort();
+      const controller = new AbortController();
+      requestControllerRef.current = controller;
+      const requestId = ++requestIdRef.current;
+      let contextualPromise = null;
 
-    try {
-      // Clean the word (remove punctuation)
-      const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
-      if (!cleanWord) return;
-
-      // Check cache first
-      if (definitionCache.has(cleanWord)) {
-        setWordDefinition((prev) => ({ ...prev, ...definitionCache.get(cleanWord) }));
-        return;
-      }
-
-      let result;
       try {
-        const data = await fetchJsonWithTimeout(
-          `${DICTIONARY_API_URL}/${encodeURIComponent(cleanWord)}`,
-          controller.signal
-        );
-        result = dictionaryResult(data[0]);
-      } catch (primaryError) {
-        if (controller.signal.aborted || requestId !== requestIdRef.current) return;
+        // Clean the word (remove punctuation)
+        const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+        if (!cleanWord) return;
 
-        console.warn('[Dictionary] Primary lookup failed; trying fallback.', primaryError);
-        const fallbackData = await fetchJsonWithTimeout(
-          `${DATAMUSE_API_URL}?sp=${encodeURIComponent(cleanWord)}&md=d&max=5`,
-          controller.signal
-        );
-        result = datamuseResult(fallbackData, cleanWord);
+        if (assistantEnabled && sessionId && selection) {
+          contextualPromise = requestReadingAssistance({
+            sessionId,
+            passageIndex: currentPassageIndex,
+            selectionStart: selection.start,
+            selectionEnd: selection.end,
+            selectedText: selection.text || word,
+            action: 'dictionary',
+          }).catch(() => null);
+          let deadlineId;
+          const contextual = await Promise.race([
+            contextualPromise,
+            new Promise((resolve) => {
+              deadlineId = window.setTimeout(() => resolve(null), CONTEXTUAL_LOOKUP_DEADLINE_MS);
+            }),
+          ]);
+          window.clearTimeout(deadlineId);
+          if (contextual?.result && requestId === requestIdRef.current) {
+            setWordDefinition((prev) => ({
+              ...prev,
+              word: cleanWord,
+              definition: contextual.result.meaning,
+              part_of_speech: contextual.result.partOfSpeech || '',
+              synonyms: contextual.result.synonyms || [],
+              example: contextual.result.example || '',
+              pronunciation: '',
+              audio: '',
+              contextual: true,
+              error: false,
+            }));
+            return;
+          }
+        }
+
+        let result;
+        if (definitionCache.has(cleanWord)) {
+          result = definitionCache.get(cleanWord);
+        } else {
+          result = await fetchFastDefinition(cleanWord, controller.signal);
+          definitionCache.set(cleanWord, result);
+        }
+
+        if (requestId === requestIdRef.current)
+          setWordDefinition((prev) => ({ ...prev, ...result }));
+      } catch (err) {
+        if (err.name === 'AbortError' || requestId !== requestIdRef.current) return;
+        const contextual = contextualPromise ? await contextualPromise : null;
+        if (contextual?.result && requestId === requestIdRef.current) {
+          setWordDefinition((prev) => ({
+            ...prev,
+            definition: contextual.result.meaning,
+            part_of_speech: contextual.result.partOfSpeech || '',
+            synonyms: contextual.result.synonyms || [],
+            example: contextual.result.example || '',
+            contextual: true,
+            error: false,
+          }));
+          return;
+        }
+        console.warn('Error fetching definition:', err);
+        setWordDefinition((prev) => ({
+          ...prev,
+          definition: 'Definition not found.',
+          error: true,
+        }));
       }
-
-      // Store in cache
-      definitionCache.set(cleanWord, result);
-
-      if (requestId === requestIdRef.current) setWordDefinition((prev) => ({ ...prev, ...result }));
-    } catch (err) {
-      if (err.name === 'AbortError' || requestId !== requestIdRef.current) return;
-      console.warn('Error fetching definition:', err);
-      setWordDefinition((prev) => ({
-        ...prev,
-        definition: 'Definition not found.',
-        error: true,
-      }));
-    }
-  }, []);
+    },
+    [assistantEnabled, currentPassageIndex, sessionId]
+  );
 
   const addToVocabulary = useCallback(
     async (wordData) => {

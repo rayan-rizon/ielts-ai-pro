@@ -6,6 +6,7 @@ export const DEFAULT_PRICING_PLANS = [
     description: 'Start practising IELTS and see how you are improving.',
     features: [
       'Unlimited Cambridge Reading & Listening Tests',
+      '5 AI Reading Assistant requests/day',
       ...(SKILL_LAB_ENABLED ? ['2 Practice Lab AI Tests/Day'] : []),
       '0 AI Speaking Sessions/month',
       '1 AI Writing Evaluation/month',
@@ -25,6 +26,8 @@ export const DEFAULT_PRICING_PLANS = [
     description: 'Get more AI help and a study plan that fits your needs.',
     features: [
       'Everything in Free',
+      'Unlimited AI Reading Assistant',
+      'Simplify, translate & break down sentences',
       ...(SKILL_LAB_ENABLED
         ? ['10 Practice Lab AI Tests/Day', 'Personalised AI Explanations']
         : []),
@@ -50,6 +53,8 @@ export const DEFAULT_PRICING_PLANS = [
     description: 'More AI practice and support for every part of your IELTS prep.',
     features: [
       'Everything in Pro',
+      'Unlimited AI Reading Assistant',
+      'Simplify, translate & break down sentences',
       ...(SKILL_LAB_ENABLED ? ['20 Practice Lab AI Tests/Day'] : []),
       '200 AI Writing Evaluations/month',
       '100 AI Speaking Sessions/month',

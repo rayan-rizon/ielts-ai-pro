@@ -9,6 +9,7 @@
 // The API key is read from the environment only; never pass it as an argument.
 
 import {
+  requestDeepSeekJson,
   requestGeminiJson,
   requestOpenRouterJson,
 } from '../supabase/functions/_shared/textAiProvider.ts';
@@ -45,12 +46,24 @@ if (!candidateModel) {
 // on OpenRouter, so they are called on their own API. Keys come from the
 // environment only, and only the keys the selected models actually need.
 const isGoogleDirect = (model) => MODELS[model]?.access === 'google-direct';
+const isDeepSeekDirect = (model) => MODELS[model]?.access === 'deepseek-direct';
 const apiKeys = {
   openrouter: process.env.OPENROUTER_API_KEY,
   gemini: process.env.GEMINI_API_KEY,
+  deepseek: process.env.DEEPSEEK_API_KEY,
 };
-const keyFor = (model) => (isGoogleDirect(model) ? apiKeys.gemini : apiKeys.openrouter);
-const keyNameFor = (model) => (isGoogleDirect(model) ? 'GEMINI_API_KEY' : 'OPENROUTER_API_KEY');
+const keyFor = (model) =>
+  isGoogleDirect(model)
+    ? apiKeys.gemini
+    : isDeepSeekDirect(model)
+      ? apiKeys.deepseek
+      : apiKeys.openrouter;
+const keyNameFor = (model) =>
+  isGoogleDirect(model)
+    ? 'GEMINI_API_KEY'
+    : isDeepSeekDirect(model)
+      ? 'DEEPSEEK_API_KEY'
+      : 'OPENROUTER_API_KEY';
 
 const requestOptions = {
   jsonMode: args.includes('--no-json-mode') ? false : undefined,
@@ -101,18 +114,35 @@ async function runOnce(model, testCase, options = {}) {
     temperature: options.dropTemperature ? undefined : testCase.temperature,
     maxOutputTokens: Math.round(testCase.maxOutputTokens * budgetMultiplier),
     timeoutMs,
-    validateJson: testCase.validateJson,
   };
   try {
     const result = isGoogleDirect(model)
       ? await requestGeminiJson({ ...shared, geminiModel: model, responseSchema: testCase.responseSchema })
-      : await requestOpenRouterJson({
-          ...requestOptions,
-          ...shared,
-          model,
-          includeUsageAccounting: true,
-        });
+      : isDeepSeekDirect(model)
+        ? await requestDeepSeekJson({ ...shared, apiKey: keyFor(model) })
+        : await requestOpenRouterJson({
+            ...requestOptions,
+            ...shared,
+            model,
+            includeUsageAccounting: true,
+          });
     const latencyMs = Math.round(performance.now() - startedAt);
+    const contractValid = testCase.validateJson ? testCase.validateJson(result.parsed) : true;
+    if (!contractValid) {
+      return {
+        ok: false,
+        latencyMs,
+        failure: 'invalid_schema',
+        checks: [],
+        tokens: result.usage.tokensUsed,
+        outputTokens: result.usage.outputTokens,
+        costUsd: result.usage.estimatedProviderCostUsd,
+        costKnown: result.usage.tokensUsed > 0 || result.usage.estimatedProviderCostUsd > 0,
+        resolvedModel: result.model,
+        parsed: result.parsed,
+        note: options.dropTemperature ? 'temperature dropped: unsupported by this model' : null,
+      };
+    }
     let checks = [];
     try {
       checks = testCase.grade(result.parsed);
@@ -126,6 +156,7 @@ async function runOnce(model, testCase, options = {}) {
       tokens: result.usage.tokensUsed,
       outputTokens: result.usage.outputTokens,
       costUsd: result.usage.estimatedProviderCostUsd,
+      costKnown: result.usage.tokensUsed > 0 || result.usage.estimatedProviderCostUsd > 0,
       resolvedModel: result.model,
       parsed: result.parsed,
       note: options.dropTemperature ? 'temperature dropped: unsupported by this model' : null,
@@ -142,6 +173,10 @@ async function runOnce(model, testCase, options = {}) {
       latencyMs: Math.round(performance.now() - startedAt),
       failure: error?.code ? `${error.code}${error.status ? ` (HTTP ${error.status})` : ''}` : String(error?.message || error),
       checks: [],
+      tokens: 0,
+      outputTokens: 0,
+      costUsd: 0,
+      costKnown: false,
     };
   }
 }
@@ -157,6 +192,7 @@ async function benchmarkModel(model) {
       attempts.push(await runOnce(model, testCase));
     }
     const ok = attempts.filter((attempt) => attempt.ok);
+    const measured = attempts.filter((attempt) => attempt.costKnown);
     const checksPassed = ok.reduce((sum, attempt) => sum + attempt.checks.filter((c) => c.passed).length, 0);
     const checksTotal = ok.reduce((sum, attempt) => sum + attempt.checks.length, 0);
     const failedChecks = new Map();
@@ -177,10 +213,12 @@ async function benchmarkModel(model) {
       accuracy: checksTotal ? checksPassed / checksTotal : 0,
       checksPassed,
       checksTotal,
-      latencyMedianMs: median(ok.map((attempt) => attempt.latencyMs)),
-      latencyMaxMs: ok.length ? Math.max(...ok.map((attempt) => attempt.latencyMs)) : null,
-      avgTokens: Math.round(mean(ok.map((attempt) => attempt.tokens))),
-      avgCostUsd: mean(ok.map((attempt) => attempt.costUsd)),
+      latencyMedianMs: median(attempts.map((attempt) => attempt.latencyMs)),
+      latencyMaxMs: attempts.length ? Math.max(...attempts.map((attempt) => attempt.latencyMs)) : null,
+      successfulLatencyMedianMs: median(ok.map((attempt) => attempt.latencyMs)),
+      avgTokens: Math.round(mean(measured.map((attempt) => attempt.tokens))),
+      avgCostUsd: mean(measured.map((attempt) => attempt.costUsd)) * (measured.length / attempts.length),
+      costCoverage: measured.length / attempts.length,
       failures: attempts.filter((attempt) => !attempt.ok).map((attempt) => attempt.failure),
       failedChecks: [...failedChecks.entries()].map(([name, value]) => ({ name, ...value })),
       resolvedModel: ok[0]?.resolvedModel || null,
@@ -190,7 +228,6 @@ async function benchmarkModel(model) {
   }
   if (process.stdout.isTTY) process.stdout.write(`${' '.repeat(72)}\r`);
 
-  const okCases = caseReports.filter((report) => report.succeeded > 0);
   const totalChecks = caseReports.reduce((sum, report) => sum + report.checksTotal, 0);
   const passedChecks = caseReports.reduce((sum, report) => sum + report.checksPassed, 0);
   return {
@@ -203,10 +240,11 @@ async function benchmarkModel(model) {
       // counting a failed or malformed call as a wrong answer.
       effectiveAccuracy:
         (totalChecks ? passedChecks / totalChecks : 0) * mean(caseReports.map((report) => report.reliability)),
-      latencyMedianMs: median(okCases.map((report) => report.latencyMedianMs)),
-      latencyMaxMs: okCases.length ? Math.max(...okCases.map((report) => report.latencyMaxMs)) : null,
-      avgCostUsd: mean(okCases.map((report) => report.avgCostUsd)),
-      costPer1kCallsUsd: mean(okCases.map((report) => report.avgCostUsd)) * 1000,
+      latencyMedianMs: median(caseReports.map((report) => report.latencyMedianMs)),
+      latencyMaxMs: caseReports.length ? Math.max(...caseReports.map((report) => report.latencyMaxMs || 0)) : null,
+      avgCostUsd: mean(caseReports.map((report) => report.avgCostUsd)),
+      costPer1kCallsUsd: mean(caseReports.map((report) => report.avgCostUsd)) * 1000,
+      costCoverage: mean(caseReports.map((report) => report.costCoverage)),
     },
   };
 }
@@ -251,6 +289,7 @@ for (const report of reports) {
   console.log(
     `  latency p50 ${summary.latencyMedianMs ?? '—'}ms · worst ${summary.latencyMaxMs ?? '—'}ms · ${usd(summary.avgCostUsd)}/call · $${summary.costPer1kCallsUsd.toFixed(4)}/1k calls`
   );
+  console.log(`  cost coverage ${pct(summary.costCoverage)} (token usage available; cost may be estimated)`);
 }
 
 const candidate = reports.find((report) => report.role === 'candidate');

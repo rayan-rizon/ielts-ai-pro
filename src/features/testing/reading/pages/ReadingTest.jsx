@@ -25,6 +25,7 @@ import PremiumLoading from '@/components/ui/PremiumLoading';
 const TestResultsModal = React.lazy(() => import('@/components/results/TestResultsModal'));
 const XPNotification = React.lazy(() => import('@/components/XPNotification'));
 import WordDefinitionPopover from '../components/WordDefinitionPopover';
+import SentenceAssistantPopover from '../components/SentenceAssistantPopover';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,16 +33,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import DebouncedInput from '@/components/ui/debounced-input';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { TimeUpDialog } from '@/shared/ui';
+
 import {
   ArrowLeft,
   BarChart2,
@@ -110,6 +103,9 @@ import { useReadingTestLogic } from '../components/ReadingTest/hooks/useReadingT
 import { useWordDefinition } from '../components/ReadingTest/hooks/useWordDefinition';
 import { useHighlighter } from '../components/ReadingTest/hooks/useHighlighter';
 import { useTestNotes } from '../components/ReadingTest/hooks/useTestNotes';
+import { useSentenceAssistant } from '../components/ReadingTest/hooks/useSentenceAssistant';
+import { getPassageBody, rangeToOffsets } from '../components/ReadingTest/utils/passageHighlights';
+import { isReadingAssistantAvailable } from '../services/readingAiService';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReadingTestStore } from '../store/useReadingTestStore';
 
@@ -190,7 +186,26 @@ function ReadingTestContent() {
   const passageRef = useRef(null);
 
   // --- Feature Hooks ---
-  const wordDef = useWordDefinition(user, testData, currentPassageIndex);
+  const readingAssistantEligible = isReadingAssistantAvailable({
+    session,
+    testMode,
+    isFinished,
+    paired: Boolean(paired),
+  });
+  const sentenceAssistant = useSentenceAssistant({
+    sessionId: session?.id,
+    passageIndex: currentPassageIndex,
+    enabled: readingAssistantEligible,
+  });
+  const readingAssistantEnabled =
+    readingAssistantEligible && sentenceAssistant.status?.enabled !== false;
+  const wordDef = useWordDefinition(
+    user,
+    testData,
+    currentPassageIndex,
+    session?.id,
+    readingAssistantEnabled
+  );
   const highlighter = useHighlighter({ passageRef, currentPassageIndex });
   const notesManager = useTestNotes();
 
@@ -606,7 +621,7 @@ function ReadingTestContent() {
 
       // 1. Handle highlight selections. In Exam Mode, definitions are disabled,
       // so single-word selections should open the highlight menu too.
-      if (selectedText && (testMode === 'exam' || selectedText.includes(' '))) {
+      if (selectedText && (testMode === 'exam' || /\s/.test(selectedText))) {
         event.stopPropagation(); // Handled here, don't bubble
 
         // Clear definition if open
@@ -616,21 +631,36 @@ function ReadingTestContent() {
         if (!range) return;
 
         const rect = range.getBoundingClientRect();
+        const anchor = rangeToOffsets(getPassageBody(passageRef.current), range);
+        const panelRect = passageRef.current?.getBoundingClientRect();
         setCurrentSelection({
           text: selectedText,
           range: range.cloneRange(),
+          ...(anchor || {}),
+          panelBounds: panelRect
+            ? {
+                left: panelRect.left,
+                right: panelRect.right,
+                top: panelRect.top,
+                bottom: panelRect.bottom,
+              }
+            : null,
+          position: {
+            x: rect.left + rect.width / 2,
+            y: rect.bottom,
+          },
         });
 
         setHighlightMenuPosition({
-          x: rect.left + window.scrollX + rect.width / 2,
-          y: rect.top + window.scrollY - 10,
+          x: rect.left + rect.width / 2,
+          y: rect.top - 10,
         });
         setShowHighlightMenu(true);
         return;
       }
 
       // Exam Mode keeps highlighting but does not allow dictionary definitions.
-      if (testMode === 'exam') return;
+      if (!readingAssistantEnabled) return;
 
       // 2. Handle single word clicks/selections (Definition or Gap)
       // If no text is selected (click), OR partial selection, check cursor.
@@ -654,7 +684,11 @@ function ReadingTestContent() {
               event.clientY >= rangeRect.top &&
               event.clientY <= rangeRect.bottom;
 
-            if (isClickInside && wordAtCursor && /^[a-zA-Z]+$/.test(wordAtCursor)) {
+            if (
+              isClickInside &&
+              wordAtCursor &&
+              /^[A-Za-z]+(?:['’-][A-Za-z]+)?$/.test(wordAtCursor)
+            ) {
               event.stopPropagation(); // Handled here, don't bubble
 
               // Clear highlight menu
@@ -662,9 +696,10 @@ function ReadingTestContent() {
 
               const rect = expandedRange.getBoundingClientRect();
               const position = {
-                x: rect.left + window.scrollX,
-                y: rect.bottom + window.scrollY,
+                x: rect.left,
+                y: rect.bottom,
               };
+              const anchor = rangeToOffsets(getPassageBody(passageRef.current), expandedRange);
 
               setWordDefinition({
                 word: wordAtCursor,
@@ -672,7 +707,7 @@ function ReadingTestContent() {
                 position: position,
               });
 
-              await fetchWordDefinition(wordAtCursor);
+              await fetchWordDefinition(wordAtCursor, anchor);
               return;
             }
           }
@@ -682,7 +717,11 @@ function ReadingTestContent() {
       }
 
       // 3. Fallback for single word selected via drag (without spaces)
-      if (selectedText && !selectedText.includes(' ') && /^[a-zA-Z]+$/.test(selectedText)) {
+      if (
+        selectedText &&
+        !/\s/.test(selectedText) &&
+        /^[A-Za-z]+(?:['’-][A-Za-z]+)?$/.test(selectedText)
+      ) {
         event.stopPropagation(); // Handled here
 
         const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
@@ -690,9 +729,10 @@ function ReadingTestContent() {
 
         const rect = range.getBoundingClientRect();
         const position = {
-          x: rect.left + window.scrollX,
-          y: rect.bottom + window.scrollY,
+          x: rect.left,
+          y: rect.bottom,
         };
+        const anchor = rangeToOffsets(getPassageBody(passageRef.current), range);
 
         setWordDefinition({
           word: selectedText,
@@ -700,11 +740,38 @@ function ReadingTestContent() {
           position: position,
         });
 
-        await fetchWordDefinition(selectedText);
+        await fetchWordDefinition(selectedText, anchor);
       }
     },
-    [expandRangeToWord, fetchWordDefinition, getRangeFromPoint, testMode]
+    [
+      expandRangeToWord,
+      fetchWordDefinition,
+      getRangeFromPoint,
+      readingAssistantEnabled,
+      setCurrentSelection,
+      setHighlightMenuPosition,
+      setShowHighlightMenu,
+      setWordDefinition,
+      testMode,
+    ]
   ); // Add fetchWordDefinition to dependencies
+
+  const handleAssistantAction = useCallback(
+    (action) => {
+      if (!currentSelection?.start && currentSelection?.start !== 0) return;
+      sentenceAssistant.request(
+        action,
+        {
+          start: currentSelection.start,
+          end: currentSelection.end,
+          text: currentSelection.text,
+        },
+        currentSelection.position || highlightMenuPosition
+      );
+      setShowHighlightMenu(false);
+    },
+    [currentSelection, highlightMenuPosition, sentenceAssistant, setShowHighlightMenu]
+  );
 
   // addToVocabulary logic moved to useWordDefinition hook
 
@@ -1078,17 +1145,39 @@ function ReadingTestContent() {
               setNewNote={setNewNote}
               setShowNotes={setShowNotes}
               setShowHighlightMenu={setShowHighlightMenu}
+              assistantEnabled={readingAssistantEnabled && Boolean(currentSelection?.start >= 0)}
+              onAssistantAction={handleAssistantAction}
             />
           </>
         )}
 
         {/* Word Definition Popover Call */}
-        {testMode !== 'exam' ? (
+        {readingAssistantEnabled ? (
           <WordDefinitionPopover
             wordDefinition={wordDefinition}
             addToVocabulary={addToVocabulary}
           />
         ) : null}
+
+        <SentenceAssistantPopover
+          assistant={sentenceAssistant.assistant}
+          status={sentenceAssistant.status}
+          language={sentenceAssistant.language}
+          onLanguageChange={(language) => {
+            sentenceAssistant.setLanguage(language);
+            if (sentenceAssistant.assistant?.action === 'translate') {
+              sentenceAssistant.request(
+                'translate',
+                sentenceAssistant.assistant.selection,
+                sentenceAssistant.assistant.position,
+                language
+              );
+            }
+          }}
+          onActionChange={sentenceAssistant.changeAction}
+          onClose={sentenceAssistant.close}
+          isMobile={isMobile}
+        />
 
         {/* Premium Results Modal */}
         <TestResultsModal
@@ -1109,27 +1198,20 @@ function ReadingTestContent() {
         />
 
         {/* Time's Up Dialog */}
-        <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog}>
-          <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-bold">Time&apos;s Up</AlertDialogTitle>
-              <AlertDialogDescription className="text-base text-slate-600 dark:text-slate-400">
-                Time is up. You can check your answers now, or come back to them later.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-3 sm:gap-3">
-              <AlertDialogCancel onClick={() => setShowTimeUpDialog(false)} className="border-2">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleSubmitWithMetrics}
-                className="bg-slate-900 hover:bg-slate-800 text-white font-semibold"
-              >
-                Check answers
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <TimeUpDialog
+          open={showTimeUpDialog}
+          onOpenChange={setShowTimeUpDialog}
+          onConfirm={handleSubmitWithMetrics}
+          onCancel={() => setShowTimeUpDialog(false)}
+          isSubmitting={isSubmitting}
+          answeredCount={
+            Object.keys(answers || {}).filter(
+              (k) =>
+                answers[k] !== undefined && answers[k] !== null && String(answers[k]).trim() !== ''
+            ).length
+          }
+          totalQuestions={calculateTotalTestQuestions(testData)}
+        />
       </Suspense>
     </div>
   );

@@ -379,6 +379,9 @@ verify_jwt = false # Handler validates the bearer token with auth.getUser().
 [functions.skill-lab]
 verify_jwt = true
 
+[functions.reading-assistant]
+verify_jwt = true
+
 [functions.objective-tests]
 verify_jwt = true
 

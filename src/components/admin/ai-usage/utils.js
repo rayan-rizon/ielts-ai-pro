@@ -32,6 +32,7 @@ export const endpointColors = {
   transcribeAudio: '#a78bfa', // violet-400
   synthesizeSpeech: '#4338ca', // indigo-700
   evaluateSpeakingTest: '#8b7cf6', // violet-500
+  'reading-assistant': '#6d5ce7', // reading assistant
   SpeakingSession: '#7c3aed',
 };
 
@@ -45,6 +46,7 @@ export const formatEndpointName = (endpoint) => {
     transcribeAudio: 'Transcribe Audio',
     synthesizeSpeech: 'Synthesize Speech',
     evaluateSpeakingTest: 'Evaluate Speaking Test',
+    'reading-assistant': 'Reading Assistant',
     SpeakingSession: 'Speaking Session',
   };
   if (mapping[endpoint]) return mapping[endpoint];
@@ -65,6 +67,7 @@ export const getModelForEndpoint = (endpoint) => {
     generateAdaptiveLearningPath: 'Gemini 2.5 Flash-Lite',
     synthesizeSpeech: 'Google Cloud TTS',
     SpeakingSession: 'Gemini 2.5 Flash',
+    'reading-assistant': 'GPT OSS → Luna → DeepSeek → Gemini → GLM',
   };
   return mapping[endpoint] || 'Gemini Flash';
 };

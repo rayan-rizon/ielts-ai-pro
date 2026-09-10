@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Pill } from '@/features/dashboard/components/primitives';
+import { Pill, NUM } from '@/features/dashboard/components/primitives';
+
 import {
   ArrowLeft,
   Eye,
@@ -239,41 +240,57 @@ const ReadingTestHeader = ({
           <div className="flex items-center gap-2 sm:gap-3" data-oid="crpg:ah">
             {/* Title & Badge */}
             <div
-              className="flex flex-col min-w-0 max-w-[160px] min-[480px]:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
+              className="flex flex-col min-w-0 max-w-[170px] min-[480px]:max-w-[240px] sm:max-w-[340px] md:max-w-[440px] lg:max-w-[560px]"
               data-oid="q6130ue"
             >
               <h1
-                className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate"
+                className="text-sm sm:text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-snug truncate"
                 title={testData?.title || 'Reading Test'}
                 data-oid="t0pxl2l"
               >
                 {testData?.title || 'Reading Test'}
               </h1>
-              <div className={TEST_HEADER_META} data-oid="mhknypx">
+              <div className={cn(TEST_HEADER_META, 'mt-0.5 flex-wrap')} data-oid="mhknypx">
                 <span
-                  className="opacity-80 dark:opacity-70 text-[9px] sm:text-xs whitespace-nowrap"
+                  className="font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap"
                   data-oid="bnopijl"
                 >
-                  Passage {currentPassageIndex + 1}
+                  Passage <span className={NUM}>{currentPassageIndex + 1}</span>
                 </span>
+                <span
+                  className="h-2.5 w-px bg-slate-300/80 dark:bg-white/15 shrink-0 hidden min-[360px]:inline-block"
+                  aria-hidden="true"
+                />
                 {testData?.is_official_cambridge && (
                   <span
                     className={cn(
                       TEST_HEADER_BADGE,
-                      'border-amber-500/25 bg-amber-500/8 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
+                      'border-amber-500/30 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300'
                     )}
                     data-oid="x5luvaj"
                   >
-                    <ShieldCheck className="w-2.5 h-2.5 sm:w-3 sm:h-3" data-oid="39x-2_2" />{' '}
-                    <span className="hidden sm:inline">Official</span>
+                    <ShieldCheck
+                      className="w-2.5 h-2.5 stroke-[2.25] text-amber-600 dark:text-amber-300 shrink-0"
+                      data-oid="39x-2_2"
+                    />
+                    <span>Official</span>
                   </span>
                 )}
                 {!isAwaitingStart ? (
                   <Pill
                     tone={testMode === 'exam' ? 'accent' : 'neutral'}
-                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/5.5"
+                    className={cn(
+                      'h-4 rounded-full px-1.5 py-0 text-[8px] font-bold tracking-[0.08em] leading-none select-none',
+                      testMode !== 'exam' &&
+                        'border-slate-200/90 bg-slate-100/80 text-slate-600 dark:border-white/12 dark:bg-white/6 dark:text-slate-300'
+                    )}
                   >
-                    {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                    <span className="hidden min-[420px]:inline">
+                      {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                    </span>
+                    <span className="min-[420px]:hidden">
+                      {testMode === 'exam' ? 'Exam' : 'Practice'}
+                    </span>
                   </Pill>
                 ) : null}
               </div>

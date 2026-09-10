@@ -284,6 +284,7 @@ export async function requestOpenRouterDeepSeekJson(
           // With reasoning disabled, keep the completion budget aligned with the
           // requested JSON size instead of paying for unused hidden tokens.
           max_tokens: request.maxOutputTokens,
+          usage: { include: true },
           stream: false,
         }),
       },
@@ -357,6 +358,7 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
           reasoning: { effort: 'none', exclude: true },
           provider: { sort: 'latency', require_parameters: true },
           max_tokens: request.maxOutputTokens,
+          usage: { include: true },
           stream: false,
         }),
       },

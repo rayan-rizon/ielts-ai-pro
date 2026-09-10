@@ -12,10 +12,10 @@ export const TEST_HEADER_BACK =
   'group relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0 text-slate-700 shadow-none transition-all duration-200 hover:border-[#c8c9e6] hover:bg-[#ebeaf7] hover:text-[#5a63df] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/25 dark:border-white/12 dark:bg-white/5.5 dark:text-slate-200 dark:hover:border-white/24 dark:hover:bg-white/9 dark:hover:text-[#afb5ff]';
 
 export const TEST_HEADER_BADGE =
-  'inline-flex h-4 shrink-0 items-center gap-0.5 rounded-md border px-1.5 py-0 text-[8px] font-bold uppercase leading-none tracking-[0.08em]';
+  'inline-flex h-4 shrink-0 items-center gap-1 rounded-full border px-1.5 py-0 text-[8px] font-bold uppercase leading-none tracking-[0.08em] select-none';
 
 export const TEST_HEADER_META =
-  'flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 sm:gap-2 sm:text-xs';
+  'flex items-center gap-1.5 sm:gap-2 text-[11px] font-medium text-slate-600 dark:text-slate-300 sm:text-xs leading-none';
 
 export const TEST_HEADER_TOOL_GROUP =
   'flex items-center gap-0.5 rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/10 dark:bg-white/5.5';

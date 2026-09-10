@@ -34,7 +34,7 @@ export const useHighlighter = ({ passageRef, currentPassageIndex = 0 } = {}) => 
     setSelectedHighlight(highlight);
     setHighlightMenuPosition({
       x: event.clientX,
-      y: event.clientY + window.scrollY,
+      y: event.clientY,
     });
     setShowHighlightMenu(true);
   }, []);

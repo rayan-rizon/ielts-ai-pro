@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { m } from 'framer-motion';
-import { AlertCircle, Check, BookOpen, LoaderCircle } from 'lucide-react';
+import { AlertCircle, Check, BookOpen, LoaderCircle, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   MICRO,
@@ -24,12 +24,9 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
         exit={{ opacity: 0, scale: 0.98, y: 6 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         style={{
-          position: 'absolute',
-          top: `${wordDefinition.position.y + 12}px`,
-          left: Math.min(
-            window.innerWidth - 320,
-            Math.max(20, Math.min(wordDefinition.position.x - 140, wordDefinition.position.x))
-          ),
+          position: 'fixed',
+          top: Math.max(12, Math.min(window.innerHeight - 390, wordDefinition.position.y + 12)),
+          left: Math.max(12, Math.min(window.innerWidth - 300, wordDefinition.position.x - 140)),
           zIndex: 200,
         }}
       >
@@ -112,9 +109,31 @@ export default function WordDefinitionPopover({ wordDefinition, addToVocabulary 
           ) : (
             <>
               <p className={cn(MICRO, MUTED, 'mb-1.5')}>Meaning</p>
+              {wordDefinition.contextual ? (
+                <Pill tone="accent" className="mb-2">
+                  Meaning here
+                </Pill>
+              ) : null}
               <div className="mb-3 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
                 {wordDefinition.definition}
               </div>
+              {wordDefinition.pronunciation || wordDefinition.audio ? (
+                <div className={cn(TILE, 'mb-3 flex items-center justify-between gap-2 p-2')}>
+                  <span className="text-xs text-slate-600 dark:text-slate-300">
+                    {wordDefinition.pronunciation || 'Hear pronunciation'}
+                  </span>
+                  {wordDefinition.audio ? (
+                    <button
+                      type="button"
+                      onClick={() => new Audio(wordDefinition.audio).play().catch(() => {})}
+                      className="grid size-8 place-items-center rounded-md text-[#5a63df] hover:bg-[#5a63df]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                      aria-label={`Play pronunciation of ${wordDefinition.word}`}
+                    >
+                      <Volume2 className="size-4" />
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
               {wordDefinition.example && (
                 <div className={cn(TILE, 'mt-3 border-l-2 border-l-[#5a63df] px-3 py-2')}>
                   <p className="text-sm italic leading-relaxed text-slate-600 dark:text-slate-400">
