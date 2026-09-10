@@ -87,11 +87,11 @@ const Upgrade = () => {
             </Pill>
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Unlock your learning path
+            Upgrade your IELTS preparation
           </h1>
           <p className={cn('mx-auto mt-2 max-w-lg text-[13px] font-medium leading-relaxed', MUTED)}>
-            Keep basic progress tracking free, then unlock deeper diagnosis, personalised next
-            steps, and your adaptive study roadmap.
+            Keep basic progress tracking free, then unlock unlimited AI assistance, deeper
+            diagnosis, personalised next steps, and official Cambridge mock tests.
           </p>
         </div>
 

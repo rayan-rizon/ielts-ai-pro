@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ArrowRight,
   BookOpenCheck,
   BrainCircuit,
   Languages,
@@ -237,15 +238,18 @@ function ActionTabs({ currentAction, onActionChange }) {
 
 function LanguageSelect({ language, onLanguageChange }) {
   return (
-    <div className="mb-2.5 flex items-center justify-between gap-2">
-      <label className={cn(MICRO, MUTED, 'text-[8.5px]')} htmlFor="reading-translation-language">
+    <div className="flex items-center gap-1.5 min-w-0">
+      <label
+        className={cn(MICRO, MUTED, 'text-[8.5px] shrink-0')}
+        htmlFor="reading-translation-language"
+      >
         Translate to
       </label>
       <select
         id="reading-translation-language"
         value={language}
         onChange={(event) => onLanguageChange(event.target.value)}
-        className="h-7.5 rounded-md border border-[#e4e2f0] bg-white px-2 text-xs font-semibold text-slate-700 shadow-2xs dark:border-white/10 dark:bg-[#1b1a23] dark:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+        className="h-7 rounded-md border border-[#e4e2f0] bg-white px-2 text-xs font-semibold text-slate-700 shadow-2xs dark:border-white/10 dark:bg-[#1b1a23] dark:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
       >
         {READING_TRANSLATION_LANGUAGES.map(({ code, label }) => (
           <option key={code} value={code}>
@@ -263,12 +267,25 @@ function QuotaBanner({ action, status }) {
   const remaining = status?.remainingByAction?.[action];
   if (typeof remaining !== 'number') return null;
   const freeAllowance = status?.freeDailyAssists ?? 5;
+  const isWarn = remaining <= 1;
 
   return (
-    <div className="mb-2.5">
-      <Pill tone={remaining > 1 ? 'accent' : 'warn'}>
+    <div
+      title={`${remaining} of ${freeAllowance} free ${meteredLabel.toLowerCase()} left today`}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium leading-none shrink-0 select-none transition-colors',
+        isWarn
+          ? 'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/25 dark:bg-amber-400/15 dark:text-amber-300'
+          : 'border-[#5a63df]/20 bg-[#5a63df]/[0.06] text-[#5a63df] dark:border-[#afb5ff]/25 dark:bg-[#afb5ff]/10 dark:text-[#afb5ff]'
+      )}
+    >
+      <span className={cn(NUM, 'font-bold')}>{remaining}</span>
+      <span className="opacity-40">/</span>
+      <span className={cn(NUM, 'opacity-70')}>{freeAllowance}</span>
+      <span className="text-[9.5px]">free today</span>
+      <span className="sr-only">
         {remaining} of {freeAllowance} free {meteredLabel} left today
-      </Pill>
+      </span>
     </div>
   );
 }
@@ -291,27 +308,49 @@ function AssistantLoadingView() {
   );
 }
 
-function AssistantErrorView({ error, quotaExceeded }) {
+function AssistantErrorView({ error, quotaExceeded, action }) {
+  if (quotaExceeded) {
+    const isBreakdown = action === 'breakdown';
+    const otherAction = isBreakdown ? 'Translate' : 'Breakdown';
+
+    return (
+      <div
+        className="rounded-lg border border-amber-500/25 bg-amber-500/[0.04] p-3 text-xs dark:border-amber-400/20 dark:bg-amber-400/[0.05]"
+        role="alert"
+      >
+        <div className="mb-1.5 flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+          <Sparkles className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="text-[12.5px] font-bold">
+            Daily free {isBreakdown ? 'breakdowns' : 'translations'} used
+          </span>
+        </div>
+        <p className="text-[12px] leading-relaxed text-slate-700 dark:text-slate-200">{error}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+          {otherAction} has its own separate free allowance today, or upgrade for unlimited assists.
+        </p>
+        <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-amber-500/15 pt-2 dark:border-amber-400/15">
+          <Link
+            to="/pricing"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[#5a63df] px-2.5 py-1 text-[11px] font-semibold text-white shadow-2xs transition-colors hover:bg-[#4a52c9] active:scale-[0.98] cursor-pointer"
+          >
+            <Sparkles className="size-3" />
+            <span>See upgrade options</span>
+            <ArrowRight className="size-3" />
+          </Link>
+          <span className={cn(NUM, 'text-[10px] text-slate-400 dark:text-slate-500')}>
+            Resets midnight UTC
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={cn(TILE, 'space-y-2 p-3 text-xs dark:border-white/[0.08] dark:bg-white/[0.035]')}
+      className={cn(TILE, 'space-y-1.5 p-3 text-xs dark:border-white/[0.08] dark:bg-white/[0.035]')}
       role="alert"
     >
       <p className="font-semibold text-rose-600 dark:text-rose-400">{error}</p>
-      {quotaExceeded ? (
-        <>
-          <p className="text-slate-500 dark:text-slate-400">
-            Translate and Breakdown have separate free uses, so the other one may still be
-            available.
-          </p>
-          <Link
-            to="/upgrade"
-            className="inline-flex items-center gap-1 font-bold text-[#5a63df] dark:text-[#afb5ff]"
-          >
-            <BookOpenCheck className="size-4" /> See upgrade options
-          </Link>
-        </>
-      ) : null}
     </div>
   );
 }
@@ -321,7 +360,13 @@ function AssistantBodyContent({ assistant, language }) {
     return <AssistantLoadingView />;
   }
   if (assistant.error) {
-    return <AssistantErrorView error={assistant.error} quotaExceeded={assistant.quotaExceeded} />;
+    return (
+      <AssistantErrorView
+        error={assistant.error}
+        quotaExceeded={assistant.quotaExceeded}
+        action={assistant.action}
+      />
+    );
   }
   return <Result action={assistant.action} result={assistant.result} language={language} />;
 }
@@ -398,10 +443,18 @@ export default function SentenceAssistantPopover({
               transition={{ duration: 0.15, ease: 'easeOut' }}
             >
               {assistant.action === 'translate' ? (
-                <LanguageSelect language={language} onLanguageChange={onLanguageChange} />
+                <div className="mb-2.5 flex items-center justify-between gap-2">
+                  <LanguageSelect language={language} onLanguageChange={onLanguageChange} />
+                  <QuotaBanner action={assistant.action} status={status} />
+                </div>
+              ) : assistant.action === 'breakdown' ? (
+                <div className="mb-2.5 flex items-center justify-between gap-2 px-0.5">
+                  <span className={cn(MICRO, MUTED, 'text-[8.5px] tracking-wider')}>
+                    Sentence breakdown
+                  </span>
+                  <QuotaBanner action={assistant.action} status={status} />
+                </div>
               ) : null}
-
-              <QuotaBanner action={assistant.action} status={status} />
 
               <AssistantBodyContent assistant={assistant} language={language} />
             </motion.div>
