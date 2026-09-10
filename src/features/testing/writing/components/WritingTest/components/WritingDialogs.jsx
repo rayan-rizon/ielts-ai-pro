@@ -11,10 +11,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Lock, Sparkles, XCircle } from 'lucide-react';
+import { Lock, Sparkles, Loader2 } from 'lucide-react';
 import { useWritingTestDispatch } from '../context/WritingTestContext';
-import { ConfirmExitDialog } from '@/shared/ui';
-import { PANEL } from '@/features/dashboard/components/primitives';
+import { ConfirmExitDialog, TimeUpDialog } from '@/shared/ui';
+import { IconChip, Pill, MUTED, PANEL } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 
 /**
@@ -63,22 +63,33 @@ export function WritingDialogs({ logic }) {
 
       {/* Manual Submission Dialog */}
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} data-oid="1jcn4qf">
-        <AlertDialogContent className={cn(PANEL, 'max-w-md')} data-oid="27i6yss">
-          <AlertDialogHeader data-oid="vownwlc">
-            <div
-              className="w-16 h-16 bg-[#efedff] dark:bg-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              data-oid="p0di8cx"
-            >
-              <Sparkles
-                className="w-8 h-8 text-[#5661e9] dark:text-indigo-300"
-                data-oid="s:_7haz"
-              />
+        <AlertDialogContent
+          className={cn(
+            PANEL,
+            'max-w-[400px] gap-3 p-4 sm:p-4.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl'
+          )}
+          data-oid="27i6yss"
+        >
+          <AlertDialogHeader className="space-y-1.5 text-left" data-oid="vownwlc">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <IconChip icon={Sparkles} tone="accent" size="sm" />
+                <AlertDialogTitle
+                  className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100"
+                  data-oid="elyl44v"
+                >
+                  Ready to submit?
+                </AlertDialogTitle>
+              </div>
+              <Pill
+                tone="accent"
+                className="text-[9px] px-1.5 py-0 font-bold tracking-wider uppercase shrink-0"
+              >
+                {isExamMode ? 'Exam Mode' : 'Practice'}
+              </Pill>
             </div>
-            <AlertDialogTitle className="text-2xl font-black text-center" data-oid="elyl44v">
-              Ready to submit?
-            </AlertDialogTitle>
             <AlertDialogDescription
-              className="text-center text-slate-500 dark:text-slate-400"
+              className={cn('text-xs leading-relaxed', MUTED)}
               data-oid="s1l5a:a"
             >
               {isExamMode
@@ -86,10 +97,11 @@ export function WritingDialogs({ logic }) {
                 : 'Get AI feedback for your band score, or submit without feedback.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4" data-oid="-cev:db">
+
+          <AlertDialogFooter className="gap-2 sm:justify-end sm:space-x-0" data-oid="-cev:db">
             <AlertDialogCancel
               onClick={() => setShowSubmitDialog(false)}
-              className="flex-1 rounded-xl h-12 font-bold"
+              className="h-9 w-full rounded-md border border-[#e4e2f0] bg-[#fbfbfe] px-3.5 text-xs font-semibold text-slate-700 shadow-none transition-all hover:bg-[#f4f3fb] hover:text-slate-900 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:border-white/11 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9 dark:focus-visible:ring-offset-[#131315] sm:w-auto cursor-pointer"
               data-oid="4d1wj8f"
             >
               Review More
@@ -101,68 +113,105 @@ export function WritingDialogs({ logic }) {
                   handleGetFeedback();
                 }}
                 disabled={isSubmitting || isAnalyzing}
-                className="flex-1 bg-linear-to-r/srgb from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
+                className="h-9 w-full rounded-md border-0 bg-[#5a63df] px-4 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#4d55c7] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315] disabled:pointer-events-none disabled:opacity-50 flex items-center justify-center gap-1.5 sm:w-auto cursor-pointer"
                 data-oid="yujj_ul"
               >
-                {isAnalyzing ? 'Analyzing...' : 'Get AI Feedback'}
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Analyzing…</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Get AI Feedback</span>
+                  </>
+                )}
               </Button>
             ) : null}
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-linear-to-r/srgb from-[#5661e9] to-indigo-600 hover:from-[#4853d6] hover:to-indigo-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
+              className={cn(
+                'h-9 w-full rounded-md text-xs font-bold transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315] disabled:pointer-events-none disabled:opacity-50 flex items-center justify-center gap-1.5 sm:w-auto cursor-pointer',
+                isExamMode
+                  ? 'border-0 bg-[#5a63df] px-4 text-white shadow-xs hover:bg-[#4d55c7]'
+                  : 'border border-[#e4e2f0] bg-[#fbfbfe] px-3.5 font-semibold text-slate-700 shadow-none hover:bg-[#f4f3fb] hover:text-slate-900 dark:border-white/11 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9'
+              )}
               data-oid="9wn7mk:"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Now'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Submitting…</span>
+                </>
+              ) : (
+                <span>Submit {isExamMode ? 'Now' : 'without feedback'}</span>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Time Up Dialog */}
-      <AlertDialog open={showTimeUpDialog} onOpenChange={setShowTimeUpDialog} data-oid="yxae3w-">
-        <AlertDialogContent className={cn(PANEL, 'max-w-md')} data-oid="ijws.ud">
-          <AlertDialogHeader data-oid="w0hr399">
-            <div
-              className="w-16 h-16 bg-rose-50 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              data-oid="q6ia:fz"
-            >
-              <XCircle className="w-8 h-8 text-rose-600 dark:text-rose-400" data-oid="xv4p_k6" />
-            </div>
-            <AlertDialogTitle className="text-2xl font-black text-center" data-oid="ztlmdjk">
-              Time is up!
-            </AlertDialogTitle>
-            <AlertDialogDescription
-              className="text-center text-slate-500 dark:text-slate-400"
-              data-oid=":wg0i75"
-            >
-              The 60-minute limit has been reached. Get AI feedback for your band score, or submit
-              without feedback.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4" data-oid="j-6qoep">
-            <Button
-              onClick={() => {
-                setShowTimeUpDialog(false);
-                handleGetFeedback();
-              }}
-              disabled={isSubmitting || isAnalyzing}
-              className="flex-1 bg-linear-to-r/srgb from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-500 hover:via-yellow-500 hover:to-amber-500 dark:from-amber-500 dark:via-yellow-500 dark:to-amber-500 text-amber-900 dark:text-amber-100 border border-amber-400/30 dark:border-amber-500/30 rounded-xl h-12 font-bold shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all active:scale-[0.98]"
-              data-oid="faa4-7l"
-            >
-              {isAnalyzing ? 'Analyzing...' : 'Get AI Feedback'}
-            </Button>
+      <TimeUpDialog
+        open={showTimeUpDialog}
+        onOpenChange={setShowTimeUpDialog}
+        title="Time's Up"
+        description={
+          isExamMode
+            ? 'The 60-minute limit has been reached. Submitting ends this Exam Mode attempt.'
+            : 'The 60-minute limit has been reached. Get AI feedback for your band score, or submit without feedback.'
+        }
+        statusText="Drafts auto-saved"
+        customFooter={
+          <AlertDialogFooter className="gap-2 sm:justify-end sm:space-x-0" data-oid="j-6qoep">
+            {!isExamMode ? (
+              <Button
+                onClick={() => {
+                  setShowTimeUpDialog(false);
+                  handleGetFeedback();
+                }}
+                disabled={isSubmitting || isAnalyzing}
+                className="h-9 w-full rounded-md border-0 bg-[#5a63df] px-4 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#4d55c7] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315] disabled:pointer-events-none disabled:opacity-50 flex items-center justify-center gap-1.5 sm:w-auto cursor-pointer"
+                data-oid="faa4-7l"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Analyzing…</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Get AI Feedback</span>
+                  </>
+                )}
+              </Button>
+            ) : null}
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-linear-to-r/srgb from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white border-none rounded-xl h-12 font-bold shadow-lg shadow-rose-500/20"
+              className={cn(
+                'h-9 w-full rounded-md text-xs font-bold transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315] disabled:pointer-events-none disabled:opacity-50 flex items-center justify-center gap-1.5 sm:w-auto cursor-pointer',
+                isExamMode
+                  ? 'border-0 bg-[#5a63df] px-4 text-white shadow-xs hover:bg-[#4d55c7]'
+                  : 'border border-[#e4e2f0] bg-[#fbfbfe] px-3.5 font-semibold text-slate-700 shadow-none hover:bg-[#f4f3fb] hover:text-slate-900 dark:border-white/11 dark:bg-white/5.5 dark:text-slate-200 dark:hover:bg-white/9'
+              )}
               data-oid="36nu0nn"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit and Finish'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Submitting…</span>
+                </>
+              ) : (
+                <span>Submit and Finish</span>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        }
+      />
 
       {/* Upgrade Dialog */}
       <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} data-oid="qq3k8bw">

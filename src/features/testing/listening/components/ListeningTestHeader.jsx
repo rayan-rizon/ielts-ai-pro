@@ -2,7 +2,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShieldCheck, CheckCircle, Loader2, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { Pill } from '@/features/dashboard/components/primitives';
+import { Pill, NUM } from '@/features/dashboard/components/primitives';
+
 import { ConfirmExitDialog } from '@/shared/ui';
 import { motion } from 'framer-motion';
 
@@ -110,37 +111,57 @@ const ListeningTestHeader = ({
           <div className="flex items-center gap-2 sm:gap-3" data-oid=".:xhcj4">
             {/* Title & Badge */}
             <div
-              className="flex flex-col min-w-0 max-w-[160px] min-[480px]:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
+              className="flex flex-col min-w-0 max-w-[170px] min-[480px]:max-w-[240px] sm:max-w-[340px] md:max-w-[440px] lg:max-w-[560px]"
               data-oid="uszsrof"
             >
               <h1
-                className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight truncate"
+                className="text-xs sm:text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-snug truncate"
                 title={testData?.title || 'Listening Test'}
                 data-oid="7gdzwo7"
               >
                 {testData?.title || 'Listening Test'}
               </h1>
-              <div className={TEST_HEADER_META} data-oid="mhh.zk2">
-                <span className="opacity-80 dark:opacity-70 truncate" data-oid="0wm6-is">
-                  Part {activePart + 1}/{displaySections.length}
+              <div className={cn(TEST_HEADER_META, 'mt-0.5 flex-wrap')} data-oid="mhh.zk2">
+                <span
+                  className="font-semibold text-slate-600 dark:text-slate-300 truncate"
+                  data-oid="0wm6-is"
+                >
+                  Part <span className={NUM}>{activePart + 1}</span>/{displaySections.length}
                 </span>
+                <span
+                  className="h-2.5 w-px bg-slate-300/80 dark:bg-white/15 shrink-0 hidden min-[360px]:inline-block"
+                  aria-hidden="true"
+                />
                 {testData?.is_official_cambridge && (
                   <span
                     className={cn(
                       TEST_HEADER_BADGE,
-                      'border-amber-500/25 bg-amber-500/8 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:text-[9px]'
+                      'border-amber-500/30 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300'
                     )}
                     data-oid="i8fhv98"
                   >
-                    <ShieldCheck className="w-2.5 h-2.5 sm:w-3 h-3" data-oid="f3411fp" /> Official
+                    <ShieldCheck
+                      className="w-2.5 h-2.5 stroke-[2.25] text-amber-600 dark:text-amber-300 shrink-0"
+                      data-oid="f3411fp"
+                    />
+                    <span>Official</span>
                   </span>
                 )}
                 {!isAwaitingStart ? (
                   <Pill
                     tone={testMode === 'exam' ? 'accent' : 'neutral'}
-                    className="h-4 rounded-md px-1.5 py-0 text-[8px] leading-none tracking-[0.08em] dark:bg-white/5.5"
+                    className={cn(
+                      'h-4 rounded-full px-1.5 py-0 text-[8px] font-bold tracking-[0.08em] leading-none select-none',
+                      testMode !== 'exam' &&
+                        'border-slate-200/90 bg-slate-100/80 text-slate-600 dark:border-white/12 dark:bg-white/6 dark:text-slate-300'
+                    )}
                   >
-                    {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                    <span className="hidden min-[420px]:inline">
+                      {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
+                    </span>
+                    <span className="min-[420px]:hidden">
+                      {testMode === 'exam' ? 'Exam' : 'Practice'}
+                    </span>
                   </Pill>
                 ) : null}
               </div>

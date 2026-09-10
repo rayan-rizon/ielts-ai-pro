@@ -1,11 +1,20 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, ArrowRight, RefreshCw, Sparkles, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  CheckCircle,
+  ArrowRight,
+  RefreshCw,
+  Sparkles,
+  Loader2,
+  ShieldCheck,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingTestClock from './WritingTestClock';
-import { Badge } from '@/components/ui/badge';
+import { Pill } from '@/features/dashboard/components/primitives';
+
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
 import {
   TEST_HEADER_AUTOSAVE,
@@ -77,34 +86,51 @@ export function WritingHeader({
             />
           </Button>
 
-          <div className="flex flex-col min-w-0" data-oid="m4bipk0">
+          <div
+            className="flex flex-col min-w-0 max-w-[170px] min-[480px]:max-w-[240px] sm:max-w-[340px] md:max-w-[440px] lg:max-w-[560px]"
+            data-oid="m4bipk0"
+          >
             <h1
-              className="text-[12px] sm:text-sm font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[160px] min-[480px]:max-w-[220px] sm:max-w-[320px] md:max-w-[420px] lg:max-w-[550px]"
+              className="text-[12px] sm:text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-snug truncate"
               title={task?.title || 'Writing Task'}
               data-oid="in06s0r"
             >
               {task?.title || 'Writing Task'}
             </h1>
-            <div className={TEST_HEADER_META} data-oid="qtfjfp2">
-              <span className="opacity-80 dark:opacity-70 truncate" data-oid="y3ia:a_">
+            <div className={cn(TEST_HEADER_META, 'mt-0.5 flex-wrap')} data-oid="qtfjfp2">
+              <span
+                className="font-semibold text-slate-600 dark:text-slate-300 truncate"
+                data-oid="y3ia:a_"
+              >
                 {activeType || 'Writing'}
               </span>
+              <span
+                className="h-2.5 w-px bg-slate-300/80 dark:bg-white/15 shrink-0 hidden min-[360px]:inline-block"
+                aria-hidden="true"
+              />
               {task?.is_official_cambridge && (
                 <span
                   className={cn(
                     TEST_HEADER_BADGE,
-                    'border-amber-500/25 bg-amber-500/8 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300 sm:gap-1 sm:text-[9px]'
+                    'border-amber-500/30 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.14] dark:text-amber-300'
                   )}
                   data-oid="h9rc23x"
                 >
-                  <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" data-oid="s_:7hbv" />
-                  <span className="hidden min-[480px]:inline">Official</span>
+                  <ShieldCheck
+                    className="w-2.5 h-2.5 stroke-[2.25] text-amber-600 dark:text-amber-300 shrink-0"
+                    data-oid="s_:7hbv"
+                  />
+                  <span>Official</span>
                 </span>
               )}
               {!isAwaitingStart ? (
-                <Badge
-                  variant="outline"
-                  className="h-4 shrink-0 whitespace-nowrap rounded-md border-[#e4e2f0] bg-[#f4f3fb] px-1.5 py-0 text-[8px] font-bold uppercase leading-none tracking-[0.08em] text-slate-600 dark:border-white/10 dark:bg-white/5.5 dark:text-slate-300"
+                <Pill
+                  tone={testMode === 'exam' ? 'accent' : 'neutral'}
+                  className={cn(
+                    'h-4 rounded-full px-1.5 py-0 text-[8px] font-bold tracking-[0.08em] leading-none select-none',
+                    testMode !== 'exam' &&
+                      'border-slate-200/90 bg-slate-100/80 text-slate-600 dark:border-white/12 dark:bg-white/6 dark:text-slate-300'
+                  )}
                 >
                   <span className="hidden min-[420px]:inline">
                     {testMode === 'exam' ? 'Exam Mode' : 'Practice Mode'}
@@ -112,7 +138,7 @@ export function WritingHeader({
                   <span className="min-[420px]:hidden">
                     {testMode === 'exam' ? 'Exam' : 'Practice'}
                   </span>
-                </Badge>
+                </Pill>
               ) : null}
             </div>
           </div>
