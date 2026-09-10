@@ -5,7 +5,7 @@ const responseCache = new Map();
 const inFlightRequests = new Map();
 const MAX_CACHE_ENTRIES = 100;
 const CACHE_TTL_MS = 10 * 60 * 1000;
-const CLIENT_CACHE_VERSION = 2;
+const CLIENT_CACHE_VERSION = 3;
 
 const cacheKey = (userId, payload) =>
   JSON.stringify([

@@ -9,6 +9,8 @@ import {
   TRANSLATION_LANGUAGES,
   validateAssistBody,
   validateAssistantResult,
+  normalizeAssistantResult,
+  BREAKDOWN_LIMITS,
 } from '../../../supabase/functions/reading-assistant/validation';
 import {
   AI_ROUTES,
@@ -103,6 +105,41 @@ describe('Reading assistant contract', () => {
     ).toBe(true);
   });
 
+  it('keeps a breakdown short, plain, and free of grammar jargon', () => {
+    const prompt = buildReadingPrompt(
+      'breakdown',
+      { selectedText: 'The claim was not proven.', context: 'A study.' },
+      null
+    );
+    expect(prompt).toMatch(/at most 20 words/i);
+    expect(prompt).toMatch(/0-2 objects/);
+    expect(prompt).toMatch(/Never use grammar labels/i);
+
+    const trimmed = normalizeAssistantResult('breakdown', {
+      coreIdea:
+        'The researchers argue that the evidence is inconclusive. They also note that the sample was small. A third sentence pads this out well beyond what any learner will read in a popover.',
+      structures: [
+        { fragment: 'although early results varied', explanation: 'A subordinate clause.' },
+        { fragment: 'the hypothesis held', explanation: 'The main claim.' },
+        { fragment: 'a third card', explanation: 'Dropped as surplus.' },
+        { fragment: 'echo', explanation: 'echo' },
+      ],
+      tone: 'Academic',
+    });
+    expect(trimmed.structures).toHaveLength(BREAKDOWN_LIMITS.structures);
+    expect(trimmed.structures.map((item: any) => item.fragment)).not.toContain('echo');
+    expect(trimmed.coreIdea.length).toBeLessThanOrEqual(BREAKDOWN_LIMITS.coreIdea);
+    // Cut at a sentence end, so the learner never reads a half sentence.
+    expect(trimmed.coreIdea.endsWith('.')).toBe(true);
+    expect(validateAssistantResult('breakdown', trimmed)).toBe(true);
+  });
+
+  it('grades providers on the trimmed breakdown rather than rejecting a wordy one', () => {
+    expect(functionSource).toContain(
+      'validateAssistantResult(input.action, normalizeAssistantResult(input.action, value))'
+    );
+  });
+
   it('uses the measured GPT OSS primary and bounded recovery routes', () => {
     const route = AI_ROUTES.find((item) => item.id === 'reading-assistant');
     expect(route?.steps).toEqual(
@@ -141,10 +178,12 @@ describe('Reading assistant contract', () => {
   });
 
   it('versions and expires validated server cache entries', () => {
-    expect(functionSource).toContain("const CACHE_VERSION = 'reading-assistant-v2-gpt-oss'");
+    expect(functionSource).toContain(
+      "const CACHE_VERSION = 'reading-assistant-v3-plain-breakdown'"
+    );
     expect(functionSource).toContain(".gt('expires_at', new Date().toISOString())");
     expect(functionSource).toContain(
-      'validateAssistantResult(input.action, cachedRow?.feedback_json)'
+      'normalizeAssistantResult(input.action, cachedRow?.feedback_json)'
     );
   });
 });

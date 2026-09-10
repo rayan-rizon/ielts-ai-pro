@@ -21,7 +21,7 @@ const ReadingTestAppearance = React.lazy(() => import('../../ReadingTestAppearan
  * @param {Function} props.onTextSelection - Handler for text selection/click
  * @param {Function} props.onMouseMove - Handler for mouse move (hover detection)
  * @param {Function} props.onMouseLeave - Handler for mouse leave
- * @param {Object|null} props.hoveredWordRect - Position info for hovered word highlight
+ * @param {React.RefObject} props.hoverHighlightRef - Ref for the hovered-word highlight overlay (positioned imperatively)
  * @param {Set<number>|'all'|null} props.highlightedAnswerQs - Which answers to highlight in the passage
  * @param {Function} props.onPaperThemeChange - Callback to change paper theme
  * @param {Function} props.onTextSizeChange - Callback to change text size
@@ -36,7 +36,7 @@ const PassagePanel = memo(function PassagePanel({
   onTextSelection,
   onMouseMove,
   onMouseLeave,
-  hoveredWordRect,
+  hoverHighlightRef,
   highlightedAnswerQs,
   onPaperThemeChange,
   onTextSizeChange,
@@ -257,24 +257,15 @@ const PassagePanel = memo(function PassagePanel({
         `}
         data-oid="94t0x:w"
       >
-        {/* Smart Hover Highlight */}
-        {hoveredWordRect && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute pointer-events-none rounded-lg bg-[#5a63df]/10 border border-[#5a63df]/25 dark:border-[#5a63df]/30"
-            style={{
-              top: hoveredWordRect.top - 2,
-              left: hoveredWordRect.left - 4,
-              width: hoveredWordRect.width + 8,
-              height: hoveredWordRect.height + 4,
-              zIndex: -1,
-            }}
-            data-oid="c1385h6"
-          />
-        )}
+        {/* Smart Hover Highlight - always mounted, moved imperatively by the parent so
+            mouse movement never re-renders the passage (which caused a full-panel flash) */}
+        <div
+          ref={hoverHighlightRef}
+          aria-hidden="true"
+          className="absolute top-0 left-0 opacity-0 pointer-events-none rounded-lg bg-[#5a63df]/10 border border-[#5a63df]/25 dark:border-[#5a63df]/30"
+          style={{ width: 0, height: 0, zIndex: -1 }}
+          data-oid="c1385h6"
+        />
 
         <h1
           className="text-lg @sm:text-xl @md:text-2xl @lg:text-3xl leading-snug text-center font-bold mb-3 @md:mb-4 pt-2 @md:pt-3 px-12 @sm:px-14 @md:px-16 @lg:px-20 @xl:px-24 text-foreground"

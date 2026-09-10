@@ -18,6 +18,7 @@ import {
 import {
   actionOutputLimit,
   buildReadingPrompt,
+  normalizeAssistantResult,
   parseReadingSections,
   resolveSelection,
   validateAssistBody,
@@ -25,7 +26,7 @@ import {
 } from './validation.ts';
 
 declare const Deno: any;
-const CACHE_VERSION = 'reading-assistant-v2-gpt-oss';
+const CACHE_VERSION = 'reading-assistant-v3-plain-breakdown';
 
 const response = (data: unknown, status: number, headers: Record<string, string>) =>
   new Response(JSON.stringify(data), {
@@ -40,7 +41,11 @@ async function sha256(value: string) {
 
 function statusForDatabaseError(message: string) {
   if (/Exam mode|session is unavailable|current plan/i.test(message)) return 403;
-  if (/five free|wait a minute|already being processed|available again tomorrow/i.test(message))
+  if (
+    /free (Translate|Breakdown) results|wait a minute|already being processed|available again tomorrow/i.test(
+      message
+    )
+  )
     return 429;
   if (/taking a break|temporarily unavailable/i.test(message)) return 503;
   return 400;
@@ -333,8 +338,9 @@ Deno.serve(async (req: Request) => {
     .eq('input_hash', cacheKey)
     .gt('expires_at', new Date().toISOString())
     .maybeSingle();
-  const cachedResult = validateAssistantResult(input.action, cachedRow?.feedback_json)
-    ? cachedRow.feedback_json
+  const cachedCandidate = normalizeAssistantResult(input.action, cachedRow?.feedback_json);
+  const cachedResult = validateAssistantResult(input.action, cachedCandidate)
+    ? cachedCandidate
     : null;
   const { data: reservation, error: reserveError } = await admin.rpc('reading_assistant_reserve', {
     p_auth: authUser.id,
@@ -350,6 +356,16 @@ Deno.serve(async (req: Request) => {
     return response(
       { error: reserveError.message },
       statusForDatabaseError(reserveError.message),
+      headers
+    );
+  }
+  if (reservation.state === 'budget_exhausted') {
+    // The database has already recorded the event for the admin health card;
+    // this branch only has to tell the learner and stop.
+    console.warn('[reading-assistant] Daily provider budget reached; generation paused.');
+    return response(
+      { error: reservation.message || 'New Reading explanations are taking a break today' },
+      503,
       headers
     );
   }
@@ -370,6 +386,7 @@ Deno.serve(async (req: Request) => {
         result: reservation.result,
         source: 'cached',
         remainingDailyQuota: reservation.remainingDailyQuota,
+        remainingByAction: reservation.remainingByAction,
         quotaResetsAt: reservation.quotaResetsAt,
       },
       200,
@@ -383,7 +400,10 @@ Deno.serve(async (req: Request) => {
 
   const started = Date.now();
   const prompt = buildReadingPrompt(input.action, selection, input.targetLanguage);
-  const validate = (value: any) => validateAssistantResult(input.action, value);
+  // Providers are graded on the answer we will actually store, so a wordy but
+  // otherwise correct Breakdown is trimmed rather than rejected into a fallback.
+  const validate = (value: any) =>
+    validateAssistantResult(input.action, normalizeAssistantResult(input.action, value));
   let generated: any;
   let primaryError: unknown = null;
   let fallbackAttempts: Array<{ model: string; error: unknown }> = [];
@@ -393,6 +413,9 @@ Deno.serve(async (req: Request) => {
       validateJson: validate,
       maxOutputTokens: actionOutputLimit(input.action),
     }));
+    // Providers overshoot the length guidance often enough that the shape has to
+    // be enforced here rather than only asked for in the prompt.
+    generated.parsed = normalizeAssistantResult(input.action, generated.parsed);
     const fallbackReason = fallbackReasonCodes(primaryError, fallbackAttempts);
     await admin.rpc('reading_assistant_finish', {
       p_id: input.requestId,
@@ -444,6 +467,7 @@ Deno.serve(async (req: Request) => {
         result: generated.parsed,
         source: 'generated',
         remainingDailyQuota: reservation.remainingDailyQuota,
+        remainingByAction: reservation.remainingByAction,
         quotaResetsAt: reservation.quotaResetsAt,
       },
       200,

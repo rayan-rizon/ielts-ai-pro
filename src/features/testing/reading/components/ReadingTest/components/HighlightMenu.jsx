@@ -1,8 +1,26 @@
 import React, { memo } from 'react';
-import { Trash2, Edit3, FileText, Languages, Lightbulb, Search } from 'lucide-react';
+import {
+  Trash2,
+  Edit3,
+  FileText,
+  Languages,
+  Lightbulb,
+  BrainCircuit,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { PANEL } from '@/features/dashboard/components/primitives';
+
+function TranslateAiIcon({ className, strokeWidth }) {
+  return (
+    <span className="relative inline-flex items-center justify-center shrink-0">
+      <Languages className={className} strokeWidth={strokeWidth} />
+      <Sparkles className="absolute -top-1 -right-1 size-2 text-[#5a63df] dark:text-[#afb5ff]" />
+    </span>
+  );
+}
 
 /**
  * Context menu for text highlighting in passages.
@@ -24,15 +42,16 @@ const HighlightMenu = memo(function HighlightMenu({
   const panelBounds = currentSelection?.panelBounds;
   const availableWidth = panelBounds
     ? Math.max(160, panelBounds.right - panelBounds.left - 16)
-    : 340;
-  const menuWidth = Math.min(340, availableWidth);
+    : 300;
+  const menuWidth = Math.min(300, availableWidth);
   const menuLeft = Math.max(
     Math.max(8, (panelBounds?.left || 0) + 8),
     Math.min(
       Math.max(8, (panelBounds?.right || window.innerWidth) - menuWidth - 8),
-      position.x - 80
+      position.x - menuWidth / 2
     )
   );
+
   const HIGHLIGHT_COLORS = [
     { color: '#fef08a', name: 'Yellow' },
     { color: '#bfdbfe', name: 'Blue' },
@@ -51,91 +70,121 @@ const HighlightMenu = memo(function HighlightMenu({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98, y: 6 }}
+      initial={{ opacity: 0, scale: 0.98, y: 4 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98, y: 6 }}
+      exit={{ opacity: 0, scale: 0.98, y: 4 }}
       transition={{
         type: 'spring',
-        stiffness: 400,
-        damping: 30,
-        mass: 0.8,
+        stiffness: 450,
+        damping: 32,
+        mass: 0.7,
       }}
-      className={cn(PANEL, 'fixed z-50 flex flex-wrap items-center gap-1 p-1.5')}
+      className={cn(
+        PANEL,
+        'fixed z-50 p-2 shadow-xl shadow-slate-900/12 dark:shadow-black/50 border border-[#e4e2f0] dark:border-white/[0.08]'
+      )}
       style={{
-        top: Math.max(8, position.y - 60),
+        top: Math.max(8, position.y - (assistantEnabled && !isExistingHighlight ? 80 : 48)),
         left: menuLeft,
         width: menuWidth,
       }}
       data-oid="n9wzmwc"
     >
-      {/* Color selection for new highlights */}
-      {!isExistingHighlight &&
-        HIGHLIGHT_COLORS.map(({ color, name }) => (
+      {/* Existing highlight actions */}
+      {isExistingHighlight ? (
+        <div className="flex items-center justify-between gap-2">
           <button
-            key={color}
-            onClick={() => onSelectColor(color)}
-            className="w-6 h-6 rounded-full border border-white/40 dark:border-slate-600/30 hover:scale-125 hover:rotate-6 active:scale-90 transition-all duration-200 shadow-sm"
-            style={{ backgroundColor: color }}
-            title={`Highlight in ${name}`}
-            data-oid="d0dky0m"
-          />
-        ))}
-
-      {/* Edit button for existing highlights */}
-      {isExistingHighlight && (
-        <button
-          onClick={onEdit}
-          className="w-6 h-6 flex items-center justify-center rounded-md bg-[#5a63df]/10 dark:bg-[#5a63df]/20 hover:bg-[#5a63df]/20 dark:hover:bg-[#5a63df]/30 hover:scale-110 active:scale-90 transition-all duration-200"
-          title="Change Color"
-          data-oid="bqhmu9s"
-        >
-          <Edit3 className="w-3 h-3 text-[#5a63df] dark:text-[#a9afff]" data-oid="08i-649" />
-        </button>
-      )}
-
-      {/* Add note button for new selections */}
-      {!isExistingHighlight && (
-        <button
-          onClick={handleAddNote}
-          className="w-6 h-6 flex items-center justify-center rounded-md bg-amber-100/80 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-800/60 hover:scale-110 active:scale-90 transition-all duration-200"
-          title="Add Note to Selection"
-          data-oid="z8snz4n"
-        >
-          <FileText className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" data-oid="8j3stya" />
-        </button>
-      )}
-
-      {!isExistingHighlight && assistantEnabled ? (
+            type="button"
+            onClick={onEdit}
+            className="flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md bg-[#5a63df]/10 px-2.5 text-[11px] font-semibold text-[#5a63df] transition-colors hover:bg-[#5a63df]/20 active:scale-[0.96] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff] cursor-pointer"
+            title="Change Color"
+            data-oid="bqhmu9s"
+          >
+            <Edit3 className="size-3" data-oid="08i-649" />
+            <span>Change Color</span>
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md bg-rose-50 px-2.5 text-[11px] font-semibold text-rose-600 transition-colors hover:bg-rose-100 active:scale-[0.96] dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/40 cursor-pointer"
+            title="Remove Highlight"
+            data-oid="3shgceb"
+          >
+            <Trash2 className="size-3" data-oid="a83xgx." />
+            <span>Remove</span>
+          </button>
+        </div>
+      ) : (
         <>
-          <span className="mx-0.5 h-6 w-px bg-[#e4e2f0] dark:bg-white/[0.07]" aria-hidden="true" />
-          {[
-            ['simplify', 'Simplify', Lightbulb],
-            ['translate', 'Translate', Languages],
-            ['breakdown', 'Breakdown', Search],
-          ].map(([action, label, Icon]) => (
-            <button
-              key={action}
-              type="button"
-              onClick={() => onAssistantAction?.(action)}
-              className="flex min-h-8 items-center gap-1 rounded-md px-2 text-[11px] font-bold text-slate-700 transition-colors hover:bg-[#5a63df]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-slate-200"
-              title={label}
-            >
-              <Icon className="size-3.5 text-[#5a63df]" />
-              {label}
-            </button>
-          ))}
-        </>
-      ) : null}
+          {/* Row 1: Swatches, Note, and Dismiss */}
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5">
+              {HIGHLIGHT_COLORS.map(({ color, name }) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => onSelectColor(color)}
+                  className="size-5.5 rounded-full ring-1 ring-black/10 dark:ring-white/20 transition-transform duration-150 hover:scale-115 active:scale-95 shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                  style={{ backgroundColor: color }}
+                  title={`Highlight in ${name}`}
+                  aria-label={`Highlight in ${name}`}
+                  data-oid="d0dky0m"
+                />
+              ))}
 
-      {/* Remove/Cancel button */}
-      <button
-        onClick={onRemove}
-        className="w-6 h-6 flex items-center justify-center rounded-md bg-red-100/80 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-800/60 hover:scale-110 active:scale-90 transition-all duration-200"
-        title={isExistingHighlight ? 'Remove Highlight' : 'Cancel'}
-        data-oid="3shgceb"
-      >
-        <Trash2 className="w-3.5 h-3.5 text-red-600 dark:text-red-400" data-oid="a83xgx." />
-      </button>
+              <button
+                type="button"
+                onClick={handleAddNote}
+                className="grid size-6 place-items-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.08] dark:hover:text-slate-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                title="Add Note to Selection"
+                aria-label="Add Note to Selection"
+                data-oid="z8snz4n"
+              >
+                <FileText className="size-3.5" data-oid="8j3stya" />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={onRemove}
+              className="grid size-6 place-items-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-white/[0.08] dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+              title="Cancel"
+              aria-label="Cancel"
+              data-oid="3shgceb"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+
+          {/* Row 2: AI Sentence Actions (when enabled) */}
+          {assistantEnabled && (
+            <>
+              <div className="my-1.5 h-px bg-[#e4e2f0] dark:bg-white/[0.07]" aria-hidden="true" />
+              <div className="flex items-center gap-1">
+                {[
+                  ['simplify', 'Simplify', Lightbulb],
+                  ['translate', 'Translate', TranslateAiIcon],
+                  ['breakdown', 'Breakdown', BrainCircuit],
+                ].map(([action, label, Icon]) => (
+                  <button
+                    key={action}
+                    type="button"
+                    onClick={() => onAssistantAction?.(action)}
+                    className="flex flex-1 h-7 items-center justify-center gap-1.5 rounded-md border border-[#e4e2f0]/70 bg-[#f7f6fd] px-2 text-[11px] font-semibold text-slate-700 transition-all duration-150 hover:bg-[#5a63df]/10 hover:text-[#5a63df] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08] dark:hover:text-[#afb5ff] cursor-pointer"
+                    title={label}
+                  >
+                    <Icon
+                      className="size-3 shrink-0 text-[#5a63df] dark:text-[#afb5ff]"
+                      strokeWidth={2.2}
+                    />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
     </motion.div>
   );
 });

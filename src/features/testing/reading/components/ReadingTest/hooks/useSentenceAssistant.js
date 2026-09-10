@@ -4,6 +4,7 @@ import {
   requestReadingAssistance,
 } from '@/features/testing/reading/services/readingAiService';
 
+const ACTION_LABELS = { translate: 'Translate', breakdown: 'Breakdown' };
 const LANGUAGE_KEY = 'reading_assistant_language_v1';
 const DEFAULT_LANGUAGE = 'bn';
 
@@ -64,8 +65,9 @@ export function useSentenceAssistant({ sessionId, passageIndex, enabled }) {
         if (sequence !== requestSequence.current) return;
         setStatus((previous) => ({
           ...(previous || {}),
-          remainingDailyQuota:
-            response.remainingDailyQuota ?? previous?.remainingDailyQuota ?? null,
+          // Translate and Breakdown hold separate allowances, so the server
+          // reports both and the popover reads the one it is showing.
+          remainingByAction: response.remainingByAction ?? previous?.remainingByAction ?? null,
           quotaResetsAt: response.quotaResetsAt ?? previous?.quotaResetsAt ?? null,
         }));
         setAssistant({
@@ -79,7 +81,7 @@ export function useSentenceAssistant({ sessionId, passageIndex, enabled }) {
       } catch (error) {
         if (sequence !== requestSequence.current) return;
         const quotaExceeded =
-          error.status === 429 && /five free|free Translate/i.test(error.message || '');
+          error.status === 429 && /free (Translate|Breakdown) results/i.test(error.message || '');
         setAssistant({
           action,
           selection,
@@ -87,7 +89,7 @@ export function useSentenceAssistant({ sessionId, passageIndex, enabled }) {
           loading: false,
           result: null,
           error: quotaExceeded
-            ? 'You have used today’s five free Translate and Breakdown results. Your free uses reset tomorrow.'
+            ? `You have used today’s free ${ACTION_LABELS[action] || 'assistant'} results. They reset at midnight UTC.`
             : error.userMessage || error.message || 'Reading help is temporarily unavailable.',
           quotaExceeded,
         });

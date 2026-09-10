@@ -41,7 +41,7 @@ describe('Reading assistant UI', () => {
             result: { translated: 'একটি অনুবাদ', language: 'Bengali' },
             position: { x: 200, y: 120 },
           }}
-          status={{ remainingDailyQuota: 4 }}
+          status={{ freeDailyAssists: 5, remainingByAction: { translate: 4, breakdown: 5 } }}
           language="bn"
           onLanguageChange={vi.fn()}
           onActionChange={onActionChange}
@@ -50,7 +50,7 @@ describe('Reading assistant UI', () => {
         />
       </MemoryRouter>
     );
-    expect(screen.getByText('4 of 5 free uses left today')).toBeInTheDocument();
+    expect(screen.getByText('4 of 5 free Translations left today')).toBeInTheDocument();
     expect(screen.getByText('একটি অনুবাদ')).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Uzbek' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Persian' })).toBeInTheDocument();
@@ -73,5 +73,51 @@ describe('Reading assistant UI', () => {
     expect(
       isReadingAssistantAvailable({ session: null, testMode: 'practice', isFinished: false })
     ).toBe(false);
+  });
+
+  it('renders sentence breakdown with core idea, clause breakdown cards, and tone badge', () => {
+    render(
+      <MemoryRouter>
+        <SentenceAssistantPopover
+          assistant={{
+            action: 'breakdown',
+            loading: false,
+            result: {
+              coreIdea: 'The preliminary findings show a strong correlation.',
+              structures: [
+                {
+                  fragment: 'Although early results were varied',
+                  explanation: 'Subordinate clause showing contrast.',
+                },
+                {
+                  fragment: 'the primary hypothesis was confirmed',
+                  explanation: 'Main clause providing the central claim.',
+                },
+              ],
+              tone: 'Academic',
+            },
+            position: { x: 200, y: 120 },
+          }}
+          status={{ freeDailyAssists: 5, remainingByAction: { translate: 5, breakdown: 3 } }}
+          language="en"
+          onLanguageChange={vi.fn()}
+          onActionChange={vi.fn()}
+          onClose={vi.fn()}
+          isMobile={false}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('In simple words')).toBeInTheDocument();
+    // Translate is untouched by Breakdown use: the two allowances are separate.
+    expect(screen.getByText('3 of 5 free Breakdowns left today')).toBeInTheDocument();
+    expect(
+      screen.getByText('The preliminary findings show a strong correlation.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Academic')).toBeInTheDocument();
+    expect(screen.getByText('Parts explained')).toBeInTheDocument();
+    expect(screen.getByText('“Although early results were varied”')).toBeInTheDocument();
+    expect(screen.getByText('Subordinate clause showing contrast.')).toBeInTheDocument();
+    expect(screen.getByText('01')).toBeInTheDocument();
+    expect(screen.getByText('02')).toBeInTheDocument();
   });
 });

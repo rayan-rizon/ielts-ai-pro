@@ -233,7 +233,22 @@ function ReadingTestContent() {
   const { notes, setNotes, showNotes, setShowNotes, newNote, setNewNote, addNote, removeNote } =
     notesManager;
 
-  const [hoveredWordRect, setHoveredWordRect] = useState(null);
+  // Hover word highlight is driven straight through the DOM instead of React state:
+  // mousemove fires ~60x/s, and re-rendering the whole test page (and remounting an
+  // animated overlay) on every move made the passage panel visibly flash.
+  const hoverHighlightRef = useRef(null);
+  const setHoverHighlight = useCallback((rect) => {
+    const el = hoverHighlightRef.current;
+    if (!el) return;
+    if (!rect) {
+      el.style.opacity = '0';
+      return;
+    }
+    el.style.transform = `translate3d(${rect.left - 4}px, ${rect.top - 2}px, 0)`;
+    el.style.width = `${rect.width + 8}px`;
+    el.style.height = `${rect.height + 4}px`;
+    el.style.opacity = '1';
+  }, []);
 
   // Answer Sheet Sidebar
   const [showAnswerSheet, setShowAnswerSheet] = useState(false);
@@ -565,7 +580,7 @@ function ReadingTestContent() {
 
     // Only process if we are not dragging/selecting
     if (e.buttons !== 0) {
-      setHoveredWordRect(null);
+      setHoverHighlight(null);
       return;
     }
 
@@ -575,7 +590,7 @@ function ReadingTestContent() {
         // Expand to word boundary to see if we are really over a word
         const expandedRange = expandRangeToWord(range);
         if (!expandedRange) {
-          setHoveredWordRect(null);
+          setHoverHighlight(null);
           return;
         }
         const word = expandedRange.toString().trim();
@@ -594,20 +609,19 @@ function ReadingTestContent() {
             // Calculate position RELATIVE to the content container (e.currentTarget)
             // We use e.currentTarget because the updated render puts the highlight INSIDE the prose div
             const containerRect = e.currentTarget.getBoundingClientRect();
-            setHoveredWordRect({
+            setHoverHighlight({
               top: rect.top - containerRect.top,
               left: rect.left - containerRect.left,
               width: rect.width,
               height: rect.height,
-              word: word,
             });
             return;
           }
         }
       }
     }
-    setHoveredWordRect(null);
-  }, []);
+    setHoverHighlight(null);
+  }, []); // handlers + setHoverHighlight are stable
 
   // Text selection for highlighting (updated to handle single word clicks and multi-word selections)
   const handleTextSelection = useCallback(
@@ -1048,8 +1062,8 @@ function ReadingTestContent() {
                 textSize={textSize}
                 onTextSelection={handleTextSelection}
                 onMouseMove={testMode === 'exam' ? undefined : handlePassageMouseMove}
-                onMouseLeave={() => setHoveredWordRect(null)}
-                hoveredWordRect={hoveredWordRect}
+                onMouseLeave={() => setHoverHighlight(null)}
+                hoverHighlightRef={hoverHighlightRef}
                 highlightedAnswerQs={highlightedAnswerQs}
                 onPaperThemeChange={setPaperTheme}
                 onTextSizeChange={setTextSize}
@@ -1156,6 +1170,7 @@ function ReadingTestContent() {
           <WordDefinitionPopover
             wordDefinition={wordDefinition}
             addToVocabulary={addToVocabulary}
+            onClose={() => setWordDefinition(null)}
           />
         ) : null}
 

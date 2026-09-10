@@ -130,23 +130,102 @@ export function validateAssistantResult(action: ReadingAction, value: any) {
   if (action === 'simplify') return isShortString(value.simplified, 1800);
   if (action === 'translate')
     return isShortString(value.translated, 2400) && isShortString(value.language, 80);
+  // Breakdown is the one action learners reported as a wall of text, so the
+  // caps here are deliberately tight. normalizeAssistantResult trims a
+  // long-but-usable answer down to this shape before it is checked.
   return (
-    isShortString(value.coreIdea, 1000) &&
+    isShortString(value.coreIdea, BREAKDOWN_LIMITS.coreIdea) &&
     Array.isArray(value.structures) &&
-    value.structures.length <= 3 &&
+    value.structures.length <= BREAKDOWN_LIMITS.structures &&
     value.structures.every(
-      (item: any) => isShortString(item?.fragment, 400) && isShortString(item?.explanation, 800)
+      (item: any) =>
+        isShortString(item?.fragment, BREAKDOWN_LIMITS.fragment) &&
+        isShortString(item?.explanation, BREAKDOWN_LIMITS.explanation)
     ) &&
-    (value.tone == null || isShortString(value.tone, 500))
+    (value.tone == null || isShortString(value.tone, BREAKDOWN_LIMITS.tone))
   );
 }
 
+export const BREAKDOWN_LIMITS = {
+  coreIdea: 240,
+  structures: 2,
+  fragment: 160,
+  explanation: 140,
+  tone: 24,
+};
+
+/**
+ * Shorten an over-long answer without leaving a dangling half sentence.
+ *
+ * A model that returns three sentences where one was asked for is cut back to
+ * the sentences that fit; only when not even one fits do we fall back to a word
+ * cut with an ellipsis.
+ */
+function clip(value: string, max: number) {
+  const text = value.trim().replace(/\s+/g, ' ');
+  if (text.length <= max) return text;
+  const window = text.slice(0, max + 1);
+  const sentenceEnd = Math.max(
+    window.lastIndexOf('. '),
+    window.lastIndexOf('! '),
+    window.lastIndexOf('? '),
+    /[.!?]$/.test(window.slice(0, max)) ? max - 1 : -1
+  );
+  if (sentenceEnd >= max * 0.4) return text.slice(0, sentenceEnd + 1).trim();
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:]+$/, '')}…`;
+}
+
+/**
+ * Bring a provider answer into the shape the popover renders.
+ *
+ * Only Breakdown needs work: models reliably return more clause cards and longer
+ * explanations than asked for, and a popover full of grammar prose is the thing
+ * learners skip. Extra cards are dropped rather than rejected, so an otherwise
+ * good answer is not thrown away for being wordy.
+ */
+export function normalizeAssistantResult(action: ReadingAction, value: any) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  if (action !== 'breakdown') return value;
+  const structures = Array.isArray(value.structures) ? value.structures : [];
+  return {
+    ...value,
+    coreIdea:
+      typeof value.coreIdea === 'string'
+        ? clip(value.coreIdea, BREAKDOWN_LIMITS.coreIdea)
+        : value.coreIdea,
+    tone:
+      typeof value.tone === 'string' && value.tone.trim()
+        ? clip(value.tone, BREAKDOWN_LIMITS.tone)
+        : null,
+    structures: structures
+      .filter(
+        (item: any) =>
+          item &&
+          typeof item.fragment === 'string' &&
+          typeof item.explanation === 'string' &&
+          item.fragment.trim() &&
+          item.explanation.trim() &&
+          // A card that just repeats the fragment as its explanation teaches nothing.
+          item.explanation.trim().toLowerCase() !== item.fragment.trim().toLowerCase()
+      )
+      .slice(0, BREAKDOWN_LIMITS.structures)
+      .map((item: any) => ({
+        fragment: clip(item.fragment, BREAKDOWN_LIMITS.fragment),
+        explanation: clip(item.explanation, BREAKDOWN_LIMITS.explanation),
+      })),
+  };
+}
+
 export function actionOutputLimit(action: ReadingAction) {
+  // Breakdown asks for the shortest answer of the four, so it gets the smallest
+  // ceiling: a smaller budget both keeps the answer readable and keeps spend down.
   return action === 'dictionary' || action === 'simplify'
     ? 600
     : action === 'translate'
       ? 900
-      : 1000;
+      : 450;
 }
 
 export function buildReadingPrompt(
@@ -161,5 +240,5 @@ export function buildReadingPrompt(
     return `${shared}\n\nReturn JSON with simplified: clear English that keeps every material claim and qualification.`;
   if (action === 'translate')
     return `${shared}\n\nTranslate into ${TRANSLATION_LANGUAGES[targetLanguage || 'bn']}. Return JSON with translated and language.`;
-  return `${shared}\n\nReturn JSON with coreIdea, structures (0-3 objects with an exact fragment and plain-English explanation), and tone. Use null for tone when the text does not support one.`;
+  return `${shared}\n\nExplain this to someone whose English is still basic. Write the way a patient teacher speaks, not the way a grammar book is written.\n\nReturn JSON with:\n- coreIdea: what the sentence is saying, in ONE simple sentence of at most 20 words. Use everyday words. Do not copy the original wording.\n- structures: 0-2 objects, only for the parts that are genuinely hard. Each has fragment (words copied exactly from the selected text) and explanation (at most 15 words saying what that part means or does).\n- tone: one or two words, or null when the text does not support one.\n\nNever use grammar labels such as clause, subordinate, modifier, nominalisation, or passive voice. If the sentence is already easy, return an empty structures array.`;
 }
