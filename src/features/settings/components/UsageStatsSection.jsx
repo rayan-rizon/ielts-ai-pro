@@ -152,6 +152,9 @@ export default function UsageStatsSection() {
                   locked={stats.ai.speaking.limit === 0}
                 />
               </div>
+              <p className={cn(MICRO, MUTED, 'mt-2 text-center normal-case tracking-normal')}>
+                Writing: any two Task 1 or Task 2 reviews equal one evaluation.
+              </p>
             </div>
 
             <div className={cn(PANEL, 'flex flex-col p-4 sm:p-5')}>

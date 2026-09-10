@@ -773,18 +773,29 @@ function ReadingTestContent() {
   const handleAssistantAction = useCallback(
     (action) => {
       if (!currentSelection?.start && currentSelection?.start !== 0) return;
+      const panelRect = currentSelection.panelBounds || passageRef.current?.getBoundingClientRect();
+      const panelBounds = panelRect
+        ? {
+            left: panelRect.left,
+            right: panelRect.right,
+            top: panelRect.top,
+            bottom: panelRect.bottom,
+          }
+        : null;
+
       sentenceAssistant.request(
         action,
         {
           start: currentSelection.start,
           end: currentSelection.end,
           text: currentSelection.text,
+          panelBounds,
         },
         currentSelection.position || highlightMenuPosition
       );
       setShowHighlightMenu(false);
     },
-    [currentSelection, highlightMenuPosition, sentenceAssistant, setShowHighlightMenu]
+    [currentSelection, highlightMenuPosition, passageRef, sentenceAssistant, setShowHighlightMenu]
   );
 
   // addToVocabulary logic moved to useWordDefinition hook

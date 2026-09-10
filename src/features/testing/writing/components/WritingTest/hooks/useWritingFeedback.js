@@ -173,7 +173,8 @@ export function useWritingFeedback(awardXP) {
 
     // Plan before the quota check. A full Cambridge Writing test submits both
     // Task 1 and Task 2, so do not start either provider request unless the
-    // learner has enough credits for every uncached task.
+    // learner has enough part-review capacity for every uncached task. The
+    // server maps any two part reviews to one admin-configured evaluation.
     const analysisPlan = tasksToAnalyze.map((type) => {
       const currentTextRaw = normalizeWritingSource(store.drafts[type]);
       const wordCount = type === 'Task 1' ? task1Words : task2Words;
@@ -199,7 +200,7 @@ export function useWritingFeedback(awardXP) {
       }
       return { type, cached: false, text: currentTextRaw, isBelowMinimum, prompt, imageUrl };
     });
-    const requiredCredits = analysisPlan.filter((item) => !item.cached).length;
+    const requiredPartReviews = analysisPlan.filter((item) => !item.cached).length;
 
     // Claim the in-memory mutex before the asynchronous quota preflight. The
     // database claim below remains the cross-tab/process safeguard, while this
@@ -230,12 +231,16 @@ export function useWritingFeedback(awardXP) {
           const quota = quotaData?.[0] || quotaData;
           const dailyRemaining = Number(quota?.daily_remaining);
           const monthlyRemaining = Number(quota?.monthly_remaining);
-          const hasEnoughCredits =
+          const hasEnoughPartReviews =
             quota &&
-            (!Number.isFinite(dailyRemaining) || dailyRemaining >= requiredCredits) &&
-            (!Number.isFinite(monthlyRemaining) || monthlyRemaining >= requiredCredits);
-          if (requiredCredits > 0 && quota && (quota.allowed === false || !hasEnoughCredits)) {
-            store.setFeedbackError(getWritingEvaluationCreditMessage(requiredCredits, quota));
+            (!Number.isFinite(dailyRemaining) || dailyRemaining >= requiredPartReviews) &&
+            (!Number.isFinite(monthlyRemaining) || monthlyRemaining >= requiredPartReviews);
+          if (
+            requiredPartReviews > 0 &&
+            quota &&
+            (quota.allowed === false || !hasEnoughPartReviews)
+          ) {
+            store.setFeedbackError(getWritingEvaluationCreditMessage(requiredPartReviews, quota));
             store.setShowUpgradeDialog(true);
             analyzingRef.current = false;
             return;

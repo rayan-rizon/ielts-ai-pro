@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { m } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,7 @@ import {
   STAGGER_CONTAINER,
   FADE_UP,
 } from '@/components/admin/ui/primitives';
+import { clearLimitsCache } from '@/lib/tierLimitsUtils';
 
 const TIER_CONFIG = {
   free: { icon: User },
@@ -219,6 +221,9 @@ const TierBody = ({
               <Pen className="w-2.5 h-2.5" />
               Writing
             </div>
+            <p className="text-[10px] leading-snug text-stone-500 dark:text-stone-400">
+              1 evaluation = any 2 Task 1 or Task 2 reviews
+            </p>
             <div className="grid grid-cols-2 gap-1.5">
               <LimitInput
                 label="Daily"
@@ -320,6 +325,7 @@ const TierCard = ({
 };
 
 const TierRateLimitsSettings = () => {
+  const queryClient = useQueryClient();
   const [tierLimits, setTierLimits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
@@ -379,6 +385,11 @@ const TierRateLimitsSettings = () => {
     try {
       setSaving((prev) => ({ ...prev, [key]: true }));
       await TierRateLimit.upsert(tier, currency, editedValues[key]);
+      clearLimitsCache();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['tier-rate-limits'] }),
+        queryClient.invalidateQueries({ queryKey: ['subscription', 'pricingConfig'] }),
+      ]);
       toast.success(`${tier.charAt(0).toUpperCase() + tier.slice(1)} (${currency}) limits updated`);
       fetchTierLimits();
     } catch (error) {

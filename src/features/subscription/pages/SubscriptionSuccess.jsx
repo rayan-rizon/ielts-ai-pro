@@ -20,6 +20,8 @@ import DocumentHead from '@/components/shared/DocumentHead';
 import { trackAppEvent, trackAuthenticatedAppEvent } from '@/lib/tracking';
 import { clearMarketingAttribution } from '@/lib/marketingAttribution';
 import { requirePublicEnv } from '@/lib/publicEnv';
+import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
+import { usePricing } from '@/features/subscription/hooks/usePricing';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL = 2000;
@@ -34,10 +36,18 @@ export default function SubscriptionSuccess() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const { refreshProfile } = useAuth();
+  const { plans: configuredPlans } = usePricing(DEFAULT_PRICING_PLANS);
 
   // 'idle' → 'verifying' → 'success' | 'pending' | 'invalid'
   const [status, setStatus] = useState('idle');
   const [subscriptionData, setSubscriptionData] = useState(null);
+  const confirmedPlan = configuredPlans.find((plan) => plan.tier === subscriptionData?.tier);
+  const confirmedWritingFeature = confirmedPlan?.features.find((feature) =>
+    feature.includes('AI Writing Evaluation')
+  );
+  const confirmedSpeakingFeature = confirmedPlan?.features.find((feature) =>
+    feature.includes('AI Speaking Session')
+  );
 
   const syncStripeSession = useCallback(
     async (authSession) => {
@@ -506,8 +516,8 @@ export default function SubscriptionSuccess() {
               {/* Feature checklist */}
               <div className="space-y-3 mb-8">
                 {[
-                  `${subscriptionData?.tier === 'premium' ? '200' : '100'} AI Writing Evaluations/month`,
-                  `${subscriptionData?.tier === 'premium' ? '100' : '50'} AI Speaking Sessions/month`,
+                  confirmedWritingFeature || 'AI Writing evaluations included',
+                  confirmedSpeakingFeature || 'AI Speaking sessions included',
                   'All Cambridge practice tests unlocked',
                   ...(subscriptionData?.tier === 'premium'
                     ? [

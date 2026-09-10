@@ -151,6 +151,27 @@ const getLocalOnboardingCompleted = () => {
   return null;
 };
 
+const GLOBAL_SETTINGS_CACHE_KEY = 'cached_global_settings';
+
+const getCachedGlobalSettings = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(GLOBAL_SETTINGS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedGlobalSettings = (settings) => {
+  if (typeof window === 'undefined' || !settings) return;
+  try {
+    window.localStorage.setItem(GLOBAL_SETTINGS_CACHE_KEY, JSON.stringify(settings));
+  } catch {
+    // Storage quota exceeded or disabled
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -158,8 +179,8 @@ export const AuthProvider = ({ children }) => {
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
   const [adminCheckComplete, setAdminCheckComplete] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [globalSettings, setGlobalSettings] = useState(null);
-  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [globalSettings, setGlobalSettings] = useState(() => getCachedGlobalSettings());
+  const [settingsLoading, setSettingsLoading] = useState(() => !getCachedGlobalSettings());
   const isFetchingProfile = React.useRef(false);
   const isMountedRef = useRef(true);
 
@@ -179,6 +200,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const SystemSetting = await loadSystemSettingService();
       const settings = await SystemSetting.getAll();
+      if (settings && typeof settings === 'object') {
+        setCachedGlobalSettings(settings);
+      }
       if (isMountedRef.current) {
         setGlobalSettings((current) => (settingsAreEqual(current, settings) ? current : settings));
       }

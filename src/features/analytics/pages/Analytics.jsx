@@ -1,32 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { m } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import useAnalyticsData from '@/features/analytics/hooks/useAnalyticsData';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { cn } from '@/lib/cn';
-import { CONTAINER_VARIANTS } from '../constants';
 import { clamp01 } from '../utils';
 import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
-import AnalyticsHeader from '../components/AnalyticsHeader';
 import AnalyticsReport from '../components/AnalyticsReport';
-import EmptyAnalyticsState from '../components/EmptyAnalyticsState';
+import EmptyAnalyticsView from '../components/EmptyAnalyticsView';
 
 const PAGE_SHELL =
   'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5';
 
 function PageBackdrop() {
   return (
-    <>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
-      />
-    </>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
+    />
   );
 }
 
@@ -90,37 +80,6 @@ function AnalyticsError({ retry }) {
   );
 }
 
-function EmptyAnalytics({ headerProps }) {
-  return (
-    <div className={PAGE_SHELL}>
-      <PageBackdrop />
-      <m.div
-        variants={CONTAINER_VARIANTS}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 mx-auto max-w-[1600px] space-y-4"
-      >
-        <AnalyticsHeader {...headerProps} />
-        <div className="pt-2 pb-8">
-          <EmptyAnalyticsState
-            title="No Tests Completed Yet"
-            action={
-              <Link to="/dashboard">
-                <button
-                  type="button"
-                  className="h-10 rounded-lg bg-[#5a63df] px-6 text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-95"
-                >
-                  Start a Practice Test
-                </button>
-              </Link>
-            }
-          />
-        </div>
-      </m.div>
-    </div>
-  );
-}
-
 const getProgressToTarget = (stats) => {
   const score =
     stats?.overallEstimate != null && stats?.modulesWithData === 4
@@ -162,7 +121,15 @@ export default function Analytics() {
         noIndex
       />
       {!data.stats?.totalTests ? (
-        <EmptyAnalytics headerProps={headerProps} />
+        <div className={PAGE_SHELL}>
+          <PageBackdrop />
+          <EmptyAnalyticsView
+            headerProps={headerProps}
+            stats={data.stats}
+            user={data.user}
+            progressToTarget={getProgressToTarget(data.stats)}
+          />
+        </div>
       ) : (
         <div className={PAGE_SHELL}>
           <PageBackdrop />

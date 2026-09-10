@@ -191,12 +191,12 @@ export function TaskPanel({
           {/* Instructions Section */}
           {activeTask.instructions && (
             <div className="px-3.5 py-2 bg-[#f4f3fb]/20 dark:bg-transparent border-b border-[#ebeaf7] dark:border-white/[0.07]">
-              <h4 className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+              <h4 className="text-[9px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-1">
                 Instructions
               </h4>
               <div
                 className="prose prose-slate dark:prose-invert max-w-none 
-                           prose-p:text-slate-600 dark:prose-p:text-slate-400 
+                           prose-p:text-slate-600 dark:prose-p:text-slate-300 
                            prose-p:text-[11.5px] sm:prose-p:text-[12px] prose-p:font-normal prose-p:leading-snug
                            [&_p]:my-0 [&_p+p]:mt-0.5"
                 dangerouslySetInnerHTML={{ __html: formatInstructionHTML(activeTask.instructions) }}
@@ -282,7 +282,7 @@ export function TaskPanel({
                   >
                     <div
                       className="ql-editor p-0! min-h-0! prose prose-slate dark:prose-invert max-w-none 
-                                prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-8
+                                prose-p:text-slate-700 dark:prose-p:text-slate-200 prose-p:leading-8
                                 prose-headings:font-bold prose-headings:text-amber-950 dark:prose-headings:text-amber-100
                                 [&>p]:mb-4 [&_p]:mb-4 space-y-4 [&>*:first-child]:mt-0 font-serif"
                       dangerouslySetInnerHTML={{

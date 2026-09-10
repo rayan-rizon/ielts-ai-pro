@@ -95,21 +95,30 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
               {Array.from({ length: 7 }).map((_, dayIndex) => {
                 const day = week[dayIndex];
                 if (!day) return <span key={dayIndex} className="aspect-square w-full" />;
+                const isToday = toLocalKey(day.date) === toLocalKey(new Date());
                 return (
                   <Tip
                     key={dayIndex}
-                    content={`${day.count} session${day.count === 1 ? '' : 's'} · ${day.date.toLocaleDateString(
-                      undefined,
-                      { weekday: 'short', month: 'short', day: 'numeric' }
-                    )}`}
+                    content={
+                      isToday && day.count === 0
+                        ? `Today · No sessions yet — sit a test to log Day 1`
+                        : `${day.count} session${day.count === 1 ? '' : 's'} · ${day.date.toLocaleDateString(
+                            undefined,
+                            { weekday: 'short', month: 'short', day: 'numeric' }
+                          )}`
+                    }
                   >
                     <button
                       type="button"
                       aria-label={`${day.count} session${day.count === 1 ? '' : 's'} on ${day.date.toLocaleDateString(
                         undefined,
                         { weekday: 'short', month: 'short', day: 'numeric' }
-                      )}`}
-                      className="aspect-square w-full rounded-[3px] transition-transform duration-150 hover:scale-[1.2] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]"
+                      )}${isToday ? ' (Today)' : ''}`}
+                      className={cn(
+                        'aspect-square w-full rounded-[3px] transition-transform duration-150 hover:scale-[1.2] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]',
+                        isToday &&
+                          'ring-1 ring-[#5a63df] dark:ring-[#8f97ff] ring-offset-1 dark:ring-offset-[#141319]'
+                      )}
                       style={{
                         backgroundColor: `rgb(var(--panel-accent-tint) / ${opacityFor(day.count)})`,
                       }}
@@ -129,7 +138,7 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
             <FootNum>84</FootNum> days
           </>
         ) : (
-          <>nothing logged in the last 12 weeks</>
+          <>today is day 1 · complete any paper to log your first session</>
         )}
       </PanelFootnote>
     </div>

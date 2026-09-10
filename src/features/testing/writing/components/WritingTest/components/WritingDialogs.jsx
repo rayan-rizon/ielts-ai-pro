@@ -11,18 +11,15 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Lock, Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { useWritingTestDispatch } from '../context/WritingTestContext';
 import { ConfirmExitDialog, TimeUpDialog } from '@/shared/ui';
-import { IconChip, Pill, MUTED, PANEL } from '@/features/dashboard/components/primitives';
+import { IconChip, Pill, MUTED, MICRO, PANEL } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
-
-const UPGRADE_FEATURES = [
-  'Full IELTS Band Score (0-9)',
-  'Detailed Criteria Analysis',
-  'Grammar & Vocabulary Corrections',
-  'Personalized Improvement Tips',
-];
+import WritingUpgradeDialog from './WritingUpgradeDialog';
+import { useUserUsageStats } from '@/features/settings/hooks/useUserUsageStats';
+import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
+import { usePricing } from '@/features/subscription/hooks/usePricing';
 
 function FeedbackActionButton({ isAnalyzing, isSubmitting, onFeedback }) {
   return (
@@ -71,16 +68,24 @@ function SubmitActionButton({ isSubmitting, isExamMode, onSubmit, label }) {
 }
 
 function ExitConfirmationDialog({ open, onOpenChange, saveNow, isExiting, navigate }) {
+  const [isSaving, setIsSaving] = React.useState(false);
+
   return (
     <ConfirmExitDialog
       open={open}
       onOpenChange={onOpenChange}
       onCancel={() => onOpenChange(false)}
+      isConfirming={isSaving}
       onConfirm={async () => {
-        await saveNow();
-        isExiting.current = true;
-        onOpenChange(false);
-        navigate('/writing');
+        setIsSaving(true);
+        try {
+          await saveNow();
+        } finally {
+          isExiting.current = true;
+          setIsSaving(false);
+          onOpenChange(false);
+          navigate('/writing');
+        }
       }}
       title="Exit Test?"
       description="Your progress will be saved. You can resume this test later from your dashboard."
@@ -107,7 +112,7 @@ function WritingSubmitDialog({
       <AlertDialogContent
         className={cn(
           PANEL,
-          'max-w-[400px] gap-3 p-4 sm:p-4.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl'
+          'max-w-[400px] gap-3 p-4 sm:p-4.5 border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] rounded-xl shadow-lg shadow-black/5 dark:shadow-2xl dark:shadow-black/40'
         )}
       >
         <AlertDialogHeader className="space-y-1.5 text-left">
@@ -125,10 +130,22 @@ function WritingSubmitDialog({
               {isExamMode ? 'Exam Mode' : 'Practice'}
             </Pill>
           </div>
-          <AlertDialogDescription className={cn('text-xs leading-relaxed', MUTED)}>
-            {description}
-          </AlertDialogDescription>
         </AlertDialogHeader>
+
+        {/* Reassurance Instrument Strip */}
+        <div className="flex items-start gap-2.5 rounded-lg border border-[#e4e2f0] bg-[#f7f6fd] p-2.5 sm:p-3 text-xs dark:border-white/[0.07] dark:bg-white/[0.03]">
+          <div className="mt-0.5 shrink-0">
+            <CheckCircle2 className="h-4 w-4 text-[rgb(var(--signal-ok))]" strokeWidth={2.25} />
+          </div>
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <p className={cn(MICRO, 'text-slate-600 dark:text-slate-300 font-semibold')}>
+              {isExamMode ? 'Timed Evaluation' : 'Instant AI Feedback'}
+            </p>
+            <AlertDialogDescription className={cn('text-xs font-normal leading-relaxed', MUTED)}>
+              {description}
+            </AlertDialogDescription>
+          </div>
+        </div>
 
         <AlertDialogFooter className="gap-2 sm:justify-end sm:space-x-0">
           <AlertDialogCancel
@@ -203,71 +220,6 @@ function WritingTimeUpDialog({
   );
 }
 
-function UpgradeFeaturesList() {
-  return (
-    <div className="grid grid-cols-1 gap-4">
-      {UPGRADE_FEATURES.map((feature, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-4 text-sm font-semibold text-slate-700 dark:text-slate-300 group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-400 transition-colors group-hover:scale-110 duration-300">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          {feature}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function WritingUpgradeDialog({ open, onOpenChange, isExiting, navigate }) {
-  return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className={cn(PANEL, 'max-w-md overflow-hidden p-0')}>
-        {/* Header Section - Premium Dark */}
-        <div className="relative pt-10 pb-8 px-8 text-center bg-slate-900 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-          <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl border border-white/15 bg-white/8">
-            <Lock className="w-10 h-10 text-white drop-shadow-md" />
-          </div>
-
-          <div className="relative space-y-2 z-10">
-            <h3 className="text-2xl font-black tracking-tight text-white">Limit Reached</h3>
-            <p className="text-indigo-200 text-sm font-medium px-4 leading-relaxed">
-              You&apos;ve hit your monthly limit. Unlock <b>unlimited evaluations</b> and accelerate
-              your progress.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-8 space-y-8 bg-white dark:bg-[#131315]">
-          <UpgradeFeaturesList />
-
-          <div className="flex flex-col gap-3 pt-2">
-            <Button
-              onClick={() => {
-                isExiting.current = true;
-                navigate('/pricing');
-              }}
-              className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white h-14 rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:shadow-slate-900/30 dark:shadow-indigo-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Upgrade to Pro
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-              className="w-full h-12 rounded-2xl font-bold text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/6 transition-all"
-            >
-              Maybe Later
-            </Button>
-          </div>
-        </div>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
 /**
  * WritingDialogs
  *
@@ -276,6 +228,9 @@ function WritingUpgradeDialog({ open, onOpenChange, isExiting, navigate }) {
 export function WritingDialogs({ logic }) {
   const navigate = useNavigate();
   const { saveNow } = useWritingTestDispatch();
+  const { data: usageStats } = useUserUsageStats();
+  const { pricingConfig } = usePricing(DEFAULT_PRICING_PLANS);
+  const proWritingLimit = pricingConfig?.tierLimits?.pro?.writing_monthly_limit;
   const {
     showExitDialog,
     setShowExitDialog,
@@ -329,6 +284,8 @@ export function WritingDialogs({ logic }) {
         onOpenChange={setShowUpgradeDialog}
         isExiting={isExiting}
         navigate={navigate}
+        currentWritingUsage={usageStats?.ai?.writing}
+        proWritingLimit={proWritingLimit}
       />
     </>
   );

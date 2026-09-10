@@ -1,9 +1,30 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { configurePricingPlans } from '@/features/subscription/hooks/usePricing';
 import { calculateCheckoutAmount, getPlanPriceAndMeta, getPriceData } from '@/lib/pricingUtils';
+import { getWritingPartCapacity, getWritingQuotaUsage } from '@/lib/tierLimitsUtils';
+
+const adminLimitsSource = readFileSync(
+  resolve(process.cwd(), 'src/components/admin/settings/TierRateLimitsSettings.jsx'),
+  'utf8'
+);
 
 describe('pricing plan configuration', () => {
+  it('treats any two Writing part reviews as one configured evaluation', () => {
+    expect(getWritingPartCapacity(3)).toBe(6);
+    expect(getWritingQuotaUsage(1)).toBe(0.5);
+    expect(getWritingQuotaUsage(2)).toBe(1);
+    expect(getWritingQuotaUsage(6)).toBe(3);
+  });
+
+  it('refreshes learner and pricing quota data after an admin saves limits', () => {
+    expect(adminLimitsSource).toContain('clearLimitsCache()');
+    expect(adminLimitsSource).toContain("queryKey: ['tier-rate-limits']");
+    expect(adminLimitsSource).toContain("queryKey: ['subscription', 'pricingConfig']");
+  });
+
   it('only advertises learner features that are available in the product', () => {
     const catalog = DEFAULT_PRICING_PLANS.flatMap((plan) => [
       ...plan.features,

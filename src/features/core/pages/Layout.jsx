@@ -30,7 +30,10 @@ const AdminSidebar = lazy(() =>
 );
 
 const LayoutSkeleton = () => (
-  <div className="flex h-screen w-full bg-background overflow-hidden" data-oid="5mn8yv7">
+  <div
+    className="flex-1 flex h-full min-h-0 w-full bg-background overflow-hidden"
+    data-oid="5mn8yv7"
+  >
     {/* Sidebar Skeleton */}
     <div className="w-64 border-r p-4 hidden md:flex flex-col gap-6 bg-card/30" data-oid="1sh4d1-">
       <div className="flex items-center gap-3" data-oid="zht:tny">
@@ -191,7 +194,20 @@ export default function Layout({ children, currentPageName }) {
   if (isHydrating) {
     return (
       <SidebarStyles data-oid="8o5cs_-">
-        <LayoutSkeleton data-oid="-url2yn" />
+        <div
+          className="flex flex-col h-screen w-full bg-slate-50 dark:bg-[#070913] text-foreground overflow-hidden"
+          data-oid="69ossux-skel"
+        >
+          <OfflineBanner data-oid="-4d:8tg-skel" />
+
+          {showAnnouncement && (
+            <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl-skel">
+              <AnnouncementBanner announcement={announcement} data-oid="z:9x0:g-skel" />
+            </div>
+          )}
+
+          <LayoutSkeleton data-oid="-url2yn" />
+        </div>
       </SidebarStyles>
     );
   }

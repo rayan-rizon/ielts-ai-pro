@@ -104,8 +104,14 @@ export default function Pricing() {
   const useManualBdPayment = isBD && MANUAL_BD_PAYMENT_ENABLED;
 
   useEffect(() => {
-    if (user) {
+    const params = new URLSearchParams(window.location.search);
+    const planParam = params.get('plan');
+    if (planParam && ['free', 'pro', 'premium'].includes(planParam.toLowerCase())) {
+      setSelectedPlan(planParam.toLowerCase());
+    } else if (user) {
       setSelectedPlan(user.subscription_tier || 'free');
+    }
+    if (user) {
       setPromoDiscount(user.promo_discount || null);
     }
   }, [user]);
@@ -413,15 +419,7 @@ export default function Pricing() {
       <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-16 transition-colors duration-500 dark:bg-[#08080a]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-24 -left-24 z-0 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.4),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
         />
 
         <m.div

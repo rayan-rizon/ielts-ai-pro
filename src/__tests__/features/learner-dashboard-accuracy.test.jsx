@@ -7,6 +7,11 @@ import SessionLog from '@/features/dashboard/components/SessionLog';
 import SkillMasteryPanel from '@/features/dashboard/components/SkillMasteryPanel';
 import StatBand from '@/features/dashboard/components/StatBand';
 
+import ModuleMeters from '@/features/dashboard/components/ModuleMeters';
+import OverallBandPanel from '@/features/dashboard/components/OverallBandPanel';
+import BandTrajectoryChart from '@/features/dashboard/components/BandTrajectoryChart';
+import WeeklyMomentumChart from '@/features/dashboard/components/WeeklyMomentumChart';
+
 function Wrapper({ children }) {
   return (
     <MemoryRouter>
@@ -76,5 +81,61 @@ describe('Learner dashboard accuracy', () => {
     expect(screen.getByText('0.0')).toBeInTheDocument();
     expect(screen.getByText('set a target band')).toBeInTheDocument();
     expect(screen.queryByText('target 7.0')).not.toBeInTheDocument();
+  });
+
+  it('renders all 4 module meters in zero-state with direct navigation and guidance', () => {
+    render(<ModuleMeters stats={{ moduleAverages: {} }} recentTests={[]} />, { wrapper: Wrapper });
+
+    expect(screen.getByText('Choose any skill to establish your baseline')).toBeInTheDocument();
+    expect(screen.getByText('Reading')).toBeInTheDocument();
+    expect(screen.getByText('Listening')).toBeInTheDocument();
+    expect(screen.getByText('Writing')).toBeInTheDocument();
+    expect(screen.getByText('Speaking')).toBeInTheDocument();
+    expect(screen.getByText('complete any test to begin module comparison')).toBeInTheDocument();
+  });
+
+  it('renders OverallBandPanel zero-state with 0 of 4 pill and clickable module chips', () => {
+    render(<OverallBandPanel stats={{ moduleAverages: {} }} />, { wrapper: Wrapper });
+
+    expect(screen.getByText('0 of 4')).toBeInTheDocument();
+    expect(screen.getByText('awaiting module scores')).toBeInTheDocument();
+    expect(
+      screen.getByText('overall band = mean of the four modules, rounded to the nearest half')
+    ).toBeInTheDocument();
+  });
+
+  it('renders BandTrajectoryChart milestone progression in zero-state', () => {
+    render(<BandTrajectoryChart recentTests={[]} stats={{}} />, { wrapper: Wrapper });
+
+    expect(screen.getByText('Take first test to set baseline')).toBeInTheDocument();
+    expect(screen.getByText('Plot score trajectory & deltas')).toBeInTheDocument();
+  });
+
+  it('renders WeeklyMomentumChart 7-day velocity and today indicator in zero-state', () => {
+    render(<WeeklyMomentumChart weeklyProgress={[]} />, { wrapper: Wrapper });
+
+    expect(screen.getByText('Daily practice velocity')).toBeInTheDocument();
+    expect(screen.getByText('Now')).toBeInTheDocument();
+    expect(screen.getByText(/start your 7-day practice streak/i)).toBeInTheDocument();
+  });
+
+  it('renders starter test papers in SessionLog zero-state', () => {
+    render(<SessionLog recentTests={[]} />, { wrapper: Wrapper });
+
+    expect(screen.getByText('Starter tests')).toBeInTheDocument();
+    expect(screen.getByText('ready to sit')).toBeInTheDocument();
+    expect(screen.getByText(/Academic Reading · Diagnostic Set/i)).toBeInTheDocument();
+    expect(screen.getByText(/start any paper above to build your review log/i)).toBeInTheDocument();
+  });
+
+  it('renders question type previews and diagnostic CTA in SkillMasteryPanel zero-state', () => {
+    render(<SkillMasteryPanel skillProficiency={[]} />, { wrapper: Wrapper });
+
+    expect(
+      screen.getByText('Ranks your weak spots once questions are answered')
+    ).toBeInTheDocument();
+    expect(screen.getByText('True / False / Not Given')).toBeInTheDocument();
+    expect(screen.getByText('Matching Headings')).toBeInTheDocument();
+    expect(screen.getByText('Start diagnostic test to rank weak spots')).toBeInTheDocument();
   });
 });

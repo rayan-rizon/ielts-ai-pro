@@ -1,7 +1,7 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { BarChart3, Brain, Lock, TrendingUp } from 'lucide-react';
+import { Award, BarChart3, Brain, TrendingUp } from 'lucide-react';
 import { Empty, MICRO, MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
 
 /** Compact empty state — used inside an existing panel, so it takes no chrome of its own. */
@@ -28,7 +28,7 @@ const WHAT_YOU_GET = [
     desc: 'Your score over time, per module, against the target you set.',
   },
   {
-    icon: BarChart3,
+    icon: Award,
     title: 'Marking criteria',
     desc: 'Task Achievement, Coherence, Lexical Resource and Grammar — where marks are actually lost.',
   },
@@ -41,16 +41,9 @@ const WHAT_YOU_GET = [
 
 /**
  * First-run empty state — the whole page before any test is scored.
- *
- * The previous version rendered a blurred mock dashboard behind the card with
- * invented numbers (a 7.5 band, "+0.5 this week", "Daily goal met") and a
- * stock-avatar social-proof strip. None of that is real, and this project's
- * own rule is no fabricated numbers anywhere in the UI — so this tells the
- * learner what the page will show once they have a result, without pretending
- * they already have one.
  */
 export default function EmptyAnalyticsState({
-  icon: Icon = Lock,
+  icon: Icon = BarChart3,
   title,
   description,
   action,

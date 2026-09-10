@@ -5,6 +5,19 @@
 
 import { supabase } from '@/lib/supabase';
 
+export const WRITING_PARTS_PER_EVALUATION = 2;
+
+export function getWritingPartCapacity(evaluationLimit) {
+  if (evaluationLimit === -1 || evaluationLimit === '-1') return Infinity;
+  const normalized = Number(evaluationLimit);
+  return Number.isFinite(normalized) ? Math.max(0, normalized) * WRITING_PARTS_PER_EVALUATION : 0;
+}
+
+export function getWritingQuotaUsage(partReviewCount) {
+  const normalized = Number(partReviewCount);
+  return Number.isFinite(normalized) ? Math.max(0, normalized) / WRITING_PARTS_PER_EVALUATION : 0;
+}
+
 // Default fallback limits if database fetch fails
 const DEFAULT_LIMITS = {
   free: {

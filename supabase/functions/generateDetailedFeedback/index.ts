@@ -671,19 +671,6 @@ Register and tone:
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const inputHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
-    const { data: cachedEntry } = await supabase
-      .from('ai_feedback_cache')
-      .select('feedback_json')
-      .eq('input_hash', inputHash)
-      .maybeSingle();
-
-    if (cachedEntry && cachedEntry.feedback_json) {
-      return new Response(
-        JSON.stringify({ success: true, data: cachedEntry.feedback_json, cached: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const quotaReservation = await reserveDatabaseQuota(
       supabase,
       user.id,
@@ -701,6 +688,31 @@ Register and tone:
       return duplicateReservationResponse(
         corsHeaders,
         'This writing feedback is already being generated. Please wait for the existing result.'
+      );
+    }
+
+    // Cache saves provider cost, not learner entitlement. Reserve first so a
+    // globally cached essay review counts exactly like a newly generated one.
+    const { data: cachedEntry } = await supabase
+      .from('ai_feedback_cache')
+      .select('feedback_json')
+      .eq('input_hash', inputHash)
+      .maybeSingle();
+
+    if (cachedEntry?.feedback_json) {
+      const finalized = await finalizeApiUsage(supabase, quotaReservation.reservationId, 0, true, {
+        taskType,
+        inputHash,
+        provider: 'feedback-cache',
+      });
+      if (!finalized) {
+        throw new Error('Failed to finalize cached Writing quota reservation');
+      }
+      quotaReservationId = undefined;
+
+      return new Response(
+        JSON.stringify({ success: true, data: cachedEntry.feedback_json, cached: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

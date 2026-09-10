@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { cn } from '@/lib/cn';
 import { Stat } from './primitives';
 import { buildStatBandModel } from './statBandModel';
 
@@ -15,9 +17,30 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
     // to the full row width below `lg` closes that gap instead of leaving a
     // half-empty row; at `lg` the grid is exactly 5-wide so it reverts to 1.
     <div className="grid grid-cols-2 gap-1.5 [&>*:last-child]:col-span-2 lg:grid-cols-5 lg:[&>*:last-child]:col-span-1">
-      {tiles.map(({ key, ...tile }) => (
-        <Stat key={key} size="sm" className="px-2.5 py-1.5" {...tile} />
-      ))}
+      {tiles.map(({ key, href, ...tile }) => {
+        const content = (
+          <Stat
+            size="sm"
+            className={cn(
+              'h-full px-2.5 py-1.5',
+              href && 'transition-colors hover:border-[#5a63df]/40 dark:hover:border-[#8f97ff]/40'
+            )}
+            {...tile}
+          />
+        );
+
+        return href ? (
+          <Link
+            key={key}
+            to={href}
+            className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+          >
+            {content}
+          </Link>
+        ) : (
+          <div key={key}>{content}</div>
+        );
+      })}
     </div>
   );
 });

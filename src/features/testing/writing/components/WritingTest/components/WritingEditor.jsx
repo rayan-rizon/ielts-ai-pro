@@ -150,7 +150,10 @@ export function WritingEditor({
               >
                 {title || 'Writing Workspace'}
               </h3>
-              <p className="text-[10px] text-slate-400 font-medium" data-oid="m8-5q3s">
+              <p
+                className="text-[10px] text-slate-400 dark:text-slate-400 font-medium"
+                data-oid="m8-5q3s"
+              >
                 {subtitle || 'Write your response below'}
               </p>
             </div>
@@ -226,15 +229,20 @@ export function WritingEditor({
                                [&_.ql-editor]:text-[16px]
                                [&_.ql-editor]:leading-8
                                [&_.ql-editor]:font-serif
-                               [&_.ql-editor]:text-slate-700
+                               text-slate-800 dark:text-slate-100
+                               [&_.ql-editor]:text-slate-800
                                dark:[&_.ql-editor]:text-slate-100
+                               [&_.ql-editor_p]:text-slate-800
+                               dark:[&_.ql-editor_p]:text-slate-100
+                               [&_.ql-editor_*]:text-inherit
                                [&_.ql-editor::placeholder]:text-slate-400/50
-                               [&_.ql-editor::placeholder]:font-sans
+                               dark:[&_.ql-editor::placeholder]:text-slate-400/60
                                [&_.ql-editor]:focus:outline-none
                                [&_.ql-toolbar]:hidden
                                [&_.ql-container]:overflow-y-auto
                                [&_.ql-editor.ql-blank::before]:font-sans
                                [&_.ql-editor.ql-blank::before]:text-slate-400/50
+                               dark:[&_.ql-editor.ql-blank::before]:text-slate-400/60
                                [&_.ql-editor.ql-blank::before]:not-italic"
               modules={{
                 toolbar: false,
@@ -255,12 +263,12 @@ export function WritingEditor({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] text-slate-500 dark:text-slate-300">
               Auto-saved to cloud
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-300">
             <span>{(localValue || '').replace(/<[^>]*>?/gm, '').length} characters</span>
             <span className="w-px h-3 bg-slate-200 dark:bg-white/10"></span>
             <span>Estimated: {Math.max(1, Math.ceil(localWordCount / 200))} min read</span>

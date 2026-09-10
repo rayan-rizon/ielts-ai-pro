@@ -120,4 +120,65 @@ describe('Reading assistant UI', () => {
     expect(screen.getByText('01')).toBeInTheDocument();
     expect(screen.getByText('02')).toBeInTheDocument();
   });
+
+  it('renders compact quota exceeded view with upgrade CTA when daily limit is reached', () => {
+    render(
+      <MemoryRouter>
+        <SentenceAssistantPopover
+          assistant={{
+            action: 'translate',
+            loading: false,
+            result: null,
+            error: 'You have used today’s free Translate results. They reset at midnight UTC.',
+            quotaExceeded: true,
+            position: { x: 200, y: 120 },
+          }}
+          status={{ freeDailyAssists: 5, remainingByAction: { translate: 0, breakdown: 4 } }}
+          language="bn"
+          onLanguageChange={vi.fn()}
+          onActionChange={vi.fn()}
+          onClose={vi.fn()}
+          isMobile={false}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Daily free limit reached')).toBeInTheDocument();
+    expect(screen.getByText('Resets 00:00 UTC')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "You've used today's free Translate assists. Upgrade for unlimited access, or switch to Breakdown."
+      )
+    ).toBeInTheDocument();
+    const upgradeLink = screen.getByRole('link', { name: /upgrade for unlimited assists/i });
+    expect(upgradeLink).toBeInTheDocument();
+    expect(upgradeLink).toHaveAttribute('href', '/pricing');
+  });
+
+  it('constrains dialog position so it never overflows over the left navbar / sidebar', () => {
+    render(
+      <MemoryRouter>
+        <SentenceAssistantPopover
+          assistant={{
+            action: 'translate',
+            loading: false,
+            result: { translated: 'অনুবাদ', language: 'Bengali' },
+            selection: {
+              panelBounds: { left: 64, right: 600, top: 50, bottom: 800 },
+            },
+            // Clicked near the very left edge of the passage
+            position: { x: 80, y: 70 },
+          }}
+          status={{ freeDailyAssists: 5, remainingByAction: { translate: 4, breakdown: 5 } }}
+          language="bn"
+          onLanguageChange={vi.fn()}
+          onActionChange={vi.fn()}
+          onClose={vi.fn()}
+          isMobile={false}
+        />
+      </MemoryRouter>
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Reading assistant' });
+    // Left edge must be >= panelBounds.left + 12 (64 + 12 = 76px)
+    expect(parseInt(dialog.style.left, 10)).toBeGreaterThanOrEqual(76);
+  });
 });

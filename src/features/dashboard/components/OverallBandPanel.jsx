@@ -1,11 +1,9 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Award } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { roundOverallBand } from '@/features/core/components/calculator/calculatorData';
 import {
-  Empty,
   FootNum,
   MICRO,
   MUTED,
@@ -19,10 +17,10 @@ import {
 } from './primitives';
 
 const MODULES = [
-  { key: 'listening', short: 'L' },
-  { key: 'reading', short: 'R' },
-  { key: 'writing', short: 'W' },
-  { key: 'speaking', short: 'S' },
+  { key: 'listening', short: 'L', label: 'Listening', page: 'Listening' },
+  { key: 'reading', short: 'R', label: 'Reading', page: 'Reading' },
+  { key: 'writing', short: 'W', label: 'Writing', page: 'Writing' },
+  { key: 'speaking', short: 'S', label: 'Speaking', page: 'Speaking' },
 ];
 
 /**
@@ -52,16 +50,15 @@ const OverallBandPanel = React.memo(({ stats }) => {
     });
 
     const scored = rows.filter((row) => row.band != null);
-    if (scored.length === 0) return { rows, scored, overall: null };
-
-    const mean = scored.reduce((sum, row) => sum + row.band, 0) / scored.length;
+    const mean =
+      scored.length > 0 ? scored.reduce((sum, row) => sum + row.band, 0) / scored.length : null;
     const target = Number(stats?.targetScore);
 
     return {
       rows,
       scored,
       mean,
-      overall: roundOverallBand(mean),
+      overall: mean != null ? roundOverallBand(mean) : null,
       complete: scored.length === MODULES.length,
       missing: rows.filter((row) => row.band == null).map((row) => row.key),
       target: Number.isFinite(target) && target > 0 ? target : null,
@@ -78,108 +75,121 @@ const OverallBandPanel = React.memo(({ stats }) => {
         accent
         tip="The mean of your four module bands, each counted once, rounded to the nearest half band — the way IELTS reports it. Not the same as the session average above."
         action={
-          overall != null ? (
-            <Pill tone={complete ? 'accent' : 'warn'}>
-              {complete ? 'all 4 modules' : `${scored.length} of 4`}
-            </Pill>
-          ) : null
+          <Pill tone={overall != null ? (complete ? 'accent' : 'warn') : 'neutral'}>
+            {complete ? 'all 4 modules' : `${scored.length} of 4`}
+          </Pill>
         }
       />
 
-      {overall == null ? (
-        <Empty icon={Award} className="flex-1 content-center">
-          No module scored yet — your overall band appears once a test is marked.
-          <Link
-            to={createPageUrl('Reading')}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#5a63df] hover:underline"
-          >
-            Take first test →
-          </Link>
-        </Empty>
-      ) : (
-        <div className="flex flex-1 flex-col justify-between gap-3">
-          <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-baseline gap-1.5">
-                <span
-                  className={cn(
-                    NUM,
-                    'text-[40px] font-extrabold leading-none text-slate-900 dark:text-slate-50'
-                  )}
-                >
-                  {overall.toFixed(1)}
-                </span>
-                <span className={cn(MICRO, MUTED)}>/ 9</span>
-              </div>
-              <p className={cn(MICRO, MUTED, 'mt-2')}>
-                from a <FootNum>{mean.toFixed(2)}</FootNum> mean
-              </p>
-            </div>
-
-            {target != null ? (
-              <div className="shrink-0 text-right">
-                <p className={cn(MICRO, MUTED)}>target</p>
-                <p
-                  className={cn(
-                    NUM,
-                    'mt-1 text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
-                  )}
-                >
-                  {target.toFixed(1)}
-                </p>
-                <p
-                  className={cn(
-                    NUM,
-                    'mt-1.5 text-[10px] font-bold',
-                    gap > 0 ? 'text-[rgb(var(--signal-warn))]' : 'text-[rgb(var(--signal-ok))]'
-                  )}
-                >
-                  {gap > 0 ? `${gap.toFixed(1)} to go` : 'reached'}
-                </p>
-              </div>
-            ) : (
-              <Link
-                to={createPageUrl('Onboarding')}
-                className={cn(MICRO, PANEL_LINK, 'shrink-0 min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
-              >
-                set a target
-              </Link>
-            )}
-          </div>
-
-          {/* The four inputs to the number above, so it is never a figure the
-              learner has to take on trust. Unscored modules stay visibly empty
-              rather than being dropped from the row. */}
-          <div className="grid grid-cols-4 gap-1.5">
-            {rows.map((row) => (
-              <div
-                key={row.key}
+      <div className="flex flex-1 flex-col justify-between gap-3">
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-1.5">
+              <span
                 className={cn(
-                  WELL,
-                  'flex flex-col items-center justify-center rounded-md py-1.5',
-                  row.band == null && 'opacity-60'
+                  NUM,
+                  'text-[40px] font-extrabold leading-none',
+                  overall != null
+                    ? 'text-slate-900 dark:text-slate-50'
+                    : 'text-slate-400 dark:text-slate-500'
                 )}
               >
-                <span className={cn(MICRO, MUTED, 'leading-none')} aria-hidden="true">
-                  {row.short}
-                </span>
-                <span className="sr-only">{row.label}</span>
-                <span
-                  className={cn(
-                    NUM,
-                    'mt-1 text-sm font-bold leading-none',
-                    row.band != null
-                      ? 'text-slate-900 dark:text-slate-50'
-                      : 'text-slate-400 dark:text-slate-500'
-                  )}
-                >
-                  {row.band != null ? row.band.toFixed(1) : '—'}
-                </span>
-              </div>
-            ))}
+                {overall != null ? overall.toFixed(1) : '—'}
+              </span>
+              <span className={cn(MICRO, MUTED)}>/ 9</span>
+            </div>
+            <p className={cn(MICRO, MUTED, 'mt-2')}>
+              {mean != null ? (
+                <>
+                  from a <FootNum>{mean.toFixed(2)}</FootNum> mean
+                </>
+              ) : (
+                'awaiting module scores'
+              )}
+            </p>
           </div>
+
+          {target != null ? (
+            <div className="shrink-0 text-right">
+              <p className={cn(MICRO, MUTED)}>target</p>
+              <p
+                className={cn(
+                  NUM,
+                  'mt-1 text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
+                )}
+              >
+                {target.toFixed(1)}
+              </p>
+              <p
+                className={cn(
+                  NUM,
+                  'mt-1.5 text-[10px] font-bold',
+                  gap != null && gap > 0
+                    ? 'text-[rgb(var(--signal-warn))]'
+                    : gap != null
+                      ? 'text-[rgb(var(--signal-ok))]'
+                      : 'text-slate-400 dark:text-slate-500'
+                )}
+              >
+                {gap != null ? (gap > 0 ? `${gap.toFixed(1)} to go` : 'reached') : 'set'}
+              </p>
+            </div>
+          ) : (
+            <Link
+              to={createPageUrl('Onboarding')}
+              className={cn(MICRO, PANEL_LINK, 'shrink-0 min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
+            >
+              set a target
+            </Link>
+          )}
         </div>
-      )}
+
+        {/* The four inputs to the number above, so it is never a figure the
+            learner has to take on trust. Unscored modules stay visibly empty
+            and act as quick-launch routes to start each test. */}
+        <div className="grid grid-cols-4 gap-1.5">
+          {rows.map((row) => (
+            <Link
+              key={row.key}
+              to={createPageUrl(row.page)}
+              title={
+                row.band != null
+                  ? `${row.label}: Band ${row.band.toFixed(1)}`
+                  : `Start ${row.label} test`
+              }
+              className={cn(
+                WELL,
+                'group flex flex-col items-center justify-center rounded-md border border-transparent py-1.5 transition-all duration-150',
+                'hover:border-[#5a63df]/30 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:border-[#8f97ff]/30',
+                row.band == null && 'opacity-70 hover:opacity-100'
+              )}
+            >
+              <span
+                className={cn(
+                  MICRO,
+                  'leading-none transition-colors group-hover:text-[#5a63df] dark:group-hover:text-[#afb5ff]',
+                  row.band != null ? 'text-slate-600 dark:text-slate-300 font-extrabold' : MUTED
+                )}
+                aria-hidden="true"
+              >
+                {row.short}
+              </span>
+              <span className="sr-only">{row.label}</span>
+              <span
+                className={cn(
+                  NUM,
+                  'mt-1 text-sm font-bold leading-none',
+                  row.band != null
+                    ? 'text-slate-900 dark:text-slate-50'
+                    : 'text-slate-400 dark:text-slate-500'
+                )}
+              >
+                {row.band != null ? row.band.toFixed(1) : '—'}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <PanelFootnote>
         {overall == null ? (

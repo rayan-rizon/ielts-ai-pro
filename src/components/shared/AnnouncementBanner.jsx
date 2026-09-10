@@ -151,7 +151,10 @@ const PromoCodeChip = ({ code, tone }) => {
 const AnnouncementBanner = ({ announcement, preview = false }) => {
   const config = normalizeAnnouncement(announcement);
   const signature = announcementSignature(config);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (preview) return false;
+    return Boolean(config.dismissible && readDismissed().includes(signature));
+  });
 
   useEffect(() => {
     setDismissed(!preview && config.dismissible && readDismissed().includes(signature));
@@ -172,85 +175,86 @@ const AnnouncementBanner = ({ announcement, preview = false }) => {
   const Icon = tone.icon;
   const body = config.message?.trim();
   const title = config.title?.trim();
-
-  if (dismissed || (!body && !title)) return null;
+  const isVisible = !dismissed && Boolean(body || title);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: 'auto', opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-        role="status"
-        className={cn(
-          'group relative z-100 w-full overflow-hidden transition-all duration-300',
-          tone.surface
-        )}
-      >
-        {/* Subtle glowing accent highlight line across top border */}
-        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r/srgb from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
+    <AnimatePresence initial={false}>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          role="status"
+          className={cn(
+            'group relative z-100 w-full overflow-hidden transition-all duration-300',
+            tone.surface
+          )}
+        >
+          {/* Subtle glowing accent highlight line across top border */}
+          <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r/srgb from-transparent via-[#5a63df]/40 to-transparent dark:via-[#8f97ff]/45" />
 
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-10 py-2.5 sm:px-14">
-          {/* Subtle Icon Chip */}
-          <span
-            className={cn(
-              'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-transform duration-200 group-hover:scale-105',
-              tone.chipBg
-            )}
-          >
-            <Icon
-              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-6"
-              strokeWidth={2.25}
-            />
-          </span>
-
-          <p className="min-w-0 truncate text-xs sm:text-[13px] leading-snug">
-            {title && (
-              <span className={cn('font-black tracking-tight mr-1.5', tone.title)}>{title}</span>
-            )}
-            {title && body && (
-              <span className="inline-block h-1 w-1 rounded-full bg-slate-300 dark:bg-white/20 mx-1.5 align-middle shrink-0" />
-            )}
-            {body && <span className={cn('font-medium', tone.body)}>{body}</span>}
-          </p>
-
-          {config.promo_code && <PromoCodeChip code={config.promo_code} tone={tone.accent} />}
-
-          {config.link_url && (
-            <a
-              href={config.link_url}
-              target={config.link_url.startsWith('http') ? '_blank' : undefined}
-              rel="noopener noreferrer"
+          <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-10 py-2.5 sm:px-14">
+            {/* Subtle Icon Chip */}
+            <span
               className={cn(
-                'hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1 text-[11px] font-extrabold tracking-wide transition-all duration-200 hover:scale-[1.03] active:scale-95 sm:inline-flex shadow-sm',
-                tone.accent
+                'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-transform duration-200 group-hover:scale-105',
+                tone.chipBg
               )}
             >
-              {config.link_label || 'Learn more'}
-              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </a>
-          )}
-        </div>
+              <Icon
+                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-6"
+                strokeWidth={2.25}
+              />
+            </span>
 
-        {config.dismissible && (
-          <button
-            type="button"
-            onClick={dismiss}
-            aria-label="Dismiss announcement"
-            title="Dismiss"
-            className={cn(
-              'absolute right-2.5 top-1/2 grid h-6 w-6 shrink-0 -translate-y-1/2 place-items-center rounded-full border transition-all duration-200 active:scale-95 sm:right-3.5',
-              tone.dismiss || DEFAULT_DISMISS
+            <p className="min-w-0 truncate text-xs sm:text-[13px] leading-snug">
+              {title && (
+                <span className={cn('font-black tracking-tight mr-1.5', tone.title)}>{title}</span>
+              )}
+              {title && body && (
+                <span className="inline-block h-1 w-1 rounded-full bg-slate-300 dark:bg-white/20 mx-1.5 align-middle shrink-0" />
+              )}
+              {body && <span className={cn('font-medium', tone.body)}>{body}</span>}
+            </p>
+
+            {config.promo_code && <PromoCodeChip code={config.promo_code} tone={tone.accent} />}
+
+            {config.link_url && (
+              <a
+                href={config.link_url}
+                target={config.link_url.startsWith('http') ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                className={cn(
+                  'hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1 text-[11px] font-extrabold tracking-wide transition-all duration-200 hover:scale-[1.03] active:scale-95 sm:inline-flex shadow-sm',
+                  tone.accent
+                )}
+              >
+                {config.link_label || 'Learn more'}
+                <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </a>
             )}
-          >
-            <X
-              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90"
-              strokeWidth={2.25}
-            />
-          </button>
-        )}
-      </motion.div>
+          </div>
+
+          {config.dismissible && (
+            <button
+              type="button"
+              onClick={dismiss}
+              aria-label="Dismiss announcement"
+              title="Dismiss"
+              className={cn(
+                'absolute right-2.5 top-1/2 grid h-6 w-6 shrink-0 -translate-y-1/2 place-items-center rounded-full border transition-all duration-200 active:scale-95 sm:right-3.5',
+                tone.dismiss || DEFAULT_DISMISS
+              )}
+            >
+              <X
+                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-90"
+                strokeWidth={2.25}
+              />
+            </button>
+          )}
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 };

@@ -48,7 +48,10 @@ describe('writing feedback session helpers', () => {
   it('explains a multi-task quota shortfall before evaluating either task', () => {
     expect(
       getWritingEvaluationCreditMessage(2, { daily_remaining: 1, monthly_remaining: 3 })
-    ).toContain('needs 2 feedback credits, but you have 1 credit remaining');
+    ).toContain('includes 2 task reviews, but you have 1 task review remaining');
+    expect(
+      getWritingEvaluationCreditMessage(2, { daily_remaining: 1, monthly_remaining: 3 })
+    ).toContain('Every 2 task reviews count as 1 Writing evaluation');
   });
 
   it('stores safe, actionable evaluation failure evidence', () => {

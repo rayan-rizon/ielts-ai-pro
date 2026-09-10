@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
-  BookOpenCheck,
   BrainCircuit,
+  ChevronDown,
   Languages,
   Lightbulb,
   LoaderCircle,
@@ -12,15 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import {
-  MICRO,
-  MUTED,
-  NUM,
-  PANEL,
-  Pill,
-  TILE,
-  TITLE,
-} from '@/features/dashboard/components/primitives';
+import { MICRO, MUTED, NUM, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
 import { READING_TRANSLATION_LANGUAGES } from '@/features/testing/reading/services/readingAiLanguages';
 
 function TranslateAiIcon({ className }) {
@@ -41,54 +33,98 @@ const ACTIONS = [
   { id: 'breakdown', label: 'Breakdown', icon: BrainCircuit },
 ];
 
+const RTL_LANGUAGES = new Set(['ar', 'fa', 'ur']);
+
+const PASSAGE_SELECTORS = [
+  '[data-testid="passage-panel"]',
+  '[data-passage-body]',
+  '.passage-content',
+  '#passage-container',
+];
+
+const SIDEBAR_SELECTORS = ['[data-sidebar="sidebar"]', 'aside', '[data-slot="sidebar"]'];
+
+function isVisibleLeftRail(rect) {
+  if (!rect) return false;
+  const isPositiveWidth = rect.right > 0;
+  const isOnScreen = rect.left >= 0;
+  const isLeftHalf = rect.right < window.innerWidth / 2;
+  return isPositiveWidth && isOnScreen && isLeftHalf;
+}
+
+function resolvePanelBounds(assistant) {
+  const selectionBounds = assistant.selection?.panelBounds;
+  if (selectionBounds) return selectionBounds;
+  if (typeof document === 'undefined') return null;
+
+  for (const selector of PASSAGE_SELECTORS) {
+    const element = document.querySelector(selector);
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+    }
+  }
+  return null;
+}
+
+function resolveSidebarRight() {
+  if (typeof document === 'undefined') return 0;
+
+  for (const selector of SIDEBAR_SELECTORS) {
+    const sidebar = document.querySelector(selector);
+    if (sidebar) {
+      const rect = sidebar.getBoundingClientRect();
+      if (isVisibleLeftRail(rect)) {
+        return rect.right;
+      }
+    }
+  }
+  return 0;
+}
+
+function calculatePopoverWidth(bounds) {
+  if (!bounds) return 352;
+  const availableWidth = bounds.right - bounds.left - 24;
+  return Math.min(352, Math.max(160, availableWidth));
+}
+
 function desktopPosition(assistant) {
-  const bounds = assistant.selection?.panelBounds;
-  const availableWidth = bounds ? Math.max(160, bounds.right - bounds.left - 24) : 340;
-  const width = Math.min(340, availableWidth);
-  const minLeft = Math.max(12, (bounds?.left || 0) + 12);
-  const maxLeft = Math.max(minLeft, (bounds?.right || window.innerWidth) - width - 12);
+  const bounds = resolvePanelBounds(assistant);
+  const sidebarRight = resolveSidebarRight();
+  const width = calculatePopoverWidth(bounds);
+
+  const minSafeLeft = Math.max(12, sidebarRight + 12);
+  const panelLeft = (bounds?.left ?? 0) + 12;
+  const minLeft = Math.max(minSafeLeft, panelLeft);
+
+  const panelRight = bounds?.right ?? window.innerWidth;
+  const maxLeft = Math.max(minLeft, panelRight - width - 12);
   const desiredLeft = assistant.position.x - width / 2;
+
+  const minSafeTop = bounds ? Math.max(12, bounds.top + 8) : 12;
+  const maxSafeTop = window.innerHeight - 380;
+  const desiredTop = assistant.position.y + 10;
+
   return {
     width,
     left: Math.round(Math.min(maxLeft, Math.max(minLeft, desiredLeft))),
-    top: Math.round(Math.max(12, Math.min(window.innerHeight - 380, assistant.position.y + 10))),
+    top: Math.round(Math.max(minSafeTop, Math.min(maxSafeTop, desiredTop))),
   };
 }
 
-function SimplifyResult({ result }) {
-  return (
-    <div className="rounded-lg border border-[#e4e2f0] bg-[#f8f7fd] p-3 dark:border-white/[0.08] dark:bg-white/[0.035]">
-      <div className="mb-1.5 flex items-center gap-1.5">
-        <Sparkles className="size-2.5 text-[#5a63df] dark:text-[#afb5ff]" />
-        <span className={cn(MICRO, MUTED, 'text-[8.5px] tracking-wider')}>Simplified sentence</span>
-      </div>
-      <p className="text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100">
-        {result.simplified}
-      </p>
-    </div>
-  );
-}
-
-function TranslateResult({ result, language }) {
-  const isRtl = ['ar', 'fa', 'ur'].includes(language);
+function SentenceResultCard({ title, text, language }) {
+  const isRtl = language ? RTL_LANGUAGES.has(language) : false;
   return (
     <div
       dir={isRtl ? 'rtl' : 'auto'}
       className="rounded-lg border border-[#e4e2f0] bg-[#f8f7fd] p-3 dark:border-white/[0.08] dark:bg-white/[0.035]"
     >
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="size-2.5 text-[#5a63df] dark:text-[#afb5ff]" />
-          <span className={cn(MICRO, MUTED, 'text-[8.5px] tracking-wider')}>Translation</span>
-        </div>
-        {result.language ? (
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            {result.language}
-          </span>
-        ) : null}
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <Sparkles className="size-2.5 text-[#5a63df] dark:text-[#afb5ff]" />
+        <span className={cn(MICRO, MUTED, 'text-[8.5px] tracking-wider')}>{title}</span>
       </div>
       <p className="text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100">
-        {result.translated}
+        {text}
       </p>
     </div>
   );
@@ -183,10 +219,10 @@ function BreakdownResult({ result }) {
 function Result({ action, result, language }) {
   if (!result) return null;
   if (action === 'simplify') {
-    return <SimplifyResult result={result} />;
+    return <SentenceResultCard title="Simplified sentence" text={result.simplified} />;
   }
   if (action === 'translate') {
-    return <TranslateResult result={result} language={language} />;
+    return <SentenceResultCard title="Translation" text={result.translated} language={language} />;
   }
   return <BreakdownResult result={result} />;
 }
@@ -240,23 +276,27 @@ function LanguageSelect({ language, onLanguageChange }) {
   return (
     <div className="flex items-center gap-1.5 min-w-0">
       <label
-        className={cn(MICRO, MUTED, 'text-[8.5px] shrink-0')}
         htmlFor="reading-translation-language"
+        className={cn(MICRO, MUTED, 'text-[8.5px] shrink-0 select-none')}
       >
-        Translate to
+        To
       </label>
-      <select
-        id="reading-translation-language"
-        value={language}
-        onChange={(event) => onLanguageChange(event.target.value)}
-        className="h-7 rounded-md border border-[#e4e2f0] bg-white px-2 text-xs font-semibold text-slate-700 shadow-2xs dark:border-white/10 dark:bg-[#1b1a23] dark:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-      >
-        {READING_TRANSLATION_LANGUAGES.map(({ code, label }) => (
-          <option key={code} value={code}>
-            {label}
-          </option>
-        ))}
-      </select>
+      <div className="relative inline-flex items-center">
+        <select
+          id="reading-translation-language"
+          aria-label="Translate to"
+          value={language}
+          onChange={(event) => onLanguageChange(event.target.value)}
+          className="h-6.5 appearance-none rounded-md border border-[#e4e2f0] bg-white pl-2 pr-5 text-[11.5px] font-semibold text-slate-800 shadow-2xs transition-colors hover:border-[#5a63df]/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-[#1b1a23] dark:text-slate-200 cursor-pointer"
+        >
+          {READING_TRANSLATION_LANGUAGES.map(({ code, label }) => (
+            <option key={code} value={code}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-1.5 size-3 text-slate-400 dark:text-slate-500" />
+      </div>
     </div>
   );
 }
@@ -264,25 +304,30 @@ function LanguageSelect({ language, onLanguageChange }) {
 function QuotaBanner({ action, status }) {
   const meteredLabel = QUOTA_LABELS[action];
   if (!meteredLabel) return null;
-  const remaining = status?.remainingByAction?.[action];
+  const remaining =
+    typeof status?.remainingByAction?.[action] === 'number'
+      ? status.remainingByAction[action]
+      : status?.remainingDailyQuota;
   if (typeof remaining !== 'number') return null;
   const freeAllowance = status?.freeDailyAssists ?? 5;
   const isWarn = remaining <= 1;
 
   return (
     <div
-      title={`${remaining} of ${freeAllowance} free ${meteredLabel.toLowerCase()} left today`}
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium leading-none shrink-0 select-none transition-colors',
+        'inline-flex h-6.5 items-center gap-1.5 rounded-md border px-2 text-[10.5px] font-medium leading-none shrink-0 select-none transition-colors',
         isWarn
           ? 'border-amber-500/25 bg-amber-500/[0.08] text-amber-700 dark:border-amber-400/25 dark:bg-amber-400/15 dark:text-amber-300'
           : 'border-[#5a63df]/20 bg-[#5a63df]/[0.06] text-[#5a63df] dark:border-[#afb5ff]/25 dark:bg-[#afb5ff]/10 dark:text-[#afb5ff]'
       )}
+      title={`${remaining} of ${freeAllowance} free ${meteredLabel.toLowerCase()} left today`}
     >
-      <span className={cn(NUM, 'font-bold')}>{remaining}</span>
-      <span className="opacity-40">/</span>
-      <span className={cn(NUM, 'opacity-70')}>{freeAllowance}</span>
-      <span className="text-[9.5px]">free today</span>
+      <span className="flex items-center gap-0.5">
+        <span className={cn(NUM, 'font-bold')}>{remaining}</span>
+        <span className="text-[10px] opacity-40">/</span>
+        <span className={cn(NUM, 'text-[10.5px] opacity-70')}>{freeAllowance}</span>
+      </span>
+      <span className="text-[10px] text-slate-500 dark:text-slate-400">free today</span>
       <span className="sr-only">
         {remaining} of {freeAllowance} free {meteredLabel} left today
       </span>
@@ -315,39 +360,42 @@ function AssistantErrorView({ error, quotaExceeded, action }) {
 
     return (
       <div
-        className="rounded-lg border border-amber-500/25 bg-amber-500/[0.04] p-3 text-xs dark:border-amber-400/20 dark:bg-amber-400/[0.05]"
+        className="space-y-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.04] p-2.5 text-xs dark:border-amber-400/20 dark:bg-amber-400/[0.05]"
         role="alert"
       >
-        <div className="mb-1.5 flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
-          <Sparkles className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-          <span className="text-[12.5px] font-bold">
-            Daily free {isBreakdown ? 'breakdowns' : 'translations'} used
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+            <Sparkles className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span className="text-[11.5px] font-bold">Daily free limit reached</span>
+          </div>
+          <span className={cn(NUM, 'text-[9.5px] text-slate-400 dark:text-slate-500 shrink-0')}>
+            Resets 00:00 UTC
           </span>
         </div>
-        <p className="text-[12px] leading-relaxed text-slate-700 dark:text-slate-200">{error}</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-          {otherAction} has its own separate free allowance today, or upgrade for unlimited assists.
+
+        <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+          You&apos;ve used today&apos;s free {isBreakdown ? 'Breakdown' : 'Translate'} assists.
+          Upgrade for unlimited access, or switch to {otherAction}.
         </p>
-        <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-amber-500/15 pt-2 dark:border-amber-400/15">
-          <Link
-            to="/pricing"
-            className="inline-flex items-center gap-1.5 rounded-md bg-[#5a63df] px-2.5 py-1 text-[11px] font-semibold text-white shadow-2xs transition-colors hover:bg-[#4a52c9] active:scale-[0.98] cursor-pointer"
-          >
-            <Sparkles className="size-3" />
-            <span>See upgrade options</span>
-            <ArrowRight className="size-3" />
-          </Link>
-          <span className={cn(NUM, 'text-[10px] text-slate-400 dark:text-slate-500')}>
-            Resets midnight UTC
-          </span>
-        </div>
+
+        <Link
+          to="/pricing"
+          className="group flex h-8 w-full items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-[11.5px] font-bold text-white shadow-xs transition-all duration-150 hover:bg-[#4d55cc] active:scale-[0.98] cursor-pointer"
+        >
+          <Sparkles className="size-3.5 text-[#dcdfff] transition-transform group-hover:scale-110" />
+          <span>Upgrade for Unlimited Assists</span>
+          <ArrowRight className="size-3.5 text-[#dcdfff] transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </div>
     );
   }
 
   return (
     <div
-      className={cn(TILE, 'space-y-1.5 p-3 text-xs dark:border-white/[0.08] dark:bg-white/[0.035]')}
+      className={cn(
+        TILE,
+        'space-y-1.5 p-2.5 text-xs dark:border-white/[0.08] dark:bg-white/[0.035]'
+      )}
       role="alert"
     >
       <p className="font-semibold text-rose-600 dark:text-rose-400">{error}</p>
@@ -449,9 +497,12 @@ export default function SentenceAssistantPopover({
                 </div>
               ) : assistant.action === 'breakdown' ? (
                 <div className="mb-2.5 flex items-center justify-between gap-2 px-0.5">
-                  <span className={cn(MICRO, MUTED, 'text-[8.5px] tracking-wider')}>
-                    Sentence breakdown
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <BrainCircuit className="size-3 text-[#5a63df] dark:text-[#afb5ff]" />
+                    <span className={cn(MICRO, MUTED, 'text-[8.5px] tracking-wider')}>
+                      Sentence breakdown
+                    </span>
+                  </div>
                   <QuotaBanner action={assistant.action} status={status} />
                 </div>
               ) : null}

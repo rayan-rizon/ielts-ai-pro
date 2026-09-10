@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/features/auth/hooks/useUserProfile';
+import { getWritingQuotaUsage } from '@/lib/tierLimitsUtils';
 
 // Conservative fallback limits used only if the DB call fails
 const FALLBACK_LIMITS = {
@@ -73,10 +74,12 @@ export function useUserUsageStats() {
       // Fetch AI usage stats (Writing & Speaking)
       const { data: aiUsage, error: aiError } = await supabase
         .from('ai_api_usage')
-        .select('endpoint')
+        .select('endpoint, cached, request_metadata')
         .eq('user_id', user.id)
-        .gte('created_at', new Date(new Date().setDate(1)).toISOString()) // Current month
-        .eq('cached', false);
+        .gte(
+          'created_at',
+          new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString()
+        );
 
       if (aiError) throw aiError;
 
@@ -104,12 +107,19 @@ export function useUserUsageStats() {
       if (testError) throw testError;
 
       // Process counts
-      const writingUsed =
-        aiUsage?.filter((r) => r.endpoint === 'generateDetailedFeedback').length || 0;
+      const completedUsage = (aiUsage || []).filter(
+        (row) => row.request_metadata?.reservationStatus !== 'failed'
+      );
+      const writingPartReviews = completedUsage.filter(
+        (row) => row.endpoint === 'generateDetailedFeedback'
+      ).length;
+      const writingUsed = getWritingQuotaUsage(writingPartReviews);
       // Must match the DB RPC (check_user_rate_limit) which counts 'processSpeakingSession_start'
       // This counts test STARTS (not report generation) — so abandoned tests still count toward quota
       const speakingUsed =
-        aiUsage?.filter((r) => r.endpoint === 'processSpeakingSession_start').length || 0;
+        completedUsage.filter(
+          (row) => row.endpoint === 'processSpeakingSession_start' && row.cached === false
+        ).length || 0;
 
       const testCounts = (testSessions || []).reduce(
         (acc, curr) => {

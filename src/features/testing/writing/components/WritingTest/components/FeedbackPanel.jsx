@@ -15,9 +15,13 @@ import {
   Info,
   Download,
   LoaderCircle,
+  Lock,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { cn } from '@/lib/cn';
+import { PANEL, WELL, Pill, MICRO, NUM, MUTED } from '@/features/dashboard/components/primitives';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingAnalysis from './WritingAnalysis';
 import {
@@ -288,29 +292,99 @@ function ScoreRing({ score }) {
 }
 
 function ErrorState({ feedbackError, handleGetFeedback }) {
+  const setShowUpgradeDialog = useWritingTestStore((s) => s.setShowUpgradeDialog);
+  const isQuotaError =
+    typeof feedbackError === 'string' &&
+    (feedbackError.includes('task review') ||
+      feedbackError.includes('evaluation') ||
+      feedbackError.includes('allowance') ||
+      feedbackError.includes('Upgrade'));
+
   return (
     <motion.div
       key="error"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex min-h-[480px] flex-1 items-center justify-center p-6 text-center"
+      transition={{ duration: 0.25 }}
+      className="flex min-h-[480px] flex-1 items-center justify-center p-4 sm:p-6 text-center"
     >
-      <div className="max-w-sm rounded-2xl border border-rose-200 bg-white p-7 shadow-sm dark:border-rose-500/20 dark:bg-[#131315]">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10">
-          <AlertTriangle className="h-6 w-6" />
+      <div
+        className={cn(
+          PANEL,
+          'relative w-full max-w-[460px] overflow-hidden p-6 sm:p-7 text-center shadow-md sm:shadow-lg'
+        )}
+      >
+        {/* Subtle background radial texture matching Learner Panel dialogs */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[16px_16px] opacity-[0.06] dark:opacity-[0.10]"
+        />
+
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Status Icon Badge */}
+          <div
+            className={cn(
+              'mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl border shadow-xs',
+              isQuotaError
+                ? 'border-amber-500/25 bg-amber-500/10 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300'
+                : 'border-rose-500/25 bg-rose-500/10 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/15 dark:text-rose-300'
+            )}
+          >
+            {isQuotaError ? (
+              <Lock className="h-5 w-5" strokeWidth={2.25} />
+            ) : (
+              <AlertTriangle className="h-5 w-5" strokeWidth={2.25} />
+            )}
+          </div>
+
+          {/* Eyebrow Pill */}
+          <div className="mb-2">
+            <Pill
+              tone={isQuotaError ? 'amber' : 'fault'}
+              className="text-[10px] px-2.5 py-0.5 font-bold uppercase tracking-wider"
+            >
+              {isQuotaError ? 'Allowance Limit' : 'Review Interrupted'}
+            </Pill>
+          </div>
+
+          {/* Centered Title */}
+          <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 text-center w-full">
+            We could not finish the review
+          </h2>
+
+          {/* Refined Description Box */}
+          <div className="mt-3 w-full rounded-xl border border-[#e4e2f0] bg-[#fbfbfe] px-4 py-3 dark:border-white/[0.07] dark:bg-white/[0.02]">
+            <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
+              {feedbackError || 'The analysis service is temporarily unavailable.'}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-5 flex w-full flex-col gap-2 sm:gap-2.5">
+            {isQuotaError && (
+              <Button
+                onClick={() => setShowUpgradeDialog(true)}
+                className="h-11 w-full rounded-xl bg-[#5a63df] px-4 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#4a52c9] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Upgrade to Pro</span>
+                <ArrowUpRight className="h-4 w-4" strokeWidth={2.25} />
+              </Button>
+            )}
+            <Button
+              onClick={handleGetFeedback}
+              variant={isQuotaError ? 'ghost' : 'default'}
+              className={cn(
+                'w-full rounded-xl text-xs font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer',
+                isQuotaError
+                  ? 'h-9 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                  : 'h-11 bg-[#5a63df] text-white hover:bg-[#4a52c9] shadow-xs'
+              )}
+            >
+              <RefreshCw className="h-3.5 w-3.5" strokeWidth={2.25} />
+              <span>Try again</span>
+            </Button>
+          </div>
         </div>
-        <h2 className="mt-4 text-xl font-black text-slate-900 dark:text-white">
-          We could not finish the review
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-          {feedbackError || 'The analysis service is temporarily unavailable.'}
-        </p>
-        <Button
-          onClick={handleGetFeedback}
-          className="mt-5 h-11 rounded-xl bg-[#5661e9] px-5 font-bold text-white hover:bg-[#4853d6]"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" /> Try again
-        </Button>
       </div>
     </motion.div>
   );

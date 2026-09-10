@@ -38,6 +38,7 @@ const buildTargetTile = ({ gap, target }) => ({
   value: gap == null ? '—' : gap.toFixed(1),
   unit: gap == null ? null : 'bands',
   sub: target == null ? 'set a target band' : `target ${target.toFixed(1)}`,
+  href: target == null ? '/onboarding' : null,
   tip:
     target == null
       ? 'Set a target band in onboarding to track the remaining gap.'
@@ -75,6 +76,7 @@ const buildExamTile = (daysToExam, weekTests) => {
     value: hasUpcomingExam ? daysToExam : '—',
     unit: hasUpcomingExam ? 'days' : null,
     sub: buildExamSub(daysToExam, weekTests),
+    href: !hasUpcomingExam ? '/onboarding' : null,
     tip: "Days until the test date on your profile, with the rate you're practising at now.",
   };
 };

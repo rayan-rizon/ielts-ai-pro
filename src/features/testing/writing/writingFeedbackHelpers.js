@@ -83,9 +83,9 @@ export function getWritingEvaluationCreditMessage(required, quota) {
       Number.isFinite(monthlyRemaining) ? monthlyRemaining : Number.POSITIVE_INFINITY
     )
   );
-  const requiredLabel = `${required} feedback credit${required === 1 ? '' : 's'}`;
-  const remainingLabel = `${remaining} credit${remaining === 1 ? '' : 's'} remaining`;
-  return `This complete Writing test needs ${requiredLabel}, but you have ${remainingLabel}. Upgrade or wait for your credits to reset before starting the evaluation.`;
+  const requiredLabel = `${required} task review${required === 1 ? '' : 's'}`;
+  const remainingLabel = `${remaining} task review${remaining === 1 ? '' : 's'} remaining`;
+  return `This request includes ${requiredLabel}, but you have ${remainingLabel}. Every 2 task reviews count as 1 Writing evaluation. Upgrade or wait for your allowance to reset before starting the evaluation.`;
 }
 
 export function summarizeWritingEvaluationFailure(error, attemptedTasks) {

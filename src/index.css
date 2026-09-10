@@ -954,12 +954,24 @@
   border: 0 !important;
   color: #e2e8f0 !important;
 }
-.dark .ql-editor {
+.dark .ql-editor,
+.dark .ql-editor p,
+.dark .ql-editor span,
+.dark .ql-editor li,
+.dark .ql-editor div,
+.dark .ql-editor h1,
+.dark .ql-editor h2,
+.dark .ql-editor h3 {
   color: #f1f5f9 !important;
-  background-color: #131315 !important;
+}
+.dark .ql-editor strong {
+  color: #ffffff !important;
+}
+.dark .ql-editor em {
+  color: #cbd5e1 !important;
 }
 .dark .ql-editor.ql-blank::before {
-  color: #64748b !important;
+  color: #94a3b8 !important;
 }
 .dark .ql-snow .ql-stroke {
   stroke: #cbd5e1 !important;

@@ -7,7 +7,6 @@ import {
   ACCENT_FILL,
   ACCENT_FILL_HOVER,
   Delta,
-  Empty,
   FootNum,
   MICRO,
   MUTED,
@@ -89,77 +88,78 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
         }
       />
 
-      {scored.length === 0 ? (
-        <Empty>
-          No scored modules yet — complete a test to start this chart.
-          <Link
-            to={createPageUrl('Reading')}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#5a63df] hover:underline"
-          >
-            Start Reading test →
-          </Link>
-        </Empty>
-      ) : (
-        // Four rows against a three-item neighbour left a void at the bottom of
-        // the card; spreading them keeps the row heights honest and the panel full.
-        <div className="flex flex-1 flex-col justify-between gap-2 py-0.5">
-          {rows.map((row) => (
-            <Tip
-              key={row.key}
-              content={
-                row.avg != null
-                  ? `${row.label} — band ${row.avg.toFixed(1)} average${
-                      row.latestScore != null ? `, latest ${row.latestScore.toFixed(1)}` : ''
-                    }`
-                  : `${row.label} — not taken yet`
-              }
-            >
-              <Link
-                to={createPageUrl(row.page)}
-                className="group flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
-              >
-                <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
-                  <div
-                    className={cn(
-                      'absolute inset-y-0 left-0 rounded-md transition-all duration-700',
-                      ACCENT_FILL,
-                      ACCENT_FILL_HOVER
-                    )}
-                    style={{ width: `${row.avg != null ? (row.avg / 9) * 100 : 0}%` }}
-                  />
-                  <div className="relative flex h-full items-center justify-between px-3">
-                    <span className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
-                      {row.label}
-                    </span>
-                    {row.delta != null ? (
-                      <Delta value={row.delta} />
-                    ) : row.avg == null ? (
-                      <span className={cn(MICRO, MUTED)}>not taken</span>
-                    ) : null}
-                  </div>
-                </div>
-                <span
-                  className={cn(
-                    NUM,
-                    'w-9 shrink-0 text-right text-sm font-bold',
-                    row.avg != null
-                      ? 'text-slate-900 dark:text-slate-50'
-                      : 'text-slate-400 dark:text-slate-500'
-                  )}
-                >
-                  {row.avg != null ? row.avg.toFixed(1) : '—'}
-                </span>
-              </Link>
-            </Tip>
-          ))}
-        </div>
+      {scored.length === 0 && (
+        <p className={cn(MICRO, MUTED, 'mb-2')}>Choose any skill to establish your baseline</p>
       )}
+
+      <div className="flex flex-1 flex-col justify-between gap-2 py-0.5">
+        {rows.map((row) => (
+          <Tip
+            key={row.key}
+            content={
+              row.avg != null
+                ? `${row.label} — band ${row.avg.toFixed(1)} average${
+                    row.latestScore != null ? `, latest ${row.latestScore.toFixed(1)}` : ''
+                  }`
+                : `${row.label} — start a test to establish baseline`
+            }
+          >
+            <Link
+              to={createPageUrl(row.page)}
+              className="group flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
+            >
+              <div
+                className={cn(
+                  'relative h-8 flex-1 overflow-hidden rounded-md border border-transparent transition-all duration-150',
+                  WELL,
+                  row.avg == null && 'hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30'
+                )}
+              >
+                <div
+                  className={cn(
+                    'absolute inset-y-0 left-0 rounded-md transition-all duration-700',
+                    ACCENT_FILL,
+                    ACCENT_FILL_HOVER
+                  )}
+                  style={{ width: `${row.avg != null ? (row.avg / 9) * 100 : 0}%` }}
+                />
+                <div className="relative flex h-full items-center justify-between px-3">
+                  <span className="truncate text-[11px] font-extrabold text-slate-800 transition-colors group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
+                    {row.label}
+                  </span>
+                  {row.delta != null ? (
+                    <Delta value={row.delta} />
+                  ) : row.avg == null ? (
+                    <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff]">
+                      <span className="group-hover:hidden">not taken</span>
+                      <span className="hidden group-hover:inline">start test →</span>
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              <span
+                className={cn(
+                  NUM,
+                  'w-9 shrink-0 text-right text-sm font-bold',
+                  row.avg != null
+                    ? 'text-slate-900 dark:text-slate-50'
+                    : 'text-slate-400 dark:text-slate-500'
+                )}
+              >
+                {row.avg != null ? row.avg.toFixed(1) : '—'}
+              </span>
+            </Link>
+          </Tip>
+        ))}
+      </div>
 
       <PanelFootnote>
         {spread != null ? (
           <>
             <FootNum>{spread.toFixed(1)}</FootNum> band between strongest and weakest
           </>
+        ) : scored.length === 0 ? (
+          <>complete any test to begin module comparison</>
         ) : (
           <>score two modules to compare them</>
         )}
