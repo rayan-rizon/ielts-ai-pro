@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
   Loader2,
-  AlertCircle,
   Eye,
   EyeOff,
   Mail,
@@ -35,6 +34,14 @@ import { AuthLeftPanel } from '@/features/auth/components/AuthLeftPanel';
 import { VerificationView } from '@/features/auth/components/VerificationView';
 import { trackAppEvent } from '@/lib/tracking';
 import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
+import { AuthErrorNotice } from '@/features/auth/components/AuthErrorNotice';
+import {
+  OUTAGE_COPY,
+  SERVICE_ERROR,
+  trackServiceError,
+  getServiceOutageState,
+  subscribeToServiceOutage,
+} from '@/lib/serviceOutage';
 import {
   getAuthRateLimitWaitSeconds,
   isAuthRateLimitError,
@@ -46,6 +53,11 @@ import {
 } from '@/features/auth/utils/authDestination';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { user, loading, signIn, signUp, authCheckComplete } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -56,12 +68,28 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const emailAuthInFlight = useRef(false);
   const [error, setError] = useState('');
+  // Set only when the failure is ours (network, 5xx, timeout). Keeps an
+  // infrastructure outage from being presented as a bad password.
+  const [isOutage, setIsOutage] = useState(
+    () =>
+      (Boolean(import.meta.env?.DEV) && searchParams.get('outage') === '1') ||
+      getServiceOutageState().since !== null
+  );
+
+  useEffect(() => {
+    return subscribeToServiceOutage((state) => {
+      setIsOutage(state.since !== null);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (import.meta.env?.DEV) {
+      window.__triggerOutage = () => setIsOutage(true);
+      window.__clearOutage = () => setIsOutage(false);
+    }
+  }, []);
   const [info, setInfo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const { user, loading, signIn, signUp, authCheckComplete } = useAuth();
 
   const [authMode, setAuthMode] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin' or 'signup'
   const [isResending, setIsResending] = useState(false);
@@ -107,7 +135,10 @@ export default function Login() {
             navigate(dest, { replace: true });
           })
           .catch((err) => {
-            setError(err.message || 'Google sign in failed');
+            const kind = trackServiceError(err, 'login.google');
+            const outage = kind === SERVICE_ERROR.OUTAGE;
+            setIsOutage(outage);
+            setError(outage ? OUTAGE_COPY.body : err.message || 'Google sign in failed');
             setIsOAuthProcessing(false);
             setIsLoading(false);
           });
@@ -177,6 +208,7 @@ export default function Login() {
     }
     setTouched({ email: true, password: true, username: true });
     setError('');
+    setIsOutage(false);
     setInfo('');
 
     if (!email.trim() || !password.trim()) {
@@ -240,7 +272,18 @@ export default function Login() {
     } catch (err) {
       console.error('Authentication failed:', err);
       const msg = (err?.message || 'Authentication failed. Please try again.').toLowerCase();
-      if (isAuthRateLimitError(err)) {
+      // Classify BEFORE the message checks: a Supabase outage must never fall
+      // through to a credential-shaped message. Reporting it here also raises
+      // the app-wide outage banner for anyone already signed in.
+      const kind = trackServiceError(err, 'login.email');
+      setIsOutage(kind === SERVICE_ERROR.OUTAGE);
+      if (kind === SERVICE_ERROR.OUTAGE) {
+        setLockoutTime(null);
+        setError(OUTAGE_COPY.body);
+      } else if (kind === SERVICE_ERROR.OFFLINE) {
+        setLockoutTime(null);
+        setError('You appear to be offline. Check your connection and try again.');
+      } else if (isAuthRateLimitError(err)) {
         const waitSeconds = getAuthRateLimitWaitSeconds(err);
         setLockoutTime(Date.now() + waitSeconds * 1000);
         setError(`Too many requests. Please wait ${waitSeconds} seconds before trying again.`);
@@ -313,9 +356,17 @@ export default function Login() {
     window.location.href = url.toString();
   };
 
+  // Manual retry from the outage notice. One deliberate attempt per click —
+  // an auto-retry loop from every browser only slows the backend's recovery.
+  const handleOutageRetry = () => {
+    if (isLoading || emailAuthInFlight.current) return;
+    handleEmailAuth({ preventDefault: () => {} });
+  };
+
   const toggleAuthMode = () => {
     setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
     setError('');
+    setIsOutage(false);
     setInfo('');
     setShowVerification(false);
     setUsername('');
@@ -515,25 +566,12 @@ export default function Login() {
                         </div>
 
                         <form onSubmit={handleEmailAuth} className="space-y-3" data-oid="c8_-x0z">
-                          <AnimatePresence mode="wait" data-oid="-_crrvk">
-                            {error && (
-                              <motion.div
-                                layout
-                                initial={{ opacity: 0, y: -10, height: 0 }}
-                                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                exit={{ opacity: 0, y: -10, height: 0 }}
-                                role="alert"
-                                className="flex items-start gap-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-xs font-medium leading-relaxed text-rose-900 dark:border-rose-800/30 dark:bg-rose-500/8 dark:text-rose-100"
-                                data-oid="g-p0fth"
-                              >
-                                <AlertCircle
-                                  className="mt-0.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400"
-                                  data-oid="m1mz93p"
-                                />
-                                <span data-oid="wg7u86l">{error}</span>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                          <AuthErrorNotice
+                            message={error}
+                            isOutage={isOutage}
+                            onRetry={isOutage ? handleOutageRetry : undefined}
+                            retrying={isLoading}
+                          />
 
                           <div className="space-y-3" data-oid=".0y:ls2">
                             {authMode === 'signup' && (

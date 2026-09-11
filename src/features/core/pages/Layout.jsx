@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
 import LearnerMarketingSurface from '@/features/marketing/components/LearnerMarketingSurface';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import ServiceOutageBanner from '@/components/shared/ServiceOutageBanner';
 import { isAnnouncementLive } from '@/lib/communications';
 import { cn } from '@/lib/cn';
 
@@ -112,8 +113,23 @@ function isDashboardRoute(currentPageName, pathname) {
   return currentPageName === 'Dashboard' || pathname === '/dashboard';
 }
 
-function shouldShowAnnouncementBanner({ isDashboard, isAdminView, announcement, user }) {
-  if (!isDashboard || isAdminView) return false;
+function isLearnerChromeReady({ user, userProfile, adminCheckComplete, isAdmin }) {
+  if (!user || !userProfile || !adminCheckComplete || isAdmin) return false;
+
+  // `isAdmin` is authoritative only after the profile check completes. Keep
+  // learner-only promotions hidden while that check is pending, and use the
+  // resolved profile as a second fail-closed guard for admin accounts.
+  return userProfile.role !== 'admin';
+}
+
+function shouldShowAnnouncementBanner({
+  isDashboard,
+  isAdminView,
+  learnerChromeReady,
+  announcement,
+  user,
+}) {
+  if (!isDashboard || isAdminView || !learnerChromeReady) return false;
   return isAnnouncementLive(announcement, {
     isAuthenticated: Boolean(user),
     tier: user?.subscription_tier,
@@ -178,6 +194,7 @@ function HydrationSkeletonShell({ showAnnouncement, announcement }) {
         data-oid="69ossux-skel"
       >
         <OfflineBanner data-oid="-4d:8tg-skel" />
+        <ServiceOutageBanner />
 
         {showAnnouncement && (
           <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl-skel">
@@ -191,7 +208,7 @@ function HydrationSkeletonShell({ showAnnouncement, announcement }) {
   );
 }
 
-function AppSidebar({ isAdminView, user, location, handleLogout }) {
+function AppSidebar({ isAdminView, user, location, handleLogout, learnerChromeReady }) {
   return (
     <Sidebar
       collapsible="icon"
@@ -223,6 +240,7 @@ function AppSidebar({ isAdminView, user, location, handleLogout }) {
             user={user}
             location={location}
             handleLogout={handleLogout}
+            showUpgradeOffer={learnerChromeReady}
             data-oid="45utb8k"
           />
         )}
@@ -237,6 +255,7 @@ function MainContentArea({
   isTestPage,
   isAdminView,
   user,
+  learnerChromeReady,
   isDashboardPage,
   locationPathname,
   mainContentRef,
@@ -275,7 +294,7 @@ function MainContentArea({
             className="animate-panel-in min-h-full"
             data-oid="page-transition"
           >
-            {!isAdminView && user && isDashboardPage && (
+            {!isAdminView && learnerChromeReady && isDashboardPage && (
               <LearnerMarketingSurface user={user} dashboardOnly />
             )}
             {children}
@@ -303,17 +322,33 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [location.pathname, location.search, location.key]);
 
-  const { user, loading: authLoading, signOut, authCheckComplete, announcement } = useAuth();
+  const {
+    user,
+    userProfile,
+    loading: authLoading,
+    signOut,
+    authCheckComplete,
+    adminCheckComplete,
+    isAdmin,
+    announcement,
+  } = useAuth();
 
   const isAdminView = ADMIN_PAGES.includes(currentPageName);
   const isTestPage = TEST_PAGES.includes(currentPageName);
   const isAdminLogin = currentPageName === 'AdminLogin';
   const isPublicPage = PUBLIC_PAGES.includes(currentPageName);
   const isDashboardPage = isDashboardRoute(currentPageName, location.pathname);
+  const learnerChromeReady = isLearnerChromeReady({
+    user,
+    userProfile,
+    adminCheckComplete,
+    isAdmin,
+  });
 
   const showAnnouncement = shouldShowAnnouncementBanner({
     isDashboard: isDashboardPage,
     isAdminView,
+    learnerChromeReady,
     announcement,
     user,
   });
@@ -359,6 +394,7 @@ export default function Layout({ children, currentPageName }) {
         data-oid="69ossux"
       >
         <OfflineBanner data-oid="-4d:8tg" />
+        <ServiceOutageBanner />
 
         {showAnnouncement && (
           <div className="w-full shrink-0 relative z-10" data-oid="hm7p_sl">
@@ -379,12 +415,14 @@ export default function Layout({ children, currentPageName }) {
               user={user}
               location={location}
               handleLogout={handleLogout}
+              learnerChromeReady={learnerChromeReady}
             />
 
             <MainContentArea
               isTestPage={isTestPage}
               isAdminView={isAdminView}
               user={user}
+              learnerChromeReady={learnerChromeReady}
               isDashboardPage={isDashboardPage}
               locationPathname={location.pathname}
               mainContentRef={mainContentRef}

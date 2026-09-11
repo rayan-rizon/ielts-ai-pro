@@ -15,6 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { OUTAGE_COPY, isServiceOutageError, trackServiceError } from '@/lib/serviceOutage';
+import { savePendingManualPayment } from '@/features/subscription/services/pendingManualPayment';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
@@ -140,7 +142,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
       }
       if (!currentUserId) throw new Error('User not authenticated');
 
-      const { error } = await supabase.from('payment_requests').insert({
+      const paymentRequest = {
         auth_id: currentUserId,
         tier: data.tier,
         interval: data.interval,
@@ -152,9 +154,19 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
         status: 'pending',
         marketing_campaign_id: data.marketingCampaignId || null,
         marketing_delivery_id: data.marketingDeliveryId || null,
-      });
+      };
 
-      if (error) throw error;
+      const { error } = await supabase.from('payment_requests').insert(paymentRequest);
+
+      if (error) {
+        // The learner has already sent the money at this point. If we cannot
+        // reach the backend, hold the reference locally and replay it rather
+        // than losing a real payment behind a generic error toast.
+        if (isServiceOutageError(error)) {
+          error.__paymentRequest = paymentRequest;
+        }
+        throw error;
+      }
 
       trackAppEvent('manual_subscription_request_submitted', {
         path: '/pricing',
@@ -170,6 +182,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
       toast.success('Payment request submitted successfully');
     } catch (err) {
       console.error('Payment submission error:', err);
+      const kind = trackServiceError(err, 'manualPayment.submit');
 
       trackAppEvent('manual_subscription_request_failed', {
         path: '/pricing',
@@ -177,9 +190,20 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
         billing_interval: data?.interval,
         payment_method: selectedMethod?.id,
         reason: err?.message || 'manual_payment_request_failed',
+        failure_kind: kind,
       });
 
-      toast.error(err.message || 'Failed to submit payment request');
+      if (isServiceOutageError(err)) {
+        const held = savePendingManualPayment(err.__paymentRequest);
+        toast.error(
+          held
+            ? "We couldn't reach our servers, so your transaction ID is saved on this device and will be submitted automatically. Do NOT send the money again."
+            : `${OUTAGE_COPY.body} Please keep your transaction ID and try again in a few minutes — do NOT send the money again.`,
+          { duration: 12000 }
+        );
+      } else {
+        toast.error(err.message || 'Failed to submit payment request');
+      }
     } finally {
       setIsSubmitting(false);
     }

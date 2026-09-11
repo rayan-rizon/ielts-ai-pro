@@ -22,6 +22,12 @@ import { clearMarketingAttribution } from '@/lib/marketingAttribution';
 import { requirePublicEnv } from '@/lib/publicEnv';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
+import {
+  OUTAGE_COPY,
+  isServiceOutageError,
+  reportServiceOutage,
+  reportServiceRecovered,
+} from '@/lib/serviceOutage';
 
 const MAX_RETRIES = 10;
 const POLL_INTERVAL = 2000;
@@ -30,6 +36,9 @@ const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 
 // A valid Stripe Checkout session ID always starts with 'cs_'
 const isValidSessionId = (id) => typeof id === 'string' && id.startsWith('cs_') && id.length > 10;
+
+/** Sentinel meaning "the backend never answered", as distinct from "still free". */
+const OUTAGE = Symbol('backend-unreachable');
 
 export default function SubscriptionSuccess() {
   const navigate = useNavigate();
@@ -41,6 +50,9 @@ export default function SubscriptionSuccess() {
   // 'idle' → 'verifying' → 'success' | 'pending' | 'invalid'
   const [status, setStatus] = useState('idle');
   const [subscriptionData, setSubscriptionData] = useState(null);
+  // True when we failed to CONFIRM the purchase rather than failed to FIND one.
+  // Drives the reassuring "your payment went through" copy on the pending screen.
+  const [couldNotVerify, setCouldNotVerify] = useState(false);
   const confirmedPlan = configuredPlans.find((plan) => plan.tier === subscriptionData?.tier);
   const confirmedWritingFeature = confirmedPlan?.features.find((feature) =>
     feature.includes('AI Writing Evaluation')
@@ -65,17 +77,22 @@ export default function SubscriptionSuccess() {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
-        if (!response.ok) return false;
+        // A 5xx means the sync service is down, not that the purchase is bogus.
+        if (response.status >= 500) return { ok: false, reachable: false };
+        if (!response.ok) return { ok: false, reachable: true };
         const result = await response.json();
-        return result.success === true;
-      } catch {
+        return { ok: result.success === true, reachable: true };
+      } catch (err) {
         clearTimeout(timeoutId);
-        return false;
+        // Transport failure or our own abort timeout — we simply do not know.
+        return { ok: false, reachable: !isServiceOutageError(err) };
       }
     },
     [sessionId]
   );
 
+  // Returns the subscription when confirmed, `null` when the backend answered
+  // and the user is genuinely still free, and OUTAGE when we could not reach it.
   const checkSubscriptionStatus = useCallback(async () => {
     try {
       const userData = await User.me();
@@ -92,7 +109,11 @@ export default function SubscriptionSuccess() {
         };
       }
       return null;
-    } catch {
+    } catch (err) {
+      if (isServiceOutageError(err)) {
+        reportServiceOutage('subscriptionSuccess.checkStatus');
+        return OUTAGE;
+      }
       return null;
     }
   }, []);
@@ -124,7 +145,7 @@ export default function SubscriptionSuccess() {
 
       // ── GUARD 3: Check if already subscribed (webhook beat us) ────────────
       const existingData = await checkSubscriptionStatus();
-      if (existingData && isMounted) {
+      if (existingData && existingData !== OUTAGE && isMounted) {
         const { trackingActor, ...subscription } = existingData;
         setSubscriptionData(subscription);
         setStatus('success');
@@ -157,15 +178,26 @@ export default function SubscriptionSuccess() {
       // valid, we still try to sync. But if after all retries they're still
       // free, don't show "Activation Pending" — show "Invalid Session" because
       // this session_id doesn't belong to them.
-      const synced = await syncStripeSession(authSession);
-      console.info('[SubscriptionSuccess] Sync result:', synced);
+      const syncResult = await syncStripeSession(authSession);
+      const synced = syncResult.ok;
+      console.info('[SubscriptionSuccess] Sync result:', syncResult);
+
+      // Any moment where the backend did not answer means we cannot honestly
+      // claim "no purchase found" — we only know we could not check.
+      let backendUnreachable = existingData === OUTAGE || !syncResult.reachable;
 
       const pollForSubscription = async (attempt = 0) => {
         if (!isMounted) return;
 
         const subData = await checkSubscriptionStatus();
 
-        if (subData) {
+        if (subData === OUTAGE) {
+          backendUnreachable = true;
+        } else if (subData) {
+          reportServiceRecovered();
+        }
+
+        if (subData && subData !== OUTAGE) {
           const { trackingActor, ...subscription } = subData;
           try {
             sessionStorage.removeItem('auth_profile_cache');
@@ -202,11 +234,22 @@ export default function SubscriptionSuccess() {
               path: '/subscription/success',
               session_id_present: Boolean(sessionId),
               synced,
+              backend_unreachable: backendUnreachable,
             });
-            // At this point, after 10 polls the user is STILL free. The session_id
-            // doesn't match this account (shared link, wrong login, etc.).
-            // Show 'invalid' instead of the misleading 'pending' screen.
-            setStatus('invalid');
+            // Two very different endings, and telling a payer the wrong one is
+            // the most expensive mistake this page can make:
+            //
+            //  - backendUnreachable: our systems never answered. The money may
+            //    well have moved. Reassure, and never say "no purchase found".
+            //  - otherwise: the backend answered every time and the account is
+            //    still free, so this session_id isn't theirs (shared link,
+            //    wrong login). 'invalid' is the honest answer.
+            if (backendUnreachable) {
+              setCouldNotVerify(true);
+              setStatus('pending');
+            } else {
+              setStatus('invalid');
+            }
           }
           return;
         }
@@ -219,7 +262,16 @@ export default function SubscriptionSuccess() {
 
     run().catch((err) => {
       console.error('[SubscriptionSuccess] Fatal error:', err);
-      if (isMounted) setStatus('invalid');
+      if (!isMounted) return;
+      // Same rule as above: an unreachable backend is never presented to a
+      // paying user as a missing purchase.
+      if (isServiceOutageError(err)) {
+        reportServiceOutage('subscriptionSuccess.fatal');
+        setCouldNotVerify(true);
+        setStatus('pending');
+        return;
+      }
+      setStatus('invalid');
     });
 
     return () => {
@@ -377,9 +429,9 @@ export default function SubscriptionSuccess() {
   }
 
   // ─── Activation Pending (transient webhook delay — still a real payment) ─────
-  // Only shown when session_id was valid but we couldn't confirm within retries.
-  // This is a real "webhook slow" scenario — not a free-user accessing the page.
-  // NOTE: with the new guard above, free users never reach this state anymore.
+  // Reached when the session_id was valid but we could not confirm the purchase:
+  // either the webhook is slow, or our own backend never answered. Free users
+  // who simply landed here with someone else's link still get 'invalid'.
   if (status === 'pending') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617] px-4">
@@ -399,16 +451,30 @@ export default function SubscriptionSuccess() {
             <AlertTriangle className="w-10 h-10 text-amber-500" />
           </div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
-            Activation Processing
+            {couldNotVerify ? 'Your payment is safe' : 'Activation Processing'}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">
-            Your payment was received. Account activation is taking a little longer than usual —
-            please check your Settings in a few minutes. Contact support if this persists.
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-4 leading-relaxed">
+            {couldNotVerify
+              ? OUTAGE_COPY.payment
+              : 'Your payment was received. Account activation is taking a little longer than usual — please check your Settings in a few minutes. Contact support if this persists.'}
           </p>
+          {couldNotVerify && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold mb-8">
+              Keep your Stripe receipt. If access has not appeared within an hour, send it to
+              support@ieltsai.pro and we will sort it out.
+            </p>
+          )}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
-              onClick={() => navigate('/settings?tab=subscription')}
+              onClick={() => window.location.reload()}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6 border-0"
+            >
+              Check again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/settings?tab=subscription')}
+              className="rounded-xl px-6 border-slate-200 dark:border-white/10 font-bold"
             >
               Check Settings
             </Button>

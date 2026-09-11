@@ -107,6 +107,31 @@
   [role='button']:not([aria-disabled='true']) {
     cursor: pointer;
   }
+
+  /*
+   * Autofill styling: WebKit/Blink defaults paint autofilled inputs with a
+   * jarring light-blue tint (#e8f0fe). These rules preserve crisp surface
+   * colors and text contrast in both light and dark themes.
+   */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: #0f172a;
+    caret-color: #0f172a;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    -webkit-text-fill-color: #f8fafc !important;
+    caret-color: #f8fafc !important;
+    -webkit-box-shadow: 0 0 0 1000px #131315 inset !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
 }
 
 @utility font-handwritten {

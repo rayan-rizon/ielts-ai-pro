@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import {
   Shield,
   Loader2,
-  AlertCircle,
   Eye,
   EyeOff,
   Mail,
@@ -18,7 +17,7 @@ import {
   Fingerprint,
   KeyRound,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   clearAdminAccess,
   getAuthUserId,
@@ -27,12 +26,18 @@ import {
 } from '@/features/auth/utils/adminAccess';
 import { AdminSecurityService } from '@/features/admin/services/AdminSecurityService';
 import { supabase } from '@/lib/supabase';
+import { cn } from '@/lib/cn';
+import { AuthErrorNotice } from '@/features/auth/components/AuthErrorNotice';
+import { OUTAGE_COPY, SERVICE_ERROR, trackServiceError } from '@/lib/serviceOutage';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loadingAction, setLoadingAction] = useState(null);
   const [error, setError] = useState('');
+  // True only when the backend is unreachable. An admin locked out during a
+  // Supabase outage must be able to tell that apart from a rejected password.
+  const [isOutage, setIsOutage] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [mfaFactor, setMfaFactor] = useState(null);
@@ -120,9 +125,31 @@ export default function AdminLogin() {
     await completeAdminEntry(signedInUser, method, securitySetupDestination);
   };
 
+  /**
+   * Single place that turns a thrown error into admin-facing copy. Anything
+   * caused by our own infrastructure is stated as such rather than dressed up
+   * as an authentication failure.
+   */
+  const presentAuthError = (err, fallback, source) => {
+    const kind = trackServiceError(err, source);
+    if (kind === SERVICE_ERROR.OUTAGE) {
+      setIsOutage(true);
+      setError(OUTAGE_COPY.body);
+      return;
+    }
+    if (kind === SERVICE_ERROR.OFFLINE) {
+      setIsOutage(true);
+      setError('You appear to be offline. Check your connection and try again.');
+      return;
+    }
+    setIsOutage(false);
+    setError(err?.message || fallback);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsOutage(false);
 
     if (!email.trim() || !password.trim()) {
       setError('Please enter both email and password.');
@@ -138,7 +165,11 @@ export default function AdminLogin() {
     } catch (err) {
       clearAdminAccess();
       console.error('Admin sign-in failed:', err);
-      setError(err.message || 'Authentication failed. Please check your credentials.');
+      presentAuthError(
+        err,
+        'Authentication failed. Please check your credentials.',
+        'adminLogin.password'
+      );
       setLoadingAction(null);
       setIsLoggingIn(false);
     }
@@ -146,6 +177,7 @@ export default function AdminLogin() {
 
   const handlePasskeyLogin = async () => {
     setError('');
+    setIsOutage(false);
     setLoadingAction('passkey');
     setIsLoggingIn(true);
     clearAdminAccess();
@@ -155,7 +187,7 @@ export default function AdminLogin() {
       await continueAfterFirstFactor(signedInUser, 'passkey');
     } catch (err) {
       clearAdminAccess();
-      setError(err.message || 'Passkey authentication failed.');
+      presentAuthError(err, 'Passkey authentication failed.', 'adminLogin.passkey');
       setLoadingAction(null);
       setIsLoggingIn(false);
     }
@@ -172,7 +204,7 @@ export default function AdminLogin() {
       if (!data.user) throw new Error('The session expired before MFA could be verified.');
       await completeAdminEntry(data.user, authMethod);
     } catch (err) {
-      setError(err.message || 'The verification code was not accepted.');
+      presentAuthError(err, 'The verification code was not accepted.', 'adminLogin.mfa');
       setLoadingAction(null);
     }
   };
@@ -192,9 +224,19 @@ export default function AdminLogin() {
         `${createPageUrl('AdminPanel')}?tab=settings&section=security`
       );
     } catch (err) {
-      setError(err.message || 'That recovery code was not accepted.');
+      presentAuthError(err, 'That recovery code was not accepted.', 'adminLogin.recovery');
       setLoadingAction(null);
     }
+  };
+
+  // Re-attempt the sign-in method that failed, one click at a time.
+  const handleOutageRetry = () => {
+    if (isLoading) return;
+    if (authMethod === 'passkey') {
+      handlePasskeyLogin();
+      return;
+    }
+    handleLogin({ preventDefault: () => {} });
   };
 
   const isResolvingExistingSession =
@@ -264,12 +306,24 @@ export default function AdminLogin() {
           >
             {/* Status indicators bar */}
             <div className="flex items-center justify-between mb-4 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+              {/* This indicator must never contradict the notice below it: a
+                  green "System Online" sitting above an outage message is the
+                  fastest way to make an admin distrust the whole panel. */}
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[rgb(var(--signal-ok))] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[rgb(var(--signal-ok))]" />
+                  {!isOutage && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[rgb(var(--signal-ok))] opacity-75" />
+                  )}
+                  <span
+                    className={cn(
+                      'relative inline-flex rounded-full h-2 w-2',
+                      isOutage ? 'bg-amber-500' : 'bg-[rgb(var(--signal-ok))]'
+                    )}
+                  />
                 </span>
-                <span>System Online</span>
+                <span className={cn(isOutage && 'text-amber-600 dark:text-amber-400')}>
+                  {isOutage ? 'System Unreachable' : 'System Online'}
+                </span>
               </div>
               <span className="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-white/6 border border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300">
                 Restricted Access
@@ -301,27 +355,12 @@ export default function AdminLogin() {
           </CardHeader>
 
           <CardContent className="space-y-6 pt-6" data-oid=".k9wttd">
-            <AnimatePresence mode="wait" data-oid="i6:9par">
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, y: -4 }}
-                  animate={{ opacity: 1, height: 'auto', y: 0 }}
-                  exit={{ opacity: 0, height: 0, y: -4 }}
-                  transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-                  className="overflow-hidden"
-                  data-oid="7zze2c-wrap"
-                >
-                  <div
-                    role="alert"
-                    className="flex items-center gap-2.5 text-xs font-semibold text-[rgb(var(--signal-fault))] bg-[rgb(var(--signal-fault)/0.08)] p-3.5 rounded-xl border border-[rgb(var(--signal-fault)/0.25)]"
-                    data-oid="7zze2c-"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" data-oid="p4.fri1" />
-                    <span>{error}</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <AuthErrorNotice
+              message={error}
+              isOutage={isOutage}
+              onRetry={isOutage ? handleOutageRetry : undefined}
+              retrying={isLoading}
+            />
 
             {mfaFactor ? (
               <form

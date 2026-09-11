@@ -237,7 +237,7 @@ const UserProfileLink = ({ user, onNavigate }) => (
   </Link>
 );
 
-const UserSidebarFooter = ({ user, handleLogout }) => {
+const UserSidebarFooter = ({ user, handleLogout, showUpgradeOffer }) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const isFree = user?.subscription_tier === 'free' || !user?.subscription_tier;
   const closeMobileSidebar = () => {
@@ -260,7 +260,7 @@ const UserSidebarFooter = ({ user, handleLogout }) => {
         <div className="flex justify-center">
           <ThemeToggle />
         </div>
-        <UpgradeCard isFree={isFree} onNavigate={closeMobileSidebar} />
+        <UpgradeCard isFree={showUpgradeOffer && isFree} onNavigate={closeMobileSidebar} />
         <UserProfileLink user={user} onNavigate={closeMobileSidebar} />
         <SidebarMenuButton
           onClick={signOut}
@@ -276,13 +276,17 @@ const UserSidebarFooter = ({ user, handleLogout }) => {
   );
 };
 
-export const UserSidebar = memo(({ user, location, handleLogout }) => {
+export const UserSidebar = memo(({ user, location, handleLogout, showUpgradeOffer = false }) => {
   const currentPath = location.pathname;
   return (
     <>
       <UserSidebarHeader />
       <LearnerNavigation user={user} currentPath={currentPath} />
-      <UserSidebarFooter user={user} handleLogout={handleLogout} />
+      <UserSidebarFooter
+        user={user}
+        handleLogout={handleLogout}
+        showUpgradeOffer={showUpgradeOffer}
+      />
     </>
   );
 });

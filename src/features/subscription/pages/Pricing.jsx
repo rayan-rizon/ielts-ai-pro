@@ -10,6 +10,7 @@ import { getMarketingAttribution } from '@/lib/marketingAttribution';
 import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/lib/promoOffer';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 import { requirePublicEnv } from '@/lib/publicEnv';
+import { OUTAGE_COPY, isServiceOutageError, trackServiceError } from '@/lib/serviceOutage';
 
 // Extracted Components
 import PricingCard from '../components/PricingCard';
@@ -87,9 +88,27 @@ const createStripeCheckout = async ({
     }),
   });
 
-  const data = await response.json();
+  // A downed gateway answers with an HTML error page, not JSON. Parsing that
+  // blindly surfaces "Unexpected token '<'" to someone trying to pay us.
+  let data = null;
+  try {
+    data = await response.json();
+  } catch (parseError) {
+    if (!response.ok) {
+      const outage = new Error(OUTAGE_COPY.checkout);
+      outage.status = response.status;
+      throw outage;
+    }
+    throw parseError;
+  }
+
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to create checkout session');
+    if (response.status >= 500) {
+      const outage = new Error(OUTAGE_COPY.checkout);
+      outage.status = response.status;
+      throw outage;
+    }
+    throw new Error(data?.error || 'Failed to create checkout session');
   }
   if (!validateCheckoutResponse(data)) {
     throw new Error('No checkout URL returned');
@@ -219,11 +238,13 @@ function trackStripeCheckoutStarted({
 }
 
 function handleCheckoutFailure(error, planTier, billingInterval) {
+  const kind = trackServiceError(error, 'pricing.checkout');
   trackAppEvent('checkout_failed', {
     path: '/pricing',
     plan_tier: planTier,
     billing_interval: billingInterval,
     reason: error?.message || 'checkout_failed',
+    failure_kind: kind,
   });
   console.error('Checkout failed:', error);
 }
@@ -386,7 +407,11 @@ export default function Pricing() {
     } catch (error) {
       console.error('Portal failed:', error);
       const { toast } = await import('sonner');
-      toast.error('Could not open the billing portal. Please try again or contact support.');
+      toast.error(
+        isServiceOutageError(error)
+          ? "We couldn't open the billing portal — this is a temporary problem on our side. Your subscription is unaffected."
+          : 'Could not open the billing portal. Please try again or contact support.'
+      );
       return false;
     } finally {
       setIsLoading(false);
@@ -483,7 +508,14 @@ export default function Pricing() {
     } catch (error) {
       handleCheckoutFailure(error, planTier, billingInterval);
       const { toast } = await import('sonner');
-      toast.error(error.message || 'Failed to start checkout. Please try again.');
+      // Checkout never started, so the user has definitely not been charged —
+      // say that outright so nobody retries on a second card.
+      toast.error(
+        isServiceOutageError(error)
+          ? OUTAGE_COPY.checkout
+          : error.message || 'Failed to start checkout. Please try again.',
+        { duration: 8000 }
+      );
     } finally {
       setIsLoading(false);
     }
