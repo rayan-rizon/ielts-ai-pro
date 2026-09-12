@@ -64,4 +64,17 @@ describe('SEO landing content', () => {
     const ids = SEO_LANDING_CONTENT.practice.breakdown.items.map((item) => item.id);
     expect(ids).toEqual(expect.arrayContaining(['reading', 'listening']));
   });
+
+  it('uses query-aligned acquisition headings without changing canonical routes', () => {
+    expect(SEO_LANDING_CONTENT.speaking.heading).toContain('IELTS Speaking practice tests');
+    expect(SEO_LANDING_CONTENT.practice.heading).toContain('Free online IELTS practice tests');
+    expect(SEO_LANDING_CONTENT.speaking.path).toBe('/ielts-speaking-practice-ai');
+    expect(SEO_LANDING_CONTENT.practice.path).toBe('/cambridge-ielts-practice-tests');
+  });
+
+  it('links speaking visitors directly to the existing topic guide', () => {
+    expect(SEO_LANDING_CONTENT.speaking.secondaryHref).toBe(
+      '/blog/ielts-speaking-topics-questions-cue-cards-tips'
+    );
+  });
 });

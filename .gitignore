@@ -78,9 +78,7 @@ graphify-out/
 transcript/
 _tagger_*.cjs
 
-# --- Local Working Directories ---
+# --- Local Working Directories & Docs ---
 Blog/
-
-
-
-
+SEO-AUDIT.md
+SEO-KEYWORD-ANALYSIS.md

@@ -83,14 +83,22 @@ const generatedSeoPages = {
   '/ielts-writing-checker': {
     path: path.join(root, 'dist/ielts-writing-checker/index.html'),
     title: 'Free IELTS Writing Checker – Task 1 & 2 | IELTS Ai Pro',
+    heading: 'Free IELTS Writing Checker for Task 1 & Task 2',
+    primaryHref: '#checker',
+    secondaryHref: '/blog/ielts-writing-task-1-maps',
   },
   '/ielts-speaking-practice-ai': {
     path: path.join(root, 'dist/ielts-speaking-practice-ai/index.html'),
     title: 'AI IELTS Speaking Practice with Feedback | IELTS Ai Pro',
+    heading: 'IELTS Speaking practice tests with feedback you can act on',
+    primaryHref: '/signup',
+    secondaryHref: '/blog/ielts-speaking-topics-questions-cue-cards-tips',
   },
   '/cambridge-ielts-practice-tests': {
     path: path.join(root, 'dist/cambridge-ielts-practice-tests/index.html'),
     title: 'Cambridge IELTS Practice Tests Online | IELTS Ai Pro',
+    heading: 'Free online IELTS practice tests with a smarter review loop',
+    primaryHref: '/signup',
   },
   '/about': {
     path: path.join(root, 'dist/about/index.html'),
@@ -102,7 +110,9 @@ const generatedSeoPages = {
   },
   '/ielts-band-score-calculator': {
     path: path.join(root, 'dist/ielts-band-score-calculator/index.html'),
-    title: 'IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro',
+    title: 'IELTS Band Score Calculator | IELTS Ai Pro',
+    heading: 'IELTS Band Score Calculator',
+    primaryHref: '#overall-band-calculator',
   },
   '/privacy': {
     path: path.join(root, 'dist/privacy/index.html'),
@@ -283,6 +293,15 @@ for (const [route, config] of Object.entries(generatedSeoPages)) {
   }
   if (!html.includes(`href="${siteUrl}${route}"`)) {
     fail(`generated ${route} page is missing its canonical URL`);
+  }
+  if (config.heading && !html.includes(`<h1>${config.heading}</h1>`)) {
+    fail(`generated ${route} page is missing its intent-aligned H1`);
+  }
+  if (config.primaryHref && !html.includes(`href="${config.primaryHref}"`)) {
+    fail(`generated ${route} page is missing its crawler-visible primary action`);
+  }
+  if (config.secondaryHref && !html.includes(`href="${config.secondaryHref}"`)) {
+    fail(`generated ${route} page is missing its priority supporting link`);
   }
 }
 

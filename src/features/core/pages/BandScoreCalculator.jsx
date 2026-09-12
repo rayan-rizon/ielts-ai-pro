@@ -64,7 +64,7 @@ function SectionLabel({ icon: Icon, index, eyebrow, title, description }) {
 function BandScoreCalculatorHead({ faqs }) {
   return (
     <DocumentHead
-      title="IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro"
+      title="IELTS Band Score Calculator | IELTS Ai Pro"
       description="Free IELTS band score calculator: turn your Listening, Reading, Writing and Speaking scores into an overall band, plus raw score conversion."
       canonicalUrl="https://www.ieltsai.pro/ielts-band-score-calculator"
       keywords="IELTS band score calculator, IELTS overall band score, IELTS raw score conversion, IELTS band calculator, calculate IELTS score"
@@ -129,6 +129,7 @@ function BandScoreCalculatorTools({ handlePrimaryCta }) {
 
       {/* Tool 1: overall band */}
       <m.section
+        id="overall-band-calculator"
         initial={{ opacity: 0, y: 18 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.1 }}

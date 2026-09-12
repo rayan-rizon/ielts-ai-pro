@@ -28,15 +28,15 @@ export const SEO_LANDING_CONTENT = {
     keywords:
       'AI IELTS speaking practice, IELTS speaking simulator, IELTS speaking questions, IELTS speaking feedback, IELTS speaking practice online',
     eyebrow: 'AI speaking practice',
-    heading: 'Practise IELTS Speaking with feedback you can act on',
-    headingLead: 'Practise IELTS Speaking with feedback you can',
+    heading: 'IELTS Speaking practice tests with feedback you can act on',
+    headingLead: 'IELTS Speaking practice tests with feedback you can',
     headingScript: 'act on',
     answer:
       'IELTS Ai Pro simulates Speaking Parts 1–3, records your response, and turns the available speech and transcript evidence into estimated criterion-level feedback. You get a clear next step instead of a single unexplained score.',
     primaryCta: 'Start speaking practice',
     primaryHref: '/signup',
-    secondaryCta: 'Explore speaking guides',
-    secondaryHref: '/blog?category=Speaking',
+    secondaryCta: 'Explore speaking questions and samples',
+    secondaryHref: '/blog/ielts-speaking-topics-questions-cue-cards-tips',
     heroAlt: 'Adult IELTS learner practising a speaking response with a laptop',
     iconKey: 'mic',
     chips: ['Parts 1–3 simulation', 'Four assessed criteria', 'Transcript evidence'],
@@ -45,7 +45,7 @@ export const SEO_LANDING_CONTENT = {
       ['4 criteria', 'Focused practice feedback'],
       ['One report', 'Prioritised next steps'],
     ],
-    featuresHeading: 'What IELTS speaking practice includes',
+    featuresHeading: 'What an IELTS Speaking practice test includes',
     features: [
       {
         iconKey: 'mic',
@@ -155,8 +155,8 @@ export const SEO_LANDING_CONTENT = {
     keywords:
       'Cambridge IELTS practice test, free IELTS practice test, IELTS mock test online, IELTS reading practice test, IELTS listening practice test',
     eyebrow: 'Online IELTS practice tests',
-    heading: 'Cambridge-style IELTS practice with a review loop',
-    headingLead: 'Cambridge-style IELTS practice with a',
+    heading: 'Free online IELTS practice tests with a smarter review loop',
+    headingLead: 'Free online IELTS practice tests with a smarter',
     headingScript: 'review loop',
     answer:
       'IELTS Ai Pro gives you timed Reading and Listening practice online in a computer-based workspace, then helps you review question-level mistakes and estimated band progress. Use a full mock test to diagnose; use focused sets to improve.',

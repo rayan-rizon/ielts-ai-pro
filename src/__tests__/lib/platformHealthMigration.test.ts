@@ -15,6 +15,10 @@ const schedulerMigration = readMigrationSource('20260801144159_secure_scheduled_
 const recoveryMigration = readMigrationSource(
   '20260801144922_reflect_scheduled_email_recovery.sql'
 );
+const schedulerRetryMigration = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260912122810_retry_scheduled_email_dispatch.sql'),
+  'utf8'
+);
 const provisioningMigration = readMigrationSource(
   '20260801145252_classify_auth_provisioning_health.sql'
 );
@@ -136,6 +140,17 @@ describe('platform health database contracts', () => {
       'GRANT EXECUTE ON FUNCTION public.verify_scheduled_email_token(text)\n    TO service_role'
     );
     expect(schedulerMigration).not.toContain("'Authorization'");
+  });
+
+  it('retries a missed daily invocation without dispatching the same batch twice', () => {
+    expect(schedulerRetryMigration).toContain('scheduled_for date');
+    expect(schedulerRetryMigration).toContain(
+      'CREATE UNIQUE INDEX scheduled_email_runs_scheduled_for_idx'
+    );
+    expect(schedulerRetryMigration).toContain("'0 0-2 * * *'");
+    expect(scheduledEmailsSource).toContain("onConflict: 'scheduled_for'");
+    expect(scheduledEmailsSource).toContain('ignoreDuplicates: true');
+    expect(scheduledEmailsSource).toContain('alreadyProcessed: true');
   });
 
   it('reports a repaired scheduler as pending verification until its first real run', () => {

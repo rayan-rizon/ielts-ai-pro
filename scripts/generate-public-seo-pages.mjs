@@ -23,6 +23,10 @@ function seoLandingPage(content) {
     description: content.description,
     canonical: `https://www.ieltsai.pro${content.path}`,
     imageAlt: content.heroAlt,
+    primaryCta: content.primaryCta,
+    primaryHref: content.primaryHref,
+    secondaryCta: content.secondaryCta,
+    secondaryHref: content.secondaryHref,
     prerender: toPrerenderConfig(content),
   };
 }
@@ -36,7 +40,7 @@ const publicPages = [
     canonical: 'https://www.ieltsai.pro/ielts-writing-checker',
     imageAlt: 'Student practising Academic IELTS writing with a laptop and notebook',
     prerender: {
-      heading: 'IELTS Free Writing Checker',
+      heading: 'Free IELTS Writing Checker for Task 1 & Task 2',
       intro:
         'Paste your Academic IELTS Task 1 report or Task 2 essay, then get an estimated band score and detailed feedback across all four writing criteria. Your first three feedback reports are free.',
       sections: [
@@ -79,6 +83,10 @@ const publicPages = [
         ],
       ],
     },
+    primaryCta: 'Check my IELTS writing',
+    primaryHref: '#checker',
+    secondaryCta: 'Read the IELTS Writing Task 1 maps guide',
+    secondaryHref: '/blog/ielts-writing-task-1-maps',
   },
   seoLandingPage(SEO_LANDING_CONTENT.speaking),
   seoLandingPage(SEO_LANDING_CONTENT.practice),
@@ -225,7 +233,7 @@ const publicPages = [
   },
   {
     path: 'ielts-band-score-calculator',
-    title: 'IELTS Band Score Calculator (Overall + Raw Score) | IELTS Ai Pro',
+    title: 'IELTS Band Score Calculator | IELTS Ai Pro',
     description:
       'Free IELTS band score calculator: turn your Listening, Reading, Writing and Speaking scores into an overall band, plus raw score conversion.',
     canonical: 'https://www.ieltsai.pro/ielts-band-score-calculator',
@@ -288,6 +296,10 @@ const publicPages = [
         ],
       ],
     },
+    primaryCta: 'Calculate your IELTS band score',
+    primaryHref: '#overall-band-calculator',
+    secondaryCta: 'Try an IELTS practice test',
+    secondaryHref: '/cambridge-ielts-practice-tests',
   },
   {
     path: 'privacy',
@@ -434,10 +446,17 @@ function renderPrerenderContent(config) {
   const faqs = prerender.faqs
     .map(([question, answer]) => `<dt>${question}</dt><dd>${answer}</dd>`)
     .join('');
+  const callsToAction = config.primaryCta
+    ? `<nav aria-label="Page actions">
+          <a href="${config.primaryHref}">${config.primaryCta}</a>
+          ${config.secondaryCta ? `<a href="${config.secondaryHref}">${config.secondaryCta}</a>` : ''}
+        </nav>`
+    : '';
 
   return `<article id="static-prerender-content" class="sr-only">
         <h1>${prerender.heading}</h1>
         <p>${prerender.intro}</p>
+        ${callsToAction}
         ${sections}
         <section><h2>${config.title.replace(' | IELTS Ai Pro', '')} FAQ</h2><dl>${faqs}</dl></section>
         <nav aria-label="Static Site Directory">

@@ -444,7 +444,7 @@ const REPAIRS = {
     how: 'Use the incident message to distinguish a missing Resend key, provider rejection, or disabled template. Verify the sender domain and run one admin test email after correcting the configuration.',
   },
   scheduled_automation: {
-    how: 'Inspect the latest cron incident first. Store the project URL and scheduler credential in Supabase Vault, update the cron command to read those Vault secrets instead of public system_settings, and verify that scheduled-emails writes a completed scheduled_email_runs row within 36 hours.',
+    how: 'A successful cron row only proves the HTTP request was queued. If no app run follows, inspect the pg_net response and Edge Function logs, then verify the Vault URL and scheduler credential. The job retries from 00:00–02:00 UTC and claims each date once; confirm one completed scheduled_email_runs row appears within 36 hours.',
   },
 };
 

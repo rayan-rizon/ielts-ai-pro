@@ -57,19 +57,26 @@ serve(async (req) => {
   try {
     console.log('Starting scheduled-emails processing...');
 
+    const today = new Date();
+    const scheduledFor = today.toISOString().split('T')[0];
     const { data: run, error: runError } = await supabase
       .from('scheduled_email_runs')
-      .insert({ status: 'running' })
+      .upsert(
+        { status: 'running', scheduled_for: scheduledFor },
+        { onConflict: 'scheduled_for', ignoreDuplicates: true }
+      )
       .select('id')
-      .single();
-    if (runError || !run) {
-      throw new Error(
-        `Could not start scheduled email telemetry: ${runError?.message || 'no run id'}`
-      );
+      .maybeSingle();
+    if (runError) {
+      throw new Error(`Could not start scheduled email telemetry: ${runError.message}`);
+    }
+    if (!run) {
+      return new Response(JSON.stringify({ success: true, alreadyProcessed: true, scheduledFor }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
     runId = run.id;
 
-    const today = new Date();
     const dates = {
       renewalTarget: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
         .toISOString()
