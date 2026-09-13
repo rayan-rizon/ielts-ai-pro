@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { describe, expect, it, vi } from 'vitest';
 import { UserManagementTable } from '@/components/admin/users/UserManagementTable';
-import { countryFlag, normalizeCountryCode, countryName } from '@/components/admin/shared/country';
+import { countryFlag, countryName } from '@/components/admin/shared/country';
 
 describe('UserManagement Country display', () => {
   it('correctly generates flag emoji and country names from country codes', () => {
@@ -95,5 +95,7 @@ describe('UserManagement Country display', () => {
 
     // Fallback for null country
     expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByText('Not captured')).toBeInTheDocument();
+    expect(screen.queryByText('Google signup')).not.toBeInTheDocument();
   });
 });

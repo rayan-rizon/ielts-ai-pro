@@ -3,7 +3,7 @@ import { emailSchema, signUpSchema } from '@/lib/validations';
 import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
 import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
-import { getSignupAttribution } from '@/lib/attribution';
+import { getMissingSignupProfileFields, getSignupAttribution } from '@/lib/attribution';
 import { resolveSignupCountry } from '@/lib/geo';
 
 // Admin list options interface
@@ -23,6 +23,24 @@ interface ListOptions {
 }
 
 export const User = {
+  async syncSignupContext(profile: any) {
+    const patch = getMissingSignupProfileFields(profile, getSignupAttribution());
+    if (Object.keys(patch).length === 0) return profile;
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', profile.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.warn('[User.me] Failed to synchronize signup context:', error.message);
+      return profile;
+    }
+    return data || profile;
+  },
+
   // Helper function to check if user is admin
   async isAdmin(authId: string | null = null): Promise<boolean> {
     try {
@@ -113,11 +131,12 @@ export const User = {
       .maybeSingle();
 
     if (profileByAuth) {
+      const syncedProfile = await this.syncSignupContext(profileByAuth);
       return {
         ...user,
-        ...profileByAuth,
+        ...syncedProfile,
         email: user.email!,
-        full_name: profileByAuth.full_name || user.user_metadata?.full_name || user.email,
+        full_name: syncedProfile.full_name || user.user_metadata?.full_name || user.email,
       } as UserProfile;
     }
 
@@ -133,11 +152,12 @@ export const User = {
       .maybeSingle();
 
     if (profileByEmail) {
+      const signupContext = getMissingSignupProfileFields(profileByEmail, getSignupAttribution());
       // Update the auth_id to link with current session
       const { data: updatedProfile, error: updateError } = await supabase
 
         .from('users')
-        .update({ auth_id: user.id, updated_at: new Date().toISOString() })
+        .update({ auth_id: user.id, ...signupContext, updated_at: new Date().toISOString() })
         .eq('id', profileByEmail.id)
         .select()
         .single();
@@ -274,11 +294,14 @@ export const User = {
       throw new Error(e.errors?.[0]?.message || 'Invalid password');
     }
 
+    const signupAttribution = getSignupAttribution();
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
       options: {
-        data: { full_name: username },
+        // Auth metadata reaches the database hook even when it creates the
+        // public profile before this browser can perform its own insert.
+        data: { full_name: username, ...signupAttribution },
         emailRedirectTo: `${window.location.origin}/login`,
       },
     });
@@ -294,7 +317,7 @@ export const User = {
           full_name: username || u.user_metadata?.full_name || u.email,
           role: 'user',
           subscription_tier: 'free',
-          ...getSignupAttribution(),
+          ...signupAttribution,
         };
 
         // Note: referred_by is set by the process_referral RPC, not here

@@ -155,7 +155,7 @@
                 var referrerUrl = new URL(referrer);
                 if (
                   referrerUrl.origin === window.location.origin ||
-                  referrerUrl.hostname.toLowerCase() === 'accounts.google.com'
+                  /^accounts\.google\.[a-z.]+$/i.test(referrerUrl.hostname)
                 ) {
                   referrer = null;
                 }
@@ -163,6 +163,20 @@
                 referrer = null;
               }
             }
+            // Confirmation links contain one-time auth credentials. They are
+            // routing data, never marketing data, and must not enter profiles.
+            var landingUrl = new URL(window.location.href);
+            [
+              'token_hash',
+              'code',
+              'access_token',
+              'refresh_token',
+              'error_description',
+            ].forEach(function (key) {
+              landingUrl.searchParams.delete(key);
+            });
+            var safeSearch = landingUrl.searchParams.toString();
+
             var attribution = {
               utm_source: params.get('utm_source') || null,
               utm_medium: params.get('utm_medium') || null,
@@ -172,7 +186,7 @@
               gclid: params.get('gclid') || null,
               fbclid: fbclidMatch ? decodeURIComponent(fbclidMatch[1]) : null,
               referrer: referrer,
-              landing_page: window.location.pathname + window.location.search,
+              landing_page: landingUrl.pathname + (safeSearch ? '?' + safeSearch : ''),
               captured_at: new Date().toISOString(),
             };
 

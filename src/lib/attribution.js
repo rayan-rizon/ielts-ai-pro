@@ -4,7 +4,14 @@ const isBrowser = () => typeof window !== 'undefined';
 
 const SOCIAL_HOSTS = ['facebook.com', 'instagram.com', 'l.facebook.com', 'lm.facebook.com'];
 const SEARCH_HOSTS = ['google.', 'bing.com', 'yahoo.com', 'duckduckgo.com'];
-const AUTHENTICATION_HOSTS = new Set(['accounts.google.com']);
+const GOOGLE_AUTHENTICATION_HOST = /^accounts\.google\.[a-z.]+$/i;
+const SENSITIVE_LANDING_PARAMS = [
+  'token_hash',
+  'code',
+  'access_token',
+  'refresh_token',
+  'error_description',
+];
 
 const hostIncludes = (referrer, list) => {
   if (!referrer) return false;
@@ -13,6 +20,18 @@ const hostIncludes = (referrer, list) => {
     return list.some((needle) => host.includes(needle));
   } catch {
     return false;
+  }
+};
+
+export const sanitizeSignupLandingPage = (landingPage) => {
+  if (!landingPage || typeof landingPage !== 'string') return landingPage || null;
+  try {
+    const url = new URL(landingPage, 'https://attribution.invalid');
+    SENSITIVE_LANDING_PARAMS.forEach((key) => url.searchParams.delete(key));
+    const search = url.searchParams.toString();
+    return `${url.pathname}${search ? `?${search}` : ''}`;
+  } catch {
+    return null;
   }
 };
 
@@ -38,21 +57,63 @@ export const isInternalReferrer = (
 export const isAuthenticationReferrer = (referrer) => {
   if (!referrer) return false;
   try {
-    return AUTHENTICATION_HOSTS.has(new URL(referrer).hostname.toLowerCase());
+    return GOOGLE_AUTHENTICATION_HOST.test(new URL(referrer).hostname);
   } catch {
     return false;
   }
 };
 
-const withoutNonAcquisitionReferrer = (attribution) => {
-  if (
-    !attribution ||
-    (!isInternalReferrer(attribution.referrer) && !isAuthenticationReferrer(attribution.referrer))
-  ) {
-    return attribution;
+const ATTRIBUTION_DETAIL_FIELDS = [
+  'signup_utm_source',
+  'signup_utm_medium',
+  'signup_utm_campaign',
+  'signup_utm_content',
+  'signup_utm_term',
+  'signup_referrer',
+  'signup_gclid',
+  'signup_fbclid',
+];
+
+/** True only when a profile has evidence for an acquisition source. */
+export const hasSignupAttributionSignal = (attribution) => {
+  if (!attribution) return false;
+  const channel = attribution.signup_channel;
+  return (
+    Boolean(channel && channel !== 'direct' && channel !== 'unknown') ||
+    ATTRIBUTION_DETAIL_FIELDS.some((field) => Boolean(attribution[field]))
+  );
+};
+
+/**
+ * Enrich a trigger-created profile without replacing attribution already backed
+ * by evidence. The Auth hook can win the race with the browser profile insert;
+ * this patch makes the later profile read finish that synchronization.
+ */
+export const getMissingSignupProfileFields = (profile, browserAttribution) => {
+  const patch = {};
+  if (!hasSignupAttributionSignal(profile) && hasSignupAttributionSignal(browserAttribution)) {
+    Object.assign(patch, browserAttribution);
   }
 
-  const { referrer: _referrer, ...externalAttribution } = attribution;
+  return patch;
+};
+
+const withoutNonAcquisitionReferrer = (attribution) => {
+  const safeAttribution = attribution
+    ? {
+        ...attribution,
+        landing_page: sanitizeSignupLandingPage(attribution.landing_page),
+      }
+    : attribution;
+  if (
+    !safeAttribution ||
+    (!isInternalReferrer(safeAttribution.referrer) &&
+      !isAuthenticationReferrer(safeAttribution.referrer))
+  ) {
+    return safeAttribution;
+  }
+
+  const { referrer: _referrer, ...externalAttribution } = safeAttribution;
   const hasExternalSignal = [
     externalAttribution.utm_source,
     externalAttribution.utm_medium,
@@ -80,7 +141,11 @@ export const getStoredAttribution = () => {
 
     // Remove bad legacy snapshots so a future genuine external first touch can
     // be captured rather than being blocked by navigation or authentication.
-    if (attribution && !sanitized) window.localStorage.removeItem(STORAGE_KEY);
+    if (attribution && !sanitized) {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } else if (sanitized && JSON.stringify(sanitized) !== raw) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+    }
 
     return sanitized;
   } catch {

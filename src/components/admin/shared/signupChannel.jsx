@@ -52,7 +52,7 @@ export const SIGNUP_CHANNELS = {
   },
   direct: {
     label: 'No source signal captured',
-    short: 'No signal',
+    short: 'Not captured',
     icon: Compass,
     tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
     bar: 'bg-stone-400',
@@ -129,7 +129,8 @@ export const SignupSourceMark = ({ channel, source, className }) => {
 export const SignupSourceCell = ({ channel, source, campaign }) => {
   const meta = channelMeta(channel);
   const description = channelDescription(channel, source);
-  const detail = [source?.trim(), campaign?.trim()].filter(Boolean).join(' \u00b7 ');
+  const provenance = [source?.trim(), campaign?.trim()].filter(Boolean).join(' \u00b7 ');
+  const detail = provenance;
 
   return (
     <Tip content={description}>
