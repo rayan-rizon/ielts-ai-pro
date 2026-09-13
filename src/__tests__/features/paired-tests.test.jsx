@@ -369,6 +369,26 @@ describe('test-page entry points', () => {
     }
   );
 
+  it('shows the paired action for the repaired Cambridge 21 Listening Test 4 catalog total', () => {
+    render(
+      <MemoryRouter>
+        <TakeWithFriend
+          test={{
+            id: '323f05a4-f218-4177-80af-1eb85e98365b',
+            title: 'IELTS 21 Listening 2026 Test 4',
+            total_questions: 40,
+          }}
+          type="listening"
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: 'Take with a friend' })).toHaveAttribute(
+      'href',
+      '/listening-test/323f05a4-f218-4177-80af-1eb85e98365b?together=true'
+    );
+  });
+
   it('does not offer paired practice for locked or incomplete tests', () => {
     const { rerender } = render(
       <MemoryRouter>
