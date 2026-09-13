@@ -14,6 +14,34 @@ describe('MarketingDelivery Service', () => {
     vi.clearAllMocks();
   });
 
+  describe('recordSubscriptionFunnel', () => {
+    it('records only the approved first-party funnel fields', async () => {
+      supabase.rpc.mockResolvedValue({ data: { recorded: true }, error: null });
+
+      await MarketingDelivery.recordSubscriptionFunnel('plan_selected', {
+        planTier: 'premium',
+        billingInterval: 'monthly',
+        dedupeKey: 'premium:monthly:2026-09-13',
+        metadata: { source: 'pricing_page' },
+      });
+
+      expect(supabase.rpc).toHaveBeenCalledWith('record_subscription_funnel_event', {
+        p_event_type: 'plan_selected',
+        p_plan_tier: 'premium',
+        p_billing_interval: 'monthly',
+        p_dedupe_key: 'premium:monthly:2026-09-13',
+        p_metadata: { source: 'pricing_page' },
+      });
+    });
+
+    it('does not interrupt pricing while the RPC is rolling out', async () => {
+      supabase.rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202' } });
+      await expect(
+        MarketingDelivery.recordSubscriptionFunnel('pricing_viewed')
+      ).resolves.toBeNull();
+    });
+  });
+
   describe('linkFor', () => {
     it('returns empty string if content cta_url is missing', () => {
       expect(MarketingDelivery.linkFor(null)).toBe('');
@@ -177,6 +205,48 @@ describe('MarketingDelivery Service', () => {
       const active = await MarketingDelivery.listActive('user-1');
       expect(active).toHaveLength(1);
       expect(active[0].id).toBe('del-active');
+    });
+
+    it('hides superseded journey messages but keeps explicitly approved Copilot messages', async () => {
+      const mockDeliveries = [
+        {
+          id: 'legacy-message',
+          campaign: {
+            status: 'active',
+            metadata: { superseded_by_autopilot: true },
+          },
+        },
+        {
+          id: 'approved-copilot-message',
+          campaign: {
+            status: 'paused',
+            metadata: { superseded_by_autopilot: true },
+          },
+          intervention: { status: 'approved' },
+        },
+      ];
+
+      supabase.from.mockImplementation((table) => {
+        if (table === 'marketing_deliveries') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            in: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockResolvedValue({ data: mockDeliveries, error: null }),
+          };
+        }
+        if (table === 'marketing_contact_feedback') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            in: vi.fn().mockResolvedValue({ data: [] }),
+          };
+        }
+        return {};
+      });
+
+      const active = await MarketingDelivery.listActive('user-1');
+      expect(active.map((delivery) => delivery.id)).toEqual(['approved-copilot-message']);
     });
   });
 });

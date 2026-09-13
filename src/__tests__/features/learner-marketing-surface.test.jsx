@@ -81,6 +81,11 @@ describe('Learner marketing surface', () => {
 
     expect(await screen.findByText('Your next practice is ready')).toBeInTheDocument();
     expect(screen.getByTestId('learner-in-app-notification')).toHaveClass('fixed', 'md:right-4');
+    expect(screen.getByText('Based on your saved result')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Open practice/i })).toHaveAttribute(
+      'href',
+      '/learning-path'
+    );
     await waitFor(() =>
       expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
     );

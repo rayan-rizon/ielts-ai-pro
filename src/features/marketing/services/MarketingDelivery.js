@@ -59,7 +59,7 @@ const fetchDeliveriesForUser = async (userId) => {
   const { data, error } = await supabase
     .from('marketing_deliveries')
     .select(
-      '*, campaign:marketing_campaigns(id,name,status,starts_at,ends_at), intervention:marketing_interventions(id,status,playbook_key,expires_at)'
+      '*, campaign:marketing_campaigns(id,name,status,starts_at,ends_at,metadata), intervention:marketing_interventions(id,status,playbook_key,expires_at)'
     )
     .eq('user_id', userId)
     .in('status', ['accepted', 'delivered', 'viewed'])
@@ -78,6 +78,7 @@ const isInterventionActive = (intervention) => {
 const isCampaignStatusActive = (campaign, hasActiveIntervention) => {
   if (!campaign?.status) return false;
   if (hasActiveIntervention) return true;
+  if (campaign.metadata?.superseded_by_autopilot === true) return false;
   return ACTIVE_CAMPAIGNS.has(campaign.status);
 };
 
@@ -128,6 +129,26 @@ const createPushSubscription = async (registration, publicKey) => {
 };
 
 export const MarketingDelivery = {
+  async recordSubscriptionFunnel(
+    eventType,
+    { planTier = null, billingInterval = null, dedupeKey = null, metadata = {} } = {}
+  ) {
+    const { data, error } = await supabase.rpc('record_subscription_funnel_event', {
+      p_event_type: eventType,
+      p_plan_tier: planTier,
+      p_billing_interval: billingInterval,
+      p_dedupe_key: dedupeKey,
+      p_metadata: metadata,
+    });
+    // Keep pricing usable while the migration rolls out or when telemetry is
+    // temporarily unavailable. Checkout is the product path; measurement is a
+    // best-effort side effect.
+    if (!isIgnorableDatabaseError(error) && !['42883', 'PGRST202'].includes(error?.code)) {
+      throw error;
+    }
+    return data || null;
+  },
+
   async listActive(userId) {
     if (!userId) return [];
     const deliveries = await fetchDeliveriesForUser(userId);

@@ -52,7 +52,7 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, autopilot, onN
           ? 'Evidence and learner-facing copy are prepared in Overview'
           : 'New evidence-led steps are available in Overview',
         action: 'Review',
-        tab: 'overview',
+        tab: 'copilot',
       });
     }
 
@@ -107,7 +107,7 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, autopilot, onN
         label: 'Checkout recovery is not configured',
         detail: 'Abandoned checkouts are being recorded but no offer is going out',
         action: 'Set up',
-        tab: 'overview',
+        tab: 'performance',
       });
     } else if (Number(recovery.eligible || 0) > 0) {
       items.push({
@@ -115,7 +115,7 @@ const CommandStrip = ({ campaigns, journeys, recovery, dashboard, autopilot, onN
         label: `${recovery.eligible} abandoned checkout${Number(recovery.eligible) === 1 ? '' : 's'} eligible now`,
         detail: 'The scheduler will send their recovery offer within fifteen minutes',
         action: 'Watch',
-        tab: 'overview',
+        tab: 'performance',
       });
     }
 

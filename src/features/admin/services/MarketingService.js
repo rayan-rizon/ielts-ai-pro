@@ -219,6 +219,28 @@ export const MarketingService = {
     }
   },
 
+  async getSubscriptionGrowth(since = '2026-08-01T00:00:00.000Z') {
+    try {
+      return (
+        (await readAdminRpc(supabase, 'get_subscription_growth_dashboard', {
+          p_since: since,
+        })) || null
+      );
+    } catch (error) {
+      if (['42883', 'PGRST202'].includes(error?.code)) {
+        return {
+          unavailable: true,
+          since,
+          stages: [],
+          countries: [],
+          selected_plans: [],
+          cohorts: [],
+        };
+      }
+      throw error;
+    }
+  },
+
   async updateAutopilotPolicy(id, patch) {
     const { data, error } = await supabase.rpc('set_marketing_autopilot_policy_state', {
       p_policy_id: id,
@@ -247,13 +269,72 @@ export const MarketingService = {
     return data;
   },
 
-  async approveIntervention(id) {
-    const { data, error } = await supabase.functions.invoke('retention-autopilot', {
-      body: { action: 'approve', intervention_id: id },
+  async copilotRequest(body) {
+    // Older workers treat unknown actions as reconciliation. Probe with dry_run
+    // before using the new action contract, so an old deployment cannot send.
+    const capability = await supabase.functions.invoke('retention-autopilot', {
+      body: { action: 'copilot_capabilities', dry_run: true },
     });
+    await throwInvocationError(capability.error);
+    if (capability.data?.version !== 1)
+      throw new Error(
+        'The Copilot worker update is not deployed yet. Review actions will be available after deployment.'
+      );
+    const { data, error } = await supabase.functions.invoke('retention-autopilot', { body });
     await throwInvocationError(error);
     if (data?.error) throw new Error(data.error);
     return data;
+  },
+
+  async getCopilotState(offset = 0) {
+    try {
+      return await this.copilotRequest({ action: 'copilot_snapshot', offset });
+    } catch (error) {
+      // Keep the workspace useful while the new worker rolls out. The existing
+      // snapshot is read-only and already contains prepared interventions, so
+      // it is safe to show as review mode without pretending live actions work.
+      if (!/copilot worker update|not deployed|unsupported action/i.test(error?.message || ''))
+        throw error;
+
+      const snapshot = await this.getAutopilotSnapshot(30);
+      const interventions = Array.isArray(snapshot?.interventions) ? snapshot.interventions : [];
+      const queue = interventions
+        .filter((item) => ['needs_approval', 'prepared'].includes(item.status))
+        .map((item) => ({
+          ...item,
+          updated_at: item.updated_at || item.created_at || null,
+        }));
+      const history = interventions
+        .filter((item) => !['needs_approval', 'prepared'].includes(item.status))
+        .map((item) => ({
+          ...item,
+          updated_at: item.updated_at || item.created_at || item.sent_at || null,
+        }));
+
+      return {
+        queue: queue.slice(offset, offset + 20),
+        total: Number(snapshot?.counts?.prepared ?? queue.length),
+        history,
+        monitor: null,
+        offset,
+        available: false,
+        setupPending: true,
+        setupMessage:
+          'Review mode is ready. Live prepare, rewrite, approve, and dismiss actions will activate after the Copilot worker update is deployed.',
+      };
+    }
+  },
+
+  async prepareCopilotActions() {
+    return this.copilotRequest({ action: 'prepare_actions' });
+  },
+
+  async dismissIntervention(id, revision) {
+    return this.copilotRequest({ action: 'dismiss', intervention_id: id, revision });
+  },
+
+  async approveIntervention(id, revision) {
+    return this.copilotRequest({ action: 'approve', intervention_id: id, revision });
   },
 
   async generateInterventionCopy(id) {

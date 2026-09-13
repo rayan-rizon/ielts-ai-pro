@@ -1,114 +1,219 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AutopilotPanel from '@/components/admin/marketing/AutopilotPanel';
 import MarketingService from '@/features/admin/services/MarketingService';
+import { toast } from 'sonner';
 
 vi.mock('@/features/admin/services/MarketingService', () => ({
   default: {
-    runAutopilot: vi.fn(),
-    analyzeAutopilot: vi.fn(),
+    getCopilotState: vi.fn(),
+    prepareCopilotActions: vi.fn(),
+    approveIntervention: vi.fn(),
+    dismissIntervention: vi.fn(),
+    generateInterventionCopy: vi.fn(),
     updateAutopilotPolicy: vi.fn(),
     updateRecommendation: vi.fn(),
-    updateIntervention: vi.fn(),
-    generateAutopilotCopy: vi.fn(),
   },
 }));
-
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-
-const policy = (playbook_key, name, allowed_channels = ['in_app']) => ({
-  id: playbook_key,
-  playbook_key,
-  name,
-  objective: 'retention',
-  enabled: false,
-  mode: 'review',
-  allowed_channels,
-  config: { channel_priority: allowed_channels },
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
+const item = {
+  id: 'action-1234',
+  updated_at: 'revision-1',
+  playbook_key: 'checkout_recovery',
+  objective: 'paid_conversion',
+  recommended_channel: 'in_app',
+  expires_at: '2099-01-01',
+  rationale: 'Checkout is still incomplete.',
+  content: {
+    title: 'Need a hand?',
+    message: 'Review your plan whenever you are ready.',
+    cta_label: 'View plans',
+  },
+  evidence: [{ metric: 'checkout', value: 'incomplete' }],
+  destination: '/pricing',
+};
+const state = { queue: [item], history: [], total: 1, monitor: null };
+function setup() {
+  return render(
+    <AutopilotPanel
+      autopilot={{ policies: [], recommendations: [] }}
+      onRefresh={vi.fn()}
+      onNavigate={vi.fn()}
+    />
+  );
+}
+beforeEach(() => {
+  vi.clearAllMocks();
+  MarketingService.getCopilotState.mockResolvedValue(state);
 });
+afterEach(cleanup);
 
-const policies = [
-  policy('first_practice', 'First practice guide', ['in_app', 'email']),
-  policy('next_practice', 'Next practice suggestion'),
-  policy('subscriber_feature_help', 'Subscriber feature guide'),
-  policy('quota_upgrade', 'AI feedback limit help', ['in_app', 'banner']),
-  policy('re_engagement', 'Return to practice', ['push', 'email', 'in_app']),
-  policy('cancellation_support', 'Plan ending support', ['in_app', 'email']),
-  policy('referral_bonus_reminder', 'Referral bonus reminder'),
-  policy('score_plateau', 'Score improvement support', ['in_app', 'email']),
-  policy('incomplete_test', 'Saved test reminder', ['push', 'in_app']),
-  policy('exam_countdown', 'Exam-day study plan', ['in_app', 'email']),
-  policy('checkout_recovery', 'Checkout follow-up', ['in_app', 'email']),
-];
-
-describe('Admin AI Autopilot panel', () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  it('shows the complete automation set as one-channel strategies', () => {
-    render(
-      <AutopilotPanel
-        autopilot={{ policies, recommendations: [], interventions: [], channels: [], counts: {} }}
-        onRefresh={vi.fn()}
-      />
-    );
-
-    expect(screen.getByText('Focus on one weak area')).toBeInTheDocument();
-    expect(screen.getByText('Support a plan ending')).toBeInTheDocument();
-    expect(screen.getAllByText(/Active: Bottom-right suggestion/)).not.toHaveLength(0);
-    expect(screen.getAllByText(/Away: Email/)).not.toHaveLength(0);
-    expect(screen.getByText(/One helpful message at a time/)).toBeInTheDocument();
+describe('Copilot action workspace', () => {
+  it('loads concrete messages without preparing or approving anything', async () => {
+    setup();
+    expect(await screen.findByText('Need a hand?')).toBeInTheDocument();
+    expect(screen.getByText('In-app message')).toBeInTheDocument();
+    expect(MarketingService.prepareCopilotActions).not.toHaveBeenCalled();
+    expect(MarketingService.approveIntervention).not.toHaveBeenCalled();
   });
-
-  it('renders a privacy-safe preview report and does not reconcile', async () => {
-    MarketingService.runAutopilot.mockResolvedValue({
-      dry_run: true,
-      learners_scanned: 120,
-      matched: 8,
-      suppressed: 4,
-      automation_preview: [
-        {
-          playbook_key: 'score_plateau',
-          name: 'Score improvement support',
-          enabled: false,
-          matched: 3,
-          selected_channels: { in_app: 3 },
-        },
-      ],
-      suppressed_by_reason: { contact_limit: 4 },
+  it('prepares actions without implicitly approving them', async () => {
+    MarketingService.prepareCopilotActions.mockResolvedValue({ created: 2, drafted: 2 });
+    setup();
+    await screen.findByText('Need a hand?');
+    fireEvent.click(screen.getByRole('button', { name: 'Prepare actions' }));
+    await waitFor(() => expect(MarketingService.prepareCopilotActions).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText(/2 prepared · 2 AI drafts/)).toBeInTheDocument();
+    expect(MarketingService.approveIntervention).not.toHaveBeenCalled();
+  });
+  it('approves only the displayed revision and reports failure honestly', async () => {
+    MarketingService.approveIntervention.mockResolvedValue({
+      status: 'failed',
+      reason: 'Provider unavailable',
     });
-
-    render(
-      <AutopilotPanel
-        autopilot={{ policies, recommendations: [], interventions: [], channels: [], counts: {} }}
-        onRefresh={vi.fn()}
-      />
-    );
-    fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[0]);
-
-    await waitFor(() => expect(screen.getByText('Preview results')).toBeInTheDocument());
-    expect(screen.getByText(/No messages were sent/)).toBeInTheDocument();
-    expect(screen.getByText('120')).toBeInTheDocument();
-    expect(screen.getByText('Bottom-right suggestion · 3')).toBeInTheDocument();
-    expect(MarketingService.runAutopilot).toHaveBeenCalledWith({ dryRun: true });
-    expect(MarketingService.runAutopilot).toHaveBeenCalledTimes(1);
-  });
-
-  it('previews each automation as a learner-facing message without queueing it', async () => {
-    render(
-      <AutopilotPanel
-        autopilot={{ policies, recommendations: [], interventions: [], channels: [], counts: {} }}
-        onRefresh={vi.fn()}
-      />
-    );
-
-    fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[1]);
-
+    setup();
+    await screen.findByText('Need a hand?');
+    fireEvent.click(screen.getByRole('button', { name: 'Approve message' }));
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Message preview' })).toBeInTheDocument()
+      expect(MarketingService.approveIntervention).toHaveBeenCalledWith('action-1234', 'revision-1')
     );
-    expect(screen.getByText(/No learner is selected, queued, or contacted/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /email/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /email/i }));
-    expect(screen.getByText('Inbox subject')).toBeInTheDocument();
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Provider unavailable'));
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+  it('prevents duplicate clicks while approval is in progress', async () => {
+    let resolve;
+    MarketingService.approveIntervention.mockReturnValue(
+      new Promise((r) => {
+        resolve = r;
+      })
+    );
+    setup();
+    await screen.findByText('Need a hand?');
+    const button = screen.getByRole('button', { name: 'Approve message' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(MarketingService.approveIntervention).toHaveBeenCalledTimes(1);
+    resolve({ status: 'sent' });
+    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+  });
+  it('blocks actions when the worker is unavailable', async () => {
+    MarketingService.getCopilotState.mockRejectedValue(new Error('Worker update needed'));
+    setup();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Worker update needed');
+    expect(screen.getByRole('button', { name: 'Prepare actions' })).toBeDisabled();
+  });
+  it('keeps the queue visible in review mode while live actions wait for deployment', async () => {
+    MarketingService.getCopilotState.mockResolvedValue({
+      ...state,
+      available: false,
+      setupPending: true,
+    });
+    setup();
+    expect(await screen.findByText('Copilot actions need the worker update.')).toBeInTheDocument();
+    expect(screen.getByText('Need a hand?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Review setup' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Approve message' })).toBeDisabled();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+  it('turns investigations into evidence-backed action cards with working controls', async () => {
+    const onRefresh = vi.fn();
+    const onNavigate = vi.fn();
+    const recommendation = {
+      id: 'recommendation-1',
+      category: 'channel',
+      severity: 'attention',
+      status: 'new',
+      source: 'ai',
+      title: 'Email visibility needs review',
+      summary: 'Email acceptance is recorded, but confirmed views are limited.',
+      proposed_action: 'Check delivery tracking before changing email volume.',
+      evidence: [{ metric: 'Confirmed views', value: 4 }],
+    };
+    MarketingService.getCopilotState.mockResolvedValue({
+      queue: [],
+      history: [],
+      total: 0,
+      monitor: null,
+      available: false,
+      setupPending: true,
+    });
+    MarketingService.updateRecommendation.mockResolvedValue({ status: 'measuring' });
+    render(
+      <AutopilotPanel
+        autopilot={{ policies: [], recommendations: [recommendation] }}
+        onRefresh={onRefresh}
+        onNavigate={onNavigate}
+      />
+    );
+
+    expect(await screen.findByText('Email visibility needs review')).toBeInTheDocument();
+    expect(
+      screen.getByText('Check delivery tracking before changing email volume.')
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Why this action/));
+    expect(
+      screen.getByText('Email acceptance is recorded, but confirmed views are limited.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Confirmed views').nextSibling).toHaveTextContent('4');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Compare channels' }));
+    expect(onNavigate).toHaveBeenCalledWith('performance');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Track this' }));
+    await waitFor(() =>
+      expect(MarketingService.updateRecommendation).toHaveBeenCalledWith(
+        'recommendation-1',
+        'measuring'
+      )
+    );
+    await waitFor(() => expect(onRefresh).toHaveBeenCalled());
+  });
+  it('shows observed outcomes alongside approvals, without a second tab', async () => {
+    MarketingService.getCopilotState.mockResolvedValue({
+      ...state,
+      history: [
+        { ...item, status: 'sent', sent_at: '2026-09-13', outcome: { settled_purchase: true } },
+      ],
+    });
+    setup();
+    expect(await screen.findByText('Payment recorded')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Approve message' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+  });
+  it('previews the real personalized learner card and every configured channel', async () => {
+    render(
+      <AutopilotPanel
+        autopilot={{
+          policies: [
+            {
+              id: 'policy-1',
+              name: 'Resume a saved test',
+              playbook_key: 'incomplete_test',
+              enabled: true,
+              allowed_channels: ['in_app', 'email', 'push'],
+            },
+          ],
+          recommendations: [],
+        }}
+        onRefresh={vi.fn()}
+        onNavigate={vi.fn()}
+      />
+    );
+
+    await screen.findByText('Need a hand?');
+    fireEvent.click(screen.getByText(/Automations & monitoring/));
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Your 18 answers are still waiting' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Why this fits')).toBeInTheDocument();
+    expect(screen.getByText('Answered questions')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Email' }));
+    expect(screen.getByText('Hi Alex,')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Push reminder' }));
+    expect(screen.getByText('IELTS AI Pro · now')).toBeInTheDocument();
+    expect(screen.getByText(/without starting over/)).toBeInTheDocument();
   });
 });

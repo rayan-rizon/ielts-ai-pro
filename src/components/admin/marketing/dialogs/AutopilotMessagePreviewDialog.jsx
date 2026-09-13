@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Bell, Mail, Megaphone, MonitorSmartphone } from 'lucide-react';
+import { Bell, Check, Mail, Megaphone, MonitorSmartphone, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,66 +9,85 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, Pill } from '@/components/admin/ui/primitives';
+import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
+import InAppNotificationCard from '@/features/marketing/components/InAppNotificationCard';
 import { channelLabel, deliveryStrategyFor } from '../autopilotDeliveryStrategy';
 
-// These are deliberately generic examples. The worker fills only validated,
-// learner-specific fields at delivery time; this preview never exposes a learner.
+// Sample learner contexts let admins judge the finished experience without
+// exposing a real learner or creating a delivery.
 const EXAMPLES = {
-  first_practice: [
-    'Choose your first practice',
-    'Start with a short activity that fits your IELTS goal.',
-    'Choose an activity',
-  ],
-  next_practice: [
-    'Your next practice is ready',
-    'A focused follow-up activity is ready from your latest saved result.',
-    'Continue practice',
-  ],
-  subscriber_feature_help: [
-    'Make the most of your plan',
-    'A feature included in your plan can help with your next practice step.',
-    'Explore your plan',
-  ],
-  quota_upgrade: [
-    'Need more AI feedback?',
-    'You have reached a verified free-plan limit. Review the available options whenever you are ready.',
-    'View plan options',
-  ],
-  re_engagement: [
-    'A manageable next step is ready',
-    'Return with one short practice activity based on where you last left off.',
-    'Resume practice',
-  ],
-  cancellation_support: [
-    'Your plan is ending soon',
-    'Your saved progress is available. Review your plan settings and next steps.',
-    'Review plan settings',
-  ],
-  referral_bonus_reminder: [
-    'Your referral credit is available',
-    'Use your verified credit before its expiry date.',
-    'View your credit',
-  ],
-  score_plateau: [
-    'A focused practice review is ready',
-    'Your recent comparable results suggest one area that may be useful to practise next.',
-    'Review practice',
-  ],
-  incomplete_test: [
-    'Your progress is saved',
-    'Continue your test whenever you are ready. Your saved answers are still available.',
-    'Resume test',
-  ],
-  exam_countdown: [
-    'Your study plan is ready',
-    'Your plan fits your confirmed exam date, available time, and current practice needs.',
-    'View study plan',
-  ],
-  checkout_recovery: [
-    'Need help with your upgrade?',
-    'Your upgrade has not completed yet. Return to checkout or get help with payment.',
-    'Return to checkout',
-  ],
+  first_practice: {
+    title: 'Make your first 15 minutes count',
+    message: 'Start with a short Reading check to build a useful baseline for your target band.',
+    cta: 'Start my first practice',
+    signals: ['Target band', 'No completed practice'],
+  },
+  next_practice: {
+    title: 'Turn your first result into progress',
+    message: 'Your first Reading result is saved. Review it and choose one focused follow-up.',
+    cta: 'See my next step',
+    signals: ['Saved result', 'Practice module'],
+  },
+  subscriber_feature_help: {
+    title: 'One plan benefit is ready to use',
+    message: 'Your plan includes guided practice and AI feedback. Try one short activity today.',
+    cta: 'Use my plan benefit',
+    signals: ['Current plan', 'Unused benefits'],
+  },
+  quota_upgrade: {
+    title: 'Keep your feedback loop moving',
+    message:
+      'You reached your AI feedback allowance on two study days. Compare plans for more feedback.',
+    cta: 'Compare my options',
+    signals: ['Recent AI usage', 'Current allowance'],
+  },
+  re_engagement: {
+    title: 'Pick up from your last saved step',
+    message:
+      'Your recent practice is still here. Continue with one short activity built from that progress.',
+    cta: 'Continue where I left off',
+    signals: ['Saved progress', 'Last practice'],
+  },
+  cancellation_support: {
+    title: 'Use your remaining plan time well',
+    message:
+      'You still have 8 days of access. Review your progress and choose what you want to finish.',
+    cta: 'Review my progress',
+    signals: ['Plan end date', 'Saved progress'],
+  },
+  referral_bonus_reminder: {
+    title: 'Your 2 referral credits are ready',
+    message: 'Use your verified bonus credits before the current bonus period ends.',
+    cta: 'Use my credits',
+    signals: ['Credit balance', 'Expiry date'],
+  },
+  score_plateau: {
+    title: 'Try a new route to your next 0.5',
+    message: 'Three comparable Reading results point to one focused area worth practising next.',
+    cta: 'See my focus area',
+    signals: ['Comparable results', 'Supported weak area'],
+  },
+  incomplete_test: {
+    title: 'Your 18 answers are still waiting',
+    message:
+      'Continue your saved Reading test without starting over. Your completed answers are safe.',
+    cta: 'Resume my test',
+    signals: ['Answered questions', 'Saved test'],
+  },
+  exam_countdown: {
+    title: '15 days left: focus on what matters most',
+    message:
+      'Your study plan is fitted to your confirmed exam date, target band, and available time.',
+    cta: 'Open my 15-day plan',
+    signals: ['Confirmed exam date', 'Target band', 'Study time'],
+  },
+  checkout_recovery: {
+    title: 'Your selected plan is still ready',
+    message:
+      'Your upgrade did not complete. Return to your selected plan or get help with payment.',
+    cta: 'Continue my upgrade',
+    signals: ['Selected plan', 'Unfinished checkout'],
+  },
 };
 
 const channelIcon = { in_app: Megaphone, banner: MonitorSmartphone, email: Mail, push: Bell };
@@ -81,24 +100,25 @@ export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChan
   const [channel, setChannel] = useState('in_app');
 
   useEffect(() => {
-    if (open) setChannel(allowedChannels[0] || 'in_app');
+    if (open)
+      setChannel(allowedChannels.includes('in_app') ? 'in_app' : allowedChannels[0] || 'in_app');
   }, [open, allowedChannels]);
 
   if (!policy) return null;
-  const [title, message, cta] = EXAMPLES[policy.playbook_key] || [
-    policy.name,
-    'A relevant next step is ready when the required evidence is available.',
-    'Open',
-  ];
-  const Icon = channelIcon[channel] || Megaphone;
-
+  const example = EXAMPLES[policy.playbook_key] || {
+    title: policy.name,
+    message: 'A relevant next step is ready from the learner’s verified activity.',
+    cta: 'Open my next step',
+    signals: ['Latest verified activity'],
+  };
+  const { title, message, cta, signals } = example;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[96vw] max-w-2xl overflow-y-auto border-stone-200 bg-white p-5 dark:border-white/10 dark:bg-[#131315]">
+      <DialogContent className="max-h-[92vh] w-[96vw] max-w-3xl overflow-y-auto border-stone-200 bg-white p-5 dark:border-white/10 dark:bg-[#131315]">
         <DialogHeader>
-          <DialogTitle>Message preview</DialogTitle>
+          <DialogTitle>Notification preview</DialogTitle>
           <DialogDescription>
-            A generic example only. No learner is selected, queued, or contacted.
+            See the exact learner experience using sample context. Nothing is sent.
           </DialogDescription>
         </DialogHeader>
 
@@ -155,42 +175,65 @@ export default function AutopilotMessagePreviewDialog({ policy, open, onOpenChan
               <div className="flex items-center gap-2 text-[11px] text-white/70">
                 <Bell className="h-3.5 w-3.5" /> IELTS AI Pro · now
               </div>
-              <p className="mt-2 text-sm font-bold">Your next practice activity is ready.</p>
-              <p className="mt-1 text-[11px] text-white/70">
-                Open IELTS AI Pro when you are ready.
-              </p>
+              <p className="mt-2 text-sm font-bold">{title}</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/70">{message}</p>
+            </div>
+          </div>
+        ) : channel === 'banner' ? (
+          <div className="overflow-hidden rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] py-10 dark:border-white/[0.07] dark:bg-[#08080a]">
+            <div className="pointer-events-none">
+              <AnnouncementBanner
+                preview
+                announcement={{
+                  enabled: true,
+                  type: 'info',
+                  title,
+                  message,
+                  link_url: '/dashboard',
+                  link_label: cta,
+                  dismissible: false,
+                }}
+              />
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-[#e4e2f0] bg-[#faf9ff] p-3.5 dark:border-white/[0.07] dark:bg-[#100f15]">
-            {channel === 'banner' && <Pill tone="accent">Dashboard banner</Pill>}
-            <div className="mt-2 flex items-start gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#ececff] text-[#5a63df]">
-                <Icon className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Pill tone="accent">Suggested for you</Pill>
-                  <span className={cn(MICRO, MUTED)}>{policy.name}</span>
-                </div>
-                <h3 className="mt-2 text-[14px] font-extrabold text-stone-900 dark:text-stone-50">
-                  {title}
-                </h3>
-                <p className="mt-1 text-[12px] leading-relaxed text-stone-600 dark:text-stone-300">
-                  {message}
-                </p>
-                <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#5a63df] px-3 py-2 text-[11px] font-extrabold text-white">
-                  {cta}
-                  <ArrowRight className="h-3 w-3" />
-                </span>
-              </div>
+          <div className="rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-3 sm:p-5 dark:border-white/[0.07] dark:bg-[#08080a]">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className={cn(MICRO, MUTED)}>Live learner card</span>
+              <Pill tone="accent">Sample data</Pill>
             </div>
+            <InAppNotificationCard
+              preview
+              playbookKey={policy.playbook_key}
+              title={title}
+              message={message}
+              ctaLabel={cta}
+              className="mx-auto max-w-md"
+            />
           </div>
         )}
-        <p className={cn(MICRO, MUTED)}>
-          The server chooses one eligible route, checks current learner state, and applies contact
-          limits before delivery.
-        </p>
+        <div className="rounded-lg border border-stone-200 p-3 dark:border-white/[0.07]">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-[#5a63df]" />
+            <p className="text-xs font-extrabold text-stone-800 dark:text-stone-100">
+              Personalization used
+            </p>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {signals.map((signal) => (
+              <span
+                key={signal}
+                className="inline-flex items-center gap-1 rounded-full border border-stone-200 px-2 py-1 text-[10px] font-semibold text-stone-600 dark:border-white/[0.1] dark:text-stone-300"
+              >
+                <Check className="h-3 w-3 text-[rgb(var(--signal-ok))]" /> {signal}
+              </span>
+            ))}
+          </div>
+          <p className={cn(MICRO, MUTED, 'mt-3 normal-case tracking-normal')}>
+            Copilot uses only verified learner activity, rechecks eligibility, and chooses one
+            channel before delivery.
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

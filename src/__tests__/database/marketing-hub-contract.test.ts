@@ -91,12 +91,13 @@ const scheduledEmails = readFileSync(
 );
 
 describe('Admin Marketing Hub contracts', () => {
-  it('keeps performance and AI Autopilot in one Overview workspace', () => {
-    expect(marketingHub).not.toContain("['autopilot', 'AI Autopilot'");
-    expect(marketingHub).toMatch(
-      /<TabsContent value="overview"[\s\S]*<AutopilotPanel[\s\S]*<AnalyticsPanel/
-    );
-    expect(autopilotPanel).toContain('Primary coordinator');
+  it('separates the glanceable growth goal from specialist workspaces', () => {
+    expect(marketingHub).toContain("['copilot', 'Copilot'");
+    expect(marketingHub).not.toContain('<SubscriptionGrowthCockpit');
+    expect(marketingHub).toContain("['performance', 'Performance'");
+    expect(marketingHub).toMatch(/<TabsContent[\s\S]*?value="copilot"[\s\S]*?<AutopilotPanel/);
+    expect(marketingHub).toMatch(/<TabsContent[\s\S]*?value="performance"[\s\S]*?<AnalyticsPanel/);
+    expect(autopilotPanel).toContain('Approve message');
     expect(commandStrip).toContain('personalized intervention');
   });
 

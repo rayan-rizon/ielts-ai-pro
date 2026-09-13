@@ -18,6 +18,7 @@ const dispatcher = read('supabase/functions/marketing-campaign-dispatch/index.ts
 const learnerSurface = [
   'src/features/marketing/components/LearnerMarketingSurface.jsx',
   'src/features/marketing/components/LearnerInAppNotification.jsx',
+  'src/features/marketing/components/InAppNotificationCard.jsx',
   'src/features/marketing/hooks/useVisibleImpression.js',
 ]
   .map(read)
@@ -96,7 +97,8 @@ describe('Personalized retention autopilot contracts', () => {
 
   it('resumes saved progress without exposing correctness or predicted score', () => {
     expect(worker).toContain('answeredCount(session.user_responses)');
-    expect(worker).toContain("title: 'Your progress is saved'");
+    expect(worker).toContain('answers saved`');
+    expect(worker).toContain("cta_label: 'Resume my test'");
     expect(worker).not.toMatch(/18\/20|unlock your.*band/i);
   });
 
@@ -126,8 +128,8 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).toContain('deliveryStrategy');
     expect(worker).toContain('email is attempted first');
     expect(worker).toContain('return channel;');
-    expect(adminPanel).toContain('Active:');
-    expect(adminPanel).toContain('Away:');
+    expect(adminPanel).toContain('Show on the next eligible visit');
+    expect(adminPanel).toContain('Send after approval, if still eligible');
     expect(deliveryStrategyMigration).toContain("'exam_countdown'");
     expect(deliveryStrategyMigration).toContain('\'["banner"]\'::jsonb');
     expect(deliveryStrategyMigration).toContain('\'["email", "push"]\'::jsonb');
@@ -136,9 +138,8 @@ describe('Personalized retention autopilot contracts', () => {
   it('returns a useful privacy-safe preview instead of only a toast count', () => {
     expect(worker).toContain('automation_preview');
     expect(worker).toContain('suppressed_by_reason');
-    expect(adminPanel).toContain('Preview results');
-    expect(adminPanel).toContain('No messages were sent');
-    expect(adminPanel).toContain('setPreviewResult');
+    expect(adminPanel).toContain('Nothing sent.');
+    expect(adminPanel).toContain('prepared.suppressed');
   });
 
   it('implements the additional learner situations from the extended plan', () => {
@@ -158,7 +159,8 @@ describe('Personalized retention autopilot contracts', () => {
     expect(deliveryService).toContain('disablePush');
     expect(migration).toContain('replace_my_marketing_push_subscription');
     expect(worker).toContain('[404, 410]');
-    expect(worker).toContain("body: 'Your next practice activity is ready.'");
+    expect(worker).toContain("title: candidate.content.title || 'IELTS AI Pro'");
+    expect(worker).toContain("body: candidate.content.message || 'Your next IELTS step is ready.'");
   });
 
   it('keeps checkout assistance and the approved 15 percent offer in one intervention', () => {
@@ -167,9 +169,9 @@ describe('Personalized retention autopilot contracts', () => {
       `WHEN 'checkout_recovery' THEN jsonb_build_array('in_app','email')`
     );
     expect(worker).toContain('chooseChannel(policy, preference, activeRecently, user)');
-    expect(worker).toContain('provision_autopilot_checkout_offer');
+    expect(worker).not.toContain('provision_autopilot_checkout_offer');
     expect(migration).toContain("'percentage', 15");
-    expect(worker).toContain('promo_code: offer.code');
+    expect(worker).not.toContain('promo_code: offer.code');
     expect(migration).toContain('marketing_checkout_intents');
     expect(checkout).toContain("status: 'initiated'");
     expect(stripeWebhook).toContain("status: 'settled'");
@@ -185,15 +187,15 @@ describe('Personalized retention autopilot contracts', () => {
   });
 
   it('provides admin monitoring, evidence, review, and quiet decisions', () => {
-    expect(adminPanel).toContain('Review delivery and learner help');
-    expect(adminPanel).toContain('Clear next steps');
+    expect(adminPanel).toContain('Results monitor');
+    expect(adminPanel).toContain('Priority actions');
     expect(adminPanel).toContain('Held back');
-    expect(adminPanel).toContain('Mark reviewed');
+    expect(adminPanel).toContain('Approve message');
     expect(worker).toContain('claim causality, diagnose emotions');
     expect(worker).toContain('experiment_holdout');
     expect(worker).toContain("body.action === 'generate_copy'");
     expect(worker).toContain("status: 'needs_approval'");
-    expect(adminPanel).toContain('AI copy draft refreshed for review');
+    expect(adminPanel).toContain('New draft ready to review');
   });
 
   it('stores only evidence-grounded recommendations in familiar language', () => {
@@ -203,11 +205,11 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).toContain('never expose internal keys or the word "playbook"');
     expect(worker).toContain('groundedRecommendations.length');
     expect(worker).toContain('recommendations: groundedRecommendations');
-    expect(worker).toContain("RETENTION_ANALYSIS_VERSION = '2026-09-07-plain-language-v2'");
+    expect(worker).toContain("RETENTION_ANALYSIS_VERSION = '2026-09-13-action-review-v3'");
   });
 
   it('uses GLM for every AI task in the Marketing Autopilot', () => {
-    expect(worker.match(/openRouterModel: 'z-ai\/glm-5\.3-flash'/g)).toHaveLength(3);
-    expect(worker.match(/openRouterDisableReasoning: false/g)).toHaveLength(3);
+    expect(worker.match(/openRouterModel: 'z-ai\/glm-5\.3-flash'/g)).toHaveLength(4);
+    expect(worker.match(/openRouterDisableReasoning: false/g)).toHaveLength(4);
   });
 });

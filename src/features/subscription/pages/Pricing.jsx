@@ -323,6 +323,14 @@ export default function Pricing() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    MarketingDelivery.recordSubscriptionFunnel('pricing_viewed', {
+      dedupeKey: new Date().toISOString().slice(0, 10),
+      metadata: { source: 'pricing_page' },
+    }).catch(() => {});
+  }, [user?.id]);
+
   const handlePromoApplied = async (redemptionData) => {
     if (redemptionData) {
       if (redemptionData.type === 'grant') {
@@ -443,6 +451,12 @@ export default function Pricing() {
       },
       user
     );
+    MarketingDelivery.recordSubscriptionFunnel('checkout_started', {
+      planTier,
+      billingInterval,
+      dedupeKey: `manual:${planTier}:${billingInterval}:${new Date().toISOString().slice(0, 10)}`,
+      metadata: { payment_method: 'manual' },
+    }).catch(() => {});
 
     setManualPaymentData(
       buildManualPaymentData({
@@ -504,9 +518,22 @@ export default function Pricing() {
         currency: planCurrency,
       });
 
+      MarketingDelivery.recordSubscriptionFunnel('checkout_started', {
+        planTier,
+        billingInterval,
+        dedupeKey: checkout.session_id,
+        metadata: { payment_method: 'stripe' },
+      }).catch(() => {});
+
       window.location.href = checkout.url;
     } catch (error) {
       handleCheckoutFailure(error, planTier, billingInterval);
+      MarketingDelivery.recordSubscriptionFunnel('checkout_failed', {
+        planTier,
+        billingInterval,
+        dedupeKey: `failed:${planTier}:${billingInterval}:${new Date().toISOString().slice(0, 13)}`,
+        metadata: { failure_kind: 'checkout_start' },
+      }).catch(() => {});
       const { toast } = await import('sonner');
       // Checkout never started, so the user has definitely not been charged —
       // say that outright so nobody retries on a second card.
@@ -538,6 +565,15 @@ export default function Pricing() {
       currency: meta.currency,
       current_tier: meta.tier,
     });
+
+    if (user?.id) {
+      MarketingDelivery.recordSubscriptionFunnel('plan_selected', {
+        planTier,
+        billingInterval,
+        dedupeKey: `${planTier}:${billingInterval}:${new Date().toISOString().slice(0, 10)}`,
+        metadata: { source: 'pricing_page' },
+      }).catch(() => {});
+    }
 
     if (planTier === 'free') {
       setSelectedPlan('free');

@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { m } from 'framer-motion';
-import { BarChart3, FileText, Megaphone, RefreshCcw, Users, Workflow } from 'lucide-react';
+import {
+  BarChart3,
+  BrainCircuit,
+  FileText,
+  Megaphone,
+  RefreshCcw,
+  Users,
+  Workflow,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/cn';
@@ -31,7 +39,8 @@ import AdminOperationsPanel from './AdminOperationsPanel';
  * nobody scanning a nav bar is looking for a segment.
  */
 const TABS = [
-  ['overview', 'Overview', BarChart3],
+  ['copilot', 'Copilot', BrainCircuit],
+  ['performance', 'Performance', BarChart3],
   ['campaigns', 'Campaigns', Megaphone],
   ['audiences', 'Audiences', Users],
   ['templates', 'Templates', FileText],
@@ -50,11 +59,13 @@ const EMPTY_DATA = {
   journeyMetrics: [],
   recovery: { waiting: 0, eligible: 0, sent: 0, recovered: 0, conversion_rate: 0 },
   autopilot: { policies: [], recommendations: [], interventions: [], channels: [], counts: {} },
+  growth: null,
 };
 
 export default function MarketingHub() {
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('overview');
+  const [initialized, setInitialized] = useState(false);
+  const [tab, setTab] = useState('copilot');
   const [data, setData] = useState(EMPTY_DATA);
 
   const load = useCallback(async () => {
@@ -103,6 +114,7 @@ export default function MarketingHub() {
       toast.error(error.message || 'Could not load the Marketing hub');
     } finally {
       setLoading(false);
+      setInitialized(true);
     }
   }, []);
 
@@ -110,7 +122,19 @@ export default function MarketingHub() {
     load();
   }, [load]);
 
-  if (loading && !data.campaigns.length) return <AdminPageSkeleton kpis={5} panels={2} />;
+  const navigateToTab = useCallback((nextTab) => {
+    if (!TABS.some(([value]) => value === nextTab)) return;
+    setTab(nextTab);
+    requestAnimationFrame(() => {
+      document.getElementById(`marketing-tab-${nextTab}`)?.focus();
+      document.getElementById(`marketing-tabpanel-${nextTab}`)?.scrollIntoView({
+        block: 'start',
+        behavior: 'smooth',
+      });
+    });
+  }, []);
+
+  if (!initialized) return <AdminPageSkeleton kpis={5} panels={2} />;
 
   return (
     <m.div
@@ -122,8 +146,7 @@ export default function MarketingHub() {
       <m.div variants={FADE_UP}>
         <AdminPageHeader
           title="Marketing"
-          description="Consent-aware campaigns, conversion journeys, offers, and attributed revenue"
-          tip="Revenue appears only after a server-confirmed payment. Email audiences always exclude learners without marketing consent."
+          description="Grow subscriptions. Review actions. Follow results."
         >
           <AdminButton variant="outline" onClick={load} loading={loading}>
             <RefreshCcw className="h-3.5 w-3.5" />
@@ -133,18 +156,7 @@ export default function MarketingHub() {
       </m.div>
 
       <m.div variants={FADE_UP}>
-        <CommandStrip
-          campaigns={data.campaigns}
-          journeys={data.journeys}
-          recovery={data.recovery}
-          dashboard={data.dashboard}
-          autopilot={data.autopilot}
-          onNavigate={setTab}
-        />
-      </m.div>
-
-      <m.div variants={FADE_UP}>
-        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+        <Tabs value={tab} onValueChange={navigateToTab} className="space-y-4">
           <div className="overflow-x-auto pb-1 no-scrollbar">
             <TabsList className={ADMIN_TABS_LIST}>
               {TABS.map(([value, label, Icon]) => {
@@ -192,9 +204,36 @@ export default function MarketingHub() {
             </TabsList>
           </div>
 
-          <TabsContent value="overview" className="mt-0 outline-none">
-            <AdminOperationsPanel refreshKey={data.autopilot} />
-            <AutopilotPanel autopilot={data.autopilot} onRefresh={load} />
+          <TabsContent
+            value="copilot"
+            id="marketing-tabpanel-copilot"
+            className="mt-0 outline-none"
+          >
+            <AutopilotPanel
+              autopilot={data.autopilot}
+              onRefresh={load}
+              onNavigate={navigateToTab}
+            />
+            <details className="mt-4">
+              <summary className="cursor-pointer py-2 text-xs font-semibold">
+                Explore learner history and reports
+              </summary>
+              <AdminOperationsPanel refreshKey={data.autopilot} />
+            </details>
+          </TabsContent>
+          <TabsContent
+            value="performance"
+            id="marketing-tabpanel-performance"
+            className="mt-0 space-y-4 outline-none"
+          >
+            <CommandStrip
+              campaigns={data.campaigns}
+              journeys={data.journeys}
+              recovery={data.recovery}
+              dashboard={data.dashboard}
+              autopilot={data.autopilot}
+              onNavigate={navigateToTab}
+            />
             <AnalyticsPanel
               dashboard={data.dashboard}
               intelligence={data.intelligence}
@@ -202,7 +241,11 @@ export default function MarketingHub() {
               recovery={data.recovery}
             />
           </TabsContent>
-          <TabsContent value="campaigns" className="mt-0 outline-none">
+          <TabsContent
+            value="campaigns"
+            id="marketing-tabpanel-campaigns"
+            className="mt-0 outline-none"
+          >
             <CampaignsPanel
               campaigns={data.campaigns}
               segments={data.segments}
@@ -211,13 +254,25 @@ export default function MarketingHub() {
               onRefresh={load}
             />
           </TabsContent>
-          <TabsContent value="audiences" className="mt-0 outline-none">
+          <TabsContent
+            value="audiences"
+            id="marketing-tabpanel-audiences"
+            className="mt-0 outline-none"
+          >
             <SegmentsPanel segments={data.segments} onRefresh={load} />
           </TabsContent>
-          <TabsContent value="templates" className="mt-0 outline-none">
+          <TabsContent
+            value="templates"
+            id="marketing-tabpanel-templates"
+            className="mt-0 outline-none"
+          >
             <TemplatesPanel templates={data.templates} onRefresh={load} />
           </TabsContent>
-          <TabsContent value="journeys" className="mt-0 outline-none">
+          <TabsContent
+            value="journeys"
+            id="marketing-tabpanel-journeys"
+            className="mt-0 outline-none"
+          >
             <JourneysPanel
               journeys={data.journeys}
               campaigns={data.campaigns}

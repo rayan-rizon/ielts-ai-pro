@@ -395,7 +395,7 @@ export const AI_ROUTES: AiRoute[] = [
       {
         model: 'z-ai/glm-5.3-flash',
         role: 'primary',
-        when: 'An admin explicitly requests an improved draft.',
+        when: 'Copilot prepares up to three review drafts per check, or an admin requests a rewrite.',
       },
       { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
       { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'GLM and direct DeepSeek failed.' },
@@ -407,6 +407,21 @@ export const AI_ROUTES: AiRoute[] = [
     ],
     notes:
       'Names are added at delivery; AI drafts cannot alter validated destinations or evidence.',
+  },
+  {
+    id: 'retention-autopilot-priority',
+    surface: 'Admin Marketing: rank validated actions for approval',
+    file: 'supabase/functions/retention-autopilot/index.ts',
+    maxOutputTokens: 300,
+    timeoutMs: 12000,
+    steps: [
+      { model: 'z-ai/glm-5.3-flash', role: 'primary', when: 'Eligible actions await an AI draft.' },
+      { model: 'deepseek-v4-flash', role: 'fallback', when: 'OpenRouter failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'fallback', when: 'GLM and direct DeepSeek failed.' },
+      { model: 'gemini-2.5-flash-lite', role: 'repair', when: 'One retry on malformed JSON.' },
+    ],
+    notes:
+      'Selects up to three existing action IDs. Eligibility, recipients, channel and delivery remain server-controlled; approval is required.',
   },
   {
     id: 'adaptive-learning-path',
