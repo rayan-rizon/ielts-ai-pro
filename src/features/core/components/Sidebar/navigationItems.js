@@ -28,21 +28,41 @@ import { ReiconTarget } from '@/components/icons/ReiconTarget';
 
 export const userNavigationItems = [
   { title: 'Dashboard', url: createPageUrl('Dashboard'), icon: LayoutGrid },
-  { title: 'AI Learning Path', url: createPageUrl('LearningPath'), icon: Sparkles },
+  {
+    title: 'AI Learning Path',
+    url: createPageUrl('LearningPath'),
+    icon: Sparkles,
+    tourKey: 'learning-path',
+  },
   { title: 'Reading Tests', url: createPageUrl('Reading'), icon: BookOpen },
   { title: 'Writing Practice', url: createPageUrl('Writing'), icon: PenTool },
   { title: 'Listening Tests', url: createPageUrl('Listening'), icon: Headphones },
   { title: 'Speaking Practice', url: createPageUrl('Speaking'), icon: Mic },
-  { title: 'Analytics', url: createPageUrl('Analytics'), icon: ReiconChart },
+  {
+    title: 'Analytics',
+    url: createPageUrl('Analytics'),
+    icon: ReiconChart,
+    tourKey: 'analytics',
+  },
   { title: 'Pricing', url: createPageUrl('Pricing'), icon: CreditCard },
 ];
 
 export const learningToolsItems = [
-  { title: 'Grammar Lab', url: createPageUrl('Grammar'), icon: FlaskConical },
+  {
+    title: 'Grammar Lab',
+    url: createPageUrl('Grammar'),
+    icon: FlaskConical,
+    tourKey: 'grammar-lab',
+  },
+  {
+    title: 'Practice Lab',
+    url: createPageUrl('SkillLab'),
+    icon: ReiconTarget,
+    tourKey: 'practice-lab',
+  },
   { title: 'Resources', url: createPageUrl('Resources'), icon: Library },
   { title: 'Vocabulary', url: createPageUrl('Vocabulary'), icon: Brain },
   { title: 'Leaderboards', url: createPageUrl('Leaderboard'), icon: Trophy },
-  { title: 'Practice Lab', url: createPageUrl('SkillLab'), icon: ReiconTarget },
 ];
 
 export const adminNavigationItems = [

@@ -70,6 +70,7 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
   return (
     <div
       ref={quickLaunchRef}
+      data-tour="skill-launcher"
       className={cn(
         PANEL,
         'flex h-full flex-col p-4',

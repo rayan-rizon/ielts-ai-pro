@@ -18,7 +18,9 @@ import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { toast } from 'sonner';
-import { IconChip, MICRO, MUTED, PANEL } from '@/features/dashboard/components/primitives';
+import { IconChip, MICRO, MUTED } from '@/features/dashboard/components/primitives';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 import {
   getWeeklyCapacity,
   normalizeStudyAvailability,
@@ -30,6 +32,7 @@ import TimelineStep from '@/features/onboarding/components/steps/TimelineStep';
 import StudyTimeStep from '@/features/onboarding/components/steps/StudyTimeStep';
 import FocusStep from '@/features/onboarding/components/steps/FocusStep';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
+import { queueProductTour } from '@/features/dashboard/lib/productTourStorage';
 
 // Step configurations
 const steps = [
@@ -65,16 +68,16 @@ const steps = [
   },
   {
     id: 'complete',
-    title: 'Ready to go!',
-    description: 'Your personalized path is ready.',
+    title: 'Your personalized plan',
+    description: 'A realistic first structure, built from the goals and time you shared.',
     icon: Rocket,
   },
 ];
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-  const [direction, setDirection] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
@@ -112,19 +115,17 @@ export default function Onboarding() {
   };
 
   const goNext = useCallback(() => {
-    setDirection(1);
     setCurrentStep((prev) => prev + 1);
   }, []);
 
   const goBack = useCallback(() => {
-    setDirection(-1);
     setCurrentStep((prev) => prev - 1);
   }, []);
 
   const handleNext = async () => {
     if (steps[currentStep].id === 'focus') {
-      await submitData();
-      goNext();
+      const saved = await submitData();
+      if (saved) goNext();
     } else if (currentStep === steps.length - 1) {
       finishOnboarding();
     } else {
@@ -134,21 +135,17 @@ export default function Onboarding() {
 
   const handleOnboardingConflict = async () => {
     try {
-      await User.updateMyUserData({ onboarding_completed: true });
+      const updatedUser = await User.updateMyUserData({ onboarding_completed: true });
       saveOnboardingCompletedLocally();
-      toast.success('Preferences saved!', {
-        description: (
-          <span className="text-slate-600 dark:text-slate-400 text-xs font-medium block mt-0.5">
-            Your personalized study plan is being generated.
-          </span>
-        ),
-      });
-      goNext();
+      queueProductTour(updatedUser?.id || user?.id);
+      if (hasPaidAccess(updatedUser)) triggerBackgroundPathGeneration(updatedUser);
+      return true;
     } catch (retryError) {
       console.error('Retry also failed:', retryError);
       toast.error('Update conflict', {
         description: 'Profile update conflict. Please refresh the page and try again.',
       });
+      return false;
     }
   };
 
@@ -160,15 +157,8 @@ export default function Onboarding() {
 
       const updatedUser = await User.updateMyUserData(updatePayload);
       saveOnboardingCompletedLocally();
-      triggerBackgroundPathGeneration(updatedUser);
-
-      toast.success('Preferences saved!', {
-        description: (
-          <span className="text-slate-600 dark:text-slate-400 text-xs font-medium block mt-0.5">
-            Your personalized study plan is being generated.
-          </span>
-        ),
-      });
+      queueProductTour(updatedUser?.id || user?.id);
+      if (hasPaidAccess(updatedUser)) triggerBackgroundPathGeneration(updatedUser);
 
       trackAuthenticatedAppEvent(
         'onboarding_completed',
@@ -180,15 +170,17 @@ export default function Onboarding() {
         },
         updatedUser
       );
+      return true;
     } catch (error) {
       console.error('Onboarding save error:', error);
 
       const { title, message } = getErrorMessage(error);
       if (message === 'CONFLICT') {
-        await handleOnboardingConflict();
+        return await handleOnboardingConflict();
       } else {
         toast.error(title, { description: message });
       }
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -196,6 +188,20 @@ export default function Onboarding() {
 
   const finishOnboarding = () => {
     navigate(createPageUrl('Dashboard'));
+  };
+
+  const openLearningPath = () => {
+    navigate(createPageUrl('LearningPath'));
+  };
+
+  const openSubscriptionPlans = (tier = 'pro') => {
+    const params = new URLSearchParams({
+      plan: tier,
+      source: 'onboarding',
+      focus: formData.weak_area || 'all',
+      target: String(formData.target_band_score || 7),
+    });
+    navigate(`${createPageUrl('Pricing')}?${params.toString()}`);
   };
 
   const skipOnboarding = async () => {
@@ -282,7 +288,15 @@ export default function Onboarding() {
           />
         );
       case 'complete':
-        return <CompleteStep targetBandScore={formData.target_band_score} />;
+        return (
+          <CompleteStep
+            formData={formData}
+            hasPaidPlan={hasPaidAccess(user)}
+            onUpgrade={openSubscriptionPlans}
+            onContinue={finishOnboarding}
+            onOpenPlan={openLearningPath}
+          />
+        );
       default:
         return null;
     }
@@ -302,7 +316,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f1f0f7] p-4 pb-8 pt-12 dark:bg-[#08080a] sm:items-center sm:p-6 sm:py-8">
+    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f1f0f7] p-3 pb-5 pt-8 dark:bg-[#08080a] sm:items-center sm:p-5 sm:py-4">
       {/* Subtle dot-grid + ambient depth */}
       <div
         aria-hidden="true"
@@ -320,14 +334,14 @@ export default function Onboarding() {
       <div
         className={cn(
           'relative z-10 w-full max-w-xl overflow-hidden rounded-2xl',
-          'border border-[#cecbe2] bg-white shadow-[0_12px_40px_-6px_rgba(25,20,60,0.09),0_2px_8px_-2px_rgba(25,20,60,0.04)]',
-          'dark:border-white/[0.08] dark:bg-linear-to-b dark:from-[#141319] dark:to-[#100f15] dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)]'
+          'border border-[#cecbe2] bg-linear-to-b from-white to-[#faf9ff]',
+          'dark:border-white/[0.08] dark:from-[#141319] dark:to-[#100f15]'
         )}
       >
         {/* Step rail — one segment per step, filled up to the current one. A
             plain percentage bar doesn't tell you how many steps remain; six
             discrete segments do at a glance. */}
-        <div className="flex gap-1 p-4 pb-0 sm:p-6 sm:pb-0">
+        <div className="flex gap-1 p-4 pb-0 sm:p-5 sm:pb-0">
           {steps.map((step, index) => (
             <span
               key={step.id}
@@ -342,7 +356,7 @@ export default function Onboarding() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between px-4 pt-3.5 sm:px-6">
+        <div className="flex items-center justify-between px-4 pt-3 sm:px-5">
           <div className="flex items-center gap-2.5">
             <IconChip icon={StepIcon} tone="accent" size="md" />
             <span className={cn(MICRO, MUTED)}>
@@ -364,8 +378,13 @@ export default function Onboarding() {
           )}
         </div>
 
-        <div className="px-4 pb-6 pt-3 sm:px-6 sm:pb-7">
-          <div className="relative min-h-[380px] w-full overflow-hidden pt-1 sm:min-h-[400px]">
+        <div className="px-4 pb-4 pt-2.5 sm:px-5 sm:pb-5">
+          <div
+            className={cn(
+              'relative w-full overflow-hidden pt-1',
+              currentStep === steps.length - 1 ? 'min-h-[250px]' : 'min-h-[330px] sm:min-h-[350px]'
+            )}
+          >
             <m.div
               className="flex w-full items-start"
               initial={false}
@@ -383,20 +402,22 @@ export default function Onboarding() {
                     aria-hidden={!isActive}
                     inert={!isActive ? '' : undefined}
                   >
-                    <div className={cn('mb-4', isCentered && 'text-center')}>
-                      <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-                        {step.title}
-                      </h1>
-                      <p
-                        className={cn(
-                          'mt-1 text-[13px] font-medium',
-                          MUTED,
-                          isCentered && 'mx-auto max-w-sm'
-                        )}
-                      >
-                        {step.description}
-                      </p>
-                    </div>
+                    {step.id !== 'complete' && (
+                      <div className={cn('mb-3.5', isCentered && 'text-center')}>
+                        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                          {step.title}
+                        </h1>
+                        <p
+                          className={cn(
+                            'mt-1 text-[13px] font-medium',
+                            MUTED,
+                            isCentered && 'mx-auto max-w-sm'
+                          )}
+                        >
+                          {step.description}
+                        </p>
+                      </div>
+                    )}
 
                     {renderStepContent(step.id)}
                   </div>
@@ -405,45 +426,45 @@ export default function Onboarding() {
             </m.div>
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#e2e0f0] pt-4 dark:border-white/[0.07]">
-            {currentStep > 0 ? (
+          {currentStep < steps.length - 1 && (
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#e2e0f0] pt-4 dark:border-white/[0.07]">
+              {currentStep > 0 ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  disabled={isLoading || currentStep === steps.length - 1}
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Back
+                </button>
+              ) : (
+                <div aria-hidden="true" className="w-10" />
+              )}
+
               <button
                 type="button"
-                onClick={goBack}
-                disabled={isLoading || currentStep === steps.length - 1}
-                className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
+                onClick={handleNext}
+                disabled={!canProceed() || isLoading}
+                className={cn(
+                  'inline-flex h-11 items-center justify-center gap-2 rounded-lg px-7 text-sm font-bold text-white transition-all duration-150',
+                  'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50'
+                )}
               >
-                <ChevronLeft className="h-4 w-4" />
-                Back
+                {isLoading ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Creating plan…
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ChevronRight className="h-4 w-4" />
+                  </>
+                )}
               </button>
-            ) : (
-              <div aria-hidden="true" className="w-10" />
-            )}
-
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={!canProceed() || isLoading}
-              className={cn(
-                'inline-flex h-11 items-center justify-center gap-2 rounded-lg px-7 text-sm font-bold text-white transition-all duration-150',
-                'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50'
-              )}
-            >
-              {isLoading ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Creating plan…
-                </>
-              ) : currentStep === steps.length - 1 ? (
-                'Finish'
-              ) : (
-                <>
-                  Continue
-                  <ChevronRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

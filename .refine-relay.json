@@ -1,0 +1,9 @@
+{
+  "pid": 27660,
+  "port": 7331,
+  "page": "/Users/rayanrizon/Documents/Project/Ielts Ai Pro/index.html",
+  "log": "/Users/rayanrizon/Documents/Project/Ielts Ai Pro/.refine-relay.log",
+  "version": "0.3.34",
+  "agentCmd": "gemini --skip-trust -y",
+  "startedAt": "2026-09-13T20:59:42.790Z"
+}

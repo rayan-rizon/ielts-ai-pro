@@ -105,7 +105,6 @@ export default function Dashboard() {
     hasError,
     retry,
   } = useDashboardData(authUser, authLoading);
-
   const {
     showOnboarding,
     onboardingHighlight,

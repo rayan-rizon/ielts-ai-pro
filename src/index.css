@@ -781,6 +781,10 @@
     @apply bg-background text-foreground transition-colors duration-500;
   }
 
+  html.light > body {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   .dark body {
     background-image:
       radial-gradient(at 0% 0%, hsla(239, 84%, 67%, 0.08) 0, transparent 40%),

@@ -150,16 +150,10 @@ function useMarketingActions(userId, load) {
     [act, userId]
   );
 
-  const handleEnablePush = useCallback(() => {
-    if (!userId) return;
-    act('push', () => MarketingDelivery.enablePush(userId), 'Practice reminders enabled');
-  }, [act, userId]);
-
   return {
     working,
     handleFeedback,
     handleSaveFeeling,
-    handleEnablePush,
   };
 }
 

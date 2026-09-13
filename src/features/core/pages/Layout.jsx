@@ -16,6 +16,7 @@ import { OfflineBanner } from '@/components/OfflineBanner';
 import ServiceOutageBanner from '@/components/shared/ServiceOutageBanner';
 import { isAnnouncementLive } from '@/lib/communications';
 import { cn } from '@/lib/cn';
+import ProductTour from '@/features/dashboard/components/ProductTour';
 
 // Modular Components
 import { SidebarStyles } from '@/features/core/components/Sidebar/SidebarStyles';
@@ -429,6 +430,7 @@ export default function Layout({ children, currentPageName }) {
             >
               {children}
             </MainContentArea>
+            {!isAdminView && learnerChromeReady && <ProductTour user={user} />}
           </div>
         </SidebarProvider>
       </div>

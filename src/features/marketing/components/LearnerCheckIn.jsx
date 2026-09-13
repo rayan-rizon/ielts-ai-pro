@@ -1,4 +1,3 @@
-import { Bell } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, PANEL, TITLE, WELL } from '@/features/dashboard/components/primitives';
 
@@ -10,11 +9,6 @@ const FEELINGS = [
   ['short_on_time', 'Short on time'],
   ['taking_a_break', 'Taking a break'],
 ];
-
-function canRequestPushPermission() {
-  if (typeof Notification === 'undefined') return false;
-  return Notification.permission === 'default';
-}
 
 function FeelingButton({ value, label, working, onSaveFeeling }) {
   const isSavingThis = working === `feeling-${value}`;
@@ -35,22 +29,7 @@ function FeelingButton({ value, label, working, onSaveFeeling }) {
   );
 }
 
-function PushReminderButton({ working, onEnablePush }) {
-  if (!canRequestPushPermission()) return null;
-
-  return (
-    <button
-      type="button"
-      disabled={working === 'push'}
-      onClick={onEnablePush}
-      className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-bold text-stone-500 hover:text-[#5a63df] disabled:opacity-50 dark:text-stone-400"
-    >
-      <Bell className="h-3.5 w-3.5" /> Study reminders
-    </button>
-  );
-}
-
-export default function LearnerCheckIn({ working, onSaveFeeling, onEnablePush }) {
+export default function LearnerCheckIn({ working, onSaveFeeling }) {
   return (
     <section
       className={cn(
@@ -76,7 +55,6 @@ export default function LearnerCheckIn({ working, onSaveFeeling, onEnablePush })
           />
         ))}
       </div>
-      <PushReminderButton working={working} onEnablePush={onEnablePush} />
     </section>
   );
 }

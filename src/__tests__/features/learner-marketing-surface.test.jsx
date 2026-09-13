@@ -59,6 +59,7 @@ describe('Learner marketing surface', () => {
     render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
 
     expect(await screen.findByText('How is your practice going?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /reminders/i })).not.toBeInTheDocument();
   });
 
   it('does not stack an optional check-in with an active in-app suggestion', async () => {

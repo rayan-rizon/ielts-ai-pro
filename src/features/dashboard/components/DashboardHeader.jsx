@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { m } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CircleHelp } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { FADE_UP, MICRO, MUTED, NUM, TierBadge } from './primitives';
+import { requestProductTour } from '../lib/productTourStorage';
 
 const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommended }) => {
   const firstName = user?.full_name?.split(' ')[0] || user?.username || 'there';
@@ -53,13 +54,23 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
         </p>
       </div>
 
-      <Link
-        to={recommended.href}
-        className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
-      >
-        Practise {recommended.title}
-        <ArrowRight className="h-3 w-3" />
-      </Link>
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={requestProductTour}
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[#e4e2f0] bg-white px-2.5 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#5a63df]/35 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-[#b8bdff]"
+        >
+          <CircleHelp className="h-3.5 w-3.5" />
+          Quick tour
+        </button>
+        <Link
+          to={recommended.href}
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+        >
+          Practise {recommended.title}
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
     </m.header>
   );
 });

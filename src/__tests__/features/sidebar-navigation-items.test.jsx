@@ -15,6 +15,14 @@ describe('Sidebar Learning Tools Navigation Items', () => {
     expect(practiceItem.icon).toBe(ReiconTarget);
   });
 
+  it('keeps the toured learning tools together in the sidebar', () => {
+    expect(learningToolsItems.slice(0, 3).map((item) => item.title)).toEqual([
+      'Grammar Lab',
+      'Practice Lab',
+      'Resources',
+    ]);
+  });
+
   it('renders ReiconTarget with correct SVG attributes', () => {
     const { container } = render(<ReiconTarget className="h-4 w-4 text-blue-500" />);
     const svg = container.querySelector('svg');

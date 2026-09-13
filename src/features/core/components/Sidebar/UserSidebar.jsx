@@ -50,6 +50,7 @@ const NavItem = memo(({ item, isActive }) => {
       >
         <Link
           to={item.url}
+          data-tour={item.tourKey}
           className="flex items-center gap-2.5 px-3 py-2 text-[13px]"
           onClick={() => {
             if (isMobile) setOpenMobile(false);

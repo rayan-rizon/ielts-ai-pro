@@ -82,7 +82,11 @@ export default function DashboardGrid({
           <BandTrajectoryChart recentTests={recentTests} stats={stats} />
         </m.div>
 
-        <m.div variants={FADE_UP} className="col-span-12 md:col-span-5 lg:col-span-3">
+        <m.div
+          variants={FADE_UP}
+          data-tour="dashboard-next-up"
+          className="col-span-12 md:col-span-5 lg:col-span-3"
+        >
           <PaidFeatureGate
             hasAccess={canUseAdvancedInsights}
             label="Next up"

@@ -299,6 +299,9 @@ body {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+html.light > body {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
 :root:not(.dark) body {
   background-image:
     radial-gradient(at 0 0, #f8fafc 0, transparent 50%),
