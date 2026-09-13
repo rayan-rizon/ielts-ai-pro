@@ -154,17 +154,17 @@ export const AI_ROUTES: AiRoute[] = [
       {
         model: 'openai/gpt-5.6-luna',
         role: 'primary',
-        when: 'Always tried first when OPENROUTER_API_KEY is set.',
+        when: 'Adaptive marking whenever OPENROUTER_API_KEY is set: one seeded pass, a second only when the marker called a criterion borderline or the band sits on a rounding edge, a third only to break a one-band disagreement. The per-criterion median becomes the reported band, and billed tokens cover every pass that returned.',
       },
       {
         model: 'gemini-2.5-flash',
         role: 'fallback',
-        when: 'Luna errors or returns no parsable feedback.',
+        when: 'Every Luna pass errored or returned no parsable feedback. Single greedy pass, so the report carries sampleCount 1.',
       },
       {
         model: 'gemini-2.5-flash',
         role: 'repair',
-        when: 'One bounded retry on malformed Gemini JSON.',
+        when: 'One bounded retry on malformed Gemini JSON, at the same temperature so the repair cannot change the band.',
       },
     ],
   },

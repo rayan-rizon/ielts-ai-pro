@@ -1,10 +1,22 @@
-import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
+import {
+  CURRENT_EVALUATION_VERSION,
+  WRITING_CALIBRATION_REVISION,
+} from '@/features/testing/shared/evaluationVersion';
 
 export function normalizeWritingSource(value) {
   return String(value || '')
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/**
+ * Task prompts are stored as rich text by the test runner and as plain text by
+ * the writing checker. Compare and transmit them in one canonical shape so the
+ * same Cambridge task resolves to one cache entry instead of two.
+ */
+export function normalizeTaskPrompt(value) {
+  return normalizeWritingSource(value);
 }
 
 export function calculateWeightedWritingBand(task1Band, task2Band) {
@@ -20,7 +32,7 @@ export function calculateWeightedWritingBand(task1Band, task2Band) {
 
 export function isCurrentWritingFeedbackCache({ feedback, response, prompt, imageUrl = null }) {
   if (!feedback || feedback.evaluationVersion !== CURRENT_EVALUATION_VERSION) return false;
-  if (feedback.writingCalibrationRevision !== 2) return false;
+  if (feedback.writingCalibrationRevision !== WRITING_CALIBRATION_REVISION) return false;
   if (feedback.taskType === 'Task 1' && !feedback.taskAnalysis) return false;
   if (feedback.originalSource == null) return false;
   const hasScore = [
@@ -32,7 +44,7 @@ export function isCurrentWritingFeedbackCache({ feedback, response, prompt, imag
   return (
     hasScore &&
     normalizeWritingSource(feedback.originalSource) === normalizeWritingSource(response) &&
-    String(feedback.taskPrompt || '') === String(prompt || '') &&
+    normalizeTaskPrompt(feedback.taskPrompt) === normalizeTaskPrompt(prompt) &&
     (feedback.imageUrl || null) === (imageUrl || null)
   );
 }

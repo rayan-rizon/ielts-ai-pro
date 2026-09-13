@@ -12,6 +12,7 @@ import {
   aggregateWritingCriteria,
   calculateWeightedWritingBand,
   isCurrentWritingFeedbackCache,
+  normalizeTaskPrompt,
   normalizeWritingSource,
 } from '@/features/testing/writing/utils/evaluationEvidence';
 import {
@@ -180,7 +181,10 @@ export function useWritingFeedback(awardXP) {
       const wordCount = type === 'Task 1' ? task1Words : task2Words;
       const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
       const taskConfig = store.compositeTasks[type] || store.task;
-      const prompt = taskConfig?.prompt || '';
+      // Send the prompt as plain text. Stored prompts are rich text, and the
+      // markup both polluted the examiner prompt and split the shared feedback
+      // cache away from the writing checker, which already strips it.
+      const prompt = normalizeTaskPrompt(taskConfig?.prompt);
       const imageUrl = type === 'Task 1' ? taskConfig?.image_url || null : null;
       const savedFeedback = store.feedbacks[type];
 
@@ -330,6 +334,9 @@ export function useWritingFeedback(awardXP) {
             suggestions: feedbackData.suggestions || raw.suggestions || [],
             corrections: feedbackData.corrections || raw.corrections || [],
             taskType: item.type,
+            scoreAgreement: feedbackData.scoreAgreement ?? raw.scoreAgreement ?? null,
+            writingCalibrationRevision:
+              feedbackData.writingCalibrationRevision ?? raw.writingCalibrationRevision ?? null,
             taskPrompt: item.prompt,
             imageUrl: item.imageUrl,
             originalSource: store.drafts[item.type],

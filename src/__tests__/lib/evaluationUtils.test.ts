@@ -8,6 +8,7 @@ import {
   normalizeSpeakingEvaluation,
   normalizeWritingEvaluation,
   parseStructuredJson,
+  WRITING_CALIBRATION_REVISION,
 } from '../../../supabase/functions/_shared/evaluationUtils.ts';
 import { generateEvaluationPrompt } from '../../../supabase/functions/_shared/bandDescriptors.ts';
 
@@ -229,7 +230,7 @@ describe('evaluationUtils', () => {
       expect.objectContaining({ visualType: 'map', alignment: 'mismatched', visualReadable: true })
     );
     expect(result.taskAnalysis?.observedFeatures).toHaveLength(2);
-    expect(result.writingCalibrationRevision).toBe(2);
+    expect(result.writingCalibrationRevision).toBe(WRITING_CALIBRATION_REVISION);
   });
 
   it('does not turn missing pronunciation evidence into a zero speaking score', () => {

@@ -5,7 +5,10 @@ import {
   calculateWeightedWritingBand,
   isCurrentWritingFeedbackCache,
 } from '@/features/testing/writing/utils/evaluationEvidence';
-import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
+import {
+  CURRENT_EVALUATION_VERSION,
+  WRITING_CALIBRATION_REVISION,
+} from '@/features/testing/shared/evaluationVersion';
 import { rankBestNextTask } from '@/features/learning/components/dashboard/dashboardUtils';
 import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import {
@@ -22,7 +25,7 @@ const speakingCardSources = [
 const writingFeedback = (band: number, grammar: number) => ({
   overallBand: band,
   evaluationVersion: CURRENT_EVALUATION_VERSION,
-  writingCalibrationRevision: 2,
+  writingCalibrationRevision: WRITING_CALIBRATION_REVISION,
   originalSource: '<p>A learner response.</p>',
   taskPrompt: 'Discuss both views.',
   imageUrl: null,
@@ -69,7 +72,7 @@ describe('connected learner evidence', () => {
     ).toBe(false);
     expect(
       isCurrentWritingFeedbackCache({
-        feedback: { ...feedback, writingCalibrationRevision: 1 },
+        feedback: { ...feedback, writingCalibrationRevision: WRITING_CALIBRATION_REVISION - 1 },
         response: 'A learner response.',
         prompt: 'Discuss both views.',
       })

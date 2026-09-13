@@ -1,7 +1,7 @@
 import { splitFeedbackSentences } from './feedbackSentences.ts';
 
 export const FEEDBACK_EVALUATOR_VERSION = '2026-07-29-v5';
-export const WRITING_CALIBRATION_REVISION = 2;
+export const WRITING_CALIBRATION_REVISION = 3;
 
 const VALID_ANNOTATION_TYPES = new Set([
   'grammar',
@@ -148,6 +148,189 @@ export function averageBandScores(values: unknown[]): number | null {
   return Math.round((scores.reduce((sum, value) => sum + value, 0) / scores.length) * 2) / 2;
 }
 
+export const WRITING_CRITERION_KEYS = [
+  'CoherenceAndCohesion',
+  'LexicalResource',
+  'GrammaticalRangeAndAccuracy',
+] as const;
+
+/**
+ * Median of a numeric sample. For an even count this averages the two middle
+ * values, which is what keeps a two-sample fallback from silently preferring
+ * the lower draw.
+ */
+export function medianOfNumbers(values: number[]): number | null {
+  const finite = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+  if (finite.length === 0) return null;
+  const middle = Math.floor(finite.length / 2);
+  return finite.length % 2 === 1 ? finite[middle] : (finite[middle - 1] + finite[middle]) / 2;
+}
+
+export const VALID_BAND_SECURITY = new Set(['secure', 'borderline']);
+
+export type WritingConsensus = {
+  criteriaScores: Record<string, number>;
+  representativeIndex: number;
+  agreement: {
+    sampleCount: number;
+    maxSpread: number;
+    perCriterionSpread: Record<string, number>;
+    confidence: 'high' | 'moderate' | 'low';
+    escalated: boolean;
+  };
+};
+
+/**
+ * Would the reported overall band change if any single criterion moved by one
+ * half band?
+ *
+ * The overall band is the mean of four criteria rounded to the nearest half, so
+ * a mean sitting just under a rounding boundary is decided by the smallest
+ * possible marking difference. A script in that position deserves a second
+ * marker; a script sitting squarely inside a band does not.
+ */
+export function isRoundingEdge(criteriaScores: Record<string, number>): boolean {
+  const scores = Object.values(criteriaScores).filter((score) => Number.isFinite(score));
+  if (scores.length === 0) return false;
+  const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const reported = Math.round(mean * 2) / 2;
+  const step = 0.5 / scores.length;
+  return (
+    Math.round((mean + step) * 2) / 2 !== reported || Math.round((mean - step) * 2) / 2 !== reported
+  );
+}
+
+/**
+ * Decide whether one marking pass is enough.
+ *
+ * Marking every script several times is the accurate thing to do and the
+ * wasteful thing to do: most scripts sit clearly inside a band and every pass
+ * agrees, so the extra passes buy nothing but provider spend. IELTS itself
+ * single-marks and escalates on doubt, and this mirrors that — a second opinion
+ * is bought only where it can actually change the answer.
+ *
+ * Doubt has two sources, and either is enough to escalate:
+ *  - the marker itself reported the script as borderline against the adjacent
+ *    band on any criterion, which is the only signal that catches genuine
+ *    disagreement about the script rather than about the arithmetic; and
+ *  - the overall band sits on a rounding edge, where half a band on one
+ *    criterion flips the number the learner is shown.
+ */
+export function needsSecondMarker(
+  criteriaScores: Record<string, number>,
+  bandSecurity: Record<string, string> | null | undefined
+): boolean {
+  if (bandSecurity && Object.values(bandSecurity).some((value) => value === 'borderline')) {
+    return true;
+  }
+  return isRoundingEdge(criteriaScores);
+}
+
+export function normalizeBandSecurity(
+  raw: unknown,
+  criterionKeys: string[]
+): Record<string, string> | null {
+  if (!isPlainObject(raw)) return null;
+  const normalized: Record<string, string> = {};
+  for (const key of criterionKeys) {
+    const value = raw[key];
+    if (typeof value === 'string' && VALID_BAND_SECURITY.has(value)) {
+      normalized[key] = value;
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+/**
+ * Reconcile independent scoring passes over the same script into one band per
+ * criterion.
+ *
+ * A single language-model pass is a draw from a distribution, not a reading of
+ * a fixed value: the same essay could come back 7.5 on one pass and 8 on the
+ * next, and a learner has no way to tell which draw they got. Real IELTS
+ * handles this with double marking, so this does the same — score the script
+ * several times independently, then take the per-criterion MEDIAN. The median
+ * discards a single outlying pass entirely, where a mean would let it drag the
+ * reported band, and it lands on a legal half band without extra rounding.
+ *
+ * The narrative is taken from whichever pass sits closest to the agreed scores
+ * (smallest total absolute distance), so the written feedback a learner reads
+ * always argues for the number printed beside it.
+ */
+export function buildWritingConsensus(
+  samples: Array<Record<string, any>>,
+  taskCriterionKey: string,
+  options: { bandSecurity?: Record<string, string> | null } = {}
+): WritingConsensus | null {
+  const criterionKeys = [taskCriterionKey, ...WRITING_CRITERION_KEYS];
+
+  const scored = samples
+    .map((sample, index) => {
+      const criteria = sample?.criteriaScores ?? {};
+      const vector: Record<string, number> = {};
+      for (const key of criterionKeys) {
+        const band = normalizeBandScore(criteria[key]);
+        if (band === null) return null;
+        vector[key] = band;
+      }
+      return { index, vector };
+    })
+    .filter((entry): entry is { index: number; vector: Record<string, number> } => entry !== null);
+
+  if (scored.length === 0) return null;
+
+  const criteriaScores: Record<string, number> = {};
+  const perCriterionSpread: Record<string, number> = {};
+  for (const key of criterionKeys) {
+    const values = scored.map((entry) => entry.vector[key]);
+    // The median of half bands can land on a quarter when two passes disagree
+    // by one band; normalizeBandScore pulls it back onto the IELTS scale.
+    criteriaScores[key] = normalizeBandScore(medianOfNumbers(values)) as number;
+    perCriterionSpread[key] = Math.max(...values) - Math.min(...values);
+  }
+
+  let representativeIndex = scored[0].index;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const entry of scored) {
+    const distance = criterionKeys.reduce(
+      (sum, key) => sum + Math.abs(entry.vector[key] - criteriaScores[key]),
+      0
+    );
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      representativeIndex = entry.index;
+    }
+  }
+
+  const maxSpread = Math.max(...Object.values(perCriterionSpread));
+  // A lone pass has no spread to measure, so its confidence comes from why it
+  // was left unescalated: the marker found every criterion a secure fit and the
+  // band was not resting on a rounding edge. Reporting that as 'high' on the
+  // strength of a zero spread would be claiming agreement nobody tested.
+  const confidence =
+    scored.length === 1
+      ? needsSecondMarker(criteriaScores, options.bandSecurity)
+        ? 'low'
+        : 'high'
+      : maxSpread <= 0.5
+        ? 'high'
+        : maxSpread <= 1
+          ? 'moderate'
+          : 'low';
+
+  return {
+    criteriaScores,
+    representativeIndex,
+    agreement: {
+      sampleCount: scored.length,
+      maxSpread,
+      perCriterionSpread,
+      confidence,
+      escalated: scored.length > 1,
+    },
+  };
+}
+
 function stringArray(value: unknown, maxItems: number): string[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -208,13 +391,17 @@ function exactSourceSubstring(sourceText: string, value: unknown): value is stri
 export function normalizeWritingEvaluation(
   raw: Record<string, any>,
   taskType: 'Task 1' | 'Task 2',
-  sourceText: string
+  sourceText: string,
+  options: { consensus?: WritingConsensus | null } = {}
 ) {
   if (!isPlainObject(raw)) {
     throw new Error('Writing evaluation is not an object');
   }
 
-  const criteria = raw.criteriaScores || raw.criteria_scores || {};
+  // When several independent passes scored this script, the agreed bands win
+  // over whatever the pass that supplied the narrative happened to award.
+  const criteria =
+    options.consensus?.criteriaScores || raw.criteriaScores || raw.criteria_scores || {};
   const taskCriterionKey = taskType === 'Task 1' ? 'TaskAchievement' : 'TaskResponse';
   const taskCriterion = normalizeBandScore(
     criteria[taskCriterionKey] ??
@@ -426,6 +613,7 @@ export function normalizeWritingEvaluation(
     wordCount,
     taskType,
     taskAnalysis,
+    scoreAgreement: options.consensus?.agreement ?? null,
     writingCalibrationRevision: WRITING_CALIBRATION_REVISION,
     evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
   };

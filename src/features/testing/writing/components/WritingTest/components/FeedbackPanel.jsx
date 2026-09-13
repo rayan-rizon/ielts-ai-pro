@@ -488,6 +488,7 @@ function AssessmentBanner({
             )}
             <p className="mt-2 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
               Practice estimate based on public IELTS descriptors
+              {describeMarkingAgreement(feedback.scoreAgreement)}
             </p>
           </div>
         </div>
@@ -495,6 +496,30 @@ function AssessmentBanner({
       <CriteriaGrid criteria={criteria} />
     </section>
   );
+}
+
+/**
+ * Says how the band was arrived at, in the same terms an exam board would: how
+ * many independent markings ran and whether they agreed. Stays silent for
+ * reports written before adaptive marking existed rather than implying a
+ * confidence that was never measured.
+ */
+function describeMarkingAgreement(agreement) {
+  const passes = Number(agreement?.sampleCount);
+  if (!Number.isFinite(passes) || passes < 1) return null;
+
+  if (passes === 1) {
+    // A single marking is the normal outcome, not a shortcut: it means the
+    // marker found every criterion a clear fit. Saying so is more honest than
+    // silence, which reads as though nothing was checked.
+    return agreement?.confidence === 'high'
+      ? ' · marked once, every criterion a clear fit'
+      : ' · single marking';
+  }
+
+  const spread = Number(agreement?.maxSpread) || 0;
+  if (spread === 0) return ` · sent for ${passes} independent markings, all agreed`;
+  return ` · sent for ${passes} independent markings, agreed within ${spread} band`;
 }
 
 function CombinedBandBanner({ combinedBand }) {
