@@ -146,11 +146,19 @@
             var fbclidMatch = window.location.search.match(/[?&]fbclid=([^&#]+)/);
             var referrer = document.referrer || null;
             // Moving from another IELTS AI Pro page to /signup is not a
-            // referral. Do not persist it as first-touch attribution because
-            // it would block a later genuine external source from being saved.
+            // referral. A return from Google's account chooser is also an
+            // authentication step, not a Google Search visit. Do not persist
+            // either as first-touch attribution because it would block a later
+            // genuine external source from being saved.
             if (referrer) {
               try {
-                if (new URL(referrer).origin === window.location.origin) referrer = null;
+                var referrerUrl = new URL(referrer);
+                if (
+                  referrerUrl.origin === window.location.origin ||
+                  referrerUrl.hostname.toLowerCase() === 'accounts.google.com'
+                ) {
+                  referrer = null;
+                }
               } catch (e) {
                 referrer = null;
               }

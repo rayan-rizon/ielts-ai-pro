@@ -51,8 +51,8 @@ export const SIGNUP_CHANNELS = {
     bar: 'bg-[rgb(var(--signal-warn))]',
   },
   direct: {
-    label: 'Direct visit',
-    short: 'Direct',
+    label: 'No source signal captured',
+    short: 'No signal',
     icon: Compass,
     tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
     bar: 'bg-stone-400',

@@ -4,6 +4,7 @@ const isBrowser = () => typeof window !== 'undefined';
 
 const SOCIAL_HOSTS = ['facebook.com', 'instagram.com', 'l.facebook.com', 'lm.facebook.com'];
 const SEARCH_HOSTS = ['google.', 'bing.com', 'yahoo.com', 'duckduckgo.com'];
+const AUTHENTICATION_HOSTS = new Set(['accounts.google.com']);
 
 const hostIncludes = (referrer, list) => {
   if (!referrer) return false;
@@ -33,8 +34,23 @@ export const isInternalReferrer = (
   }
 };
 
-const withoutInternalReferrer = (attribution) => {
-  if (!attribution || !isInternalReferrer(attribution.referrer)) return attribution;
+/** Authentication redirects identify the login provider, not acquisition. */
+export const isAuthenticationReferrer = (referrer) => {
+  if (!referrer) return false;
+  try {
+    return AUTHENTICATION_HOSTS.has(new URL(referrer).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+};
+
+const withoutNonAcquisitionReferrer = (attribution) => {
+  if (
+    !attribution ||
+    (!isInternalReferrer(attribution.referrer) && !isAuthenticationReferrer(attribution.referrer))
+  ) {
+    return attribution;
+  }
 
   const { referrer: _referrer, ...externalAttribution } = attribution;
   const hasExternalSignal = [
@@ -60,10 +76,10 @@ export const getStoredAttribution = () => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const attribution = raw ? JSON.parse(raw) : null;
-    const sanitized = withoutInternalReferrer(attribution);
+    const sanitized = withoutNonAcquisitionReferrer(attribution);
 
-    // Remove the bad legacy snapshot so a future genuine external first touch
-    // can be captured rather than being blocked by this local navigation.
+    // Remove bad legacy snapshots so a future genuine external first touch can
+    // be captured rather than being blocked by navigation or authentication.
     if (attribution && !sanitized) window.localStorage.removeItem(STORAGE_KEY);
 
     return sanitized;
@@ -80,7 +96,7 @@ export const getStoredAttribution = () => {
  * or bare referrer parsing, which are easier to spoof or omit.
  */
 export const classifyChannel = (attribution) => {
-  const sanitized = withoutInternalReferrer(attribution);
+  const sanitized = withoutNonAcquisitionReferrer(attribution);
   if (!sanitized) return 'direct';
 
   const { fbclid, gclid, utm_source: source, utm_medium: medium, referrer } = sanitized;
