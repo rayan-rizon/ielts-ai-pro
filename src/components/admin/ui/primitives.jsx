@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
+import { m } from 'framer-motion';
 import { Slot } from '@radix-ui/react-slot';
-import { ChevronRight, Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Info, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 
@@ -334,6 +335,138 @@ export const FunnelStep = ({ label, value, share, drop, isFirst }) => (
         </p>
       )}
     </div>
+  </div>
+);
+
+/**
+ * Inline callout inside a card — "cannot send", "assign a campaign", "armed".
+ *
+ * Every panel had hand-rolled this as a bare `border-[rgb(var(--signal-*))]`
+ * strip with its own padding, icon size and text size, so the same severity
+ * read differently on a campaign card than on a journey card. One component
+ * fixes the shape; the tone stays the caller's decision.
+ */
+const NOTICE_TONE = {
+  warn: 'border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] text-[rgb(var(--signal-warn))]',
+  fault:
+    'border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] text-[rgb(var(--signal-fault))]',
+  ok: 'border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)] text-[rgb(var(--signal-ok))]',
+  accent:
+    'border-indigo-300/50 bg-indigo-500/[0.06] text-indigo-600 dark:border-indigo-800/60 dark:text-indigo-400',
+  neutral:
+    'border-stone-200 bg-stone-50 text-stone-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-stone-300',
+};
+
+export const Notice = ({
+  tone = 'warn',
+  icon: Icon = AlertTriangle,
+  title,
+  children,
+  className,
+}) => (
+  <div
+    className={cn(
+      'flex items-start gap-1.5 rounded-lg border px-2 py-1.5',
+      NOTICE_TONE[tone] || NOTICE_TONE.neutral,
+      className
+    )}
+  >
+    {Icon && <Icon className="mt-px h-3 w-3 shrink-0" strokeWidth={2.25} />}
+    <div className="min-w-0 flex-1">
+      <p className="text-[10px] font-extrabold leading-tight">{title}</p>
+      {children && (
+        <p className="mt-0.5 text-[10px] font-medium leading-snug text-stone-600 dark:text-stone-300">
+          {children}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+/**
+ * Segmented filter rail with a sliding active pill.
+ *
+ * Campaigns and the analytics drill-down each carried their own copy of this
+ * markup — same intent, drifting padding and text size. Callers pass a unique
+ * `layoutId` and a list of `{ id, label, count }`.
+ */
+export const FilterRail = ({ options, value, onChange, layoutId, className }) => (
+  <div
+    className={cn(
+      'no-scrollbar flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]',
+      className
+    )}
+  >
+    {options.map(({ id, label, count }) => {
+      const isActive = id === value;
+      return (
+        <button
+          key={id}
+          type="button"
+          aria-pressed={isActive}
+          onClick={() => onChange(id)}
+          className={cn(
+            'relative flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+            MICRO,
+            isActive
+              ? 'font-bold text-stone-900 dark:text-stone-50'
+              : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
+          )}
+        >
+          {isActive && (
+            <m.span
+              layoutId={layoutId}
+              className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            />
+          )}
+          <span className="relative z-10">{label}</span>
+          {count !== undefined && (
+            <span className={cn(NUM, 'relative z-10 text-[10px] opacity-60')}>{count}</span>
+          )}
+        </button>
+      );
+    })}
+  </div>
+);
+
+/**
+ * Hairline-divided read-out strip. A run of figures that belong to one subject
+ * (the hub totals, the copilot summary) reads as a single instrument when the
+ * cells share a 1px rule instead of each sitting in its own bordered card.
+ */
+export const StatRail = ({ className, children }) => (
+  <div className={cn('grid gap-px bg-stone-200/80 dark:bg-white/[0.07]', className)}>
+    {children}
+  </div>
+);
+
+export const StatCell = ({ label, value, sub, tip, live = false, tone, className, children }) => (
+  <div
+    className={cn(
+      'flex min-w-0 flex-col justify-center bg-white px-3.5 py-3 dark:bg-[#131315]',
+      className
+    )}
+  >
+    <div className="flex items-center gap-1.5">
+      {live && <LiveDot />}
+      <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
+      {tip && <InfoTip>{tip}</InfoTip>}
+    </div>
+    <div className="mt-1.5 flex min-h-6 items-center">
+      {children || (
+        <p
+          className={cn(
+            NUM,
+            'text-2xl font-extrabold leading-none',
+            tone ? SIGNAL_TEXT[tone] : 'text-stone-900 dark:text-stone-50'
+          )}
+        >
+          {value}
+        </p>
+      )}
+    </div>
+    {sub && <p className={cn(MICRO, MUTED, 'mt-1.5 truncate')}>{sub}</p>}
   </div>
 );
 

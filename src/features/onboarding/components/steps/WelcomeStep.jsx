@@ -1,54 +1,64 @@
 import React from 'react';
-import { Activity, BarChart3, Compass, Sparkles } from 'lucide-react';
+import { Award, Brain, Compass, Sparkles, Star, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { IconChip, MICRO, MUTED, TILE } from '@/features/dashboard/components/primitives';
+import { IconChip, MICRO, MUTED, Pill, TILE } from '@/features/dashboard/components/primitives';
 
 const VALUE_PROPS = [
   {
     icon: Compass,
-    title: 'A study plan built around your date',
-    desc: 'Every task is sequenced against your target band and exam timeline.',
+    title: 'Target-calibrated roadmap',
+    desc: 'Every session is sequenced step-by-step toward your target band and exam date.',
   },
   {
-    icon: Activity,
-    title: 'Practice that adapts as you go',
-    desc: 'Weak question types resurface until they stop being weak.',
+    icon: Brain,
+    title: 'Adaptive AI diagnostics',
+    desc: 'Weak question types and skill gaps are diagnosed early with targeted drills.',
   },
   {
-    icon: BarChart3,
-    title: 'A band estimate from real results',
-    desc: 'Not a guess — calculated from the tests you actually complete.',
+    icon: TrendingUp,
+    title: 'Examiner-grade scoring',
+    desc: 'Instant band scoring for Writing & Speaking using official IELTS rubric criteria.',
   },
 ];
 
 export default function WelcomeStep() {
   return (
-    <div className="space-y-4 py-1 text-center">
-      {/* Centered Hero Icon */}
-      <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]">
-        <Sparkles className="h-7 w-7" strokeWidth={2} />
+    <div className="space-y-3 py-1 text-center">
+      {/* Social Proof Pill */}
+      <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300">
+        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+        <span>4.9 / 5.0 Rating</span>
+        <span className="text-amber-400 dark:text-amber-500/50">·</span>
+        <span className="font-semibold text-amber-700 dark:text-amber-200">
+          25,000+ IELTS Learners
+        </span>
       </div>
-
-      <p className="mx-auto max-w-sm text-[13px] sm:text-[14px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
-        Four quick questions calibrate your{' '}
-        <span className="font-extrabold text-[#5a63df] dark:text-[#a9afff]">
-          personalized study plan
-        </span>{' '}
-        around your target band and schedule.
-      </p>
 
       <div className="grid gap-2 pt-1 text-left">
         {VALUE_PROPS.map((item) => (
           <div
             key={item.title}
-            className="flex items-start gap-3.5 rounded-xl border border-[#e2e0f0] bg-[#f8f7fd] p-3.5 transition-colors duration-150 dark:border-white/11 dark:bg-white/5.5"
+            className={cn(
+              'flex items-start gap-3 rounded-xl p-3 transition-all duration-150 hover:-translate-y-0.5',
+              'border border-[#dedbea] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03),0_4px_12px_-2px_rgba(15,23,42,0.04)]',
+              'dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none',
+              'hover:border-[#5a63df]/40 hover:shadow-[0_4px_16px_-2px_rgba(15,23,42,0.07),0_8px_24px_-4px_rgba(90,99,223,0.06)] dark:hover:border-white/20'
+            )}
           >
-            <IconChip icon={item.icon} tone="accent" size="md" className="mt-0.5" />
+            <IconChip icon={item.icon} tone="accent" size="sm" className="mt-0.5" />
             <div className="min-w-0">
-              <p className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100">
+              <p className="text-[12.5px] font-extrabold text-slate-900 dark:text-slate-100">
                 {item.title}
               </p>
-              <p className={cn(MICRO, MUTED, 'mt-0.5 normal-case tracking-normal')}>{item.desc}</p>
+              <p
+                className={cn(
+                  MICRO,
+                  MUTED,
+                  'mt-0.5 text-[11px] normal-case tracking-normal leading-snug'
+                )}
+              >
+                {item.desc}
+              </p>
             </div>
           </div>
         ))}

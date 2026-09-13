@@ -200,7 +200,8 @@ describe('Copilot action workspace', () => {
     );
 
     await screen.findByText('Need a hand?');
-    fireEvent.click(screen.getByText(/Automations & monitoring/));
+    // Automations are a standing panel now, not a drawer — every policy card and
+    // its Preview button is on screen without an expand step.
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
 
     expect(

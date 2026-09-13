@@ -94,7 +94,7 @@ export default function AdminOperationsPanel({ refreshKey }) {
   const { brief, error, busy, loadBriefing } = useAdminBriefing(refreshKey);
 
   return (
-    <div className={cn(PANEL, 'mb-4 min-w-0 overflow-hidden')} id="admin-ai-workspace">
+    <div className={cn(PANEL, 'min-w-0 overflow-hidden')} id="admin-ai-workspace">
       <PanelHeader label="AI Workspace" title="Insights & messages" accent="accent">
         <AdminButton
           variant={historyOpen ? 'primary' : 'outline'}

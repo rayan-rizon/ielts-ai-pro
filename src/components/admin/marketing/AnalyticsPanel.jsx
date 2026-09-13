@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { m } from 'framer-motion';
 import { Activity, BarChart3, Clock3, Gift, Target, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   Empty,
+  FilterRail,
   FunnelStep,
   MICRO,
   MUTED,
@@ -28,9 +28,7 @@ const Breakdown = ({ title, rows = [], labelKey, valueKey, emptyHint }) => {
   const max = Math.max(1, ...top.map((row) => Number(row[valueKey] || 0)));
   return (
     <div className={cn(PANEL, 'flex flex-col')}>
-      <div className="border-b border-stone-200/80 px-3.5 py-2.5 dark:border-white/[0.07]">
-        <SectionLabel>{title}</SectionLabel>
-      </div>
+      <PanelHeader label={title} className="px-3.5 py-2.5" />
       {top.length ? (
         <div className="flex-1 space-y-1 p-2">
           {top.map((row, index) => {
@@ -149,13 +147,8 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end justify-between gap-2 border-b border-stone-200/80 pb-2 dark:border-white/[0.07]">
-        <div>
-          <p className={cn(MICRO, MUTED)}>Measured outcomes</p>
-          <h2 className="mt-1 text-sm font-extrabold text-stone-900 dark:text-stone-50">
-            Campaign performance
-          </h2>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-2 dark:border-white/[0.07]">
+        <SectionLabel accent="accent">Measured outcomes</SectionLabel>
         <p className={cn(MICRO, MUTED)}>Server-confirmed attribution · last 30 days</p>
       </div>
       {/* The headline totals live once, in the hub's command strip above the
@@ -204,43 +197,23 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
           title="Conversion quality per campaign"
           description="Last 30 days"
         >
-          <div className="no-scrollbar flex items-center gap-1 overflow-x-auto max-w-full rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
-            {[
+          <FilterRail
+            layoutId="analyticsStatusFilterActivePill"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
               ['all', 'All'],
               ['active', 'Active only'],
               ['paused', 'Paused only'],
-            ].map(([val, label]) => {
-              const count =
-                val === 'all'
+            ].map(([id, label]) => ({
+              id,
+              label,
+              count:
+                id === 'all'
                   ? campaignRows.length
-                  : campaignRows.filter((r) => r.status === val).length;
-              const isActive = statusFilter === val;
-              return (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setStatusFilter(val)}
-                  className={cn(
-                    'relative flex items-center gap-1 rounded-md px-2.5 py-1 transition-colors active:scale-[0.97]',
-                    MICRO,
-                    isActive
-                      ? 'text-stone-900 dark:text-stone-50 font-bold'
-                      : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
-                  )}
-                >
-                  {isActive && (
-                    <m.span
-                      layoutId="analyticsStatusFilterActivePill"
-                      className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    />
-                  )}
-                  <span className="relative z-10">{label}</span>
-                  <span className={cn(NUM, 'relative z-10 text-[10px] opacity-60')}>{count}</span>
-                </button>
-              );
-            })}
-          </div>
+                  : campaignRows.filter((row) => row.status === id).length,
+            }))}
+          />
         </PanelHeader>
         {filteredCampaignRows.length ? (
           <>
@@ -492,6 +465,10 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
       </div>
 
       {/* Attribution */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-2 pt-1 dark:border-white/[0.07]">
+        <SectionLabel>Where purchases come from</SectionLabel>
+        <p className={cn(MICRO, MUTED)}>Top 6 per breakdown</p>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Breakdown
           title="Delivery channel"
@@ -524,6 +501,9 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
       </div>
 
       {/* Offers and referrals */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-2 pt-1 dark:border-white/[0.07]">
+        <SectionLabel>Offers and advocates</SectionLabel>
+      </div>
       <div className="grid gap-3 xl:grid-cols-2">
         <div className={cn(PANEL, 'flex flex-col')}>
           <PanelHeader label="Offer intelligence" title="Redemption vs. purchase" accent="warn">

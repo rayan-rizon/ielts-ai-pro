@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackAuthenticatedAppEvent } from '@/lib/tracking';
-import { m } from 'framer-motion';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { User } from '@/entities';
 import { addWeeks } from 'date-fns';
 import {
@@ -33,13 +33,14 @@ import StudyTimeStep from '@/features/onboarding/components/steps/StudyTimeStep'
 import FocusStep from '@/features/onboarding/components/steps/FocusStep';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
 import { queueProductTour } from '@/features/dashboard/lib/productTourStorage';
+import { Logo } from '@/components/shared/Logo';
 
 // Step configurations
 const steps = [
   {
     id: 'welcome',
     title: 'Welcome to IELTS Ai Pro',
-    description: "Let's personalize your learning journey in just 4 steps.",
+    description: 'Personalize your learning journey in under 60 seconds.',
     icon: Brain,
   },
   {
@@ -57,7 +58,7 @@ const steps = [
   {
     id: 'studyTime',
     title: 'When can you study each week?',
-    description: 'Choose days and minute limits so the plan fits real life.',
+    description: 'Set your active days and study limits so the plan fits real life.',
     icon: Clock,
   },
   {
@@ -74,10 +75,27 @@ const steps = [
   },
 ];
 
+const stepVariants = {
+  enter: (dir) => ({
+    x: dir > 0 ? 20 : -20,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (dir) => ({
+    x: dir > 0 ? -20 : 20,
+    opacity: 0,
+  }),
+};
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const reduceMotion = useReducedMotion();
   const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
@@ -115,10 +133,12 @@ export default function Onboarding() {
   };
 
   const goNext = useCallback(() => {
+    setDirection(1);
     setCurrentStep((prev) => prev + 1);
   }, []);
 
   const goBack = useCallback(() => {
+    setDirection(-1);
     setCurrentStep((prev) => prev - 1);
   }, []);
 
@@ -316,7 +336,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-start justify-center overflow-y-auto bg-[#f1f0f7] p-3 pb-5 pt-8 dark:bg-[#08080a] sm:items-center sm:p-5 sm:py-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-y-auto bg-[#f1f0f7] p-2.5 sm:p-4 dark:bg-[#08080a]">
       {/* Subtle dot-grid + ambient depth */}
       <div
         aria-hidden="true"
@@ -333,15 +353,15 @@ export default function Onboarding() {
 
       <div
         className={cn(
-          'relative z-10 w-full max-w-xl overflow-hidden rounded-2xl',
+          'relative z-10 w-full overflow-hidden rounded-2xl',
+          currentStep === steps.length - 1 ? 'max-w-2xl' : 'max-w-lg sm:max-w-xl',
           'border border-[#cecbe2] bg-linear-to-b from-white to-[#faf9ff]',
-          'dark:border-white/[0.08] dark:from-[#141319] dark:to-[#100f15]'
+          'dark:border-white/[0.08] dark:from-[#141319] dark:to-[#100f15]',
+          'shadow-[0_12px_36px_-6px_rgba(20,18,48,0.06),0_4px_16px_-4px_rgba(20,18,48,0.03)] dark:shadow-none'
         )}
       >
-        {/* Step rail — one segment per step, filled up to the current one. A
-            plain percentage bar doesn't tell you how many steps remain; six
-            discrete segments do at a glance. */}
-        <div className="flex gap-1 p-4 pb-0 sm:p-5 sm:pb-0">
+        {/* Step rail — one segment per step */}
+        <div className="flex gap-1 p-3 pb-0 sm:p-4 sm:pb-0">
           {steps.map((step, index) => (
             <span
               key={step.id}
@@ -356,86 +376,80 @@ export default function Onboarding() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between px-4 pt-3 sm:px-5">
-          <div className="flex items-center gap-2.5">
-            <IconChip icon={StepIcon} tone="accent" size="md" />
-            <span className={cn(MICRO, MUTED)}>
-              Step {currentStep + 1} of {steps.length}
-            </span>
+        <div className="flex items-center justify-between gap-2 px-3 pt-2.5 sm:px-4">
+          <Logo size="sm" className="shrink-0" />
+
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <IconChip icon={StepIcon} tone="accent" size="xs" />
+              <span className={cn(MICRO, MUTED, 'text-[10px]')}>
+                Step {currentStep + 1} of {steps.length}
+              </span>
+            </div>
+            {currentStep < steps.length - 1 && (
+              <>
+                <span className="h-3 w-px bg-[#e2e0f0] dark:bg-white/10" />
+                <button
+                  type="button"
+                  onClick={skipOnboarding}
+                  disabled={isLoading}
+                  className={cn(
+                    MICRO,
+                    'inline-flex min-h-[24px] items-center rounded-sm px-1 text-[10.5px] text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:text-slate-200'
+                  )}
+                >
+                  Skip for now
+                </button>
+              </>
+            )}
           </div>
-          {currentStep < steps.length - 1 && (
-            <button
-              type="button"
-              onClick={skipOnboarding}
-              disabled={isLoading}
-              className={cn(
-                MICRO,
-                'inline-flex min-h-[28px] items-center rounded-sm px-1 text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:text-slate-200'
-              )}
-            >
-              Skip for now
-            </button>
-          )}
         </div>
 
-        <div className="px-4 pb-4 pt-2.5 sm:px-5 sm:pb-5">
-          <div
-            className={cn(
-              'relative w-full overflow-hidden pt-1',
-              currentStep === steps.length - 1 ? 'min-h-[250px]' : 'min-h-[330px] sm:min-h-[350px]'
-            )}
-          >
-            <m.div
-              className="flex w-full items-start"
-              initial={false}
-              animate={{ x: `-${currentStep * 100}%` }}
-              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {steps.map((step, index) => {
-                const isCentered = step.id === 'welcome' || step.id === 'complete';
-                const isActive = currentStep === index;
-
-                return (
-                  <div
-                    key={step.id}
-                    className="w-full min-w-full shrink-0"
-                    aria-hidden={!isActive}
-                    inert={!isActive ? '' : undefined}
-                  >
-                    {step.id !== 'complete' && (
-                      <div className={cn('mb-3.5', isCentered && 'text-center')}>
-                        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-                          {step.title}
-                        </h1>
-                        <p
-                          className={cn(
-                            'mt-1 text-[13px] font-medium',
-                            MUTED,
-                            isCentered && 'mx-auto max-w-sm'
-                          )}
-                        >
-                          {step.description}
-                        </p>
-                      </div>
-                    )}
-
-                    {renderStepContent(step.id)}
+        <div className="px-3.5 pb-3.5 pt-2 sm:px-5 sm:pb-5">
+          <div className="relative w-full">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <m.div
+                key={steps[currentStep].id}
+                custom={direction}
+                variants={stepVariants}
+                initial={reduceMotion ? { opacity: 0 } : 'enter'}
+                animate={reduceMotion ? { opacity: 1 } : 'center'}
+                exit={reduceMotion ? { opacity: 0 } : 'exit'}
+                transition={{ duration: reduceMotion ? 0.1 : 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full"
+              >
+                {steps[currentStep].id !== 'complete' && (
+                  <div className="mb-2.5 sm:mb-3 text-center">
+                    <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
+                      {steps[currentStep].title}
+                    </h1>
+                    <p
+                      className={cn(
+                        'mt-0.5 text-[12px] font-medium leading-relaxed',
+                        MUTED,
+                        'mx-auto max-w-sm sm:max-w-md'
+                      )}
+                    >
+                      {steps[currentStep].description}
+                    </p>
                   </div>
-                );
-              })}
-            </m.div>
+                )}
+
+                {renderStepContent(steps[currentStep].id)}
+              </m.div>
+            </AnimatePresence>
           </div>
 
           {currentStep < steps.length - 1 && (
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#e2e0f0] pt-4 dark:border-white/[0.07]">
+            <div className="mt-3.5 flex items-center justify-between gap-3 border-t border-[#e2e0f0] pt-2.5 dark:border-white/[0.07]">
               {currentStep > 0 ? (
                 <button
                   type="button"
                   onClick={goBack}
                   disabled={isLoading || currentStep === steps.length - 1}
-                  className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-[13px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
+                  className="inline-flex h-8.5 items-center gap-1 rounded-lg px-2.5 text-[12px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
               ) : (
@@ -447,19 +461,19 @@ export default function Onboarding() {
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
                 className={cn(
-                  'inline-flex h-11 items-center justify-center gap-2 rounded-lg px-7 text-sm font-bold text-white transition-all duration-150',
+                  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-6 text-[13px] font-bold text-white transition-all duration-150',
                   'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50'
                 )}
               >
                 {isLoading ? (
                   <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                     Creating plan…
                   </>
                 ) : (
                   <>
                     Continue
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-3.5 w-3.5" />
                   </>
                 )}
               </button>

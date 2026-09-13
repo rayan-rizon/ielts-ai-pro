@@ -23,7 +23,7 @@ import {
   FADE_UP,
   STAGGER_CONTAINER,
 } from '@/components/admin/ui/primitives';
-import CommandStrip from './CommandStrip';
+import CommandStrip, { HubChecks } from './CommandStrip';
 import AnalyticsPanel from './AnalyticsPanel';
 import CampaignsPanel from './CampaignsPanel';
 import SegmentsPanel from './SegmentsPanel';
@@ -39,12 +39,12 @@ import AdminOperationsPanel from './AdminOperationsPanel';
  * nobody scanning a nav bar is looking for a segment.
  */
 const TABS = [
-  ['copilot', 'Copilot', BrainCircuit],
-  ['performance', 'Performance', BarChart3],
-  ['campaigns', 'Campaigns', Megaphone],
-  ['audiences', 'Audiences', Users],
-  ['templates', 'Templates', FileText],
-  ['journeys', 'Journeys', Workflow],
+  ['copilot', 'Copilot', BrainCircuit, 'Decide what happens next'],
+  ['performance', 'Performance', BarChart3, 'What the last 30 days actually produced'],
+  ['campaigns', 'Campaigns', Megaphone, 'The messages that go out'],
+  ['audiences', 'Audiences', Users, 'Who each message reaches'],
+  ['templates', 'Templates', FileText, 'Reusable starting points'],
+  ['journeys', 'Journeys', Workflow, 'Automations that send on a trigger'],
 ];
 
 const EMPTY_DATA = {
@@ -141,7 +141,7 @@ export default function MarketingHub() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-10 pt-12 md:pt-0"
+      className="space-y-5 pb-10 pt-12 md:pt-0"
     >
       <m.div variants={FADE_UP}>
         <AdminPageHeader
@@ -155,85 +155,95 @@ export default function MarketingHub() {
         </AdminPageHeader>
       </m.div>
 
+      {/* Misconfiguration is a property of the hub, not of one tab — a stalled
+          journey matters just as much while an operator is writing a campaign,
+          so the checks stay above the tab bar rather than inside Performance. */}
       <m.div variants={FADE_UP}>
-        <Tabs value={tab} onValueChange={navigateToTab} className="space-y-4">
-          <div className="overflow-x-auto pb-1 no-scrollbar">
-            <TabsList className={ADMIN_TABS_LIST}>
-              {TABS.map(([value, label, Icon]) => {
-                const isActive = tab === value;
-                return (
-                  <TabsTrigger
-                    key={value}
-                    value={value}
-                    id={`marketing-tab-${value}`}
-                    aria-controls={`marketing-tabpanel-${value}`}
-                    className={cn(
-                      ADMIN_TAB_TRIGGER,
-                      'relative z-0 overflow-visible transition-colors',
-                      'data-[state=active]:bg-transparent data-[state=active]:shadow-none'
-                    )}
-                  >
-                    {isActive && (
-                      <m.span
-                        layoutId="marketingMainTabActivePill"
-                        className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
-                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                      />
-                    )}
-                    <Icon
+        <HubChecks
+          campaigns={data.campaigns}
+          journeys={data.journeys}
+          recovery={data.recovery}
+          autopilot={data.autopilot}
+          onNavigate={navigateToTab}
+        />
+      </m.div>
+
+      <m.div variants={FADE_UP}>
+        <Tabs
+          value={tab}
+          onValueChange={navigateToTab}
+          className="space-y-4 border-t border-stone-200/80 pt-4 dark:border-white/[0.07]"
+        >
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <div className="overflow-x-auto pb-1 no-scrollbar">
+              <TabsList className={ADMIN_TABS_LIST}>
+                {TABS.map(([value, label, Icon]) => {
+                  const isActive = tab === value;
+                  return (
+                    <TabsTrigger
+                      key={value}
+                      value={value}
+                      id={`marketing-tab-${value}`}
+                      aria-controls={`marketing-tabpanel-${value}`}
                       className={cn(
-                        'relative z-10 h-3.5 w-3.5 shrink-0 transition-colors pointer-events-none',
-                        isActive
-                          ? 'text-stone-900 dark:text-stone-50'
-                          : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        'relative z-10 transition-colors pointer-events-none',
-                        isActive
-                          ? 'text-stone-900 dark:text-stone-50 font-bold'
-                          : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+                        ADMIN_TAB_TRIGGER,
+                        'relative z-0 overflow-visible transition-colors',
+                        'data-[state=active]:bg-transparent data-[state=active]:shadow-none'
                       )}
                     >
-                      {label}
-                    </span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+                      {isActive && (
+                        <m.span
+                          layoutId="marketingMainTabActivePill"
+                          className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
+                          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                        />
+                      )}
+                      <Icon
+                        className={cn(
+                          'relative z-10 h-3.5 w-3.5 shrink-0 transition-colors pointer-events-none',
+                          isActive
+                            ? 'text-stone-900 dark:text-stone-50'
+                            : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          'relative z-10 transition-colors pointer-events-none',
+                          isActive
+                            ? 'text-stone-900 dark:text-stone-50 font-bold'
+                            : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+                        )}
+                      >
+                        {label}
+                      </span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+            <p className="shrink-0 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+              {TABS.find(([value]) => value === tab)?.[3]}
+            </p>
           </div>
 
           <TabsContent
             value="copilot"
             id="marketing-tabpanel-copilot"
-            className="mt-0 outline-none"
+            className="mt-0 space-y-4 outline-none"
           >
+            <AdminOperationsPanel refreshKey={data.autopilot} />
             <AutopilotPanel
               autopilot={data.autopilot}
               onRefresh={load}
               onNavigate={navigateToTab}
             />
-            <details className="mt-4">
-              <summary className="cursor-pointer py-2 text-xs font-semibold">
-                Explore learner history and reports
-              </summary>
-              <AdminOperationsPanel refreshKey={data.autopilot} />
-            </details>
           </TabsContent>
           <TabsContent
             value="performance"
             id="marketing-tabpanel-performance"
             className="mt-0 space-y-4 outline-none"
           >
-            <CommandStrip
-              campaigns={data.campaigns}
-              journeys={data.journeys}
-              recovery={data.recovery}
-              dashboard={data.dashboard}
-              autopilot={data.autopilot}
-              onNavigate={navigateToTab}
-            />
+            <CommandStrip campaigns={data.campaigns} dashboard={data.dashboard} />
             <AnalyticsPanel
               dashboard={data.dashboard}
               intelligence={data.intelligence}

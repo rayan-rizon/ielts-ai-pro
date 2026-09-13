@@ -1235,6 +1235,122 @@
   );
 }
 
+/* Onboarding Plan Cards with smooth animated hairline border beams */
+.onboarding-plan-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 1.5px;
+  background: #e4e2f0;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.03),
+    0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.onboarding-plan-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+}
+
+.dark .onboarding-plan-card {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.dark .onboarding-plan-card:hover {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+}
+
+.onboarding-plan-card__beam {
+  position: absolute;
+  inset: -150%;
+  pointer-events: none;
+  animation: onboarding-beam-rotate 6s linear infinite;
+  will-change: transform;
+}
+
+.onboarding-plan-card--pro .onboarding-plan-card__beam,
+.onboarding-pro-card .onboarding-plan-card__beam {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 270deg,
+    rgba(90, 99, 223, 0.15) 295deg,
+    rgba(90, 99, 223, 0.75) 325deg,
+    rgba(143, 151, 255, 1) 345deg,
+    rgba(90, 99, 223, 0.8) 355deg,
+    transparent 360deg
+  );
+}
+
+.onboarding-plan-card--premium .onboarding-plan-card__beam,
+.onboarding-premium-card .onboarding-plan-card__beam {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 270deg,
+    rgba(245, 158, 11, 0.15) 295deg,
+    rgba(245, 158, 11, 0.75) 325deg,
+    rgba(251, 191, 36, 1) 345deg,
+    rgba(245, 158, 11, 0.8) 355deg,
+    transparent 360deg
+  );
+}
+
+.dark .onboarding-plan-card--pro .onboarding-plan-card__beam,
+.dark .onboarding-pro-card .onboarding-plan-card__beam {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 270deg,
+    rgba(143, 151, 255, 0.2) 295deg,
+    rgba(90, 99, 223, 0.85) 325deg,
+    rgba(184, 189, 255, 1) 345deg,
+    rgba(90, 99, 223, 0.85) 355deg,
+    transparent 360deg
+  );
+}
+
+.dark .onboarding-plan-card--premium .onboarding-plan-card__beam,
+.dark .onboarding-premium-card .onboarding-plan-card__beam {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 270deg,
+    rgba(251, 191, 36, 0.2) 295deg,
+    rgba(245, 158, 11, 0.85) 325deg,
+    rgba(253, 230, 138, 1) 345deg,
+    rgba(245, 158, 11, 0.85) 355deg,
+    transparent 360deg
+  );
+}
+
+.onboarding-plan-card__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 10.5px;
+  background: #ffffff;
+}
+
+.dark .onboarding-plan-card__inner {
+  background: #121118;
+}
+
+@keyframes onboarding-beam-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* AI capability marker — a quiet outlined pill like the supplied reference,
    with just enough motion to feel active in a navigation rail. */
 .dashboard-ai-badge {
@@ -1416,7 +1532,9 @@
 @media (prefers-reduced-motion: reduce) {
   .dashboard-tier-badge,
   .dashboard-tier-badge__wash,
-  .dashboard-tier-badge__wash::after {
+  .dashboard-tier-badge__wash::after,
+  .onboarding-plan-card__beam {
     animation: none;
+    opacity: 0.35;
   }
 }

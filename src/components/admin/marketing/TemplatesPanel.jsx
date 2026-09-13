@@ -92,7 +92,7 @@ const TemplatesPanel = ({ templates, onRefresh }) => {
             </div>
             <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {group.items.map((template) => (
-                <div key={template.id} className={cn(PANEL, 'flex flex-col p-3 pl-3.5 text-xs')}>
+                <div key={template.id} className={cn(PANEL, 'flex flex-col p-3 text-xs')}>
                   <div className="flex items-start justify-between gap-1.5">
                     <div className="min-w-0 flex-1">
                       <h3 className="text-[12px] font-extrabold leading-snug text-stone-900 dark:text-stone-50 line-clamp-1">
@@ -107,15 +107,12 @@ const TemplatesPanel = ({ templates, onRefresh }) => {
                         {template.description || 'Reusable campaign starting point'}
                       </p>
                     </div>
-                    <Pill
-                      tone={template.is_active ? 'ok' : 'neutral'}
-                      className="px-1.5 py-0 text-[9px] shrink-0"
-                    >
+                    <Pill tone={template.is_active ? 'ok' : 'neutral'} className="shrink-0">
                       {template.is_active ? 'ready' : 'hidden'}
                     </Pill>
                   </div>
 
-                  <div className={cn(WELL, 'mt-2 rounded-md p-2')}>
+                  <div className={cn(WELL, 'mt-2.5 rounded-md p-2')}>
                     <p className="text-[11px] font-bold leading-snug text-stone-800 dark:text-stone-100 line-clamp-2">
                       {template.title}
                     </p>
@@ -124,10 +121,10 @@ const TemplatesPanel = ({ templates, onRefresh }) => {
                     </p>
                   </div>
 
-                  <div className="mt-auto flex items-center justify-between gap-1.5 pt-2 border-t border-stone-200/80 mt-2 dark:border-white/[0.07]">
+                  <div className="mt-auto flex items-center justify-between gap-1.5 border-t border-stone-200/80 pt-2.5 mt-2.5 dark:border-white/[0.07]">
                     <div className="flex flex-wrap items-center gap-1">
                       {template.channels.map((channel) => (
-                        <Pill key={channel} tone="neutral" className="px-1.5 py-0 text-[9px]">
+                        <Pill key={channel} tone="neutral">
                           {CHANNEL_SHORT[channel] || channel.replace('_', ' ')}
                         </Pill>
                       ))}
@@ -136,9 +133,9 @@ const TemplatesPanel = ({ templates, onRefresh }) => {
                       size="sm"
                       variant="outline"
                       onClick={() => setEditor(template)}
-                      className="h-6 px-2 text-[10px] shrink-0"
+                      className="shrink-0"
                     >
-                      <Pencil className="mr-0.5 h-2.5 w-2.5" />
+                      <Pencil className="h-2.5 w-2.5" />
                       Edit
                     </AdminButton>
                   </div>

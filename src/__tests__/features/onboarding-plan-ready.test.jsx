@@ -1,9 +1,15 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
 import { buildOnboardingPlanPreview } from '@/features/onboarding/components/steps/onboardingPlanPreview';
+import { loadPricingConfiguration } from '@/features/subscription/hooks/usePricing';
+
+vi.mock('@/features/subscription/hooks/usePricing', async (importOriginal) => ({
+  ...(await importOriginal()),
+  loadPricingConfiguration: vi.fn(),
+}));
 
 const formData = {
   target_band_score: 7.5,
@@ -16,9 +22,56 @@ const formData = {
   },
 };
 
+const bangladeshPricingConfig = {
+  settings: {
+    pricing_tiers: {
+      pro: {
+        price: 9.99,
+        currency: 'USD',
+        regional: [{ country: 'BD', price: 1100, currency: 'BDT', symbol: '\u09F3' }],
+      },
+      premium: {
+        price: 15.99,
+        currency: 'USD',
+        regional: [{ country: 'BD', price: 1700, currency: 'BDT', symbol: '\u09F3' }],
+      },
+    },
+  },
+  userCountry: 'BD',
+  pricingCountry: 'BD',
+  tierLimits: {},
+};
+
 describe('onboarding plan-ready experience', () => {
+  beforeEach(() => {
+    loadPricingConfiguration.mockResolvedValue(bangladeshPricingConfig);
+  });
+
   afterEach(() => {
     vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("quotes the learner's regional price book instead of a hardcoded USD price", async () => {
+    vi.useFakeTimers();
+    render(
+      <CompleteStep
+        formData={formData}
+        onUpgrade={vi.fn()}
+        onContinue={vi.fn()}
+        onOpenPlan={vi.fn()}
+      />
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByText('\u09F31100')).toBeInTheDocument();
+    expect(screen.getByText('\u09F31652')).toBeInTheDocument();
+    expect(screen.getByText('\u09F31700')).toBeInTheDocument();
+    expect(screen.getByText('\u09F337/day')).toBeInTheDocument();
+    expect(screen.queryByText('$9.99')).not.toBeInTheDocument();
   });
 
   it('derives the preview from the learner answers without claiming a measured weakness', () => {
@@ -35,7 +88,7 @@ describe('onboarding plan-ready experience', () => {
     });
   });
 
-  it('moves from an engaging assembly state to the free learner subscription offer', () => {
+  it('moves from an engaging assembly state to the free learner subscription offer', async () => {
     vi.useFakeTimers();
     const onUpgrade = vi.fn();
     const onContinue = vi.fn();
@@ -54,7 +107,9 @@ describe('onboarding plan-ready experience', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/matching 195 weekly minutes/i)).toBeInTheDocument();
 
-    act(() => vi.advanceTimersByTime(2000));
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
 
     expect(screen.getByRole('heading', { name: 'Your study plan is ready' })).toBeInTheDocument();
     expect(screen.getByText('Band 7.5')).toBeInTheDocument();
@@ -70,7 +125,7 @@ describe('onboarding plan-ready experience', () => {
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
-  it('sends an existing paid learner straight to the real Learning Path', () => {
+  it('sends an existing paid learner straight to the real Learning Path', async () => {
     vi.useFakeTimers();
     const onOpenPlan = vi.fn();
 
@@ -83,7 +138,9 @@ describe('onboarding plan-ready experience', () => {
         onOpenPlan={onOpenPlan}
       />
     );
-    act(() => vi.advanceTimersByTime(2000));
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
 
     expect(screen.queryByRole('button', { name: /choose pro/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /open my ai learning path/i }));

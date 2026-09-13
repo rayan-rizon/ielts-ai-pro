@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react';
-import { m } from 'framer-motion';
 import {
-  AlertTriangle,
   Ban,
   Eye,
   Megaphone,
@@ -25,9 +23,11 @@ import MarketingService from '@/features/admin/services/MarketingService';
 import {
   AdminButton,
   Empty,
+  FilterRail,
   MICRO,
   MUTED,
   NUM,
+  Notice,
   PANEL,
   Pill,
   SIGNAL_BG,
@@ -75,7 +75,7 @@ const CampaignCard = ({
         className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}
       />
 
-      <div className="flex items-start justify-between gap-1.5 p-2.5 pl-3.5 pb-1.5">
+      <div className="flex items-start justify-between gap-1.5 px-3 pb-2 pl-4 pt-2.5">
         <div className="min-w-0">
           <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
             {campaign.name}
@@ -85,18 +85,12 @@ const CampaignCard = ({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <Pill tone={tone} className="px-1.5 py-0 text-[9px]">
-            {campaign.status}
-          </Pill>
-          {isCore && (
-            <Pill tone="accent" className="px-1.5 py-0 text-[9px]">
-              core
-            </Pill>
-          )}
+          {isCore && <Pill tone="accent">core</Pill>}
+          <Pill tone={tone}>{campaign.status}</Pill>
         </div>
       </div>
 
-      <div className="space-y-1.5 px-2.5 pl-3.5">
+      <div className="space-y-2 px-3 pl-4">
         <div className={cn(WELL, 'rounded-md p-2')}>
           <p className="truncate text-[11px] font-bold leading-tight text-stone-800 dark:text-stone-100">
             {campaign.title}
@@ -107,51 +101,30 @@ const CampaignCard = ({
         </div>
         <div className="flex flex-wrap items-center gap-1">
           {campaign.channels.map((channel) => (
-            <Pill key={channel} tone="neutral" className="px-1.5 py-0 text-[9px]">
+            <Pill key={channel} tone="neutral">
               {CHANNEL_SHORT[channel] || channel.replace('_', ' ')}
             </Pill>
           ))}
-          {campaign.promo?.code && (
-            <Pill tone="warn" className="px-1.5 py-0 text-[9px]">
-              {campaign.promo.code}
-            </Pill>
-          )}
+          {campaign.promo?.code && <Pill tone="warn">{campaign.promo.code}</Pill>}
         </div>
+        {issue && <Notice tone="warn" title={issue} />}
       </div>
 
-      {issue && (
-        <div className="ml-3.5 mr-2.5 mt-1.5 flex items-center gap-1 rounded border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2 py-1">
-          <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-[rgb(var(--signal-warn))]" />
-          <span
-            className={cn(
-              MICRO,
-              'truncate text-[9px] leading-tight text-[rgb(var(--signal-warn))]'
-            )}
-          >
-            {issue}
-          </span>
-        </div>
-      )}
-
-      {/* Audience estimation */}
-      <div className="mt-auto px-2.5 pl-3.5 pt-2">
+      {/* Audience estimation — the figure that decides whether this is worth
+          dispatching, so it sits directly above the action row. */}
+      <div className="mt-auto px-3 pl-4 pt-2">
         <button
           type="button"
           onClick={estimate}
           disabled={estimating || !campaign.segment_id}
-          className={cn(
-            'flex w-full items-center justify-between rounded border border-dashed border-stone-200 px-2 py-1 transition-colors hover:border-stone-300 disabled:cursor-default disabled:opacity-60 dark:border-white/10 dark:hover:border-white/20'
-          )}
+          className="flex w-full items-center justify-between gap-2 rounded-md border border-dashed border-stone-200 px-2 py-1.5 transition-colors hover:border-stone-300 hover:bg-stone-50 disabled:cursor-default disabled:opacity-60 disabled:hover:bg-transparent dark:border-white/10 dark:hover:border-white/20 dark:hover:bg-white/[0.03]"
         >
-          <span className={cn(MICRO, MUTED, 'flex items-center gap-1 text-[9px]')}>
+          <span className={cn(MICRO, MUTED, 'flex items-center gap-1')}>
             <Users className="h-2.5 w-2.5" />
             Audience
           </span>
           <span
-            className={cn(
-              NUM,
-              'ml-1 truncate text-[10px] font-bold text-stone-700 dark:text-stone-200'
-            )}
+            className={cn(NUM, 'truncate text-[10px] font-bold text-stone-700 dark:text-stone-200')}
           >
             {estimating
               ? 'estimating…'
@@ -162,10 +135,16 @@ const CampaignCard = ({
         </button>
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-stone-200/80 p-2 pl-3.5 dark:border-white/[0.07]">
-        <span className={cn(NUM, 'truncate text-[9px] font-medium', MUTED)}>
-          {campaign.cooldown_hours}h · cap {campaign.frequency_cap}
-        </span>
+      <div className="mt-2.5 flex items-center justify-between gap-1.5 border-t border-stone-200/80 px-3 py-2 pl-4 dark:border-white/[0.07]">
+        <Tip
+          content={`At most ${campaign.frequency_cap} message${campaign.frequency_cap === 1 ? '' : 's'} per learner, ${campaign.cooldown_hours}h apart`}
+        >
+          <span
+            className={cn(NUM, 'shrink-0 cursor-default truncate text-[9px] font-medium', MUTED)}
+          >
+            {campaign.cooldown_hours}h · cap {campaign.frequency_cap}
+          </span>
+        </Tip>
         <div className="flex items-center gap-1">
           {campaign.channels.includes('email') && (
             <IconAction icon={Eye} label="Preview email" onClick={onPreview} />
@@ -183,20 +162,14 @@ const CampaignCard = ({
                     : 'active'
                 )
               }
-              className="h-7 px-2 text-[11px]"
             >
-              <Play className="mr-0.5 h-2.5 w-2.5" />
+              <Play className="h-2.5 w-2.5" />
               Activate
             </AdminButton>
           )}
           {action === 'dispatch' && (
-            <AdminButton
-              size="sm"
-              loading={dispatching}
-              onClick={onDispatch}
-              className="h-7 px-2 text-[11px]"
-            >
-              <Send className="mr-0.5 h-2.5 w-2.5" />
+            <AdminButton size="sm" loading={dispatching} onClick={onDispatch}>
+              <Send className="h-2.5 w-2.5" />
               Dispatch
             </AdminButton>
           )}
@@ -319,36 +292,16 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="no-scrollbar flex items-center gap-1 overflow-x-auto max-w-full rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
-          {CAMPAIGN_FILTERS.map(([id, label, predicate]) => {
-            const count = ordered.filter(predicate).length;
-            const isActive = id === filter;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setFilter(id)}
-                className={cn(
-                  'relative flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors active:scale-[0.97]',
-                  MICRO,
-                  isActive
-                    ? 'text-stone-900 dark:text-stone-50 font-bold'
-                    : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
-                )}
-              >
-                {isActive && (
-                  <m.span
-                    layoutId="campaignFilterActivePill"
-                    className="absolute inset-0 -z-10 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
-                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                  />
-                )}
-                <span className="relative z-10">{label}</span>
-                <span className={cn(NUM, 'relative z-10 text-[10px] opacity-60')}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
+        <FilterRail
+          layoutId="campaignFilterActivePill"
+          value={filter}
+          onChange={setFilter}
+          options={CAMPAIGN_FILTERS.map(([id, label, predicate]) => ({
+            id,
+            label,
+            count: ordered.filter(predicate).length,
+          }))}
+        />
         <AdminButton
           onClick={() => setEditor({})}
           className="w-full sm:w-auto shrink-0 justify-center"

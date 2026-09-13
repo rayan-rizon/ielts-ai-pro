@@ -1,4 +1,4 @@
-import { AlertTriangle, Workflow } from 'lucide-react';
+import { Workflow } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -12,15 +12,14 @@ import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
 import {
   Empty,
-  FIELD,
   FieldLabel,
   MICRO,
   MUTED,
   NUM,
+  Notice,
   PANEL,
   Pill,
   SIGNAL_BG,
-  TITLE,
   WELL,
 } from '@/components/admin/ui/primitives';
 import { JOURNEY_STATE_TONE, journeyState, STATUS_TONE } from './shared';
@@ -82,7 +81,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
         return (
           <div
             key={journey.id}
-            className={cn(PANEL, 'relative flex flex-col overflow-hidden p-2.5 pl-3.5 text-xs')}
+            className={cn(PANEL, 'relative flex flex-col overflow-hidden p-3 pl-4 text-xs')}
           >
             <span
               className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}
@@ -98,9 +97,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
-                <Pill tone={tone} className="px-1.5 py-0 text-[9px]">
-                  {state}
-                </Pill>
+                <Pill tone={tone}>{state}</Pill>
                 <Switch
                   aria-label={`Toggle ${journey.name}`}
                   checked={journey.is_active}
@@ -110,7 +107,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
               </div>
             </div>
 
-            <div className="mt-2 block">
+            <div className="mt-2.5 block">
               <FieldLabel className="text-[10px]">Campaign</FieldLabel>
               <Select
                 value={journey.campaign_id || 'none'}
@@ -131,10 +128,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
                     >
                       <div className="flex items-center justify-between gap-3 w-full pr-2">
                         <span className="truncate font-medium">{campaign.name}</span>
-                        <Pill
-                          tone={STATUS_TONE[campaign.status] || 'neutral'}
-                          className="px-1.5 py-0 text-[8px] shrink-0"
-                        >
+                        <Pill tone={STATUS_TONE[campaign.status] || 'neutral'} className="shrink-0">
                           {campaign.status}
                         </Pill>
                       </div>
@@ -145,39 +139,16 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
             </div>
 
             {state === 'unarmed' && (
-              <div className="mt-1.5 flex items-center gap-1 rounded border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-2 py-1">
-                <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-[rgb(var(--signal-warn))]" />
-                <span
-                  className={cn(
-                    MICRO,
-                    'text-[9px] leading-tight text-[rgb(var(--signal-warn))] truncate'
-                  )}
-                >
-                  Assign campaign to arm journey
-                </span>
-              </div>
+              <Notice tone="warn" className="mt-2" title="Assign a campaign to arm this journey" />
             )}
 
             {state === 'stalled' && (
-              <div className="mt-1.5 rounded border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-2 py-1">
-                <div className="flex items-center gap-1">
-                  <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-[rgb(var(--signal-fault))]" />
-                  <span
-                    className={cn(
-                      MICRO,
-                      'text-[9px] leading-tight text-[rgb(var(--signal-fault))]'
-                    )}
-                  >
-                    Switched on but sending nothing
-                  </span>
-                </div>
-                <p className={cn('mt-0.5 text-[9px] font-medium leading-snug truncate', MUTED)}>
-                  “{assigned?.name}” is {assigned?.status}. Activate campaign or switch off.
-                </p>
-              </div>
+              <Notice tone="fault" className="mt-2" title="Switched on but sending nothing">
+                “{assigned?.name}” is {assigned?.status}. Activate the campaign or switch this off.
+              </Notice>
             )}
 
-            <div className={cn(WELL, 'mt-auto grid grid-cols-5 gap-1 rounded-md p-2 mt-2')}>
+            <div className={cn(WELL, 'mt-auto grid grid-cols-5 gap-1 rounded-md p-2 mt-2.5')}>
               {METRIC_ROW.map(([label, key, tone]) => {
                 const value = Number(metric[key] || 0);
                 return (
@@ -200,7 +171,7 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
                 );
               })}
             </div>
-            <p className={cn(MICRO, MUTED, 'mt-1 text-[9px]')}>Last 30 days</p>
+            <p className={cn(MICRO, MUTED, 'mt-1.5 text-[9px]')}>Last 30 days</p>
           </div>
         );
       })}

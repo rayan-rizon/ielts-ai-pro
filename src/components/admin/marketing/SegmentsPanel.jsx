@@ -13,7 +13,6 @@ import {
   PANEL,
   Pill,
   SectionLabel,
-  TITLE,
   WELL,
 } from '@/components/admin/ui/primitives';
 import SegmentDialog from './dialogs/SegmentDialog';
@@ -44,8 +43,8 @@ const EstimateReadout = ({ estimate }) => {
   return (
     <div className="grid grid-cols-3 gap-2">
       {rows.map(([label, value, tone]) => (
-        <div key={label}>
-          <p className={cn(MICRO, MUTED)}>{label}</p>
+        <div key={label} className="min-w-0">
+          <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
           <p
             className={cn(
               NUM,
@@ -144,7 +143,7 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
           {segments.map((segment) => {
             const chips = describeRules(segment.rules);
             return (
-              <div key={segment.id} className={cn(PANEL, 'flex flex-col p-2.5 pl-3.5 text-xs')}>
+              <div key={segment.id} className={cn(PANEL, 'flex flex-col p-3 text-xs')}>
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="min-w-0">
                     <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
@@ -155,10 +154,7 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
-                    <Pill
-                      tone={segment.is_active ? 'ok' : 'neutral'}
-                      className="px-1.5 py-0 text-[9px]"
-                    >
+                    <Pill tone={segment.is_active ? 'ok' : 'neutral'}>
                       {segment.is_active ? 'active' : 'paused'}
                     </Pill>
                     <Switch
@@ -170,18 +166,14 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
                   </div>
                 </div>
 
-                <div className={cn(WELL, 'mt-2 rounded-md p-2')}>
+                <div className={cn(WELL, 'mt-2.5 rounded-md p-2')}>
                   <SectionLabel accent={chips.length ? 'ok' : 'warn'}>
                     {chips.length ? 'Matches learners who are' : 'Matches everyone'}
                   </SectionLabel>
-                  <div className="mt-1 flex flex-wrap gap-1">
+                  <div className="mt-1.5 flex flex-wrap gap-1">
                     {chips.length ? (
                       chips.map((chip) => (
-                        <Pill
-                          key={chip}
-                          tone="neutral"
-                          className="px-1.5 py-0 text-[9px] normal-case tracking-normal"
-                        >
+                        <Pill key={chip} tone="neutral" className="normal-case tracking-normal">
                           {chip}
                         </Pill>
                       ))
@@ -193,28 +185,22 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
                   </div>
                 </div>
 
-                <div className="mt-2 min-h-[36px]">
+                <div className="mt-auto min-h-[36px] pt-2.5">
                   <EstimateReadout estimate={estimates[segment.id]} />
                 </div>
 
-                <div className="mt-2 flex items-center justify-end gap-1 border-t border-stone-200/80 pt-2 dark:border-white/[0.07]">
+                <div className="mt-2.5 flex items-center justify-end gap-1 border-t border-stone-200/80 pt-2.5 dark:border-white/[0.07]">
                   <AdminButton
                     size="sm"
                     variant="outline"
                     loading={estimates[segment.id]?.loading}
                     onClick={() => estimate(segment)}
-                    className="h-7 px-2 text-[11px]"
                   >
-                    <Users className="mr-0.5 h-2.5 w-2.5" />
+                    <Users className="h-2.5 w-2.5" />
                     Estimate
                   </AdminButton>
-                  <AdminButton
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditor(segment)}
-                    className="h-7 px-2 text-[11px]"
-                  >
-                    <Pencil className="mr-0.5 h-2.5 w-2.5" />
+                  <AdminButton size="sm" variant="outline" onClick={() => setEditor(segment)}>
+                    <Pencil className="h-2.5 w-2.5" />
                     Edit
                   </AdminButton>
                 </div>

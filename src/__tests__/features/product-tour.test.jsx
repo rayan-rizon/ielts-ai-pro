@@ -80,6 +80,18 @@ describe('new learner product tour', () => {
     expect(hasQueuedProductTour('learner-1')).toBe(false);
   });
 
+  it('closes the tour when the top right cross button is clicked in the welcome dialog', () => {
+    queueProductTour('learner-1');
+    renderTour();
+
+    const closeButton = screen.getByRole('button', { name: 'Close tour' });
+    expect(closeButton).toBeInTheDocument();
+    fireEvent.click(closeButton);
+
+    expect(hasQueuedProductTour('learner-1')).toBe(false);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('formats uncapitalized learner names without rogue spacing before the comma', () => {
     queueProductTour('learner-alex');
     renderTour({ id: 'learner-alex', full_name: 'alex' });
