@@ -6,7 +6,12 @@
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { createThrottledWebStorage } from '@/lib/throttledWebStorage';
 import { subscribeWithSelector } from 'zustand/middleware';
+
+const listeningSessionStorage = createThrottledWebStorage(() => sessionStorage, {
+  intervalMs: 5000,
+});
 
 /**
  * Listening Test Store
@@ -223,7 +228,10 @@ export const useListeningTestStore = create(
          * Clear persisted session data
          */
         clearPersistedData: () => {
-          sessionStorage.removeItem('listening-test-store');
+          // Must go through the throttled adapter, not sessionStorage directly:
+          // a queued write would otherwise land after the removal and resurrect
+          // the session we just cleared.
+          listeningSessionStorage.removeItem('listening-test-store');
         },
 
         /**
@@ -279,7 +287,13 @@ export const useListeningTestStore = create(
       }),
       {
         name: 'listening-test-store',
-        storage: createJSONStorage(() => sessionStorage),
+        // `timeRemaining` ticks once a second and `audioCurrentTime` follows the
+        // <audio> `timeupdate` event (~4x/sec). Both are genuinely needed for
+        // resume-where-you-left-off, so instead of dropping them we coalesce the
+        // writes: sessionStorage is touched at most once every 5s, plus a
+        // synchronous flush on pagehide/tab-hide. Same persisted data, ~1/25th
+        // of the main-thread serialisation work.
+        storage: createJSONStorage(() => listeningSessionStorage),
 
         partialize: (state) => ({
           answers: state.answers,

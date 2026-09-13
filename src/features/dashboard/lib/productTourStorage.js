@@ -1,12 +1,20 @@
-const TOUR_VERSION = '1';
+// Version 2 invalidates pending markers created by the old eager queue. Existing
+// learners therefore do not receive one last stale automatic tour after release.
+const TOUR_VERSION = '2';
 export const PRODUCT_TOUR_OPEN_EVENT = 'ieltsai:open-product-tour';
 
 const tourKey = (kind, userId) => `dashboardV3:productTour:${TOUR_VERSION}:${kind}:${userId}`;
 
 export function queueProductTour(userId) {
-  if (typeof window === 'undefined' || !userId) return;
+  if (typeof window === 'undefined' || !userId) return false;
+  if (window.localStorage.getItem(tourKey('complete', userId)) === '1') return false;
   window.localStorage.setItem(tourKey('pending', userId), '1');
-  window.localStorage.removeItem(tourKey('complete', userId));
+  return true;
+}
+
+export function queueFirstRunProductTour(user) {
+  if (!user?.id || user.onboarding_completed !== false) return false;
+  return queueProductTour(user.id);
 }
 
 export function hasQueuedProductTour(userId) {

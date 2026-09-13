@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -369,10 +369,13 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [isPublicPage, isAdminLogin, user, authLoading, authCheckComplete, navigate]);
 
-  const handleLogout = async () => {
+  // UserSidebar is React.memo'd, so an inline arrow here would hand it a new
+  // prop identity on every Layout render (i.e. every route change) and defeat
+  // the memo entirely.
+  const handleLogout = useCallback(async () => {
     await signOut();
     navigate(isAdminView ? createPageUrl('AdminLogin') : createPageUrl('Index'));
-  };
+  }, [signOut, navigate, isAdminView]);
 
   if (isRedirectingPublicUser(isPublicPage, user, isAdminLogin)) {
     return <PublicRedirectSpinner />;

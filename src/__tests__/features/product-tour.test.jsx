@@ -5,8 +5,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import ProductTour from '@/features/dashboard/components/ProductTour';
 import { buildProductTourSteps } from '@/features/dashboard/lib/productTourSteps';
 import {
+  completeProductTour,
   hasQueuedProductTour,
+  queueFirstRunProductTour,
   queueProductTour,
+  readProductTourSession,
+  writeProductTourSession,
 } from '@/features/dashboard/lib/productTourStorage';
 
 function LocationProbe() {
@@ -30,9 +34,9 @@ function TourHarness({ user }) {
   );
 }
 
-function renderTour(user = { id: 'learner-1', full_name: 'Sam Learner' }) {
+function renderTour(user = { id: 'learner-1', full_name: 'Sam Learner' }, route = '/dashboard') {
   return render(
-    <MemoryRouter initialEntries={['/dashboard']}>
+    <MemoryRouter initialEntries={[route]}>
       <TourHarness user={user} />
     </MemoryRouter>
   );
@@ -49,6 +53,23 @@ describe('new learner product tour', () => {
 
     expect(hasQueuedProductTour('learner-1')).toBe(true);
     expect(hasQueuedProductTour('learner-2')).toBe(false);
+  });
+
+  it('automatically queues only for a learner completing onboarding for the first time', () => {
+    expect(queueFirstRunProductTour({ id: 'new-learner', onboarding_completed: false })).toBe(true);
+    expect(queueFirstRunProductTour({ id: 'returning-learner', onboarding_completed: true })).toBe(
+      false
+    );
+
+    expect(hasQueuedProductTour('new-learner')).toBe(true);
+    expect(hasQueuedProductTour('returning-learner')).toBe(false);
+  });
+
+  it('never requeues an automatic tour after it was dismissed or completed', () => {
+    completeProductTour('learner-1');
+    queueProductTour('learner-1');
+
+    expect(hasQueuedProductTour('learner-1')).toBe(false);
   });
 
   it('opens each post-dashboard page while pointing only at its sidebar row', () => {
@@ -78,6 +99,17 @@ describe('new learner product tour', () => {
     fireEvent.click(screen.getByRole('button', { name: 'I’ll explore on my own' }));
 
     expect(hasQueuedProductTour('learner-1')).toBe(false);
+  });
+
+  it('does not resume when the learner leaves the guided flow for an unrelated task', () => {
+    queueProductTour('learner-1');
+    writeProductTourSession('learner-1', { phase: 'welcome', index: 0 });
+
+    renderTour(undefined, '/reading-test');
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(hasQueuedProductTour('learner-1')).toBe(false);
+    expect(readProductTourSession('learner-1')).toBeNull();
   });
 
   it('closes the tour when the top right cross button is clicked in the welcome dialog', () => {
@@ -158,7 +190,7 @@ describe('new learner product tour', () => {
     firstRender.unmount();
 
     render(
-      <MemoryRouter initialEntries={['/reading']}>
+      <MemoryRouter initialEntries={['/grammar']}>
         <TourHarness user={{ id: 'learner-1', full_name: 'Sam Learner' }} />
       </MemoryRouter>
     );

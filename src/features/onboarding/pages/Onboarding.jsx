@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackAuthenticatedAppEvent } from '@/lib/tracking';
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
@@ -32,7 +32,7 @@ import TimelineStep from '@/features/onboarding/components/steps/TimelineStep';
 import StudyTimeStep from '@/features/onboarding/components/steps/StudyTimeStep';
 import FocusStep from '@/features/onboarding/components/steps/FocusStep';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
-import { queueProductTour } from '@/features/dashboard/lib/productTourStorage';
+import { queueFirstRunProductTour } from '@/features/dashboard/lib/productTourStorage';
 import { Logo } from '@/components/shared/Logo';
 
 // Step configurations
@@ -98,6 +98,12 @@ export default function Onboarding() {
   const [direction, setDirection] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const firstRunTourUserRef = useRef(null);
+
+  if (!firstRunTourUserRef.current && user?.id) {
+    firstRunTourUserRef.current =
+      user.onboarding_completed === false ? { id: user.id, onboarding_completed: false } : null;
+  }
 
   const [formData, setFormData] = useState({
     target_band_score: 7.0,
@@ -157,7 +163,6 @@ export default function Onboarding() {
     try {
       const updatedUser = await User.updateMyUserData({ onboarding_completed: true });
       saveOnboardingCompletedLocally();
-      queueProductTour(updatedUser?.id || user?.id);
       if (hasPaidAccess(updatedUser)) triggerBackgroundPathGeneration(updatedUser);
       return true;
     } catch (retryError) {
@@ -177,7 +182,6 @@ export default function Onboarding() {
 
       const updatedUser = await User.updateMyUserData(updatePayload);
       saveOnboardingCompletedLocally();
-      queueProductTour(updatedUser?.id || user?.id);
       if (hasPaidAccess(updatedUser)) triggerBackgroundPathGeneration(updatedUser);
 
       trackAuthenticatedAppEvent(
@@ -207,6 +211,10 @@ export default function Onboarding() {
   };
 
   const finishOnboarding = () => {
+    if (firstRunTourUserRef.current) {
+      queueFirstRunProductTour(firstRunTourUserRef.current);
+      firstRunTourUserRef.current = null;
+    }
     navigate(createPageUrl('Dashboard'));
   };
 

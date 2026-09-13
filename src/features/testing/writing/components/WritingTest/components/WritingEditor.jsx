@@ -3,6 +3,13 @@ import { Loader2, Type, LayoutPanelLeft, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 
+// Hoisted so the <ReactQuill> `modules` prop keeps a stable identity across
+// renders instead of being rebuilt on every keystroke-driven re-render.
+const QUILL_MODULES = {
+  toolbar: false,
+  clipboard: { matchVisual: false },
+};
+
 // Lazy load ReactQuill to reduce initial bundle size (~200KB)
 const ReactQuill = React.lazy(() =>
   import('react-quill-new').then((module) => {
@@ -244,10 +251,7 @@ export function WritingEditor({
                                [&_.ql-editor.ql-blank::before]:text-slate-400/50
                                dark:[&_.ql-editor.ql-blank::before]:text-slate-400/60
                                [&_.ql-editor.ql-blank::before]:not-italic"
-              modules={{
-                toolbar: false,
-                clipboard: { matchVisual: false },
-              }}
+              modules={QUILL_MODULES}
               data-oid=":_0az-u"
             />
           </Suspense>

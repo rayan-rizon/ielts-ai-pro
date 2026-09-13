@@ -52,7 +52,7 @@ function getCardPosition(rect) {
   };
 }
 
-export function formatTourLearnerName(user) {
+function formatTourLearnerName(user) {
   const raw = (user?.full_name || user?.username || '').trim();
   if (!raw) return '';
   const match = raw.match(/^[^\s,]+/);
@@ -257,16 +257,30 @@ export default function ProductTour({ user }) {
     if (!user?.id) return undefined;
     const active = readProductTourSession(user.id);
     if (active) {
-      setPhase(active.phase === 'steps' ? 'steps' : 'welcome');
-      setIndex(Math.max(0, Math.min(Number(active.index) || 0, steps.length - 1)));
-      setOpen(true);
-    } else if (location.pathname === createPageUrl('Dashboard') && hasQueuedProductTour(user.id)) {
-      openWelcome();
+      const activePhase = active.phase === 'steps' ? 'steps' : 'welcome';
+      const activeIndex = Math.max(0, Math.min(Number(active.index) || 0, steps.length - 1));
+      const expectedRoute =
+        activePhase === 'steps' ? steps[activeIndex].route : createPageUrl('Dashboard');
+      if (location.pathname === expectedRoute) {
+        setPhase(activePhase);
+        setIndex(activeIndex);
+        setOpen(true);
+      } else {
+        completeProductTour(user.id);
+        clearProductTourSession(user.id);
+        setOpen(false);
+      }
+    } else if (hasQueuedProductTour(user.id)) {
+      if (location.pathname === createPageUrl('Dashboard')) {
+        openWelcome();
+      } else {
+        completeProductTour(user.id);
+      }
     }
     const handleOpenRequest = () => openWelcome();
     window.addEventListener(PRODUCT_TOUR_OPEN_EVENT, handleOpenRequest);
     return () => window.removeEventListener(PRODUCT_TOUR_OPEN_EVENT, handleOpenRequest);
-  }, [location.pathname, openWelcome, steps.length, user?.id]);
+  }, [location.pathname, openWelcome, steps, user?.id]);
 
   useEffect(() => {
     if (open && phase === 'steps' && location.pathname !== step.route) navigate(step.route);

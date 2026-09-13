@@ -107,6 +107,22 @@ async function speakChunksViaWebSpeech(chunks, selectedVoice, isMountedRef, onPr
   return true;
 }
 
+/**
+ * Playback progress is consumed as a *word index* — the live examiner transcript
+ * renders `ceil(progress * words.length)` words. The rAF loop below samples at
+ * the display refresh rate (60Hz, 120Hz on ProMotion), but the rendered output
+ * only has as many distinct states as there are words in the sentence. Pushing
+ * every raw sample into React state re-rendered the whole SpeakingTest tree
+ * ~120x/sec to produce the same frame.
+ *
+ * Snapping to 1/100ths collapses that to at most 100 state updates per
+ * utterance while staying exact for any sentence up to 100 words (longer
+ * sentences are chunked before they reach here), so the transcript reveals on
+ * precisely the same word at precisely the same time.
+ */
+const PROGRESS_STEPS = 100;
+const quantizeProgress = (value) => Math.round(value * PROGRESS_STEPS) / PROGRESS_STEPS;
+
 // ── Main hook ─────────────────────────────────────────────────────────────────
 export default function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -118,6 +134,9 @@ export default function useSpeechSynthesis() {
 
   // Refs to track in-flight audio + prevent race conditions
   const currentAudioRef = useRef(null);
+  // Mirrors the last value pushed to `speechProgress` so the rAF loop can skip
+  // no-op setState calls without having to read state it doesn't depend on.
+  const lastProgressRef = useRef(null);
   const isMutedRef = useRef(false);
   const webVoiceRef = useRef(null);
   // isMountedRef: flipped to false on unmount so async loops stop immediately
@@ -207,6 +226,7 @@ export default function useSpeechSynthesis() {
     setIsTTSLoading(false);
     setIsPlaybackActive(false);
     setActiveSpeechText('');
+    lastProgressRef.current = null;
     setSpeechProgress(null);
   }, [stopProgressTracking]);
 
@@ -260,6 +280,7 @@ export default function useSpeechSynthesis() {
       // ── 1. Show loading state ──────────────────────────────────────────────
       setActiveSpeechText(String(text).trim());
       setIsPlaybackActive(false);
+      lastProgressRef.current = null;
       setSpeechProgress(null);
       setIsTTSLoading(true);
       setIsSpeaking(true);
@@ -294,6 +315,7 @@ export default function useSpeechSynthesis() {
 
             audio.onplay = () => {
               if (requestIdRef.current === myRequestId) {
+                lastProgressRef.current = 0;
                 setSpeechProgress(0);
                 setIsPlaybackActive(true);
                 options.onPlayStart?.();
@@ -306,7 +328,11 @@ export default function useSpeechSynthesis() {
                     return;
                   }
                   if (Number.isFinite(audio.duration) && audio.duration > 0) {
-                    setSpeechProgress(Math.min(1, audio.currentTime / audio.duration));
+                    const next = quantizeProgress(Math.min(1, audio.currentTime / audio.duration));
+                    if (next !== lastProgressRef.current) {
+                      lastProgressRef.current = next;
+                      setSpeechProgress(next);
+                    }
                   }
                   playbackFrameRef.current = requestAnimationFrame(updateProgress);
                 };
@@ -320,13 +346,18 @@ export default function useSpeechSynthesis() {
                 Number.isFinite(audio.duration) &&
                 audio.duration > 0
               ) {
-                setSpeechProgress(Math.min(1, audio.currentTime / audio.duration));
+                const next = quantizeProgress(Math.min(1, audio.currentTime / audio.duration));
+                if (next !== lastProgressRef.current) {
+                  lastProgressRef.current = next;
+                  setSpeechProgress(next);
+                }
               }
             };
             audio.onended = () => {
               if (requestIdRef.current === myRequestId) {
                 stopProgressTracking();
                 currentAudioRef.current = null;
+                lastProgressRef.current = 1;
                 setSpeechProgress(1);
                 setIsPlaybackActive(false);
               }
@@ -384,12 +415,17 @@ export default function useSpeechSynthesis() {
         if (options.onPlayStart) {
           options.onPlayStart();
         }
+        lastProgressRef.current = null;
         setSpeechProgress(null);
         setIsPlaybackActive(true);
         const sentences = splitIntoSentences(cleanText);
         await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef, (progress) => {
           if (requestIdRef.current === myRequestId && isMountedRef.current) {
-            setSpeechProgress(progress);
+            const next = quantizeProgress(progress);
+            if (next !== lastProgressRef.current) {
+              lastProgressRef.current = next;
+              setSpeechProgress(next);
+            }
           }
         });
       }
@@ -400,6 +436,7 @@ export default function useSpeechSynthesis() {
         setIsTTSLoading(false);
         setIsPlaybackActive(false);
         setActiveSpeechText('');
+        lastProgressRef.current = null;
         setSpeechProgress(null);
       }
     },

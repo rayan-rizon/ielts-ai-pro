@@ -601,6 +601,8 @@ function TeacherHelp({ sessionId }) {
     document.body
   );
 }
+const AUTOSAVE_DEBOUNCE_MS = 1200;
+
 export default function LibraryPracticeLab() {
   const { user } = useAuth();
   const { sessionId } = useParams();
@@ -619,6 +621,14 @@ export default function LibraryPracticeLab() {
   const hydratedSession = useRef(null);
   const saveQueue = useRef(Promise.resolve());
   const answersRef = useRef({});
+  // Answers used to hit the `practice-lab-autosave` edge function once per
+  // keystroke. Typing a gap-fill answer fired a POST per character, which is
+  // both rate-limit bait and pointless work — the sessionStorage mirror below
+  // already makes the current tab crash-safe. The network write is debounced;
+  // `flushAutosave` is the barrier every explicit save/stage transition takes so
+  // a queued keystroke write can never land after (and overwrite) a later save.
+  const autosaveTimer = useRef(null);
+  const pendingAutosave = useRef(null);
   const query = useQuery({
     queryKey: ['practice-library', user?.id, sessionId || 'dashboard'],
     enabled: Boolean(user?.id),
@@ -643,6 +653,27 @@ export default function LibraryPracticeLab() {
       setCompletedResult(query.data.result || null);
     }
   }, [sessionId, query.data, user?.id]);
+  // Sends whatever answers are queued, if any, and clears the pending timer.
+  // Safe to call when nothing is queued.
+  function flushAutosave() {
+    if (autosaveTimer.current !== null) {
+      clearTimeout(autosaveTimer.current);
+      autosaveTimer.current = null;
+    }
+    const next = pendingAutosave.current;
+    if (next === null) return saveQueue.current;
+    pendingAutosave.current = null;
+    saveQueue.current = saveQueue.current
+      .catch(() => {})
+      .then(() => action('save', { sessionId, answers: next, stage: 2 }))
+      .catch(() =>
+        setError(
+          'Your latest answers are saved in this tab. Check your connection, then go back to Practice Lab.'
+        )
+      );
+    return saveQueue.current;
+  }
+
   function changeAnswer(id, value) {
     const next = { ...answersRef.current, [id]: value };
     answersRef.current = next;
@@ -652,15 +683,32 @@ export default function LibraryPracticeLab() {
     } catch {
       /* Server autosave remains available. */
     }
-    saveQueue.current = saveQueue.current
-      .catch(() => {})
-      .then(() => action('save', { sessionId, answers: next, stage: 2 }))
-      .catch(() =>
-        setError(
-          'Your latest answers are saved in this tab. Check your connection, then go back to Practice Lab.'
-        )
-      );
+    // Trailing debounce: the last answer state within the window is the one
+    // that gets sent, so rapid typing costs one request instead of one per key.
+    pendingAutosave.current = next;
+    if (autosaveTimer.current !== null) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      autosaveTimer.current = null;
+      flushAutosave();
+    }, AUTOSAVE_DEBOUNCE_MS);
   }
+  // A debounced answer must not be lost if the learner navigates away or closes
+  // the tab inside the debounce window. `pagehide` is the event that actually
+  // fires on mobile Safari when a tab is discarded; unmount covers in-app
+  // navigation. sessionStorage already holds the answers either way, so this is
+  // about getting them to the server, not about local recovery.
+  useEffect(() => {
+    const onPageHide = () => flushAutosave();
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      flushAutosave();
+    };
+    // flushAutosave closes over refs and `sessionId`; re-binding per session is
+    // correct, and re-binding on every render would defeat the unmount flush.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
+
   async function run(work) {
     setBusy(true);
     setError('');
@@ -783,7 +831,7 @@ export default function LibraryPracticeLab() {
       });
     const save = () =>
       run(async () => {
-        await saveQueue.current.catch(() => {});
+        await flushAutosave().catch(() => {});
         await action('save', { sessionId, answers, stage });
         navigate('/practice-lab');
       });
@@ -999,6 +1047,7 @@ export default function LibraryPracticeLab() {
                 className="ml-auto shrink-0 gap-1.5 bg-[#5a63df] font-semibold text-white shadow-xs transition-all hover:bg-[#4c55cd] active:scale-[0.99] dark:bg-[#5a63df] dark:hover:bg-[#4c55cd]"
                 onClick={() =>
                   run(async () => {
+                    await flushAutosave().catch(() => {});
                     await action('save', { sessionId, answers, stage: stage + 1 });
                     setStage(stage + 1);
                   })
@@ -1113,6 +1162,7 @@ export default function LibraryPracticeLab() {
               className="ml-auto shrink-0 gap-1.5"
               onClick={() =>
                 run(async () => {
+                  await flushAutosave().catch(() => {});
                   await action('save', { sessionId, answers, stage: stage + 1 });
                   setStage(stage + 1);
                 })
