@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MarketingDelivery } from '@/features/marketing/services/MarketingDelivery';
-import { supabase } from '@/lib/supabase';
+
+// Held in vi.hoisted so the test body talks to the mocks directly rather than
+// through the real `supabase` type, whose from/rpc signatures do not carry
+// vitest's mock methods. Matches admin-security-service.test.ts.
+const supabaseMock = vi.hoisted(() => ({
+  from: vi.fn(),
+  rpc: vi.fn(),
+}));
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn(),
-    rpc: vi.fn(),
+    from: supabaseMock.from,
+    rpc: supabaseMock.rpc,
   },
 }));
 
@@ -16,7 +23,7 @@ describe('MarketingDelivery Service', () => {
 
   describe('recordSubscriptionFunnel', () => {
     it('records only the approved first-party funnel fields', async () => {
-      supabase.rpc.mockResolvedValue({ data: { recorded: true }, error: null });
+      supabaseMock.rpc.mockResolvedValue({ data: { recorded: true }, error: null });
 
       await MarketingDelivery.recordSubscriptionFunnel('plan_selected', {
         planTier: 'premium',
@@ -25,7 +32,7 @@ describe('MarketingDelivery Service', () => {
         metadata: { source: 'pricing_page' },
       });
 
-      expect(supabase.rpc).toHaveBeenCalledWith('record_subscription_funnel_event', {
+      expect(supabaseMock.rpc).toHaveBeenCalledWith('record_subscription_funnel_event', {
         p_event_type: 'plan_selected',
         p_plan_tier: 'premium',
         p_billing_interval: 'monthly',
@@ -35,7 +42,7 @@ describe('MarketingDelivery Service', () => {
     });
 
     it('does not interrupt pricing while the RPC is rolling out', async () => {
-      supabase.rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202' } });
+      supabaseMock.rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202' } });
       await expect(
         MarketingDelivery.recordSubscriptionFunnel('pricing_viewed')
       ).resolves.toBeNull();
@@ -70,12 +77,12 @@ describe('MarketingDelivery Service', () => {
       await MarketingDelivery.record({ id: '123' }, 'impression');
       await MarketingDelivery.record({ id: '123', campaign_id: '456' }, 'impression');
 
-      expect(supabase.from).not.toHaveBeenCalled();
+      expect(supabaseMock.from).not.toHaveBeenCalled();
     });
 
     it('inserts marketing event with dedupe key', async () => {
       const insertMock = vi.fn().mockResolvedValue({ error: null });
-      supabase.from.mockReturnValue({ insert: insertMock });
+      supabaseMock.from.mockReturnValue({ insert: insertMock });
 
       const delivery = {
         id: 'del-1',
@@ -86,7 +93,7 @@ describe('MarketingDelivery Service', () => {
 
       await MarketingDelivery.record(delivery, 'click', { button: 'cta' });
 
-      expect(supabase.from).toHaveBeenCalledWith('marketing_events');
+      expect(supabaseMock.from).toHaveBeenCalledWith('marketing_events');
       expect(insertMock).toHaveBeenCalledWith({
         campaign_id: 'camp-1',
         delivery_id: 'del-1',
@@ -99,14 +106,14 @@ describe('MarketingDelivery Service', () => {
     });
 
     it('ignores 23505 unique violation and 42P01 missing table errors', async () => {
-      supabase.from.mockReturnValue({
+      supabaseMock.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ error: { code: '23505' } }),
       });
       await expect(
         MarketingDelivery.record({ id: '1', campaign_id: '2', user_id: '3' }, 'click')
       ).resolves.not.toThrow();
 
-      supabase.from.mockReturnValue({
+      supabaseMock.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ error: { code: '42P01' } }),
       });
       await expect(
@@ -116,7 +123,7 @@ describe('MarketingDelivery Service', () => {
 
     it('throws unexpected database errors', async () => {
       const dbError = new Error('Database connection failed');
-      supabase.from.mockReturnValue({
+      supabaseMock.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ error: dbError }),
       });
 
@@ -130,11 +137,11 @@ describe('MarketingDelivery Service', () => {
     it('returns null if delivery has no id', async () => {
       const result = await MarketingDelivery.feedback(null, 'dismissed');
       expect(result).toBeNull();
-      expect(supabase.rpc).not.toHaveBeenCalled();
+      expect(supabaseMock.rpc).not.toHaveBeenCalled();
     });
 
     it('calls record_marketing_contact_feedback RPC', async () => {
-      supabase.rpc.mockResolvedValue({ data: { success: true }, error: null });
+      supabaseMock.rpc.mockResolvedValue({ data: { success: true }, error: null });
 
       const delivery = { id: 'del-1' };
       const res = await MarketingDelivery.feedback(delivery, 'snoozed', {
@@ -142,7 +149,7 @@ describe('MarketingDelivery Service', () => {
         metadata: { reason: 'busy' },
       });
 
-      expect(supabase.rpc).toHaveBeenCalledWith('record_marketing_contact_feedback', {
+      expect(supabaseMock.rpc).toHaveBeenCalledWith('record_marketing_contact_feedback', {
         p_delivery_id: 'del-1',
         p_action: 'snoozed',
         p_snoozed_until: '2026-10-01T00:00:00Z',
@@ -181,7 +188,7 @@ describe('MarketingDelivery Service', () => {
         },
       ];
 
-      supabase.from.mockImplementation((table) => {
+      supabaseMock.from.mockImplementation((table) => {
         if (table === 'marketing_deliveries') {
           return {
             select: vi.fn().mockReturnThis(),
@@ -226,7 +233,7 @@ describe('MarketingDelivery Service', () => {
         },
       ];
 
-      supabase.from.mockImplementation((table) => {
+      supabaseMock.from.mockImplementation((table) => {
         if (table === 'marketing_deliveries') {
           return {
             select: vi.fn().mockReturnThis(),

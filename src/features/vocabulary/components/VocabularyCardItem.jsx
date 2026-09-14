@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Trash2, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { m } from 'framer-motion';
 import { playPronunciation } from '../utils/audioUtils';
 import { getPartOfSpeech, getMemoryStrength } from './vocabularyUtils';
 import { TILE } from '@/features/dashboard/components/primitives';
@@ -91,12 +90,10 @@ export const VocabularyCardItem = memo(({ item, onViewWord, onToggleMastery, onD
   const pos = getPartOfSpeech(item);
 
   return (
-    <m.div
-      whileHover={{ y: -2 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+    <div
       className={cn(
         TILE,
-        'group relative flex cursor-pointer flex-col justify-between space-y-3 overflow-hidden p-4 transition-all duration-200 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/20'
+        'group relative flex cursor-pointer flex-col justify-between space-y-3 overflow-hidden p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#c9cdf3] hover:shadow-sm dark:hover:border-white/20'
       )}
       onClick={() => onViewWord(item)}
     >
@@ -145,7 +142,7 @@ export const VocabularyCardItem = memo(({ item, onViewWord, onToggleMastery, onD
       </div>
 
       <CardMemoryFooter source={item.source} memory={memory} />
-    </m.div>
+    </div>
   );
 });
 

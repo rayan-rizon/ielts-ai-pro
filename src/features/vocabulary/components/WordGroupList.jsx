@@ -1,5 +1,4 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -171,10 +170,8 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
           const isClone = index >= displayKits.length;
 
           return (
-            <motion.div
+            <div
               key={`${kit.id}-${index}`}
-              whileHover={{ y: -2 }}
-              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
               aria-hidden={isClone}
               className="group w-[180px] shrink-0 snap-start rounded-xl border border-[#eceafa] bg-linear-to-br/srgb from-[#fdfcff] to-[#f3efff] transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-sm dark:border-white/10 dark:from-white/[0.035] dark:to-white/1.5 sm:w-[192px]"
             >
@@ -217,7 +214,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           );
         })}
       </div>

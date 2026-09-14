@@ -84,7 +84,9 @@ function Skeleton() {
 
 function LessonCard({ lesson, onStart, busy, remaining }) {
   return (
-    <article className={`${PANEL} flex flex-col gap-3 p-4`}>
+    <article
+      className={`${PANEL} flex flex-col gap-3 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12`}
+    >
       <div className="flex items-center justify-between">
         <span className={MICRO}>{lesson.module}</span>
         <Pill tone="neutral">{lesson.estimated_minutes} min</Pill>
