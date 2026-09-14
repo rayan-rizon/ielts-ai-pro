@@ -1,3 +1,10 @@
+-- NOTE: as originally applied, this migration qualified COALESCE and NULLIF as
+-- `pg_catalog.coalesce` / `pg_catalog.nullif`. Those are SQL constructs, not
+-- catalog functions, so both functions below raised 42883 the first time a real
+-- user called them. Production was repaired by
+-- 20260914201049_fix_unqualifiable_sql_constructs.sql; the prefixes are dropped
+-- here too so a fresh `db reset` never recreates the broken versions.
+
 -- Separate the onboarding routing gate from the onboarding funnel metric.
 --
 -- `users.onboarding_completed` does three jobs at once: it decides whether a
@@ -114,7 +121,7 @@ begin
     end if;
   end if;
 
-  v_outcome := pg_catalog.nullif(p_updates->>'onboarding_outcome', '');
+  v_outcome := nullif(p_updates->>'onboarding_outcome', '');
   if v_outcome is not null and v_outcome not in ('answered', 'skipped') then
     raise exception 'Invalid onboarding outcome' using errcode = '22023';
   end if;
@@ -215,7 +222,7 @@ begin
     raise exception 'Invalid onboarding offer step' using errcode = '22023';
   end if;
 
-  if p_step = 'plan_clicked' and pg_catalog.coalesce(p_tier, '') not in ('pro', 'premium') then
+  if p_step = 'plan_clicked' and coalesce(p_tier, '') not in ('pro', 'premium') then
     raise exception 'Invalid onboarding plan tier' using errcode = '22023';
   end if;
 
@@ -231,10 +238,10 @@ begin
   set
     -- Every step implies the offer was on screen, so a missed 'offer_seen'
     -- (a reload, a blocked request) can never produce a click with no sighting.
-    onboarding_offer_seen_at = pg_catalog.coalesce(profile.onboarding_offer_seen_at, pg_catalog.now()),
+    onboarding_offer_seen_at = coalesce(profile.onboarding_offer_seen_at, pg_catalog.now()),
     onboarding_plan_clicked = case
       when p_step = 'plan_clicked'
-        then pg_catalog.coalesce(profile.onboarding_plan_clicked, p_tier)
+        then coalesce(profile.onboarding_plan_clicked, p_tier)
       else profile.onboarding_plan_clicked
     end,
     onboarding_offer_exit = case
