@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
+import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockAudioElement = {
@@ -33,6 +34,7 @@ vi.mock('@/features/testing/speaking/utils/speakingTtsPrefetch', () => ({
 
 import useSpeechSynthesis from '@/features/testing/speaking/hooks/useSpeechSynthesis';
 import { requestSpeakingTts } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
+import { releasePlaybackAudio } from '@/features/testing/speaking/utils/speechPlayback';
 
 describe('useSpeechSynthesis hook', () => {
   beforeEach(() => {
@@ -63,6 +65,37 @@ describe('useSpeechSynthesis hook', () => {
     expect(result.current.isMuted).toBe(true);
   });
 
+  it('keeps examiner playback alive through the room cleanup effect on rerender', async () => {
+    const cleanup = vi.fn();
+    const { result, rerender } = renderHook(() => {
+      const speech = useSpeechSynthesis();
+      const { cancelCurrentAudio } = speech;
+      // Same cleanup dependency as useSpeakingSessionEffects in the live room.
+      useEffect(
+        () => () => {
+          cleanup();
+          cancelCurrentAudio();
+        },
+        [cancelCurrentAudio]
+      );
+      return speech;
+    });
+    let completion;
+    await act(async () => {
+      completion = result.current.speakText('How often do you go shopping?');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    rerender();
+    expect(cleanup).not.toHaveBeenCalled();
+    expect(result.current.isSpeaking).toBe(true);
+    expect(result.current.isPlaybackActive).toBe(true);
+    await act(async () => {
+      mockAudioElement.onended?.();
+      await completion;
+    });
+  });
+
   it('resets state when cancelCurrentAudio is invoked', () => {
     const { result } = renderHook(() => useSpeechSynthesis());
 
@@ -75,6 +108,19 @@ describe('useSpeechSynthesis hook', () => {
     expect(result.current.activeSpeechText).toBe('');
     expect(result.current.isPlaybackActive).toBe(false);
     expect(result.current.speechProgress).toBeNull();
+  });
+
+  it('releases the active audio source when the examiner is interrupted', async () => {
+    const { result } = renderHook(() => useSpeechSynthesis());
+    await act(async () => {
+      void result.current.speakText('Tell me about your hometown.');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.isPlaybackActive).toBe(true);
+    act(() => result.current.cancelCurrentAudio());
+    expect(releasePlaybackAudio).toHaveBeenCalledTimes(1);
+    expect(result.current.isSpeaking).toBe(false);
   });
 
   it('triggers Google TTS on speakText call and completes playback', async () => {

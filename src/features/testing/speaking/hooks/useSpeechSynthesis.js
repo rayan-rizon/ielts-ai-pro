@@ -335,7 +335,9 @@ async function requestAndPlayGoogleTts({
 
   const evaluated = evaluateTtsResponse(data, error);
   if (evaluated.status === 'success') {
-    const audio = await playGoogleTtsAudio({
+    // Track the source while it is playing, not only after onended resolves.
+    currentAudioRef.current = getPlaybackAudio();
+    await playGoogleTtsAudio({
       audioUrl: evaluated.audioUrl,
       isMuted: isMutedRef.current,
       isTurnActiveFn: () => isTurnActive(myRequestId, requestIdRef, isMountedRef),
@@ -349,7 +351,6 @@ async function requestAndPlayGoogleTts({
       stopProgressTracking,
       setPlaybackFrame,
     });
-    currentAudioRef.current = audio;
     return { played: true, shouldUseFallback: false };
   }
 
@@ -600,6 +601,7 @@ function useSpeechPlaybackLifecycle({ stopProgressTracking, currentAudioRef, req
 // ── Main Hook ─────────────────────────────────────────────────────────────────
 export default function useSpeechSynthesis() {
   const state = useSpeechState();
+  const { resetPlaybackState } = state;
   const currentAudioRef = useRef(null);
   const webVoiceRef = useRef(null);
   const requestIdRef = useRef(0);
@@ -621,8 +623,8 @@ export default function useSpeechSynthesis() {
   const cancelCurrentAudio = useCallback(() => {
     requestIdRef.current += 1;
     stopActiveAudioSources();
-    state.resetPlaybackState();
-  }, [stopActiveAudioSources, state]);
+    resetPlaybackState();
+  }, [stopActiveAudioSources, resetPlaybackState]);
 
   const speakText = useCallback(
     async (text, options = { cancel: true }) => {
