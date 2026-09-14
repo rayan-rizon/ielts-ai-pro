@@ -12,6 +12,13 @@ const COACHING_CONTENT = {
     nextStep: 'Add: “For example, … This showed me that …”',
     pattern: 'Point → example → result',
   },
+  add_relevant_detail: {
+    title: 'Add one relevant detail',
+    explanation:
+      'Your answer is clear but brief. Add one detail that directly answers the examiner’s question.',
+    nextStep: 'Continue with one sentence about the exact topic.',
+    pattern: 'Direct answer → relevant detail',
+  },
   extend_reason: {
     title: 'Explain why it matters',
     explanation:
@@ -25,6 +32,13 @@ const COACHING_CONTENT = {
       'Your main point is clear. Add one memorable detail about the place, activity, person, or feeling.',
     nextStep: 'Continue with: “One moment I clearly remember is … because …”',
     pattern: 'Main point → vivid detail → why it mattered',
+  },
+  describe_place: {
+    title: 'Describe life there',
+    explanation:
+      'You said where you grew up. Now answer the second part: what living there was like.',
+    nextStep: 'Continue with: “Life there was … because …”',
+    pattern: 'Place → description → supporting detail',
   },
   stay_on_topic: {
     title: 'Return to the question',

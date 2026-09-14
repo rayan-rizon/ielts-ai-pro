@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildSpeakingExaminerText,
+  decideSpeakingTurn,
   getDeterministicSpeakingDecision,
   resolveSpeakingAction,
   type SpeakingTurnDecision,
@@ -20,6 +21,51 @@ const decision = (overrides: Partial<SpeakingTurnDecision> = {}): SpeakingTurnDe
 });
 
 describe('Speaking V2 semantic policy', () => {
+  it('coaches the unanswered description instead of prescribing an irrelevant example', async () => {
+    const result = await decideSpeakingTurn({
+      transcript: 'Yeah, I grew up in a small village in Dhaka, Bangladesh.',
+      question:
+        'Can you tell me a little about where you grew up and what it was like living there?',
+      partNumber: 1,
+      mode: 'practice',
+      geminiApiKey: null,
+    });
+
+    expect(result).toMatchObject({
+      classification: 'partial',
+      coachingCode: 'describe_place',
+      semanticDegraded: true,
+    });
+    expect(result.coachingCode).not.toBe('add_example');
+  });
+
+  it('does not invent an example task when the semantic classifier is unavailable', async () => {
+    const result = await decideSpeakingTurn({
+      transcript: 'I usually read novels at home after dinner each evening.',
+      question: 'What do you usually do in the evening?',
+      partNumber: 1,
+      mode: 'practice',
+      geminiApiKey: null,
+    });
+
+    expect(result).toMatchObject({
+      coachingCode: 'add_relevant_detail',
+      semanticDegraded: true,
+    });
+  });
+
+  it('leaves a complete place description out of the location-only rule', async () => {
+    const result = await decideSpeakingTurn({
+      transcript: 'I grew up in Dhaka, and life there was busy but exciting.',
+      question: 'Where did you grow up, and what was living there like?',
+      partNumber: 1,
+      mode: 'practice',
+      geminiApiKey: null,
+    });
+
+    expect(result.coachingCode).not.toBe('describe_place');
+  });
+
   it.each([
     ['Can you hear me right now?', 'meta_microphone'],
     ['Could you repeat the question?', 'meta_ielts'],
