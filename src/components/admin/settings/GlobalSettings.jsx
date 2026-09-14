@@ -198,7 +198,17 @@ export default function GlobalSettings() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } },
+  };
+
+  const tabContentVariants = {
+    hidden: { opacity: 0, y: 8, filter: 'blur(2px)' },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+    },
   };
 
   const isInitialLoad = loading || (activeSection === 'general' && healthLoading);
@@ -263,7 +273,12 @@ export default function GlobalSettings() {
           </div>
 
           <TabsContent value="general" className="space-y-6" data-oid="ziz8z.b">
-            <motion.div variants={itemVariants} data-oid="21cboft">
+            <motion.div
+              variants={tabContentVariants}
+              initial="hidden"
+              animate="visible"
+              data-oid="21cboft"
+            >
               <PlatformHealthDashboard
                 maintenance={settings.maintenance_mode}
                 onLoadingChange={setHealthLoading}
@@ -273,34 +288,49 @@ export default function GlobalSettings() {
           </TabsContent>
 
           <TabsContent value="pricing" className="space-y-6" data-oid="irb46s8">
-            <PricingSettingsTab
-              pricingTiers={settings.pricing_tiers}
-              saving={saving}
-              onSave={handleSave}
-              onChangePricingTiers={(pricingTiers) =>
-                setSettings((prev) => ({ ...prev, pricing_tiers: pricingTiers }))
-              }
-              onRegionalUpdate={handleRegionalUpdate}
-            />
+            <motion.div variants={tabContentVariants} initial="hidden" animate="visible">
+              <PricingSettingsTab
+                pricingTiers={settings.pricing_tiers}
+                saving={saving}
+                onSave={handleSave}
+                onChangePricingTiers={(pricingTiers) =>
+                  setSettings((prev) => ({ ...prev, pricing_tiers: pricingTiers }))
+                }
+                onRegionalUpdate={handleRegionalUpdate}
+              />
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6" data-oid="vdpbpus">
-            <SecuritySettingsTab
-              passwordData={passwordData}
-              onChangePasswordData={setPasswordData}
-              changingPassword={changingPassword}
-              onPasswordChange={handlePasswordChange}
-            />
+            <motion.div variants={tabContentVariants} initial="hidden" animate="visible">
+              <SecuritySettingsTab
+                passwordData={passwordData}
+                onChangePasswordData={setPasswordData}
+                changingPassword={changingPassword}
+                onPasswordChange={handlePasswordChange}
+              />
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="rate-limits" className="space-y-6" data-oid="v5d91or">
-            <motion.div variants={itemVariants} className="max-w-5xl" data-oid="7o46ze9">
+            <motion.div
+              variants={tabContentVariants}
+              initial="hidden"
+              animate="visible"
+              className="max-w-5xl"
+              data-oid="7o46ze9"
+            >
               <TierRateLimitsSettings data-oid="oe.xgq6" />
             </motion.div>
           </TabsContent>
 
           <TabsContent value="emails" className="space-y-6">
-            <motion.div variants={itemVariants} className="max-w-5xl">
+            <motion.div
+              variants={tabContentVariants}
+              initial="hidden"
+              animate="visible"
+              className="max-w-5xl"
+            >
               <AdminEmailSettings />
             </motion.div>
           </TabsContent>

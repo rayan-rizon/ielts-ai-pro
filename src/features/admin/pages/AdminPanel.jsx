@@ -16,7 +16,8 @@ import {
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
 import PremiumLoading from '@/components/ui/PremiumLoading';
-import { AdminPageSkeleton } from '@/components/admin/ui/primitives';
+import { AnimatePresence, m } from 'framer-motion';
+import { ADMIN_PAGE_TRANSITION, AdminPageSkeleton } from '@/components/admin/ui/primitives';
 
 // Lazy load admin components
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
@@ -337,7 +338,17 @@ export default function AdminPanel() {
             fallback={<AdminPageSkeleton kpis={6} panels={2} data-oid="admin-tab-loading" />}
             data-oid="91_p4e8"
           >
-            {renderContent()}
+            <AnimatePresence mode="wait" initial={false}>
+              <m.div
+                key={activeTab}
+                initial={ADMIN_PAGE_TRANSITION.initial}
+                animate={ADMIN_PAGE_TRANSITION.animate}
+                exit={ADMIN_PAGE_TRANSITION.exit}
+                className="w-full"
+              >
+                {renderContent()}
+              </m.div>
+            </AnimatePresence>
           </Suspense>
         </div>
       </div>

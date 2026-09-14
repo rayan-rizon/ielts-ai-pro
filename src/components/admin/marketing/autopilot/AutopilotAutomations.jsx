@@ -32,15 +32,27 @@ function PolicyCard({ policy, labels = {}, busy, error, act, onPreviewPolicy }) 
   };
 
   return (
-    <div className={cn(TILE, 'relative flex flex-col overflow-hidden p-3 pl-4')}>
-      <span className={cn('absolute inset-y-0 left-0 w-[3px]', signalClass)} />
+    <div
+      className={cn(
+        TILE,
+        'relative flex flex-col overflow-hidden p-3 pl-4 transition-all duration-200 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20 hover:-translate-y-0.5 hover:shadow-xs'
+      )}
+    >
+      <span
+        className={cn(
+          'absolute inset-y-0 left-0 w-[3px] transition-colors duration-fast ease-smooth-out',
+          signalClass
+        )}
+      />
       <label
         htmlFor={`policy-${policy.id}`}
         className="cursor-pointer text-[12px] font-extrabold leading-snug text-stone-900 dark:text-stone-50"
       >
         {policyTitle}
       </label>
-      <p className={cn(MICRO, 'mt-1', statusClass)}>{statusText}</p>
+      <p className={cn(MICRO, 'mt-1 transition-colors duration-fast ease-smooth-out', statusClass)}>
+        {statusText}
+      </p>
       <div className="mt-auto flex items-center justify-between gap-2 pt-3">
         <AdminButton size="sm" variant="outline" onClick={() => onPreviewPolicy(policy)}>
           Preview

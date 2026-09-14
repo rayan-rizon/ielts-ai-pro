@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { uploadToR2 } from '@/lib/r2';
 import { Input } from '@/components/ui/input';
@@ -223,74 +224,84 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
               variant="ghost"
               size="sm"
               onClick={addQuestion}
-              className={`h-6 gap-1 ${t.text} hover:${t.light}`}
+              className={`h-6 gap-1 ${t.text} hover:${t.light} transition-all duration-150 ease-smooth-out active:scale-95`}
               data-oid="24zyojk"
             >
               <Plus className="w-3 h-3" data-oid="buahkdw" /> Add Label
             </Button>
           </div>
           <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2" data-oid="jq.:um5">
-            {data.questions.map((q, idx) => (
-              <div key={idx} className="flex gap-2 items-center" data-oid="dh8az2_">
-                <Badge
-                  variant="outline"
-                  className="w-12 h-9 flex items-center justify-center font-mono bg-background shrink-0"
-                  data-oid="5i1.2mn"
+            <AnimatePresence>
+              {data.questions.map((q, idx) => (
+                <motion.div
+                  key={q.id || idx}
+                  initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex gap-2 items-center"
+                  data-oid="dh8az2_"
                 >
-                  {q.questionNumber || q.label || idx + 1}
-                </Badge>
-
-                {/* Show question text if available */}
-                {q.text && (
-                  <div
-                    className="flex-1 min-w-[120px] text-sm text-slate-700 dark:text-slate-300 truncate"
-                    data-oid="s8nu2ca"
+                  <Badge
+                    variant="outline"
+                    className="w-12 h-9 flex items-center justify-center font-mono bg-background shrink-0"
+                    data-oid="5i1.2mn"
                   >
-                    {q.text}
-                  </div>
-                )}
+                    {q.questionNumber || q.label || idx + 1}
+                  </Badge>
 
-                {data.mode === 'dropdown' ? (
-                  <Select
-                    value={q.correct_answer || q.answer || ''}
-                    onValueChange={(val) => updateQuestion(idx, 'correct_answer', val)}
-                    data-oid="fofo-v8"
-                  >
-                    <SelectTrigger
-                      className={`${q.text ? 'w-40' : 'flex-1'} bg-background`}
-                      data-oid="qczlyo8"
+                  {/* Show question text if available */}
+                  {q.text && (
+                    <div
+                      className="flex-1 min-w-[120px] text-sm text-slate-700 dark:text-slate-300 truncate"
+                      data-oid="s8nu2ca"
                     >
-                      <SelectValue placeholder="Select Answer" data-oid="vd3enib" />
-                    </SelectTrigger>
-                    <SelectContent data-oid="suw7vo6">
-                      {data.options.map((opt, oIdx) => (
-                        <SelectItem key={oIdx} value={opt || `opt-${oIdx}`} data-oid=":et.k6f">
-                          {opt || '(Empty)'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    value={q.correct_answer || q.answer || ''}
-                    onChange={(e) => updateQuestion(idx, 'correct_answer', e.target.value)}
-                    placeholder="Correct Answer"
-                    className={`${q.text ? 'w-40' : 'flex-1'} bg-background`}
-                    data-oid="-:scffs"
-                  />
-                )}
+                      {q.text}
+                    </div>
+                  )}
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeQuestion(idx)}
-                  className="text-muted-foreground hover:text-destructive h-9 w-9 shrink-0"
-                  data-oid="v2v:_ng"
-                >
-                  <Trash2 className="w-4 h-4" data-oid="mq.z03w" />
-                </Button>
-              </div>
-            ))}
+                  {data.mode === 'dropdown' ? (
+                    <Select
+                      value={q.correct_answer || q.answer || ''}
+                      onValueChange={(val) => updateQuestion(idx, 'correct_answer', val)}
+                      data-oid="fofo-v8"
+                    >
+                      <SelectTrigger
+                        className={`${q.text ? 'w-40' : 'flex-1'} bg-background`}
+                        data-oid="qczlyo8"
+                      >
+                        <SelectValue placeholder="Select Answer" data-oid="vd3enib" />
+                      </SelectTrigger>
+                      <SelectContent data-oid="suw7vo6">
+                        {data.options.map((opt, oIdx) => (
+                          <SelectItem key={oIdx} value={opt || `opt-${oIdx}`} data-oid=":et.k6f">
+                            {opt || '(Empty)'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={q.correct_answer || q.answer || ''}
+                      onChange={(e) => updateQuestion(idx, 'correct_answer', e.target.value)}
+                      placeholder="Correct Answer"
+                      className={`${q.text ? 'w-40' : 'flex-1'} bg-background`}
+                      data-oid="-:scffs"
+                    />
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeQuestion(idx)}
+                    className="text-muted-foreground hover:text-destructive h-9 w-9 shrink-0 transition-all duration-150 ease-smooth-out active:scale-90"
+                    data-oid="v2v:_ng"
+                  >
+                    <Trash2 className="w-4 h-4" data-oid="mq.z03w" />
+                  </Button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {data.questions.length === 0 && (
               <div
                 className="text-center py-4 text-sm text-muted-foreground border border-dashed rounded-lg bg-muted/20"
@@ -311,40 +322,50 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
                 variant="ghost"
                 size="sm"
                 onClick={addOption}
-                className={`h-6 gap-1 ${t.text} hover:${t.light}`}
+                className={`h-6 gap-1 ${t.text} hover:${t.light} transition-all duration-150 ease-smooth-out active:scale-95`}
                 data-oid="m4x_.tc"
               >
                 <Plus className="w-3 h-3" data-oid="pfyjjhj" /> Add Option
               </Button>
             </div>
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2" data-oid="cng:wnm">
-              {data.options.map((opt, idx) => (
-                <div key={idx} className="flex gap-2 items-center" data-oid="hdrl1r6">
-                  <div
-                    className="w-8 flex items-center justify-center font-bold text-muted-foreground text-sm"
-                    data-oid="g9vaxwz"
+              <AnimatePresence>
+                {data.options.map((opt, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex gap-2 items-center"
+                    data-oid="hdrl1r6"
                   >
-                    {String.fromCharCode(65 + idx)}
-                  </div>
-                  <Input
-                    value={opt}
-                    onChange={(e) => updateOption(idx, e.target.value)}
-                    placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                    className="bg-background"
-                    data-oid="3uzv_fy"
-                  />
+                    <div
+                      className="w-8 flex items-center justify-center font-bold text-muted-foreground text-sm"
+                      data-oid="g9vaxwz"
+                    >
+                      {String.fromCharCode(65 + idx)}
+                    </div>
+                    <Input
+                      value={opt}
+                      onChange={(e) => updateOption(idx, e.target.value)}
+                      placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                      className="bg-background"
+                      data-oid="3uzv_fy"
+                    />
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeOption(idx)}
-                    className="text-muted-foreground hover:text-destructive h-9 w-9"
-                    data-oid="62kit8g"
-                  >
-                    <Trash2 className="w-4 h-4" data-oid="zc54itl" />
-                  </Button>
-                </div>
-              ))}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeOption(idx)}
+                      className="text-muted-foreground hover:text-destructive h-9 w-9 transition-all duration-150 ease-smooth-out active:scale-90"
+                      data-oid="62kit8g"
+                    >
+                      <Trash2 className="w-4 h-4" data-oid="zc54itl" />
+                    </Button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               {data.options.length === 0 && (
                 <div
                   className="text-center py-4 text-sm text-muted-foreground border border-dashed rounded-lg bg-muted/20"

@@ -258,7 +258,7 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
                   >
                     {isActive && (
                       <m.span
-                        layoutId="vocabTabPill"
+                        layoutId="vocabEditorTabPill"
                         className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
                         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                       />
@@ -271,108 +271,124 @@ const VocabularyEditor = ({ initialData, onSave, onCancel }) => {
             </div>
 
             <div className="p-4">
-              {activeTab === 'list' ? (
-                <div className="space-y-2.5">
-                  <AnimatePresence initial={false}>
-                    {words.map((word, index) => (
-                      <m.div
-                        layout
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, height: 0 }}
-                        key={index}
-                        className="p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6 group relative"
-                      >
-                        <button
-                          onClick={() => handleRemoveWord(index)}
-                          className="absolute top-2 right-2 h-6 w-6 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] opacity-0 group-hover:opacity-100 transition-all active:scale-90"
+              <AnimatePresence mode="wait">
+                {activeTab === 'list' ? (
+                  <m.div
+                    key="list"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="space-y-2.5"
+                  >
+                    <AnimatePresence initial={false}>
+                      {words.map((word, index) => (
+                        <m.div
+                          layout
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, height: 0 }}
+                          key={index}
+                          className="p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6 group relative"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          <button
+                            onClick={() => handleRemoveWord(index)}
+                            className="absolute top-2 right-2 h-6 w-6 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] opacity-0 group-hover:opacity-100 transition-all active:scale-90"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pr-8">
-                          <div>
-                            <Label className={cn(FIELD_LABEL, 'mb-1')}>Word / term</Label>
-                            <Input
-                              value={word.word}
-                              onChange={(e) => handleWordChange(index, 'word', e.target.value)}
-                              placeholder="Word"
-                              className={cn(FIELD_INPUT, 'font-bold w-full')}
-                            />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pr-8">
+                            <div>
+                              <Label className={cn(FIELD_LABEL, 'mb-1')}>Word / term</Label>
+                              <Input
+                                value={word.word}
+                                onChange={(e) => handleWordChange(index, 'word', e.target.value)}
+                                placeholder="Word"
+                                className={cn(FIELD_INPUT, 'font-bold w-full')}
+                              />
+                            </div>
+                            <div>
+                              <Label className={cn(FIELD_LABEL, 'mb-1')}>Definition</Label>
+                              <Input
+                                value={word.definition}
+                                onChange={(e) =>
+                                  handleWordChange(index, 'definition', e.target.value)
+                                }
+                                placeholder="Meaning…"
+                                className={cn(FIELD_INPUT, 'w-full')}
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label className={cn(FIELD_LABEL, 'mb-1')}>Example sentence</Label>
+                              <Input
+                                value={word.example}
+                                onChange={(e) => handleWordChange(index, 'example', e.target.value)}
+                                placeholder="Sentence using the word…"
+                                className={cn(FIELD_INPUT, 'w-full')}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <Label className={cn(FIELD_LABEL, 'mb-1')}>Definition</Label>
-                            <Input
-                              value={word.definition}
-                              onChange={(e) =>
-                                handleWordChange(index, 'definition', e.target.value)
-                              }
-                              placeholder="Meaning…"
-                              className={cn(FIELD_INPUT, 'w-full')}
-                            />
-                          </div>
-                          <div className="md:col-span-2">
-                            <Label className={cn(FIELD_LABEL, 'mb-1')}>Example sentence</Label>
-                            <Input
-                              value={word.example}
-                              onChange={(e) => handleWordChange(index, 'example', e.target.value)}
-                              placeholder="Sentence using the word…"
-                              className={cn(FIELD_INPUT, 'w-full')}
-                            />
-                          </div>
-                        </div>
-                      </m.div>
-                    ))}
-                  </AnimatePresence>
+                        </m.div>
+                      ))}
+                    </AnimatePresence>
 
-                  <button
-                    onClick={handleAddWord}
-                    className={cn(
-                      MICRO,
-                      'w-full h-11 rounded-md border-2 border-dashed border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-indigo-400/50 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/4 transition-all active:scale-[0.99] flex items-center justify-center gap-1.5'
-                    )}
+                    <button
+                      onClick={handleAddWord}
+                      className={cn(
+                        MICRO,
+                        'w-full h-11 rounded-md border-2 border-dashed border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-indigo-400/50 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/4 transition-all active:scale-[0.99] flex items-center justify-center gap-1.5'
+                      )}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add individual word
+                    </button>
+                  </m.div>
+                ) : (
+                  <m.div
+                    key="bulk"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="space-y-3"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add individual word
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2.5 p-3 rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)]">
-                    <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-warn))] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
-                        Bulk import format
-                      </p>
-                      <p className="text-[11px] text-stone-600 dark:text-stone-300 font-medium mt-0.5 leading-relaxed">
-                        One line per word:{' '}
-                        <span className={cn(NUM, 'font-bold')}>Word | Definition | Example</span>.
-                        30–100+ words can be pasted at once.
-                      </p>
+                    <div className="flex items-start gap-2.5 p-3 rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)]">
+                      <AlertTriangle className="w-4 h-4 text-[rgb(var(--signal-warn))] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+                          Bulk import format
+                        </p>
+                        <p className="text-[11px] text-stone-600 dark:text-stone-300 font-medium mt-0.5 leading-relaxed">
+                          One line per word:{' '}
+                          <span className={cn(NUM, 'font-bold')}>Word | Definition | Example</span>.
+                          30–100+ words can be pasted at once.
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <Textarea
-                    value={bulkText}
-                    onChange={(e) => setBulkText(e.target.value)}
-                    placeholder={`vantage | a place or position affording a good view of something. | from my vantage point I could see the city\nresilient | able to withstand or recover quickly from difficult conditions. | many cities are resilient to natural disasters`}
-                    rows={12}
-                    className={cn(
-                      NUM,
-                      'rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs leading-relaxed p-3'
-                    )}
-                  />
+                    <Textarea
+                      value={bulkText}
+                      onChange={(e) => setBulkText(e.target.value)}
+                      placeholder={`vantage | a place or position affording a good view of something. | from my vantage point I could see the city\nresilient | able to withstand or recover quickly from difficult conditions. | many cities are resilient to natural disasters`}
+                      rows={12}
+                      className={cn(
+                        NUM,
+                        'rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs leading-relaxed p-3'
+                      )}
+                    />
 
-                  <AdminButton
-                    onClick={handleBulkImport}
-                    disabled={!bulkText.trim()}
-                    className="w-full justify-center"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Import these words
-                  </AdminButton>
-                </div>
-              )}
+                    <AdminButton
+                      onClick={handleBulkImport}
+                      disabled={!bulkText.trim()}
+                      className="w-full justify-center"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Import these words
+                    </AdminButton>
+                  </m.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </m.div>

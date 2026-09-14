@@ -116,7 +116,7 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
   return (
     <tr
       className={cn(
-        'animate-panel-in border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors last:border-0',
+        'animate-panel-in border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] last:border-0',
         selected && 'bg-stone-50 dark:bg-white/2'
       )}
     >
@@ -197,7 +197,7 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${user.full_name || user.email || 'user'}`}
-            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
           >
             <Edit className="w-3.5 h-3.5" />
           </button>
@@ -205,7 +205,7 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
             type="button"
             onClick={onDelete}
             aria-label={`Delete ${user.full_name || user.email || 'user'}`}
-            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
+            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>

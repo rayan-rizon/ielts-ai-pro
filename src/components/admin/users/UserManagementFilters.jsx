@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import {
   Select,
@@ -118,34 +119,46 @@ export const ThemedDatePicker = ({ value, onChange, placeholder = 'Select date' 
 };
 
 const SelectionActions = ({ count, loading, onWarn, onDelete }) => {
-  if (count === 0) return null;
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2.5 rounded-lg bg-[rgb(var(--signal-warn)/0.08)] border border-[rgb(var(--signal-warn)/0.3)]">
-      <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
-        {count} user{count > 1 ? 's' : ''} selected
-      </span>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onWarn}
-          className={cn(
-            MICRO,
-            'inline-flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-warn)/0.3)] text-[rgb(var(--signal-warn))] px-2.5 py-1.5 hover:bg-[rgb(var(--signal-warn)/0.08)] transition-colors'
-          )}
+    <AnimatePresence>
+      {count > 0 && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="overflow-hidden"
         >
-          <Mail className="w-3 h-3" /> Send warning
-        </button>
-        <button
-          onClick={onDelete}
-          disabled={loading}
-          className={cn(
-            MICRO,
-            'inline-flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-fault)/0.3)] text-[rgb(var(--signal-fault))] px-2.5 py-1.5 hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors disabled:opacity-50'
-          )}
-        >
-          <Trash2 className="w-3 h-3" /> Delete selected
-        </button>
-      </div>
-    </div>
+          return (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2.5 rounded-lg bg-[rgb(var(--signal-warn)/0.08)] border border-[rgb(var(--signal-warn)/0.3)]">
+            <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
+              {count} user{count > 1 ? 's' : ''} selected
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onWarn}
+                className={cn(
+                  MICRO,
+                  'inline-flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-warn)/0.3)] text-[rgb(var(--signal-warn))] px-2.5 py-1.5 hover:bg-[rgb(var(--signal-warn)/0.08)] transition-all duration-150 ease-smooth-out active:scale-95'
+                )}
+              >
+                <Mail className="w-3 h-3" /> Send warning
+              </button>
+              <button
+                onClick={onDelete}
+                disabled={loading}
+                className={cn(
+                  MICRO,
+                  'inline-flex items-center gap-1.5 rounded-md border border-[rgb(var(--signal-fault)/0.3)] text-[rgb(var(--signal-fault))] px-2.5 py-1.5 hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all duration-150 ease-smooth-out active:scale-95 disabled:opacity-50'
+                )}
+              >
+                <Trash2 className="w-3 h-3" /> Delete selected
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -276,7 +289,7 @@ export const UserManagementFilters = ({
           onClick={onReset}
           className={cn(
             MICRO,
-            'h-9 px-3 rounded-md text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 shrink-0 ml-auto'
+            'h-9 px-3 rounded-md text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 shrink-0 ml-auto transition-all duration-150 ease-smooth-out active:scale-95'
           )}
         >
           Clear filters

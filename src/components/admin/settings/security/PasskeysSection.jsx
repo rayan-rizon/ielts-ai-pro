@@ -21,7 +21,12 @@ const FIELD_LABEL = cn(MICRO, 'mb-1.5 block text-stone-500 dark:text-stone-400')
 
 function PasskeyItem({ passkey, canManage, isDeleting, onRemove }) {
   return (
-    <div className={cn(TILE, 'flex items-center gap-3 p-3')}>
+    <div
+      className={cn(
+        TILE,
+        'flex items-center gap-3 p-3 transition-all duration-150 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20'
+      )}
+    >
       <Fingerprint className="h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-300" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-extrabold text-stone-900 dark:text-stone-50">
@@ -41,7 +46,7 @@ function PasskeyItem({ passkey, canManage, isDeleting, onRemove }) {
         type="button"
         disabled={!canManage || isDeleting}
         onClick={onRemove}
-        className="rounded-md p-1.5 text-stone-400 transition-colors hover:bg-rose-500/10 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40 dark:text-stone-500 dark:hover:text-rose-300"
+        className="rounded-md p-1.5 text-stone-400 transition-all duration-150 ease-smooth-out hover:bg-rose-500/10 hover:text-rose-600 active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 dark:text-stone-500 dark:hover:text-rose-300"
         aria-label={`Remove ${passkey.friendly_name || 'passkey'}`}
       >
         {isDeleting ? (

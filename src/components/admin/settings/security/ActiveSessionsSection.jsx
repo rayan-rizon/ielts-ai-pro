@@ -47,7 +47,7 @@ function SessionRow({ session, isCurrent, isSigningOut, onSignOut }) {
           type="button"
           disabled={isSigningOut}
           onClick={onSignOut}
-          className="rounded-md border border-stone-200 px-2 py-1 text-[10px] font-extrabold text-stone-600 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50 dark:border-white/[0.1] dark:text-stone-300 dark:hover:border-rose-500/30 dark:hover:bg-rose-500/10 dark:hover:text-rose-200"
+          className="rounded-md border border-stone-200 px-2 py-1 text-[10px] font-extrabold text-stone-600 transition-all duration-150 ease-smooth-out hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 active:scale-95 disabled:opacity-50 dark:border-white/[0.1] dark:text-stone-300 dark:hover:border-rose-500/30 dark:hover:bg-rose-500/10 dark:hover:text-rose-200"
         >
           {isSigningOut ? 'Signing out…' : 'Sign out'}
         </button>
@@ -76,7 +76,7 @@ export function ActiveSessionsSection({
         <button
           type="button"
           onClick={onRefresh}
-          className="rounded-md p-1.5 text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-white/[0.06] dark:hover:text-stone-50"
+          className="rounded-md p-1.5 text-stone-500 transition-all duration-150 ease-smooth-out hover:bg-stone-100 hover:text-stone-900 active:scale-90 dark:text-stone-400 dark:hover:bg-white/[0.06] dark:hover:text-stone-50"
           aria-label="Refresh security sessions"
         >
           {loading ? (

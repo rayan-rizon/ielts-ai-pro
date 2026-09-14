@@ -1,4 +1,4 @@
-import { m } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Globe, Plus, Trash2 } from 'lucide-react';
@@ -113,7 +113,7 @@ export default function PricingTierCard({
             onClick={() => onRegionalUpdate({ tier: tierId, action: 'add' })}
             className={cn(
               MICRO,
-              'inline-flex items-center gap-1 rounded-md border border-stone-300 dark:border-white/15 px-2 py-1 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors'
+              'inline-flex items-center gap-1 rounded-md border border-stone-300 dark:border-white/15 px-2 py-1 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-smooth-out active:scale-95'
             )}
           >
             <Plus className="w-2.5 h-2.5" /> Add region
@@ -121,68 +121,75 @@ export default function PricingTierCard({
         </div>
 
         <div className="space-y-2">
-          {regional?.map((region, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2 bg-stone-50 dark:bg-white/2 p-2 rounded-md border border-stone-200/70 dark:border-white/6"
-            >
-              <CountryAutocomplete
-                value={region.country}
-                disabled={saving}
-                onChange={(country) =>
-                  onRegionalUpdate({
-                    tier: tierId,
-                    action: 'update',
-                    index: idx,
-                    field: {
-                      country: country.code,
-                      currency: country.currency,
-                      symbol: country.symbol,
-                    },
-                  })
-                }
-              />
-              <div className="relative flex-1 min-w-[110px]">
-                <span
-                  className={cn(
-                    NUM,
-                    'absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-500 select-none'
-                  )}
-                >
-                  {region.symbol || '$'}
-                </span>
-                <Input
-                  type="number"
-                  placeholder="Price"
-                  value={region.price || ''}
-                  onChange={(e) =>
+          <AnimatePresence initial={false}>
+            {regional?.map((region, idx) => (
+              <m.div
+                key={idx}
+                layout
+                initial={{ opacity: 0, scale: 0.97, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2 bg-stone-50 dark:bg-white/2 p-2 rounded-md border border-stone-200/70 dark:border-white/6 transition-all duration-150 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20"
+              >
+                <CountryAutocomplete
+                  value={region.country}
+                  disabled={saving}
+                  onChange={(country) =>
                     onRegionalUpdate({
                       tier: tierId,
                       action: 'update',
                       index: idx,
-                      field: 'price',
-                      value: parseFloat(e.target.value),
+                      field: {
+                        country: country.code,
+                        currency: country.currency,
+                        symbol: country.symbol,
+                      },
                     })
                   }
-                  className="h-8 pl-6 pr-12 text-xs font-mono font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315]"
                 />
-                <span
-                  className={cn(
-                    MICRO,
-                    'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 px-1 py-0.5 rounded pointer-events-none'
-                  )}
+                <div className="relative flex-1 min-w-[110px]">
+                  <span
+                    className={cn(
+                      NUM,
+                      'absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-500 select-none'
+                    )}
+                  >
+                    {region.symbol || '$'}
+                  </span>
+                  <Input
+                    type="number"
+                    placeholder="Price"
+                    value={region.price || ''}
+                    onChange={(e) =>
+                      onRegionalUpdate({
+                        tier: tierId,
+                        action: 'update',
+                        index: idx,
+                        field: 'price',
+                        value: parseFloat(e.target.value),
+                      })
+                    }
+                    className="h-8 pl-6 pr-12 text-xs font-mono font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315]"
+                  />
+                  <span
+                    className={cn(
+                      MICRO,
+                      'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 px-1 py-0.5 rounded pointer-events-none'
+                    )}
+                  >
+                    {region.currency || 'USD'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => onRegionalUpdate({ tier: tierId, action: 'remove', index: idx })}
+                  className="h-8 w-8 grid place-items-center shrink-0 rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all duration-150 ease-smooth-out active:scale-90"
                 >
-                  {region.currency || 'USD'}
-                </span>
-              </div>
-              <button
-                onClick={() => onRegionalUpdate({ tier: tierId, action: 'remove', index: idx })}
-                className="h-8 w-8 grid place-items-center shrink-0 rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </m.div>
+            ))}
+          </AnimatePresence>
           {(!regional || regional.length === 0) && (
             <p className="text-xs text-stone-500 dark:text-stone-400 italic">
               No regional overrides configured

@@ -27,8 +27,12 @@ const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ delay: Math.min(index, 8) * 0.02 }}
-      className={cn(PANEL, 'p-3 space-y-2.5', (!promo.is_active || isExpired) && 'opacity-60')}
+      transition={{ delay: Math.min(index, 8) * 0.02, duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        PANEL,
+        'p-3 space-y-2.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-xs hover:border-stone-300 dark:hover:border-white/20',
+        (!promo.is_active || isExpired) && 'opacity-60'
+      )}
     >
       <div className="flex items-center justify-between gap-1">
         <span className={cn(NUM, 'text-sm font-black text-stone-900 dark:text-stone-50 truncate')}>
@@ -38,7 +42,7 @@ const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
           <button
             type="button"
             onClick={() => onToggle(promo.id, promo.is_active)}
-            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.08)] transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
             aria-label={
               promo.is_active
                 ? `Pause promo code ${promo.code}`
@@ -51,7 +55,7 @@ const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
           <button
             type="button"
             onClick={() => onDelete(promo)}
-            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
+            className="h-6 w-6 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
             aria-label={`Delete promo code ${promo.code}`}
             title="Delete"
           >
@@ -109,7 +113,7 @@ const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
           <m.div
             initial={{ width: 0 }}
             animate={{ width: `${usagePercentage}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
               'h-full rounded-full',
               usagePercentage > 90

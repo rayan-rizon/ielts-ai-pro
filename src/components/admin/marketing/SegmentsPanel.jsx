@@ -1,3 +1,4 @@
+import { m, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Pencil, Plus, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -140,73 +141,86 @@ const SegmentsPanel = ({ segments, onRefresh }) => {
         </div>
       ) : (
         <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {segments.map((segment) => {
-            const chips = describeRules(segment.rules);
-            return (
-              <div key={segment.id} className={cn(PANEL, 'flex flex-col p-3 text-xs')}>
-                <div className="flex items-start justify-between gap-1.5">
-                  <div className="min-w-0">
-                    <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
-                      {segment.name}
-                    </h3>
-                    <p className={cn('truncate text-[10px] font-medium leading-tight', MUTED)}>
-                      {segment.description || 'Reusable dynamic audience'}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <Pill tone={segment.is_active ? 'ok' : 'neutral'}>
-                      {segment.is_active ? 'active' : 'paused'}
-                    </Pill>
-                    <Switch
-                      aria-label={`Toggle ${segment.name}`}
-                      checked={segment.is_active}
-                      disabled={toggling === segment.id}
-                      onCheckedChange={(checked) => toggle(segment, checked)}
-                    />
-                  </div>
-                </div>
-
-                <div className={cn(WELL, 'mt-2.5 rounded-md p-2')}>
-                  <SectionLabel accent={chips.length ? 'ok' : 'warn'}>
-                    {chips.length ? 'Matches learners who are' : 'Matches everyone'}
-                  </SectionLabel>
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {chips.length ? (
-                      chips.map((chip) => (
-                        <Pill key={chip} tone="neutral" className="normal-case tracking-normal">
-                          {chip}
-                        </Pill>
-                      ))
-                    ) : (
-                      <p className={cn('text-[10px] font-medium', MUTED)}>
-                        No rules set — every learner matches.
+          <AnimatePresence mode="popLayout">
+            {segments.map((segment) => {
+              const chips = describeRules(segment.rules);
+              return (
+                <m.div
+                  key={segment.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  className={cn(
+                    PANEL,
+                    'flex flex-col p-3 text-xs transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-xs hover:border-stone-300 dark:hover:border-white/20'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-1.5">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+                        {segment.name}
+                      </h3>
+                      <p className={cn('truncate text-[10px] font-medium leading-tight', MUTED)}>
+                        {segment.description || 'Reusable dynamic audience'}
                       </p>
-                    )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <Pill tone={segment.is_active ? 'ok' : 'neutral'}>
+                        {segment.is_active ? 'active' : 'paused'}
+                      </Pill>
+                      <Switch
+                        aria-label={`Toggle ${segment.name}`}
+                        checked={segment.is_active}
+                        disabled={toggling === segment.id}
+                        onCheckedChange={(checked) => toggle(segment, checked)}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-auto min-h-[36px] pt-2.5">
-                  <EstimateReadout estimate={estimates[segment.id]} />
-                </div>
+                  <div className={cn(WELL, 'mt-2.5 rounded-md p-2')}>
+                    <SectionLabel accent={chips.length ? 'ok' : 'warn'}>
+                      {chips.length ? 'Matches learners who are' : 'Matches everyone'}
+                    </SectionLabel>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {chips.length ? (
+                        chips.map((chip) => (
+                          <Pill key={chip} tone="neutral" className="normal-case tracking-normal">
+                            {chip}
+                          </Pill>
+                        ))
+                      ) : (
+                        <p className={cn('text-[10px] font-medium', MUTED)}>
+                          No rules set — every learner matches.
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="mt-2.5 flex items-center justify-end gap-1 border-t border-stone-200/80 pt-2.5 dark:border-white/[0.07]">
-                  <AdminButton
-                    size="sm"
-                    variant="outline"
-                    loading={estimates[segment.id]?.loading}
-                    onClick={() => estimate(segment)}
-                  >
-                    <Users className="h-2.5 w-2.5" />
-                    Estimate
-                  </AdminButton>
-                  <AdminButton size="sm" variant="outline" onClick={() => setEditor(segment)}>
-                    <Pencil className="h-2.5 w-2.5" />
-                    Edit
-                  </AdminButton>
-                </div>
-              </div>
-            );
-          })}
+                  <div className="mt-auto min-h-[36px] pt-2.5">
+                    <EstimateReadout estimate={estimates[segment.id]} />
+                  </div>
+
+                  <div className="mt-2.5 flex items-center justify-end gap-1 border-t border-stone-200/80 pt-2.5 dark:border-white/[0.07]">
+                    <AdminButton
+                      size="sm"
+                      variant="outline"
+                      loading={estimates[segment.id]?.loading}
+                      onClick={() => estimate(segment)}
+                    >
+                      <Users className="h-2.5 w-2.5" />
+                      Estimate
+                    </AdminButton>
+                    <AdminButton size="sm" variant="outline" onClick={() => setEditor(segment)}>
+                      <Pencil className="h-2.5 w-2.5" />
+                      Edit
+                    </AdminButton>
+                  </div>
+                </m.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
 

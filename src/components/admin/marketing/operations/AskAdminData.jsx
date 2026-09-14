@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { AdminButton, TILE, TITLE, MICRO, MUTED } from '@/components/admin/ui/primitives';
 import { cn } from '@/lib/cn';
@@ -15,7 +16,7 @@ function AskAdminSuggestions({ onSelect, disabled }) {
         <button
           key={text}
           type="button"
-          className="inline-flex items-center rounded-full border border-stone-200/80 bg-stone-50/70 px-2.5 py-0.5 text-[10px] font-semibold text-stone-600 transition-all hover:border-[#5a63df]/30 hover:bg-[#5a63df]/5 hover:text-[#5a63df] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-stone-300 dark:hover:border-[#5a63df]/40 dark:hover:bg-[#5a63df]/10 dark:hover:text-stone-100"
+          className="inline-flex items-center rounded-full border border-stone-200/80 bg-stone-50/70 px-2.5 py-0.5 text-[10px] font-semibold text-stone-600 transition-all hover:border-[#5a63df]/30 hover:bg-[#5a63df]/5 hover:text-[#5a63df] active:scale-95 duration-150 ease-smooth-out disabled:pointer-events-none disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-stone-300 dark:hover:border-[#5a63df]/40 dark:hover:bg-[#5a63df]/10 dark:hover:text-stone-100"
           onClick={() => onSelect(text)}
           disabled={disabled}
         >
@@ -70,7 +71,11 @@ function AskAdminAnswerView({ answer }) {
   if (!answer) return null;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      exit={{ opacity: 0, y: -4, filter: 'blur(1px)' }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
       className="mt-3.5 rounded-lg border border-stone-200/80 bg-white p-3 dark:border-white/[0.07] dark:bg-[#131315]"
       aria-live="polite"
     >
@@ -83,7 +88,7 @@ function AskAdminAnswerView({ answer }) {
           <AskAdminDataDetails answer={answer} />
         </>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -159,7 +164,9 @@ export function AskAdminData() {
         </div>
       )}
 
-      <AskAdminAnswerView answer={answer} />
+      <AnimatePresence mode="wait">
+        {answer && <AskAdminAnswerView key={answer.title || 'answer'} answer={answer} />}
+      </AnimatePresence>
     </section>
   );
 }

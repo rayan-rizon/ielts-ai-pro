@@ -1,3 +1,4 @@
+import { m } from 'framer-motion';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { RefreshCcw, UserPlus } from 'lucide-react';
@@ -8,7 +9,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { cn } from '@/lib/cn';
 import RefinedDeleteModal from './shared/RefinedDeleteModal';
-import { AdminButton, AdminPageHeader } from './ui/primitives';
+import { AdminButton, AdminPageHeader, STAGGER_CONTAINER, FADE_UP } from './ui/primitives';
 import { UserManagementFilters } from './users/UserManagementFilters';
 import { UserManagementTable } from './users/UserManagementTable';
 import { UserEditorDialog, WarningDialog } from './users/UserManagementDialogs';
@@ -280,7 +281,12 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="space-y-4 pb-10 pt-12 md:pt-0">
+    <m.div
+      variants={STAGGER_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4 pb-10 pt-12 md:pt-0"
+    >
       <RefinedDeleteModal
         isOpen={!!userToDelete}
         onClose={() => setUserToDelete(null)}
@@ -299,51 +305,57 @@ const UserManagement = () => {
         sending={isSendingWarning}
         onSend={handleSendWarning}
       />
-      <AdminPageHeader
-        title="Users"
-        description="Accounts, access roles, subscription tiers, and inactivity warnings"
-        tip="Manage registered accounts. Filters and sorting run server-side."
-      >
-        <AdminButton variant="outline" onClick={fetchUsers}>
-          <RefreshCcw className={cn('w-3 h-3', loading && 'animate-spin')} />
-          Refresh
-        </AdminButton>
-        <AdminButton onClick={() => setIsCreatingUser(true)}>
-          <UserPlus className="w-3.5 h-3.5" />
-          New account
-        </AdminButton>
-      </AdminPageHeader>
-      <UserManagementFilters
-        filters={userFilters}
-        onFiltersChange={setUserFilters}
-        onReset={resetFilters}
-        selectedCount={selectedUsers.size}
-        loading={loading}
-        onWarnSelected={() => setShowWarningModal(true)}
-        onDeleteSelected={handleBulkDelete}
-      />
-      <UserManagementTable
-        users={users}
-        loading={loading}
-        selectedUsers={selectedUsers}
-        selectAll={selectAll}
-        onToggleAll={toggleSelectAll}
-        onToggleUser={toggleUserSelection}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-        onEditUser={setEditingUser}
-        onDeleteUser={setUserToDelete}
-        onReset={resetFilters}
-        pagination={{
-          currentPage,
-          totalPages,
-          onPageChange: setCurrentPage,
-          pageSize,
-          onPageSizeChange: setPageSize,
-          totalItems,
-        }}
-      />
+      <m.div variants={FADE_UP}>
+        <AdminPageHeader
+          title="Users"
+          description="Accounts, access roles, subscription tiers, and inactivity warnings"
+          tip="Manage registered accounts. Filters and sorting run server-side."
+        >
+          <AdminButton variant="outline" onClick={fetchUsers}>
+            <RefreshCcw className={cn('w-3 h-3', loading && 'animate-spin')} />
+            Refresh
+          </AdminButton>
+          <AdminButton onClick={() => setIsCreatingUser(true)}>
+            <UserPlus className="w-3.5 h-3.5" />
+            New account
+          </AdminButton>
+        </AdminPageHeader>
+      </m.div>
+      <m.div variants={FADE_UP}>
+        <UserManagementFilters
+          filters={userFilters}
+          onFiltersChange={setUserFilters}
+          onReset={resetFilters}
+          selectedCount={selectedUsers.size}
+          loading={loading}
+          onWarnSelected={() => setShowWarningModal(true)}
+          onDeleteSelected={handleBulkDelete}
+        />
+      </m.div>
+      <m.div variants={FADE_UP}>
+        <UserManagementTable
+          users={users}
+          loading={loading}
+          selectedUsers={selectedUsers}
+          selectAll={selectAll}
+          onToggleAll={toggleSelectAll}
+          onToggleUser={toggleUserSelection}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          onEditUser={setEditingUser}
+          onDeleteUser={setUserToDelete}
+          onReset={resetFilters}
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange: setCurrentPage,
+            pageSize,
+            onPageSizeChange: setPageSize,
+            totalItems,
+          }}
+        />
+      </m.div>
       <UserEditorDialog
         creating={isCreatingUser}
         editingUser={editingUser}
@@ -356,7 +368,7 @@ const UserManagement = () => {
         onCreate={handleCreateUser}
         onUpdate={handleUpdateUser}
       />
-    </div>
+    </m.div>
   );
 };
 

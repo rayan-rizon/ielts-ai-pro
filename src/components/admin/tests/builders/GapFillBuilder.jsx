@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import ReactQuill from 'react-quill-new';
@@ -34,7 +35,7 @@ const ToolBar = ({ id }) => {
       </span>
       <div className="w-px h-6 bg-stone-200 dark:bg-white/10 mx-1" />
       <span className="ql-formats">
-        <button className="ql-insertGap w-auto! px-3! flex! items-center! gap-1.5! rounded-lg! h-8! transition-colors bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/60 dark:border-indigo-800/50">
+        <button className="ql-insertGap w-auto! px-3! flex! items-center! gap-1.5! rounded-lg! h-8! transition-all duration-150 ease-smooth-out active:scale-95 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200/60 dark:border-indigo-800/50">
           <ScanLine className="w-3.5 h-3.5" />
           <span className="text-xs font-bold">Insert Blank</span>
         </button>
@@ -120,22 +121,28 @@ const GapFillBuilder = ({ initialData, onChange }) => {
             <ScanLine className="w-4 h-4" /> Answer Key & Scoring
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {gaps.map((idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 bg-white dark:bg-[#131315] p-1.5 rounded-lg border border-stone-200 dark:border-white/10 shadow-2xs transition-colors hover:border-indigo-400 dark:hover:border-indigo-500"
-              >
-                <Badge className="w-6 h-6 flex items-center justify-center rounded-md bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-stone-200 font-mono font-bold text-[10px] border-0 shrink-0">
-                  {idx + 1}
-                </Badge>
-                <Input
-                  value={answers[idx] || ''}
-                  onChange={(e) => updateAnswer(idx, e.target.value)}
-                  placeholder="Answer..."
-                  className="h-7 text-xs bg-transparent border-0 focus-visible:ring-0 min-w-0 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
-                />
-              </div>
-            ))}
+            <AnimatePresence>
+              {gaps.map((idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex items-center gap-2 bg-white dark:bg-[#131315] p-1.5 rounded-lg border border-stone-200 dark:border-white/10 shadow-2xs transition-all duration-150 ease-smooth-out hover:border-indigo-400 dark:hover:border-indigo-500 hover:-translate-y-0.5"
+                >
+                  <Badge className="w-6 h-6 flex items-center justify-center rounded-md bg-stone-100 dark:bg-white/10 text-stone-700 dark:text-stone-200 font-mono font-bold text-[10px] border-0 shrink-0">
+                    {idx + 1}
+                  </Badge>
+                  <Input
+                    value={answers[idx] || ''}
+                    onChange={(e) => updateAnswer(idx, e.target.value)}
+                    placeholder="Answer..."
+                    className="h-7 text-xs bg-transparent border-0 focus-visible:ring-0 min-w-0 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 font-medium"
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       ) : (

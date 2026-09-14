@@ -1,6 +1,7 @@
+import { m } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { PANEL, AdminButton, AdminPageHeader } from './ui/primitives';
+import { PANEL, AdminButton, AdminPageHeader, STAGGER_CONTAINER, FADE_UP } from './ui/primitives';
 import { useReferralManagement } from './referral/useReferralManagement';
 import { ReferralKpis } from './referral/ReferralKpis';
 import { RewardTiersList } from './referral/RewardTiersList';
@@ -43,28 +44,41 @@ export default function ReferralManagement() {
   }
 
   return (
-    <div className="animate-panel-in space-y-4 pb-10 pt-12 md:pt-0">
-      <AdminPageHeader
-        title="Referrals"
-        description="Milestone rewards, bonus evaluation credits, and top advocates"
-        tip="Tiers unlock at the referral target. Deactivation stops new rewards."
-      >
-        <AdminButton onClick={openAddModal}>
-          <Plus className="w-3.5 h-3.5" />
-          Add tier
-        </AdminButton>
-      </AdminPageHeader>
+    <m.div
+      variants={STAGGER_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4 pb-10 pt-12 md:pt-0"
+    >
+      <m.div variants={FADE_UP}>
+        <AdminPageHeader
+          title="Referrals"
+          description="Milestone rewards, bonus evaluation credits, and top advocates"
+          tip="Tiers unlock at the referral target. Deactivation stops new rewards."
+        >
+          <AdminButton onClick={openAddModal}>
+            <Plus className="w-3.5 h-3.5" />
+            Add tier
+          </AdminButton>
+        </AdminPageHeader>
+      </m.div>
 
-      <ReferralKpis stats={stats} conversion={conversion} tiers={tiers} />
+      <m.div variants={FADE_UP}>
+        <ReferralKpis stats={stats} conversion={conversion} tiers={tiers} />
+      </m.div>
 
-      <RewardTiersList
-        tiers={tiers}
-        onToggleActive={handleToggleActive}
-        onEditTier={openEditModal}
-        onDeleteTier={setTierToDelete}
-      />
+      <m.div variants={FADE_UP}>
+        <RewardTiersList
+          tiers={tiers}
+          onToggleActive={handleToggleActive}
+          onEditTier={openEditModal}
+          onDeleteTier={setTierToDelete}
+        />
+      </m.div>
 
-      <TopAdvocatesTable stats={stats} conversion={conversion} />
+      <m.div variants={FADE_UP}>
+        <TopAdvocatesTable stats={stats} conversion={conversion} />
+      </m.div>
 
       <RewardTierModals
         showAddModal={showAddModal}
@@ -79,6 +93,6 @@ export default function ReferralManagement() {
         deletingTier={deletingTier}
         onDeleteConfirm={confirmDeleteTier}
       />
-    </div>
+    </m.div>
   );
 }

@@ -1,3 +1,4 @@
+import { m, AnimatePresence } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import {
   Ban,
@@ -69,7 +70,17 @@ const CampaignCard = ({
   const isCore = campaign.objective === 'paid_conversion';
 
   return (
-    <div className={cn(PANEL, 'relative flex flex-col overflow-hidden text-xs')}>
+    <m.div
+      layout
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        PANEL,
+        'relative flex flex-col overflow-hidden text-xs transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-xs hover:border-stone-300 dark:hover:border-white/20'
+      )}
+    >
       {/* Status rail */}
       <span
         className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}
@@ -208,7 +219,7 @@ const CampaignCard = ({
           )}
         </div>
       </div>
-    </div>
+    </m.div>
   );
 };
 
@@ -336,19 +347,21 @@ const CampaignsPanel = ({ campaigns, segments, promos, templates, onRefresh }) =
         </div>
       ) : (
         <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visible.map((campaign) => (
-            <CampaignCard
-              key={campaign.id}
-              campaign={{ ...campaign, estimate: estimates[campaign.id] }}
-              estimating={estimating === campaign.id}
-              dispatching={dispatching === campaign.id}
-              estimate={() => estimate(campaign)}
-              onEdit={() => setEditor(campaign)}
-              onPreview={() => setPreviewCampaign(campaign)}
-              onStatus={(status) => setStatus(campaign, status)}
-              onDispatch={() => dispatch(campaign)}
-            />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {visible.map((campaign) => (
+              <CampaignCard
+                key={campaign.id}
+                campaign={{ ...campaign, estimate: estimates[campaign.id] }}
+                estimating={estimating === campaign.id}
+                dispatching={dispatching === campaign.id}
+                estimate={() => estimate(campaign)}
+                onEdit={() => setEditor(campaign)}
+                onPreview={() => setPreviewCampaign(campaign)}
+                onStatus={(status) => setStatus(campaign, status)}
+                onDispatch={() => dispatch(campaign)}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
 

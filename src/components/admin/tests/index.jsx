@@ -197,15 +197,15 @@ const TestManagement = () => {
     return <AdminPageSkeleton kpis={4} panels={0} rows={6} />;
   }
 
-  if (isCreatingTest || editingTest) {
-    return (
-      <AnimatePresence mode="wait">
+  return (
+    <AnimatePresence mode="wait">
+      {isCreatingTest || editingTest ? (
         <m.div
           key="test-creator"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+          initial={{ opacity: 0, y: 12, filter: 'blur(2px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
           <TestCreator
             initialData={editingTest}
@@ -219,269 +219,286 @@ const TestManagement = () => {
             testType={editingTest ? editingTest.test_type : selectedTestType}
           />
         </m.div>
-      </AnimatePresence>
-    );
-  }
-
-  return (
-    <m.div
-      variants={STAGGER_CONTAINER}
-      initial="hidden"
-      animate="visible"
-      className="space-y-4 pb-6 pt-12 md:pt-0"
-    >
-      <DeleteTestModal
-        test={testToDelete}
-        isOpen={!!testToDelete}
-        onClose={() => setTestToDelete(null)}
-        onConfirm={confirmDelete}
-      />
-      <BulkDeleteModal
-        count={selectedIds.length}
-        isOpen={showBulkDeleteModal}
-        onClose={() => setShowBulkDeleteModal(false)}
-        onConfirm={handleBulkDeleteConfirm}
-      />
-
-      <m.div variants={FADE_UP}>
-        <AdminPageHeader
-          title="Test Management"
-          description="Create, filter, and manage your IELTS test content library"
-          tip="All tests, filterable by module."
+      ) : (
+        <m.div
+          key="test-list"
+          variants={STAGGER_CONTAINER}
+          initial="hidden"
+          animate="visible"
+          exit={{
+            opacity: 0,
+            y: -8,
+            filter: 'blur(2px)',
+            transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] },
+          }}
+          className="space-y-4 pb-6 pt-12 md:pt-0"
         >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <AdminButton variant="outline">
-                <MoreVertical className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
-                Actions
-              </AdminButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={handleImportClick}>
-                <ArrowDownCircle className="w-4 h-4 mr-2 text-stone-500" />
-                Import data
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleBulkExport} disabled={selectedIds.length === 0}>
-                <Download className="w-4 h-4 mr-2 text-stone-500" />
-                Export selected ({selectedIds.length})
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setIsCreatingTest(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New test
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <AdminButton onClick={() => setIsCreatingTest(true)}>
-            <Plus className="w-3.5 h-3.5" />
-            Create test
-          </AdminButton>
-        </AdminPageHeader>
-      </m.div>
+          <DeleteTestModal
+            test={testToDelete}
+            isOpen={!!testToDelete}
+            onClose={() => setTestToDelete(null)}
+            onConfirm={confirmDelete}
+          />
+          <BulkDeleteModal
+            count={selectedIds.length}
+            isOpen={showBulkDeleteModal}
+            onClose={() => setShowBulkDeleteModal(false)}
+            onConfirm={handleBulkDeleteConfirm}
+          />
 
-      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi label="Total tests" value={stats.total.toLocaleString()} />
-        <Kpi label="Active" value={stats.active.toLocaleString()} />
-        <Kpi label="Drafts" value={stats.draft.toLocaleString()} />
-        <Kpi label="Total usage" value={stats.totalUsage.toLocaleString()} sub="sessions started" />
-      </m.div>
-
-      {/* Module tabs */}
-      <m.div
-        variants={FADE_UP}
-        className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-full sm:w-fit overflow-x-auto no-scrollbar"
-      >
-        {TEST_STRUCTURES.map((typeInfo) => {
-          const isActive = selectedTestType === typeInfo.key;
-          const Icon = typeInfo.icon;
-          return (
-            <button
-              key={typeInfo.key}
-              onClick={() => handleTestTypeChange(typeInfo.key)}
-              className={cn(
-                'relative h-8 px-3.5 rounded-md font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-colors active:scale-[0.96]',
-                isActive
-                  ? 'text-stone-900 dark:text-stone-50'
-                  : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
-              )}
+          <m.div variants={FADE_UP}>
+            <AdminPageHeader
+              title="Test Management"
+              description="Create, filter, and manage your IELTS test content library"
+              tip="All tests, filterable by module."
             >
-              {isActive && (
-                <m.span
-                  layoutId="testTypeActivePill"
-                  className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-              <Icon
-                className={cn(
-                  'relative z-10 w-3.5 h-3.5 transition-colors',
-                  isActive && typeInfo.accent
-                )}
-              />
-              <span className="relative z-10">{typeInfo.name}</span>
-            </button>
-          );
-        })}
-      </m.div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <AdminButton variant="outline">
+                    <MoreVertical className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                    Actions
+                  </AdminButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={handleImportClick}>
+                    <ArrowDownCircle className="w-4 h-4 mr-2 text-stone-500" />
+                    Import data
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleBulkExport} disabled={selectedIds.length === 0}>
+                    <Download className="w-4 h-4 mr-2 text-stone-500" />
+                    Export selected ({selectedIds.length})
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsCreatingTest(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New test
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AdminButton onClick={() => setIsCreatingTest(true)}>
+                <Plus className="w-3.5 h-3.5" />
+                Create test
+              </AdminButton>
+            </AdminPageHeader>
+          </m.div>
 
-      <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
-        {/* Toolbar */}
-        <div className="flex flex-col xl:flex-row gap-2.5 items-center p-3 border-b border-stone-100 dark:border-white/6">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
-            <Input
-              placeholder={`Search ${selectedTestType} tests…`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={cn(FIELD_INPUT, 'pl-8 w-full')}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className={cn(FIELD_INPUT, 'w-[110px]')}>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={tierFilter} onValueChange={setTierFilter}>
-              <SelectTrigger className={cn(FIELD_INPUT, 'w-[110px]')}>
-                <SelectValue placeholder="Tier" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All tiers</SelectItem>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="pro">Pro</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={cambridgeFilter} onValueChange={setCambridgeFilter}>
-              <SelectTrigger className={cn(FIELD_INPUT, 'w-[130px]')}>
-                <GraduationCap className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1" />
-                <SelectValue placeholder="Source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All sources</SelectItem>
-                <SelectItem value="cambridge">Cambridge only</SelectItem>
-                <SelectItem value="standard">Standard tests</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {hasActiveFilters && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('all');
-                  setTierFilter('all');
-                  setCambridgeFilter('all');
-                }}
-                className={cn(
-                  MICRO,
-                  'h-8 px-2.5 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
-                )}
-              >
-                Reset
-              </button>
-            )}
-          </div>
-
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)]">
-              <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))] shrink-0')}>
-                {selectedIds.length} selected
-              </span>
-              <div className="w-px h-3.5 bg-[rgb(var(--signal-warn)/0.3)]" />
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handleBulkExport}
-                  className={cn(
-                    MICRO,
-                    'px-1.5 py-1 rounded text-stone-600 dark:text-stone-300 hover:bg-white/60 dark:hover:bg-white/5'
-                  )}
-                >
-                  Export
-                </button>
-                <button
-                  onClick={async () => {
-                    await bulkUpdateStatus(selectedIds, true, getApiFilters());
-                    setSelectedIds([]);
-                  }}
-                  className={cn(
-                    MICRO,
-                    'px-1.5 py-1 rounded text-[rgb(var(--signal-ok))] hover:bg-white/60 dark:hover:bg-white/5'
-                  )}
-                >
-                  Activate
-                </button>
-                <button
-                  onClick={async () => {
-                    await bulkUpdateStatus(selectedIds, false, getApiFilters());
-                    setSelectedIds([]);
-                  }}
-                  className={cn(
-                    MICRO,
-                    'px-1.5 py-1 rounded text-stone-500 hover:bg-white/60 dark:hover:bg-white/5'
-                  )}
-                >
-                  Draft
-                </button>
-                <button
-                  onClick={() => setShowBulkDeleteModal(true)}
-                  className={cn(
-                    MICRO,
-                    'inline-flex items-center gap-1 px-1.5 py-1 rounded text-[rgb(var(--signal-fault))] hover:bg-white/60 dark:hover:bg-white/5'
-                  )}
-                >
-                  <Trash2 className="w-2.5 h-2.5" />
-                  Delete
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <AnimatePresence mode="wait">
-          <m.div
-            key={selectedTestType}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-          >
-            <TestTable
-              tests={filteredTests}
-              questions={questions}
-              onEdit={setEditingTest}
-              onDelete={setTestToDelete}
-              onDuplicate={handleDuplicate}
-              selectedIds={selectedIds}
-              onSelectionChange={setSelectedIds}
-              onSort={handleSort}
-              sortConfig={sortConfig}
-              onExport={exportTest}
+          <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Kpi label="Total tests" value={stats.total.toLocaleString()} />
+            <Kpi label="Active" value={stats.active.toLocaleString()} />
+            <Kpi label="Drafts" value={stats.draft.toLocaleString()} />
+            <Kpi
+              label="Total usage"
+              value={stats.totalUsage.toLocaleString()}
+              sub="sessions started"
             />
           </m.div>
-        </AnimatePresence>
 
-        <div className="px-4 py-3 border-t border-stone-100 dark:border-white/6">
-          <PaginationControls
-            currentPage={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={(page) => fetchAllData(getApiFilters(), page, pagination.pageSize)}
-            pageSize={pagination.pageSize}
-            onPageSizeChange={(size) => fetchAllData(getApiFilters(), 1, size)}
-            totalItems={pagination.totalItems}
-            itemName="tests"
-          />
-        </div>
-      </m.div>
-    </m.div>
+          {/* Module tabs */}
+          <m.div
+            variants={FADE_UP}
+            className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-full sm:w-fit overflow-x-auto no-scrollbar"
+          >
+            {TEST_STRUCTURES.map((typeInfo) => {
+              const isActive = selectedTestType === typeInfo.key;
+              const Icon = typeInfo.icon;
+              return (
+                <button
+                  key={typeInfo.key}
+                  onClick={() => handleTestTypeChange(typeInfo.key)}
+                  className={cn(
+                    'relative h-8 px-3.5 rounded-md font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-colors active:scale-[0.96]',
+                    isActive
+                      ? 'text-stone-900 dark:text-stone-50'
+                      : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                  )}
+                >
+                  {isActive && (
+                    <m.span
+                      layoutId="testTypeActivePill"
+                      className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <Icon
+                    className={cn(
+                      'relative z-10 w-3.5 h-3.5 transition-colors',
+                      isActive && typeInfo.accent
+                    )}
+                  />
+                  <span className="relative z-10">{typeInfo.name}</span>
+                </button>
+              );
+            })}
+          </m.div>
+
+          <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
+            {/* Toolbar */}
+            <div className="flex flex-col xl:flex-row gap-2.5 items-center p-3 border-b border-stone-100 dark:border-white/6">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
+                <Input
+                  placeholder={`Search ${selectedTestType} tests…`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={cn(FIELD_INPUT, 'pl-8 w-full')}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className={cn(FIELD_INPUT, 'w-[110px]')}>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={tierFilter} onValueChange={setTierFilter}>
+                  <SelectTrigger className={cn(FIELD_INPUT, 'w-[110px]')}>
+                    <SelectValue placeholder="Tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All tiers</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={cambridgeFilter} onValueChange={setCambridgeFilter}>
+                  <SelectTrigger className={cn(FIELD_INPUT, 'w-[130px]')}>
+                    <GraduationCap className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1" />
+                    <SelectValue placeholder="Source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All sources</SelectItem>
+                    <SelectItem value="cambridge">Cambridge only</SelectItem>
+                    <SelectItem value="standard">Standard tests</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {hasActiveFilters && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setStatusFilter('all');
+                      setTierFilter('all');
+                      setCambridgeFilter('all');
+                    }}
+                    className={cn(
+                      MICRO,
+                      'h-8 px-2.5 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                    )}
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {selectedIds.length > 0 && (
+                  <m.div
+                    initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)]"
+                  >
+                    <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))] shrink-0')}>
+                      {selectedIds.length} selected
+                    </span>
+                    <div className="w-px h-3.5 bg-[rgb(var(--signal-warn)/0.3)]" />
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={handleBulkExport}
+                        className={cn(
+                          MICRO,
+                          'px-1.5 py-1 rounded text-stone-600 dark:text-stone-300 hover:bg-white/60 dark:hover:bg-white/5'
+                        )}
+                      >
+                        Export
+                      </button>
+                      <button
+                        onClick={async () => {
+                          await bulkUpdateStatus(selectedIds, true, getApiFilters());
+                          setSelectedIds([]);
+                        }}
+                        className={cn(
+                          MICRO,
+                          'px-1.5 py-1 rounded text-[rgb(var(--signal-ok))] hover:bg-white/60 dark:hover:bg-white/5'
+                        )}
+                      >
+                        Activate
+                      </button>
+                      <button
+                        onClick={async () => {
+                          await bulkUpdateStatus(selectedIds, false, getApiFilters());
+                          setSelectedIds([]);
+                        }}
+                        className={cn(
+                          MICRO,
+                          'px-1.5 py-1 rounded text-stone-500 hover:bg-white/60 dark:hover:bg-white/5'
+                        )}
+                      >
+                        Draft
+                      </button>
+                      <button
+                        onClick={() => setShowBulkDeleteModal(true)}
+                        className={cn(
+                          MICRO,
+                          'inline-flex items-center gap-1 px-1.5 py-1 rounded text-[rgb(var(--signal-fault))] hover:bg-white/60 dark:hover:bg-white/5'
+                        )}
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                        Delete
+                      </button>
+                    </div>
+                  </m.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <m.div
+                key={selectedTestType}
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <TestTable
+                  tests={filteredTests}
+                  questions={questions}
+                  onEdit={setEditingTest}
+                  onDelete={setTestToDelete}
+                  onDuplicate={handleDuplicate}
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
+                  onSort={handleSort}
+                  sortConfig={sortConfig}
+                  onExport={exportTest}
+                />
+              </m.div>
+            </AnimatePresence>
+
+            <div className="px-4 py-3 border-t border-stone-100 dark:border-white/6">
+              <PaginationControls
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={(page) => fetchAllData(getApiFilters(), page, pagination.pageSize)}
+                pageSize={pagination.pageSize}
+                onPageSizeChange={(size) => fetchAllData(getApiFilters(), 1, size)}
+                totalItems={pagination.totalItems}
+                itemName="tests"
+              />
+            </div>
+          </m.div>
+        </m.div>
+      )}
+    </AnimatePresence>
   );
 };
 

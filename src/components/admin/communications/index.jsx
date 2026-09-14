@@ -34,6 +34,16 @@ const VIEWS = [
   { value: 'maintenance', label: 'Maintenance', icon: Wrench },
 ];
 
+const TAB_CONTENT_VARIANTS = {
+  hidden: { opacity: 0, y: 8, filter: 'blur(2px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 const ViewTab = ({ view, isActive }) => {
   const Icon = view.icon;
   return (
@@ -167,15 +177,25 @@ export default function CommunicationsCenter() {
         </div>
 
         <TabsContent value="broadcasts">
-          <BroadcastsPanel />
+          <m.div variants={TAB_CONTENT_VARIANTS} initial="hidden" animate="visible">
+            <BroadcastsPanel />
+          </m.div>
         </TabsContent>
 
         <TabsContent value="banner">
-          <BannerPanel value={settings.public_announcement} saving={saving} onSave={handleSave} />
+          <m.div variants={TAB_CONTENT_VARIANTS} initial="hidden" animate="visible">
+            <BannerPanel value={settings.public_announcement} saving={saving} onSave={handleSave} />
+          </m.div>
         </TabsContent>
 
         <TabsContent value="maintenance">
-          <MaintenancePanel value={settings.maintenance_mode} saving={saving} onSave={handleSave} />
+          <m.div variants={TAB_CONTENT_VARIANTS} initial="hidden" animate="visible">
+            <MaintenancePanel
+              value={settings.maintenance_mode}
+              saving={saving}
+              onSave={handleSave}
+            />
+          </m.div>
         </TabsContent>
       </Tabs>
     </m.div>

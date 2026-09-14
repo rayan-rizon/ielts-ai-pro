@@ -81,7 +81,10 @@ const JourneysPanel = ({ journeys, campaigns, metrics, onRefresh }) => {
         return (
           <div
             key={journey.id}
-            className={cn(PANEL, 'relative flex flex-col overflow-hidden p-3 pl-4 text-xs')}
+            className={cn(
+              PANEL,
+              'relative flex flex-col overflow-hidden p-3 pl-4 text-xs transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-xs hover:border-stone-300 dark:hover:border-white/20'
+            )}
           >
             <span
               className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[tone] || SIGNAL_BG.idle)}

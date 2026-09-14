@@ -1,3 +1,4 @@
+import { m, AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -279,59 +280,72 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           </div>
 
           <div className="space-y-3">
-            {parts.map((part, index) => (
-              <div key={index} className={cn(PANEL, 'overflow-hidden group')}>
-                <div className="py-2.5 px-4 border-b border-stone-200/80 dark:border-white/[0.07] flex items-center justify-between bg-stone-50/60 dark:bg-white/2">
-                  <div className="flex items-center gap-3">
-                    <span className={cn(PILL_BASE, pillTone('neutral'))}>
-                      Part {part.part_number}
-                    </span>
-                    <Input
-                      value={part.title}
-                      onChange={(e) => handlePartChange(index, 'title', e.target.value)}
-                      className="h-7 w-64 font-bold bg-transparent border-transparent hover:border-stone-200 dark:hover:border-white/10 focus-visible:ring-0 px-2 text-stone-900 dark:text-stone-100"
-                      placeholder="Part Title"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-white dark:bg-[#131315] px-2 py-1 rounded-md border border-stone-200/80 dark:border-white/[0.07]">
-                      <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+            <AnimatePresence mode="popLayout">
+              {parts.map((part, index) => (
+                <m.div
+                  key={index}
+                  layout
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  className={cn(
+                    PANEL,
+                    'overflow-hidden group transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]'
+                  )}
+                >
+                  <div className="py-2.5 px-4 border-b border-stone-200/80 dark:border-white/[0.07] flex items-center justify-between bg-stone-50/60 dark:bg-white/2">
+                    <div className="flex items-center gap-3">
+                      <span className={cn(PILL_BASE, pillTone('neutral'))}>
+                        Part {part.part_number}
+                      </span>
                       <Input
-                        type="number"
-                        value={part.duration_minutes}
-                        onChange={(e) =>
-                          handlePartChange(index, 'duration_minutes', parseInt(e.target.value))
-                        }
-                        className="h-5 w-10 text-xs border-0 p-0 text-center focus-visible:ring-0 bg-transparent"
+                        value={part.title}
+                        onChange={(e) => handlePartChange(index, 'title', e.target.value)}
+                        className="h-7 w-64 font-bold bg-transparent border-transparent hover:border-stone-200 dark:hover:border-white/10 focus-visible:ring-0 px-2 text-stone-900 dark:text-stone-100"
+                        placeholder="Part Title"
                       />
-                      <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>min</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removePart(index)}
-                      className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors active:scale-90"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 bg-white dark:bg-[#131315] px-2 py-1 rounded-md border border-stone-200/80 dark:border-white/[0.07]">
+                        <Clock className="w-3 h-3 text-stone-400 dark:text-stone-500" />
+                        <Input
+                          type="number"
+                          value={part.duration_minutes}
+                          onChange={(e) =>
+                            handlePartChange(index, 'duration_minutes', parseInt(e.target.value))
+                          }
+                          className="h-5 w-10 text-xs border-0 p-0 text-center focus-visible:ring-0 bg-transparent"
+                        />
+                        <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>min</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePart(index)}
+                        className="h-7 w-7 grid place-items-center rounded-md text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors active:scale-90"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="p-4">
-                  <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2 block')}>
-                    Examiner Script (AI Prompt)
-                  </Label>
-                  <Textarea
-                    value={part.prompt}
-                    onChange={(e) => handlePartChange(index, 'prompt', e.target.value)}
-                    placeholder={`Enter questions split by newlines.\nExample:\nWhat is your full name?\nDo you work or are you a student?`}
-                    className="font-sans text-sm min-h-[120px] resize-y bg-stone-50 dark:bg-white/2 border-stone-200/80 dark:border-white/[0.07] focus-visible:ring-stone-400/20"
-                  />
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-2 flex items-center gap-1">
-                    <Info className="w-3 h-3" /> The AI examiner will read these questions one by
-                    one. Text in [brackets] is ignored (instructions).
-                  </p>
-                </div>
-              </div>
-            ))}
+                  <div className="p-4">
+                    <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2 block')}>
+                      Examiner Script (AI Prompt)
+                    </Label>
+                    <Textarea
+                      value={part.prompt}
+                      onChange={(e) => handlePartChange(index, 'prompt', e.target.value)}
+                      placeholder={`Enter questions split by newlines.\nExample:\nWhat is your full name?\nDo you work or are you a student?`}
+                      className="font-sans text-sm min-h-[120px] resize-y bg-stone-50 dark:bg-white/2 border-stone-200/80 dark:border-white/[0.07] focus-visible:ring-stone-400/20"
+                    />
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-2 flex items-center gap-1">
+                      <Info className="w-3 h-3" /> The AI examiner will read these questions one by
+                      one. Text in [brackets] is ignored (instructions).
+                    </p>
+                  </div>
+                </m.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
       </div>

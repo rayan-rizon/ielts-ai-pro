@@ -70,21 +70,31 @@ const RevenueAnalytics = ({
           tip="Every figure comes from settled billing records or the current subscription state."
         >
           <div className="flex items-center gap-1 rounded-lg border border-stone-200/80 bg-stone-100 p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
-            {RANGES.map((range) => (
-              <button
-                key={range}
-                onClick={() => onRangeChange?.(range)}
-                className={cn(
-                  'rounded-md px-2.5 py-1',
-                  MICRO,
-                  range === selectedRange
-                    ? 'bg-white text-stone-900 dark:bg-[#131315] dark:text-stone-50'
-                    : 'text-stone-500 dark:text-stone-400'
-                )}
-              >
-                {range}
-              </button>
-            ))}
+            {RANGES.map((range) => {
+              const isActive = range === selectedRange;
+              return (
+                <button
+                  key={range}
+                  onClick={() => onRangeChange?.(range)}
+                  className={cn(
+                    'relative px-2.5 py-1 rounded-md transition-all active:scale-95',
+                    MICRO,
+                    isActive
+                      ? 'text-stone-900 dark:text-stone-50'
+                      : 'text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200'
+                  )}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="revenueAnalyticsRangePill"
+                      className="absolute inset-0 rounded-md bg-white shadow-2xs dark:bg-[#131315]"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative">{range}</span>
+                </button>
+              );
+            })}
           </div>
         </AdminPageHeader>
       </motion.div>

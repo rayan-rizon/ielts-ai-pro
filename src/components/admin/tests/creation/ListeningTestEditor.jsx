@@ -1152,93 +1152,118 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
               >
                 <div className="p-2 md:p-4 border-b border-stone-200/80 dark:border-white/[0.07]">
                   <TabsList className={cn(ADMIN_TABS_LIST, 'w-full grid grid-cols-4 h-10')}>
-                    {sections.map((_, i) => (
-                      <TabsTrigger key={i} value={String(i)} className={ADMIN_TAB_TRIGGER}>
-                        <span className="flex items-center gap-1.5">
-                          <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
-                            {i + 1}
+                    {sections.map((_, i) => {
+                      const isActive = activeTab === String(i);
+                      return (
+                        <TabsTrigger
+                          key={i}
+                          value={String(i)}
+                          className={cn(
+                            ADMIN_TAB_TRIGGER,
+                            'relative overflow-visible data-[state=active]:shadow-none'
+                          )}
+                        >
+                          {isActive && (
+                            <motion.span
+                              layoutId="listeningPartActivePill"
+                              className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                            />
+                          )}
+                          <span className="flex items-center gap-1.5 relative z-10">
+                            <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
+                              {i + 1}
+                            </span>
+                            Part {i + 1}
                           </span>
-                          Part {i + 1}
-                        </span>
-                      </TabsTrigger>
-                    ))}
+                        </TabsTrigger>
+                      );
+                    })}
                   </TabsList>
                 </div>
                 <TabsContent
                   value={activeTab}
                   className="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto m-0 min-h-0 custom-scrollbar"
                 >
-                  {/* Audio Section */}
-                  <div className="shrink-0 space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-stone-100 dark:bg-stone-950/40 rounded-lg text-stone-600 dark:text-stone-400">
-                        <Music className="w-4 h-4" />
-                      </div>
-                      <h3 className="text-[11px] font-black text-stone-500 uppercase tracking-widest">
-                        Audio Source
-                      </h3>
-                    </div>
-                    <AudioUploader
-                      url={sections[activeTab].audio_url}
-                      onUrlChange={(val) => updateSection(Number(activeTab), 'audio_url', val)}
-                    />
-                  </div>
-
-                  {/* Audioscript Section */}
-                  <div className="flex-1 flex flex-col min-h-0 gap-3 pt-3 border-t border-stone-200/60 dark:border-stone-800">
-                    <div className="flex items-center justify-between">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex-1 flex flex-col gap-4"
+                  >
+                    {/* Audio Section */}
+                    <div className="shrink-0 space-y-3">
                       <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-stone-100 dark:bg-stone-950/40 rounded-lg text-stone-600 dark:text-stone-400">
-                          <FileText className="w-4 h-4" />
+                          <Music className="w-4 h-4" />
                         </div>
                         <h3 className="text-[11px] font-black text-stone-500 uppercase tracking-widest">
-                          Audioscript
+                          Audio Source
                         </h3>
                       </div>
-                      <Button
-                        onClick={handleAutoTranscribe}
-                        disabled={!sections[activeTab].audio_url || transcribing}
-                        size="sm"
-                        className="h-7 px-3 rounded-full bg-stone-600 hover:bg-stone-700 text-white font-black text-[9px] uppercase tracking-widest shadow-md disabled:opacity-50"
-                      >
-                        {transcribing ? (
-                          <>
-                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
-                            Transcribing...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-3 h-3 mr-1.5" />
-                            Auto Transcribe
-                          </>
-                        )}
-                      </Button>
+                      <AudioUploader
+                        url={sections[activeTab].audio_url}
+                        onUrlChange={(val) => updateSection(Number(activeTab), 'audio_url', val)}
+                      />
                     </div>
 
-                    <ListeningTranscriptHighlighter
-                      srtContent={sections[activeTab].srt_content || ''}
-                      plainTranscript={sections[activeTab].transcript || ''}
-                      highlights={sections[activeTab].transcript_highlights || []}
-                      onSrtChange={(value) =>
-                        updateSection(Number(activeTab), 'srt_content', value)
-                      }
-                      onHighlightsChange={(value) =>
-                        updateSection(Number(activeTab), 'transcript_highlights', value)
-                      }
-                      questionStart={Number(activeTab) * 10 + 1}
-                      questionEnd={Number(activeTab) * 10 + 10}
-                    />
+                    {/* Audioscript Section */}
+                    <div className="flex-1 flex flex-col min-h-0 gap-3 pt-3 border-t border-stone-200/60 dark:border-stone-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 bg-stone-100 dark:bg-stone-950/40 rounded-lg text-stone-600 dark:text-stone-400">
+                            <FileText className="w-4 h-4" />
+                          </div>
+                          <h3 className="text-[11px] font-black text-stone-500 uppercase tracking-widest">
+                            Audioscript
+                          </h3>
+                        </div>
+                        <Button
+                          onClick={handleAutoTranscribe}
+                          disabled={!sections[activeTab].audio_url || transcribing}
+                          size="sm"
+                          className="h-7 px-3 rounded-full bg-stone-600 hover:bg-stone-700 text-white font-black text-[9px] uppercase tracking-widest shadow-md disabled:opacity-50"
+                        >
+                          {transcribing ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
+                              Transcribing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3 mr-1.5" />
+                              Auto Transcribe
+                            </>
+                          )}
+                        </Button>
+                      </div>
 
-                    {/* Quick Tip */}
-                    <div className="shrink-0 flex items-center gap-2 rounded-xl border border-stone-100/70 bg-stone-50/60 px-3 py-2 dark:border-stone-800 dark:bg-stone-900/40">
-                      <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-stone-500" />
-                      <p className="text-[10px] font-medium leading-4 text-stone-500">
-                        Select spoken evidence and enter its question number. Click a highlight to
-                        renumber or remove it, and drag its blue edges to resize. Timestamps stay
-                        under Edit SRT.
-                      </p>
+                      <ListeningTranscriptHighlighter
+                        srtContent={sections[activeTab].srt_content || ''}
+                        plainTranscript={sections[activeTab].transcript || ''}
+                        highlights={sections[activeTab].transcript_highlights || []}
+                        onSrtChange={(value) =>
+                          updateSection(Number(activeTab), 'srt_content', value)
+                        }
+                        onHighlightsChange={(value) =>
+                          updateSection(Number(activeTab), 'transcript_highlights', value)
+                        }
+                        questionStart={Number(activeTab) * 10 + 1}
+                        questionEnd={Number(activeTab) * 10 + 10}
+                      />
+
+                      {/* Quick Tip */}
+                      <div className="shrink-0 flex items-center gap-2 rounded-xl border border-stone-100/70 bg-stone-50/60 px-3 py-2 dark:border-stone-800 dark:bg-stone-900/40">
+                        <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-stone-500" />
+                        <p className="text-[10px] font-medium leading-4 text-stone-500">
+                          Select spoken evidence and enter its question number. Click a highlight to
+                          renumber or remove it, and drag its blue edges to resize. Timestamps stay
+                          under Edit SRT.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </TabsContent>
               </Tabs>
             </motion.div>

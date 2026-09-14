@@ -1,3 +1,4 @@
+import { m } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ReactQuill from 'react-quill-new';
@@ -78,57 +79,64 @@ export function BlogEditorHeader({ initialData, lastSaved, onCancel, onSubmit, s
 export function BlogEditorWriteTab({ formData, setFormData }) {
   return (
     <TabsContent value="write" className="p-4 space-y-4 mt-0">
-      <div>
-        <Label className={FIELD_LABEL}>Title</Label>
-        <Input
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Enter an engaging title…"
-          className={cn(FIELD_INPUT, 'h-11 text-base font-bold w-full')}
-        />
-      </div>
-
-      <div>
-        <Label className={FIELD_LABEL}>URL slug</Label>
-        <div className="relative">
-          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+      <m.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="space-y-4"
+      >
+        <div>
+          <Label className={FIELD_LABEL}>Title</Label>
           <Input
-            value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className={cn(NUM, FIELD_INPUT, 'h-9 pl-8 text-stone-500 dark:text-stone-400 w-full')}
-            placeholder="url-slug-example"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Enter an engaging title…"
+            className={cn(FIELD_INPUT, 'h-11 text-base font-bold w-full')}
           />
         </div>
-      </div>
 
-      <div>
-        <Label className={FIELD_LABEL}>Article summary</Label>
-        <textarea
-          value={formData.description}
-          onChange={(event) => setFormData({ ...formData, description: event.target.value })}
-          rows={3}
-          className={cn(
-            FIELD_INPUT,
-            'flex w-full resize-none rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-400'
-          )}
-          placeholder="A concise reader-facing summary for the blog index."
-        />
-      </div>
+        <div>
+          <Label className={FIELD_LABEL}>URL slug</Label>
+          <div className="relative">
+            <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+            <Input
+              value={formData.slug}
+              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              className={cn(NUM, FIELD_INPUT, 'h-9 pl-8 text-stone-500 dark:text-stone-400 w-full')}
+              placeholder="url-slug-example"
+            />
+          </div>
+        </div>
 
-      <div>
-        <Label className={FIELD_LABEL}>Content</Label>
-        <div className="rounded-md border border-stone-300 dark:border-white/15 overflow-hidden bg-white dark:bg-[#131315]">
-          <ReactQuill
-            theme="snow"
-            value={formData.content}
-            onChange={(content) => setFormData({ ...formData, content })}
-            modules={modules}
-            formats={formats}
-            className="h-[420px]"
-            placeholder="Start writing your amazing story…"
+        <div>
+          <Label className={FIELD_LABEL}>Article summary</Label>
+          <textarea
+            value={formData.description}
+            onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+            rows={3}
+            className={cn(
+              FIELD_INPUT,
+              'flex w-full resize-none rounded-md px-3 py-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-400'
+            )}
+            placeholder="A concise reader-facing summary for the blog index."
           />
         </div>
-      </div>
+
+        <div>
+          <Label className={FIELD_LABEL}>Content</Label>
+          <div className="rounded-md border border-stone-300 dark:border-white/15 overflow-hidden bg-white dark:bg-[#131315]">
+            <ReactQuill
+              theme="snow"
+              value={formData.content}
+              onChange={(content) => setFormData({ ...formData, content })}
+              modules={modules}
+              formats={formats}
+              className="h-[420px]"
+              placeholder="Start writing your amazing story…"
+            />
+          </div>
+        </div>
+      </m.div>
     </TabsContent>
   );
 }
@@ -136,23 +144,34 @@ export function BlogEditorWriteTab({ formData, setFormData }) {
 export function BlogEditorPreviewTab({ formData }) {
   return (
     <TabsContent value="preview" className="p-6 mt-0 bg-white dark:bg-[#131315] min-h-[520px]">
-      <article className="prose dark:prose-invert max-w-none mx-auto">
-        <h1 className="text-3xl font-extrabold tracking-tight mb-4">
-          {formData.title || <span className="text-stone-400 opacity-60">Untitled post</span>}
-        </h1>
-        {formData.thumbnail_url && (
-          <div className="w-full aspect-video rounded-md overflow-hidden mb-6 border border-stone-200 dark:border-white/10">
-            <img src={formData.thumbnail_url} alt="Cover" className="w-full h-full object-cover" />
-          </div>
-        )}
-        <div
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(
-              formData.content || '<p class="text-stone-400 text-center italic">No content yet…</p>'
-            ),
-          }}
-        />
-      </article>
+      <m.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <article className="prose dark:prose-invert max-w-none mx-auto">
+          <h1 className="text-3xl font-extrabold tracking-tight mb-4">
+            {formData.title || <span className="text-stone-400 opacity-60">Untitled post</span>}
+          </h1>
+          {formData.thumbnail_url && (
+            <div className="w-full aspect-video rounded-md overflow-hidden mb-6 border border-stone-200 dark:border-white/10">
+              <img
+                src={formData.thumbnail_url}
+                alt="Cover"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(
+                formData.content ||
+                  '<p class="text-stone-400 text-center italic">No content yet…</p>'
+              ),
+            }}
+          />
+        </article>
+      </m.div>
     </TabsContent>
   );
 }

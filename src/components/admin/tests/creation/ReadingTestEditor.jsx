@@ -1561,9 +1561,19 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                     <TabsTrigger
                       key={idx}
                       value={String(idx)}
-                      className={ADMIN_TAB_TRIGGER}
+                      className={cn(
+                        ADMIN_TAB_TRIGGER,
+                        'relative overflow-visible data-[state=active]:shadow-none'
+                      )}
                       data-oid="lc-e3b."
                     >
+                      {activeSectionIndex === idx && (
+                        <motion.span
+                          layoutId="readingPassageActivePill"
+                          className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                        />
+                      )}
                       <span className="flex items-center gap-1.5 z-10 relative" data-oid="vy::a6i">
                         <span
                           className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300"
@@ -1582,40 +1592,48 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                 className="flex-1 flex flex-col p-6 gap-6 overflow-y-auto m-0 text-foreground min-h-0"
                 data-oid="rth:f6v"
               >
-                <div className="flex-1 flex flex-col" data-oid="4_3nsh7">
-                  <div className="flex justify-between items-center mb-3" data-oid="jhthbk:">
-                    <h3
-                      className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2"
-                      data-oid="uhi8.8o"
-                    >
-                      <AlignLeft className="w-3 h-3" data-oid="96we-7o" /> Passage Content
-                    </h3>
-                    <Input
-                      value={sections[activeSectionIndex].title}
-                      onChange={(e) => {
-                        const n = [...sections];
-                        n[activeSectionIndex].title = e.target.value;
-                        setSections(n);
-                      }}
-                      placeholder="Passage Title"
-                      className="h-7 w-1/2 text-xs bg-white dark:bg-stone-900 dark:border-stone-700 dark:text-stone-200"
-                      data-oid="x-gmzqe"
-                    />
+                <motion.div
+                  key={activeSectionIndex}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex-1 flex flex-col gap-6"
+                >
+                  <div className="flex-1 flex flex-col" data-oid="4_3nsh7">
+                    <div className="flex justify-between items-center mb-3" data-oid="jhthbk:">
+                      <h3
+                        className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2"
+                        data-oid="uhi8.8o"
+                      >
+                        <AlignLeft className="w-3 h-3" data-oid="96we-7o" /> Passage Content
+                      </h3>
+                      <Input
+                        value={sections[activeSectionIndex].title}
+                        onChange={(e) => {
+                          const n = [...sections];
+                          n[activeSectionIndex].title = e.target.value;
+                          setSections(n);
+                        }}
+                        placeholder="Passage Title"
+                        className="h-7 w-1/2 text-xs bg-white dark:bg-stone-900 dark:border-stone-700 dark:text-stone-200"
+                        data-oid="x-gmzqe"
+                      />
+                    </div>
+                    <div className="flex-1 min-h-[400px]" data-oid="g2xln5v">
+                      <RichTextEditor
+                        value={sections[activeSectionIndex].content}
+                        onChange={(val) => {
+                          const n = [...sections];
+                          n[activeSectionIndex].content = val;
+                          setSections(n);
+                        }}
+                        className="min-h-full h-full bg-white dark:bg-stone-950 shadow-sm"
+                        rows={40}
+                        data-oid="g5dqr4r"
+                      />
+                    </div>
                   </div>
-                  <div className="flex-1 min-h-[400px]" data-oid="g2xln5v">
-                    <RichTextEditor
-                      value={sections[activeSectionIndex].content}
-                      onChange={(val) => {
-                        const n = [...sections];
-                        n[activeSectionIndex].content = val;
-                        setSections(n);
-                      }}
-                      className="min-h-full h-full bg-white dark:bg-stone-950 shadow-sm"
-                      rows={40}
-                      data-oid="g5dqr4r"
-                    />
-                  </div>
-                </div>
+                </motion.div>
               </TabsContent>
             </Tabs>
           </div>

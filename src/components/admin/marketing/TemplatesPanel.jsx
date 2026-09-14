@@ -92,7 +92,13 @@ const TemplatesPanel = ({ templates, onRefresh }) => {
             </div>
             <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {group.items.map((template) => (
-                <div key={template.id} className={cn(PANEL, 'flex flex-col p-3 text-xs')}>
+                <div
+                  key={template.id}
+                  className={cn(
+                    PANEL,
+                    'flex flex-col p-3 text-xs transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-xs hover:border-stone-300 dark:hover:border-white/20'
+                  )}
+                >
                   <div className="flex items-start justify-between gap-1.5">
                     <div className="min-w-0 flex-1">
                       <h3 className="text-[12px] font-extrabold leading-snug text-stone-900 dark:text-stone-50 line-clamp-1">

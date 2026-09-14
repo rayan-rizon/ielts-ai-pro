@@ -231,64 +231,102 @@ export default function MarketingHub() {
             id="marketing-tabpanel-copilot"
             className="mt-0 space-y-4 outline-none"
           >
-            <AdminOperationsPanel refreshKey={data.autopilot} />
-            <AutopilotPanel
-              autopilot={data.autopilot}
-              onRefresh={load}
-              onNavigate={navigateToTab}
-            />
+            <m.div
+              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-4"
+            >
+              <AdminOperationsPanel refreshKey={data.autopilot} />
+              <AutopilotPanel
+                autopilot={data.autopilot}
+                onRefresh={load}
+                onNavigate={navigateToTab}
+              />
+            </m.div>
           </TabsContent>
           <TabsContent
             value="performance"
             id="marketing-tabpanel-performance"
             className="mt-0 space-y-4 outline-none"
           >
-            <CommandStrip campaigns={data.campaigns} dashboard={data.dashboard} />
-            <AnalyticsPanel
-              dashboard={data.dashboard}
-              intelligence={data.intelligence}
-              breakdowns={data.breakdowns}
-              recovery={data.recovery}
-            />
+            <m.div
+              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-4"
+            >
+              <CommandStrip campaigns={data.campaigns} dashboard={data.dashboard} />
+              <AnalyticsPanel
+                dashboard={data.dashboard}
+                intelligence={data.intelligence}
+                breakdowns={data.breakdowns}
+                recovery={data.recovery}
+              />
+            </m.div>
           </TabsContent>
           <TabsContent
             value="campaigns"
             id="marketing-tabpanel-campaigns"
             className="mt-0 outline-none"
           >
-            <CampaignsPanel
-              campaigns={data.campaigns}
-              segments={data.segments}
-              promos={data.promos}
-              templates={data.templates}
-              onRefresh={load}
-            />
+            <m.div
+              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <CampaignsPanel
+                campaigns={data.campaigns}
+                segments={data.segments}
+                promos={data.promos}
+                templates={data.templates}
+                onRefresh={load}
+              />
+            </m.div>
           </TabsContent>
           <TabsContent
             value="audiences"
             id="marketing-tabpanel-audiences"
             className="mt-0 outline-none"
           >
-            <SegmentsPanel segments={data.segments} onRefresh={load} />
+            <m.div
+              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <SegmentsPanel segments={data.segments} onRefresh={load} />
+            </m.div>
           </TabsContent>
           <TabsContent
             value="templates"
             id="marketing-tabpanel-templates"
             className="mt-0 outline-none"
           >
-            <TemplatesPanel templates={data.templates} onRefresh={load} />
+            <m.div
+              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <TemplatesPanel templates={data.templates} onRefresh={load} />
+            </m.div>
           </TabsContent>
           <TabsContent
             value="journeys"
             id="marketing-tabpanel-journeys"
             className="mt-0 outline-none"
           >
-            <JourneysPanel
-              journeys={data.journeys}
-              campaigns={data.campaigns}
-              metrics={data.journeyMetrics}
-              onRefresh={load}
-            />
+            <m.div
+              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <JourneysPanel
+                journeys={data.journeys}
+                campaigns={data.campaigns}
+                metrics={data.journeyMetrics}
+                onRefresh={load}
+              />
+            </m.div>
           </TabsContent>
         </Tabs>
       </m.div>

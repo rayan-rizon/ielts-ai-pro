@@ -73,7 +73,7 @@ const PaginationControls = ({
             variant="outline"
             size="icon"
             aria-label="Go to first page"
-            className="h-8 w-8 lg:flex border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-8 w-8 lg:flex border-stone-200 dark:border-white/10 transition-all duration-150 ease-smooth-out active:scale-90 hover:bg-stone-100 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
           >
@@ -84,7 +84,7 @@ const PaginationControls = ({
             variant="outline"
             size="icon"
             aria-label="Go to previous page"
-            className="h-8 w-8 border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-8 w-8 border-stone-200 dark:border-white/10 transition-all duration-150 ease-smooth-out active:scale-90 hover:bg-stone-100 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
@@ -101,7 +101,7 @@ const PaginationControls = ({
             variant="outline"
             size="icon"
             aria-label="Go to next page"
-            className="h-8 w-8 border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-8 w-8 border-stone-200 dark:border-white/10 transition-all duration-150 ease-smooth-out active:scale-90 hover:bg-stone-100 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
           >
@@ -112,7 +112,7 @@ const PaginationControls = ({
             variant="outline"
             size="icon"
             aria-label="Go to last page"
-            className="h-8 w-8 lg:flex border-stone-200 dark:border-white/10 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-8 w-8 lg:flex border-stone-200 dark:border-white/10 transition-all duration-150 ease-smooth-out active:scale-90 hover:bg-stone-100 dark:hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages || totalPages === 0}
           >

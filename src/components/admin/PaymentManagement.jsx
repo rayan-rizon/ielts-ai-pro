@@ -1,3 +1,4 @@
+import { m } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
 import {
   AlertCircle,
@@ -16,7 +17,17 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { matchesPaymentSearch, mergePaymentHistory } from './paymentHistory';
-import { NUM, MICRO, PANEL, Kpi, AdminPageHeader, PILL_BASE, pillTone } from './ui/primitives';
+import {
+  NUM,
+  MICRO,
+  PANEL,
+  Kpi,
+  AdminPageHeader,
+  PILL_BASE,
+  pillTone,
+  STAGGER_CONTAINER,
+  FADE_UP,
+} from './ui/primitives';
 
 const STATUS_TONE = { pending: 'warn', approved: 'ok', rejected: 'fault' };
 
@@ -147,7 +158,7 @@ export default function PaymentManagement() {
           onClick={() => handleStatusUpdate(request, 'approved')}
           className={cn(
             MICRO,
-            'inline-flex items-center justify-center gap-1.5 rounded-md text-white bg-[rgb(var(--signal-ok))] hover:opacity-90 transition-opacity disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-ok))]/50',
+            'inline-flex items-center justify-center gap-1.5 rounded-md text-white bg-[rgb(var(--signal-ok))] hover:opacity-90 transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-95 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-ok))]/50',
             full ? 'flex-1 h-9' : 'h-7 w-7'
           )}
           aria-label="Approve payment"
@@ -188,26 +199,33 @@ export default function PaymentManagement() {
     );
 
   return (
-    <div className="space-y-4 pb-10 pt-12 md:pt-0">
-      <AdminPageHeader
-        title="Payments"
-        description="Review and approve manual subscription payments"
-        tip="Pending manual payments. Approving one upgrades the learner's plan."
-      >
-        <div className="relative w-full sm:w-56">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
-          <Input
-            aria-label="Search payments"
-            placeholder="Search TrxID, phone, user…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-8 w-full rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium"
-          />
-        </div>
-      </AdminPageHeader>
+    <m.div
+      variants={STAGGER_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4 pb-10 pt-12 md:pt-0"
+    >
+      <m.div variants={FADE_UP}>
+        <AdminPageHeader
+          title="Payments"
+          description="Review and approve manual subscription payments"
+          tip="Pending manual payments. Approving one upgrades the learner's plan."
+        >
+          <div className="relative w-full sm:w-56">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+            <Input
+              aria-label="Search payments"
+              placeholder="Search TrxID, phone, user…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 h-8 w-full rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium"
+            />
+          </div>
+        </AdminPageHeader>
+      </m.div>
 
       {/* Queue state */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi
           label="Awaiting review"
           value={stats.pending}
@@ -217,29 +235,41 @@ export default function PaymentManagement() {
         <Kpi label="Approved" value={stats.approved} sub="upgrades applied" />
         <Kpi label="Rejected" value={stats.rejected} sub="declined transfers" />
         <Kpi label="Total records" value={requests.length} sub="manual + Stripe" />
-      </div>
+      </m.div>
 
       {/* Filter row */}
-      <div className="flex items-center gap-1.5">
-        {FILTERS.map((f) => (
-          <button
-            type="button"
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              MICRO,
-              'rounded-md px-2.5 py-1.5 border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
-              filter === f.value
-                ? 'border-stone-400 dark:border-white/30 text-stone-900 dark:text-stone-50 bg-stone-100 dark:bg-white/6'
-                : 'border-stone-200 dark:border-white/10 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <m.div
+        variants={FADE_UP}
+        className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-fit"
+      >
+        {FILTERS.map((f) => {
+          const isActive = filter === f.value;
+          return (
+            <button
+              type="button"
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={cn(
+                'relative h-7 px-3 rounded-md font-bold text-xs transition-colors active:scale-95',
+                isActive
+                  ? 'text-stone-900 dark:text-stone-50'
+                  : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+              )}
+            >
+              {isActive && (
+                <m.span
+                  layoutId="paymentFilterPill"
+                  className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                />
+              )}
+              <span className="relative z-10">{f.label}</span>
+            </button>
+          );
+        })}
+      </m.div>
 
-      <div className={cn(PANEL, 'overflow-hidden')}>
+      <m.div variants={FADE_UP} className={cn(PANEL, 'overflow-hidden')}>
         {/* Mobile: card list */}
         <div className="md:hidden divide-y divide-stone-100 dark:divide-white/5">
           {loading ? (
@@ -420,7 +450,7 @@ export default function PaymentManagement() {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </m.div>
+    </m.div>
   );
 }

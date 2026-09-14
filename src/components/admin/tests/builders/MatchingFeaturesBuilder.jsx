@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -243,39 +244,49 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
             Options (The content inside the box)
           </label>
           <div className="space-y-2" data-oid="_i:48ok">
-            {data.options.map((opt, i) => (
-              <div key={i} className="flex gap-2 items-center" data-oid="xggaaj5">
-                <Badge
-                  variant="outline"
-                  className="w-10 h-8 flex items-center justify-center bg-background font-mono"
-                  data-oid="z-s1l39"
+            <AnimatePresence>
+              {data.options.map((opt, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex gap-2 items-center"
+                  data-oid="xggaaj5"
                 >
-                  {getOptionLabel(i)}
-                </Badge>
-                <Input
-                  value={opt}
-                  onChange={(e) => updateOption(i, e.target.value)}
-                  placeholder={`Option ${getOptionLabel(i)}`}
-                  className="bg-background"
-                  data-oid="3z:dfnm"
-                />
+                  <Badge
+                    variant="outline"
+                    className="w-10 h-8 flex items-center justify-center bg-background font-mono"
+                    data-oid="z-s1l39"
+                  >
+                    {getOptionLabel(i)}
+                  </Badge>
+                  <Input
+                    value={opt}
+                    onChange={(e) => updateOption(i, e.target.value)}
+                    placeholder={`Option ${getOptionLabel(i)}`}
+                    className="bg-background"
+                    data-oid="3z:dfnm"
+                  />
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeOption(i)}
-                  className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
-                  data-oid="n05as9j"
-                >
-                  <Trash2 className="w-4 h-4" data-oid="lrxf521" />
-                </Button>
-              </div>
-            ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeOption(i)}
+                    className="text-muted-foreground hover:text-destructive h-8 w-8 p-0 transition-all duration-150 ease-smooth-out active:scale-90"
+                    data-oid="n05as9j"
+                  >
+                    <Trash2 className="w-4 h-4" data-oid="lrxf521" />
+                  </Button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
             <Button
               variant="outline"
               size="sm"
               onClick={addOption}
-              className="w-full mt-2 border-dashed bg-background"
+              className="w-full mt-2 border-dashed bg-background transition-all duration-150 ease-smooth-out active:scale-95"
               data-oid="18wnefn"
             >
               <Plus className="w-3 h-3 mr-1" data-oid="bco:pll" /> Add Option
@@ -318,7 +329,7 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute bottom-2 right-2 text-xs"
+                  className="absolute bottom-2 right-2 text-xs transition-all duration-150 ease-smooth-out active:scale-95"
                   onClick={insertPlaceholder}
                   data-oid="h-5d9n8"
                 >
@@ -390,54 +401,60 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
               </div>
             </div>
             <div className="space-y-3" data-oid="yu-31aa">
-              {data.questions.map((q, i) => (
-                <div
-                  key={i}
-                  className="flex gap-3 items-start p-2 border rounded-lg bg-background"
-                  data-oid="44t4f3c"
-                >
-                  <div className="flex-1" data-oid=".6jjbem">
-                    <Input
-                      value={q.text}
-                      onChange={(e) => updateQuestion(i, 'text', e.target.value)}
-                      placeholder="Statement text..."
-                      className="mb-0 bg-transparent border-0 focus-visible:ring-0 px-0"
-                      data-oid="u3ffat_"
-                    />
-                  </div>
-                  <div className="w-24" data-oid="jis-2c9">
-                    <Select
-                      value={q.answer}
-                      onValueChange={(val) => updateQuestion(i, 'answer', val)}
-                      data-oid="elx49ml"
-                    >
-                      <SelectTrigger data-oid="zs2sgro">
-                        <SelectValue placeholder="Ans" data-oid="dc.9r34" />
-                      </SelectTrigger>
-                      <SelectContent data-oid="z2:12aa">
-                        {data.options.map((_, optIdx) => (
-                          <SelectItem
-                            key={optIdx}
-                            value={getOptionLabel(optIdx)}
-                            data-oid="x0-4qcy"
-                          >
-                            {getOptionLabel(optIdx)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeQuestion(i)}
-                    className="text-muted-foreground hover:text-destructive mt-1 h-8 w-8 p-0"
-                    data-oid="fq6.335"
+              <AnimatePresence>
+                {data.questions.map((q, i) => (
+                  <motion.div
+                    key={q.id || i}
+                    initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex gap-3 items-start p-2 border rounded-lg bg-background transition-all duration-150 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20"
+                    data-oid="44t4f3c"
                   >
-                    <Trash2 className="w-4 h-4" data-oid="fj1r7l:" />
-                  </Button>
-                </div>
-              ))}
+                    <div className="flex-1" data-oid=".6jjbem">
+                      <Input
+                        value={q.text}
+                        onChange={(e) => updateQuestion(i, 'text', e.target.value)}
+                        placeholder="Statement text..."
+                        className="mb-0 bg-transparent border-0 focus-visible:ring-0 px-0"
+                        data-oid="u3ffat_"
+                      />
+                    </div>
+                    <div className="w-24" data-oid="jis-2c9">
+                      <Select
+                        value={q.answer}
+                        onValueChange={(val) => updateQuestion(i, 'answer', val)}
+                        data-oid="elx49ml"
+                      >
+                        <SelectTrigger data-oid="zs2sgro">
+                          <SelectValue placeholder="Ans" data-oid="dc.9r34" />
+                        </SelectTrigger>
+                        <SelectContent data-oid="z2:12aa">
+                          {data.options.map((_, optIdx) => (
+                            <SelectItem
+                              key={optIdx}
+                              value={getOptionLabel(optIdx)}
+                              data-oid="x0-4qcy"
+                            >
+                              {getOptionLabel(optIdx)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeQuestion(i)}
+                      className="text-muted-foreground hover:text-destructive mt-1 h-8 w-8 p-0 transition-all duration-150 ease-smooth-out active:scale-90"
+                      data-oid="fq6.335"
+                    >
+                      <Trash2 className="w-4 h-4" data-oid="fj1r7l:" />
+                    </Button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               <Button
                 variant="outline"
                 size="sm"

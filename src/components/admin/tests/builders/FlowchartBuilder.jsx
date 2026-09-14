@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -185,62 +186,72 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
               data-oid="o0ghg0f"
             />
 
-            {data.steps.map((step, i) => (
-              <div key={step.id} className="group relative pb-6 last:pb-0" data-oid="ndhp6ws">
-                <div className="flex gap-3 items-start" data-oid="ibe96k:">
-                  <div
-                    className="w-12 h-12 rounded-lg bg-background border shadow-sm flex items-center justify-center shrink-0 z-10 text-xs font-bold text-muted-foreground"
-                    data-oid="14_s0lx"
-                  >
-                    {i + 1}
-                  </div>
-                  <div
-                    className="flex-1 bg-background border rounded-lg p-3 shadow-sm relative group-hover:border-primary/50 transition-colors"
-                    data-oid="zdk0nvj"
-                  >
-                    <Textarea
-                      value={step.text}
-                      onChange={(e) => updateStep(i, e.target.value)}
-                      placeholder="Description... use [gap] for blanks"
-                      className="min-h-[60px] resize-none text-sm border-0 focus-visible:ring-0 px-0 shadow-none bg-transparent"
-                      data-oid="g:jrxx8"
-                    />
-
+            <AnimatePresence>
+              {data.steps.map((step, i) => (
+                <motion.div
+                  key={step.id}
+                  initial={{ opacity: 0, scale: 0.96, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: -6 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className="group relative pb-6 last:pb-0"
+                  data-oid="ndhp6ws"
+                >
+                  <div className="flex gap-3 items-start" data-oid="ibe96k:">
                     <div
-                      className="flex justify-end gap-2 mt-2 pt-2 border-t border-dashed border-border"
-                      data-oid="ebsn9k7"
+                      className="w-12 h-12 rounded-lg bg-background border shadow-sm flex items-center justify-center shrink-0 z-10 text-xs font-bold text-muted-foreground"
+                      data-oid="14_s0lx"
                     >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => insertGap(i)}
-                        className={`h-6 text-[10px] ${t.text} hover:${t.light}`}
-                        data-oid="6u46d5x"
+                      {i + 1}
+                    </div>
+                    <div
+                      className="flex-1 bg-background border rounded-lg p-3 shadow-sm relative group-hover:border-primary/50 transition-colors"
+                      data-oid="zdk0nvj"
+                    >
+                      <Textarea
+                        value={step.text}
+                        onChange={(e) => updateStep(i, e.target.value)}
+                        placeholder="Description... use [gap] for blanks"
+                        className="min-h-[60px] resize-none text-sm border-0 focus-visible:ring-0 px-0 shadow-none bg-transparent"
+                        data-oid="g:jrxx8"
+                      />
+
+                      <div
+                        className="flex justify-end gap-2 mt-2 pt-2 border-t border-dashed border-border"
+                        data-oid="ebsn9k7"
                       >
-                        + Insert Gap
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeStep(i)}
-                        className="h-6 text-[10px] text-muted-foreground hover:text-destructive"
-                        data-oid="dx777nd"
-                      >
-                        Remove
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => insertGap(i)}
+                          className={`h-6 text-[10px] ${t.text} hover:${t.light}`}
+                          data-oid="6u46d5x"
+                        >
+                          + Insert Gap
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeStep(i)}
+                          className="h-6 text-[10px] text-muted-foreground hover:text-destructive transition-all duration-150 ease-smooth-out active:scale-90"
+                          data-oid="dx777nd"
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                {i < data.steps.length - 1 && (
-                  <div
-                    className="absolute left-[1.65rem] -bottom-2 transform -translate-x-1/2 text-border"
-                    data-oid="38immo:"
-                  >
-                    <ArrowDown className="w-4 h-4" data-oid="kobbqa." />
-                  </div>
-                )}
-              </div>
-            ))}
+                  {i < data.steps.length - 1 && (
+                    <div
+                      className="absolute left-[1.65rem] -bottom-2 transform -translate-x-1/2 text-border"
+                      data-oid="38immo:"
+                    >
+                      <ArrowDown className="w-4 h-4" data-oid="kobbqa." />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -252,39 +263,49 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
                 Options Box
               </h4>
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1" data-oid="do9srp-">
-                {data.options.map((opt, i) => (
-                  <div key={i} className="flex gap-2 items-center" data-oid="fnqz85d">
-                    <Badge
-                      variant="outline"
-                      className="w-8 h-8 flex items-center justify-center bg-background"
-                      data-oid="8kevz6g"
+                <AnimatePresence>
+                  {data.options.map((opt, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0.96, y: 4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96, y: -4 }}
+                      transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      className="flex gap-2 items-center"
+                      data-oid="fnqz85d"
                     >
-                      {getOptionLabel(i)}
-                    </Badge>
-                    <Input
-                      value={opt}
-                      onChange={(e) => updateOption(i, e.target.value)}
-                      placeholder={`Option ${getOptionLabel(i)}`}
-                      className="h-8 bg-background"
-                      data-oid="nxjoo0u"
-                    />
+                      <Badge
+                        variant="outline"
+                        className="w-8 h-8 flex items-center justify-center bg-background"
+                        data-oid="8kevz6g"
+                      >
+                        {getOptionLabel(i)}
+                      </Badge>
+                      <Input
+                        value={opt}
+                        onChange={(e) => updateOption(i, e.target.value)}
+                        placeholder={`Option ${getOptionLabel(i)}`}
+                        className="h-8 bg-background"
+                        data-oid="nxjoo0u"
+                      />
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeOption(i)}
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      data-oid="j.cn5hv"
-                    >
-                      <Trash2 className="w-4 h-4" data-oid="vt-p16x" />
-                    </Button>
-                  </div>
-                ))}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeOption(i)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive transition-all duration-150 ease-smooth-out active:scale-90"
+                        data-oid="j.cn5hv"
+                      >
+                        <Trash2 className="w-4 h-4" data-oid="vt-p16x" />
+                      </Button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={addOption}
-                  className="w-full border-dashed bg-background"
+                  className="w-full border-dashed bg-background transition-all duration-150 ease-smooth-out active:scale-95"
                   data-oid="lqj__ya"
                 >
                   <Plus className="w-3 h-3 mr-1" data-oid="w2e3ypw" /> Add Option

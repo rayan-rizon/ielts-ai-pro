@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, m } from 'framer-motion';
 import {
   Activity,
   Check,
@@ -15,6 +16,7 @@ import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
 import {
   AdminButton,
+  CARD_PRESENCE_VARIANTS,
   Empty,
   MICRO,
   MUTED,
@@ -748,24 +750,32 @@ function AutopilotActionQueue({ workspace, onNavigate }) {
       </div>
       {actionCount > 0 ? (
         <div className="grid grid-cols-1 items-start gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {queue.map((item) => (
-            <ReviewCard
-              key={item.id}
-              item={item}
-              busy={busy}
-              actionsEnabled={actionsEnabled}
-              act={act}
-            />
-          ))}
-          {recommendations.map((item) => (
-            <RecommendationCard
-              key={item.id}
-              item={item}
-              busy={busy}
-              act={act}
-              onNavigate={onNavigate}
-            />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {queue.map((item) => (
+              <m.div
+                key={item.id}
+                layout="position"
+                variants={CARD_PRESENCE_VARIANTS}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <ReviewCard item={item} busy={busy} actionsEnabled={actionsEnabled} act={act} />
+              </m.div>
+            ))}
+            {recommendations.map((item) => (
+              <m.div
+                key={item.id}
+                layout="position"
+                variants={CARD_PRESENCE_VARIANTS}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <RecommendationCard item={item} busy={busy} act={act} onNavigate={onNavigate} />
+              </m.div>
+            ))}
+          </AnimatePresence>
         </div>
       ) : (
         <div className={PANEL}>

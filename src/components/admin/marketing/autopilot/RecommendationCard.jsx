@@ -49,7 +49,7 @@ function RecommendationSignals({ summary, evidence }) {
         className={cn(
           MICRO,
           MUTED,
-          'cursor-pointer py-1 hover:text-stone-700 dark:hover:text-stone-200'
+          'cursor-pointer select-none py-1 transition-colors duration-quick ease-smooth-out hover:text-stone-700 dark:hover:text-stone-200'
         )}
       >
         Why this action{signalCountText}
@@ -84,7 +84,7 @@ function RecommendationActions({ item, category, tracking, busy, act, onNavigate
         {category.action} <ArrowUpRight className="h-3.5 w-3.5" />
       </AdminButton>
       {tracking ? (
-        <Pill tone="ok">
+        <Pill tone="ok" className="animate-in fade-in zoom-in-95 duration-quick">
           <CheckCircle2 className="h-3 w-3" /> Tracking
         </Pill>
       ) : (
@@ -130,7 +130,12 @@ export default function RecommendationCard({ item, busy, act, onNavigate }) {
   const evidence = Array.isArray(item.evidence) ? item.evidence.slice(0, 3) : [];
 
   return (
-    <article className={cn(TILE, 'flex min-w-0 flex-col overflow-hidden p-3')}>
+    <article
+      className={cn(
+        TILE,
+        'flex min-w-0 flex-col overflow-hidden p-3 transition-all duration-200 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20 hover:-translate-y-0.5 hover:shadow-xs'
+      )}
+    >
       <div className="flex flex-wrap items-center gap-1.5">
         <Pill tone={severity.tone}>{severity.label}</Pill>
         <span className={cn(MICRO, MUTED)}>{category.label}</span>

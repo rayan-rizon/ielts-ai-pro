@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Select,
@@ -497,7 +498,7 @@ const RepairButton = ({ repair, onRepaired }) => {
           disabled={busy}
           className={cn(
             MICRO,
-            'inline-flex items-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors disabled:opacity-50'
+            'inline-flex items-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-smooth-out active:scale-95 disabled:opacity-50'
           )}
         >
           {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wrench className="w-3 h-3" />}
@@ -755,14 +756,28 @@ const ServiceRow = ({ service, incidentSummary }) => {
             {STATUS_LABEL[service.status]}
           </span>
           <ChevronDown
-            className={cn('h-4 w-4 text-stone-400 transition-transform', expanded && 'rotate-180')}
+            className={cn(
+              'h-4 w-4 text-stone-400 transition-transform duration-200 ease-smooth-out',
+              expanded && 'rotate-180'
+            )}
           />
         </div>
       </button>
 
-      {expanded && (
-        <ServiceDetails service={service} metrics={metrics} incidentSummary={incidentSummary} />
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="service-details"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <ServiceDetails service={service} metrics={metrics} incidentSummary={incidentSummary} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -817,7 +832,7 @@ const ServiceDirectory = ({
           onClick={() => onFilterChange(filter.key)}
           className={cn(
             MICRO,
-            'shrink-0 rounded-md border px-2.5 py-1.5 transition-colors',
+            'shrink-0 rounded-md border px-2.5 py-1.5 transition-all duration-150 ease-smooth-out active:scale-95',
             serviceFilter === filter.key
               ? 'border-stone-800 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950'
               : 'border-stone-300 bg-white text-stone-600 hover:text-stone-900 dark:border-white/15 dark:bg-[#131315] dark:text-stone-300 dark:hover:text-white'
@@ -1001,7 +1016,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
               onClick={() => load()}
               className={cn(
                 MICRO,
-                'mt-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors'
+                'mt-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-smooth-out active:scale-95'
               )}
             >
               Retry
@@ -1080,7 +1095,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
                 onClick={() => load({ silent: true })}
                 disabled={refreshing}
                 aria-label="Refresh"
-                className="h-8 w-8 grid place-items-center rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-500 hover:text-stone-900 dark:hover:text-white transition-colors disabled:opacity-50"
+                className="h-8 w-8 grid place-items-center rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-500 hover:text-stone-900 dark:hover:text-white transition-all duration-150 ease-smooth-out active:scale-90 disabled:opacity-50"
               >
                 <RefreshCw className={cn('w-3.5 h-3.5', refreshing && 'animate-spin')} />
               </button>

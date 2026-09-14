@@ -44,13 +44,13 @@ const AdminNavItem = memo(
       if (isMobile) setOpenMobile(false);
     }, [isMobile, setOpenMobile]);
 
-    const btnClasses = `group transition-colors rounded-md mb-0.5 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] ${
+    const btnClasses = `group transition-all duration-quick ease-smooth-out rounded-md mb-0.5 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
       isActive
         ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
         : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
     }`;
 
-    const iconClasses = `w-4 h-4 transition-colors ${
+    const iconClasses = `w-4 h-4 transition-transform duration-quick ease-smooth-out group-hover:scale-105 ${
       isActive
         ? 'text-white dark:text-stone-50'
         : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
@@ -74,7 +74,7 @@ const AdminNavItem = memo(
                     ? `${pendingCount} pending payment approval${pendingCount === 1 ? '' : 's'}, ${stripePaymentCount} new Stripe payment${stripePaymentCount === 1 ? '' : 's'}, and ${stripeFailureCount} Stripe payment failure${stripeFailureCount === 1 ? '' : 's'}`
                     : `${badgeCount} payment alert${badgeCount === 1 ? '' : 's'}`
                 }
-                className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} font-mono tabular-nums tracking-tight ${
+                className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} font-mono tabular-nums tracking-tight transition-all duration-quick ease-bounce animate-in fade-in zoom-in-75 ${
                   isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
                 }`}
               >

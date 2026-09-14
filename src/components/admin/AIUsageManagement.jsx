@@ -1,3 +1,4 @@
+import { m } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
 import { CalendarDays, RefreshCw } from 'lucide-react';
 import { AIApiUsage } from '@/entities';
@@ -10,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/cn';
-import { MICRO, AdminPageHeader } from './ui/primitives';
+import { MICRO, AdminPageHeader, STAGGER_CONTAINER, FADE_UP } from './ui/primitives';
 import AIUsageStatsCards from './ai-usage/AIUsageStatsCards';
 import AIUsageCharts from './ai-usage/AIUsageCharts';
 import AIUsageTable from './ai-usage/AIUsageTable';
@@ -130,70 +131,87 @@ const AIUsageManagement = () => {
   const maxCalls = Math.max(...userStats.map((u) => u.totalCalls), 1);
 
   return (
-    <div className="space-y-4 pb-10 pt-12 md:pt-0">
-      <AdminPageHeader
-        title="AI Usage"
-        description={
-          lastUpdatedAt
-            ? `Last refreshed ${lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-            : 'Loading the latest usage records'
-        }
-        tip="AI delivery, tokens, cache, and provider spend. See Global Settings for live faults."
-      >
-        <Select value={String(dateRange)} onValueChange={(value) => setDateRange(Number(value))}>
-          <SelectTrigger
-            aria-label="Chart time range"
+    <m.div
+      variants={STAGGER_CONTAINER}
+      initial="hidden"
+      animate="visible"
+      className="space-y-4 pb-10 pt-12 md:pt-0"
+    >
+      <m.div variants={FADE_UP}>
+        <AdminPageHeader
+          title="AI Usage"
+          description={
+            lastUpdatedAt
+              ? `Last refreshed ${lastUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              : 'Loading the latest usage records'
+          }
+          tip="AI delivery, tokens, cache, and provider spend. See Global Settings for live faults."
+        >
+          <Select value={String(dateRange)} onValueChange={(value) => setDateRange(Number(value))}>
+            <SelectTrigger
+              aria-label="Chart time range"
+              className={cn(
+                MICRO,
+                'h-8 w-[135px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
+              )}
+            >
+              <CalendarDays className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {RANGES.map((r) => (
+                <SelectItem key={r.value} value={String(r.value)}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            onClick={() => {
+              fetchUserStats({ isManualRefresh: true });
+              fetchChartStats();
+            }}
+            disabled={refreshing}
             className={cn(
               MICRO,
-              'h-8 w-[135px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
+              'inline-flex items-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 h-8 px-3 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-95 disabled:opacity-50'
             )}
           >
-            <CalendarDays className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {RANGES.map((r) => (
-              <SelectItem key={r.value} value={String(r.value)}>
-                {r.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <button
-          onClick={() => {
-            fetchUserStats({ isManualRefresh: true });
-            fetchChartStats();
-          }}
-          disabled={refreshing}
-          className={cn(
-            MICRO,
-            'inline-flex items-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 h-8 px-3 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors disabled:opacity-50'
-          )}
-        >
-          <RefreshCw className={cn('w-3 h-3', refreshing && 'animate-spin')} />
-          {refreshing ? 'Refreshing' : 'Refresh'}
-        </button>
-      </AdminPageHeader>
+            <RefreshCw className={cn('w-3 h-3', refreshing && 'animate-spin')} />
+            {refreshing ? 'Refreshing' : 'Refresh'}
+          </button>
+        </AdminPageHeader>
+      </m.div>
 
-      <AIUsageStatsCards totals={totals} loading={loading} />
+      <m.div variants={FADE_UP}>
+        <AIUsageStatsCards totals={totals} loading={loading} />
+      </m.div>
 
-      <AIUsageCharts dailyStats={dailyStats} endpointStats={endpointStats} dateRange={dateRange} />
+      <m.div variants={FADE_UP}>
+        <AIUsageCharts
+          dailyStats={dailyStats}
+          endpointStats={endpointStats}
+          dateRange={dateRange}
+        />
+      </m.div>
 
-      <AIUsageTable
-        sortedUsers={userStats}
-        loading={loading}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        handleSort={handleSort}
-        maxCalls={maxCalls}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={setCurrentPage}
-        pageSize={pageSize}
-        setPageSize={setPageSize}
-        totalItems={totalItems}
-      />
-    </div>
+      <m.div variants={FADE_UP}>
+        <AIUsageTable
+          sortedUsers={userStats}
+          loading={loading}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          handleSort={handleSort}
+          maxCalls={maxCalls}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+          pageSize={pageSize}
+          setPageSize={setPageSize}
+          totalItems={totalItems}
+        />
+      </m.div>
+    </m.div>
   );
 };
 

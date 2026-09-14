@@ -1,3 +1,4 @@
+import { m } from 'framer-motion';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -795,8 +796,21 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         <div className="w-full max-w-[1800px] mx-auto">
           <Tabs value={activeTask} onValueChange={setActiveTask} className="w-full space-y-4">
             <TabsList className={cn(ADMIN_TABS_LIST, 'mx-auto mb-6')}>
-              <TabsTrigger value="Task 1" className={ADMIN_TAB_TRIGGER}>
-                <span className="flex items-center gap-2">
+              <TabsTrigger
+                value="Task 1"
+                className={cn(
+                  ADMIN_TAB_TRIGGER,
+                  'relative overflow-visible data-[state=active]:shadow-none'
+                )}
+              >
+                {activeTask === 'Task 1' && (
+                  <m.span
+                    layoutId="writingTaskActivePill"
+                    className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <span className="flex items-center gap-2 relative z-10">
                   <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
                     1
                   </span>
@@ -806,8 +820,21 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                   </span>
                 </span>
               </TabsTrigger>
-              <TabsTrigger value="Task 2" className={ADMIN_TAB_TRIGGER}>
-                <span className="flex items-center gap-2">
+              <TabsTrigger
+                value="Task 2"
+                className={cn(
+                  ADMIN_TAB_TRIGGER,
+                  'relative overflow-visible data-[state=active]:shadow-none'
+                )}
+              >
+                {activeTask === 'Task 2' && (
+                  <m.span
+                    layoutId="writingTaskActivePill"
+                    className="absolute inset-0 bg-white dark:bg-[#131315] rounded-md shadow-2xs"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <span className="flex items-center gap-2 relative z-10">
                   <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-stone-200 dark:bg-white/10 text-stone-600 dark:text-stone-300">
                     2
                   </span>

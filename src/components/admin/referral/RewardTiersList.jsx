@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import {
   AudioLines,
@@ -30,7 +31,12 @@ function RewardTierRow({ tier, onToggleActive, onEditTier, onDeleteTier }) {
   const targetLabel = `${tier.referrals_required} referral${tier.referrals_required === 1 ? '' : 's'} target`;
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.97, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -6 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         'group relative flex flex-col gap-3 overflow-hidden rounded-lg border p-3.5 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between',
         isLive
@@ -90,7 +96,7 @@ function RewardTierRow({ tier, onToggleActive, onEditTier, onDeleteTier }) {
             type="button"
             aria-label={`Edit ${tier.referrals_required} referrals tier`}
             onClick={() => onEditTier(tier)}
-            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-smooth-out active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
           >
             <Edit3 className="w-3.5 h-3.5" />
           </button>
@@ -98,13 +104,13 @@ function RewardTierRow({ tier, onToggleActive, onEditTier, onDeleteTier }) {
             type="button"
             aria-label={`Delete ${tier.referrals_required} referrals tier`}
             onClick={() => onDeleteTier(tier)}
-            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
+            className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all duration-150 ease-smooth-out active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--signal-fault))]/50"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -146,15 +152,17 @@ export function RewardTiersList({ tiers = [], onToggleActive, onEditTier, onDele
       </div>
 
       <div className="space-y-2 p-3 sm:p-4">
-        {tiers.map((tier) => (
-          <RewardTierRow
-            key={tier.id}
-            tier={tier}
-            onToggleActive={onToggleActive}
-            onEditTier={onEditTier}
-            onDeleteTier={onDeleteTier}
-          />
-        ))}
+        <AnimatePresence initial={false}>
+          {tiers.map((tier) => (
+            <RewardTierRow
+              key={tier.id}
+              tier={tier}
+              onToggleActive={onToggleActive}
+              onEditTier={onEditTier}
+              onDeleteTier={onDeleteTier}
+            />
+          ))}
+        </AnimatePresence>
 
         {tiers.length === 0 && <RewardTiersEmpty />}
       </div>

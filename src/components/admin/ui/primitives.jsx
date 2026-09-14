@@ -27,7 +27,7 @@ export const WELL = 'bg-stone-100/70 dark:bg-white/[0.045]';
 
 /** One-level nested control surface inside a panel. */
 export const TILE =
-  'rounded-lg border border-stone-200/80 bg-stone-50/70 transition-colors duration-150 dark:border-white/[0.10] dark:bg-white/[0.045]';
+  'rounded-lg border border-stone-200/80 bg-stone-50/70 transition-all duration-200 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20 dark:border-white/[0.10] dark:bg-white/[0.045]';
 
 /** Panel/card title. Legible on its own — distinct from MICRO meta labels. */
 export const TITLE = 'text-[13px] font-extrabold tracking-tight text-stone-900 dark:text-stone-50';
@@ -477,7 +477,7 @@ export const ToggleChip = ({ active, onClick, children, className }) => (
     aria-pressed={active}
     onClick={onClick}
     className={cn(
-      'rounded-md border px-2.5 py-1.5 text-[10px] font-extrabold capitalize transition-colors active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]',
+      'rounded-md border px-2.5 py-1.5 text-[10px] font-extrabold capitalize transition-all duration-150 ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]',
       active
         ? 'border-indigo-400/50 bg-indigo-500/8 text-indigo-600 dark:border-indigo-500/50 dark:text-indigo-300'
         : 'border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:border-white/10 dark:text-stone-400 dark:hover:text-stone-200',
@@ -577,7 +577,7 @@ export const AdminButton = forwardRef(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-1.5 rounded-lg font-bold transition-all duration-150 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
+          'inline-flex items-center justify-center gap-1.5 rounded-lg font-bold transition-all duration-150 ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100',
           size === 'sm' ? 'h-7 px-2.5 text-[11px]' : 'h-8 px-3 text-xs',
           ADMIN_BUTTON_VARIANTS[variant] || ADMIN_BUTTON_VARIANTS.primary,
           className
@@ -596,7 +596,7 @@ AdminButton.displayName = 'AdminButton';
 export const ADMIN_TABS_LIST =
   'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/4 border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
 export const ADMIN_TAB_TRIGGER =
-  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-200 ease-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] shrink-0';
+  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-fast ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] shrink-0';
 
 /**
  * Shared enter animation for admin pages/panels — a quiet staggered fade+rise
@@ -604,6 +604,59 @@ export const ADMIN_TAB_TRIGGER =
  * `m.div` (or `motion.div`): variants={STAGGER_CONTAINER} on the parent,
  * variants={FADE_UP} on each direct child.
  */
+/**
+ * Shared motion tokens aligned with transitions.dev & transitions-polish.
+ * - smoothOut: cubic-bezier(0.22, 1, 0.36, 1) — UI surfaces, tabs, panels
+ * - bounce: cubic-bezier(0.34, 1.36, 0.64, 1) — celebratory badge / pop
+ */
+export const MOTION_EASING = {
+  smoothOut: [0.22, 1, 0.36, 1],
+  bounce: [0.34, 1.36, 0.64, 1],
+  bounceStrong: [0.34, 3.85, 0.64, 1],
+};
+
+/**
+ * Main admin tab/page transition variant with open/close asymmetry.
+ * Enter: 240ms smooth rise with soft micro-blur.
+ * Exit: 150ms quick and quiet drift out of the way.
+ */
+export const ADMIN_PAGE_TRANSITION = {
+  initial: { opacity: 0, y: 8, filter: 'blur(2px)' },
+  animate: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    filter: 'blur(1px)',
+    transition: { duration: 0.15, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+/**
+ * Presence variants for dismissable or approved cards in action queues.
+ * Animates scale, opacity, and height cleanly so sibling cards reflow smoothly.
+ */
+export const CARD_PRESENCE_VARIANTS = {
+  initial: { opacity: 0, scale: 0.97, y: 6 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.96,
+    y: -6,
+    filter: 'blur(2px)',
+    transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 export const STAGGER_CONTAINER = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.02 } },

@@ -601,947 +601,977 @@ const ResourceManagement = () => {
 
   const getContentTypeInfo = (type) => CONTENT_TYPES.find((t) => t.id === type) || CONTENT_TYPES[2];
 
-  if (showBlogEditor) {
-    return (
-      <BlogEditor
-        initialData={editingResource}
-        onSave={handleBlogSave}
-        onCancel={() => {
-          setShowBlogEditor(false);
-          setEditingResource(null);
-        }}
-        data-oid="8p_2e5o"
-      />
-    );
-  }
-
-  if (showVocabEditor) {
-    return (
-      <VocabularyEditor
-        initialData={editingResource}
-        onSave={handleVocabSave}
-        onCancel={() => {
-          setShowVocabEditor(false);
-          setEditingResource(null);
-        }}
-        data-oid="8:2gym2"
-      />
-    );
-  }
-
   return (
-    <motion.div
-      variants={STAGGER_CONTAINER}
-      initial="hidden"
-      animate="visible"
-      className="space-y-4 pb-6 pt-12 md:pt-0"
-      data-oid="7ze--xz"
-    >
-      {/* Top Header Section */}
-      <motion.div variants={FADE_UP} data-oid="o56ihpo">
-        <AdminPageHeader
-          title="Resources"
-          description="Manage educational video guides, PDFs, blogs, and vocabulary banks for candidates"
+    <AnimatePresence mode="wait">
+      {showBlogEditor ? (
+        <motion.div
+          key="blog-editor"
+          initial={{ opacity: 0, y: 12, filter: 'blur(2px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
-          <DropdownMenu data-oid="actions-dropdown">
-            <DropdownMenuTrigger asChild data-oid="actions-trigger">
-              <AdminButton variant="outline" data-oid="btn-more-actions">
-                <MoreVertical
-                  className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
-                  data-oid="icon-more"
-                />
-                Actions
-              </AdminButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-48 rounded-xl border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315]"
-              data-oid="actions-content"
-            >
-              <DropdownMenuItem
-                onClick={handleExport}
-                className="cursor-pointer font-medium py-2 rounded-lg text-xs"
-                data-oid="item-export"
-              >
-                <Download className="w-4 h-4 mr-2" data-oid="icon-export" />
-                Export Data
-              </DropdownMenuItem>
-              <div className="relative" data-oid="import-wrapper">
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  data-oid="input-import"
-                />
-                <DropdownMenuItem
-                  className="cursor-pointer font-medium py-2 rounded-lg text-xs"
-                  data-oid="item-import"
-                >
-                  <FileJson className="w-4 h-4 mr-2" data-oid="icon-import" />
-                  Import Data
-                </DropdownMenuItem>
-              </div>
-              <DropdownMenuSeparator className="bg-stone-100 dark:bg-white/6" data-oid="sep-1" />
-              <DropdownMenuItem
-                onClick={() => {
-                  setEditingResource(null);
-                  setShowBlogEditor(true);
-                }}
-                className="cursor-pointer font-medium py-2 rounded-lg text-xs text-emerald-600 dark:text-emerald-400"
-                data-oid="item-blog"
-              >
-                <BookOpen className="w-4 h-4 mr-2" data-oid="icon-blog" />
-                Write Blog
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setEditingResource(null);
-                  setShowVocabEditor(true);
-                }}
-                className="cursor-pointer font-medium py-2 rounded-lg text-xs text-indigo-600 dark:text-indigo-400"
-                data-oid="item-vocab"
-              >
-                <Brain className="w-4 h-4 mr-2" data-oid="icon-vocab" />
-                Add Vocabulary
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Dialog
-            open={isDialogOpen}
-            onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) resetForm();
+          <BlogEditor
+            initialData={editingResource}
+            onSave={handleBlogSave}
+            onCancel={() => {
+              setShowBlogEditor(false);
+              setEditingResource(null);
             }}
-            data-oid="0:6qif:"
-          >
-            <DialogTrigger asChild data-oid="6_pg2-m">
-              <AdminButton data-oid="pow-z6t">
-                <Plus className="w-3.5 h-3.5" data-oid="_lhw9j3" />
-                Add Resource
-              </AdminButton>
-            </DialogTrigger>
-            <DialogContent
-              className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-lg overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto p-4 sm:p-5"
-              data-oid="dtsedp6"
+            data-oid="8p_2e5o"
+          />
+        </motion.div>
+      ) : showVocabEditor ? (
+        <motion.div
+          key="vocab-editor"
+          initial={{ opacity: 0, y: 12, filter: 'blur(2px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <VocabularyEditor
+            initialData={editingResource}
+            onSave={handleVocabSave}
+            onCancel={() => {
+              setShowVocabEditor(false);
+              setEditingResource(null);
+            }}
+            data-oid="8:2gym2"
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="resource-list"
+          variants={STAGGER_CONTAINER}
+          initial="hidden"
+          animate="visible"
+          exit={{
+            opacity: 0,
+            y: -8,
+            filter: 'blur(2px)',
+            transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] },
+          }}
+          className="space-y-4 pb-6 pt-12 md:pt-0"
+          data-oid="7ze--xz"
+        >
+          {/* Top Header Section */}
+          <motion.div variants={FADE_UP} data-oid="o56ihpo">
+            <AdminPageHeader
+              title="Resources"
+              description="Manage educational video guides, PDFs, blogs, and vocabulary banks for candidates"
             >
-              <DialogHeader className="space-y-0.5" data-oid="9ymdqci">
-                <DialogTitle
-                  className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50"
-                  data-oid="q4ff11i"
-                >
-                  {editingResource ? 'Edit resource' : 'New resource'}
-                </DialogTitle>
-                <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                  Enter details to publish or update educational content
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 py-3" data-oid="b99_0_r">
-                {/* Content Type Selector */}
-                <div>
-                  <Label className={FIELD_LABEL}>Content type</Label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {CONTENT_TYPES.map((type) => (
-                      <button
-                        key={type.id}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, content_type: type.id })}
-                        className={cn(
-                          'p-2 rounded-md border transition-all duration-150 active:scale-95 flex flex-col items-center gap-1',
-                          formData.content_type === type.id
-                            ? contentTypeStyle(type.id).active
-                            : 'border-stone-200 dark:border-white/10 text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
-                        )}
-                      >
-                        <type.icon className="w-3.5 h-3.5" />
-                        <span className={MICRO}>{type.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <Label className={FIELD_LABEL}>Title *</Label>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Enter resource title"
-                    className={cn(FIELD_INPUT, 'w-full')}
-                  />
-                </div>
-
-                {/* URL */}
-                <div>
-                  <Label className={FIELD_LABEL}>URL *</Label>
-                  <div className="relative">
-                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
-                    <Input
-                      value={formData.url}
-                      onChange={(e) => {
-                        const newUrl = e.target.value;
-                        setFormData((prev) => ({ ...prev, url: newUrl }));
-                        if (urlError) validateUrl(newUrl, formData.content_type);
-                      }}
-                      placeholder={
-                        formData.content_type === 'video'
-                          ? 'https://youtube.com/watch?v=...'
-                          : formData.content_type === 'pdf'
-                            ? 'https://example.com/document.pdf'
-                            : 'https://blog.example.com/article'
-                      }
-                      className={cn(
-                        FIELD_INPUT,
-                        'pl-8 pr-10 w-full',
-                        urlError && 'border-[rgb(var(--signal-fault))]'
-                      )}
+              <DropdownMenu data-oid="actions-dropdown">
+                <DropdownMenuTrigger asChild data-oid="actions-trigger">
+                  <AdminButton variant="outline" data-oid="btn-more-actions">
+                    <MoreVertical
+                      className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
+                      data-oid="icon-more"
                     />
-                    {formData.content_type === 'video' && formData.url.length > 10 && (
-                      <button
-                        type="button"
-                        onClick={() => fetchVideoMetadata(formData.url)}
-                        disabled={fetchingMetadata}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 grid place-items-center rounded-md bg-indigo-500/8 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/15 transition-all active:scale-90 disabled:opacity-50"
-                        title="Fetch video details"
-                      >
-                        <Sparkles
-                          className={cn('w-3.5 h-3.5', fetchingMetadata && 'animate-spin')}
-                        />
-                      </button>
-                    )}
+                    Actions
+                  </AdminButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-48 rounded-xl border-stone-200 dark:border-white/10 bg-white dark:bg-[#131315]"
+                  data-oid="actions-content"
+                >
+                  <DropdownMenuItem
+                    onClick={handleExport}
+                    className="cursor-pointer font-medium py-2 rounded-lg text-xs"
+                    data-oid="item-export"
+                  >
+                    <Download className="w-4 h-4 mr-2" data-oid="icon-export" />
+                    Export Data
+                  </DropdownMenuItem>
+                  <div className="relative" data-oid="import-wrapper">
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleImport}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      data-oid="input-import"
+                    />
+                    <DropdownMenuItem
+                      className="cursor-pointer font-medium py-2 rounded-lg text-xs"
+                      data-oid="item-import"
+                    >
+                      <FileJson className="w-4 h-4 mr-2" data-oid="icon-import" />
+                      Import Data
+                    </DropdownMenuItem>
                   </div>
-                  {urlError && (
-                    <p className="text-[11px] text-[rgb(var(--signal-fault))] flex items-center gap-1 mt-1">
-                      <AlertCircle className="w-3 h-3" /> {urlError}
-                    </p>
-                  )}
-                </div>
+                  <DropdownMenuSeparator
+                    className="bg-stone-100 dark:bg-white/6"
+                    data-oid="sep-1"
+                  />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditingResource(null);
+                      setShowBlogEditor(true);
+                    }}
+                    className="cursor-pointer font-medium py-2 rounded-lg text-xs text-emerald-600 dark:text-emerald-400"
+                    data-oid="item-blog"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" data-oid="icon-blog" />
+                    Write Blog
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditingResource(null);
+                      setShowVocabEditor(true);
+                    }}
+                    className="cursor-pointer font-medium py-2 rounded-lg text-xs text-indigo-600 dark:text-indigo-400"
+                    data-oid="item-vocab"
+                  >
+                    <Brain className="w-4 h-4 mr-2" data-oid="icon-vocab" />
+                    Add Vocabulary
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                {/* PDF Upload Section */}
-                {formData.content_type === 'pdf' && (
-                  <div>
-                    <Label className={FIELD_LABEL}>Upload PDF</Label>
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handlePdfUpload}
-                        disabled={uploadingPdf}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
-                      />
-                      <div
-                        className={cn(
-                          FIELD_INPUT,
-                          'px-3 flex items-center gap-2 hover:border-stone-400 dark:hover:border-white/25 transition-colors'
-                        )}
-                      >
-                        <FileText className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                        <span className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
-                          {uploadingPdf
-                            ? 'Uploading PDF…'
-                            : formData.url && formData.url.endsWith('.pdf')
-                              ? 'PDF uploaded successfully'
-                              : 'Choose a PDF file to upload'}
-                        </span>
+              <Dialog
+                open={isDialogOpen}
+                onOpenChange={(open) => {
+                  setIsDialogOpen(open);
+                  if (!open) resetForm();
+                }}
+                data-oid="0:6qif:"
+              >
+                <DialogTrigger asChild data-oid="6_pg2-m">
+                  <AdminButton data-oid="pow-z6t">
+                    <Plus className="w-3.5 h-3.5" data-oid="_lhw9j3" />
+                    Add Resource
+                  </AdminButton>
+                </DialogTrigger>
+                <DialogContent
+                  className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-lg rounded-lg overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto p-4 sm:p-5"
+                  data-oid="dtsedp6"
+                >
+                  <DialogHeader className="space-y-0.5" data-oid="9ymdqci">
+                    <DialogTitle
+                      className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50"
+                      data-oid="q4ff11i"
+                    >
+                      {editingResource ? 'Edit resource' : 'New resource'}
+                    </DialogTitle>
+                    <DialogDescription className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                      Enter details to publish or update educational content
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-4 py-3" data-oid="b99_0_r">
+                    {/* Content Type Selector */}
+                    <div>
+                      <Label className={FIELD_LABEL}>Content type</Label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {CONTENT_TYPES.map((type) => (
+                          <button
+                            key={type.id}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, content_type: type.id })}
+                            className={cn(
+                              'p-2 rounded-md border transition-all duration-150 active:scale-95 flex flex-col items-center gap-1',
+                              formData.content_type === type.id
+                                ? contentTypeStyle(type.id).active
+                                : 'border-stone-200 dark:border-white/10 text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
+                            )}
+                          >
+                            <type.icon className="w-3.5 h-3.5" />
+                            <span className={MICRO}>{type.label}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Description */}
-                <div>
-                  <Label className={FIELD_LABEL}>Description</Label>
-                  <Textarea
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Enter brief description"
-                    rows={3}
-                    className="rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium resize-none p-2.5"
-                  />
-                </div>
+                    {/* Title */}
+                    <div>
+                      <Label className={FIELD_LABEL}>Title *</Label>
+                      <Input
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        placeholder="Enter resource title"
+                        className={cn(FIELD_INPUT, 'w-full')}
+                      />
+                    </div>
 
-                {/* Thumbnail Upload */}
-                <div>
-                  <Label className={FIELD_LABEL}>Thumbnail image</Label>
-                  <div className="flex items-center gap-2.5">
-                    {(formData.thumbnail_url || thumbnailPreviewUrl) && (
-                      <div className="w-12 h-12 rounded-md overflow-hidden border border-stone-200 dark:border-white/10 relative shrink-0">
-                        <img
-                          src={thumbnailPreviewUrl || formData.thumbnail_url}
-                          alt="Thumbnail preview"
-                          className="w-full h-full object-cover"
+                    {/* URL */}
+                    <div>
+                      <Label className={FIELD_LABEL}>URL *</Label>
+                      <div className="relative">
+                        <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                        <Input
+                          value={formData.url}
+                          onChange={(e) => {
+                            const newUrl = e.target.value;
+                            setFormData((prev) => ({ ...prev, url: newUrl }));
+                            if (urlError) validateUrl(newUrl, formData.content_type);
+                          }}
+                          placeholder={
+                            formData.content_type === 'video'
+                              ? 'https://youtube.com/watch?v=...'
+                              : formData.content_type === 'pdf'
+                                ? 'https://example.com/document.pdf'
+                                : 'https://blog.example.com/article'
+                          }
+                          className={cn(
+                            FIELD_INPUT,
+                            'pl-8 pr-10 w-full',
+                            urlError && 'border-[rgb(var(--signal-fault))]'
+                          )}
                         />
+                        {formData.content_type === 'video' && formData.url.length > 10 && (
+                          <button
+                            type="button"
+                            onClick={() => fetchVideoMetadata(formData.url)}
+                            disabled={fetchingMetadata}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 grid place-items-center rounded-md bg-indigo-500/8 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/15 transition-all active:scale-90 disabled:opacity-50"
+                            title="Fetch video details"
+                          >
+                            <Sparkles
+                              className={cn('w-3.5 h-3.5', fetchingMetadata && 'animate-spin')}
+                            />
+                          </button>
+                        )}
+                      </div>
+                      {urlError && (
+                        <p className="text-[11px] text-[rgb(var(--signal-fault))] flex items-center gap-1 mt-1">
+                          <AlertCircle className="w-3 h-3" /> {urlError}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* PDF Upload Section */}
+                    {formData.content_type === 'pdf' && (
+                      <div>
+                        <Label className={FIELD_LABEL}>Upload PDF</Label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={handlePdfUpload}
+                            disabled={uploadingPdf}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                          />
+                          <div
+                            className={cn(
+                              FIELD_INPUT,
+                              'px-3 flex items-center gap-2 hover:border-stone-400 dark:hover:border-white/25 transition-colors'
+                            )}
+                          >
+                            <FileText className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                            <span className="text-xs font-semibold text-stone-500 dark:text-stone-400 truncate">
+                              {uploadingPdf
+                                ? 'Uploading PDF…'
+                                : formData.url && formData.url.endsWith('.pdf')
+                                  ? 'PDF uploaded successfully'
+                                  : 'Choose a PDF file to upload'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     )}
-                    <label className="flex-1 h-12 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-md flex items-center justify-center gap-2 cursor-pointer hover:border-indigo-400/50 hover:bg-indigo-500/4 transition-all">
-                      <Upload className="w-3.5 h-3.5 text-stone-400" />
-                      <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                        {thumbnailFile ? thumbnailFile.name : 'Upload image'}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+
+                    {/* Description */}
+                    <div>
+                      <Label className={FIELD_LABEL}>Description</Label>
+                      <Textarea
+                        value={formData.description || ''}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Enter brief description"
+                        rows={3}
+                        className="rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium resize-none p-2.5"
                       />
-                    </label>
-                  </div>
-                </div>
+                    </div>
 
-                {/* Access Tier Selector */}
-                <div>
-                  <Label className={FIELD_LABEL}>Access tier</Label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {['free', 'pro', 'premium'].map((tier) => (
-                      <button
-                        key={tier}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, access_tier: tier })}
-                        className={cn(
-                          MICRO,
-                          'py-2 rounded-md border transition-all active:scale-95',
-                          formData.access_tier === tier
-                            ? TIER_ACCENT[tier]
-                            : 'border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
+                    {/* Thumbnail Upload */}
+                    <div>
+                      <Label className={FIELD_LABEL}>Thumbnail image</Label>
+                      <div className="flex items-center gap-2.5">
+                        {(formData.thumbnail_url || thumbnailPreviewUrl) && (
+                          <div className="w-12 h-12 rounded-md overflow-hidden border border-stone-200 dark:border-white/10 relative shrink-0">
+                            <img
+                              src={thumbnailPreviewUrl || formData.thumbnail_url}
+                              alt="Thumbnail preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
-                      >
-                        {tier}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <label className="flex-1 h-12 border-2 border-dashed border-stone-200 dark:border-white/10 rounded-md flex items-center justify-center gap-2 cursor-pointer hover:border-indigo-400/50 hover:bg-indigo-500/4 transition-all">
+                          <Upload className="w-3.5 h-3.5 text-stone-400" />
+                          <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
+                            {thumbnailFile ? thumbnailFile.name : 'Upload image'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
+                          />
+                        </label>
+                      </div>
+                    </div>
 
-                {/* Publish Toggle */}
-                <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6">
-                  <div>
-                    <Label className="text-xs font-bold text-stone-900 dark:text-stone-50">
-                      Publish immediately
-                    </Label>
-                    <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
-                      Make visible to users on dashboard
-                    </p>
+                    {/* Access Tier Selector */}
+                    <div>
+                      <Label className={FIELD_LABEL}>Access tier</Label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {['free', 'pro', 'premium'].map((tier) => (
+                          <button
+                            key={tier}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, access_tier: tier })}
+                            className={cn(
+                              MICRO,
+                              'py-2 rounded-md border transition-all active:scale-95',
+                              formData.access_tier === tier
+                                ? TIER_ACCENT[tier]
+                                : 'border-stone-200 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:border-stone-300 dark:hover:border-white/20'
+                            )}
+                          >
+                            {tier}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Publish Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-md bg-stone-50 dark:bg-white/3 border border-stone-200/70 dark:border-white/6">
+                      <div>
+                        <Label className="text-xs font-bold text-stone-900 dark:text-stone-50">
+                          Publish immediately
+                        </Label>
+                        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
+                          Make visible to users on dashboard
+                        </p>
+                      </div>
+                      <Switch
+                        checked={formData.is_published}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, is_published: checked })
+                        }
+                      />
+                    </div>
                   </div>
-                  <Switch
-                    checked={formData.is_published}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, is_published: checked })
-                    }
-                  />
+
+                  <DialogFooter className="gap-2 flex-col sm:flex-row" data-oid="q.ovgwu">
+                    <AdminButton
+                      variant="ghost"
+                      onClick={() => {
+                        setIsDialogOpen(false);
+                        resetForm();
+                      }}
+                      data-oid="bvuumc8"
+                    >
+                      Cancel
+                    </AdminButton>
+                    <AdminButton
+                      onClick={handleSubmit}
+                      disabled={
+                        submitting ||
+                        uploadingPdf ||
+                        (formData.content_type === 'video' && fetchingMetadata)
+                      }
+                      loading={submitting}
+                      data-oid="btn-submit"
+                    >
+                      Save Resource
+                    </AdminButton>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </AdminPageHeader>
+          </motion.div>
+
+          {/* KPI Stat Cards */}
+          <motion.div
+            variants={FADE_UP}
+            className="grid grid-cols-3 gap-2 sm:gap-3"
+            data-oid="ju0dnr8"
+          >
+            {[
+              { label: 'Total Resources', value: stats.total, icon: Library },
+              { label: 'Published', value: stats.published, icon: Sparkles },
+              { label: 'Total Views', value: stats.totalViews, icon: Eye },
+            ].map((item) => (
+              <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1 truncate')}>
+                  {item.label}
+                </p>
+                <div className="flex items-end justify-between">
+                  <span
+                    className={cn(
+                      NUM,
+                      'text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-50 leading-none'
+                    )}
+                  >
+                    {(item.value || 0).toLocaleString()}
+                  </span>
+                  <item.icon className="w-3.5 h-3.5 text-stone-300 dark:text-stone-600 shrink-0" />
                 </div>
               </div>
+            ))}
+          </motion.div>
 
-              <DialogFooter className="gap-2 flex-col sm:flex-row" data-oid="q.ovgwu">
-                <AdminButton
-                  variant="ghost"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    resetForm();
-                  }}
-                  data-oid="bvuumc8"
-                >
-                  Cancel
-                </AdminButton>
-                <AdminButton
-                  onClick={handleSubmit}
-                  disabled={
-                    submitting ||
-                    uploadingPdf ||
-                    (formData.content_type === 'video' && fetchingMetadata)
-                  }
-                  loading={submitting}
-                  data-oid="btn-submit"
-                >
-                  Save Resource
-                </AdminButton>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </AdminPageHeader>
-      </motion.div>
-
-      {/* KPI Stat Cards */}
-      <motion.div variants={FADE_UP} className="grid grid-cols-3 gap-2 sm:gap-3" data-oid="ju0dnr8">
-        {[
-          { label: 'Total Resources', value: stats.total, icon: Library },
-          { label: 'Published', value: stats.published, icon: Sparkles },
-          { label: 'Total Views', value: stats.totalViews, icon: Eye },
-        ].map((item) => (
-          <div key={item.label} className={cn(PANEL, 'py-2.5 px-3.5')}>
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1 truncate')}>
-              {item.label}
-            </p>
-            <div className="flex items-end justify-between">
-              <span
-                className={cn(
-                  NUM,
-                  'text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-50 leading-none'
-                )}
-              >
-                {(item.value || 0).toLocaleString()}
-              </span>
-              <item.icon className="w-3.5 h-3.5 text-stone-300 dark:text-stone-600 shrink-0" />
-            </div>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* Search & Filter Toolbar */}
-      <motion.div
-        variants={FADE_UP}
-        className={cn(
-          PANEL,
-          'flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 p-2'
-        )}
-        data-oid="a_eoz4w"
-      >
-        <div className="relative flex-1 w-full" data-oid="u9h2esc">
-          <SearchIcon
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
-            data-oid="aehg331"
-          />
-          <Input
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPagination((p) => ({ ...p, page: 1 }));
-            }}
-            placeholder="Search by title, description, or URL..."
-            className="h-8 pl-8 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-stone-500 dark:text-stone-400 shadow-none w-full"
-            data-oid="-7jwxl2"
-          />
-        </div>
-        <div
-          className="h-5 w-px bg-stone-200 dark:bg-white/[0.07] hidden sm:block"
-          data-oid="spacer-line"
-        />
-        <div
-          className="flex items-center gap-1 p-0.5 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0 relative"
-          data-oid="r-36p1t"
-        >
-          {[{ id: 'all', label: 'All', icon: LayoutGrid }, ...CONTENT_TYPES].map((type) => {
-            const Icon = type.icon;
-            const isActive = filterType === type.id;
-            return (
-              <motion.button
-                key={type.id}
-                onClick={() => {
-                  setFilterType(type.id);
+          {/* Search & Filter Toolbar */}
+          <motion.div
+            variants={FADE_UP}
+            className={cn(
+              PANEL,
+              'flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 p-2'
+            )}
+            data-oid="a_eoz4w"
+          >
+            <div className="relative flex-1 w-full" data-oid="u9h2esc">
+              <SearchIcon
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400"
+                data-oid="aehg331"
+              />
+              <Input
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
                   setPagination((p) => ({ ...p, page: 1 }));
                 }}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                className={cn(
-                  'relative h-7 px-2.5 rounded-lg font-extrabold text-[11px] flex items-center gap-1.5 whitespace-nowrap border overflow-hidden',
-                  isActive
-                    ? 'text-white dark:text-stone-900 border-stone-800 dark:border-stone-200 shadow-2xs'
-                    : 'bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400 border-stone-200/80 dark:border-white/[0.07] hover:border-stone-300 dark:hover:border-white/20'
-                )}
-                data-oid="2092.e1"
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="tab-active-bg"
-                    className="absolute inset-0 bg-stone-900 dark:bg-stone-50 rounded-lg"
-                    transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                  />
-                )}
-                <Icon
-                  className={cn(
-                    'w-3 h-3 relative z-10',
-                    isActive
-                      ? type.id === 'all'
-                        ? 'text-white dark:text-stone-900'
-                        : 'text-white/90 dark:text-stone-900/80'
-                      : type.color
-                        ? contentTypeStyle(type.id).icon
-                        : 'text-stone-500 dark:text-stone-400'
-                  )}
-                  data-oid={`icon-${type.id}`}
-                />
-                <span className="relative z-10">{type.label}</span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Bulk Actions Bar */}
-      <AnimatePresence data-oid="wn36izy">
-        {selectedIds.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 bg-stone-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-4 border border-white/15 overflow-x-auto max-w-[calc(100vw-1.5rem)]"
-            data-oid="47a_a6n"
-          >
-            <span className="font-bold text-xs sm:text-sm whitespace-nowrap" data-oid="jhdg0tw">
-              {selectedIds.length} selected
-            </span>
-            <div className="h-4 w-px bg-white/20 shrink-0" data-oid="q8zu:.b" />
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0" data-oid="hrdl2y4">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleBulkAction('publish')}
-                className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold text-xs px-2.5 sm:px-3"
-                data-oid="i5sd2.g"
-              >
-                Publish
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleBulkAction('unpublish')}
-                className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold text-xs px-2.5 sm:px-3"
-                data-oid="uf3617t"
-              >
-                Unpublish
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => handleBulkAction('delete')}
-                className="h-8 rounded-lg font-bold shadow-sm text-xs px-2.5 sm:px-3"
-                data-oid="dv2nga1"
-              >
-                Delete
-              </Button>
+                placeholder="Search by title, description, or URL..."
+                className="h-8 pl-8 border-none bg-transparent focus-visible:ring-0 text-xs font-semibold placeholder:text-stone-500 dark:text-stone-400 shadow-none w-full"
+                data-oid="-7jwxl2"
+              />
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setSelectedIds([])}
-              className="h-8 w-8 rounded-full hover:bg-white/10 text-white/70 hover:text-white shrink-0 ml-1 transition-colors"
-              data-oid="7spaznw"
+            <div
+              className="h-5 w-px bg-stone-200 dark:bg-white/[0.07] hidden sm:block"
+              data-oid="spacer-line"
+            />
+            <div
+              className="flex items-center gap-1 p-0.5 w-full sm:w-auto overflow-x-auto no-scrollbar shrink-0 relative"
+              data-oid="r-36p1t"
             >
-              <X className="w-4 h-4" data-oid="1c3nwu2" />
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.div variants={FADE_UP} data-oid="k:o:4tl">
-        <div className={cn(PANEL, 'overflow-hidden')} data-oid="p8t1fgh">
-          <div
-            className="overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200 dark:scrollbar-thumb-white/10"
-            data-oid="u-.q60o"
-          >
-            <Table className="min-w-[900px]" data-oid="lh7lr::">
-              <TableHeader
-                className="border-b border-stone-200/80 dark:border-white/[0.07]"
-                data-oid="8ym8_ow"
-              >
-                <TableRow className="hover:bg-transparent" data-oid="1oauzid">
-                  <TableHead className="w-10 py-3 px-4" data-oid="osgwj6q">
-                    <Checkbox
-                      checked={resources.length > 0 && selectedIds.length === resources.length}
-                      onCheckedChange={handleSelectAll}
-                      className="border-slate-300 dark:border-slate-700"
-                      data-oid="s.8umtk"
+              {[{ id: 'all', label: 'All', icon: LayoutGrid }, ...CONTENT_TYPES].map((type) => {
+                const Icon = type.icon;
+                const isActive = filterType === type.id;
+                return (
+                  <motion.button
+                    key={type.id}
+                    onClick={() => {
+                      setFilterType(type.id);
+                      setPagination((p) => ({ ...p, page: 1 }));
+                    }}
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    className={cn(
+                      'relative h-7 px-2.5 rounded-lg font-extrabold text-[11px] flex items-center gap-1.5 whitespace-nowrap border overflow-hidden',
+                      isActive
+                        ? 'text-white dark:text-stone-900 border-stone-800 dark:border-stone-200 shadow-2xs'
+                        : 'bg-white dark:bg-[#131315] text-stone-500 dark:text-stone-400 border-stone-200/80 dark:border-white/[0.07] hover:border-stone-300 dark:hover:border-white/20'
+                    )}
+                    data-oid="2092.e1"
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="tab-active-bg"
+                        className="absolute inset-0 bg-stone-900 dark:bg-stone-50 rounded-lg"
+                        transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                      />
+                    )}
+                    <Icon
+                      className={cn(
+                        'w-3 h-3 relative z-10',
+                        isActive
+                          ? type.id === 'all'
+                            ? 'text-white dark:text-stone-900'
+                            : 'text-white/90 dark:text-stone-900/80'
+                          : type.color
+                            ? contentTypeStyle(type.id).icon
+                            : 'text-stone-500 dark:text-stone-400'
+                      )}
+                      data-oid={`icon-${type.id}`}
                     />
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 w-[380px] cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
-                    onClick={() => handleSort('title')}
-                    data-oid="4fc45ak"
+                    <span className="relative z-10">{type.label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Bulk Actions Bar */}
+          <AnimatePresence data-oid="wn36izy">
+            {selectedIds.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 bg-stone-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl shadow-lg flex items-center justify-between sm:justify-start gap-2 sm:gap-4 border border-white/15 overflow-x-auto max-w-[calc(100vw-1.5rem)]"
+                data-oid="47a_a6n"
+              >
+                <span className="font-bold text-xs sm:text-sm whitespace-nowrap" data-oid="jhdg0tw">
+                  {selectedIds.length} selected
+                </span>
+                <div className="h-4 w-px bg-white/20 shrink-0" data-oid="q8zu:.b" />
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0" data-oid="hrdl2y4">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleBulkAction('publish')}
+                    className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold text-xs px-2.5 sm:px-3"
+                    data-oid="i5sd2.g"
                   >
-                    <div
-                      className={cn(
-                        'flex items-center gap-1.5',
-                        MICRO,
-                        'text-stone-500 dark:text-stone-400'
-                      )}
-                    >
-                      Resource Title & URL
-                      {sortField === 'title' ? (
-                        sortDirection === 'asc' ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        )
-                      ) : (
-                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
-                    onClick={() => handleSort('content_type')}
-                    data-oid="b9952cs"
+                    Publish
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleBulkAction('unpublish')}
+                    className="hover:bg-white/10 hover:text-white text-white/90 h-8 font-semibold text-xs px-2.5 sm:px-3"
+                    data-oid="uf3617t"
                   >
-                    <div
-                      className={cn(
-                        'flex items-center justify-center gap-1.5',
-                        MICRO,
-                        'text-stone-500 dark:text-stone-400'
-                      )}
-                    >
-                      Type
-                      {sortField === 'content_type' ? (
-                        sortDirection === 'asc' ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        )
-                      ) : (
-                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
-                    onClick={() => handleSort('is_published')}
-                    data-oid="56ad8mw"
+                    Unpublish
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleBulkAction('delete')}
+                    className="h-8 rounded-lg font-bold shadow-sm text-xs px-2.5 sm:px-3"
+                    data-oid="dv2nga1"
                   >
-                    <div
-                      className={cn(
-                        'flex items-center justify-center gap-1.5',
-                        MICRO,
-                        'text-stone-500 dark:text-stone-400'
-                      )}
-                    >
-                      Status
-                      {sortField === 'is_published' ? (
-                        sortDirection === 'asc' ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        )
-                      ) : (
-                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
-                    onClick={() => handleSort('view_count')}
-                    data-oid=".yt65mt"
+                    Delete
+                  </Button>
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setSelectedIds([])}
+                  className="h-8 w-8 rounded-full hover:bg-white/10 text-white/70 hover:text-white shrink-0 ml-1 transition-colors"
+                  data-oid="7spaznw"
+                >
+                  <X className="w-4 h-4" data-oid="1c3nwu2" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div variants={FADE_UP} data-oid="k:o:4tl">
+            <div className={cn(PANEL, 'overflow-hidden')} data-oid="p8t1fgh">
+              <div
+                className="overflow-x-auto scrollbar-thin scrollbar-thumb-stone-200 dark:scrollbar-thumb-white/10"
+                data-oid="u-.q60o"
+              >
+                <Table className="min-w-[900px]" data-oid="lh7lr::">
+                  <TableHeader
+                    className="border-b border-stone-200/80 dark:border-white/[0.07]"
+                    data-oid="8ym8_ow"
                   >
-                    <div
-                      className={cn(
-                        'flex items-center justify-center gap-1.5',
-                        MICRO,
-                        'text-stone-500 dark:text-stone-400'
-                      )}
-                    >
-                      Views
-                      {sortField === 'view_count' ? (
-                        sortDirection === 'asc' ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                        )
-                      ) : (
-                        <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead className="py-3 px-4 text-right" data-oid=":ifq2i:">
-                    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody data-oid="v3rqu:3">
-                <AnimatePresence mode="wait" data-oid="x6-.6m9">
-                  {loading ? (
-                    [...Array(5)].map((_, i) => (
-                      <TableRow
-                        key={`skeleton-${i}`}
-                        className="border-b border-stone-100 dark:border-white/4"
-                        data-oid="-85f5s-"
+                    <TableRow className="hover:bg-transparent" data-oid="1oauzid">
+                      <TableHead className="w-10 py-3 px-4" data-oid="osgwj6q">
+                        <Checkbox
+                          checked={resources.length > 0 && selectedIds.length === resources.length}
+                          onCheckedChange={handleSelectAll}
+                          className="border-slate-300 dark:border-slate-700"
+                          data-oid="s.8umtk"
+                        />
+                      </TableHead>
+                      <TableHead
+                        className="py-3 px-4 w-[380px] cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
+                        onClick={() => handleSort('title')}
+                        data-oid="4fc45ak"
                       >
-                        <TableCell className="py-3 px-4" data-oid="skel-1">
-                          <div className="w-4 h-4 bg-stone-100 dark:bg-white/4 animate-pulse rounded" />
-                        </TableCell>
-                        <TableCell className="py-3 px-4" data-oid="skel-2">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-stone-100 dark:bg-white/4 animate-pulse rounded-lg" />
-                            <div className="space-y-1.5">
-                              <div className="w-32 h-3 bg-stone-100 dark:bg-white/4 animate-pulse rounded" />
-                              <div className="w-24 h-2 bg-stone-100 dark:bg-white/4 animate-pulse rounded opacity-50" />
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-3 px-4" data-oid="skel-3">
-                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md mx-auto" />
-                        </TableCell>
-                        <TableCell className="py-3 px-4" data-oid="skel-4">
-                          <div className="w-14 h-5 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md mx-auto" />
-                        </TableCell>
-                        <TableCell className="py-3 px-4" data-oid="skel-5">
-                          <div className="w-10 h-3 bg-stone-100 dark:bg-white/4 animate-pulse rounded mx-auto" />
-                        </TableCell>
-                        <TableCell className="py-3 px-4" data-oid="skel-6">
-                          <div className="w-20 h-7 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md ml-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : resources.length === 0 ? (
-                    <TableRow data-oid="a83z4o9">
-                      <TableCell colSpan={6} className="py-16 text-center" data-oid="iur8kmj">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="flex flex-col items-center max-w-[280px] mx-auto"
-                          data-oid="42-by7e"
+                        <div
+                          className={cn(
+                            'flex items-center gap-1.5',
+                            MICRO,
+                            'text-stone-500 dark:text-stone-400'
+                          )}
                         >
-                          <div
-                            className="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-900 shadow-2xs"
-                            data-oid="m8d5s9j"
-                          >
-                            <Library
-                              className="w-8 h-8 text-indigo-600 dark:text-indigo-400"
-                              data-oid="hpqrxop"
-                            />
-                          </div>
-                          <h3
-                            className="font-black text-base text-slate-950 dark:text-white tracking-tight mt-4"
-                            data-oid="13wu0c5"
-                          >
-                            No resources found
-                          </h3>
-                          <p
-                            className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 leading-relaxed"
-                            data-oid="6ops55x"
-                          >
-                            Your library is currently empty. Start by adding your first educational
-                            asset.
-                          </p>
-                          <AdminButton
-                            onClick={() => setIsDialogOpen(true)}
-                            className="mt-5"
-                            data-oid="vvpkk1m"
-                          >
-                            Add Resource
-                          </AdminButton>
-                        </motion.div>
-                      </TableCell>
+                          Resource Title & URL
+                          {sortField === 'title' ? (
+                            sortDirection === 'asc' ? (
+                              <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            )
+                          ) : (
+                            <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
+                        onClick={() => handleSort('content_type')}
+                        data-oid="b9952cs"
+                      >
+                        <div
+                          className={cn(
+                            'flex items-center justify-center gap-1.5',
+                            MICRO,
+                            'text-stone-500 dark:text-stone-400'
+                          )}
+                        >
+                          Type
+                          {sortField === 'content_type' ? (
+                            sortDirection === 'asc' ? (
+                              <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            )
+                          ) : (
+                            <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
+                        onClick={() => handleSort('is_published')}
+                        data-oid="56ad8mw"
+                      >
+                        <div
+                          className={cn(
+                            'flex items-center justify-center gap-1.5',
+                            MICRO,
+                            'text-stone-500 dark:text-stone-400'
+                          )}
+                        >
+                          Status
+                          {sortField === 'is_published' ? (
+                            sortDirection === 'asc' ? (
+                              <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            )
+                          ) : (
+                            <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="py-3 px-4 text-center cursor-pointer select-none hover:text-stone-900 dark:hover:text-stone-50 transition-colors"
+                        onClick={() => handleSort('view_count')}
+                        data-oid=".yt65mt"
+                      >
+                        <div
+                          className={cn(
+                            'flex items-center justify-center gap-1.5',
+                            MICRO,
+                            'text-stone-500 dark:text-stone-400'
+                          )}
+                        >
+                          Views
+                          {sortField === 'view_count' ? (
+                            sortDirection === 'asc' ? (
+                              <ChevronUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                            )
+                          ) : (
+                            <ChevronsUpDown className="w-3.5 h-3.5 opacity-40 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="py-3 px-4 text-right" data-oid=":ifq2i:">
+                        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                          Actions
+                        </span>
+                      </TableHead>
                     </TableRow>
-                  ) : (
-                    resources.map((resource) => {
-                      const typeInfo = getContentTypeInfo(resource.content_type);
-                      const Icon = typeInfo.icon;
-                      return (
-                        <motion.tr
-                          key={resource.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.15 }}
-                          onClick={() => openEditDialog(resource)}
-                          className="border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors group cursor-pointer"
-                          data-oid="9wxwesr"
-                        >
-                          <TableCell
-                            className="py-3 px-4"
-                            data-oid="bmit8uj"
-                            onClick={(e) => e.stopPropagation()}
+                  </TableHeader>
+                  <TableBody data-oid="v3rqu:3">
+                    <AnimatePresence mode="wait" data-oid="x6-.6m9">
+                      {loading ? (
+                        [...Array(5)].map((_, i) => (
+                          <TableRow
+                            key={`skeleton-${i}`}
+                            className="border-b border-stone-100 dark:border-white/4"
+                            data-oid="-85f5s-"
                           >
-                            <Checkbox
-                              checked={selectedIds.includes(resource.id)}
-                              onCheckedChange={(checked) => handleSelectOne(resource.id, checked)}
-                              data-oid="7p1.zr2"
-                            />
-                          </TableCell>
-                          <TableCell className="py-3 px-4" data-oid="k30.m6_">
-                            <div className="flex items-center gap-3" data-oid="_73kb:6">
-                              {resource.thumbnail_url ? (
-                                <img
-                                  src={resource.thumbnail_url}
-                                  alt=""
-                                  className="w-8 h-8 rounded-md object-cover border border-stone-200/80 dark:border-white/[0.07] shrink-0"
-                                  data-oid="s:vpfd_"
+                            <TableCell className="py-3 px-4" data-oid="skel-1">
+                              <div className="w-4 h-4 bg-stone-100 dark:bg-white/4 animate-pulse rounded" />
+                            </TableCell>
+                            <TableCell className="py-3 px-4" data-oid="skel-2">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-stone-100 dark:bg-white/4 animate-pulse rounded-lg" />
+                                <div className="space-y-1.5">
+                                  <div className="w-32 h-3 bg-stone-100 dark:bg-white/4 animate-pulse rounded" />
+                                  <div className="w-24 h-2 bg-stone-100 dark:bg-white/4 animate-pulse rounded opacity-50" />
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-3 px-4" data-oid="skel-3">
+                              <div className="w-14 h-5 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md mx-auto" />
+                            </TableCell>
+                            <TableCell className="py-3 px-4" data-oid="skel-4">
+                              <div className="w-14 h-5 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md mx-auto" />
+                            </TableCell>
+                            <TableCell className="py-3 px-4" data-oid="skel-5">
+                              <div className="w-10 h-3 bg-stone-100 dark:bg-white/4 animate-pulse rounded mx-auto" />
+                            </TableCell>
+                            <TableCell className="py-3 px-4" data-oid="skel-6">
+                              <div className="w-20 h-7 bg-stone-100 dark:bg-white/4 animate-pulse rounded-md ml-auto" />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : resources.length === 0 ? (
+                        <TableRow data-oid="a83z4o9">
+                          <TableCell colSpan={6} className="py-16 text-center" data-oid="iur8kmj">
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="flex flex-col items-center max-w-[280px] mx-auto"
+                              data-oid="42-by7e"
+                            >
+                              <div
+                                className="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-900 shadow-2xs"
+                                data-oid="m8d5s9j"
+                              >
+                                <Library
+                                  className="w-8 h-8 text-indigo-600 dark:text-indigo-400"
+                                  data-oid="hpqrxop"
                                 />
-                              ) : (
-                                <div
-                                  className={cn(
-                                    'w-8 h-8 rounded-md border grid place-items-center shrink-0',
-                                    contentTypeStyle(resource.content_type).iconBg
+                              </div>
+                              <h3
+                                className="font-black text-base text-slate-950 dark:text-white tracking-tight mt-4"
+                                data-oid="13wu0c5"
+                              >
+                                No resources found
+                              </h3>
+                              <p
+                                className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 leading-relaxed"
+                                data-oid="6ops55x"
+                              >
+                                Your library is currently empty. Start by adding your first
+                                educational asset.
+                              </p>
+                              <AdminButton
+                                onClick={() => setIsDialogOpen(true)}
+                                className="mt-5"
+                                data-oid="vvpkk1m"
+                              >
+                                Add Resource
+                              </AdminButton>
+                            </motion.div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        resources.map((resource) => {
+                          const typeInfo = getContentTypeInfo(resource.content_type);
+                          const Icon = typeInfo.icon;
+                          return (
+                            <motion.tr
+                              key={resource.id}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              onClick={() => openEditDialog(resource)}
+                              className="border-b border-stone-100 dark:border-white/5 hover:bg-stone-50/70 dark:hover:bg-white/2 transition-colors group cursor-pointer"
+                              data-oid="9wxwesr"
+                            >
+                              <TableCell
+                                className="py-3 px-4"
+                                data-oid="bmit8uj"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Checkbox
+                                  checked={selectedIds.includes(resource.id)}
+                                  onCheckedChange={(checked) =>
+                                    handleSelectOne(resource.id, checked)
+                                  }
+                                  data-oid="7p1.zr2"
+                                />
+                              </TableCell>
+                              <TableCell className="py-3 px-4" data-oid="k30.m6_">
+                                <div className="flex items-center gap-3" data-oid="_73kb:6">
+                                  {resource.thumbnail_url ? (
+                                    <img
+                                      src={resource.thumbnail_url}
+                                      alt=""
+                                      className="w-8 h-8 rounded-md object-cover border border-stone-200/80 dark:border-white/[0.07] shrink-0"
+                                      data-oid="s:vpfd_"
+                                    />
+                                  ) : (
+                                    <div
+                                      className={cn(
+                                        'w-8 h-8 rounded-md border grid place-items-center shrink-0',
+                                        contentTypeStyle(resource.content_type).iconBg
+                                      )}
+                                      data-oid="mji9x8k"
+                                    >
+                                      <Icon
+                                        className={cn(
+                                          'w-3.5 h-3.5',
+                                          contentTypeStyle(resource.content_type).icon
+                                        )}
+                                        data-oid="xw9ksuj"
+                                      />
+                                    </div>
                                   )}
-                                  data-oid="mji9x8k"
+                                  <div className="min-w-0" data-oid="hu9g-26">
+                                    <p
+                                      className="font-extrabold text-xs text-stone-900 dark:text-stone-50 truncate max-w-[220px]"
+                                      data-oid="eg-a6ai"
+                                    >
+                                      {resource.title}
+                                    </p>
+                                    <a
+                                      href={resource.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className={cn(
+                                        MICRO,
+                                        'font-mono normal-case tracking-normal text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 truncate block max-w-[220px]'
+                                      )}
+                                      data-oid="r78phhx"
+                                    >
+                                      {resource.url}
+                                    </a>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-center" data-oid="sxceztj">
+                                <span
+                                  className={cn(
+                                    PILL_BASE,
+                                    contentTypeStyle(resource.content_type).badge,
+                                    'capitalize transition-transform duration-150 hover:scale-105'
+                                  )}
                                 >
                                   <Icon
                                     className={cn(
-                                      'w-3.5 h-3.5',
+                                      'w-2 h-2',
                                       contentTypeStyle(resource.content_type).icon
                                     )}
-                                    data-oid="xw9ksuj"
                                   />
-                                </div>
-                              )}
-                              <div className="min-w-0" data-oid="hu9g-26">
-                                <p
-                                  className="font-extrabold text-xs text-stone-900 dark:text-stone-50 truncate max-w-[220px]"
-                                  data-oid="eg-a6ai"
-                                >
-                                  {resource.title}
-                                </p>
-                                <a
-                                  href={resource.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
+                                  {resource.content_type}
+                                </span>
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-center" data-oid="-1064ur">
+                                <span
                                   className={cn(
+                                    'inline-flex items-center rounded-md border px-1.5 py-0.5',
                                     MICRO,
-                                    'font-mono normal-case tracking-normal text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 truncate block max-w-[220px]'
+                                    resource.is_published
+                                      ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]'
+                                      : 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10'
                                   )}
-                                  data-oid="r78phhx"
                                 >
-                                  {resource.url}
-                                </a>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-3 px-4 text-center" data-oid="sxceztj">
-                            <span
-                              className={cn(
-                                PILL_BASE,
-                                contentTypeStyle(resource.content_type).badge,
-                                'capitalize transition-transform duration-150 hover:scale-105'
-                              )}
-                            >
-                              <Icon
-                                className={cn(
-                                  'w-2 h-2',
-                                  contentTypeStyle(resource.content_type).icon
-                                )}
-                              />
-                              {resource.content_type}
-                            </span>
-                          </TableCell>
-                          <TableCell className="py-3 px-4 text-center" data-oid="-1064ur">
-                            <span
-                              className={cn(
-                                'inline-flex items-center rounded-md border px-1.5 py-0.5',
-                                MICRO,
-                                resource.is_published
-                                  ? 'text-[rgb(var(--signal-ok))] border-[rgb(var(--signal-ok)/0.3)] bg-[rgb(var(--signal-ok)/0.06)]'
-                                  : 'text-stone-500 dark:text-stone-400 border-stone-200 dark:border-white/10'
-                              )}
-                            >
-                              {resource.is_published ? 'Published' : 'Draft'}
-                            </span>
-                          </TableCell>
-                          <TableCell className="py-3 px-4 text-center" data-oid="tg35wai">
-                            <span
-                              className={cn(
-                                NUM,
-                                'text-[11px] font-bold text-stone-700 dark:text-stone-200'
-                              )}
-                            >
-                              {resource.view_count || 0}
-                            </span>
-                          </TableCell>
-                          <TableCell
-                            className="py-3 px-4 text-right"
-                            data-oid="z.8z-y:"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div
-                              className="flex justify-end items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                              data-oid="enq8n_h"
-                            >
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openEditDialog(resource);
-                                }}
-                                title="Edit"
-                                className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
-                                data-oid="btn-edit"
+                                  {resource.is_published ? 'Published' : 'Draft'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="py-3 px-4 text-center" data-oid="tg35wai">
+                                <span
+                                  className={cn(
+                                    NUM,
+                                    'text-[11px] font-bold text-stone-700 dark:text-stone-200'
+                                  )}
+                                >
+                                  {resource.view_count || 0}
+                                </span>
+                              </TableCell>
+                              <TableCell
+                                className="py-3 px-4 text-right"
+                                data-oid="z.8z-y:"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                <Edit className="w-3.5 h-3.5" data-oid="icon-edit" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePublishStatus(resource);
-                                }}
-                                title={resource.is_published ? 'Unpublish' : 'Publish'}
-                                className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
-                                data-oid="btn-pub"
-                              >
-                                {resource.is_published ? (
-                                  <EyeOff className="w-3.5 h-3.5" data-oid="off" />
-                                ) : (
-                                  <Eye className="w-3.5 h-3.5" data-oid="on" />
-                                )}
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(resource);
-                                }}
-                                title="Delete"
-                                className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
-                                data-oid="btn-del"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" data-oid="del" />
-                              </button>
-                            </div>
-                          </TableCell>
-                        </motion.tr>
-                      );
-                    })
-                  )}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div
-              className="px-4 py-3 border-t border-stone-100 dark:border-white/6 flex flex-col sm:flex-row items-center justify-between gap-3"
-              data-oid="pagin"
-            >
-              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                Page {pagination.page} of {totalPages} —{' '}
-                {Math.min(pagination.count, pagination.limit)} items
-              </p>
-              <div className="flex items-center gap-1.5" data-oid="btns-pag">
-                <AdminButton
-                  variant="outline"
-                  disabled={pagination.page <= 1}
-                  onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                >
-                  <ChevronLeft className="w-3 h-3" />
-                  Previous
-                </AdminButton>
-                <AdminButton
-                  variant="outline"
-                  disabled={pagination.page >= totalPages}
-                  onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                >
-                  Next
-                  <ChevronRight className="w-3 h-3" />
-                </AdminButton>
+                                <div
+                                  className="flex justify-end items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  data-oid="enq8n_h"
+                                >
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openEditDialog(resource);
+                                    }}
+                                    title="Edit"
+                                    className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
+                                    data-oid="btn-edit"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" data-oid="icon-edit" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      togglePublishStatus(resource);
+                                    }}
+                                    title={resource.is_published ? 'Unpublish' : 'Publish'}
+                                    className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5"
+                                    data-oid="btn-pub"
+                                  >
+                                    {resource.is_published ? (
+                                      <EyeOff className="w-3.5 h-3.5" data-oid="off" />
+                                    ) : (
+                                      <Eye className="w-3.5 h-3.5" data-oid="on" />
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(resource);
+                                    }}
+                                    title="Delete"
+                                    className="h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90 text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]"
+                                    data-oid="btn-del"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" data-oid="del" />
+                                  </button>
+                                </div>
+                              </TableCell>
+                            </motion.tr>
+                          );
+                        })
+                      )}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
               </div>
-            </div>
-          )}
-        </div>
-      </motion.div>
 
-      {/* Delete Confirmation Dialog */}
-      <RefinedDeleteModal
-        isOpen={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete resource"
-        description={
-          bulkActionToDelete
-            ? `Permanently delete ${selectedIds.length} selected resources? This cannot be undone.`
-            : 'This resource will be permanently removed and cannot be recovered.'
-        }
-        itemIdentifier={!bulkActionToDelete ? resourceToDelete?.title : null}
-        confirmText="DELETE"
-        isLoading={submitting}
-      />
-    </motion.div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div
+                  className="px-4 py-3 border-t border-stone-100 dark:border-white/6 flex flex-col sm:flex-row items-center justify-between gap-3"
+                  data-oid="pagin"
+                >
+                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                    Page {pagination.page} of {totalPages} —{' '}
+                    {Math.min(pagination.count, pagination.limit)} items
+                  </p>
+                  <div className="flex items-center gap-1.5" data-oid="btns-pag">
+                    <AdminButton
+                      variant="outline"
+                      disabled={pagination.page <= 1}
+                      onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                      Previous
+                    </AdminButton>
+                    <AdminButton
+                      variant="outline"
+                      disabled={pagination.page >= totalPages}
+                      onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
+                    >
+                      Next
+                      <ChevronRight className="w-3 h-3" />
+                    </AdminButton>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Delete Confirmation Dialog */}
+          <RefinedDeleteModal
+            isOpen={deleteConfirmOpen}
+            onClose={() => setDeleteConfirmOpen(false)}
+            onConfirm={confirmDelete}
+            title="Delete resource"
+            description={
+              bulkActionToDelete
+                ? `Permanently delete ${selectedIds.length} selected resources? This cannot be undone.`
+                : 'This resource will be permanently removed and cannot be recovered.'
+            }
+            itemIdentifier={!bulkActionToDelete ? resourceToDelete?.title : null}
+            confirmText="DELETE"
+            isLoading={submitting}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
