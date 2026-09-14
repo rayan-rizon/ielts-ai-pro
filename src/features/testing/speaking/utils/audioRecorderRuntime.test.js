@@ -67,6 +67,7 @@ function buildRuntime(processRecording) {
       analyser: ref(null),
       analyserSource: ref(null),
       analyserReady: ref(false),
+      peakRms: ref(0),
       analysisTimer: ref(null),
       silenceMonitor: ref(null),
       noiseFloor: ref(MIN_VOICE_THRESHOLD / 2),
@@ -238,7 +239,7 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
     expect(__testing.detectVoice(0.055, noisyFloor)).toBe(true);
   });
 
-  it('ends an unanswered hands-free capture without waiting for the safety limit', async () => {
+  it('uploads an unanswered capture when the analyser could not verify silence', async () => {
     const processRecording = vi.fn().mockResolvedValue(undefined);
     const runtime = buildRuntime(processRecording);
 
@@ -247,9 +248,23 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
 
     expect(processRecording).toHaveBeenCalledOnce();
     expect(processRecording.mock.calls[0][1]).toMatchObject({
-      speechDetected: false,
+      speechDetected: null,
       stopReason: 'no-speech-timeout',
     });
+  });
+
+  it('marks only analyser-confirmed digital silence as silent', () => {
+    const runtime = buildRuntime(vi.fn());
+    runtime.refs.analyserReady.current = true;
+    runtime.refs.peakRms.current = 0.001;
+
+    expect(__testing.resolveSpeechDetected(runtime.refs)).toBe(false);
+
+    runtime.refs.peakRms.current = 0.006;
+    expect(__testing.resolveSpeechDetected(runtime.refs)).toBeNull();
+
+    runtime.refs.liveTranscript.current = 'I was speaking quietly.';
+    expect(__testing.resolveSpeechDetected(runtime.refs)).toBe(true);
   });
 
   it('does not treat brief ambient spikes as learner speech', () => {

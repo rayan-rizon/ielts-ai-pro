@@ -207,6 +207,7 @@ export async function callEdgeFunctionMultipart(functionName, formData, options 
       error.rateLimitType = result.rateLimitType || null;
       error.retryAfterSeconds = result.retryAfterSeconds;
       error.quotaInfo = result;
+      error.state = result.state;
       if (response.status === 429) error.name = 'RateLimitError';
       throw error;
     }

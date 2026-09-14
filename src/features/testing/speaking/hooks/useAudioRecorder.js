@@ -31,6 +31,7 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     analyser: useRef(null),
     analyserSource: useRef(null),
     analyserReady: useRef(false),
+    peakRms: useRef(0),
     analysisTimer: useRef(null),
     silenceMonitor: useRef(null),
     noiseFloor: useRef(MIN_VOICE_THRESHOLD / 2),

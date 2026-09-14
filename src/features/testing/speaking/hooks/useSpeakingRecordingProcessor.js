@@ -18,6 +18,26 @@ import {
 } from '../utils/audioProcessing';
 import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
 
+const NO_AUDIO_MESSAGE =
+  "I couldn't capture that answer. The microphone is still open—please try once more.";
+const MIN_USABLE_AUDIO_BYTES = 1024;
+
+export function replacePendingWithAudioRecovery(conversation) {
+  const settled = conversation.filter((entry) => !entry.isLoading);
+  if (settled.at(-1)?.code === 'audio-capture-recovery') return settled;
+  return [...settled, { speaker: 'ai', text: NO_AUDIO_MESSAGE, code: 'audio-capture-recovery' }];
+}
+
+export async function recoverSpeakingV2Conflict({ error, sessionId }) {
+  if (error?.status !== 409 || !sessionId) return null;
+  if (error.state) return error.state;
+  const recovered = await callEdgeFunction('processSpeakingSessionV2', {
+    action: 'resume',
+    sessionId,
+  });
+  return recovered?.state || null;
+}
+
 export default function useSpeakingRecordingProcessor({
   allParts,
   acousticMetricsRef,
@@ -67,11 +87,9 @@ export default function useSpeakingRecordingProcessor({
         return;
       }
 
-      if (!audioBlob || audioBlob.size < 5000) {
-        setConversation((prev) => prev.filter((entry) => !entry.isLoading));
-        const message = "I didn't hear anything. I'll reopen the microphone—please speak clearly.";
-        setConversation((prev) => [...prev, { speaker: 'ai', text: message }]);
-        Promise.resolve(speakText(message)).finally(() => requestAutoStart?.());
+      if (!audioBlob || audioBlob.size < MIN_USABLE_AUDIO_BYTES) {
+        setConversation(replacePendingWithAudioRecovery);
+        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => requestAutoStart?.());
         return;
       }
 
@@ -79,10 +97,8 @@ export default function useSpeakingRecordingProcessor({
       // Stop before upload so a transcription provider cannot hallucinate an
       // answer. The Edge Function enforces the same rule as a backstop.
       if (isSilentSpeechMetadata(metadata)) {
-        setConversation((prev) => prev.filter((entry) => !entry.isLoading));
-        const message = "I didn't hear anything. I'll reopen the microphone—please speak clearly.";
-        setConversation((prev) => [...prev, { speaker: 'ai', text: message }]);
-        Promise.resolve(speakText(message)).finally(() => requestAutoStart?.());
+        setConversation(replacePendingWithAudioRecovery);
+        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => requestAutoStart?.());
         return;
       }
 
@@ -188,6 +204,21 @@ export default function useSpeakingRecordingProcessor({
         });
       } catch (error) {
         if (!isCurrentRequest()) return;
+        if (useSpeakingV2 && error?.status === 409) {
+          const recoveredState = await recoverSpeakingV2Conflict({
+            error,
+            sessionId: session?.id,
+          });
+          if (!isCurrentRequest()) return;
+          if (recoveredState) setSpeakingV2State?.(recoveredState);
+          setConversation((prev) => prev.filter((entry) => !entry.isLoading));
+          toast.info('Speaking session refreshed', {
+            description: 'Your place is safe. Please answer the current question once more.',
+            duration: 3500,
+          });
+          requestAutoStart?.();
+          return;
+        }
         const shouldRestart = await handleProcessingError(error, {
           pendingTimersRef,
           setConversation,

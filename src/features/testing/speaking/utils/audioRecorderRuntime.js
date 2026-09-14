@@ -2,6 +2,10 @@ import { getAutoFinishCountdown } from './speakingCaptureUtils';
 
 export const MAX_RECORDING_DURATION = 120000;
 export const MIN_VOICE_THRESHOLD = 0.018;
+// Below this peak, a running analyser has observed effectively digital silence.
+// Anything louder but not confidently voice-shaped is ambiguous and must still
+// reach transcription instead of being discarded as "no speech".
+const CONFIRMED_SILENCE_PEAK_RMS = 0.003;
 // Ceiling on the learned threshold, so an extreme room can still be spoken over.
 export const MAX_VOICE_THRESHOLD = 0.12;
 const ANALYSIS_INTERVAL_MS = 50;
@@ -67,6 +71,7 @@ export const __testing = {
     samples.forEach((rms) => updateNoiseFloor(refs, rms));
     return refs.noiseFloor.current;
   },
+  resolveSpeechDetected: (refs) => resolveSpeechDetected(refs),
 };
 
 function calculateRms(samples) {
@@ -168,6 +173,7 @@ function createAnalysisLoop(runtime, samples) {
     refs.analyser.current.getByteTimeDomainData(samples);
     const now = Date.now();
     const rms = calculateRms(samples);
+    refs.peakRms.current = Math.max(refs.peakRms.current, rms);
 
     // A context that never leaves `suspended` yields perfectly flat frames.
     // Treat the analyser as usable only once it delivers real signal, so the
@@ -357,7 +363,6 @@ function cleanupAudioAnalysis(runtime) {
   refs.analyserSource.current = null;
   refs.audioContext.current = null;
   refs.analyser.current = null;
-  refs.analyserReady.current = false;
   if (refs.silenceMonitor.current) {
     clearInterval(refs.silenceMonitor.current);
     refs.silenceMonitor.current = null;
@@ -427,6 +432,7 @@ export function resetRecorderCapture(runtime) {
   if (refs.speechConfidence) refs.speechConfidence.current = [];
   if (refs.speechDetected) refs.speechDetected.current = false;
   if (refs.analyserReady) refs.analyserReady.current = false;
+  if (refs.peakRms) refs.peakRms.current = 0;
   if (refs.voiceFrames) refs.voiceFrames.current = 0;
   if (refs.lastVoiceAt) refs.lastVoiceAt.current = 0;
   if (refs.graceStartedAt) refs.graceStartedAt.current = null;
@@ -447,6 +453,17 @@ function getRecorderMimeType() {
   return MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
 }
 
+function resolveSpeechDetected(refs) {
+  if (refs.speechDetected.current || Boolean(refs.liveTranscript.current)) return true;
+
+  // A suspended/unavailable AudioContext cannot prove silence. Likewise, quiet
+  // or noise-like audio is ambiguous: send it to the provider and let the
+  // server-side VAD/transcriber decide. Only a working analyser that stayed at
+  // an effectively flat digital signal may short-circuit as confirmed silence.
+  if (!refs.analyserReady.current) return null;
+  return refs.peakRms.current <= CONFIRMED_SILENCE_PEAK_RMS ? false : null;
+}
+
 function buildRecordingMetadata(runtime, duration) {
   const { refs } = runtime;
   return {
@@ -456,7 +473,7 @@ function buildRecordingMetadata(runtime, duration) {
     liveTranscript: refs.liveTranscript.current || null,
     // Lets the server refuse to invent a transcript for a clip the client is
     // confident contains no speech at all.
-    speechDetected: refs.speechDetected.current || Boolean(refs.liveTranscript.current),
+    speechDetected: resolveSpeechDetected(refs),
     stopReason: refs.stopReason.current,
   };
 }

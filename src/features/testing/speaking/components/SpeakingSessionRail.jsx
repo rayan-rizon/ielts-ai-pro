@@ -61,8 +61,7 @@ function TestRoadmap({ allParts, currentPartNumber }) {
                 className={cn(
                   'relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-extrabold',
                   isComplete && 'border-rose-500 bg-rose-500 text-white',
-                  isCurrent &&
-                    'border-rose-500 bg-rose-500 text-white shadow-md shadow-rose-500/20',
+                  isCurrent && 'border-rose-500 bg-rose-500 text-white',
                   !isComplete &&
                     !isCurrent &&
                     'border-[#e4e2f0] bg-white text-slate-500 dark:border-white/10 dark:bg-white/3 dark:text-slate-400'
@@ -168,7 +167,7 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
     .sort((a, b) => a - b);
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 sm:px-4">
+    <div className="flex min-h-11 items-center gap-2 px-2.5 py-1.5 sm:px-3">
       {/* Part step indicators */}
       <ol className="flex flex-1 items-center gap-0" aria-label="Test progress">
         {partNumbers.map((partNumber, index) => {
@@ -191,13 +190,16 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
                 />
               )}
 
-              <li className="flex flex-col items-center gap-1">
+              <li
+                className="flex flex-col items-center gap-0.5"
+                aria-label={`Part ${partNumber}: ${detail.title}${isCurrent ? ', current' : isComplete ? ', complete' : ''}`}
+                aria-current={isCurrent ? 'step' : undefined}
+              >
                 <span
                   className={cn(
-                    'flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-extrabold transition-all duration-200',
+                    'flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-extrabold transition-[background-color,border-color,color] duration-150',
                     isComplete && 'border-rose-500 bg-rose-500 text-white',
-                    isCurrent &&
-                      'border-rose-500 bg-rose-500 text-white shadow-sm shadow-rose-500/40',
+                    isCurrent && 'border-rose-500 bg-rose-500 text-white',
                     !isComplete &&
                       !isCurrent &&
                       'border-[#e4e2f0] bg-white text-slate-500 dark:border-white/10 dark:bg-white/3 dark:text-slate-400'
@@ -207,7 +209,7 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
                 </span>
                 <span
                   className={cn(
-                    'text-[8px] font-bold leading-none',
+                    'hidden whitespace-nowrap text-[8px] font-bold leading-none min-[430px]:inline',
                     isCurrent
                       ? 'text-rose-600 dark:text-rose-400'
                       : 'text-slate-500 dark:text-slate-400'
@@ -222,14 +224,14 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
       </ol>
 
       {/* Divider */}
-      <span className="mx-1.5 h-6 w-px bg-[#e4e2f0] dark:bg-white/[0.07]" aria-hidden="true" />
+      <span className="mx-1 h-6 w-px bg-[#e4e2f0] dark:bg-white/[0.07]" aria-hidden="true" />
 
       {/* Hands-free mini toggle with tooltip */}
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex shrink-0 items-center gap-1.5 cursor-default">
-              <div className="hidden min-[360px]:flex flex-col items-end gap-0.5">
+            <div className="flex shrink-0 cursor-default items-center gap-1.5">
+              <div className="hidden flex-col items-end gap-0.5 min-[520px]:flex">
                 <span className="text-[8px] font-extrabold leading-none text-slate-700 dark:text-slate-200">
                   Hands-free answers
                 </span>
@@ -242,7 +244,7 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
                 checked={handsFreeEnabled}
                 onCheckedChange={onHandsFreeChange}
                 aria-label="Toggle hands-free answers"
-                className="scale-[0.78] origin-center"
+                className="h-6 w-10 origin-center"
               />
             </div>
           </TooltipTrigger>
@@ -275,14 +277,6 @@ export default function SpeakingSessionRail({
         className={cn(PANEL, 'overflow-hidden rounded-xl xl:hidden')}
         aria-label="Speaking test progress"
       >
-        {speakingV2State && (
-          <div className="flex items-center justify-between gap-3 border-b border-[#e4e2f0] px-3 py-2 dark:border-white/[0.07]">
-            <span className={cn(MICRO, 'text-[#5a63df]')}>{speakingMode} mode</span>
-            <span className="font-mono text-[9px] font-bold text-slate-600 dark:text-slate-300">
-              {budget}
-            </span>
-          </div>
-        )}
         <MobileProgressStrip
           allParts={allParts}
           currentPartNumber={currentPartNumber}

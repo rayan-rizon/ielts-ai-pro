@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Activity, AudioLines, Mic2, PlayCircle, Radio, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, NUM, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
 
@@ -36,7 +36,7 @@ function Part2PreparationControls({ prepTimeLeft, onStartSpeaking }) {
       </div>
       <Button
         onClick={onStartSpeaking}
-        className="h-11 w-full gap-2 rounded-xl bg-rose-500 px-5 text-xs font-extrabold text-white shadow-lg shadow-rose-500/20 hover:bg-rose-600 sm:w-auto"
+        className="h-11 w-full gap-2 rounded-xl bg-rose-500 px-5 text-xs font-extrabold text-white hover:bg-rose-600 sm:w-auto"
       >
         <PlayCircle className="h-4 w-4" aria-hidden="true" />
         Start speaking now
@@ -57,7 +57,7 @@ function ExamListeningIndicator() {
       aria-label="Microphone live. Your answer is being recorded."
     >
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500 text-white">
-        <AudioLines className="h-4 w-4 animate-pulse" aria-hidden="true" />
+        <AudioLines className="h-4 w-4 motion-safe:animate-pulse" aria-hidden="true" />
       </span>
       <div className="min-w-0">
         <p className={cn(MICRO, 'text-rose-600 dark:text-rose-300')}>Microphone live</p>
@@ -72,7 +72,7 @@ function ExamListeningIndicator() {
         {[5, 11, 8, 14, 7].map((height, index) => (
           <span
             key={`${height}-${index}`}
-            className="w-0.5 animate-pulse rounded-full bg-rose-500"
+            className="w-0.5 rounded-full bg-rose-500 motion-safe:animate-pulse"
             style={{ height, animationDelay: `${index * 90}ms` }}
           />
         ))}
@@ -121,6 +121,7 @@ export default function SpeakingConversationPanel({
   speakingV2Available = false,
 }) {
   const cueCardRef = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!isPart2Prep || !cueCardRef.current || !conversationContainerRef.current) return;
@@ -129,14 +130,14 @@ export default function SpeakingConversationPanel({
     const scrollToCueCard = () => {
       container.scrollTo({
         top: Math.max(0, cueCardRef.current.offsetTop - 16),
-        behavior: 'smooth',
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
       });
     };
 
     scrollToCueCard();
     const delayedScroll = setTimeout(scrollToCueCard, 120);
     return () => clearTimeout(delayedScroll);
-  }, [conversationContainerRef, isPart2Prep]);
+  }, [conversationContainerRef, isPart2Prep, prefersReducedMotion]);
 
   // Owned here, not by the page: this component renders the scroll container,
   // so the observers attach the moment it exists. Driving it from the page
@@ -147,12 +148,12 @@ export default function SpeakingConversationPanel({
   // Re-follow on a new message or a completed part, even if the learner had
   // scrolled back to reread something.
   useEffect(() => {
-    if (conversation.length > 0) scrollToLatest('smooth');
-  }, [conversation, scrollToLatest]);
+    if (conversation.length > 0) scrollToLatest(prefersReducedMotion ? 'auto' : 'smooth');
+  }, [conversation, prefersReducedMotion, scrollToLatest]);
 
   useEffect(() => {
-    if (isPartComplete) scrollToLatest('smooth');
-  }, [isPartComplete, scrollToLatest]);
+    if (isPartComplete) scrollToLatest(prefersReducedMotion ? 'auto' : 'smooth');
+  }, [isPartComplete, prefersReducedMotion, scrollToLatest]);
 
   const visibleConversation = getVisibleSpeakingConversation(conversation, speakingMode);
   const finalCandidateMessage = visibleConversation.findLast((entry) => entry.speaker === 'user');
@@ -195,28 +196,33 @@ export default function SpeakingConversationPanel({
     <div
       className={cn(
         PANEL,
-        'isolate flex h-[calc(100dvh-14rem)] max-h-[740px] min-h-[420px] transform-gpu flex-col overflow-hidden rounded-xl sm:h-[calc(100dvh-15rem)] sm:min-h-[480px] xl:h-[calc(100vh-13.25rem)] xl:min-h-[500px]'
+        'isolate flex h-[calc(100dvh-11.5rem)] max-h-[760px] min-h-[360px] transform-gpu flex-col overflow-hidden rounded-xl sm:h-[calc(100dvh-11.25rem)] sm:min-h-[480px] xl:h-[calc(100vh-7.5rem)] xl:min-h-[540px]'
       )}
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e4e2f0] bg-white px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-[#131315] sm:px-5 sm:py-3">
+        <div className="flex min-h-11 shrink-0 items-center justify-between gap-2 border-b border-[#e4e2f0] bg-white px-3 py-1.5 dark:border-white/[0.07] dark:bg-[#131315] sm:px-4">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
               <Mic2 className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className={cn(MICRO, 'text-rose-600 dark:text-rose-400')}>Conversation room</p>
-              <p className={cn(TITLE, 'truncate text-xs sm:text-sm')}>AI examiner chat</p>
+              <p className={cn(MICRO, 'hidden text-rose-600 dark:text-rose-400 sm:block')}>
+                Conversation room
+              </p>
+              <p className={cn(TITLE, 'truncate text-xs sm:text-[13px]')}>AI examiner</p>
             </div>
           </div>
 
           <div
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-rose-500/15 bg-rose-500/5.5 px-2.5 py-1.5 dark:border-rose-400/20 dark:bg-rose-400/8"
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-rose-500/15 bg-rose-500/5.5 px-2 py-1 dark:border-rose-400/20 dark:bg-rose-400/8"
             role="status"
             aria-live="polite"
           >
             {roomStatusIsActive ? (
-              <Activity className="h-3.5 w-3.5 animate-pulse text-rose-500" aria-hidden="true" />
+              <Activity
+                className="h-3.5 w-3.5 text-rose-500 motion-safe:animate-pulse"
+                aria-hidden="true"
+              />
             ) : (
               <Radio className="h-3.5 w-3.5 text-rose-500/70" aria-hidden="true" />
             )}
@@ -228,7 +234,7 @@ export default function SpeakingConversationPanel({
 
         <div
           ref={conversationContainerRef}
-          className="custom-scrollbar flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 sm:space-y-4 sm:p-4 md:p-5"
+          className="custom-scrollbar flex-1 space-y-2.5 overflow-y-auto p-2.5 sm:space-y-3 sm:p-3.5 md:p-4"
           aria-live="polite"
           aria-label="Conversation with the AI examiner"
         >
@@ -241,7 +247,7 @@ export default function SpeakingConversationPanel({
               speakingV2Available={speakingV2Available}
             />
           ) : (
-            <AnimatePresence mode="sync">
+            <AnimatePresence initial={false} mode="sync">
               {visibleConversation.map((entry, index) => (
                 <ConversationMessage
                   key={`${entry.speaker}-${index}`}
@@ -299,7 +305,7 @@ export default function SpeakingConversationPanel({
         </div>
 
         {!isPartComplete && (
-          <div className="isolate shrink-0 transform-gpu border-t border-[#e4e2f0] px-3 py-2.5 dark:border-white/[0.07] sm:px-5 sm:py-4">
+          <div className="isolate shrink-0 transform-gpu border-t border-[#e4e2f0] px-2.5 py-2 dark:border-white/[0.07] sm:px-4">
             {timeExpired ? (
               <TimeUpTransition
                 currentPartNumber={currentPartNumber}
@@ -311,7 +317,7 @@ export default function SpeakingConversationPanel({
                 onStartSpeaking={handleStartPart2Speaking}
               />
             ) : (
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center">
                 <RecordingControls
                   testStarted={testStarted}
                   isPart2Prep={isPart2Prep}

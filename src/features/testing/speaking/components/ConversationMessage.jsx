@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   AudioLines,
   CheckCircle2,
@@ -30,13 +30,13 @@ function MessageAvatar({ entry, authUser }) {
       <img
         src={authUser.avatar_url}
         alt={authUser?.full_name || 'User'}
-        className="h-8 w-8 rounded-xl bg-muted object-cover ring-2 ring-white/80 shadow-sm dark:ring-white/10 sm:h-9 sm:w-9"
+        className="h-8 w-8 rounded-lg bg-muted object-cover ring-1 ring-black/10 dark:ring-white/10 sm:h-9 sm:w-9"
       />
     );
   }
 
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br/srgb from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25 ring-2 ring-white/80 dark:ring-white/10 sm:h-9 sm:w-9">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500 text-white ring-1 ring-black/10 dark:ring-white/10 sm:h-9 sm:w-9">
       <span className="text-xs font-bold">
         {(authUser?.full_name || 'C').charAt(0).toUpperCase()}
       </span>
@@ -51,10 +51,10 @@ function getBubbleClass(entry) {
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
-      return 'rounded-2xl rounded-tl-sm border border-rose-100 bg-linear-to-br/srgb from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#161516] dark:via-[#131315] dark:to-[#161516] dark:text-slate-100';
+      return 'rounded-xl rounded-tl-sm border border-rose-100 bg-linear-to-br/srgb from-rose-50 to-pink-50/70 text-left font-medium text-slate-800 dark:border-rose-500/20 dark:from-[#161516] dark:via-[#131315] dark:to-[#161516] dark:text-slate-100';
     }
     // Regular examiner — quiet panel tile
-    return 'rounded-2xl rounded-tl-sm border border-[#ebeaf7] bg-[#fbfbfe] text-left font-medium text-slate-800 shadow-[0_1px_6px_-2px_hsl(220_15%_50%/0.10)] dark:border-white/10 dark:bg-white/4 dark:text-slate-100';
+    return 'rounded-xl rounded-tl-sm border border-[#ebeaf7] bg-[#fbfbfe] text-left font-medium text-slate-800 dark:border-white/10 dark:bg-white/4 dark:text-slate-100';
   }
 
   // User error
@@ -64,11 +64,11 @@ function getBubbleClass(entry) {
 
   // User live/draft transcript — soft lavender
   if (entry.isLive || entry.isTranscriptDraft) {
-    return 'rounded-2xl rounded-tr-sm border border-rose-100 bg-linear-to-br/srgb from-rose-50 via-white to-red-50/60 text-left font-medium text-slate-800 shadow-sm dark:border-rose-500/20 dark:from-[#171416] dark:via-[#131315] dark:to-[#171416] dark:text-slate-100';
+    return 'rounded-xl rounded-tr-sm border border-rose-100 bg-linear-to-br/srgb from-rose-50 via-white to-red-50/60 text-left font-medium text-slate-800 dark:border-rose-500/20 dark:from-[#171416] dark:via-[#131315] dark:to-[#171416] dark:text-slate-100';
   }
 
   // Completed user message — soft red pastel
-  return 'rounded-2xl rounded-tr-sm border border-rose-100/80 bg-linear-to-br/srgb from-rose-50 via-pink-50 to-red-50/80 text-left font-medium text-rose-950 shadow-sm dark:border-rose-500/20 dark:from-[#191416] dark:via-[#151315] dark:to-[#191416] dark:text-rose-100';
+  return 'rounded-xl rounded-tr-sm border border-rose-100/80 bg-linear-to-br/srgb from-rose-50 via-pink-50 to-red-50/80 text-left font-medium text-rose-950 dark:border-rose-500/20 dark:from-[#191416] dark:via-[#151315] dark:to-[#191416] dark:text-rose-100';
 }
 
 function LoadingText({ speaker }) {
@@ -77,11 +77,11 @@ function LoadingText({ speaker }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex gap-1">
-        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:0ms]" />
-        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:150ms]" />
-        <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:300ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 motion-safe:animate-bounce [animation-delay:0ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 motion-safe:animate-bounce [animation-delay:150ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 motion-safe:animate-bounce [animation-delay:300ms]" />
       </div>
-      <span className={cn(MICRO, MUTED, 'tracking-widest animate-pulse')}>{label}</span>
+      <span className={cn(MICRO, MUTED, 'tracking-widest motion-safe:animate-pulse')}>{label}</span>
     </div>
   );
 }
@@ -100,7 +100,7 @@ const LiveWaveform = React.memo(function LiveWaveform({ active, tone }) {
       {[3, 7, 11, 7, 5, 9, 3].map((h, bar) => (
         <span
           key={bar}
-          className={`w-[2px] rounded-full ${colors[tone] || colors.rose} transition-all duration-150`}
+          className={`w-[2px] rounded-full ${colors[tone] || colors.rose} transition-[height,opacity] duration-150 ${active ? 'motion-safe:animate-pulse' : ''}`}
           style={{
             height: active ? `${h}px` : '3px',
             animationDelay: `${bar * 60}ms`,
@@ -115,45 +115,39 @@ function DraftTranscript({ entry }) {
   const isPaused = entry.autoSubmitPaused;
   const isLive = entry.isLive;
   const status = isPaused
-    ? 'Timer & auto-send paused'
+    ? 'Paused'
     : entry.autoFinishCountdown
       ? `Sending in ${entry.autoFinishCountdown}s`
-      : isLive
-        ? 'Listening live'
-        : 'Refining transcript';
+      : isLive && entry.text
+        ? 'Hearing you'
+        : isLive
+          ? 'Waiting for speech'
+          : 'Refining transcript';
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1">
+    <div className="space-y-1">
+      <div
+        className={cn(
+          'flex items-center justify-between gap-3',
+          entry.text && 'border-b border-rose-400/15 pb-1'
+        )}
+      >
         <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
           {isPaused ? (
             <Pause className="h-3 w-3 fill-current" aria-hidden="true" />
           ) : isLive ? (
-            <AudioLines className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
+            <AudioLines className="h-3.5 w-3.5 motion-safe:animate-pulse" aria-hidden="true" />
           ) : (
-            <Sparkles className="h-3 w-3 animate-pulse" aria-hidden="true" />
+            <Sparkles className="h-3 w-3 motion-safe:animate-pulse" aria-hidden="true" />
           )}
           {status}
         </span>
         <LiveWaveform active={isLive && !isPaused} tone="rose" />
       </div>
-      <p className="whitespace-pre-wrap text-[12.5px] leading-snug text-foreground/90 sm:text-[13px]">
-        {cleanMessageText(entry.text) ||
-          (isLive ? 'Start speaking when you are ready.' : 'Preparing your transcript…')}
-        {isLive && entry.text && (
-          <span
-            aria-hidden="true"
-            className="ml-0.5 inline-block h-[14px] w-0.5 translate-y-0.5 animate-pulse rounded-full bg-rose-500"
-          />
-        )}
-      </p>
-      {(isPaused || entry.autoFinishCountdown || !isLive) && (
-        <p className="text-[9px] font-medium leading-3 text-muted-foreground/75">
-          {isPaused
-            ? 'Test time and silence sending are paused.'
-            : entry.autoFinishCountdown
-              ? 'Keep speaking to cancel the countdown.'
-              : 'Finalising your wording…'}
+      {(entry.text || !isPaused) && (
+        <p className="max-h-11 overflow-y-auto whitespace-pre-wrap pr-1 text-[12.5px] leading-[1.45] text-foreground/90 sm:text-[13px]">
+          {cleanMessageText(entry.text) ||
+            (isLive ? 'Start speaking when ready.' : 'Preparing transcript…')}
         </p>
       )}
     </div>
@@ -288,9 +282,9 @@ function ExaminerLiveTranscript({ entry }) {
       <div className="flex items-center justify-between gap-3 border-b border-rose-400/15 pb-1">
         <span className="flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">
           {entry.isExaminerSpeaking ? (
-            <AudioLines className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
+            <AudioLines className="h-3.5 w-3.5 motion-safe:animate-pulse" aria-hidden="true" />
           ) : (
-            <Radio className="h-3.5 w-3.5 animate-pulse" aria-hidden="true" />
+            <Radio className="h-3.5 w-3.5 motion-safe:animate-pulse" aria-hidden="true" />
           )}
           {entry.isExaminerSpeaking ? 'British examiner · live' : 'Preparing examiner audio'}
         </span>
@@ -332,52 +326,27 @@ function MessageBody({ entry }) {
   return <p className="whitespace-pre-wrap">{cleanMessageText(entry.text)}</p>;
 }
 
-/**
- * Holds a live bubble at its tallest so far.
- *
- * Web Speech revises its interim guess constantly, and a shorter revision
- * shrinks the bubble — which pushes everything below it up and undoes the
- * scroll position mid-sentence. Growing is fine; shrinking is what reads as a
- * glitch. The floor is released once the turn is no longer live.
- */
-function useMonotonicHeight(elementRef, isLive, text) {
-  const [minHeight, setMinHeight] = useState(0);
-
-  useLayoutEffect(() => {
-    if (!isLive) {
-      setMinHeight((current) => (current === 0 ? current : 0));
-      return;
-    }
-    const measured = elementRef.current?.getBoundingClientRect().height ?? 0;
-    setMinHeight((current) => (measured > current ? measured : current));
-  }, [elementRef, isLive, text]);
-
-  return isLive ? minHeight : 0;
-}
-
 const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
-  const bubbleRef = useRef(null);
   const isCompactTranscript = entry.speaker === 'user' && (entry.isLive || entry.isTranscriptDraft);
   const isExaminerTranscript = entry.speaker === 'ai' && entry.isExaminerLive;
   const isCoachMessage = entry.speaker === 'coach';
   const isExaminerMessage = entry.speaker === 'ai' || entry.speaker === 'coach';
   const isUserMessage = entry.speaker === 'user';
   const prefersReducedMotion = useReducedMotion();
-  const liveMinHeight = useMonotonicHeight(bubbleRef, isCompactTranscript, entry.text);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 6, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className={`flex items-end gap-2.5 sm:gap-3 ${isUserMessage ? 'flex-row-reverse' : ''}`}
+      transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
+      className={`flex items-end gap-2 sm:gap-2.5 ${isUserMessage ? 'flex-row-reverse' : ''}`}
     >
       <MessageAvatar entry={entry} authUser={authUser} />
 
       <div
         className={`min-w-0 space-y-1 ${
           isCompactTranscript || isExaminerTranscript
-            ? 'max-w-[88%] sm:max-w-[72%] lg:max-w-[65%]'
+            ? 'w-full max-w-[92%] sm:max-w-[78%] lg:max-w-[72%]'
             : isCoachMessage
               ? 'max-w-[92%] sm:max-w-[78%] lg:max-w-[68%]'
               : isUserMessage
@@ -405,8 +374,6 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
 
         {/* Bubble */}
         <motion.div
-          ref={bubbleRef}
-          style={liveMinHeight ? { minHeight: liveMinHeight } : undefined}
           // Size is animated for the examiner's stream, which only ever grows.
           // The candidate's live captions are revised several times a second
           // and routinely get shorter, so animating them meant the bubble was

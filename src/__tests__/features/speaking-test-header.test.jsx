@@ -22,7 +22,6 @@ describe('Speaking test header', () => {
     );
 
     expect(screen.getByText('Part 1 complete')).toBeInTheDocument();
-    expect(screen.getAllByText('Complete').length).toBeGreaterThan(0);
     expect(screen.getByText('Ready for Part 2')).toBeInTheDocument();
     expect(screen.queryByText('Part 1 is active')).not.toBeInTheDocument();
     expect(screen.getAllByText('Practice room').length).toBeGreaterThan(0);

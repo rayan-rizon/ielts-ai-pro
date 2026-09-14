@@ -30,10 +30,8 @@ describe('speaking recording controls', () => {
     const onStartListening = vi.fn();
     render(<RecordingControls {...readyProps} onStartListening={onStartListening} />);
 
-    expect(screen.getByText('Microphone starting')).toBeInTheDocument();
-    expect(
-      screen.getByText('Hands-free mode starts after each question. Start now is only a fallback.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Microphone ready')).toBeInTheDocument();
+    expect(screen.queryByText(/Hands-free mode starts/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Start recording answer' }));
     expect(onStartListening).toHaveBeenCalledOnce();
@@ -44,8 +42,8 @@ describe('speaking recording controls', () => {
 
     expect(screen.getByText('Ready for your answer')).toBeInTheDocument();
     expect(
-      screen.getByText('Start and finish each answer when you are ready.')
-    ).toBeInTheDocument();
+      screen.queryByText('Start and finish each answer when you are ready.')
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start recording answer' })).toHaveTextContent(
       'Start answer'
     );
@@ -63,7 +61,7 @@ describe('speaking recording controls', () => {
       />
     );
 
-    expect(screen.getByText('Transcript streaming in chat')).toBeInTheDocument();
+    expect(screen.queryByText('Transcript streaming in chat')).not.toBeInTheDocument();
     expect(screen.queryByText('I know the capital city quite well.')).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Pause test timer and automatic answer sending' })
@@ -108,7 +106,7 @@ describe('speaking recording controls', () => {
         onAutoSubmitPausedChange={onAutoSubmitPausedChange}
       />
     );
-    expect(screen.getByText('Timer & auto-send paused')).toBeInTheDocument();
+    expect(screen.queryByText('Timer & auto-send paused')).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: 'Resume test timer and automatic answer sending' })
     );

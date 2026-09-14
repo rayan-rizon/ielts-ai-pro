@@ -55,12 +55,12 @@ export default function SpeakingTestPageView({
   return (
     <div
       data-testid="speaking-test-page"
-      className="relative min-h-full overflow-x-hidden bg-[#f8f8fb] transition-colors duration-500 dark:bg-[#08080a]"
+      className="relative min-h-full overflow-x-hidden bg-[#f8f8fb] dark:bg-[#08080a]"
     >
       <ExitDialog open={showExitDialog} blocker={blocker} {...exitDialogProps} />
 
       {/* Page Wrapper */}
-      <div className="relative mx-auto w-full max-w-[1540px] px-3 pb-3 pt-0 sm:px-4 sm:pb-4 sm:pt-1 lg:px-5">
+      <div className="relative mx-auto w-full max-w-[1540px] px-2.5 pb-2.5 pt-1 sm:px-3 sm:pb-3 lg:px-4">
         <TestHeader
           currentPartNumber={currentPartNumber}
           currentPart={currentPart}
@@ -79,7 +79,7 @@ export default function SpeakingTestPageView({
           {...headerProps}
         />
 
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-4">
+        <div className="grid gap-2 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-3">
           <div className="order-2 min-w-0 xl:order-1">
             <SpeakingConversationPanel
               currentPartNumber={currentPartNumber}

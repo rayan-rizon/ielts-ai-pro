@@ -25,7 +25,31 @@ describe('speaking conversation message', () => {
 
     expect(screen.getByText('I enjoyed studying science at school.')).toBeInTheDocument();
     expect(screen.getByText('Sending in 2s')).toBeInTheDocument();
-    expect(screen.getByText('Keep speaking to cancel the countdown.')).toBeInTheDocument();
+    expect(screen.queryByText('Keep speaking to cancel the countdown.')).not.toBeInTheDocument();
+  });
+
+  it('uses stable, explicit states before and while live words arrive', () => {
+    const { rerender } = render(
+      <ConversationMessage
+        index={0}
+        authUser={{ full_name: 'Candidate' }}
+        entry={{ speaker: 'user', text: '', isLoading: true, isLive: true }}
+      />
+    );
+
+    expect(screen.getByText('Waiting for speech')).toBeInTheDocument();
+    expect(screen.getByText('Start speaking when ready.')).toBeInTheDocument();
+
+    rerender(
+      <ConversationMessage
+        index={0}
+        authUser={{ full_name: 'Candidate' }}
+        entry={{ speaker: 'user', text: 'I usually read at night.', isLoading: true, isLive: true }}
+      />
+    );
+
+    expect(screen.getByText('Hearing you')).toBeInTheDocument();
+    expect(screen.getByText('I usually read at night.')).toBeInTheDocument();
   });
 
   it('clearly shows when silence auto-send is paused', () => {
@@ -43,8 +67,8 @@ describe('speaking conversation message', () => {
       />
     );
 
-    expect(screen.getByText('Timer & auto-send paused')).toBeInTheDocument();
-    expect(screen.getByText('Test time and silence sending are paused.')).toBeInTheDocument();
+    expect(screen.getByText('Paused')).toBeInTheDocument();
+    expect(screen.queryByText('Test time and silence sending are paused.')).not.toBeInTheDocument();
   });
 
   it('shows a transcript-only loading state when no live words are available', () => {
