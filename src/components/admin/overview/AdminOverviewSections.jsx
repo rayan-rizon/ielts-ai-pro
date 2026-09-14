@@ -376,7 +376,7 @@ const TrendTooltip = ({ active, payload, label }) => {
 const TrendPanel = ({ trend, usesTestUsers }) => {
   const comparisonLabel = usesTestUsers ? 'Test takers' : 'Last seen';
   return (
-    <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
+    <m.div variants={itemVariants} className="col-span-12">
       <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
         <div className="flex items-baseline justify-between mb-3">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
@@ -530,7 +530,7 @@ const OnboardingOfferPanel = ({ offer, displayDays }) => {
   const missedOffer = offer.missedOffer ?? 0;
 
   return (
-    <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+    <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
       <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
         <div className="mb-3 flex items-baseline justify-between gap-2">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Onboarding plan offer</h3>
@@ -595,7 +595,7 @@ const OnboardingOfferPanel = ({ offer, displayDays }) => {
 };
 
 const RecentSignupsPanel = ({ users }) => (
-  <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
+  <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
     <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
       <div>
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2')}>Latest signups</h3>
