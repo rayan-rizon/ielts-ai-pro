@@ -547,7 +547,10 @@ const RecentSignupsPanel = ({ users, offer, displayDays }) => (
       <div>
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Latest signups</h3>
-          <InfoTip content="The newest accounts, and what each did when the onboarding plan prices appeared on the final step." />
+          <InfoTip>
+            The newest accounts, and what each did when the onboarding plan prices appeared on the
+            final step.
+          </InfoTip>
         </div>
         <div className="mb-2 border-b border-stone-100 pb-2 dark:border-white/5">
           <OfferSummary offer={offer} displayDays={displayDays} />
