@@ -76,31 +76,19 @@ describe('latest signups onboarding status', () => {
   });
 });
 
-describe('onboarding plan offer panel', () => {
+describe('plan offer summary inside the signup card', () => {
   it('names missing history instead of drawing it as a zero', () => {
-    renderOverview({
-      onboardingOffer: {
-        answered: 12,
-        notRecorded: 12,
-        missedOffer: 0,
-        sawOffer: 0,
-        clickedPro: 0,
-        clickedPremium: 0,
-        continuedFree: 0,
-        leftUndecided: 0,
-      },
-    });
+    renderOverview({ onboardingOffer: { answered: 12, sawOffer: 0 } });
 
-    expect(screen.getByText('No offer data yet for this window')).toBeInTheDocument();
-    expect(screen.getByText(/missing data, not a zero/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no data yet — 12 onboarded before tracking started/)
+    ).toBeInTheDocument();
   });
 
-  it('breaks the offer down once learners have actually seen a price', () => {
+  it('summarises the offer above the arrivals it describes', () => {
     renderOverview({
       onboardingOffer: {
         answered: 20,
-        notRecorded: 0,
-        missedOffer: 2,
         sawOffer: 18,
         clickedPro: 6,
         clickedPremium: 3,
@@ -109,17 +97,30 @@ describe('onboarding plan offer panel', () => {
       },
     });
 
-    expect(screen.getByText(/reached a price · 90% of 20 who finished setup/)).toBeInTheDocument();
-    expect(screen.getByText('Went to checkout · Pro')).toBeInTheDocument();
-    expect(screen.getByText('Went to checkout · Premium')).toBeInTheDocument();
-    expect(screen.getByText('Continued on free')).toBeInTheDocument();
-    expect(screen.getByText('Left without choosing')).toBeInTheDocument();
-    expect(screen.getByText('2 left before the offer finished loading.')).toBeInTheDocument();
+    expect(screen.getByText(/of 20 reached a price/)).toBeInTheDocument();
+    expect(screen.getByText('90%')).toBeInTheDocument();
+    ['Pro', 'Premium', 'free', 'undecided'].forEach((label) => {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
   });
 
-  it('says the offer was never shown rather than reporting an empty funnel', () => {
+  it('says nobody reached it rather than reporting an empty funnel', () => {
     renderOverview({ onboardingOffer: { answered: 0 } });
 
-    expect(screen.getByText(/Nobody finished onboarding in the last 7 days/)).toBeInTheDocument();
+    expect(screen.getByText(/nobody finished onboarding in 7d/)).toBeInTheDocument();
+  });
+
+  it('shows each learner what they did with the price', () => {
+    renderOverview({
+      recentSignups: [
+        signup({ id: 'a', onboarding_completed: true, onboarding_plan_clicked: 'pro' }),
+        signup({ id: 'b', onboarding_completed: true, onboarding_plan_clicked: 'premium' }),
+        signup({ id: 'c', onboarding_completed: true, onboarding_offer_exit: 'free' }),
+      ],
+    });
+
+    expect(screen.getByText(/BD · Chose Pro/)).toBeInTheDocument();
+    expect(screen.getByText(/BD · Chose Premium/)).toBeInTheDocument();
+    expect(screen.getByText(/BD · Stayed free/)).toBeInTheDocument();
   });
 });

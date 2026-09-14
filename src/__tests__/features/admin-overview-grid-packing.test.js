@@ -52,12 +52,11 @@ describe('admin overview grid packing', () => {
     expect(rows.every((row) => row === 12)).toBe(true);
   });
 
-  it('keeps the onboarding offer beside the signup list it explains', () => {
+  it('keeps the plan offer inside the signup card rather than beside it', () => {
     const panels = renderOrder();
-    const signups = panels.indexOf('RecentSignupsPanel');
-    const offer = panels.indexOf('OnboardingOfferPanel');
 
-    expect(offer).toBe(signups + 1);
-    expect(spanOf('RecentSignupsPanel', 'lg') + spanOf('OnboardingOfferPanel', 'lg')).toBe(12);
+    expect(panels).toContain('RecentSignupsPanel');
+    expect(panels).not.toContain('OnboardingOfferPanel');
+    expect(SOURCE).toContain('<OfferSummary offer={offer} displayDays={displayDays} />');
   });
 });

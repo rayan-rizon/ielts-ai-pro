@@ -376,7 +376,7 @@ const TrendTooltip = ({ active, payload, label }) => {
 const TrendPanel = ({ trend, usesTestUsers }) => {
   const comparisonLabel = usesTestUsers ? 'Test takers' : 'Last seen';
   return (
-    <m.div variants={itemVariants} className="col-span-12">
+    <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
       <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
         <div className="flex items-baseline justify-between mb-3">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
@@ -464,9 +464,16 @@ const TrendPanel = ({ trend, usesTestUsers }) => {
 const ONBOARDING_GRACE_MS = 30 * 60 * 1000;
 
 const onboardingStatusLabel = (user) => {
+  // What they did with the price outranks the onboarding state: "Chose Pro"
+  // already implies they finished setup, and it is the more useful fact.
+  if (user.onboarding_plan_clicked === 'pro') return 'Chose Pro';
+  if (user.onboarding_plan_clicked === 'premium') return 'Chose Premium';
+  if (user.onboarding_offer_exit === 'free') return 'Stayed free';
+
   if (user.onboarding_completed) {
     return user.onboarding_outcome === 'skipped' ? 'Skipped setup' : 'Onboarded';
   }
+
   const createdAt = user.created_at ? new Date(user.created_at).getTime() : NaN;
   if (Number.isFinite(createdAt) && Date.now() - createdAt < ONBOARDING_GRACE_MS) {
     return 'Signing up';
@@ -475,130 +482,76 @@ const onboardingStatusLabel = (user) => {
 };
 
 /**
- * What the onboarding plan offer actually did.
+ * What the onboarding plan offer did, summarised above the signups it describes.
  *
- * The offer is the last step of onboarding and the only place a learner is
- * asked for money before they have used anything, so it needs its own read:
- * the main funnel stops at "finished onboarding" and cannot show whether the
- * price costs activation or earns intent.
- *
- * Counts are of learners who FINISHED the questionnaire in the window — nobody
- * else is ever shown the offer. Missing data is named in words rather than
- * drawn as a zero: a learner who onboarded before this tracking shipped is not
- * the same as one who saw a price and walked away.
+ * The offer is the last onboarding step and the only place a learner is asked
+ * for money before using anything, so it lives with the arrivals list rather
+ * than in a panel of its own: the strip gives the rate, the rows below give the
+ * individual. Missing history is named in words — a learner who onboarded
+ * before this tracking shipped is not the same as one who saw a price and
+ * walked away.
  */
-const OFFER_ROWS = [
-  { key: 'clickedPro', label: 'Went to checkout · Pro', tone: 'ok' },
-  { key: 'clickedPremium', label: 'Went to checkout · Premium', tone: 'ok' },
-  { key: 'continuedFree', label: 'Continued on free', tone: 'neutral' },
-  { key: 'leftUndecided', label: 'Left without choosing', tone: 'fault' },
+const OFFER_PARTS = [
+  { key: 'clickedPro', label: 'Pro' },
+  { key: 'clickedPremium', label: 'Premium' },
+  { key: 'continuedFree', label: 'free' },
+  { key: 'leftUndecided', label: 'undecided' },
 ];
 
-const OfferRow = ({ label, count, share, tone }) => (
-  <div className="flex items-center gap-2.5">
-    <div className="relative h-6 flex-1 overflow-hidden rounded bg-stone-100 dark:bg-white/4">
-      <div
-        className={cn(
-          'absolute inset-y-0 left-0 rounded transition-[width] duration-700',
-          tone === 'ok' && 'bg-[rgb(var(--signal-ok)/0.18)]',
-          tone === 'fault' && 'bg-[rgb(var(--signal-fault)/0.16)]',
-          tone === 'neutral' && 'bg-stone-300/40 dark:bg-white/10'
-        )}
-        style={{ width: `${Math.max(share, count > 0 ? 3 : 0)}%` }}
-      />
-      <div className="relative flex h-full items-center justify-between px-2.5">
-        <span className="truncate text-[10.5px] font-extrabold text-stone-800 dark:text-stone-100">
-          {label}
-        </span>
-        <span className={cn(NUM, 'ml-2 shrink-0 text-[10px] font-bold text-stone-500')}>
-          {share === null ? '—' : `${Math.round(share)}%`}
-        </span>
-      </div>
-    </div>
-    <span
-      className={cn(NUM, 'w-8 text-right text-[12px] font-bold text-stone-900 dark:text-stone-50')}
-    >
-      {count}
-    </span>
-  </div>
-);
-
-const OnboardingOfferPanel = ({ offer, displayDays }) => {
+const OfferSummary = ({ offer, displayDays }) => {
   const answered = offer.answered ?? 0;
   const sawOffer = offer.sawOffer ?? 0;
-  const notRecorded = offer.notRecorded ?? 0;
-  const missedOffer = offer.missedOffer ?? 0;
+
+  if (answered === 0) {
+    return (
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+        Plan offer · nobody finished onboarding in {displayDays}d
+      </p>
+    );
+  }
+
+  if (sawOffer === 0) {
+    return (
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+        Plan offer · no data yet — {answered} onboarded before tracking started
+      </p>
+    );
+  }
 
   return (
-    <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
-      <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
-        <div className="mb-3 flex items-baseline justify-between gap-2">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Onboarding plan offer</h3>
-          <InfoTip content="Of the learners who finished the onboarding questions in this window, what they did when the plan prices appeared on the final step." />
-        </div>
-
-        {answered === 0 ? (
-          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Nobody finished onboarding in the last {displayDays} days, so the offer was never shown.
-          </p>
-        ) : sawOffer === 0 ? (
-          <div className="space-y-1.5">
-            <p className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100">
-              No offer data yet for this window
-            </p>
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-              {answered} learner{answered === 1 ? '' : 's'} finished onboarding, all of them before
-              offer tracking started. This is missing data, not a zero.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-2.5 flex items-baseline gap-1.5">
-              <span className={cn(NUM, 'text-xl font-black text-stone-900 dark:text-stone-50')}>
-                {sawOffer}
-              </span>
-              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                reached a price · {Math.round((sawOffer / answered) * 100)}% of {answered} who
-                finished setup
-              </span>
-            </div>
-
-            <div className="space-y-1.5">
-              {OFFER_ROWS.map((row) => (
-                <OfferRow
-                  key={row.key}
-                  label={row.label}
-                  tone={row.tone}
-                  count={offer[row.key] ?? 0}
-                  share={((offer[row.key] ?? 0) / sawOffer) * 100}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        <div className="mt-auto space-y-0.5 pt-3">
-          {missedOffer > 0 && (
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-              {missedOffer} left before the offer finished loading.
-            </p>
-          )}
-          {notRecorded > 0 && sawOffer > 0 && (
-            <p className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>
-              {notRecorded} onboarded before offer tracking started — no data, excluded above.
-            </p>
-          )}
-        </div>
+    <div className="space-y-1">
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+        Plan offer ·{' '}
+        <span className={cn(NUM, 'font-bold text-stone-800 dark:text-stone-100')}>
+          {Math.round((sawOffer / answered) * 100)}%
+        </span>{' '}
+        of {answered} reached a price
+      </p>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        {OFFER_PARTS.map((part) => (
+          <span key={part.key} className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            <span className={cn(NUM, 'font-bold text-stone-800 dark:text-stone-100')}>
+              {offer[part.key] ?? 0}
+            </span>{' '}
+            {part.label}
+          </span>
+        ))}
       </div>
-    </m.div>
+    </div>
   );
 };
 
-const RecentSignupsPanel = ({ users }) => (
-  <m.div variants={itemVariants} className="col-span-12 lg:col-span-6">
+const RecentSignupsPanel = ({ users, offer, displayDays }) => (
+  <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
     <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
       <div>
-        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-2')}>Latest signups</h3>
+        <div className="mb-2 flex items-baseline justify-between gap-2">
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Latest signups</h3>
+          <InfoTip content="The newest accounts, and what each did when the onboarding plan prices appeared on the final step." />
+        </div>
+        <div className="mb-2 border-b border-stone-100 pb-2 dark:border-white/5">
+          <OfferSummary offer={offer} displayDays={displayDays} />
+        </div>
         <div className="space-y-px">
           {users.slice(0, 5).map((user) => (
             <div
@@ -1262,8 +1215,8 @@ export const AdminOverviewSections = ({
           trend={arrayOrEmpty(data.trend)}
           usesTestUsers={data.trendMetric === 'testUsers'}
         />
-        <RecentSignupsPanel users={arrayOrEmpty(data.recentSignups)} />
-        <OnboardingOfferPanel
+        <RecentSignupsPanel
+          users={arrayOrEmpty(data.recentSignups)}
           offer={objectOrEmpty(data.onboardingOffer)}
           displayDays={displayDays}
         />
