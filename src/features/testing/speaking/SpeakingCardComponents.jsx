@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
+import { resolveSpeakingAttemptState } from './speakingCardHelpers';
 import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
 
 // ---------------------------------------------------------------------------
@@ -122,7 +123,14 @@ const OUTLINE_ICON_BTN = cn(
   'flex h-9 w-9 shrink-0 items-center justify-center text-slate-500 transition-all hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-sm active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
-export function GridActions({ isLocked, isResuming, isCompleted, test, completedSessionId }) {
+export function GridActions({
+  isLocked,
+  isResuming,
+  isCompleted,
+  needsRestart,
+  test,
+  completedSessionId,
+}) {
   if (isLocked) {
     return (
       <Link to={createPageUrl('Pricing')} className="block">
@@ -136,17 +144,22 @@ export function GridActions({ isLocked, isResuming, isCompleted, test, completed
     );
   }
   if (isResuming) {
-    // No restart link here on purpose: an in-progress Speaking session resumes
-    // straight into the recording flow, it doesn't offer a retake shortcut.
     return (
-      <Link to={withLearningActivity(`/speaking-test/${test.id}`)} className="block">
-        <button
-          type="button"
-          className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-        >
-          Resume Test <Play className="h-3.5 w-3.5 fill-current" />
-        </button>
-      </Link>
+      <div className="flex gap-2">
+        <Link to={withLearningActivity(`/speaking-test/${test.id}`)} className="flex-1">
+          <button
+            type="button"
+            className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+          >
+            Resume Test <Play className="h-3.5 w-3.5 fill-current" />
+          </button>
+        </Link>
+        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
+          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
+            <RotateCcw className="h-4 w-4" />
+          </button>
+        </Link>
+      </div>
     );
   }
   if (isCompleted) {
@@ -169,6 +182,21 @@ export function GridActions({ isLocked, isResuming, isCompleted, test, completed
           </button>
         </Link>
       </div>
+    );
+  }
+  if (needsRestart) {
+    return (
+      <Link
+        to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}
+        className="block"
+      >
+        <button
+          type="button"
+          className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+        >
+          Restart Practice <RotateCcw className="h-3.5 w-3.5" />
+        </button>
+      </Link>
     );
   }
   return (
@@ -194,9 +222,10 @@ export function BookProgressBadge({ tests, sessions }) {
   tests.forEach((t) => {
     const s = sessions.find((session) => session.passage_id === t.id);
     if (s) {
-      if (s.is_completed) {
+      const { isCompleted, isResuming } = resolveSpeakingAttemptState(s);
+      if (isCompleted) {
         completed++;
-      } else {
+      } else if (isResuming) {
         inProgress++;
       }
     }
@@ -262,7 +291,14 @@ const ROW_ICON_BTN = cn(
   'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all active:scale-95 dark:text-slate-400 cursor-pointer'
 );
 
-export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, test }) {
+export function TestRowAction({
+  isLocked,
+  isResuming,
+  isCompleted,
+  needsRestart,
+  testSession,
+  test,
+}) {
   if (isLocked) {
     return (
       <>
@@ -287,6 +323,25 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
           >
             Resume <Play className="h-3 w-3 fill-current" />
+          </button>
+        </Link>
+        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
+          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        </Link>
+      </>
+    );
+  }
+  if (needsRestart) {
+    return (
+      <>
+        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
+          <button
+            type="button"
+            className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+          >
+            Restart <RotateCcw className="h-3 w-3" />
           </button>
         </Link>
         <div className="h-8 w-8 shrink-0" />

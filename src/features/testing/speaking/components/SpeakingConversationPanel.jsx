@@ -184,13 +184,19 @@ export default function SpeakingConversationPanel({
           ? 'Listening live'
           : isProcessing
             ? 'Processing response'
-            : isSpeaking || isTTSLoading
+            : isSpeaking || isTTSLoading || isPlaybackActive
               ? 'Examiner speaking'
               : 'Your turn';
 
   const roomStatusIsActive =
     testStarted &&
-    (timeExpired || isListening || isProcessing || isSpeaking || isTTSLoading || isPart2Prep);
+    (timeExpired ||
+      isListening ||
+      isProcessing ||
+      isSpeaking ||
+      isTTSLoading ||
+      isPlaybackActive ||
+      isPart2Prep);
 
   return (
     <div
@@ -326,6 +332,7 @@ export default function SpeakingConversationPanel({
                   isProcessing={isProcessing}
                   isSpeaking={isSpeaking}
                   isTTSLoading={isTTSLoading}
+                  isPlaybackActive={isPlaybackActive}
                   processingStatus={processingStatus}
                   micError={micError}
                   autoSubmitPaused={autoSubmitPaused}

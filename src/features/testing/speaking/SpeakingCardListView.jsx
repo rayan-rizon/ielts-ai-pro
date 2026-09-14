@@ -2,7 +2,11 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { Award } from 'lucide-react';
-import { computeSpeakingAccessLock, resolveSpeakingLinkConfig } from './speakingCardHelpers';
+import {
+  computeSpeakingAccessLock,
+  resolveSpeakingAttemptState,
+  resolveSpeakingLinkConfig,
+} from './speakingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './SpeakingCardComponents';
 import { IconChip, MUTED, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
 
@@ -14,13 +18,12 @@ function getTestName(test) {
 function resolveTestState(test, sessions, userData, isAdmin) {
   const testSession = sessions.find((s) => s.passage_id === test.id);
   const isLocked = computeSpeakingAccessLock(test, userData, isAdmin);
-  const isCompleted = !!testSession?.is_completed;
-  const isResuming = !!testSession && !isCompleted;
-  return { testSession, isLocked, isCompleted, isResuming };
+  const { isCompleted, isResuming, needsRestart } = resolveSpeakingAttemptState(testSession);
+  return { testSession, isLocked, isCompleted, isResuming, needsRestart };
 }
 
 function BookTestRow({ test, sessions, userData, isAdmin }) {
-  const { testSession, isLocked, isCompleted, isResuming } = resolveTestState(
+  const { testSession, isLocked, isCompleted, isResuming, needsRestart } = resolveTestState(
     test,
     sessions,
     userData,
@@ -28,7 +31,13 @@ function BookTestRow({ test, sessions, userData, isAdmin }) {
   );
   const testName = getTestName(test);
 
-  const { ContainerLink, linkProps } = resolveSpeakingLinkConfig(isLocked, test);
+  const { ContainerLink, linkProps } = resolveSpeakingLinkConfig(
+    isLocked,
+    test,
+    null,
+    null,
+    needsRestart
+  );
 
   return (
     <div
@@ -48,6 +57,7 @@ function BookTestRow({ test, sessions, userData, isAdmin }) {
           isLocked={isLocked}
           isCompleted={isCompleted}
           isResuming={isResuming}
+          needsRestart={needsRestart}
           score={testSession?.score}
         />
       </div>

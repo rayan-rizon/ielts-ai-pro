@@ -100,6 +100,7 @@ describe('speakingCaptureUtils', () => {
     expect(canAutoStartSpeakingAnswer(readyState)).toBe(true);
     expect(canAutoStartSpeakingAnswer({ ...readyState, handsFreeEnabled: false })).toBe(false);
     expect(canAutoStartSpeakingAnswer({ ...readyState, isSpeaking: true })).toBe(false);
+    expect(canAutoStartSpeakingAnswer({ ...readyState, isPlaybackActive: true })).toBe(false);
     expect(canAutoStartSpeakingAnswer({ ...readyState, isProcessing: true })).toBe(false);
     expect(canAutoStartSpeakingAnswer({ ...readyState, isPart2Prep: true })).toBe(false);
   });

@@ -15,151 +15,467 @@ import { normalizeSpeakingTtsText, requestSpeakingTts } from '../utils/speakingT
  * Speaking TTS hook using Google Cloud TTS Neural2 (en-GB-Neural2-C) via a
  * Supabase Edge Function with content-addressed Supabase Storage caching.
  *
- * Bug fixes in this version:
- *  - Audio now STOPS immediately when the component unmounts (navigating away).
- *  - Web Speech fallback no longer fires when Google TTS explicitly signals fallback.
- *  - Stale response guards correctly prevent race conditions.
- *  - Safari/iOS: playback goes through one element unlocked on the learner's
- *    first interaction, because WebKit rejects play() once the awaited TTS
- *    request has consumed the page's user activation (see utils/speechPlayback).
- *
- * Public API also exposes the exact active utterance and playback state so the
- * conversation UI never has to guess which queued message is being spoken.
+ * Key guarantees:
+ *  - Audio stops immediately when component unmounts.
+ *  - Web Speech fallback fires only when needed (network/audio failure or server fallback flag).
+ *  - Stale response guards prevent race conditions when rapid speech requests occur.
+ *  - Safari/iOS gesture unlock integration reuses one unlocked audio element.
+ *  - Progress quantization caps state re-renders to display-relevant updates.
  */
 
 // ── Chrome 15-second utterance bug fix ────────────────────────────────────────
-// Chrome silently stops SpeechSynthesisUtterance after ~15s.
-// Splitting at sentence boundaries prevents this.
 function splitIntoSentences(text) {
   const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
   return chunks.map((c) => c.trim()).filter(Boolean);
 }
 
-// ── Web Speech API fallback ───────────────────────────────────────────────────
-function getOptimalWebVoice() {
-  if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
-  return (
-    voices.find(
-      (v) =>
-        v.lang.startsWith('en-GB') &&
-        (v.name.includes('Natural') ||
-          v.name.includes('Premium') ||
-          v.name.includes('Enhanced') ||
-          v.name.includes('Neural'))
-    ) ||
-    voices.find(
-      (v) =>
-        v.lang.startsWith('en-GB') &&
-        (v.name.includes('Daniel') ||
-          v.name.includes('Serena') ||
-          v.name.includes('Martha') ||
-          v.name.includes('George'))
-    ) ||
-    voices.find((v) => v.lang.startsWith('en-GB')) ||
-    voices.find((v) => v.lang.startsWith('en-US')) ||
-    voices.find((v) => v.lang.startsWith('en'))
-  );
+function countWords(str) {
+  return str.trim().split(/\s+/).filter(Boolean).length;
 }
 
-/**
- * Speaks chunks via Web Speech API, respecting an isMounted flag.
- * Returns true if completed, false if bailed out early.
- */
+function hasSpeechSynthesis() {
+  if (typeof window === 'undefined') return false;
+  return 'speechSynthesis' in window;
+}
+
+// ── Web Speech API voice matching ─────────────────────────────────────────────
+const HIGH_QUALITY_VOICE_KEYWORDS = ['Natural', 'Premium', 'Enhanced', 'Neural'];
+const POPULAR_VOICE_NAMES = ['Daniel', 'Serena', 'Martha', 'George'];
+
+function hasMatchingKeyword(name, keywords) {
+  return keywords.some((keyword) => name.includes(keyword));
+}
+
+function isHighQualityEnGb(voice) {
+  if (!voice.lang.startsWith('en-GB')) return false;
+  return hasMatchingKeyword(voice.name, HIGH_QUALITY_VOICE_KEYWORDS);
+}
+
+function isPopularEnGb(voice) {
+  if (!voice.lang.startsWith('en-GB')) return false;
+  return hasMatchingKeyword(voice.name, POPULAR_VOICE_NAMES);
+}
+
+function isEnGb(voice) {
+  return voice.lang.startsWith('en-GB');
+}
+
+function isEnUs(voice) {
+  return voice.lang.startsWith('en-US');
+}
+
+function isAnyEnglish(voice) {
+  return voice.lang.startsWith('en');
+}
+
+const VOICE_FINDERS = [isHighQualityEnGb, isPopularEnGb, isEnGb, isEnUs, isAnyEnglish];
+
+function findBestVoice(voices) {
+  for (const finder of VOICE_FINDERS) {
+    const match = voices.find(finder);
+    if (match) return match;
+  }
+  return null;
+}
+
+function getOptimalWebVoice() {
+  if (!hasSpeechSynthesis()) return null;
+  const voices = window.speechSynthesis.getVoices();
+  return findBestVoice(voices || []);
+}
+
+// ── Web Speech utterance runner ───────────────────────────────────────────────
+function calculateProgress(spokenWords, wordsInCurrentChunk, totalWords) {
+  return Math.min(1, (spokenWords + wordsInCurrentChunk) / totalWords);
+}
+
+function speakSingleChunk({ chunk, selectedVoice, spokenWords, totalWords, onProgress }) {
+  return new Promise((resolve) => {
+    const chunkWords = countWords(chunk);
+    const utterance = new SpeechSynthesisUtterance(chunk);
+    utterance.lang = 'en-GB';
+    utterance.rate = 0.92;
+    utterance.pitch = 1.0;
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    utterance.onstart = () => {
+      onProgress?.(calculateProgress(spokenWords, 1, totalWords));
+    };
+
+    utterance.onboundary = (event) => {
+      if (event.name === 'word') {
+        const wordsThroughBoundary = countWords(chunk.slice(0, event.charIndex));
+        onProgress?.(calculateProgress(spokenWords, wordsThroughBoundary + 1, totalWords));
+      }
+    };
+
+    utterance.onend = () => {
+      const nextSpoken = spokenWords + chunkWords;
+      onProgress?.(calculateProgress(spokenWords, chunkWords, totalWords));
+      resolve(nextSpoken);
+    };
+
+    utterance.onerror = () => {
+      resolve(spokenWords + chunkWords);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
 async function speakChunksViaWebSpeech(chunks, selectedVoice, isMountedRef, onProgress) {
-  if (!('speechSynthesis' in window)) return false;
+  if (!hasSpeechSynthesis()) return false;
   window.speechSynthesis.cancel();
 
-  const totalWords = chunks.join(' ').trim().split(/\s+/).filter(Boolean).length || 1;
+  const totalWords = countWords(chunks.join(' ')) || 1;
   let spokenWords = 0;
+
   for (const chunk of chunks) {
-    // Bail immediately if the component has unmounted
     if (!isMountedRef.current) {
       window.speechSynthesis.cancel();
       return false;
     }
-    const chunkWords = chunk.trim().split(/\s+/).filter(Boolean);
-    await new Promise((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(chunk);
-      utterance.lang = 'en-GB';
-      utterance.rate = 0.92;
-      utterance.pitch = 1.0;
-      if (selectedVoice) utterance.voice = selectedVoice;
-      utterance.onstart = () => onProgress?.(Math.min(1, (spokenWords + 1) / totalWords));
-      utterance.onboundary = (event) => {
-        if (event.name !== 'word') return;
-        const wordsThroughBoundary = chunk
-          .slice(0, event.charIndex)
-          .trim()
-          .split(/\s+/)
-          .filter(Boolean).length;
-        onProgress?.(Math.min(1, (spokenWords + wordsThroughBoundary + 1) / totalWords));
-      };
-      utterance.onend = () => {
-        spokenWords += chunkWords.length;
-        onProgress?.(Math.min(1, spokenWords / totalWords));
-        resolve();
-      };
-      utterance.onerror = resolve;
-      window.speechSynthesis.speak(utterance);
+    spokenWords = await speakSingleChunk({
+      chunk,
+      selectedVoice,
+      spokenWords,
+      totalWords,
+      onProgress,
     });
   }
   return true;
 }
 
-/**
- * Playback progress is consumed as a *word index* — the live examiner transcript
- * renders `ceil(progress * words.length)` words. The rAF loop below samples at
- * the display refresh rate (60Hz, 120Hz on ProMotion), but the rendered output
- * only has as many distinct states as there are words in the sentence. Pushing
- * every raw sample into React state re-rendered the whole SpeakingTest tree
- * ~120x/sec to produce the same frame.
- *
- * Snapping to 1/100ths collapses that to at most 100 state updates per
- * utterance while staying exact for any sentence up to 100 words (longer
- * sentences are chunked before they reach here), so the transcript reveals on
- * precisely the same word at precisely the same time.
- */
+// ── Playback Progress Quantization ────────────────────────────────────────────
 const PROGRESS_STEPS = 100;
 const quantizeProgress = (value) => Math.round(value * PROGRESS_STEPS) / PROGRESS_STEPS;
 
-// ── Main hook ─────────────────────────────────────────────────────────────────
-export default function useSpeechSynthesis() {
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isTTSLoading, setIsTTSLoading] = useState(false);
-  const [activeSpeechText, setActiveSpeechText] = useState('');
-  const [isPlaybackActive, setIsPlaybackActive] = useState(false);
-  const [speechProgress, setSpeechProgress] = useState(null);
-  const [isMuted, setIsMuted] = useState(false);
+function getAudioProgressRatio(audio) {
+  if (!Number.isFinite(audio.duration)) return null;
+  if (audio.duration <= 0) return null;
+  return Math.min(1, audio.currentTime / audio.duration);
+}
 
-  // Refs to track in-flight audio + prevent race conditions
-  const currentAudioRef = useRef(null);
-  // Mirrors the last value pushed to `speechProgress` so the rAF loop can skip
-  // no-op setState calls without having to read state it doesn't depend on.
-  const lastProgressRef = useRef(null);
-  const isMutedRef = useRef(false);
-  const webVoiceRef = useRef(null);
-  // isMountedRef: flipped to false on unmount so async loops stop immediately
-  const isMountedRef = useRef(true);
-  // Tracks the current request so stale completions don't update state
-  const requestIdRef = useRef(0);
-  const playbackFrameRef = useRef(null);
+function hasValidTtsAudio(data, error) {
+  if (error) return false;
+  if (!data?.success) return false;
+  return Boolean(data?.audioUrl);
+}
 
-  const stopProgressTracking = useCallback(() => {
-    if (playbackFrameRef.current !== null) {
-      cancelAnimationFrame(playbackFrameRef.current);
-      playbackFrameRef.current = null;
-    }
-  }, []);
+function shouldFallbackAfterError(err, googleTTSSucceeded) {
+  if (err?.message === 'audio-element-error') return true;
+  return !googleTTSSucceeded;
+}
 
-  // Keep muted ref in sync
+function isTurnActive(myRequestId, requestIdRef, isMountedRef) {
+  if (!isMountedRef.current) return false;
+  return requestIdRef.current === myRequestId;
+}
+
+function canExecuteFallback({ shouldUseFallback, isMuted, isTurnCurrent }) {
+  if (!shouldUseFallback) return false;
+  if (isMuted) return false;
+  return isTurnCurrent;
+}
+
+function cancelPlaybackFrame(playbackFrameRef) {
+  if (playbackFrameRef.current !== null) {
+    cancelAnimationFrame(playbackFrameRef.current);
+    playbackFrameRef.current = null;
+  }
+}
+
+function stopAudioSources(currentAudioRef, stopProgressTracking) {
+  stopProgressTracking();
+  if (currentAudioRef.current) {
+    releasePlaybackAudio();
+    currentAudioRef.current = null;
+  }
+  if (hasSpeechSynthesis()) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+// ── HTML Audio Element Runner ─────────────────────────────────────────────────
+function playAudioElement({
+  audio,
+  audioUrl,
+  isMuted,
+  isTurnActive,
+  onPlayStart,
+  onPlaybackActive,
+  onProgress,
+  onPlaybackEnded,
+  onPlaybackError,
+  stopProgressTracking,
+  setPlaybackFrame,
+}) {
+  return new Promise((resolve, reject) => {
+    audio.src = audioUrl;
+    audio.currentTime = 0;
+    audio.volume = isMuted ? 0 : 1;
+
+    const tickProgress = () => {
+      if (!isTurnActive()) return;
+      if (audio.paused) return;
+
+      const progressRatio = getAudioProgressRatio(audio);
+      if (progressRatio !== null) {
+        onProgress(progressRatio);
+      }
+      setPlaybackFrame(requestAnimationFrame(tickProgress));
+    };
+
+    audio.onplay = () => {
+      if (!isTurnActive()) return;
+      onPlaybackActive();
+      onPlayStart?.();
+      stopProgressTracking();
+      setPlaybackFrame(requestAnimationFrame(tickProgress));
+    };
+
+    audio.ontimeupdate = () => {
+      if (!isTurnActive()) return;
+      const progressRatio = getAudioProgressRatio(audio);
+      if (progressRatio !== null) {
+        onProgress(progressRatio);
+      }
+    };
+
+    audio.onended = () => {
+      if (isTurnActive()) {
+        stopProgressTracking();
+        onPlaybackEnded();
+      }
+      resolve();
+    };
+
+    audio.onerror = (e) => {
+      console.warn('[TTS] Audio element error, will use fallback:', e);
+      if (isTurnActive()) {
+        stopProgressTracking();
+        onPlaybackError();
+      }
+      reject(new Error('audio-element-error'));
+    };
+
+    audio.play().catch(reject);
+  });
+}
+
+async function playGoogleTtsAudio({
+  audioUrl,
+  isMuted,
+  isTurnActiveFn,
+  onPlayStart,
+  onPlaybackActive,
+  updateProgress,
+  onPlaybackEnded,
+  onPlaybackError,
+  stopProgressTracking,
+  setPlaybackFrame,
+}) {
+  const audio = getPlaybackAudio();
+  if (!audio) {
+    throw new Error('audio-element-error');
+  }
+  await playAudioElement({
+    audio,
+    audioUrl,
+    isMuted,
+    isTurnActive: isTurnActiveFn,
+    onPlayStart,
+    onPlaybackActive,
+    onProgress: updateProgress,
+    onPlaybackEnded,
+    onPlaybackError,
+    stopProgressTracking,
+    setPlaybackFrame,
+  });
+  return audio;
+}
+
+function evaluateTtsResponse(data, error) {
+  if (hasValidTtsAudio(data, error)) {
+    return { status: 'success', audioUrl: data.audioUrl };
+  }
+  if (data?.fallback) {
+    console.info('[TTS] Edge function signalled fallback:', data?.error);
+    return { status: 'fallback' };
+  }
+  if (error) {
+    console.warn('[TTS] Edge function invocation error:', error);
+    return { status: 'fallback' };
+  }
+  return { status: 'none' };
+}
+
+// ── Google TTS & Fallback Orchestration ───────────────────────────────────────
+async function requestAndPlayGoogleTts({
+  cleanText,
+  myRequestId,
+  requestIdRef,
+  isMountedRef,
+  isMutedRef,
+  currentAudioRef,
+  options,
+  stopProgressTracking,
+  setPlaybackFrame,
+  updateProgress,
+  onPlaybackActive,
+  onPlaybackEnded,
+}) {
+  const { data, error } = await requestSpeakingTts(cleanText);
+
+  if (!isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
+    return { played: false, shouldUseFallback: false };
+  }
+
+  const evaluated = evaluateTtsResponse(data, error);
+  if (evaluated.status === 'success') {
+    const audio = await playGoogleTtsAudio({
+      audioUrl: evaluated.audioUrl,
+      isMuted: isMutedRef.current,
+      isTurnActiveFn: () => isTurnActive(myRequestId, requestIdRef, isMountedRef),
+      onPlayStart: options?.onPlayStart,
+      onPlaybackActive,
+      updateProgress,
+      onPlaybackEnded,
+      onPlaybackError: () => {
+        currentAudioRef.current = null;
+      },
+      stopProgressTracking,
+      setPlaybackFrame,
+    });
+    currentAudioRef.current = audio;
+    return { played: true, shouldUseFallback: false };
+  }
+
+  return { played: false, shouldUseFallback: evaluated.status === 'fallback' };
+}
+
+async function runSpeechTurn({
+  cleanText,
+  myRequestId,
+  requestIdRef,
+  isMountedRef,
+  isMutedRef,
+  webVoiceRef,
+  currentAudioRef,
+  options,
+  stopProgressTracking,
+  setPlaybackFrame,
+  setIsTTSLoading,
+  updateProgress,
+  onPlaybackActive,
+  onPlaybackEnded,
+  onFallbackStart,
+}) {
+  let googleTTSSucceeded = false;
+  let shouldUseFallback = false;
+
+  try {
+    const result = await requestAndPlayGoogleTts({
+      cleanText,
+      myRequestId,
+      requestIdRef,
+      isMountedRef,
+      isMutedRef,
+      currentAudioRef,
+      options,
+      stopProgressTracking,
+      setPlaybackFrame,
+      updateProgress,
+      onPlaybackActive,
+      onPlaybackEnded,
+    });
+    googleTTSSucceeded = result.played;
+    shouldUseFallback = result.shouldUseFallback;
+  } catch (err) {
+    if (!isTurnActive(myRequestId, requestIdRef, isMountedRef)) return;
+    console.warn('[TTS] Error:', err?.message);
+    shouldUseFallback = shouldFallbackAfterError(err, googleTTSSucceeded);
+  } finally {
+    setIsTTSLoading(false);
+  }
+
+  const canRunFallback = canExecuteFallback({
+    shouldUseFallback,
+    isMuted: isMutedRef.current,
+    isTurnCurrent: isTurnActive(myRequestId, requestIdRef, isMountedRef),
+  });
+
+  if (canRunFallback) {
+    onFallbackStart();
+    options?.onPlayStart?.();
+
+    const sentences = splitIntoSentences(cleanText);
+    await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef, (progress) => {
+      if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
+        updateProgress(progress);
+      }
+    });
+  }
+}
+
+async function prepareSpeechTurn({ text, myRequestId, requestIdRef, isMountedRef, isMutedRef }) {
+  if (!text) return false;
+  if (isMutedRef.current) return false;
+  if (!isMountedRef.current) return false;
+
+  if (!isSpeechPlaybackUnlocked()) {
+    await new Promise((resolve) => {
+      onSpeechPlaybackUnlocked(resolve);
+    });
+    if (!isTurnActive(myRequestId, requestIdRef, isMountedRef)) return false;
+    if (isMutedRef.current) return false;
+  }
+
+  return true;
+}
+
+function executeTurnWithState({
+  text,
+  myRequestId,
+  requestIdRef,
+  isMountedRef,
+  webVoiceRef,
+  currentAudioRef,
+  options,
+  stopProgressTracking,
+  playbackFrameRef,
+  state,
+}) {
+  return runSpeechTurn({
+    cleanText: normalizeSpeakingTtsText(text),
+    myRequestId,
+    requestIdRef,
+    isMountedRef,
+    isMutedRef: state.isMutedRef,
+    webVoiceRef,
+    currentAudioRef,
+    options,
+    stopProgressTracking,
+    setPlaybackFrame: (frameId) => {
+      playbackFrameRef.current = frameId;
+    },
+    setIsTTSLoading: state.setIsTTSLoading,
+    updateProgress: state.updateProgressIfChanged,
+    onPlaybackActive: state.onPlaybackActive,
+    onPlaybackEnded: () => {
+      currentAudioRef.current = null;
+      state.onPlaybackEnded();
+    },
+    onFallbackStart: state.onFallbackStart,
+  });
+}
+
+// ── Lifecycle & State Hooks ───────────────────────────────────────────────────
+function useVoicePreloader(webVoiceRef) {
   useEffect(() => {
-    isMutedRef.current = isMuted;
-  }, [isMuted]);
-
-  // Preload Web Speech voices (Chrome race condition fix)
-  useEffect(() => {
-    if (!('speechSynthesis' in window)) return;
+    if (!hasSpeechSynthesis()) return;
     const load = () => {
       if (!webVoiceRef.current) {
         webVoiceRef.current = getOptimalWebVoice();
@@ -170,12 +486,10 @@ export default function useSpeechSynthesis() {
     return () => {
       window.speechSynthesis.onvoiceschanged = null;
     };
-  }, []);
+  }, [webVoiceRef]);
+}
 
-  // ── Safari: unlock playback on the learner's first interaction ────────────
-  // WebKit only grants playback to an element that has already played from
-  // inside a gesture. Every later utterance arrives after an awaited fetch,
-  // by which point the activation is gone — so unlock eagerly, once.
+function useSafariGestureUnlock() {
   useEffect(() => {
     const unlock = () => unlockSpeechPlayback();
     const events = ['pointerdown', 'touchend', 'keydown'];
@@ -186,273 +500,177 @@ export default function useSpeechSynthesis() {
       events.forEach((event) => window.removeEventListener(event, unlock, { capture: true }));
     };
   }, []);
+}
 
-  // ── CRITICAL: Stop ALL audio immediately on unmount (e.g. navigating away) ──
+function useSpeechState() {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isTTSLoading, setIsTTSLoading] = useState(false);
+  const [activeSpeechText, setActiveSpeechText] = useState('');
+  const [isPlaybackActive, setIsPlaybackActive] = useState(false);
+  const [speechProgress, setSpeechProgress] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const lastProgressRef = useRef(null);
+  const isMutedRef = useRef(false);
+
   useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      // Signal all async loops to stop
-      isMountedRef.current = false;
-      // Invalidate all in-flight requests
-      requestIdRef.current += 1;
-      stopProgressTracking();
-      // Stop any playing HTML Audio element
-      if (currentAudioRef.current) {
-        releasePlaybackAudio();
-        currentAudioRef.current = null;
-      }
-      // Stop Web Speech API
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [stopProgressTracking]);
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
 
-  /**
-   * Cancel any in-flight audio and clear state.
-   * Exposed publicly so SpeakingTest can call it on exit/navigation.
-   */
-  const cancelCurrentAudio = useCallback(() => {
-    requestIdRef.current += 1;
-    stopProgressTracking();
-    if (currentAudioRef.current) {
-      releasePlaybackAudio();
-      currentAudioRef.current = null;
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+  const resetPlaybackState = useCallback(() => {
     setIsSpeaking(false);
     setIsTTSLoading(false);
     setIsPlaybackActive(false);
     setActiveSpeechText('');
     lastProgressRef.current = null;
     setSpeechProgress(null);
-  }, [stopProgressTracking]);
+  }, []);
 
-  /**
-   * Main speakText function.
-   *
-   * 1. Calls Google Cloud TTS Neural2 via the synthesizeSpeech Edge Function
-   * 2. Plays the returned MP3 URL with `new Audio(url)`
-   * 3. Falls back to chunked Web Speech API ONLY if the edge function is
-   *    truly unavailable (network error) — NOT when the edge function
-   *    explicitly signals a graceful fallback.
-   *
-   * Returns a Promise that resolves when audio playback finishes.
-   */
+  const startPlaybackState = useCallback((text) => {
+    setActiveSpeechText(String(text).trim());
+    setIsPlaybackActive(false);
+    lastProgressRef.current = null;
+    setSpeechProgress(null);
+    setIsTTSLoading(true);
+    setIsSpeaking(true);
+  }, []);
+
+  const updateProgressIfChanged = useCallback((nextRaw) => {
+    const next = quantizeProgress(nextRaw);
+    if (next !== lastProgressRef.current) {
+      lastProgressRef.current = next;
+      setSpeechProgress(next);
+    }
+  }, []);
+
+  const onPlaybackActive = useCallback(() => {
+    lastProgressRef.current = 0;
+    setSpeechProgress(0);
+    setIsPlaybackActive(true);
+  }, []);
+
+  const onPlaybackEnded = useCallback(() => {
+    updateProgressIfChanged(1);
+    setIsPlaybackActive(false);
+  }, [updateProgressIfChanged]);
+
+  const onFallbackStart = useCallback(() => {
+    lastProgressRef.current = null;
+    setSpeechProgress(null);
+    setIsPlaybackActive(true);
+  }, []);
+
+  return {
+    isSpeaking,
+    isTTSLoading,
+    setIsTTSLoading,
+    activeSpeechText,
+    isPlaybackActive,
+    speechProgress,
+    isMuted,
+    setIsMuted,
+    isMutedRef,
+    resetPlaybackState,
+    startPlaybackState,
+    updateProgressIfChanged,
+    onPlaybackActive,
+    onPlaybackEnded,
+    onFallbackStart,
+  };
+}
+
+function useSpeechPlaybackLifecycle({ stopProgressTracking, currentAudioRef, requestIdRef }) {
+  const isMountedRef = useRef(true);
+  const stopActiveAudioSources = useCallback(() => {
+    stopAudioSources(currentAudioRef, stopProgressTracking);
+  }, [currentAudioRef, stopProgressTracking]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      requestIdRef.current += 1;
+      stopActiveAudioSources();
+    };
+  }, [requestIdRef, stopActiveAudioSources]);
+
+  return { isMountedRef, stopActiveAudioSources };
+}
+
+// ── Main Hook ─────────────────────────────────────────────────────────────────
+export default function useSpeechSynthesis() {
+  const state = useSpeechState();
+  const currentAudioRef = useRef(null);
+  const webVoiceRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const playbackFrameRef = useRef(null);
+
+  const stopProgressTracking = useCallback(() => {
+    cancelPlaybackFrame(playbackFrameRef);
+  }, []);
+
+  const { isMountedRef, stopActiveAudioSources } = useSpeechPlaybackLifecycle({
+    stopProgressTracking,
+    currentAudioRef,
+    requestIdRef,
+  });
+
+  useVoicePreloader(webVoiceRef);
+  useSafariGestureUnlock();
+
+  const cancelCurrentAudio = useCallback(() => {
+    requestIdRef.current += 1;
+    stopActiveAudioSources();
+    state.resetPlaybackState();
+  }, [stopActiveAudioSources, state]);
+
   const speakText = useCallback(
     async (text, options = { cancel: true }) => {
-      if (!text || isMutedRef.current || !isMountedRef.current) return;
-
-      // Claim this turn before awaiting an autoplay unlock. Without this stamp,
-      // two queued prompts could both resume after one learner gesture and the
-      // older prompt would briefly take over the live transcript.
       const myRequestId = ++requestIdRef.current;
+      const canProceed = await prepareSpeechTurn({
+        text,
+        myRequestId,
+        requestIdRef,
+        isMountedRef,
+        isMutedRef: state.isMutedRef,
+      });
+      if (!canProceed) return;
 
-      // Resuming a session speaks the examiner's last question while the page
-      // is still loading, before the learner has touched anything — so no
-      // playback permission exists yet and the audio was simply discarded.
-      // Wait for the first interaction instead of losing the turn, which is
-      // why the examiner only found its voice after the learner spoke.
-      if (!isSpeechPlaybackUnlocked()) {
-        await new Promise((resolve) => {
-          onSpeechPlaybackUnlocked(resolve);
-        });
-        if (!isMountedRef.current || isMutedRef.current || requestIdRef.current !== myRequestId) {
-          return;
-        }
+      if (options?.cancel) {
+        stopActiveAudioSources();
       }
 
-      // Cancel previous audio if requested
-      if (options.cancel) {
-        stopProgressTracking();
-        if (currentAudioRef.current) {
-          releasePlaybackAudio();
-          currentAudioRef.current = null;
-        }
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      }
+      state.startPlaybackState(text);
+      await executeTurnWithState({
+        text,
+        myRequestId,
+        requestIdRef,
+        isMountedRef,
+        webVoiceRef,
+        currentAudioRef,
+        options,
+        stopProgressTracking,
+        playbackFrameRef,
+        state,
+      });
 
-      // Clean text for speech (handle IELTS-specific notation)
-      const cleanText = normalizeSpeakingTtsText(text);
-
-      // ── 1. Show loading state ──────────────────────────────────────────────
-      setActiveSpeechText(String(text).trim());
-      setIsPlaybackActive(false);
-      lastProgressRef.current = null;
-      setSpeechProgress(null);
-      setIsTTSLoading(true);
-      setIsSpeaking(true);
-
-      // Track what actually played so we decide on fallback
-      let googleTTSSucceeded = false;
-      let shouldUseFallback = false; // only true for real errors, not graceful fallbacks
-
-      try {
-        const { data, error } = await requestSpeakingTts(cleanText);
-
-        // Bail if superseded or unmounted
-        if (requestIdRef.current !== myRequestId || !isMountedRef.current) return;
-
-        setIsTTSLoading(false);
-
-        if (!error && data?.success && data?.audioUrl) {
-          // ── 2a. Play Google TTS audio ──────────────────────────────────────
-          googleTTSSucceeded = true;
-          await new Promise((resolve, reject) => {
-            // Reuse the gesture-unlocked element. Constructing a new Audio()
-            // here would be blocked by WebKit, because awaiting the edge
-            // function above already consumed the user activation.
-            const audio = getPlaybackAudio();
-            if (!audio) {
-              reject(new Error('audio-element-error'));
-              return;
-            }
-            audio.src = data.audioUrl;
-            audio.currentTime = 0;
-            currentAudioRef.current = audio;
-
-            audio.onplay = () => {
-              if (requestIdRef.current === myRequestId) {
-                lastProgressRef.current = 0;
-                setSpeechProgress(0);
-                setIsPlaybackActive(true);
-                options.onPlayStart?.();
-                const updateProgress = () => {
-                  if (
-                    requestIdRef.current !== myRequestId ||
-                    !isMountedRef.current ||
-                    audio.paused
-                  ) {
-                    return;
-                  }
-                  if (Number.isFinite(audio.duration) && audio.duration > 0) {
-                    const next = quantizeProgress(Math.min(1, audio.currentTime / audio.duration));
-                    if (next !== lastProgressRef.current) {
-                      lastProgressRef.current = next;
-                      setSpeechProgress(next);
-                    }
-                  }
-                  playbackFrameRef.current = requestAnimationFrame(updateProgress);
-                };
-                stopProgressTracking();
-                playbackFrameRef.current = requestAnimationFrame(updateProgress);
-              }
-            };
-            audio.ontimeupdate = () => {
-              if (
-                requestIdRef.current === myRequestId &&
-                Number.isFinite(audio.duration) &&
-                audio.duration > 0
-              ) {
-                const next = quantizeProgress(Math.min(1, audio.currentTime / audio.duration));
-                if (next !== lastProgressRef.current) {
-                  lastProgressRef.current = next;
-                  setSpeechProgress(next);
-                }
-              }
-            };
-            audio.onended = () => {
-              if (requestIdRef.current === myRequestId) {
-                stopProgressTracking();
-                currentAudioRef.current = null;
-                lastProgressRef.current = 1;
-                setSpeechProgress(1);
-                setIsPlaybackActive(false);
-              }
-              resolve();
-            };
-            audio.onerror = (e) => {
-              console.warn('[TTS] Audio element error, will use fallback:', e);
-              if (requestIdRef.current === myRequestId) {
-                stopProgressTracking();
-                currentAudioRef.current = null;
-              }
-              // Audio element failed — DO fall back
-              reject(new Error('audio-element-error'));
-            };
-
-            // Always reassign — the element is shared, so a previously muted
-            // utterance would otherwise leave every later one silent.
-            audio.volume = isMutedRef.current ? 0 : 1;
-            audio.play().catch(reject);
-          });
-        } else if (data?.fallback) {
-          // ── 2b. Server explicitly signalled graceful fallback ──────────────
-          // This means the TTS pipeline had an issue on the server side.
-          // Fall through to Web Speech, but log it clearly.
-          console.info('[TTS] Edge function signalled fallback:', data?.error);
-          shouldUseFallback = true;
-          setIsTTSLoading(false);
-        } else if (error) {
-          // ── 2c. Network / invocation error ────────────────────────────────
-          console.warn('[TTS] Edge function invocation error:', error);
-          shouldUseFallback = true;
-          setIsTTSLoading(false);
-        }
-      } catch (err) {
-        if (requestIdRef.current !== myRequestId || !isMountedRef.current) return;
-        console.warn('[TTS] Error:', err?.message);
-        setIsTTSLoading(false);
-        // Only use fallback if this was an audio element error or a real fetch error
-        // (not a deliberate cancellation/abort)
-        if (err?.message !== 'audio-element-error') {
-          // Real error — fall back
-          shouldUseFallback = !googleTTSSucceeded;
-        } else {
-          shouldUseFallback = true;
-        }
-      }
-
-      // ── 3. Web Speech API fallback (only if truly needed) ─────────────────
-      if (
-        shouldUseFallback &&
-        !isMutedRef.current &&
-        requestIdRef.current === myRequestId &&
-        isMountedRef.current
-      ) {
-        if (options.onPlayStart) {
-          options.onPlayStart();
-        }
-        lastProgressRef.current = null;
-        setSpeechProgress(null);
-        setIsPlaybackActive(true);
-        const sentences = splitIntoSentences(cleanText);
-        await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef, (progress) => {
-          if (requestIdRef.current === myRequestId && isMountedRef.current) {
-            const next = quantizeProgress(progress);
-            if (next !== lastProgressRef.current) {
-              lastProgressRef.current = next;
-              setSpeechProgress(next);
-            }
-          }
-        });
-      }
-
-      // ── Cleanup ────────────────────────────────────────────────────────────
-      if (requestIdRef.current === myRequestId && isMountedRef.current) {
-        setIsSpeaking(false);
-        setIsTTSLoading(false);
-        setIsPlaybackActive(false);
-        setActiveSpeechText('');
-        lastProgressRef.current = null;
-        setSpeechProgress(null);
+      if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
+        state.resetPlaybackState();
       }
     },
-    [cancelCurrentAudio, stopProgressTracking]
+    [state, stopActiveAudioSources, stopProgressTracking, isMountedRef]
   );
 
   return {
     speakText,
     cancelCurrentAudio,
     unlockSpeechPlayback,
-    isSpeaking,
-    isTTSLoading,
-    activeSpeechText,
-    isPlaybackActive,
-    speechProgress,
-    isMuted,
-    setIsMuted,
+    isSpeaking: state.isSpeaking,
+    isTTSLoading: state.isTTSLoading,
+    activeSpeechText: state.activeSpeechText,
+    isPlaybackActive: state.isPlaybackActive,
+    speechProgress: state.speechProgress,
+    isMuted: state.isMuted,
+    setIsMuted: state.setIsMuted,
   };
 }

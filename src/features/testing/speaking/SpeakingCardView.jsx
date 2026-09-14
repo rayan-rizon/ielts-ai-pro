@@ -10,6 +10,7 @@ function SpeakingCardView(props) {
     isLocked,
     isResuming,
     isCompleted,
+    needsRestart,
     progress,
     displayScore,
     displayTitle,
@@ -73,6 +74,7 @@ function SpeakingCardView(props) {
           isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
+          needsRestart={needsRestart}
           test={test}
           completedSessionId={completedSessionId}
         />

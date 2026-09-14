@@ -10,6 +10,10 @@ import {
   WritingActions,
   TestRowAction as WritingRowAction,
 } from '@/features/testing/writing/WritingCardComponents';
+import {
+  GridActions as SpeakingActions,
+  TestRowAction as SpeakingRowAction,
+} from '@/features/testing/speaking/SpeakingCardComponents';
 
 const test = { id: 'test-1' };
 const session = { id: 'session-1' };
@@ -19,6 +23,34 @@ function renderCard(ui) {
 }
 
 describe('resume restart actions', () => {
+  it('lets learners restart an unfinished Speaking attempt that cannot be resumed', () => {
+    const { unmount } = renderCard(
+      <SpeakingActions isLocked={false} isResuming isCompleted={false} test={test} />
+    );
+
+    expect(screen.getByRole('button', { name: 'Resume Test' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Restart test' }).closest('a')).toHaveAttribute(
+      'href',
+      '/speaking-test?test-id=test-1&retake=true'
+    );
+    unmount();
+
+    renderCard(
+      <SpeakingRowAction
+        isLocked={false}
+        isResuming
+        isCompleted={false}
+        testSession={session}
+        test={test}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Restart test' }).closest('a')).toHaveAttribute(
+      'href',
+      '/speaking-test?test-id=test-1&retake=true'
+    );
+  });
+
   it('shows restart beside Listening resume actions', () => {
     const { unmount } = renderCard(
       <ListeningActions

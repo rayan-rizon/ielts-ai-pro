@@ -4,6 +4,7 @@ import {
   buildAzurePronunciationUrl,
   buildDeterministicExaminerResponse,
   canRecoverFromBrowserTranscript,
+  createBrowserTranscriptRecovery,
   chooseVerifiedTranscript,
   cleanSpeakingQuestion,
   getTranscriptVerificationReason,
@@ -17,6 +18,20 @@ import {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('speaking provider helpers', () => {
+  it('keeps a high-confidence browser transcript as the final provider outage fallback', () => {
+    expect(
+      createBrowserTranscriptRecovery({
+        transcript: 'I usually pay by card because it is more convenient.',
+        confidence: 0.9,
+      })
+    ).toMatchObject({
+      transcript: 'I usually pay by card because it is more convenient.',
+      provider: 'browser-recovery',
+      model: 'web-speech-api',
+    });
+    expect(createBrowserTranscriptRecovery({ transcript: 'maybe', confidence: 0.2 })).toBeNull();
+  });
+
   it('builds the documented regional Azure Speech recognition URL', () => {
     expect(buildAzurePronunciationUrl('https://southeastasia.stt.speech.microsoft.com/')).toBe(
       'https://southeastasia.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1'

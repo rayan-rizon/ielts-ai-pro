@@ -45,6 +45,7 @@ const RecordingControls = React.memo(function RecordingControls({
   isProcessing,
   isSpeaking,
   isTTSLoading,
+  isPlaybackActive,
   processingStatus,
   micError,
   autoSubmitPaused,
@@ -56,7 +57,8 @@ const RecordingControls = React.memo(function RecordingControls({
   onStartTest,
 }) {
   const prefersReducedMotion = useReducedMotion();
-  const isUnavailable = isProcessing || isSpeaking || isTTSLoading || timerExpiredRef?.current;
+  const isUnavailable =
+    isProcessing || isSpeaking || isTTSLoading || isPlaybackActive || timerExpiredRef?.current;
 
   return (
     <div className="flex w-full flex-col items-center gap-2">
@@ -88,7 +90,7 @@ const RecordingControls = React.memo(function RecordingControls({
           {!isListening && (
             <div className="flex min-h-5 items-center justify-center">
               <ExaminerStatus isProcessing={isProcessing} processingStatus={processingStatus} />
-              {!isProcessing && !isTTSLoading && !isSpeaking && (
+              {!isProcessing && !isTTSLoading && !isSpeaking && !isPlaybackActive && (
                 <p className={cn(MICRO, MUTED, 'tracking-[0.14em]')}>
                   {handsFreeEnabled ? 'Microphone ready' : 'Ready for your answer'}
                 </p>

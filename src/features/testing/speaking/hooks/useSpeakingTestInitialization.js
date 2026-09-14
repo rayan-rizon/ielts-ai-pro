@@ -197,6 +197,13 @@ export default function useSpeakingTestInitialization({
         }
         setSpeakingV2State?.(serverResume.state);
 
+        if (serverResume.state?.status === 'expired') {
+          setTestStarted(false);
+          setError('This speaking session has expired. Return to Speaking and restart the test.');
+          setIsLoading(false);
+          return;
+        }
+
         if (serverResume.state?.status === 'completed') {
           restoreCompletedSession(matchingSession);
           return;

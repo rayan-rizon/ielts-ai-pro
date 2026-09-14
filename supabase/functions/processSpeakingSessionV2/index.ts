@@ -13,6 +13,7 @@ import {
   buildBrowserTranscriptHint,
   canRecoverFromBrowserTranscript,
   chooseVerifiedTranscript,
+  createBrowserTranscriptRecovery,
   getTranscriptVerificationReason,
   shouldGuardSilentSpeech,
   transcribeWithCloudflare,
@@ -26,6 +27,12 @@ import {
   type SpeakingMode,
 } from '../_shared/speakingTurnDecision.ts';
 import { buildSpeakingV2ControlResponse } from '../_shared/speakingV2ControlResponse.ts';
+import {
+  isSpeakingSessionExpired,
+  prepareSpeakingTurnState,
+  SPEAKING_EXPIRED_MESSAGE,
+  toExpiredSpeakingState,
+} from '../_shared/speakingV2Availability.ts';
 import {
   parseSpeakingQuestionRows,
   type SpeakingQuestion,
@@ -172,6 +179,37 @@ async function synchronizeV2SessionSummary(supabase: any, state: StateRow, quest
     console.warn('Could not synchronize Speaking V2 session summary', updateError.message);
 }
 
+async function synchronizeExpiredV2SessionSummary(supabase: any, state: StateRow) {
+  const { data: session, error } = await supabase
+    .from('test_sessions')
+    .select('content_data, answers')
+    .eq('id', state.test_session_id)
+    .maybeSingle();
+  if (error || !session) return;
+
+  const expiredState = toExpiredSpeakingState(publicState(state));
+  const { error: updateError } = await supabase
+    .from('test_sessions')
+    .update({
+      content_data: {
+        ...(session.content_data || {}),
+        speakingVersion: 'v2',
+        currentPart: state.current_part,
+        isPartComplete: false,
+        evaluationPending: false,
+        speakingV2State: expiredState,
+      },
+      answers: {
+        ...(session.answers || {}),
+        currentQuestionIndex: state.current_question_index,
+      },
+    })
+    .eq('id', state.test_session_id);
+  if (updateError) {
+    console.warn('Could not synchronize expired Speaking V2 session summary', updateError.message);
+  }
+}
+
 async function handleStart(params: {
   body: any;
   supabase: any;
@@ -236,6 +274,14 @@ async function handleStart(params: {
     });
   }
   const state = decodeState(data);
+  if (isSpeakingSessionExpired(state)) {
+    await synchronizeExpiredV2SessionSummary(params.supabase, state);
+    return responseJson(
+      { error: SPEAKING_EXPIRED_MESSAGE, state: toExpiredSpeakingState(publicState(state)) },
+      410,
+      params.corsHeaders
+    );
+  }
   const questions = await loadQuestions(params.supabase, state);
   await synchronizeV2SessionSummary(params.supabase, state, questions);
   return responseJson(firstQuestionResponse(state, questions), 200, params.corsHeaders);
@@ -300,6 +346,14 @@ async function handleControl(params: {
   }
   if (!state)
     return responseJson({ error: 'Speaking V2 session not found' }, 404, params.corsHeaders);
+  if (isSpeakingSessionExpired(state)) {
+    await synchronizeExpiredV2SessionSummary(params.supabase, state);
+    return responseJson(
+      { error: SPEAKING_EXPIRED_MESSAGE, state: toExpiredSpeakingState(publicState(state)) },
+      410,
+      params.corsHeaders
+    );
+  }
   const questions = await loadQuestions(params.supabase, state);
   await synchronizeV2SessionSummary(params.supabase, state, questions);
   return responseJson(firstQuestionResponse(state, questions), 200, params.corsHeaders);
@@ -367,18 +421,33 @@ async function transcribeAudio(params: {
       }
     }
   } catch (cloudflareError) {
-    if (!Deno.env.get('GEMINI_API_KEY')) throw cloudflareError;
-    const fallback = await transcribeWithGeminiFallback({
-      apiKey: Deno.env.get('GEMINI_API_KEY'),
-      audioBase64: params.audioBase64,
-      audioMimeType: params.audioMimeType,
-      browserTranscriptHint: params.browserHint?.transcript,
-      audioDurationMs: params.audioDurationMs,
-    });
-    transcript = fallback.transcript;
-    provider = fallback.provider;
-    model = fallback.model;
-    tokensUsed = fallback.tokensUsed;
+    let providerError = cloudflareError;
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (geminiApiKey) {
+      try {
+        const fallback = await transcribeWithGeminiFallback({
+          apiKey: geminiApiKey,
+          audioBase64: params.audioBase64,
+          audioMimeType: params.audioMimeType,
+          browserTranscriptHint: params.browserHint?.transcript,
+          audioDurationMs: params.audioDurationMs,
+        });
+        transcript = fallback.transcript;
+        provider = fallback.provider;
+        model = fallback.model;
+        tokensUsed = fallback.tokensUsed;
+      } catch (fallbackError) {
+        providerError = fallbackError;
+      }
+    }
+
+    if (!transcript) {
+      const browserRecovery = createBrowserTranscriptRecovery(params.browserHint);
+      if (!browserRecovery) throw providerError;
+      transcript = browserRecovery.transcript;
+      provider = browserRecovery.provider;
+      model = browserRecovery.model;
+    }
   }
   if (isFailedTranscript(transcript) && canRecoverFromBrowserTranscript(params.browserHint)) {
     transcript = params.browserHint.transcript;
@@ -472,9 +541,34 @@ async function handleTurn(params: {
     return responseJson({ error: 'Pronunciation sample is too large' }, 413, params.corsHeaders);
   }
 
-  const state = await getOwnedState(params.supabase, params.authId, sessionId);
+  let state = await getOwnedState(params.supabase, params.authId, sessionId);
   if (!state)
     return responseJson({ error: 'Speaking V2 session not found' }, 404, params.corsHeaders);
+  if (isSpeakingSessionExpired(state)) {
+    await synchronizeExpiredV2SessionSummary(params.supabase, state);
+    return responseJson(
+      { error: SPEAKING_EXPIRED_MESSAGE, state: toExpiredSpeakingState(publicState(state)) },
+      410,
+      params.corsHeaders
+    );
+  }
+  state = await prepareSpeakingTurnState(state, expectedRevision, async () => {
+    const { data, error } = await params.supabase.rpc('touch_speaking_v2_practice', {
+      p_auth_id: params.authId,
+      p_test_session_id: sessionId,
+      p_action: 'resume',
+    });
+    if (error) throw new Error(error.message);
+    return decodeState(data);
+  });
+  if (isSpeakingSessionExpired(state)) {
+    await synchronizeExpiredV2SessionSummary(params.supabase, state);
+    return responseJson(
+      { error: SPEAKING_EXPIRED_MESSAGE, state: toExpiredSpeakingState(publicState(state)) },
+      410,
+      params.corsHeaders
+    );
+  }
   const questions = await loadQuestions(params.supabase, state);
   const questionIndex = Math.min(state.current_question_index, questions.length - 1);
   const question = questions[questionIndex];

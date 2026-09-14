@@ -29,7 +29,33 @@ export function computeSpeakingAccessLock(test, user, isAdmin) {
   return false;
 }
 
-export function resolveSpeakingLinkConfig(isLocked, test, activeSession, completedSession) {
+export function resolveSpeakingAttemptState(session, now = Date.now()) {
+  if (!session) return { isResuming: false, isCompleted: false, needsRestart: false };
+
+  const isCompleted = Boolean(session.is_completed);
+  if (isCompleted) return { isResuming: false, isCompleted: true, needsRestart: false };
+
+  const snapshot = session.content_data?.speakingV2State;
+  const isV2 = session.content_data?.speakingVersion === 'v2';
+  const deadline = snapshot?.resumeExpiresAt || snapshot?.expiresAt;
+  const deadlineMs = deadline ? Date.parse(deadline) : Number.NaN;
+  const isExpired =
+    isV2 && (snapshot?.status === 'expired' || (Number.isFinite(deadlineMs) && now >= deadlineMs));
+
+  return {
+    isResuming: !isExpired,
+    isCompleted: false,
+    needsRestart: isExpired,
+  };
+}
+
+export function resolveSpeakingLinkConfig(
+  isLocked,
+  test,
+  activeSession,
+  completedSession,
+  needsRestart = false
+) {
   const isResuming = !!activeSession;
   const isCompleted = !!completedSession;
 
@@ -41,7 +67,9 @@ export function resolveSpeakingLinkConfig(isLocked, test, activeSession, complet
   }
 
   // NOTE: Assuming Link from react-router-dom is used externally.
-  let to = withLearningActivity(`/speaking-test?test-id=${test.id}`);
+  let to = withLearningActivity(
+    `/speaking-test?test-id=${test.id}${needsRestart ? '&retake=true' : ''}`
+  );
   if (isResuming) {
     to = `/speaking-test/${test.id}`;
   } else if (isCompleted) {

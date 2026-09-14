@@ -10,6 +10,7 @@ const readyProps = {
   isProcessing: false,
   isSpeaking: false,
   isTTSLoading: false,
+  isPlaybackActive: false,
   processingStatus: '',
   micError: null,
   liveTranscript: '',
@@ -26,6 +27,13 @@ const readyProps = {
 };
 
 describe('speaking recording controls', () => {
+  it('keeps recording unavailable until examiner audio has actually ended', () => {
+    render(<RecordingControls {...readyProps} isPlaybackActive />);
+
+    expect(screen.getByRole('button', { name: 'Start recording answer' })).toBeDisabled();
+    expect(screen.queryByText('Microphone ready')).not.toBeInTheDocument();
+  });
+
   it('shows the hands-free fallback while waiting to auto-start', () => {
     const onStartListening = vi.fn();
     render(<RecordingControls {...readyProps} onStartListening={onStartListening} />);

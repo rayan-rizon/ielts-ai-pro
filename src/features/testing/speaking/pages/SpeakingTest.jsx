@@ -361,6 +361,8 @@ export default function SpeakingTest() {
   });
 
   const processRecording = useSpeakingRecordingProcessor({
+    setError,
+    setTestStarted,
     allParts,
     acousticMetricsRef,
     conversationRef,
@@ -413,6 +415,7 @@ export default function SpeakingTest() {
       isProcessing,
       isSpeaking,
       isTTSLoading,
+      isPlaybackActive,
       isListening,
       isPartComplete,
       isPart2Intro,
@@ -433,6 +436,7 @@ export default function SpeakingTest() {
     isProcessing,
     isSpeaking,
     isTTSLoading,
+    isPlaybackActive,
     isTestComplete,
     startListening,
     testStarted,
@@ -457,6 +461,7 @@ export default function SpeakingTest() {
           isProcessing,
           isSpeaking,
           isTTSLoading,
+          isPlaybackActive,
           isListening,
           isPartComplete,
           isPart2Intro,
@@ -475,6 +480,7 @@ export default function SpeakingTest() {
       isProcessing,
       isSpeaking,
       isTTSLoading,
+      isPlaybackActive,
       isTestComplete,
       requestAutoStart,
       testStarted,

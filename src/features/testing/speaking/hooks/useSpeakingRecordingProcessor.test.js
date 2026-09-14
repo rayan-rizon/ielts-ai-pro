@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  getAverageBrowserSpeechConfidence,
   recoverSpeakingV2Conflict,
   replacePendingWithAudioRecovery,
+  submitSpeakingV2TurnWithConflictRecovery,
 } from './useSpeakingRecordingProcessor';
 
 vi.mock('@/utils/api', () => ({
@@ -10,7 +12,7 @@ vi.mock('@/utils/api', () => ({
   callEdgeFunctionMultipart: vi.fn(),
 }));
 
-import { callEdgeFunction } from '@/utils/api';
+import { callEdgeFunction, callEdgeFunctionMultipart } from '@/utils/api';
 
 describe('speaking audio recovery message', () => {
   beforeEach(() => {
@@ -57,5 +59,47 @@ describe('speaking audio recovery message', () => {
       })
     ).resolves.toBe(state);
     expect(callEdgeFunction).not.toHaveBeenCalled();
+  });
+
+  it('preserves live-recognition confidence objects for transcript recovery', () => {
+    expect(
+      getAverageBrowserSpeechConfidence([
+        { transcript: 'I pay by card', confidence: 0.92 },
+        { transcript: 'most of the time', confidence: 0.84 },
+      ])
+    ).toBeCloseTo(0.88);
+  });
+
+  it('retries the captured audio once after reconciling a stale revision', async () => {
+    const conflict = Object.assign(new Error('Speaking state conflict'), {
+      status: 409,
+      state: { part: 1, questionNumber: 2, revision: 9, status: 'active' },
+    });
+    callEdgeFunctionMultipart
+      .mockRejectedValueOnce(conflict)
+      .mockResolvedValueOnce({ success: true, userTranscript: 'I usually pay by card.' });
+
+    await expect(
+      submitSpeakingV2TurnWithConflictRecovery({
+        audioBlob: new Blob(['recorded-audio'.repeat(100)], { type: 'audio/webm' }),
+        audioDurationMs: 4200,
+        browserTranscript: 'I usually pay by card.',
+        sessionId: 'session-1',
+        speakingV2State: { revision: 8, status: 'active' },
+        speechConfidence: [{ transcript: 'I usually pay by card.', confidence: 0.9 }],
+        speechDetected: true,
+        pronunciationAudio: null,
+      })
+    ).resolves.toMatchObject({ success: true });
+
+    expect(callEdgeFunctionMultipart).toHaveBeenCalledTimes(2);
+    const firstPayload = callEdgeFunctionMultipart.mock.calls[0][1];
+    const retryPayload = callEdgeFunctionMultipart.mock.calls[1][1];
+    expect(retryPayload.get('expectedRevision')).toBe('9');
+    expect(retryPayload.get('idempotencyKey')).toBe(firstPayload.get('idempotencyKey'));
+    expect(JSON.parse(retryPayload.get('browserSpeechHint'))).toMatchObject({
+      transcript: 'I usually pay by card.',
+      confidence: 0.9,
+    });
   });
 });

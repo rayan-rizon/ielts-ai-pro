@@ -83,6 +83,17 @@ export function canRecoverFromBrowserTranscript(
   );
 }
 
+export function createBrowserTranscriptRecovery(
+  hint: { transcript: string; confidence: number } | null
+): { transcript: string; provider: 'browser-recovery'; model: 'web-speech-api' } | null {
+  if (!canRecoverFromBrowserTranscript(hint)) return null;
+  return {
+    transcript: compactTranscript(hint.transcript),
+    provider: 'browser-recovery',
+    model: 'web-speech-api',
+  };
+}
+
 /**
  * Treat a recorder-confirmed no-speech turn as inaudible unless a high-
  * confidence, multi-word live caption independently corroborates speech.

@@ -1,11 +1,12 @@
 // ---------------------------------------------------------------------------
 // Speaking Filter Utilities
 // ---------------------------------------------------------------------------
+import { resolveSpeakingAttemptState } from './speakingCardHelpers';
 
 const TAB_MATCHERS = {
   all: () => true,
   inprogress: (latestSession) => {
-    return !!latestSession && !latestSession.is_completed;
+    return resolveSpeakingAttemptState(latestSession).isResuming;
   },
   cambridge: (latestSession, test) => !!test.is_official_cambridge,
 };
@@ -26,7 +27,7 @@ export function filterSpeakingTests(passages, sessions, activeTab, searchQuery) 
   return passages
     .filter((test) => {
       const testSession = sessions.find((s) => s.passage_id === test.id);
-      const session = testSession && !testSession.is_completed ? testSession : undefined;
+      const session = resolveSpeakingAttemptState(testSession).isResuming ? testSession : undefined;
       return matchesTab(test, session, activeTab) && matchesSearch(test, query);
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

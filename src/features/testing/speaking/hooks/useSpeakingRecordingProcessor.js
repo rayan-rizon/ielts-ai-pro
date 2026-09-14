@@ -38,6 +38,35 @@ export async function recoverSpeakingV2Conflict({ error, sessionId }) {
   return recovered?.state || null;
 }
 
+export function getAverageBrowserSpeechConfidence(values) {
+  const confidenceValues = (Array.isArray(values) ? values : [])
+    .map((value) => Number(typeof value === 'object' ? value?.confidence : value))
+    .filter(Number.isFinite);
+  if (confidenceValues.length === 0) return 0;
+  return (
+    confidenceValues.reduce((sum, confidence) => sum + confidence, 0) / confidenceValues.length
+  );
+}
+
+export async function submitSpeakingV2TurnWithConflictRecovery(params) {
+  const idempotencyKey = params.idempotencyKey || crypto.randomUUID();
+  try {
+    return await processSpeakingV2Turn({ ...params, idempotencyKey });
+  } catch (error) {
+    if (error?.status !== 409) throw error;
+    const recoveredState = await recoverSpeakingV2Conflict({
+      error,
+      sessionId: params.sessionId,
+    });
+    if (!recoveredState || recoveredState.status !== 'active') throw error;
+    return processSpeakingV2Turn({
+      ...params,
+      speakingV2State: recoveredState,
+      idempotencyKey,
+    });
+  }
+}
+
 export default function useSpeakingRecordingProcessor({
   allParts,
   acousticMetricsRef,
@@ -50,6 +79,8 @@ export default function useSpeakingRecordingProcessor({
   session,
   setAllPartsAcousticMetrics,
   setConversation,
+  setError,
+  setTestStarted,
   setCurrentQuestionIndex,
   setIsPartComplete,
   setIsProcessing,
@@ -135,7 +166,7 @@ export default function useSpeakingRecordingProcessor({
         setProcessingStatus(getTranscriptionStatus(pronunciationAudio));
 
         const response = useSpeakingV2
-          ? await processSpeakingV2Turn({
+          ? await submitSpeakingV2TurnWithConflictRecovery({
               audioBlob,
               audioDurationMs: Number(metadata.duration) || 0,
               browserTranscript: metadata.liveTranscript,
@@ -204,6 +235,12 @@ export default function useSpeakingRecordingProcessor({
         });
       } catch (error) {
         if (!isCurrentRequest()) return;
+        if (useSpeakingV2 && (error?.status === 410 || error?.state?.status === 'expired')) {
+          setConversation((prev) => prev.filter((entry) => !entry.isLoading));
+          setTestStarted?.(false);
+          setError?.('This speaking session has expired. Return to Speaking and restart the test.');
+          return;
+        }
         if (useSpeakingV2 && error?.status === 409) {
           const recoveredState = await recoverSpeakingV2Conflict({
             error,
@@ -245,6 +282,8 @@ export default function useSpeakingRecordingProcessor({
       session,
       setAllPartsAcousticMetrics,
       setConversation,
+      setError,
+      setTestStarted,
       setCurrentQuestionIndex,
       setIsPartComplete,
       setIsProcessing,
@@ -305,7 +344,7 @@ function preparePronunciationAudio({
   });
 }
 
-async function processSpeakingV2Turn({
+export async function processSpeakingV2Turn({
   audioBlob,
   audioDurationMs,
   browserTranscript,
@@ -314,18 +353,16 @@ async function processSpeakingV2Turn({
   speechConfidence,
   speechDetected,
   pronunciationAudio,
+  idempotencyKey = crypto.randomUUID(),
 }) {
   if (!sessionId || speakingV2State?.revision == null) {
     throw new Error('The speaking session is not ready. Please restart the test.');
   }
-  const confidenceValues = Array.isArray(speechConfidence) ? speechConfidence : [];
-  const confidence = confidenceValues.length
-    ? confidenceValues.reduce((sum, value) => sum + Number(value || 0), 0) / confidenceValues.length
-    : 0;
+  const confidence = getAverageBrowserSpeechConfidence(speechConfidence);
   const formData = new FormData();
   formData.append('sessionId', sessionId);
   formData.append('expectedRevision', String(speakingV2State.revision));
-  formData.append('idempotencyKey', crypto.randomUUID());
+  formData.append('idempotencyKey', idempotencyKey);
   formData.append('audio', audioBlob, `speaking-${Date.now()}.webm`);
   formData.append('mimeType', audioBlob.type || 'audio/webm');
   formData.append('audioDurationMs', String(audioDurationMs));

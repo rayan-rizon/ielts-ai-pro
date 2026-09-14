@@ -118,6 +118,23 @@ function createProps() {
 }
 
 describe('Speaking test initialization', () => {
+  it('never reopens the microphone for an expired practice session', async () => {
+    completedSession.is_completed = false;
+    callEdgeFunction.mockResolvedValue({
+      state: { status: 'expired', part: 1, revision: 0, remainingActiveSeconds: 466 },
+      examinerText: 'Where did you grow up?',
+    });
+    const props = createProps();
+    try {
+      renderHook(() => useSpeakingTestInitialization(props));
+      await waitFor(() => expect(props.setIsLoading).toHaveBeenCalledWith(false));
+      expect(props.setError).toHaveBeenCalledWith(expect.stringMatching(/expired/i));
+      expect(props.setTestStarted).not.toHaveBeenCalledWith(true);
+      expect(props.requestAutoStart).not.toHaveBeenCalled();
+    } finally {
+      completedSession.is_completed = true;
+    }
+  });
   beforeEach(() => {
     window.history.replaceState({}, '', `/${completedSession.id}?view-score=true`);
     getPassageById.mockResolvedValue({ title: 'IELTS 21 Speaking 2026 Test 3' });

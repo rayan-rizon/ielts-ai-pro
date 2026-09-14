@@ -12,6 +12,7 @@ import {
   resolveSpeakingIcon,
   resolveSpeakingLinkConfig,
   computeSpeakingAccessLock,
+  resolveSpeakingAttemptState,
 } from './speakingCardHelpers';
 
 const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
@@ -21,7 +22,7 @@ const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-
 // ---------------------------------------------------------------------------
 
 export function computeSpeakingProgress(latestSession, test, questionCount) {
-  const isResuming = !!latestSession && !latestSession.is_completed;
+  const { isResuming } = resolveSpeakingAttemptState(latestSession);
   if (!isResuming) return 0;
   const currentPart = Math.min(
     Math.max(Number(latestSession.content_data?.currentPart) || 1, 1),
@@ -56,8 +57,7 @@ function buildSpeakingCardProps({
   isAdmin,
   hasMounted,
 }) {
-  const isResuming = !!latestSession && !latestSession.is_completed;
-  const isCompleted = !!latestSession && latestSession.is_completed;
+  const { isResuming, isCompleted, needsRestart } = resolveSpeakingAttemptState(latestSession);
   const isLocked = computeSpeakingAccessLock(test, user, isAdmin);
   const progress = computeSpeakingProgress(latestSession, test, questionCount);
   const displayTitle = buildSpeakingDisplayTitle(test);
@@ -68,7 +68,8 @@ function buildSpeakingCardProps({
     isLocked,
     test,
     activeSession,
-    completedSession
+    completedSession,
+    needsRestart
   );
 
   return {
@@ -76,6 +77,7 @@ function buildSpeakingCardProps({
     isLocked,
     isResuming,
     isCompleted,
+    needsRestart,
     progress,
     displayScore: latestSession?.score,
     displayTitle,
