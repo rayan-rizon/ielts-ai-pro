@@ -10,7 +10,13 @@ export interface UserProfile {
   created_at?: string;
   last_login?: string;
   last_active?: string;
+  /** Routing gate only — true for skippers too. Read onboarding_outcome to measure activation. */
   onboarding_completed?: boolean;
+  onboarding_outcome?: 'answered' | 'skipped' | null;
+  onboarding_completed_at?: string | null;
+  onboarding_offer_seen_at?: string | null;
+  onboarding_plan_clicked?: 'pro' | 'premium' | null;
+  onboarding_offer_exit?: 'upgrade' | 'free' | null;
   weak_area?: string;
   study_hours_goal?: number;
   study_availability?: {

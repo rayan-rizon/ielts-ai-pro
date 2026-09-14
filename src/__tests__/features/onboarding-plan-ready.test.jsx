@@ -125,9 +125,34 @@ describe('onboarding plan-ready experience', () => {
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
+  it('reports the plan offer only once the learner can actually see a price', async () => {
+    vi.useFakeTimers();
+    const onPlanOfferViewed = vi.fn();
+
+    render(
+      <CompleteStep
+        formData={formData}
+        onUpgrade={vi.fn()}
+        onContinue={vi.fn()}
+        onOpenPlan={vi.fn()}
+        onPlanOfferViewed={onPlanOfferViewed}
+      />
+    );
+
+    // Still assembling: no price on screen, so no offer was seen.
+    expect(onPlanOfferViewed).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(onPlanOfferViewed).toHaveBeenCalledOnce();
+  });
+
   it('sends an existing paid learner straight to the real Learning Path', async () => {
     vi.useFakeTimers();
     const onOpenPlan = vi.fn();
+    const onPlanOfferViewed = vi.fn();
 
     render(
       <CompleteStep
@@ -136,6 +161,7 @@ describe('onboarding plan-ready experience', () => {
         onUpgrade={vi.fn()}
         onContinue={vi.fn()}
         onOpenPlan={onOpenPlan}
+        onPlanOfferViewed={onPlanOfferViewed}
       />
     );
     await act(async () => {
@@ -143,6 +169,8 @@ describe('onboarding plan-ready experience', () => {
     });
 
     expect(screen.queryByRole('button', { name: /choose pro/i })).not.toBeInTheDocument();
+    // A subscriber is never shown the offer, so it must not count as viewed.
+    expect(onPlanOfferViewed).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: /open my ai learning path/i }));
     expect(onOpenPlan).toHaveBeenCalledOnce();
   });
@@ -157,5 +185,17 @@ describe('onboarding plan-ready experience', () => {
       'if (hasPaidAccess(updatedUser)) triggerBackgroundPathGeneration(updatedUser);'
     );
     expect(source).not.toContain("toast.success('Preferences saved!'");
+  });
+
+  it('records how the onboarding gate was satisfied, not just that it was', () => {
+    const source = readFileSync('src/features/onboarding/pages/Onboarding.jsx', 'utf8');
+
+    // The questionnaire and the skip button both flip the routing gate; only
+    // the outcome distinguishes real activation from a skip.
+    expect(source).toContain("onboarding_outcome: 'answered'");
+    expect(source).toContain("onboarding_outcome: 'skipped'");
+    expect(source).toMatch(/onboarding_completed: true,\s*\n\s*onboarding_outcome: 'skipped',/);
+    expect(source).toContain("trackAuthenticatedAppEvent('onboarding_plan_selected'");
+    expect(source).toContain("trackAuthenticatedAppEvent('onboarding_free_continue'");
   });
 });

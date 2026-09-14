@@ -33,6 +33,7 @@ import StudyTimeStep from '@/features/onboarding/components/steps/StudyTimeStep'
 import FocusStep from '@/features/onboarding/components/steps/FocusStep';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
 import { queueFirstRunProductTour } from '@/features/dashboard/lib/productTourStorage';
+import { recordOnboardingOffer } from '@/features/onboarding/services/onboardingOffer';
 import { Logo } from '@/components/shared/Logo';
 
 // Step configurations
@@ -161,7 +162,10 @@ export default function Onboarding() {
 
   const handleOnboardingConflict = async () => {
     try {
-      const updatedUser = await User.updateMyUserData({ onboarding_completed: true });
+      const updatedUser = await User.updateMyUserData({
+        onboarding_completed: true,
+        onboarding_outcome: 'answered',
+      });
       saveOnboardingCompletedLocally();
       if (hasPaidAccess(updatedUser)) triggerBackgroundPathGeneration(updatedUser);
       return true;
@@ -211,6 +215,8 @@ export default function Onboarding() {
   };
 
   const finishOnboarding = () => {
+    void recordOnboardingOffer('continued_free');
+    trackAuthenticatedAppEvent('onboarding_free_continue', {}, user);
     if (firstRunTourUserRef.current) {
       queueFirstRunProductTour(firstRunTourUserRef.current);
       firstRunTourUserRef.current = null;
@@ -222,7 +228,18 @@ export default function Onboarding() {
     navigate(createPageUrl('LearningPath'));
   };
 
+  const trackPlanOfferViewed = useCallback(() => {
+    void recordOnboardingOffer('offer_seen');
+    trackAuthenticatedAppEvent(
+      'onboarding_plan_offer_viewed',
+      { target_band_score: formData.target_band_score, weak_area: formData.weak_area },
+      user
+    );
+  }, [formData.target_band_score, formData.weak_area, user]);
+
   const openSubscriptionPlans = (tier = 'pro') => {
+    void recordOnboardingOffer('plan_clicked', tier);
+    trackAuthenticatedAppEvent('onboarding_plan_selected', { plan_tier: tier }, user);
     const params = new URLSearchParams({
       plan: tier,
       source: 'onboarding',
@@ -237,6 +254,7 @@ export default function Onboarding() {
     try {
       await User.updateMyUserData({
         onboarding_completed: true,
+        onboarding_outcome: 'skipped',
       });
       saveOnboardingCompletedLocally();
       toast.info('Onboarding skipped', {
@@ -323,6 +341,7 @@ export default function Onboarding() {
             onUpgrade={openSubscriptionPlans}
             onContinue={finishOnboarding}
             onOpenPlan={openLearningPath}
+            onPlanOfferViewed={trackPlanOfferViewed}
           />
         );
       default:
@@ -558,6 +577,10 @@ function isConflictError(code, msg) {
 function buildOnboardingPayload(formData) {
   const payload = {
     onboarding_completed: true,
+    // The gate and the metric are separate: `onboarding_completed` only says
+    // "don't send this learner back here", `onboarding_outcome` says whether
+    // they actually answered. See 20260914130736.
+    onboarding_outcome: 'answered',
   };
 
   if (formData.target_band_score) {

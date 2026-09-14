@@ -12,6 +12,12 @@ const PRODUCT_EVENTS = new Set([
   'manual_checkout_started',
   'manual_subscription_request_submitted',
   'onboarding_completed',
+  // The three steps that make the onboarding paywall measurable: who reached a
+  // price, who picked a plan, who chose free instead. Without them there is no
+  // way to tell whether the offer costs activation.
+  'onboarding_free_continue',
+  'onboarding_plan_offer_viewed',
+  'onboarding_plan_selected',
   'plan_selected',
   'signin_success',
   'signup_completed',

@@ -531,8 +531,24 @@ function PlanOption({ tier, recommended, onSelect, pricing }) {
   );
 }
 
-function ReadyPlan({ preview, hasPaidPlan, onUpgrade, onContinue, onOpenPlan, planPricing }) {
+function ReadyPlan({
+  preview,
+  hasPaidPlan,
+  onUpgrade,
+  onContinue,
+  onOpenPlan,
+  planPricing,
+  onPlanOfferViewed,
+}) {
   const recommendedTier = preview.targetBand >= 8 ? 'premium' : 'pro';
+
+  // Reported here rather than on entering the step: the offer only exists once
+  // the assembly animation has finished, so anyone who leaves during it never
+  // saw a price and must not count as having seen the offer.
+  useEffect(() => {
+    if (hasPaidPlan) return;
+    onPlanOfferViewed?.();
+  }, [hasPaidPlan, onPlanOfferViewed]);
 
   return (
     <m.div
@@ -635,6 +651,7 @@ export default function CompleteStep({
   onUpgrade,
   onContinue,
   onOpenPlan,
+  onPlanOfferViewed,
 }) {
   const reduceMotion = useReducedMotion();
   const [isAssembling, setIsAssembling] = useState(true);
@@ -657,6 +674,7 @@ export default function CompleteStep({
       onContinue={onContinue}
       onOpenPlan={onOpenPlan}
       planPricing={planPricing}
+      onPlanOfferViewed={onPlanOfferViewed}
     />
   );
 }
