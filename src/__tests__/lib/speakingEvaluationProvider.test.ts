@@ -195,4 +195,28 @@ describe('speaking evaluation provider routing', () => {
     expect(result.providerCalls).toBe(2);
     expect(result.provider).toBe('gemini');
   });
+
+  it('moves a rate-limited transcript-only evaluation to another provider', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ error: 'RESOURCE_EXHAUSTED' }, 429))
+      .mockResolvedValueOnce(deepSeekResponse());
+
+    const result = await requestSpeakingEvaluation({
+      ...baseRequest,
+      hasPronunciationEvidence: false,
+      fetchImpl,
+    });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl.mock.calls[0][0]).toContain(`${GEMINI_SCORING_MODEL}:generateContent`);
+    expect(fetchImpl.mock.calls[1][0]).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(result).toMatchObject({
+      provider: 'openrouter-deepseek',
+      fallbackUsed: true,
+      fallbackReason: 'gemini_http_error_http_429',
+      providerCalls: 2,
+      routingReason: 'deepseek_fallback',
+    });
+  });
 });

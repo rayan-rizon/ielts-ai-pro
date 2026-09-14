@@ -2,6 +2,11 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { sendEmail } from '../_shared/resend.ts';
 import { getEmailTemplate } from '../_shared/templates.ts';
+import {
+  buildScheduledEmailIdempotencyKey,
+  isRetryableScheduledRun,
+  retryTransientDatabaseOperation,
+} from '../_shared/scheduledEmailReliability.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -59,16 +64,55 @@ serve(async (req) => {
 
     const today = new Date();
     const scheduledFor = today.toISOString().split('T')[0];
-    const { data: run, error: runError } = await supabase
+    let { data: run, error: runError } = await supabase
       .from('scheduled_email_runs')
       .upsert(
         { status: 'running', scheduled_for: scheduledFor },
         { onConflict: 'scheduled_for', ignoreDuplicates: true }
       )
-      .select('id')
+      .select('id, status, started_at')
       .maybeSingle();
     if (runError) {
       throw new Error(`Could not start scheduled email telemetry: ${runError.message}`);
+    }
+    if (!run) {
+      const { data: existingRun, error: existingRunError } = await supabase
+        .from('scheduled_email_runs')
+        .select('id, status, started_at')
+        .eq('scheduled_for', scheduledFor)
+        .maybeSingle();
+      if (existingRunError) {
+        throw new Error(`Could not inspect scheduled email claim: ${existingRunError.message}`);
+      }
+
+      // Failed invocations and abandoned claims are safe to reclaim because
+      // every provider dispatch below has a stable Resend idempotency key.
+      // Match the observed state as well as the id so concurrent retries cannot
+      // both acquire the same daily run.
+      if (existingRun && isRetryableScheduledRun(existingRun, today)) {
+        const retryStartedAt = today.toISOString();
+        const retryClaim = await supabase
+          .from('scheduled_email_runs')
+          .update({
+            status: 'running',
+            started_at: retryStartedAt,
+            completed_at: null,
+            candidates: 0,
+            accepted: 0,
+            skipped: 0,
+            failed: 0,
+            error_message: null,
+          })
+          .eq('id', existingRun.id)
+          .eq('status', existingRun.status)
+          .eq('started_at', existingRun.started_at)
+          .select('id, status, started_at')
+          .maybeSingle();
+        if (retryClaim.error) {
+          throw new Error(`Could not reclaim scheduled email run: ${retryClaim.error.message}`);
+        }
+        run = retryClaim.data;
+      }
     }
     if (!run) {
       return new Response(JSON.stringify({ success: true, alreadyProcessed: true, scheduledFor }), {
@@ -89,12 +133,14 @@ serve(async (req) => {
 
     // 1. Renewal Reminders (7 Days Before)
     console.log(`Checking renewals ending around ${dates.renewalTarget}`);
-    const { data: renewals, error: renewalsError } = await supabase
-      .from('users')
-      .select('id, email, full_name, subscription_end_date')
-      .neq('subscription_tier', 'free')
-      .gte('subscription_end_date', `${dates.renewalTarget}T00:00:00Z`)
-      .lte('subscription_end_date', `${dates.renewalTarget}T23:59:59Z`);
+    const { data: renewals, error: renewalsError } = await retryTransientDatabaseOperation(() =>
+      supabase
+        .from('users')
+        .select('id, email, full_name, subscription_end_date')
+        .neq('subscription_tier', 'free')
+        .gte('subscription_end_date', `${dates.renewalTarget}T00:00:00Z`)
+        .lte('subscription_end_date', `${dates.renewalTarget}T23:59:59Z`)
+    );
     if (renewalsError)
       throw new Error(`Could not load renewal reminders: ${renewalsError.message}`);
 
@@ -112,6 +158,11 @@ serve(async (req) => {
             type: 'renewal_reminder',
             html: template.html,
             text: template.text,
+            idempotencyKey: buildScheduledEmailIdempotencyKey(
+              scheduledFor,
+              'renewal_reminder',
+              user.id
+            ),
           })
         );
       }
@@ -119,11 +170,13 @@ serve(async (req) => {
 
     // 2. Trial / Referral Bonus Expiry (3 Days Before)
     console.log(`Checking trial/bonus ending around ${dates.trialTarget}`);
-    const { data: trials, error: trialsError } = await supabase
-      .from('users')
-      .select('id, email, full_name, referral_bonus_expires_at')
-      .gte('referral_bonus_expires_at', `${dates.trialTarget}T00:00:00Z`)
-      .lte('referral_bonus_expires_at', `${dates.trialTarget}T23:59:59Z`);
+    const { data: trials, error: trialsError } = await retryTransientDatabaseOperation(() =>
+      supabase
+        .from('users')
+        .select('id, email, full_name, referral_bonus_expires_at')
+        .gte('referral_bonus_expires_at', `${dates.trialTarget}T00:00:00Z`)
+        .lte('referral_bonus_expires_at', `${dates.trialTarget}T23:59:59Z`)
+    );
     if (trialsError) throw new Error(`Could not load trial reminders: ${trialsError.message}`);
 
     if (trials && trials.length > 0) {
@@ -140,6 +193,11 @@ serve(async (req) => {
             type: 'trial_expiry',
             html: template.html,
             text: template.text,
+            idempotencyKey: buildScheduledEmailIdempotencyKey(
+              scheduledFor,
+              'trial_expiry',
+              user.id
+            ),
           })
         );
       }
@@ -147,11 +205,14 @@ serve(async (req) => {
 
     // 3. Inactivity Warning (7 Days Inactive)
     console.log(`Checking users last active around ${dates.inactiveTarget}`);
-    const { data: inactiveUsers, error: inactiveError } = await supabase
-      .from('users')
-      .select('id, email, full_name, last_active')
-      .gte('last_active', `${dates.inactiveTarget}T00:00:00Z`)
-      .lte('last_active', `${dates.inactiveTarget}T23:59:59Z`);
+    const { data: inactiveUsers, error: inactiveError } = await retryTransientDatabaseOperation(
+      () =>
+        supabase
+          .from('users')
+          .select('id, email, full_name, last_active')
+          .gte('last_active', `${dates.inactiveTarget}T00:00:00Z`)
+          .lte('last_active', `${dates.inactiveTarget}T23:59:59Z`)
+    );
     if (inactiveError)
       throw new Error(`Could not load inactivity reminders: ${inactiveError.message}`);
 
@@ -166,6 +227,11 @@ serve(async (req) => {
             type: 'inactivity_warning',
             html: template.html,
             text: template.text,
+            idempotencyKey: buildScheduledEmailIdempotencyKey(
+              scheduledFor,
+              'inactivity_warning',
+              user.id
+            ),
           })
         );
       }

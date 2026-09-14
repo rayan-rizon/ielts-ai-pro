@@ -29,6 +29,11 @@ interface SendEmailParams {
    * senders, and without it they push recipients toward "report spam" instead.
    */
   headers?: Record<string, string>;
+  /**
+   * Stable provider-side deduplication key for retryable workflows. Resend
+   * retains these for 24 hours, covering the scheduled job's retry window.
+   */
+  idempotencyKey?: string;
 }
 
 /**
@@ -103,7 +108,15 @@ function providerErrorMessage(result: unknown): string {
   );
 }
 
-export async function sendEmail({ to, subject, html, text, headers, type }: SendEmailParams) {
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+  headers,
+  type,
+  idempotencyKey,
+}: SendEmailParams) {
   if (!resendApiKey) {
     console.error('Missing RESEND_API_KEY');
     await recordDispatch({ to, type, status: 'failed', errorMessage: 'RESEND_API_KEY is missing' });
@@ -146,6 +159,7 @@ export async function sendEmail({ to, subject, html, text, headers, type }: Send
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
+        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
       },
       body: JSON.stringify({
         from,

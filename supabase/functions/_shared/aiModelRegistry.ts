@@ -188,11 +188,16 @@ export const AI_ROUTES: AiRoute[] = [
       {
         model: 'gemini-2.5-flash',
         role: 'repair',
-        when: 'One retry at temperature 0 on malformed JSON.',
+        when: 'One retry at temperature 0 on malformed JSON when the alternate provider was not already attempted.',
+      },
+      {
+        model: 'deepseek/deepseek-v4-flash-0731',
+        role: 'fallback',
+        when: 'Transcript-only Gemini scoring is rate-limited, unavailable, times out, or exhausts its JSON repair attempt.',
       },
     ],
     notes:
-      'Routing decided in _shared/speakingEvaluationProvider.ts; routingReason is persisted per attempt.',
+      'Routing decided in _shared/speakingEvaluationProvider.ts; every accepted provider response must satisfy the same strict IELTS scoring schema, and routingReason is persisted per attempt.',
   },
   {
     id: 'speaking-turn-decision',

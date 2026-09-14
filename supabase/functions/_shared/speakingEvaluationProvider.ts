@@ -19,7 +19,8 @@ export type SpeakingEvaluationProviderRequest = {
 
 export type SpeakingEvaluationProviderResult = TextAiResult & {
   providerCalls: number;
-  routingReason: 'deepseek_primary' | 'gemini_missing_audio_evidence' | 'gemini_fallback';
+  routingReason:
+    'deepseek_primary' | 'gemini_missing_audio_evidence' | 'gemini_fallback' | 'deepseek_fallback';
 };
 
 function isFiniteNumber(value: unknown): value is number {
@@ -62,6 +63,21 @@ function describeDeepSeekFailure(error: unknown): string {
   return `openrouter_deepseek_${error.code}${status}`;
 }
 
+function describeGeminiFailure(error: unknown): string {
+  if (!(error instanceof TextAiProviderError)) return 'gemini_provider_failure';
+  const status = error.status ? `_http_${error.status}` : '';
+  return `gemini_${error.code}${status}`;
+}
+
+function shouldChangeProvider(error: unknown) {
+  if (!(error instanceof TextAiProviderError)) return true;
+  return (
+    error.code === 'timeout' ||
+    (error.code === 'http_error' &&
+      (error.status === 408 || error.status === 429 || (error.status || 0) >= 500))
+  );
+}
+
 async function requestGeminiSpeakingEvaluation(
   request: SpeakingEvaluationProviderRequest,
   temperature: number
@@ -92,23 +108,29 @@ export async function requestSpeakingEvaluation(
 ): Promise<SpeakingEvaluationProviderResult> {
   let providerCalls = 0;
   const deepSeekFailureReasons: string[] = [];
+  let deepSeekAttempted = false;
+
+  const requestDeepSeek = async () => {
+    providerCalls += 1;
+    deepSeekAttempted = true;
+    return requestOpenRouterDeepSeekJson({
+      prompt: request.prompt,
+      systemPrompt: request.systemPrompt,
+      apiKey: request.openRouterApiKey || '',
+      maxOutputTokens: 4096,
+      timeoutMs: Math.min(request.timeoutMs || 15_000, 7_000),
+      fetchImpl: request.fetchImpl,
+      validateJson: isSpeakingEvaluationShape,
+    });
+  };
 
   // The production flow normally has bounded Azure pronunciation evidence.
   // Keep transcript-only evaluations on the calibrated Gemini route because
   // DeepSeek is the explicitly benchmarked audio-backed primary route.
   if (request.hasPronunciationEvidence) {
     if (request.openRouterApiKey) {
-      providerCalls += 1;
       try {
-        const result = await requestOpenRouterDeepSeekJson({
-          prompt: request.prompt,
-          systemPrompt: request.systemPrompt,
-          apiKey: request.openRouterApiKey,
-          maxOutputTokens: 4096,
-          timeoutMs: Math.min(request.timeoutMs || 15_000, 7_000),
-          fetchImpl: request.fetchImpl,
-          validateJson: isSpeakingEvaluationShape,
-        });
+        const result = await requestDeepSeek();
         return {
           ...result,
           providerCalls,
@@ -135,11 +157,41 @@ export async function requestSpeakingEvaluation(
     ) {
       throw firstError;
     }
+    const firstGeminiFailure = describeGeminiFailure(firstError);
+
+    // A same-provider retry amplifies rate limits and outages. Transcript-only
+    // scoring can instead recover through the configured DeepSeek route; it
+    // still uses the same strict IELTS response schema before being accepted.
+    if (!deepSeekAttempted && request.openRouterApiKey && shouldChangeProvider(firstError)) {
+      console.warn('Gemini speaking evaluation unavailable; trying DeepSeek:', firstGeminiFailure);
+      const result = await requestDeepSeek();
+      return {
+        ...result,
+        fallbackUsed: true,
+        fallbackReason: firstGeminiFailure,
+        providerCalls,
+        routingReason: 'deepseek_fallback',
+      };
+    }
     // Preserve the current scorer's one bounded repair attempt for malformed
-    // or transient provider responses.
+    // JSON. If that repair also fails, use the other provider when available.
     console.warn('Gemini speaking evaluation failed; retrying once:', firstError);
     providerCalls += 1;
-    geminiResult = await requestGeminiSpeakingEvaluation(request, 0);
+    try {
+      geminiResult = await requestGeminiSpeakingEvaluation(request, 0);
+    } catch (secondError) {
+      if (!deepSeekAttempted && request.openRouterApiKey) {
+        const result = await requestDeepSeek();
+        return {
+          ...result,
+          fallbackUsed: true,
+          fallbackReason: [firstGeminiFailure, describeGeminiFailure(secondError)].join(','),
+          providerCalls,
+          routingReason: 'deepseek_fallback',
+        };
+      }
+      throw secondError;
+    }
   }
 
   const usedAsFallback = deepSeekFailureReasons.length > 0;
