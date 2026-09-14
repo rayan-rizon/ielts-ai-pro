@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { m } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, BookOpen, Headphones, Mic, PenTool } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
@@ -126,8 +126,6 @@ export default function Dashboard() {
     return { dateLabel: label, greeting: greet };
   }, []);
 
-  if (isLoading) return <DashboardSkeleton data-oid=":binn6-" />;
-
   if (hasError) {
     return (
       <main className="grid min-h-full place-items-center bg-[#f8f8fb] px-4 py-16 text-slate-950 dark:bg-[#08080a] dark:text-white">
@@ -140,7 +138,7 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => retry?.()}
-            className="mt-4 h-9 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white hover:bg-[#4a52c9]"
+            className="mt-4 h-9 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] active:scale-95"
           >
             Retry dashboard
           </button>
@@ -151,48 +149,69 @@ export default function Dashboard() {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
-        {/* Subtle dot grid runs the full page with zero heavy blur or neon washes */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
-        />
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <m.div
+            key="dashboard-skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, filter: 'blur(2px)' }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <DashboardSkeleton data-oid=":binn6-" />
+          </m.div>
+        ) : (
+          <m.main
+            key="dashboard-content"
+            initial={{ opacity: 0, filter: 'blur(2px)' }}
+            animate={{ opacity: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, filter: 'blur(1px)' }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5"
+          >
+            {/* Subtle dot grid runs the full page with zero heavy blur or neon washes */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
+            />
 
-        <m.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="relative z-10 mx-auto max-w-[1440px] space-y-4"
-        >
-          {/* Header */}
-          <DashboardHeader
-            dateLabel={dateLabel}
-            greeting={greeting}
-            user={user}
-            stats={stats}
-            recommended={recommended}
-          />
+            <m.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="relative z-10 mx-auto max-w-[1440px] space-y-4"
+            >
+              {/* Header */}
+              <DashboardHeader
+                dateLabel={dateLabel}
+                greeting={greeting}
+                user={user}
+                stats={stats}
+                recommended={recommended}
+              />
 
-          <DashboardGrid
-            user={user}
-            recentTests={recentTests}
-            weeklyProgress={weeklyProgress}
-            aiFocus={aiFocus}
-            stats={stats}
-            cambridgeTests={cambridgeTests}
-            weakestSkill={weakestSkill}
-            skillProficiency={skillProficiency}
-            studyResources={studyResources}
-            resourcesLoading={resourcesLoading}
-            recommended={recommended}
-            showOnboarding={showOnboarding}
-            onboardingSteps={onboardingSteps}
-            dismissOnboarding={dismissOnboarding}
-            onboardingHighlight={onboardingHighlight}
-            quickLaunchRef={quickLaunchRef}
-          />
-        </m.div>
-      </main>
+              <DashboardGrid
+                user={user}
+                recentTests={recentTests}
+                weeklyProgress={weeklyProgress}
+                aiFocus={aiFocus}
+                stats={stats}
+                cambridgeTests={cambridgeTests}
+                weakestSkill={weakestSkill}
+                skillProficiency={skillProficiency}
+                studyResources={studyResources}
+                resourcesLoading={resourcesLoading}
+                recommended={recommended}
+                showOnboarding={showOnboarding}
+                onboardingSteps={onboardingSteps}
+                dismissOnboarding={dismissOnboarding}
+                onboardingHighlight={onboardingHighlight}
+                quickLaunchRef={quickLaunchRef}
+              />
+            </m.div>
+          </m.main>
+        )}
+      </AnimatePresence>
     </TooltipProvider>
   );
 }

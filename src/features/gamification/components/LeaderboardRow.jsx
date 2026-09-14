@@ -38,12 +38,12 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
     <m.div
       variants={isSticky ? {} : itemVariants}
       className={cn(
-        'group grid grid-cols-12 items-center gap-2 border-b border-[#eeedf7] px-3.5 py-2.5 transition-colors dark:border-white/[0.07] sm:gap-4 sm:px-5',
+        'group grid grid-cols-12 items-center gap-2 border-b border-[#eeedf7] px-3.5 py-2.5 transition-all duration-200 ease-smooth-out dark:border-white/[0.07] sm:gap-4 sm:px-5',
         isSticky
           ? 'bg-[#5a63df]/6 dark:bg-[#5a63df]/10'
           : isCurrentUser
             ? 'bg-[#5a63df]/4'
-            : 'hover:bg-[#f7f6fd] dark:hover:bg-white/2'
+            : 'hover:bg-[#f7f6fd] dark:hover:bg-white/3'
       )}
     >
       <div className="col-span-1 text-center">
@@ -53,10 +53,10 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
       <div className="col-span-6 flex min-w-0 items-center gap-2.5 sm:col-span-5">
         <Avatar
           className={cn(
-            'h-8 w-8 shrink-0 border sm:h-9 sm:w-9',
+            'h-8 w-8 shrink-0 border transition-all duration-200 ease-smooth-out sm:h-9 sm:w-9',
             highlighted
               ? 'border-[#5a63df] ring-2 ring-[#5a63df]/20'
-              : 'border-[#e4e2f0] dark:border-white/10'
+              : 'border-[#e4e2f0] group-hover:border-[#5a63df]/40 group-hover:ring-2 group-hover:ring-[#5a63df]/15 dark:border-white/10'
           )}
         >
           <AvatarImage src={user.avatar} alt={user.name} />
@@ -76,10 +76,10 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
           <div className="flex min-w-0 items-center gap-1.5">
             <span
               className={cn(
-                'truncate text-xs font-bold sm:text-sm',
+                'truncate text-xs font-bold transition-colors duration-200 ease-smooth-out sm:text-sm',
                 highlighted
                   ? 'text-[#5a63df] dark:text-[#a9afff]'
-                  : 'text-slate-900 dark:text-slate-100'
+                  : 'text-slate-900 group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]'
               )}
             >
               {user.name}

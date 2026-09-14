@@ -58,12 +58,10 @@ const BaseResourceCard = ({
   imageContain = false,
   children,
 }) => (
-  <motion.div
-    whileHover={{ y: -3 }}
-    whileTap={{ scale: 0.98 }}
+  <div
     className={cn(
       PANEL,
-      'group relative flex h-full cursor-pointer flex-col overflow-hidden transition-all duration-200 hover:shadow-sm dark:hover:border-white/12'
+      'group relative flex h-full cursor-pointer flex-col overflow-hidden transition-all duration-200 ease-smooth-out hover:-translate-y-1 hover:border-[#5a63df]/35 hover:shadow-md active:translate-y-0 active:scale-[0.99] dark:hover:border-[#8f97ff]/30'
     )}
     onClick={() => onOpen(resource)}
   >
@@ -77,7 +75,7 @@ const BaseResourceCard = ({
           src={thumbnail}
           alt={resource.title}
           className={cn(
-            'w-full h-full transition-transform duration-500 group-hover:scale-105',
+            'w-full h-full transition-transform duration-200 ease-smooth-out group-hover:scale-105',
             imageContain ? 'object-contain p-1 drop-shadow-sm' : 'object-cover'
           )}
           loading="lazy"
@@ -85,8 +83,10 @@ const BaseResourceCard = ({
       ) : children ? (
         children
       ) : (
-        <div className="flex h-full w-full items-center justify-center">
-          {FallbackIcon && <FallbackIcon className="w-6 h-6 text-slate-400" />}
+        <div className="flex h-full w-full items-center justify-center transition-transform duration-200 ease-smooth-out group-hover:scale-105">
+          {FallbackIcon && (
+            <FallbackIcon className="w-6 h-6 text-slate-400 transition-colors duration-200 group-hover:text-[#5a63df]" />
+          )}
         </div>
       )}
 
@@ -95,7 +95,7 @@ const BaseResourceCard = ({
         <div className="absolute top-1.5 left-1.5">
           <span
             className={cn(
-              'px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white',
+              'px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white transition-opacity duration-200',
               badgeBg
             )}
           >
@@ -107,18 +107,31 @@ const BaseResourceCard = ({
 
     {/* Content */}
     <div className="flex grow flex-col p-2.5">
-      <h3 className={cn(TITLE, 'mb-2 text-xs leading-snug line-clamp-2')}>{resource.title}</h3>
+      <h3
+        className={cn(
+          TITLE,
+          'mb-2 text-xs leading-snug line-clamp-2 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:group-hover:text-[#afb5ff]'
+        )}
+      >
+        {resource.title}
+      </h3>
       <div className="mt-auto flex items-center justify-between border-t border-[#eceafa] pt-1.5 dark:border-white/[0.07]">
         <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
           <Eye className="w-3 h-3" />
           <span className={cn(NUM, 'text-[10px] font-semibold')}>{resource.view_count || 0}</span>
         </div>
-        <div className={cn('flex items-center gap-0.5 text-[10px] font-extrabold', actionColor)}>
-          {actionText} <ArrowRight className="w-2.5 h-2.5" />
+        <div
+          className={cn(
+            'flex items-center gap-0.5 text-[10px] font-extrabold transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:group-hover:text-[#afb5ff]',
+            actionColor
+          )}
+        >
+          {actionText}{' '}
+          <ArrowRight className="w-2.5 h-2.5 transition-transform duration-200 ease-smooth-out group-hover:translate-x-1" />
         </div>
       </div>
     </div>
-  </motion.div>
+  </div>
 );
 
 // ─── Video Card ────────────────────────────────────────────────

@@ -45,7 +45,7 @@ function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled 
   );
   const className = cn(
     PANEL,
-    'flex min-w-[102px] items-center gap-2 px-2.5 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0'
+    'flex min-w-[102px] items-center gap-2 px-2.5 py-2 transition-all duration-200 ease-smooth-out hover:border-[#5a63df]/35 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] dark:hover:border-[#8f97ff]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0'
   );
 
   return href ? (

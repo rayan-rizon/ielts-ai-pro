@@ -117,10 +117,10 @@ export function GridMetaBar({
 }
 
 const PRIMARY_BTN =
-  'inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-[0.98] cursor-pointer';
+  'inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all duration-200 ease-smooth-out active:scale-[0.98] cursor-pointer';
 const OUTLINE_ICON_BTN = cn(
   TILE,
-  'flex h-9 w-9 shrink-0 items-center justify-center text-slate-500 transition-all hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-sm active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff] cursor-pointer'
+  'flex h-9 w-9 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:border-[#5a63df]/30 hover:text-[#5a63df] active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
 export function GridActions({
@@ -170,7 +170,7 @@ export function GridActions({
             type="button"
             className={cn(
               TILE,
-              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-sm active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/12 cursor-pointer'
+              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all duration-200 ease-smooth-out hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-xs active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/12 cursor-pointer'
             )}
           >
             View Feedback <ArrowRight className="h-4 w-4" />
@@ -285,10 +285,10 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
 }
 
 const ROW_PRIMARY_BTN =
-  'flex h-8 w-[92px] shrink-0 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 cursor-pointer';
+  'flex h-8 w-[92px] shrink-0 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all duration-200 ease-smooth-out active:scale-95 cursor-pointer';
 const ROW_ICON_BTN = cn(
   TILE,
-  'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all active:scale-95 dark:text-slate-400 cursor-pointer'
+  'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:text-[#5a63df] hover:border-[#5a63df]/35 active:scale-[0.98] dark:text-slate-400 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
 export function TestRowAction({

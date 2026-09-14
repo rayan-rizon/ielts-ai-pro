@@ -1,6 +1,5 @@
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React from 'react';
-import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { Award } from 'lucide-react';
 import {
@@ -10,7 +9,14 @@ import {
   resolveReadingLinkConfig,
 } from './readingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './ReadingCardComponents';
-import { IconChip, MUTED, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
+import {
+  IconChip,
+  MUTED,
+  PANEL,
+  TILE,
+  TITLE,
+  WELL,
+} from '@/features/dashboard/components/primitives';
 
 function getTestName(test) {
   const num = test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || '1';
@@ -48,12 +54,12 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
     <div
       className={cn(
         TILE,
-        'flex items-center justify-between px-2.5 py-1.5 transition-all duration-150'
+        'flex items-center justify-between px-2.5 py-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
         <ContainerLink {...linkProps} className="block min-w-0">
-          <span className="block truncate text-xs font-bold text-slate-800 transition-colors hover:text-[#5a63df] dark:text-slate-200">
+          <span className="block truncate text-xs font-bold text-slate-800 transition-colors duration-200 ease-smooth-out group-hover/row:text-[#5a63df] dark:text-slate-200 dark:group-hover/row:text-[#afb5ff]">
             {testName}
             {test.partly_practised && (
               <span className="block font-normal text-muted-foreground">Partly practised</span>
@@ -94,18 +100,22 @@ export default function ReadingCardListView({
   questionCounts,
 }) {
   return (
-    <m.div
-      initial={hasMounted ? false : { opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+    <div
       className={cn(
         PANEL,
-        'flex flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
+        'flex h-full flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
       )}
     >
       <div className="mb-3 flex items-center justify-between border-b border-[#eceafa] pb-3 dark:border-white/[0.07]">
         <div className="flex min-w-0 items-center gap-2.5">
-          <IconChip icon={Award} tone="accent" size="md" />
+          <div
+            className={cn(
+              WELL,
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#e4e2f0] transition-colors duration-200 ease-smooth-out group-hover:border-[#5a63df]/30 group-hover:bg-[#5a63df]/[0.06] dark:border-white/10 dark:group-hover:border-[#8f97ff]/30 dark:group-hover:bg-[#8f97ff]/[0.12]'
+            )}
+          >
+            <Award className="h-5 w-5 text-[#5a63df] dark:text-[#afb5ff]" />
+          </div>
           <div className="min-w-0">
             <h4 className={cn(TITLE, 'truncate text-sm')}>{group.label}</h4>
             <p className={cn('truncate text-xs font-semibold', MUTED)}>{group.subtitle}</p>
@@ -126,6 +136,6 @@ export default function ReadingCardListView({
           />
         ))}
       </div>
-    </m.div>
+    </div>
   );
 }

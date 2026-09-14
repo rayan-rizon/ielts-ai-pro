@@ -15,7 +15,8 @@ import {
   resolveSpeakingAttemptState,
 } from './speakingCardHelpers';
 
-const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
+const GRID_CLASS =
+  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mx-1.5 px-1.5 -mt-1 pt-2 pb-1.5';
 
 // ---------------------------------------------------------------------------
 // Pure prop-builder (extracted from render to lower CC in grid)
@@ -219,9 +220,9 @@ function groupTestsByVolume(tests) {
 export function SpeakingTestsGrid({
   filteredTests,
   sessions,
-  testCounts,
-  durations,
-  questionCounts,
+  testCounts = {},
+  durations = {},
+  questionCounts = {},
   userData,
   isAdmin,
   hasMounted,
@@ -229,16 +230,18 @@ export function SpeakingTestsGrid({
   searchQuery,
   viewMode,
 }) {
-  if (viewMode === 'volumes') {
-    const grouped = groupTestsByVolume(filteredTests);
-    return (
-      <AnimatePresence>
+  const isVolumes = viewMode === 'volumes';
+  const grouped = isVolumes ? groupTestsByVolume(filteredTests) : [];
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {isVolumes ? (
         <m.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          key={'speaking-volumes-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           className={GRID_CLASS}
         >
           {grouped.map((group) => (
@@ -253,38 +256,34 @@ export function SpeakingTestsGrid({
           ))}
           {filteredTests.length === 0 && <SpeakingEmptyState searchQuery={searchQuery} />}
         </m.div>
-      </AnimatePresence>
-    );
-  }
-
-  return (
-    <AnimatePresence>
-      <m.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className={GRID_CLASS}
-      >
-        {filteredTests.map((test) => {
-          const latestSession = sessions.find((s) => s.passage_id === test.id);
-          return (
-            <TestCard
-              key={test.id}
-              test={test}
-              latestSession={latestSession}
-              takenCount={testCounts[test.id] || 0}
-              duration={durations[test.id]}
-              questionCount={questionCounts[test.id]}
-              user={userData}
-              isAdmin={isAdmin}
-              hasMounted={hasMounted}
-            />
-          );
-        })}
-        {filteredTests.length === 0 && <SpeakingEmptyState searchQuery={searchQuery} />}
-      </m.div>
+      ) : (
+        <m.div
+          key={'speaking-grid-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className={GRID_CLASS}
+        >
+          {filteredTests.map((test) => {
+            const latestSession = sessions.find((s) => s.passage_id === test.id);
+            return (
+              <TestCard
+                key={test.id}
+                test={test}
+                latestSession={latestSession}
+                takenCount={testCounts[test.id] || 0}
+                duration={durations[test.id]}
+                questionCount={questionCounts[test.id]}
+                user={userData}
+                isAdmin={isAdmin}
+                hasMounted={hasMounted}
+              />
+            );
+          })}
+          {filteredTests.length === 0 && <SpeakingEmptyState searchQuery={searchQuery} />}
+        </m.div>
+      )}
     </AnimatePresence>
   );
 }

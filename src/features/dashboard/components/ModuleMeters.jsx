@@ -84,7 +84,8 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
         tip="Your average band per module, out of 9."
         action={
           <Link to={createPageUrl('Analytics')} className={cn(MICRO, PANEL_LINK)}>
-            Analytics <ChevronRight className="h-3 w-3" />
+            Analytics{' '}
+            <ChevronRight className="h-3 w-3 transition-transform duration-150 ease-smooth-out group-hover:translate-x-0.5" />
           </Link>
         }
       />
@@ -107,7 +108,7 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
           >
             <Link
               to={createPageUrl(row.page)}
-              className="group flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
+              className="group flex items-center gap-2.5 rounded-md transition-all duration-150 ease-smooth-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
             >
               <div
                 className={cn(
@@ -118,7 +119,7 @@ const ModuleMeters = React.memo(({ stats, recentTests, quickLaunchRef, onboardin
               >
                 <div
                   className={cn(
-                    'absolute inset-y-0 left-0 rounded-md transition-all duration-700',
+                    'absolute inset-y-0 left-0 rounded-md transition-all duration-700 ease-smooth-out',
                     ACCENT_FILL,
                     ACCENT_FILL_HOVER
                   )}

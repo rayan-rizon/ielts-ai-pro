@@ -14,6 +14,7 @@ import {
   PanelTitle,
   Pill,
   WELL,
+  AnimatedNumber,
 } from './primitives';
 
 const MODULES = [
@@ -94,7 +95,7 @@ const OverallBandPanel = React.memo(({ stats }) => {
                     : 'text-slate-400 dark:text-slate-500'
                 )}
               >
-                {overall != null ? overall.toFixed(1) : '—'}
+                {overall != null ? <AnimatedNumber value={overall} decimals={1} /> : '—'}
               </span>
               <span className={cn(MICRO, MUTED)}>/ 9</span>
             </div>
@@ -160,7 +161,7 @@ const OverallBandPanel = React.memo(({ stats }) => {
               className={cn(
                 WELL,
                 'group flex flex-col items-center justify-center rounded-md border border-transparent py-1.5 transition-all duration-150',
-                'hover:border-[#5a63df]/30 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:border-[#8f97ff]/30',
+                'hover:border-[#5a63df]/40 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 transition-all duration-150 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:border-[#8f97ff]/40',
                 row.band == null && 'opacity-70 hover:opacity-100'
               )}
             >

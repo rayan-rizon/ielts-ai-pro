@@ -119,20 +119,19 @@ function parseSessionRows(recentTests) {
 
 function StarterPapersList() {
   return (
-    <div className="grid flex-1 grid-cols-1 content-start gap-1.5 lg:grid-cols-2">
+    <div className="grid flex-1 grid-cols-1 content-start gap-1.5 p-1 -m-1 lg:grid-cols-2">
       {STARTER_PAPERS.map((starter) => (
         <Link
           key={starter.id}
           to={starter.href}
           className={cn(
-            'group flex items-center gap-3 rounded-lg border border-transparent p-2 transition-all duration-150',
-            ROW_HOVER
+            'group flex items-center gap-3 rounded-lg border border-slate-200/60 bg-white/40 p-2 transition-all duration-200 ease-smooth-out hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]'
           )}
         >
           <div
             className={cn(
               WELL,
-              'flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md border border-[#e4e2f0] dark:border-white/10'
+              'flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md border border-[#e4e2f0] transition-colors duration-200 ease-smooth-out group-hover:border-[#5a63df]/30 group-hover:bg-[#5a63df]/[0.06] dark:border-white/10 dark:group-hover:border-[#8f97ff]/30 dark:group-hover:bg-[#8f97ff]/[0.12]'
             )}
           >
             <span
@@ -152,7 +151,7 @@ function StarterPapersList() {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
+              <span className="truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
                 {starter.title}
               </span>
             </div>
@@ -172,7 +171,7 @@ function SessionRowItem({ row }) {
       <div
         className={cn(
           WELL,
-          'flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md'
+          'flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md border border-slate-200/70 transition-colors duration-200 ease-smooth-out group-hover:border-[#5a63df]/30 group-hover:bg-[#5a63df]/[0.06] dark:border-white/10 dark:group-hover:border-[#8f97ff]/35 dark:group-hover:bg-[#8f97ff]/[0.12]'
         )}
       >
         <span
@@ -180,11 +179,13 @@ function SessionRowItem({ row }) {
         >
           {formatBand(row.score)}
         </span>
-        <span className={cn(MICRO, 'text-[8px] leading-none text-[#5a63df]')}>Band</span>
+        <span className={cn(MICRO, 'text-[8px] leading-none text-[#5a63df] dark:text-[#afb5ff]')}>
+          Band
+        </span>
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12px] font-extrabold capitalize leading-tight text-slate-800 dark:text-slate-100">
+        <p className="truncate text-[12px] font-extrabold capitalize leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
           {row.title || `${row.module} test`}
         </p>
         <p className={cn(MICRO, MUTED, 'mt-1')}>
@@ -199,19 +200,31 @@ function SessionRowItem({ row }) {
         </p>
       </div>
 
-      {row.href && <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} />}
+      {row.href && (
+        <ChevronRight
+          className={cn(
+            'h-3.5 w-3.5 shrink-0 text-slate-400 transition-all duration-200 ease-smooth-out group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff]'
+          )}
+        />
+      )}
     </>
   );
 
-  const className =
-    'group flex items-center gap-3 rounded-lg border border-transparent p-2 transition-all duration-150';
+  const baseClassName =
+    'group flex items-center gap-3 rounded-lg border border-slate-200/60 bg-white/40 p-2 transition-all duration-200 ease-smooth-out dark:border-white/[0.06] dark:bg-white/[0.02]';
 
   if (!row.href) {
-    return <div className={className}>{body}</div>;
+    return <div className={baseClassName}>{body}</div>;
   }
 
   return (
-    <Link to={row.href} className={cn(className, ROW_HOVER)}>
+    <Link
+      to={row.href}
+      className={cn(
+        baseClassName,
+        'hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]'
+      )}
+    >
       {body}
     </Link>
   );
@@ -219,7 +232,7 @@ function SessionRowItem({ row }) {
 
 function SessionRowsList({ rows }) {
   return (
-    <div className="grid flex-1 grid-cols-1 content-start gap-1.5 lg:grid-cols-2">
+    <div className="grid flex-1 grid-cols-1 content-start gap-1.5 p-1 -m-1 lg:grid-cols-2">
       {rows.map((row) => (
         <SessionRowItem key={row.id} row={row} />
       ))}
@@ -237,7 +250,12 @@ const SessionLog = React.memo(({ recentTests }) => {
   const hasRows = rows.length > 0;
 
   return (
-    <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
+    <div
+      className={cn(
+        PANEL,
+        'flex h-full flex-col p-4 transition-colors duration-200 ease-smooth-out hover:border-slate-300/80 dark:hover:border-white/15'
+      )}
+    >
       <PanelTitle
         label={hasRows ? 'Recent attempts' : 'Starter tests'}
         tip={

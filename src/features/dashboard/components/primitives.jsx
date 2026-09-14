@@ -58,18 +58,18 @@ export const FAINT = 'text-slate-400 dark:text-slate-500';
  * The "open this panel's full page" link in a PanelTitle action slot.
  */
 export const PANEL_LINK =
-  'inline-flex items-center gap-0.5 rounded-sm text-slate-500 transition-colors hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]';
+  'inline-flex items-center gap-0.5 rounded-sm text-slate-500 transition-all duration-150 ease-smooth-out hover:text-[#5a63df] active:scale-95 dark:text-slate-400 dark:hover:text-[#afb5ff] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]';
 
 /** Chevron that brightens with its parent row/link. */
 export const ROW_CHEVRON =
-  'shrink-0 transition-colors text-slate-400 group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff]';
+  'shrink-0 text-slate-400 group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff] group-hover:translate-x-0.5 transition-all duration-200 ease-smooth-out';
 
 /**
  * Hover surface for a clickable row (attempt log entry, Cambridge test tile,
  * resource row).
  */
 export const ROW_HOVER =
-  'hover:border-[#e4e2f0] hover:bg-[#f7f6fd] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:hover:border-white/10 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#08080a]';
+  'hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 transition-all duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#08080a]';
 
 export const PILL_BASE =
   'inline-flex items-center gap-1 rounded-full border px-2 py-[2px] text-[9px] font-bold uppercase tracking-wide leading-normal';
@@ -372,7 +372,7 @@ export const Bar = ({ value = 0, className }) => {
   return (
     <div className={cn('h-1.5 w-full overflow-hidden rounded-full', WELL, className)}>
       <div
-        className="h-full rounded-full bg-[rgb(var(--panel-accent))] transition-[width] duration-500 ease-out"
+        className="h-full rounded-full bg-[rgb(var(--panel-accent))] transition-[width] duration-500 ease-smooth-out"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -388,7 +388,7 @@ export const Meter = ({ label, pct, value, tone = 'accent', trailing, className 
     <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
       <div
         className={cn(
-          'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+          'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700 ease-smooth-out',
           tone === 'accent' ? ACCENT_FILL : 'bg-slate-400/15 dark:bg-white/12'
         )}
         style={{ width: `${Math.max(0, Math.min(100, pct || 0))}%` }}
@@ -517,7 +517,7 @@ export const Ring = ({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference - (pct / 100) * circumference}
-          style={{ transition: 'stroke-dashoffset 700ms ease-out' }}
+          style={{ transition: 'stroke-dashoffset 700ms cubic-bezier(0.22, 1, 0.36, 1)' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -569,12 +569,39 @@ export const Empty = ({ icon: Icon, title, message, children, className }) => (
   </div>
 );
 
-/** Shared enter animation — matches the admin panel's timing exactly. */
+/** Shared motion tokens aligned with transitions-dev and transitions-polish. */
+export const MOTION_EASING = {
+  smoothOut: [0.22, 1, 0.36, 1],
+  bounce: [0.34, 1.36, 0.64, 1],
+};
+
+export const LEARNER_PAGE_TRANSITION = {
+  initial: { opacity: 0, y: 8, filter: 'blur(2px)' },
+  animate: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    filter: 'blur(1px)',
+    transition: { duration: 0.15, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+/** Shared enter animation for dashboard grid items — soft fade-up with 2px blur clearing. */
 export const STAGGER_CONTAINER = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
 };
 export const FADE_UP = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } },
+  hidden: { opacity: 0, y: 8, filter: 'blur(2px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] },
+  },
 };

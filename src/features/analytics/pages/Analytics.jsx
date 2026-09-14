@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { m, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import useAnalyticsData from '@/features/analytics/hooks/useAnalyticsData';
 import DocumentHead from '@/components/shared/DocumentHead';
@@ -100,9 +101,6 @@ export default function Analytics() {
     }
   }, [isPremium, selectedTimeframe]);
 
-  if (data.isLoading) return <AnalyticsSkeleton />;
-  if (data.hasError) return <AnalyticsError retry={() => data.retry?.()} />;
-
   const headerProps = {
     user: data.user,
     stats: data.stats,
@@ -120,30 +118,66 @@ export default function Analytics() {
         description="Review your IELTS band progress, section performance, pacing, and completed practice results."
         noIndex
       />
-      {!data.stats?.totalTests ? (
-        <div className={PAGE_SHELL}>
-          <PageBackdrop />
-          <EmptyAnalyticsView
-            headerProps={headerProps}
-            stats={data.stats}
-            user={data.user}
-            progressToTarget={getProgressToTarget(data.stats)}
-          />
-        </div>
-      ) : (
-        <div className={PAGE_SHELL}>
-          <PageBackdrop />
-          <AnalyticsReport
-            headerProps={headerProps}
-            stats={data.stats}
-            chartData={data.chartData}
-            user={data.user}
-            isPremium={isPremium}
-            aiLoading={data.learningPathLoading}
-            progressToTarget={getProgressToTarget(data.stats)}
-          />
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {data.isLoading ? (
+          <m.div
+            key="analytics-skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AnalyticsSkeleton />
+          </m.div>
+        ) : data.hasError ? (
+          <m.div
+            key="analytics-error"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AnalyticsError retry={() => data.retry?.()} />
+          </m.div>
+        ) : !data.stats?.totalTests ? (
+          <m.div
+            key="analytics-empty"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            className={PAGE_SHELL}
+          >
+            <PageBackdrop />
+            <EmptyAnalyticsView
+              headerProps={headerProps}
+              stats={data.stats}
+              user={data.user}
+              progressToTarget={getProgressToTarget(data.stats)}
+            />
+          </m.div>
+        ) : (
+          <m.div
+            key="analytics-report"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            className={PAGE_SHELL}
+          >
+            <PageBackdrop />
+            <AnalyticsReport
+              headerProps={headerProps}
+              stats={data.stats}
+              chartData={data.chartData}
+              user={data.user}
+              isPremium={isPremium}
+              aiLoading={data.learningPathLoading}
+              progressToTarget={getProgressToTarget(data.stats)}
+            />
+          </m.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

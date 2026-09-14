@@ -37,25 +37,29 @@ const VideoRow = ({ item, onOpen }) => {
       type="button"
       onClick={() => onOpen(item)}
       className={cn(
-        'group flex w-full items-center gap-3 rounded-lg border border-transparent p-2.5 text-left transition-all duration-150',
-        ROW_HOVER
+        'group flex w-full items-center gap-3 rounded-lg border border-slate-200/60 bg-white/40 p-2.5 text-left transition-all duration-200 ease-smooth-out hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]'
       )}
     >
       <div
         className={cn(
           WELL,
-          'relative aspect-video w-28 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] dark:border-white/9'
+          'relative aspect-video w-28 shrink-0 overflow-hidden rounded-md border border-[#e4e2f0] transition-colors duration-200 ease-smooth-out group-hover:border-[#5a63df]/30 dark:border-white/9 dark:group-hover:border-[#8f97ff]/30'
         )}
       >
         {thumbnail ? (
-          <img src={thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <img
+            src={thumbnail}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-200 ease-smooth-out group-hover:scale-105"
+          />
         ) : null}
         <span className="absolute inset-0 grid place-items-center bg-black/20 transition-colors group-hover:bg-black/30">
-          <Play className="h-4 w-4 fill-white text-white" />
+          <Play className="h-4 w-4 fill-white text-white transition-transform duration-200 ease-smooth-out group-hover:scale-110" />
         </span>
       </div>
       <div className="min-w-0 flex-1">
-        <h4 className="line-clamp-2 text-[12px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
+        <h4 className="line-clamp-2 text-[12px] font-extrabold leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
           {item.title}
         </h4>
         <p className={cn(MICRO, MUTED, 'mt-1.5')}>
@@ -76,8 +80,7 @@ const BookTile = ({ item, onOpen }) => (
     type="button"
     onClick={() => onOpen(item)}
     className={cn(
-      'group flex items-center gap-3 rounded-lg border border-transparent p-2 text-left transition-all duration-150',
-      ROW_HOVER
+      'group flex items-center gap-3 rounded-lg border border-slate-200/60 bg-white/40 p-2 text-left transition-all duration-200 ease-smooth-out hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]'
     )}
   >
     <div
@@ -100,7 +103,7 @@ const BookTile = ({ item, onOpen }) => (
       )}
     </div>
     <div className="min-w-0 flex-1">
-      <h4 className="line-clamp-2 text-[11px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
+      <h4 className="line-clamp-2 text-[11px] font-extrabold leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
         {item.title}
       </h4>
       <p className={cn(MICRO, MUTED, 'mt-1.5')}>
@@ -129,7 +132,10 @@ const LibraryActions = ({ expanded, onExpand, onOpenLibrary }) => (
     >
       {expanded ? 'Collapse' : 'Expand'}
       <ChevronDown
-        className={cn('h-3 w-3 transition-transform duration-200', expanded && 'rotate-180')}
+        className={cn(
+          'h-3 w-3 transition-transform duration-200 ease-smooth-out',
+          expanded && 'rotate-180'
+        )}
       />
     </button>
   </div>
@@ -177,7 +183,7 @@ const LibraryContent = ({ isLoading, videos, guides, onOpen }) => {
         label="Video lessons"
         items={videos}
         emptyMessage="No video lessons published yet."
-        listClassName="space-y-1"
+        listClassName="space-y-1 p-1 -m-1"
         ItemComponent={VideoRow}
         onOpen={onOpen}
       />
@@ -185,7 +191,7 @@ const LibraryContent = ({ isLoading, videos, guides, onOpen }) => {
         label="Study guides"
         items={guides}
         emptyMessage="No guides published yet."
-        listClassName="grid grid-cols-1 gap-1 sm:grid-cols-2"
+        listClassName="grid grid-cols-1 gap-1 p-1 -m-1 sm:grid-cols-2"
         ItemComponent={BookTile}
         onOpen={onOpen}
       />
@@ -219,7 +225,12 @@ const StudyResourcesHub = React.memo(
     const toggleExpanded = useCallback(() => setExpanded((value) => !value), []);
 
     return (
-      <div className={cn(PANEL, 'p-4')}>
+      <div
+        className={cn(
+          PANEL,
+          'p-4 transition-colors duration-200 ease-smooth-out hover:border-slate-300/80 dark:hover:border-white/15'
+        )}
+      >
         <PanelTitle
           label="Study library"
           tip="Videos and guides, most-viewed first."
@@ -240,8 +251,8 @@ const StudyResourcesHub = React.memo(
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-              className="overflow-hidden"
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden -mx-1.5 px-1.5 -mt-1 pt-1.5 pb-1"
             >
               <LibraryContent
                 isLoading={parentLoading}

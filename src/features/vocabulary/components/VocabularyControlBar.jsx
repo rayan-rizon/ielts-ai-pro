@@ -154,27 +154,41 @@ export const VocabularyControlBar = ({
             whileTap={{ scale: 0.95 }}
             onClick={() => setViewMode('table')}
             className={cn(
-              'flex items-center rounded-md p-1.5 transition-all',
+              'relative z-10 flex items-center rounded-md p-1.5 transition-colors duration-200',
               viewMode === 'table'
-                ? 'bg-[#5a63df] text-white'
+                ? 'text-white'
                 : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             )}
             title="Table View"
           >
-            <LayoutList className="h-3.5 w-3.5" />
+            {viewMode === 'table' && (
+              <m.div
+                layoutId="vocabViewToggleIndicator"
+                className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
+                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+              />
+            )}
+            <LayoutList className="relative z-10 h-3.5 w-3.5" />
           </m.button>
           <m.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setViewMode('grid')}
             className={cn(
-              'flex items-center rounded-md p-1.5 transition-all',
+              'relative z-10 flex items-center rounded-md p-1.5 transition-colors duration-200',
               viewMode === 'grid'
-                ? 'bg-[#5a63df] text-white'
+                ? 'text-white'
                 : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             )}
             title="Cards View"
           >
-            <LayoutGrid className="h-3.5 w-3.5" />
+            {viewMode === 'grid' && (
+              <m.div
+                layoutId="vocabViewToggleIndicator"
+                className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
+                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+              />
+            )}
+            <LayoutGrid className="relative z-10 h-3.5 w-3.5" />
           </m.button>
         </div>
       </div>

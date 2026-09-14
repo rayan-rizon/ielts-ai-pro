@@ -7,7 +7,8 @@ import ListeningCardListView from './ListeningCardListView';
 import { cn } from '@/lib/cn';
 import { Empty, PANEL } from '@/features/dashboard/components/primitives';
 
-const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
+const GRID_CLASS =
+  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mx-1.5 px-1.5 -mt-1 pt-2 pb-1.5';
 
 function getTestNumber(test) {
   return test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || 1;
@@ -104,68 +105,33 @@ function ListeningEmptyState({ searchQuery }) {
   );
 }
 
-function ListeningGridOnly({
-  activeTab,
-  filteredTests,
-  sessions,
-  testCounts,
-  questionCounts,
-  durations,
-  userData,
-  isAdmin,
-  hasMounted,
-  searchQuery,
-}) {
-  return (
-    <AnimatePresence mode="wait">
-      <m.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className={GRID_CLASS}
-      >
-        {filteredTests.map((test) => {
-          const testSession = sessions.find((s) => s.passage_id === test.id);
-          const session = testSession && !testSession.is_completed ? testSession : undefined;
-          const completedSession =
-            testSession && testSession.is_completed ? testSession : undefined;
-
-          return (
-            <MemoizedTestCard
-              key={test.id}
-              test={test}
-              session={session}
-              completedSession={completedSession}
-              takenCount={testCounts[test.id] || 0}
-              questionCount={questionCounts[test.id] || 0}
-              duration={durations[test.id]}
-              user={userData}
-              isAdmin={isAdmin}
-              hasMounted={hasMounted}
-            />
-          );
-        })}
-        {filteredTests.length === 0 && <ListeningEmptyState searchQuery={searchQuery} />}
-      </m.div>
-    </AnimatePresence>
-  );
-}
-
 export function ListeningTestsGrid(props) {
-  const { viewMode, filteredTests, sessions, userData, isAdmin, hasMounted, searchQuery } = props;
+  const {
+    viewMode,
+    filteredTests,
+    sessions,
+    userData,
+    isAdmin,
+    hasMounted,
+    searchQuery,
+    activeTab,
+    testCounts = {},
+    questionCounts = {},
+    durations = {},
+  } = props;
 
-  if (viewMode === 'volumes') {
-    const grouped = groupTestsByVolume(filteredTests);
-    return (
-      <AnimatePresence mode="wait">
+  const isVolumes = viewMode === 'volumes';
+  const grouped = isVolumes ? groupTestsByVolume(filteredTests) : [];
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {isVolumes ? (
         <m.div
-          key={props.activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          key={'listening-volumes-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           className={GRID_CLASS}
         >
           {grouped.map((group) => (
@@ -181,9 +147,43 @@ export function ListeningTestsGrid(props) {
           ))}
           {filteredTests.length === 0 && <ListeningEmptyState searchQuery={searchQuery} />}
         </m.div>
-      </AnimatePresence>
-    );
-  }
+      ) : (
+        <m.div
+          key={'listening-grid-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className={GRID_CLASS}
+        >
+          {filteredTests.map((test) => {
+            const testSession = sessions.find((s) => s.passage_id === test.id);
+            const session = testSession && !testSession.is_completed ? testSession : undefined;
+            const completedSession =
+              testSession && testSession.is_completed ? testSession : undefined;
 
-  return <ListeningGridOnly {...props} />;
+            return (
+              <MemoizedTestCard
+                key={test.id}
+                test={test}
+                session={session}
+                completedSession={completedSession}
+                takenCount={testCounts[test.id] || 0}
+                questionCount={questionCounts[test.id] || 0}
+                duration={durations[test.id]}
+                user={userData}
+                isAdmin={isAdmin}
+                hasMounted={hasMounted}
+              />
+            );
+          })}
+          {filteredTests.length === 0 && <ListeningEmptyState searchQuery={searchQuery} />}
+        </m.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function ListeningGridOnly(props) {
+  return <ListeningTestsGrid {...props} viewMode="grid" />;
 }

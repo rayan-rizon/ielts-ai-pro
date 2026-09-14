@@ -26,7 +26,9 @@ const StatBand = React.memo(({ stats, weeklyProgress, user }) => {
             size="sm"
             className={cn(
               'h-full px-2.5 py-1.5',
-              href && 'transition-colors hover:border-[#5a63df]/40 dark:hover:border-[#8f97ff]/40'
+              'transition-all duration-150 ease-smooth-out',
+              href &&
+                'hover:border-[#5a63df]/40 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] dark:hover:border-[#8f97ff]/40'
             )}
             {...tile}
           />

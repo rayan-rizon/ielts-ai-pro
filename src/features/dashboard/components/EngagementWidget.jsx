@@ -115,7 +115,7 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
                         { weekday: 'short', month: 'short', day: 'numeric' }
                       )}${isToday ? ' (Today)' : ''}`}
                       className={cn(
-                        'aspect-square w-full rounded-[3px] transition-transform duration-150 hover:scale-[1.2] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]',
+                        'aspect-square w-full rounded-[3px] transition-transform duration-100 ease-smooth-out hover:scale-[1.25] active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]',
                         isToday &&
                           'ring-1 ring-[#5a63df] dark:ring-[#8f97ff] ring-offset-1 dark:ring-offset-[#141319]'
                       )}

@@ -118,7 +118,7 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
 
           <Link
             to={createPageUrl('Reading')}
-            className="mt-3 inline-flex items-center justify-between rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/[0.06] px-3 py-2 text-xs font-bold text-[#5a63df] transition-all hover:bg-[#5a63df]/[0.12] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.1] dark:text-[#afb5ff]"
+            className="mt-3 inline-flex items-center justify-between rounded-lg border border-[#5a63df]/30 bg-[#5a63df]/[0.06] px-3 py-2 text-xs font-bold text-[#5a63df] transition-all duration-150 ease-smooth-out hover:bg-[#5a63df]/[0.12] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/[0.1] dark:text-[#afb5ff]"
           >
             <span>Start diagnostic test to rank weak spots</span>
             <ChevronRight className="h-3.5 w-3.5" />
@@ -130,12 +130,12 @@ const SkillMasteryPanel = React.memo(({ skillProficiency }) => {
             <Tip key={row.key} content={`${row.label} — ${row.correct} of ${row.attempts} correct`}>
               <Link
                 to={createPageUrl(modulePage(row.module))}
-                className="group flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
+                className="group flex items-center gap-2.5 rounded-md transition-all duration-150 ease-smooth-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
               >
                 <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
                   <div
                     className={cn(
-                      'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+                      'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700 ease-smooth-out',
                       SIGNAL_FILL[row.tone]
                     )}
                     style={{ width: `${row.barPct}%` }}

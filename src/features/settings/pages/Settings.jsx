@@ -363,14 +363,18 @@ export default function Settings() {
                       key={item.id}
                       onClick={() => handleTabChange(item.id)}
                       className={cn(
-                        'relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm font-bold transition-colors duration-150',
+                        'relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm font-bold transition-all duration-200 ease-smooth-out active:scale-[0.98]',
                         isActive
                           ? 'bg-[#5a63df]/9 text-[#4a52c9] dark:bg-[#5a63df]/22 dark:text-[#c3c7ff]'
                           : 'text-slate-600 hover:bg-[#5a63df]/5 hover:text-[#4a52c9] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-slate-100'
                       )}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df]" />
+                        <m.span
+                          layoutId="settings-active-indicator"
+                          className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df]"
+                          transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                        />
                       )}
                       <Icon className={cn('h-4 w-4 shrink-0', !isActive && 'text-slate-400')} />
                       <span>{item.label}</span>

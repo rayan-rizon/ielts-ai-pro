@@ -1,6 +1,5 @@
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React, { memo } from 'react';
-import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { TestCardStatusBadge, TestCardMetaBar, TestCardActions } from './ListeningCardComponents';
 import {
@@ -39,14 +38,10 @@ function TestCard({
   const { ContainerLink, linkProps } = resolveLinkConfig(isLocked, linkTo);
 
   return (
-    <m.div
-      initial={hasMounted ? false : { opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+    <div
       className={cn(
         PANEL,
-        'flex h-full min-h-[280px] flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
+        'group flex h-full min-h-[280px] flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
         isLocked && 'opacity-90'
       )}
     >
@@ -65,7 +60,7 @@ function TestCard({
             <h3
               className={cn(
                 TITLE,
-                'mb-2 line-clamp-2 text-base font-bold leading-6 tracking-[0.01em]'
+                'mb-2 line-clamp-2 text-base font-bold leading-6 tracking-[0.01em] transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:group-hover:text-[#afb5ff]'
               )}
             >
               {displayTitle}
@@ -105,7 +100,7 @@ function TestCard({
         />
       </div>
       <TakeWithFriend test={test} type="listening" isLocked={isLocked} />
-    </m.div>
+    </div>
   );
 }
 

@@ -12,8 +12,10 @@ import { Empty, PANEL } from '@/features/dashboard/components/primitives';
 // Layout class constants
 // ---------------------------------------------------------------------------
 
-const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
-const LIST_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
+const GRID_CLASS =
+  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mx-1.5 px-1.5 -mt-1 pt-2 pb-1.5';
+const LIST_CLASS =
+  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mx-1.5 px-1.5 -mt-1 pt-2 pb-1.5';
 
 function getTestNumber(test) {
   if (test.cambridge_test_number) return test.cambridge_test_number;
@@ -163,16 +165,18 @@ export function TestsGrid({
   searchQuery,
   activeTab,
 }) {
-  if (viewMode === 'list') {
-    const groups = groupTestsByVolume(filteredTests);
-    return (
-      <AnimatePresence mode="wait">
+  const isList = viewMode === 'list';
+  const groups = isList ? groupTestsByVolume(filteredTests) : [];
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {isList ? (
         <m.div
-          key={activeTab + '-' + viewMode}
-          initial={{ opacity: 0, y: 10 }}
+          key={'reading-list-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           className={LIST_CLASS}
         >
           {groups.map((group) => (
@@ -188,42 +192,38 @@ export function TestsGrid({
           ))}
           {groups.length === 0 && <EmptyState searchQuery={searchQuery} />}
         </m.div>
-      </AnimatePresence>
-    );
-  }
-
-  return (
-    <AnimatePresence mode="wait">
-      <m.div
-        key={activeTab + '-' + viewMode}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className={GRID_CLASS}
-      >
-        {filteredTests.map((test) => {
-          const { session, completedSession } = resolveTestSessions(
-            sessions.find((s) => s.passage_id === test.id)
-          );
-          return (
-            <MemoizedTestCard
-              key={test.id}
-              test={test}
-              session={session}
-              completedSession={completedSession}
-              takenCount={testCounts[test.id] || 0}
-              questionCount={questionCounts[test.id] || 0}
-              duration={durations[test.id]}
-              user={userData}
-              isAdmin={isAdmin}
-              hasMounted={hasMounted}
-              viewMode={viewMode}
-            />
-          );
-        })}
-        {filteredTests.length === 0 && <EmptyState searchQuery={searchQuery} />}
-      </m.div>
+      ) : (
+        <m.div
+          key={'reading-grid-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className={GRID_CLASS}
+        >
+          {filteredTests.map((test) => {
+            const { session, completedSession } = resolveTestSessions(
+              sessions.find((s) => s.passage_id === test.id)
+            );
+            return (
+              <MemoizedTestCard
+                key={test.id}
+                test={test}
+                session={session}
+                completedSession={completedSession}
+                takenCount={testCounts[test.id] || 0}
+                questionCount={questionCounts[test.id] || 0}
+                duration={durations[test.id]}
+                user={userData}
+                isAdmin={isAdmin}
+                hasMounted={hasMounted}
+                viewMode={viewMode}
+              />
+            );
+          })}
+          {filteredTests.length === 0 && <EmptyState searchQuery={searchQuery} />}
+        </m.div>
+      )}
     </AnimatePresence>
   );
 }

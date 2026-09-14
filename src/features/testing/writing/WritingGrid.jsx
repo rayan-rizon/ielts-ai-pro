@@ -20,7 +20,8 @@ import WritingCardListView from './WritingCardListView';
 import { cn } from '@/lib/cn';
 import { Empty, PANEL } from '@/features/dashboard/components/primitives';
 
-const GRID_CLASS = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
+const GRID_CLASS =
+  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 -mx-1.5 px-1.5 -mt-1 pt-2 pb-1.5';
 
 // ---------------------------------------------------------------------------
 // TestCard — prop derivation + delegation to WritingCardView
@@ -214,64 +215,33 @@ function groupTestsByVolume(tests) {
   });
 }
 
-function WritingGridOnly({
-  activeTab,
-  filteredTests,
-  sessions,
-  testCounts,
-  durations,
-  wordLimits,
-  userData,
-  isAdmin,
-  hasMounted,
-  searchQuery,
-}) {
-  return (
-    <AnimatePresence mode="wait">
-      <m.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className={GRID_CLASS}
-      >
-        {filteredTests.map((test) => {
-          const testId = String(test.id);
-          const latestSession = pickLatestSessionForTest(sessions, testId);
-          return (
-            <MemoizedWritingCard
-              key={testId}
-              test={test}
-              latestSession={latestSession}
-              takenCount={testCounts[test.id] || 0}
-              duration={durations[test.id]}
-              wordLimit={wordLimits[test.id]}
-              user={userData}
-              isAdmin={isAdmin}
-              hasMounted={hasMounted}
-            />
-          );
-        })}
-        {filteredTests.length === 0 && <WritingEmptyState searchQuery={searchQuery} />}
-      </m.div>
-    </AnimatePresence>
-  );
-}
-
 export function WritingTestsGrid(props) {
-  const { viewMode, filteredTests, sessions, userData, isAdmin, hasMounted, searchQuery } = props;
+  const {
+    viewMode,
+    filteredTests,
+    sessions,
+    userData,
+    isAdmin,
+    hasMounted,
+    searchQuery,
+    activeTab,
+    testCounts = {},
+    durations = {},
+    wordLimits = {},
+  } = props;
 
-  if (viewMode === 'volumes') {
-    const grouped = groupTestsByVolume(filteredTests);
-    return (
-      <AnimatePresence mode="wait">
+  const isVolumes = viewMode === 'volumes';
+  const grouped = isVolumes ? groupTestsByVolume(filteredTests) : [];
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {isVolumes ? (
         <m.div
-          key={props.activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          key={'writing-volumes-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           className={GRID_CLASS}
         >
           {grouped.map((group) => (
@@ -286,9 +256,39 @@ export function WritingTestsGrid(props) {
           ))}
           {filteredTests.length === 0 && <WritingEmptyState searchQuery={searchQuery} />}
         </m.div>
-      </AnimatePresence>
-    );
-  }
+      ) : (
+        <m.div
+          key={'writing-grid-' + activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: 'easeOut' } }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className={GRID_CLASS}
+        >
+          {filteredTests.map((test) => {
+            const testId = String(test.id);
+            const latestSession = pickLatestSessionForTest(sessions, testId);
+            return (
+              <MemoizedWritingCard
+                key={testId}
+                test={test}
+                latestSession={latestSession}
+                takenCount={testCounts[test.id] || 0}
+                duration={durations[test.id]}
+                wordLimit={wordLimits[test.id]}
+                user={userData}
+                isAdmin={isAdmin}
+                hasMounted={hasMounted}
+              />
+            );
+          })}
+          {filteredTests.length === 0 && <WritingEmptyState searchQuery={searchQuery} />}
+        </m.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
-  return <WritingGridOnly {...props} />;
+function WritingGridOnly(props) {
+  return <WritingTestsGrid {...props} viewMode="grid" />;
 }

@@ -61,30 +61,54 @@ function SpeakingControls({
         })}
       </div>
 
-      <div className="hidden shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex">
+      <div
+        role="tablist"
+        aria-label="View mode"
+        className="hidden shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex"
+      >
         <button
           type="button"
+          role="tab"
+          aria-selected={viewMode === 'grid'}
           onClick={() => onViewModeChange('grid')}
           className={cn(
-            'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-all',
+            'relative z-10 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
             viewMode === 'grid'
-              ? 'bg-[#5a63df] text-white'
+              ? 'text-white'
               : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
           )}
         >
-          <LayoutGrid className="h-3.5 w-3.5" /> Grid
+          {viewMode === 'grid' && (
+            <m.div
+              layoutId="speakingViewToggleIndicator"
+              className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
+              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+            />
+          )}
+          <LayoutGrid className="relative z-10 h-3.5 w-3.5 shrink-0" />
+          <span className="relative z-10">Grid</span>
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={viewMode === 'volumes'}
           onClick={() => onViewModeChange('volumes')}
           className={cn(
-            'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-all',
+            'relative z-10 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
             viewMode === 'volumes'
-              ? 'bg-[#5a63df] text-white'
+              ? 'text-white'
               : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
           )}
         >
-          <List className="h-3.5 w-3.5" /> Volumes
+          {viewMode === 'volumes' && (
+            <m.div
+              layoutId="speakingViewToggleIndicator"
+              className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
+              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+            />
+          )}
+          <List className="relative z-10 h-3.5 w-3.5 shrink-0" />
+          <span className="relative z-10">Volumes</span>
         </button>
       </div>
     </div>

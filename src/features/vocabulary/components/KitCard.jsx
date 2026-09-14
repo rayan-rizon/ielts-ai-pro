@@ -41,14 +41,18 @@ const KitCard = memo(function KitCard({
       initial={{ opacity: 0, scale: 0.985, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.985, y: 4 }}
-      transition={{ duration: 0.2, delay: Math.min(index * 0.015, 0.12) }}
+      transition={{
+        duration: 0.22,
+        ease: [0.22, 1, 0.36, 1],
+        delay: Math.min(index * 0.015, 0.12),
+      }}
       className="h-full transform-gpu"
     >
       <Link
         to={`/vocabulary/kits/${kit.slug || kit.id}`}
         aria-label={`Open ${cleanTitle}, ${kit.category}, ${status.label}${recommendation ? ', recommended from your results' : ''}`}
         className={cn(
-          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
+          'group flex h-full min-h-[164px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-all duration-200 ease-smooth-out hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
           recommendation ? 'border-[#5a63df]/40 shadow-xs dark:border-[#8f97ff]/40' : theme.border,
           theme.panel,
           theme.hoverGlow
@@ -79,7 +83,7 @@ const KitCard = memo(function KitCard({
           </div>
 
           {/* Cleaned Kit Title */}
-          <h3 className="mt-0.5 text-xs font-extrabold leading-4 text-slate-900 transition-colors group-hover:text-[#5a63df] dark:text-white dark:group-hover:text-indigo-300">
+          <h3 className="mt-0.5 text-xs font-extrabold leading-4 text-slate-900 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-white dark:group-hover:text-indigo-300">
             {cleanTitle}
           </h3>
 
@@ -98,7 +102,7 @@ const KitCard = memo(function KitCard({
           </span>
           <span
             className={cn(
-              'inline-flex items-center gap-0.5 transition-transform duration-200 group-hover:translate-x-0.5',
+              'inline-flex items-center gap-0.5 transition-all duration-200 ease-smooth-out group-hover:translate-x-0.5',
               theme.arrow
             )}
           >

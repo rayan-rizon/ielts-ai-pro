@@ -58,17 +58,17 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
         <button
           type="button"
           onClick={requestProductTour}
-          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[#e4e2f0] bg-white px-2.5 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#5a63df]/35 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-[#b8bdff]"
+          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[#e4e2f0] bg-white px-2.5 text-[11px] font-bold text-slate-600 transition-all duration-150 ease-smooth-out hover:border-[#5a63df]/35 hover:text-[#5a63df] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-[#b8bdff]"
         >
           <CircleHelp className="h-3.5 w-3.5" />
           Quick tour
         </button>
         <Link
           to={recommended.href}
-          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+          className="group inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
         >
           Practise {recommended.title}
-          <ArrowRight className="h-3 w-3" />
+          <ArrowRight className="h-3 w-3 transition-transform duration-150 ease-smooth-out group-hover:translate-x-0.5" />
         </Link>
       </div>
     </m.header>

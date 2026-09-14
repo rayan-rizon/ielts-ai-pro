@@ -97,7 +97,7 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
           <p className={cn('mt-2 text-xs font-medium', MUTED)}>All recommended tasks complete.</p>
           <Link
             to={createPageUrl('Reading')}
-            className="mt-2 text-xs font-bold text-[#5a63df] hover:underline"
+            className="mt-2 text-xs font-bold text-[#5a63df] transition-colors duration-150 ease-smooth-out hover:underline active:scale-95"
           >
             Practice Cambridge papers →
           </Link>
@@ -108,7 +108,7 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
             <Link
               key={action.key}
               to={action.to}
-              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 hover:translate-x-0.5 hover:bg-[#f7f6fd] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#131315]"
+              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 ease-smooth-out hover:-translate-y-0.5 hover:bg-[#f7f6fd] hover:shadow-xs active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#131315]"
             >
               <span
                 className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', RANK[index] || RANK[2])}

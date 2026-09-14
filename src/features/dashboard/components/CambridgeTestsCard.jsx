@@ -61,7 +61,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
               )}
               <ChevronDown
                 className={cn(
-                  'h-3 w-3 transition-transform duration-200',
+                  'h-3 w-3 transition-transform duration-200 ease-smooth-out',
                   expanded && 'rotate-180'
                 )}
               />
@@ -78,8 +78,8 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="overflow-hidden"
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden -mx-1.5 px-1.5 -mt-1 pt-2 pb-1.5"
           >
             {count === 0 ? (
               <Empty>The official Cambridge library is being updated. Check back shortly.</Empty>
@@ -90,14 +90,13 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
                     key={test.id}
                     to={`/reading-test?test-id=${test.id}`}
                     className={cn(
-                      'group flex items-center gap-3 rounded-lg border border-transparent p-2.5 transition-all duration-150',
-                      ROW_HOVER
+                      'group flex items-center gap-3 rounded-lg border border-slate-200/60 bg-white/40 p-2.5 transition-all duration-200 ease-smooth-out hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 dark:border-white/[0.06] dark:bg-white/[0.02] dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]'
                     )}
                   >
                     <div
                       className={cn(
                         WELL,
-                        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md'
+                        'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-md border border-[#e4e2f0] transition-colors duration-200 ease-smooth-out group-hover:border-[#5a63df]/30 group-hover:bg-[#5a63df]/[0.06] dark:border-white/10 dark:group-hover:border-[#8f97ff]/30 dark:group-hover:bg-[#8f97ff]/[0.12]'
                       )}
                     >
                       <span
@@ -127,7 +126,7 @@ const CambridgeTestsCard = React.memo(({ cambridgeTests = [] }) => {
                         </span>
                       </div>
                       <h4
-                        className="mt-1 truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]"
+                        className="mt-1 truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]"
                         title={formatTestTitle(test)}
                       >
                         {formatTestTitle(test)}

@@ -17,7 +17,7 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className={cn(PANEL, 'p-4')}>
             <PanelTitle
@@ -36,7 +36,7 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
                     onClick={dismissOnboarding}
                     className={cn(
                       MICRO,
-                      'min-h-6 rounded-sm py-1 px-1.5 -my-1 -mx-1.5 text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-slate-400 dark:hover:text-slate-200'
+                      'min-h-6 rounded-sm py-1 px-1.5 -my-1 -mx-1.5 text-slate-500 transition-all duration-150 ease-smooth-out hover:text-slate-800 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-slate-400 dark:hover:text-slate-200'
                     )}
                   >
                     Dismiss
@@ -85,7 +85,7 @@ export default function OnboardingCard({ showOnboarding, onboardingSteps, dismis
                       to={step.href}
                       className={cn(
                         MICRO,
-                        'shrink-0 rounded-md bg-[#5a63df] px-2.5 py-1.5 text-white transition-all duration-150 hover:bg-[#4a52c9] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#141319]'
+                        'shrink-0 rounded-md bg-[#5a63df] px-2.5 py-1.5 text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#141319]'
                       )}
                     >
                       Start

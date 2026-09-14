@@ -1,6 +1,5 @@
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React from 'react';
-import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { GridStatusBadge, GridMetaBar, GridActions } from './ReadingCardComponents';
 import { IconChip, MUTED, PANEL, TITLE } from '@/features/dashboard/components/primitives';
@@ -23,7 +22,10 @@ function GridCardTitleBody({ isLocked, displayTitle, test, ContainerLink, linkPr
     <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
       <ContainerLink {...linkProps} className="block">
         <h3
-          className={cn(TITLE, 'mb-2 line-clamp-2 text-base font-bold leading-6 tracking-[0.01em]')}
+          className={cn(
+            TITLE,
+            'mb-2 line-clamp-2 text-base font-bold leading-6 tracking-[0.01em] transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:group-hover:text-[#afb5ff]'
+          )}
         >
           {displayTitle}
           {test.partly_practised && (
@@ -60,14 +62,10 @@ export default function ReadingCardGridView(props) {
   } = props;
 
   return (
-    <m.div
-      initial={hasMounted ? false : { opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+    <div
       className={cn(
         PANEL,
-        'flex h-full min-h-[280px] flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
+        'group flex h-full min-h-[280px] flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
         isLocked && 'opacity-90'
       )}
     >
@@ -110,6 +108,6 @@ export default function ReadingCardGridView(props) {
         />
       </div>
       <TakeWithFriend test={test} type="reading" isLocked={isLocked} />
-    </m.div>
+    </div>
   );
 }

@@ -27,7 +27,7 @@ const ResourcesPage = () => {
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
           className="relative z-10 mx-auto max-w-[1600px] space-y-4"
         >
           <header className="mb-1 flex flex-wrap items-end justify-between gap-3 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">

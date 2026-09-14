@@ -145,7 +145,7 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       onClick={() => onUpgrade(plan.tier)}
       disabled={isLoading || isPricingLoading || isActive}
       className={cn(
-        'group mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-bold tracking-tight transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60',
+        'group mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-bold tracking-tight transition-all duration-200 ease-smooth-out disabled:cursor-not-allowed disabled:opacity-60',
         isActive
           ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500 cursor-default'
           : isPro
@@ -158,7 +158,7 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       ) : (
         <>
           <span>{buttonLabel}</span>
-          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-smooth-out group-hover:translate-x-1" />
         </>
       )}
     </button>
@@ -179,15 +179,18 @@ export default function PricingCard({
 
   return (
     <m.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={cn('h-full transition-transform duration-300', isPro && 'lg:-translate-y-4')}
+      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      className={cn(
+        'h-full transition-transform duration-300 ease-smooth-out',
+        isPro && 'lg:-translate-y-4'
+      )}
     >
       <div
         className={cn(
           PANEL,
-          'flex h-full w-full flex-col justify-between px-6 pb-6 pt-5 sm:px-7 sm:pb-7 sm:pt-6',
+          'flex h-full w-full flex-col justify-between px-6 pb-6 pt-5 transition-all duration-200 ease-smooth-out hover:-translate-y-0.5 hover:shadow-md sm:px-7 sm:pb-7 sm:pt-6',
           isPro &&
             'border-[#5a63df]/40 ring-1 ring-[#5a63df]/20 dark:border-[#5a63df]/50 shadow-md shadow-[#5a63df]/5'
         )}

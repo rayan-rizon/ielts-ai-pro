@@ -29,7 +29,7 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
       className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2"
     >
       {/* Left Column: Personal Info & Avatar */}
