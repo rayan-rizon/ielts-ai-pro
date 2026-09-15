@@ -96,6 +96,12 @@ begin
   loop
     v_hits := (length(r.prosrc) - length(replace(r.prosrc, v_marker, ''))) / length(v_marker);
 
+    -- Already patched (a re-run, or a body that shipped with the helper call):
+    -- leave it alone rather than failing.
+    if v_hits = 0 and position(v_replacement in r.prosrc) > 0 then
+      continue;
+    end if;
+
     if v_hits <> 1 then
       raise exception
         'public.%: expected exactly 1 pg_timezone_names guard to patch, found %',

@@ -42,12 +42,16 @@ export const SUPPORTED_LANGUAGES: Language[] = [
  * definition both fetched it, because nothing was written to the cache until a
  * response came back.
  *
- * Three things fix that without any component needing to change:
+ * Four things fix that without any component needing to change:
  *
  *  - `inFlight` deduplicates concurrent callers onto one promise per key.
- *  - resolved translations persist to localStorage, so a reload is free.
+ *  - resolved translations persist to localStorage, so a reload is free. Those
+ *    writes are coalesced, because serialising the cache is O(cache size) and
+ *    doing it per row would just move the cost rather than remove it.
  *  - `withSlot` caps how many requests are open at once, so a long list trickles
  *    instead of bursting and tripping the API's limiter.
+ *  - each request is time-bounded, so a stalled connection cannot hold a slot
+ *    and starve everything queued behind it.
  */
 
 // Resolved translations only. `getCachedTranslation` is a synchronous read used
@@ -60,6 +64,12 @@ const inFlight = new Map<string, Promise<string>>();
 const STORAGE_KEY = 'vocabularyTranslationCache:v1';
 const MAX_PERSISTED = 500;
 const MAX_CONCURRENT_REQUESTS = 4;
+// Long enough to absorb a page's worth of rows resolving, short enough that a
+// reader who closes the tab straight away still keeps what loaded.
+const PERSIST_DEBOUNCE_MS = 250;
+// Upper bound on one translation request, so a stalled connection cannot hold a
+// concurrency slot indefinitely.
+const REQUEST_TIMEOUT_MS = 10_000;
 
 function buildCacheKey(text: string, sourceLang: LanguageCode, targetLang: LanguageCode): string {
   return `${text}_${sourceLang}_${targetLang}`;
@@ -86,7 +96,22 @@ function hydrateFromStorage(): void {
   }
 }
 
-function persistToStorage(): void {
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Write the cache out now.
+ *
+ * Serialising the whole cache costs O(cache size), so this must not run once per
+ * resolved translation — a 30-row page would rewrite the entire cache 30 times
+ * on the main thread. `schedulePersist` coalesces a burst into one write;
+ * this is the barrier that write goes through, and the one `pagehide` takes so
+ * a batch that resolved inside the debounce window is not lost.
+ */
+export function flushTranslationCache(): void {
+  if (persistTimer !== null) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
   if (typeof window === 'undefined') return;
 
   try {
@@ -97,6 +122,24 @@ function persistToStorage(): void {
   } catch {
     // Quota or disabled storage: the in-memory cache stays authoritative.
   }
+}
+
+function schedulePersist(): void {
+  if (typeof window === 'undefined' || persistTimer !== null) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    flushTranslationCache();
+  }, PERSIST_DEBOUNCE_MS);
+}
+
+if (typeof window !== 'undefined') {
+  // `pagehide` is the event that actually fires on mobile Safari when a tab is
+  // discarded; `beforeunload` is a supplement, not the primary hook.
+  window.addEventListener('pagehide', flushTranslationCache);
+  window.addEventListener('beforeunload', flushTranslationCache);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushTranslationCache();
+  });
 }
 
 let activeRequests = 0;
@@ -124,7 +167,20 @@ async function fetchFromMyMemory(
   const langPair = `${sourceLang}|${targetLang}`;
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(langPair)}`;
 
-  const response = await fetch(url);
+  // Requests now queue behind a concurrency cap, so one stalled connection to a
+  // third-party API would hold a slot and block every row behind it. An upper
+  // bound turns that into a normal failure, which the caller already handles by
+  // showing the original text.
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeout = controller ? setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : null;
+
+  let response: Response;
+  try {
+    response = await fetch(url, controller ? { signal: controller.signal } : undefined);
+  } finally {
+    if (timeout !== null) clearTimeout(timeout);
+  }
+
   if (!response.ok) {
     console.warn(`[Translate] API returned ${response.status}`);
     return text;
@@ -193,7 +249,7 @@ export async function translateText(
     .then((translatedText) => {
       if (translatedText !== text) {
         translationCache.set(cacheKey, translatedText);
-        persistToStorage();
+        schedulePersist();
       }
       return translatedText;
     })
@@ -217,6 +273,10 @@ export async function translateText(
 export function clearTranslationCache(): void {
   translationCache.clear();
   inFlight.clear();
+  if (persistTimer !== null) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
