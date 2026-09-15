@@ -18,6 +18,7 @@ import {
 import {
   getWritingFeedbacks,
   getWritingEvaluationCreditMessage,
+  isWritingLearnerQuotaError,
   isStalePendingWritingEvaluation,
   isValidFeedback,
   summarizeWritingEvaluationFailure,
@@ -552,8 +553,9 @@ export function useWritingFeedback(awardXP) {
         });
       }
 
-      // If backend returned 429 (quota exceeded), show upgrade dialog
-      if (err.status === 429 || err.name === 'RateLimitError') {
+      // Only learner-account quota exhaustion is an upgrade condition. A
+      // provider 429 is an operational outage and must never blame the learner.
+      if (isWritingLearnerQuotaError(err)) {
         store.setShowUpgradeDialog(true);
         return;
       }

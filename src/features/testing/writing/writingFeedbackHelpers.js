@@ -88,9 +88,18 @@ export function getWritingEvaluationCreditMessage(required, quota) {
   return `This request includes ${requiredLabel}, but you have ${remainingLabel}. Every 2 task reviews count as 1 Writing evaluation. Upgrade or wait for your allowance to reset before starting the evaluation.`;
 }
 
+export function isWritingLearnerQuotaError(error) {
+  return Number(error?.status) === 429 && error?.rateLimitType === 'quota';
+}
+
 export function summarizeWritingEvaluationFailure(error, attemptedTasks) {
   const status = Number(error?.status);
-  const category = status === 429 ? 'quota' : status >= 500 ? 'provider' : 'request';
+  const category =
+    status === 429 && error?.rateLimitType === 'quota'
+      ? 'quota'
+      : status >= 500 || error?.rateLimitType === 'provider'
+        ? 'provider'
+        : 'request';
   return {
     occurredAt: new Date().toISOString(),
     category,

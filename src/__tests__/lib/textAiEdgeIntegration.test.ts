@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  AI_ROUTES,
+  WRITING_DIRECT_GEMINI_MODEL,
+  WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
+} from '../../../supabase/functions/_shared/aiModelRegistry';
 
 const readFunction = (name: string) =>
   readFileSync(resolve(process.cwd(), `supabase/functions/${name}/index.ts`), 'utf8');
@@ -23,10 +28,26 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(source).toContain('estimatedProviderCostUsd');
   });
 
-  it('keeps Writing on Gemini and uses OpenRouter DeepSeek with Gemini fallback for Speaking', () => {
+  it('keeps an independent vision fallback for Writing and DeepSeek fallback for Speaking', () => {
     const writing = readFunction('generateDetailedFeedback');
     const speaking = readFunction('evaluateSpeakingTest');
-    expect(writing).toContain('gemini-2.5-flash');
+    expect(writing).toContain('WRITING_DIRECT_GEMINI_MODEL');
+    expect(writing).toContain('WRITING_OPENROUTER_VISION_FALLBACK_MODEL');
+    expect(writing).toContain('requestOpenRouterWritingFeedback');
+    const openRouterFallbackCall = writing.search(
+      /requestOpenRouterWritingFeedback\(\s*WRITING_OPENROUTER_VISION_FALLBACK_MODEL/
+    );
+    expect(openRouterFallbackCall).toBeGreaterThan(-1);
+    expect(openRouterFallbackCall).toBeLessThan(
+      writing.indexOf('generativelanguage.googleapis.com')
+    );
+    expect(writing).toContain("rateLimitType: 'provider'");
+    expect(
+      AI_ROUTES.find((route) => route.id === 'writing-detailed-feedback')?.steps[1].model
+    ).toBe(WRITING_OPENROUTER_VISION_FALLBACK_MODEL);
+    expect(
+      AI_ROUTES.find((route) => route.id === 'writing-detailed-feedback')?.steps[2].model
+    ).toBe(WRITING_DIRECT_GEMINI_MODEL);
     expect(speaking).toContain('requestSpeakingEvaluation');
     expect(speaking).toContain("Deno.env.get('OPENROUTER_API_KEY')");
     expect(speaking).toContain("Deno.env.get('GEMINI_API_KEY')");

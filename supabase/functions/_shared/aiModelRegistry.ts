@@ -102,6 +102,14 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingSource:
       'Google AI list price, verified 2026-08-27. No prompt-cache discount is applied on this route.',
   },
+  'google/gemini-2.5-flash': {
+    id: 'google/gemini-2.5-flash',
+    vendor: 'Google via OpenRouter',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.3, cachedInputPerMillion: 0.03, outputPerMillion: 2.5 },
+    pricingSource:
+      'OpenRouter catalog price, verified 2026-09-15. Billed usage.cost wins when returned.',
+  },
   'gemini-2.5-flash-lite': {
     id: 'gemini-2.5-flash-lite',
     vendor: 'Google',
@@ -141,6 +149,9 @@ export const READING_ASSISTANT_GEMINI_FALLBACK_MODEL = 'gemini-2.5-flash';
 export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 // Backwards-compatible alias for callers that only need the first fallback.
 export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
+export const WRITING_PRIMARY_MODEL = 'openai/gpt-5.6-luna';
+export const WRITING_OPENROUTER_VISION_FALLBACK_MODEL = 'google/gemini-2.5-flash';
+export const WRITING_DIRECT_GEMINI_MODEL = 'gemini-2.5-flash';
 
 // --- Routes -----------------------------------------------------------------
 
@@ -152,17 +163,22 @@ export const AI_ROUTES: AiRoute[] = [
     maxOutputTokens: 4096,
     steps: [
       {
-        model: 'openai/gpt-5.6-luna',
+        model: WRITING_PRIMARY_MODEL,
         role: 'primary',
         when: 'Adaptive marking whenever OPENROUTER_API_KEY is set: one seeded pass, a second only when the marker called a criterion borderline or the band sits on a rounding edge, a third only to break a one-band disagreement. The per-criterion median becomes the reported band, and billed tokens cover every pass that returned.',
       },
       {
-        model: 'gemini-2.5-flash',
+        model: WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
         role: 'fallback',
-        when: 'Every Luna pass errored or returned no parsable feedback. Single greedy pass, so the report carries sampleCount 1.',
+        when: 'Every Luna pass errored or returned no parsable feedback. Uses a separately funded OpenRouter vision route so a Google AI Studio project cap cannot stop Task 1 image evaluation.',
       },
       {
-        model: 'gemini-2.5-flash',
+        model: WRITING_DIRECT_GEMINI_MODEL,
+        role: 'fallback',
+        when: 'Both OpenRouter vision routes failed. Single greedy direct pass, so the report carries sampleCount 1.',
+      },
+      {
+        model: WRITING_DIRECT_GEMINI_MODEL,
         role: 'repair',
         when: 'One bounded retry on malformed Gemini JSON, at the same temperature so the repair cannot change the band.',
       },

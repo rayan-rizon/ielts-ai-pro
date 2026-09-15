@@ -3,6 +3,7 @@ import {
   getWritingFeedbacks,
   getWritingEvaluationCreditMessage,
   hasValidAiFeedback,
+  isWritingLearnerQuotaError,
   isStalePendingWritingEvaluation,
   resolveWritingSessionState,
   summarizeWritingEvaluationFailure,
@@ -55,10 +56,30 @@ describe('writing feedback session helpers', () => {
   });
 
   it('stores safe, actionable evaluation failure evidence', () => {
-    expect(summarizeWritingEvaluationFailure({ status: 429 }, ['Task 1', 'Task 2'])).toMatchObject({
+    expect(
+      summarizeWritingEvaluationFailure({ status: 429, rateLimitType: 'quota' }, [
+        'Task 1',
+        'Task 2',
+      ])
+    ).toMatchObject({
       category: 'quota',
       status: 429,
       attemptedTasks: ['Task 1', 'Task 2'],
     });
+
+    expect(
+      summarizeWritingEvaluationFailure({ status: 429, rateLimitType: 'provider' }, ['Task 1'])
+    ).toMatchObject({
+      category: 'provider',
+      status: 429,
+      attemptedTasks: ['Task 1'],
+    });
+  });
+
+  it('only treats the learner allowance as an upgrade condition', () => {
+    expect(isWritingLearnerQuotaError({ status: 429, rateLimitType: 'quota' })).toBe(true);
+    expect(isWritingLearnerQuotaError({ status: 429, rateLimitType: 'provider' })).toBe(false);
+    expect(isWritingLearnerQuotaError({ status: 429, rateLimitType: 'burst' })).toBe(false);
+    expect(isWritingLearnerQuotaError({ name: 'RateLimitError' })).toBe(false);
   });
 });

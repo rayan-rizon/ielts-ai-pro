@@ -26,14 +26,18 @@ import {
   parseStructuredJson,
   WRITING_CALIBRATION_REVISION,
 } from '../_shared/evaluationUtils.ts';
-import { estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
+import {
+  estimateTokenCostUsd,
+  WRITING_DIRECT_GEMINI_MODEL,
+  WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
+  WRITING_PRIMARY_MODEL,
+} from '../_shared/aiModelRegistry.ts';
 
 // @ts-ignore
 declare const Deno: any;
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const LUNA_MODEL = 'openai/gpt-5.6-luna';
 
 // Examiner-grade consistency settings.
 //
@@ -61,7 +65,7 @@ if (!GEMINI_API_KEY) {
   console.error('GEMINI_API_KEY environment variable is not configured');
 }
 
-function buildLunaMessageContent(
+function buildOpenRouterMessageContent(
   systemInstruction: string,
   userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
   schemaText: string
@@ -108,12 +112,12 @@ async function fetchGeminiWithTimeout(input: string, init: RequestInit, timeoutM
   }
 }
 
-// Primary writing-feedback provider. Luna is vision-capable (needed for Task 1
-// charts/maps) and has no responseSchema equivalent, so the JSON contract is
-// restated as text via schemaText. Any failure — HTTP error, empty content,
-// malformed JSON, or a response missing the required band scores — returns
-// null so the caller falls back to the existing Gemini path unchanged.
-async function requestLunaWritingFeedback(
+// OpenRouter writing-provider adapter. Both the primary and independent
+// fallback are vision-capable (needed for Task 1 charts/maps), and the JSON
+// contract is restated as text via schemaText. Any transport, parsing, or shape
+// failure returns null so the caller advances to the next provider.
+async function requestOpenRouterWritingFeedback(
+  model: string,
   systemInstruction: string,
   userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
   schemaText: string,
@@ -139,11 +143,11 @@ async function requestLunaWritingFeedback(
         'X-Title': 'IELTS Ai Pro',
       },
       body: JSON.stringify({
-        model: LUNA_MODEL,
+        model,
         messages: [
           {
             role: 'user',
-            content: buildLunaMessageContent(systemInstruction, userContentParts, schemaText),
+            content: buildOpenRouterMessageContent(systemInstruction, userContentParts, schemaText),
           },
         ],
         response_format: { type: 'json_object' },
@@ -170,7 +174,7 @@ async function requestLunaWritingFeedback(
       signal: controller.signal,
     });
     if (!response.ok) {
-      console.warn(`Luna writing pass (seed ${seed}) failed with HTTP ${response.status}`);
+      console.warn(`${model} writing pass (seed ${seed}) failed with HTTP ${response.status}`);
       return null;
     }
 
@@ -195,7 +199,7 @@ async function requestLunaWritingFeedback(
         typeof parsedFeedback.taskAnalysis.visualReadable === 'boolean' &&
         Array.isArray(parsedFeedback.taskAnalysis.observedFeatures));
     if (!hasRequiredScores || !hasRequiredTaskAnalysis) {
-      console.warn(`Luna writing pass (seed ${seed}) failed schema validation`);
+      console.warn(`${model} writing pass (seed ${seed}) failed schema validation`);
       return null;
     }
 
@@ -210,7 +214,7 @@ async function requestLunaWritingFeedback(
       outputTokens: Number(data?.usage?.completion_tokens) || 0,
     };
   } catch (e) {
-    console.warn(`Luna writing pass (seed ${seed}) threw:`, e);
+    console.warn(`${model} writing pass (seed ${seed}) threw:`, e);
     return null;
   } finally {
     clearTimeout(timeoutId);
@@ -312,7 +316,7 @@ serve(async (req: Request) => {
       );
     }
 
-    if (!GEMINI_API_KEY) {
+    if (!GEMINI_API_KEY && !OPENROUTER_API_KEY) {
       return new Response(
         JSON.stringify({ error: 'AI service is not configured. Please contact support.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -817,7 +821,7 @@ REQUIRED JSON SHAPE (all keys required):
 Output JSON only, matching this shape exactly. No markdown or bold markers.
 `;
 
-    let modelUsed = LUNA_MODEL;
+    let modelUsed = WRITING_PRIMARY_MODEL;
     let tokensUsed = 0;
     // Split token counts, not just the total: platform health prices input and
     // output separately, and a total alone cannot be costed.
@@ -842,7 +846,8 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     let escalationReason: string | null = null;
 
     for (let passIndex = 0; passIndex < MAX_MARKING_PASSES; passIndex++) {
-      const pass = await requestLunaWritingFeedback(
+      const pass = await requestOpenRouterWritingFeedback(
+        WRITING_PRIMARY_MODEL,
         systemInstruction,
         userContentParts,
         schemaText,
@@ -902,15 +907,42 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     }
 
     if (!parsedFeedback) {
-      // Gemini 2.5 Flash fallback (multimodal support included).
+      // Keep the first fallback on OpenRouter so the independently funded
+      // vision route remains available when the direct Google project hits its
+      // monthly cap. It accepts the same base64 Task 1 image content as Luna.
+      const openRouterFallback = await requestOpenRouterWritingFeedback(
+        WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
+        systemInstruction,
+        userContentParts,
+        schemaText,
+        taskCriterionKey,
+        MARKING_SEEDS[0]
+      );
+      if (openRouterFallback) {
+        modelUsed = WRITING_OPENROUTER_VISION_FALLBACK_MODEL;
+        parsedFeedback = openRouterFallback.parsedFeedback;
+        tokensUsed = openRouterFallback.tokensUsed;
+        promptTokens = openRouterFallback.promptTokens;
+        cachedPromptTokens = openRouterFallback.cachedPromptTokens;
+        outputTokens = openRouterFallback.outputTokens;
+        console.log(`Using independent vision fallback: ${modelUsed} for ${taskType}`);
+      }
+    }
+
+    if (!parsedFeedback) {
+      // Direct Gemini is the last-resort vision fallback.
       //
       // Deliberately a single greedy pass, not an ensemble: this path only runs
       // when every Luna pass failed, and the priority there is returning a
       // usable report at all. The response carries sampleCount 1 so the
       // narrower evidence behind the band is visible downstream rather than
       // being presented as if three passes had agreed.
-      modelUsed = 'gemini-2.5-flash';
+      modelUsed = WRITING_DIRECT_GEMINI_MODEL;
       console.log(`Using fallback model: ${modelUsed} for task type: ${taskType}`);
+
+      if (!GEMINI_API_KEY) {
+        throw new Error('No configured Writing provider returned usable feedback');
+      }
 
       const buildGeminiRequest = (temperature: number) =>
         JSON.stringify({
@@ -982,6 +1014,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
               error: 'AI is rate-limited right now. Please try again shortly.',
               provider: 'gemini',
               providerStatus: status,
+              rateLimitType: 'provider',
               retryAfterSeconds: Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : undefined,
             }),
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -1068,9 +1101,14 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,
       model: modelUsed,
-      provider: modelUsed === LUNA_MODEL ? 'openrouter-luna' : 'gemini',
-      fallbackUsed: modelUsed !== LUNA_MODEL,
-      fallbackReason: modelUsed !== LUNA_MODEL ? 'luna_no_parsable_feedback' : null,
+      provider:
+        modelUsed === WRITING_PRIMARY_MODEL
+          ? 'openrouter-luna'
+          : modelUsed === WRITING_OPENROUTER_VISION_FALLBACK_MODEL
+            ? 'openrouter-gemini'
+            : 'gemini',
+      fallbackUsed: modelUsed !== WRITING_PRIMARY_MODEL,
+      fallbackReason: modelUsed !== WRITING_PRIMARY_MODEL ? 'luna_no_parsable_feedback' : null,
       scoringPasses: consensus?.agreement.sampleCount ?? 1,
       scoreMaxSpread: consensus?.agreement.maxSpread ?? null,
       scoreConfidence: consensus?.agreement.confidence ?? null,
