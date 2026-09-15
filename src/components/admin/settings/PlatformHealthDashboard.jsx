@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Wrench,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
@@ -209,11 +210,16 @@ const METRIC_FORMATTERS = {
   estimatedCostUsd: (value) => `$${Number(value).toFixed(6)}`,
 };
 
+const NULL_METRIC_LABELS = {
+  lastRunAgeHours: 'No recorded run',
+  estimatedCostUsd: 'Not recorded',
+};
+
+const formatMissingMetric = (key) => NULL_METRIC_LABELS[key] || '—';
+
 const fmt = (key, value) => {
   if (value === null || value === undefined) {
-    if (key === 'lastRunAgeHours') return 'No recorded run';
-    if (key === 'estimatedCostUsd') return 'Not recorded';
-    return '—';
+    return formatMissingMetric(key);
   }
   if (PERCENT_METRICS.has(key)) return `${value}%`;
   if (HOUR_METRICS.has(key)) return `${value}h`;
@@ -298,6 +304,42 @@ const ExactTime = ({ value }) => (
   </time>
 );
 
+const isEarlierDate = (dateStr, baselineStr) =>
+  !baselineStr || new Date(dateStr) < new Date(baselineStr);
+
+const isLaterDate = (dateStr, baselineStr) =>
+  !baselineStr || new Date(dateStr) > new Date(baselineStr);
+
+const updateIncidentBoundaries = (summary, incident) => {
+  if (incident.first_seen && isEarlierDate(incident.first_seen, summary.firstSeen)) {
+    summary.firstSeen = incident.first_seen;
+  }
+  if (incident.last_seen && isLaterDate(incident.last_seen, summary.lastSeen)) {
+    summary.lastSeen = incident.last_seen;
+  }
+};
+
+const aggregateIncidents = (incidents) => {
+  const counts = {};
+  const summaries = {};
+
+  incidents.forEach((incident) => {
+    const occurrences = occurrenceCount(incident);
+    counts[incident.service] = (counts[incident.service] || 0) + occurrences;
+
+    const summary = summaries[incident.service] || {
+      firstSeen: null,
+      lastSeen: null,
+      occurrences: 0,
+    };
+    updateIncidentBoundaries(summary, incident);
+    summary.occurrences += occurrences;
+    summaries[incident.service] = summary;
+  });
+
+  return { counts, summaries };
+};
+
 const summarizeHealth = (health, incidents) => {
   const services = health?.services || [];
   const counts = { down: 0, degraded: 0, operational: 0, idle: 0 };
@@ -306,31 +348,7 @@ const summarizeHealth = (health, incidents) => {
     counts[statusBucketFor(service.status)] += 1;
   });
 
-  const incidentCounts = {};
-  const incidentSummaries = {};
-  incidents.forEach((incident) => {
-    incidentCounts[incident.service] =
-      (incidentCounts[incident.service] || 0) + occurrenceCount(incident);
-    const summary = incidentSummaries[incident.service] || {
-      firstSeen: null,
-      lastSeen: null,
-      occurrences: 0,
-    };
-    if (
-      incident.first_seen &&
-      (!summary.firstSeen || new Date(incident.first_seen) < new Date(summary.firstSeen))
-    ) {
-      summary.firstSeen = incident.first_seen;
-    }
-    if (
-      incident.last_seen &&
-      (!summary.lastSeen || new Date(incident.last_seen) > new Date(summary.lastSeen))
-    ) {
-      summary.lastSeen = incident.last_seen;
-    }
-    summary.occurrences += occurrenceCount(incident);
-    incidentSummaries[incident.service] = summary;
-  });
+  const { counts: incidentCounts, summaries: incidentSummaries } = aggregateIncidents(incidents);
 
   return {
     services,
@@ -539,6 +557,60 @@ const RepairButton = ({ repair, onRepaired }) => {
   );
 };
 
+const ProblemIncidentSummary = ({ incidentSummary }) => {
+  if (!incidentSummary?.lastSeen) return null;
+  const isRange =
+    incidentSummary.firstSeen && incidentSummary.firstSeen !== incidentSummary.lastSeen;
+
+  return (
+    <div className="mt-2 grid gap-1 rounded-md border border-stone-200 bg-stone-50/70 px-2.5 py-2 dark:border-white/[0.07] dark:bg-black/10 break-words min-w-0">
+      {isRange ? (
+        <>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 break-words')}>
+            First observed{' '}
+            <strong className="text-stone-700 dark:text-stone-200 break-words [overflow-wrap:anywhere]">
+              <ExactTime value={incidentSummary.firstSeen} />
+            </strong>
+          </p>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 break-words')}>
+            Latest observed{' '}
+            <strong className="text-stone-700 dark:text-stone-200 break-words [overflow-wrap:anywhere]">
+              <ExactTime value={incidentSummary.lastSeen} />
+            </strong>
+          </p>
+        </>
+      ) : (
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 break-words')}>
+          Occurred{' '}
+          <strong className="text-stone-700 dark:text-stone-200 break-words [overflow-wrap:anywhere]">
+            <ExactTime value={incidentSummary.lastSeen} />
+          </strong>
+        </p>
+      )}
+    </div>
+  );
+};
+
+const ProblemRepairDetails = ({ repairInstructions, repair, onRepaired }) => (
+  <details className="group mt-2.5 rounded-md border border-stone-200 dark:border-white/8 bg-white dark:bg-white/2">
+    <summary
+      className={cn(
+        MICRO,
+        'flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-stone-700 dark:text-stone-200'
+      )}
+    >
+      Repair steps
+      <ChevronDown className="h-3.5 w-3.5 text-stone-400 transition-transform group-open:rotate-180" />
+    </summary>
+    <div className="border-t border-stone-200 dark:border-white/[0.07] px-3 pb-3 pt-2.5">
+      <p className="text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed">
+        {repairInstructions}
+      </p>
+      {repair?.action && <RepairButton repair={repair} onRepaired={onRepaired} />}
+    </div>
+  </details>
+);
+
 /* Prioritised read-out, shown only for services that need the admin to act. */
 const ProblemPanel = ({ service, index, incidentCount = 0, incidentSummary, onRepaired }) => {
   const signal = SIGNAL[service.status] || SIGNAL.idle;
@@ -550,7 +622,10 @@ const ProblemPanel = ({ service, index, incidentCount = 0, incidentSummary, onRe
 
   return (
     <div
-      className={cn(PANEL, 'relative overflow-hidden animate-in fade-in slide-in-from-bottom-1')}
+      className={cn(
+        PANEL,
+        'relative overflow-hidden w-full min-w-0 max-w-full animate-in fade-in slide-in-from-bottom-1'
+      )}
       style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
     >
       <span className={cn('absolute left-0 top-0 h-full w-[3px]', signal.rail)} />
@@ -581,7 +656,7 @@ const ProblemPanel = ({ service, index, incidentCount = 0, incidentSummary, onRe
           {service.impact}
         </p>
 
-        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-50/70 dark:bg-black/10 p-2.5">
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-50/70 dark:bg-black/10 p-2.5 w-full min-w-0">
           {metrics.slice(0, 4).map(([key, value]) => (
             <div key={key} className="min-w-0">
               <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
@@ -602,106 +677,97 @@ const ProblemPanel = ({ service, index, incidentCount = 0, incidentSummary, onRe
           ))}
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-dashed border-stone-200 dark:border-white/[0.07] pt-2.5">
-          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-dashed border-stone-200 dark:border-white/[0.07] pt-2.5">
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 shrink-0')}>
             Owner{' '}
             <strong className="text-stone-700 dark:text-stone-200">{ownerFor(service)}</strong>
           </span>
-          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 shrink-0')}>
             {incidentLabel(incidentCount)}
           </span>
-          <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+          <span
+            className={cn(
+              MICRO,
+              'text-stone-500 dark:text-stone-400 truncate max-w-full block min-w-0'
+            )}
+          >
             Evidence {evidenceFor(service)}
           </span>
         </div>
 
-        {incidentSummary?.lastSeen && (
-          <div className="mt-2 grid gap-1 rounded-md border border-stone-200 bg-stone-50/70 px-2.5 py-2 dark:border-white/[0.07] dark:bg-black/10">
-            {incidentSummary.firstSeen && incidentSummary.firstSeen !== incidentSummary.lastSeen ? (
-              <>
-                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                  First observed{' '}
-                  <strong className="text-stone-700 dark:text-stone-200">
-                    <ExactTime value={incidentSummary.firstSeen} />
-                  </strong>
-                </p>
-                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                  Latest observed{' '}
-                  <strong className="text-stone-700 dark:text-stone-200">
-                    <ExactTime value={incidentSummary.lastSeen} />
-                  </strong>
-                </p>
-              </>
-            ) : (
-              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                Occurred{' '}
-                <strong className="text-stone-700 dark:text-stone-200">
-                  <ExactTime value={incidentSummary.lastSeen} />
-                </strong>
-              </p>
-            )}
-          </div>
-        )}
+        <ProblemIncidentSummary incidentSummary={incidentSummary} />
 
-        <details className="group mt-2.5 rounded-md border border-stone-200 dark:border-white/8 bg-white dark:bg-white/2">
-          <summary
-            className={cn(
-              MICRO,
-              'flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-stone-700 dark:text-stone-200'
-            )}
-          >
-            Repair steps
-            <ChevronDown className="h-3.5 w-3.5 text-stone-400 transition-transform group-open:rotate-180" />
-          </summary>
-          <div className="border-t border-stone-200 dark:border-white/[0.07] px-3 pb-3 pt-2.5">
-            <p className="text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed">
-              {repairInstructions}
-            </p>
-            {repair?.action && <RepairButton repair={repair} onRepaired={onRepaired} />}
-          </div>
-        </details>
+        <ProblemRepairDetails
+          repairInstructions={repairInstructions}
+          repair={repair}
+          onRepaired={onRepaired}
+        />
       </div>
     </div>
   );
 };
 
-const ServiceDetails = ({ service, metrics, incidentSummary }) => (
-  <div className="border-t border-stone-200 dark:border-white/[0.07] bg-stone-50/50 dark:bg-black/10 px-4 py-4">
-    <p className="sm:hidden text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed mb-3">
-      {service.impact}
-    </p>
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {metrics.map(([key, value]) => (
-          <div key={key}>
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-              {METRIC_LABEL[key] || key}
-            </p>
-            <p className={cn(NUM, 'mt-1 text-sm font-bold text-stone-900 dark:text-stone-50')}>
-              {fmt(key, value)}
-            </p>
-          </div>
-        ))}
+const ServiceDetails = ({ service, metrics, incidentSummary }) => {
+  const signal = SIGNAL[service.status] || SIGNAL.idle;
+  const { Icon } = signal;
+
+  return (
+    <div className="border-t border-stone-200 dark:border-white/[0.07] bg-stone-50/50 dark:bg-black/10 px-3.5 sm:px-4 py-3.5 sm:py-4">
+      <div className="sm:hidden flex items-start justify-between gap-2 mb-3">
+        <p className="text-[11px] font-medium text-stone-600 dark:text-stone-300 leading-relaxed min-w-0">
+          {service.impact}
+        </p>
+        <span
+          className={cn(
+            'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 shrink-0',
+            MICRO,
+            signal.pill
+          )}
+        >
+          <Icon className="w-2.5 h-2.5" />
+          {STATUS_LABEL[service.status]}
+        </span>
       </div>
-      <div className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed lg:border-l lg:border-stone-200 lg:dark:border-white/[0.07] lg:pl-4">
-        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>Evidence</p>
-        <p className="font-semibold wrap-break-word">{evidenceFor(service)}</p>
-        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-3 mb-1')}>Owner</p>
-        <p className="font-semibold">{ownerFor(service)}</p>
-        {incidentSummary?.lastSeen && (
-          <>
-            <p className={cn(MICRO, 'mt-3 mb-1 text-stone-500 dark:text-stone-400')}>
-              Latest incident
-            </p>
-            <p className={cn(NUM, 'font-semibold')}>
-              <ExactTime value={incidentSummary.lastSeen} />
-            </p>
-          </>
-        )}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
+          {metrics.map(([key, value]) => (
+            <div key={key} className="min-w-0">
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+                {METRIC_LABEL[key] || key}
+              </p>
+              <p
+                className={cn(
+                  NUM,
+                  'mt-1 text-sm font-bold text-stone-900 dark:text-stone-50 truncate'
+                )}
+              >
+                {fmt(key, value)}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed lg:border-l lg:border-stone-200 lg:dark:border-white/[0.07] lg:pl-4">
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1')}>Evidence</p>
+          <p className="font-semibold break-words [overflow-wrap:anywhere]">
+            {evidenceFor(service)}
+          </p>
+          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-3 mb-1')}>Owner</p>
+          <p className="font-semibold">{ownerFor(service)}</p>
+          {incidentSummary?.lastSeen && (
+            <>
+              <p className={cn(MICRO, 'mt-3 mb-1 text-stone-500 dark:text-stone-400')}>
+                Latest incident
+              </p>
+              <p className={cn(NUM, 'font-semibold')}>
+                <ExactTime value={incidentSummary.lastSeen} />
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ServiceRow = ({ service, incidentSummary }) => {
   const [expanded, setExpanded] = useState(false);
@@ -711,32 +777,45 @@ const ServiceRow = ({ service, incidentSummary }) => {
   const metrics = metricsFor(service);
 
   return (
-    <div className={cn(PANEL, 'relative overflow-hidden')}>
+    <div className={cn(PANEL, 'relative overflow-hidden w-full min-w-0 max-w-full')}>
       <span className={cn('absolute left-0 top-0 h-full w-[2px]', signal.rail)} />
       <button
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
         className={cn(
-          'w-full grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(220px,0.9fr)_minmax(260px,1.4fr)_auto] items-center gap-3 px-4 py-3.5 text-left',
+          'w-full grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(160px,0.9fr)_minmax(180px,1.4fr)_auto] md:grid-cols-[minmax(200px,0.9fr)_minmax(240px,1.4fr)_auto] items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 sm:py-3.5 text-left',
           'hover:bg-stone-50/80 dark:hover:bg-white/2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stone-400'
         )}
       >
         <div className="min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', signal.dot)} />
+            <span className={cn('w-2 h-2 rounded-full shrink-0', signal.dot)} />
             <p className="text-xs font-extrabold tracking-tight text-stone-900 dark:text-stone-50 truncate">
               {service.label}
             </p>
           </div>
-          <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate mt-1 ml-3.5')}>
-            {providerFor(service)}
-          </p>
+          <div className="flex items-center gap-2 mt-1 ml-4">
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+              {providerFor(service)}
+            </p>
+            {service.status !== 'operational' && (
+              <span
+                className={cn(
+                  'sm:hidden inline-flex items-center gap-0.5 rounded px-1 py-0.2 border text-[8px] font-bold uppercase tracking-wider',
+                  signal.pill
+                )}
+              >
+                <Icon className="w-2 h-2" />
+                {STATUS_LABEL[service.status]}
+              </span>
+            )}
+          </div>
         </div>
         <p className="hidden sm:block min-w-0 text-[11px] font-medium text-stone-600 dark:text-stone-300 truncate">
           {service.impact}
         </p>
-        <div className="flex items-center justify-end gap-3 shrink-0">
+        <div className="flex items-center justify-end gap-2.5 sm:gap-3 shrink-0">
           <div className="text-right">
             <p className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
               {headline.value}
@@ -747,7 +826,7 @@ const ServiceRow = ({ service, incidentSummary }) => {
           </div>
           <span
             className={cn(
-              'hidden md:inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5',
+              'hidden sm:inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5',
               MICRO,
               signal.pill
             )}
@@ -799,31 +878,45 @@ const ServiceDirectory = ({
   onFilterChange,
   onQueryChange,
 }) => (
-  <section className="space-y-3 xl:order-1">
-    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+  <section className="space-y-3 xl:order-1 w-full min-w-0 max-w-full">
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
         <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
           <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
           Service directory
         </h3>
-        <p className="mt-1.5 text-xs font-medium text-stone-600 dark:text-stone-300">
+        <p className="mt-1 text-xs font-medium text-stone-600 dark:text-stone-300">
           Find any AI provider, API, payment, content, or platform dependency.
         </p>
       </div>
-      <label className="relative block w-full lg:w-72">
+      <label className="relative block w-full sm:w-72 shrink-0">
         <span className="sr-only">Search services</span>
         <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
         <input
           type="search"
           value={serviceQuery}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search provider or service"
-          className="h-9 w-full rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] pl-9 pr-3 text-xs font-medium text-stone-800 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-400/50"
+          placeholder="Search provider or service..."
+          className="h-9 w-full rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] pl-9 pr-8 text-xs font-medium text-stone-800 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-400/50"
         />
+        {serviceQuery && (
+          <button
+            type="button"
+            onClick={() => onQueryChange('')}
+            aria-label="Clear search"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-0.5"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </label>
     </div>
 
-    <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filter services">
+    <div
+      className="flex gap-1.5 overflow-x-auto w-full min-w-0 max-w-full pb-1.5 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-none sm:scrollbar-thin"
+      role="group"
+      aria-label="Filter services"
+    >
       {SERVICE_FILTERS.map((filter) => (
         <button
           key={filter.key}
@@ -880,38 +973,365 @@ const MaintenanceStatusCard = ({ maintenance }) => {
   const dot = active ? FAULT_BG : scheduled ? WARN_BG : OK_BG;
 
   return (
-    <div className={cn(PANEL, 'p-4')}>
-      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5')}>
-        <ShieldCheck className="w-3 h-3" />
-        Maintenance
-      </p>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 space-y-1">
-          <div className="flex items-center gap-2">
-            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dot)} />
-            <span className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
-              {active ? 'Site offline' : scheduled ? 'Scheduled' : 'Site online'}
-            </span>
-          </div>
-          <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-snug">
-            {active
-              ? 'Non-admin users are seeing the maintenance page.'
-              : scheduled
-                ? `Window opens ${relativeTime(config.starts_at)}.`
-                : 'All users have access.'}
-          </p>
-        </div>
-        <Link
-          to={`${createPageUrl('AdminPanel')}?tab=notifications&view=maintenance`}
-          className="shrink-0 inline-flex items-center gap-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 h-8 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors"
+    <div className={cn(PANEL, 'p-4 flex flex-col justify-between')}>
+      <div>
+        <p
+          className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3 flex items-center gap-1.5')}
         >
-          <Wrench className="w-3 h-3" />
-          Configure
-        </Link>
+          <ShieldCheck className="w-3 h-3" />
+          Maintenance
+        </p>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dot)} />
+              <span className="text-xs font-extrabold text-stone-900 dark:text-stone-50">
+                {active ? 'Site offline' : scheduled ? 'Scheduled' : 'Site online'}
+              </span>
+            </div>
+            <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-snug">
+              {active
+                ? 'Non-admin users are seeing the maintenance page.'
+                : scheduled
+                  ? `Window opens ${relativeTime(config.starts_at)}.`
+                  : 'All users have access.'}
+            </p>
+          </div>
+          <Link
+            to={`${createPageUrl('AdminPanel')}?tab=notifications&view=maintenance`}
+            className="self-start shrink-0 inline-flex items-center justify-center gap-1.5 rounded-md border border-stone-300 dark:border-white/15 px-3 h-8 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition-colors active:scale-95"
+          >
+            <Wrench className="w-3 h-3" />
+            Configure
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
+
+const PlatformErrorPanel = ({ error, onRetry }) => (
+  <div className={cn(PANEL, 'relative overflow-hidden')}>
+    <span className={cn('absolute left-0 top-0 h-full w-[3px]', FAULT_BG)} />
+    <div className="p-5 pl-6 flex items-start gap-3">
+      <AlertOctagon className={cn('w-5 h-5 shrink-0 mt-0.5', FAULT_TEXT)} />
+      <div className="space-y-2">
+        <p className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
+          Could not load platform health
+        </p>
+        <p className="text-xs text-stone-500 dark:text-stone-400">{error}</p>
+        <button
+          onClick={onRetry}
+          className={cn(
+            MICRO,
+            'mt-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-smooth-out active:scale-95'
+          )}
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const PlatformConsoleHeader = ({
+  counts,
+  total,
+  health,
+  hours,
+  setHours,
+  refreshing,
+  onRefresh,
+  problems,
+}) => {
+  const { allClear, headline, accent, pct, legend } = overviewFor(counts, total);
+
+  return (
+    <div
+      className={cn(
+        PANEL,
+        'relative overflow-hidden bg-stone-50 dark:bg-[#0E0E10] border-stone-200 dark:border-white/[0.07]'
+      )}
+    >
+      {/* dot-grid texture for instrument-panel atmosphere */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35] bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.45)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.14)_1px,transparent_0)] bg-size-[14px_14px]"
+      />
+      <div className="relative p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-5">
+          <div className="min-w-0">
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Platform status</p>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1.5">
+              <h3
+                className={cn(
+                  'text-2xl sm:text-3xl font-extrabold tracking-[-0.03em] leading-none',
+                  accent
+                )}
+              >
+                {headline}
+              </h3>
+              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+                <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-300')}>
+                  {counts.operational}
+                </span>
+                {' of '}
+                <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-300')}>
+                  {total}
+                </span>
+                {' operational'}
+              </span>
+            </div>
+            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-2">
+              {allClear
+                ? 'No user-facing failures detected in this window.'
+                : `${problems.length} service${problems.length === 1 ? '' : 's'} need admin action. Start with learner-blocking faults, then reduce degraded fallbacks.`}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start shrink-0">
+            <Select value={String(hours)} onValueChange={(v) => setHours(Number(v))}>
+              <SelectTrigger
+                aria-label="Health window"
+                className={cn(
+                  MICRO,
+                  'h-8 flex-1 sm:w-[135px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
+                )}
+              >
+                <Clock className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {HEALTH_WINDOWS.map((w) => (
+                  <SelectItem key={w.hours} value={String(w.hours)}>
+                    {w.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button
+              onClick={onRefresh}
+              disabled={refreshing}
+              aria-label="Refresh"
+              className="h-8 w-8 shrink-0 grid place-items-center rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-500 hover:text-stone-900 dark:hover:text-white transition-all duration-150 ease-smooth-out active:scale-90 disabled:opacity-50"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', refreshing && 'animate-spin')} />
+            </button>
+          </div>
+        </div>
+
+        {/* Signal bar */}
+        <div className="mt-5 flex h-1.5 w-full gap-px overflow-hidden rounded-full bg-stone-200 dark:bg-white/6">
+          {legend
+            .filter((s) => s.n > 0)
+            .map((s) => (
+              <div key={s.label} className={s.cls} style={{ width: `${pct(s.n)}%` }} />
+            ))}
+        </div>
+        <div className="mt-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-y-2 gap-x-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+            {legend.map((l) => (
+              <span key={l.label} className="inline-flex items-center gap-1.5">
+                <span className={cn('w-1.5 h-1.5 rounded-full', l.cls)} />
+                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{l.label}</span>
+                <span
+                  className={cn(NUM, 'text-[11px] font-bold text-stone-700 dark:text-stone-200')}
+                >
+                  {l.n}
+                </span>
+              </span>
+            ))}
+          </div>
+          {health?.generatedAt && (
+            <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 shrink-0')}>
+              Updated <ExactTime value={health.generatedAt} />
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-200 dark:bg-white/[0.07]">
+          {[
+            { label: 'Blocking', value: counts.down, note: 'Unavailable or unconfigured' },
+            { label: 'Needs action', value: counts.degraded, note: 'Degraded or delayed' },
+            { label: 'Healthy', value: counts.operational, note: 'Operating normally' },
+            { label: 'No traffic', value: counts.idle, note: 'No requests in window' },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-white/90 dark:bg-[#131315] px-3.5 py-3 flex flex-col justify-between"
+            >
+              <div>
+                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{item.label}</p>
+                <p className={cn(NUM, 'mt-1 text-xl font-bold text-stone-900 dark:text-stone-50')}>
+                  {item.value}
+                </p>
+              </div>
+              <p className="mt-1.5 text-[10px] font-medium text-stone-500 dark:text-stone-400 leading-snug">
+                {item.note}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ActionQueueSection = ({ problems, incidentCounts, incidentSummaries, onRepaired }) => (
+  <section className="space-y-3 xl:order-2 xl:sticky xl:top-4 w-full min-w-0 max-w-full">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1">
+      <div>
+        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+          <span className={cn('w-4 h-px', FAULT_BG)} />
+          Action queue
+        </h3>
+        <p className="mt-1.5 text-xs font-medium text-stone-600 dark:text-stone-300">
+          Ordered by severity. Each item shows learner impact, evidence, owner, and a repair path.
+        </p>
+      </div>
+      <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-400')}>
+        {problems.length} open
+      </span>
+    </div>
+    <div className="space-y-2.5 xl:max-h-[760px] xl:overflow-y-auto xl:pr-1">
+      {problems.map((service, i) => (
+        <ProblemPanel
+          key={service.key}
+          service={service}
+          index={i}
+          incidentCount={incidentCounts[service.key] || 0}
+          incidentSummary={incidentSummaries[service.key]}
+          onRepaired={onRepaired}
+        />
+      ))}
+    </div>
+  </section>
+);
+
+const IncidentEvidenceItem = ({ incident, serviceLabel }) => {
+  const isRecovered = incident.outcome === 'recovered';
+  const isTimeRange = incident.first_seen && incident.first_seen !== incident.last_seen;
+
+  return (
+    <div className="flex items-start gap-2.5 py-2.5 border-b border-stone-100 dark:border-white/5 last:border-0">
+      <span
+        className={cn(
+          'w-1.5 h-1.5 rounded-full mt-1.5 shrink-0',
+          isRecovered ? 'bg-amber-500' : FAULT_BG
+        )}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 break-words [overflow-wrap:anywhere] leading-snug">
+          {incident.message}
+        </p>
+        {isRecovered && (
+          <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+            Recovered — a fallback returned a usable result.
+          </p>
+        )}
+        <p className={cn(MICRO, 'mt-1 text-stone-500 dark:text-stone-400')}>{serviceLabel}</p>
+        <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 text-[10px] font-semibold text-stone-500 dark:text-stone-400">
+          {isTimeRange && (
+            <span>
+              First observed <ExactTime value={incident.first_seen} />
+            </span>
+          )}
+          <span>
+            {incident.first_seen === incident.last_seen ? 'Occurred' : 'Latest observed'}{' '}
+            <ExactTime value={incident.last_seen} />
+          </span>
+        </div>
+      </div>
+      <span
+        className={cn(
+          NUM,
+          'text-[11px] font-bold text-stone-500 dark:text-stone-400 shrink-0 ml-1'
+        )}
+      >
+        ×{incident.occurrences}
+      </span>
+    </div>
+  );
+};
+
+const IncidentEvidenceSection = ({ filteredIncidents, serviceLabels, incidentsError }) => (
+  <section className="space-y-2.5">
+    <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+      <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
+      Incident evidence
+    </h3>
+    <div className={cn(PANEL, 'p-4')}>
+      <div className="flex items-center justify-between mb-3">
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+          Persisted operational incidents in this window
+        </p>
+        <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
+          {filteredIncidents.length}
+        </span>
+      </div>
+      {incidentsError ? (
+        <div className="rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-3 py-2.5">
+          <p className="text-xs font-semibold text-stone-700 dark:text-stone-200">
+            Health status loaded, but incident details did not: {incidentsError}
+          </p>
+        </div>
+      ) : filteredIncidents.length === 0 ? (
+        <p className="text-xs font-medium text-stone-500 dark:text-stone-400 py-8 text-center">
+          No recorded incidents match this service view.
+        </p>
+      ) : (
+        <div className="space-y-px max-h-[280px] overflow-y-auto">
+          {filteredIncidents.map((incident, i) => (
+            <IncidentEvidenceItem
+              key={`${incident.service}-${i}`}
+              incident={incident}
+              serviceLabel={serviceLabels[incident.service] || incident.service}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+);
+
+const PlatformActivitySection = ({ health, maintenance }) => (
+  <section className="space-y-2.5 pt-1 border-t border-stone-200/80 dark:border-white/[0.07]">
+    <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
+      <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
+      Activity &amp; controls
+    </h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className={cn(PANEL, 'p-4')}>
+        <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3')}>
+          Platform activity in this window
+        </p>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {[
+            { label: 'Signups', value: health?.activity?.signups },
+            { label: 'Active', value: health?.activity?.activeUsers },
+            { label: 'Sessions', value: health?.activity?.testSessions },
+          ].map((item) => (
+            <div key={item.label} className="min-w-0">
+              <p
+                className={cn(
+                  NUM,
+                  'text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-50 leading-none truncate'
+                )}
+              >
+                {Number(item.value || 0).toLocaleString()}
+              </p>
+              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1.5 truncate')}>
+                {item.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <MaintenanceStatusCard maintenance={maintenance} />
+    </div>
+  </section>
+);
 
 const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
   const [hours, setHours] = useState(24);
@@ -1002,191 +1422,30 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
   }
 
   if (error) {
-    return (
-      <div className={cn(PANEL, 'relative overflow-hidden')}>
-        <span className={cn('absolute left-0 top-0 h-full w-[3px]', FAULT_BG)} />
-        <div className="p-5 pl-6 flex items-start gap-3">
-          <AlertOctagon className={cn('w-5 h-5 shrink-0 mt-0.5', FAULT_TEXT)} />
-          <div className="space-y-2">
-            <p className="text-sm font-extrabold text-stone-900 dark:text-stone-50">
-              Could not load platform health
-            </p>
-            <p className="text-xs text-stone-500 dark:text-stone-400">{error}</p>
-            <button
-              onClick={() => load()}
-              className={cn(
-                MICRO,
-                'mt-1 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-smooth-out active:scale-95'
-              )}
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <PlatformErrorPanel error={error} onRetry={() => load()} />;
   }
-
-  const { allClear, headline, accent, pct, legend } = overviewFor(counts, total);
 
   return (
     <div className="animate-panel-in space-y-5">
-      {/* Console header */}
-      <div
-        className={cn(
-          PANEL,
-          'relative overflow-hidden bg-stone-50 dark:bg-[#0E0E10] border-stone-200 dark:border-white/[0.07]'
-        )}
-      >
-        {/* dot-grid texture for instrument-panel atmosphere */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35] bg-[radial-gradient(circle_at_1px_1px,rgb(168_162_158/0.45)_1px,transparent_0)] dark:bg-[radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.14)_1px,transparent_0)] bg-size-[14px_14px]"
-        />
-        <div className="relative p-5">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-            <div className="min-w-0">
-              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Platform status</p>
-              <div className="flex items-baseline gap-3 mt-1.5">
-                <h3
-                  className={cn('text-3xl font-extrabold tracking-[-0.03em] leading-none', accent)}
-                >
-                  {headline}
-                </h3>
-                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-                  <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-300')}>
-                    {counts.operational}
-                  </span>
-                  {' of '}
-                  <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-300')}>
-                    {total}
-                  </span>
-                  {' operational'}
-                </span>
-              </div>
-              <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-2">
-                {allClear
-                  ? 'No user-facing failures detected in this window.'
-                  : `${problems.length} service${problems.length === 1 ? '' : 's'} need admin action. Start with learner-blocking faults, then reduce degraded fallbacks.`}
-              </p>
-            </div>
+      <PlatformConsoleHeader
+        counts={counts}
+        total={total}
+        health={health}
+        hours={hours}
+        setHours={setHours}
+        refreshing={refreshing}
+        onRefresh={() => load({ silent: true })}
+        problems={problems}
+      />
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Select value={String(hours)} onValueChange={(v) => setHours(Number(v))}>
-                <SelectTrigger
-                  aria-label="Health window"
-                  className={cn(
-                    MICRO,
-                    'h-8 w-[135px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
-                  )}
-                >
-                  <Clock className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HEALTH_WINDOWS.map((w) => (
-                    <SelectItem key={w.hours} value={String(w.hours)}>
-                      {w.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <button
-                onClick={() => load({ silent: true })}
-                disabled={refreshing}
-                aria-label="Refresh"
-                className="h-8 w-8 grid place-items-center rounded-md border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-500 hover:text-stone-900 dark:hover:text-white transition-all duration-150 ease-smooth-out active:scale-90 disabled:opacity-50"
-              >
-                <RefreshCw className={cn('w-3.5 h-3.5', refreshing && 'animate-spin')} />
-              </button>
-            </div>
-          </div>
-
-          {/* Signal bar */}
-          <div className="mt-5 flex h-1.5 w-full gap-px overflow-hidden rounded-full bg-stone-200 dark:bg-white/6">
-            {legend
-              .filter((s) => s.n > 0)
-              .map((s) => (
-                <div key={s.label} className={s.cls} style={{ width: `${pct(s.n)}%` }} />
-              ))}
-          </div>
-          <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1">
-            {legend.map((l) => (
-              <span key={l.label} className="inline-flex items-center gap-1.5">
-                <span className={cn('w-1.5 h-1.5 rounded-full', l.cls)} />
-                <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{l.label}</span>
-                <span
-                  className={cn(NUM, 'text-[11px] font-bold text-stone-700 dark:text-stone-200')}
-                >
-                  {l.n}
-                </span>
-              </span>
-            ))}
-            {health?.generatedAt && (
-              <span className={cn(MICRO, 'ml-auto text-stone-500 dark:text-stone-600')}>
-                Updated <ExactTime value={health.generatedAt} />
-              </span>
-            )}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-200 dark:bg-white/[0.07]">
-            {[
-              { label: 'Blocking', value: counts.down, note: 'Unavailable or unconfigured' },
-              { label: 'Needs action', value: counts.degraded, note: 'Degraded or delayed' },
-              { label: 'Healthy', value: counts.operational, note: 'Operating normally' },
-              { label: 'No traffic', value: counts.idle, note: 'No requests in window' },
-            ].map((item) => (
-              <div key={item.label} className="bg-white/90 dark:bg-[#131315] px-3.5 py-3">
-                <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{item.label}</p>
-                <p className={cn(NUM, 'mt-1 text-xl font-bold text-stone-900 dark:text-stone-50')}>
-                  {item.value}
-                </p>
-                <p className="mt-1 text-[10px] font-medium text-stone-500 dark:text-stone-400 leading-snug">
-                  {item.note}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        {/* Prioritised action queue stays visible without taking over the page. */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] items-start gap-4 w-full min-w-0 max-w-full">
         {problems.length > 0 && (
-          <section className="space-y-3 xl:order-2 xl:sticky xl:top-4">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1">
-              <div>
-                <h3
-                  className={cn(
-                    MICRO,
-                    'text-stone-500 dark:text-stone-400 flex items-center gap-1.5'
-                  )}
-                >
-                  <span className={cn('w-4 h-px', FAULT_BG)} />
-                  Action queue
-                </h3>
-                <p className="mt-1.5 text-xs font-medium text-stone-600 dark:text-stone-300">
-                  Ordered by severity. Each item shows learner impact, evidence, owner, and a repair
-                  path.
-                </p>
-              </div>
-              <span className={cn(NUM, 'text-xs font-bold text-stone-500 dark:text-stone-400')}>
-                {problems.length} open
-              </span>
-            </div>
-            <div className="space-y-2.5 xl:max-h-[760px] xl:overflow-y-auto xl:pr-1">
-              {problems.map((service, i) => (
-                <ProblemPanel
-                  key={service.key}
-                  service={service}
-                  index={i}
-                  incidentCount={incidentCounts[service.key] || 0}
-                  incidentSummary={incidentSummaries[service.key]}
-                  onRepaired={() => load({ silent: true })}
-                />
-              ))}
-            </div>
-          </section>
+          <ActionQueueSection
+            problems={problems}
+            incidentCounts={incidentCounts}
+            incidentSummaries={incidentSummaries}
+            onRepaired={() => load({ silent: true })}
+          />
         )}
 
         <ServiceDirectory
@@ -1202,124 +1461,13 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
         />
       </div>
 
-      {/* Persisted incident evidence follows the same service filters. */}
-      <section className="space-y-2.5">
-        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
-          <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
-          Incident evidence
-        </h3>
-        <div className={cn(PANEL, 'p-4')}>
-          <div className="flex items-center justify-between mb-3">
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-              Persisted operational incidents in this window
-            </p>
-            <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
-              {filteredIncidents.length}
-            </span>
-          </div>
-          {incidentsError ? (
-            <div className="rounded-md border border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.06)] px-3 py-2.5">
-              <p className="text-xs font-semibold text-stone-700 dark:text-stone-200">
-                Health status loaded, but incident details did not: {incidentsError}
-              </p>
-            </div>
-          ) : filteredIncidents.length === 0 ? (
-            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 py-8 text-center">
-              No recorded incidents match this service view.
-            </p>
-          ) : (
-            <div className="space-y-px max-h-[280px] overflow-y-auto">
-              {filteredIncidents.map((incident, i) => (
-                <div
-                  key={`${incident.service}-${i}`}
-                  className="flex items-start gap-2.5 py-2.5 border-b border-stone-100 dark:border-white/5 last:border-0"
-                >
-                  <span
-                    className={cn(
-                      'w-1 h-1 rounded-full mt-1.5 shrink-0',
-                      incident.outcome === 'recovered' ? 'bg-amber-500' : FAULT_BG
-                    )}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold text-stone-700 dark:text-stone-200 wrap-break-word leading-snug">
-                      {incident.message}
-                    </p>
-                    {incident.outcome === 'recovered' && (
-                      <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
-                        Recovered — a fallback returned a usable result.
-                      </p>
-                    )}
-                    <p className={cn(MICRO, 'mt-1 text-stone-500 dark:text-stone-400')}>
-                      {serviceLabels[incident.service] || incident.service}
-                    </p>
-                    <div className="mt-1 flex flex-col gap-0.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400">
-                      {incident.first_seen && incident.first_seen !== incident.last_seen && (
-                        <span>
-                          First observed <ExactTime value={incident.first_seen} />
-                        </span>
-                      )}
-                      <span>
-                        {incident.first_seen === incident.last_seen
-                          ? 'Occurred'
-                          : 'Latest observed'}{' '}
-                        <ExactTime value={incident.last_seen} />
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    className={cn(
-                      NUM,
-                      'text-[11px] font-bold text-stone-500 dark:text-stone-400 shrink-0'
-                    )}
-                  >
-                    ×{incident.occurrences}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <IncidentEvidenceSection
+        filteredIncidents={filteredIncidents}
+        serviceLabels={serviceLabels}
+        incidentsError={incidentsError}
+      />
 
-      {/* Activity & controls — deliberately set apart from the fault/status
-          telemetry above with its own divider: these aren't health signals,
-          they're general product activity and an admin-facing switch. */}
-      <section className="space-y-2.5 pt-1 border-t border-stone-200/80 dark:border-white/[0.07]">
-        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}>
-          <span className="w-4 h-px bg-stone-300 dark:bg-stone-700" />
-          Activity &amp; controls
-        </h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <div className={cn(PANEL, 'p-4')}>
-            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-3')}>
-              Platform activity in this window
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: 'Signups', value: health?.activity?.signups },
-                { label: 'Active', value: health?.activity?.activeUsers },
-                { label: 'Sessions', value: health?.activity?.testSessions },
-              ].map((item) => (
-                <div key={item.label}>
-                  <p
-                    className={cn(
-                      NUM,
-                      'text-2xl font-bold text-stone-900 dark:text-stone-50 leading-none'
-                    )}
-                  >
-                    {Number(item.value || 0).toLocaleString()}
-                  </p>
-                  <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1.5')}>
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <MaintenanceStatusCard maintenance={maintenance} />
-        </div>
-      </section>
+      <PlatformActivitySection health={health} maintenance={maintenance} />
     </div>
   );
 };

@@ -85,15 +85,17 @@ const getActiveLimitData = (tierLimits, tierName, currency) => {
 };
 
 const LimitInput = ({ label, value, onChange }) => (
-  <div className="space-y-0.5">
-    <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{label}</Label>
+  <div className="space-y-0.5 min-w-0">
+    <Label className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate block')}>
+      {label}
+    </Label>
     <Input
       type="number"
       value={value ?? 0}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
         NUM,
-        'h-7 text-xs font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] px-2'
+        'h-7 text-xs font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] px-2 w-full min-w-0'
       )}
     />
   </div>
@@ -194,7 +196,7 @@ const TierBody = ({
               <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>Modified</span>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 w-full min-w-0">
             <LimitInput
               label="Daily"
               value={getVal('daily_limit')}

@@ -285,7 +285,7 @@ const UserManagement = () => {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-10 pt-12 md:pt-0"
+      className="space-y-4 pb-10 pt-14 sm:pt-12 md:pt-0"
     >
       <RefinedDeleteModal
         isOpen={!!userToDelete}
@@ -311,11 +311,11 @@ const UserManagement = () => {
           description="Accounts, access roles, subscription tiers, and inactivity warnings"
           tip="Manage registered accounts. Filters and sorting run server-side."
         >
-          <AdminButton variant="outline" onClick={fetchUsers}>
+          <AdminButton variant="outline" onClick={fetchUsers} className="flex-1 sm:flex-initial">
             <RefreshCcw className={cn('w-3 h-3', loading && 'animate-spin')} />
             Refresh
           </AdminButton>
-          <AdminButton onClick={() => setIsCreatingUser(true)}>
+          <AdminButton onClick={() => setIsCreatingUser(true)} className="flex-1 sm:flex-initial">
             <UserPlus className="w-3.5 h-3.5" />
             New account
           </AdminButton>

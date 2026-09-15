@@ -89,7 +89,7 @@ const OverviewHeader = ({ dateLabel, greeting, totalUsers, days, onDaysChange })
   >
     <div>
       <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{dateLabel}</p>
-      <h1 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 mt-1">
+      <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50 mt-1">
         {greeting}, Admin
       </h1>
       <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-1">
@@ -104,7 +104,7 @@ const OverviewHeader = ({ dateLabel, greeting, totalUsers, days, onDaysChange })
         aria-label="Overview window"
         className={cn(
           MICRO,
-          'h-8 w-[140px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
+          'h-8 w-full sm:w-[140px] rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200'
         )}
       >
         <Clock className="mr-1.5 h-3 w-3 text-stone-500 dark:text-stone-400" />
@@ -273,7 +273,7 @@ const FunnelStep = ({ step, previousUsers, top, isWorst }) => {
           </span>
         </div>
       )}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Tip
           content={
             previousUsers === null
@@ -289,18 +289,23 @@ const FunnelStep = ({ step, previousUsers, top, isWorst }) => {
               )}
               style={{ width: `${Math.max(share, 3)}%` }}
             />
-            <div className="relative h-full flex items-center justify-between px-3">
+            <div className="relative h-full flex items-center justify-between px-2.5 sm:px-3">
               <span className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100 truncate">
                 {step.label}
               </span>
-              <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 shrink-0 ml-2')}>
+              <span
+                className={cn(NUM, 'text-[11px] font-bold text-stone-500 shrink-0 ml-1.5 sm:ml-2')}
+              >
                 {Math.round(share)}%
               </span>
             </div>
           </div>
         </Tip>
         <span
-          className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50 w-10 text-right')}
+          className={cn(
+            NUM,
+            'text-sm font-bold text-stone-900 dark:text-stone-50 w-9 sm:w-10 text-right shrink-0'
+          )}
         >
           {step.users}
         </span>
@@ -337,7 +342,7 @@ const Funnel = ({ steps }) => {
 const FunnelPanel = ({ steps }) => (
   <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
     <div className={cn(PANEL, 'p-4 h-full')}>
-      <div className="flex items-baseline justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2 mb-4">
         <div className="flex items-center gap-1.5">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             Activation funnel · all time
@@ -378,7 +383,7 @@ const TrendPanel = ({ trend, usesTestUsers }) => {
   return (
     <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
       <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
-        <div className="flex items-baseline justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-3">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             Signups vs {comparisonLabel.toLowerCase()}
           </h3>
@@ -647,8 +652,8 @@ const RetentionGrid = ({ cohorts }) => {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-separate border-spacing-y-1">
+    <div className="overflow-x-auto -mx-1 px-1">
+      <table className="w-full min-w-[320px] sm:min-w-0 border-separate border-spacing-y-1">
         <thead>
           <tr>
             <th
@@ -700,7 +705,7 @@ const RetentionGrid = ({ cohorts }) => {
 const RetentionPanel = ({ cohorts }) => (
   <m.div variants={itemVariants} className="col-span-12 lg:col-span-7">
     <div className={cn(PANEL, 'p-4 h-full')}>
-      <div className="flex items-baseline justify-between mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2 mb-3">
         <div className="flex items-center gap-1.5">
           <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
             Weekly retention by signup cohort
@@ -916,36 +921,59 @@ const ModuleEngagementPanel = ({ modules }) => (
               key={module.module}
               content={`${module.module} Module — ${module.completion}% completion rate (${module.users} users, ${module.sessions} sessions finished)`}
             >
-              <div className="group -mx-1 grid min-w-0 cursor-default grid-cols-[minmax(4.5rem,1.15fr)_minmax(0,0.8fr)_minmax(4.75rem,0.95fr)_minmax(2.5rem,0.7fr)_2.75rem] items-center gap-2 rounded-md border-b border-stone-100 px-1 py-2 text-[11px] transition-colors last:border-0 hover:bg-stone-50 dark:border-white/5 dark:hover:bg-white/3">
-                <span className="min-w-0 truncate font-extrabold text-stone-900 dark:text-stone-50">
-                  {module.module}
-                </span>
-                <span className={cn(NUM, 'min-w-0 truncate text-right text-stone-500')}>
-                  {module.users} users
-                </span>
-                <span className={cn(NUM, 'min-w-0 truncate text-right text-stone-500')}>
-                  {module.sessions} sessions
-                </span>
-                <div className="min-w-0">
-                  <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
-                    <div
-                      className={cn(
-                        'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',
-                        isWeak ? 'bg-[rgb(var(--signal-warn))]' : 'bg-[rgb(var(--signal-ok))]'
-                      )}
-                      style={{ width: `${module.completion}%` }}
-                    />
-                  </div>
+              <div className="group -mx-1 flex flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(4.5rem,1.15fr)_minmax(0,0.8fr)_minmax(4.75rem,0.95fr)_minmax(2.5rem,0.7fr)_2.75rem] sm:items-center sm:gap-2 rounded-md border-b border-stone-100 px-2 sm:px-1 py-2 text-[11px] transition-colors last:border-0 hover:bg-stone-50 dark:border-white/5 dark:hover:bg-white/3">
+                <div className="flex items-center justify-between gap-2 min-w-0 sm:contents">
+                  <span className="min-w-0 truncate font-extrabold text-stone-900 dark:text-stone-50">
+                    {module.module}
+                  </span>
+                  <span
+                    className={cn(
+                      NUM,
+                      'min-w-0 font-bold text-right whitespace-nowrap sm:hidden',
+                      isWeak
+                        ? 'text-[rgb(var(--signal-warn))]'
+                        : 'text-stone-900 dark:text-stone-50'
+                    )}
+                  >
+                    {module.completion}%
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    NUM,
-                    'min-w-0 font-bold text-right whitespace-nowrap',
-                    isWeak ? 'text-[rgb(var(--signal-warn))]' : 'text-stone-900 dark:text-stone-50'
-                  )}
-                >
-                  {module.completion}%
-                </span>
+
+                <div className="flex items-center justify-between gap-2 sm:contents">
+                  <div className="flex items-center gap-1.5 text-stone-500 sm:contents">
+                    <span className={cn(NUM, 'text-[10px] sm:text-[11px] sm:text-right')}>
+                      {module.users} users
+                    </span>
+                    <span className="text-stone-300 dark:text-stone-600 sm:hidden">·</span>
+                    <span className={cn(NUM, 'text-[10px] sm:text-[11px] sm:text-right')}>
+                      {module.sessions} sessions
+                    </span>
+                  </div>
+
+                  <div className="min-w-[60px] flex-1 max-w-[120px] sm:max-w-none sm:min-w-0">
+                    <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-[width] duration-700 ease-out group-hover:brightness-125',
+                          isWeak ? 'bg-[rgb(var(--signal-warn))]' : 'bg-[rgb(var(--signal-ok))]'
+                        )}
+                        style={{ width: `${module.completion}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <span
+                    className={cn(
+                      NUM,
+                      'hidden sm:block min-w-0 font-bold text-right whitespace-nowrap',
+                      isWeak
+                        ? 'text-[rgb(var(--signal-warn))]'
+                        : 'text-stone-900 dark:text-stone-50'
+                    )}
+                  >
+                    {module.completion}%
+                  </span>
+                </div>
               </div>
             </Tip>
           );
@@ -981,11 +1009,27 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
                 key={key}
                 content={`${channelMeta(key).label} — ${row.signups} signups (${share}% of total signups)`}
               >
-                <div className="group -mx-1 grid min-w-0 cursor-default grid-cols-[minmax(5.5rem,1.35fr)_minmax(2.5rem,1fr)_minmax(4.5rem,0.85fr)_2.5rem] items-center gap-2 rounded-md border-b border-stone-100 px-1 py-2 text-[11px] transition-colors last:border-0 hover:bg-stone-50 dark:border-white/5 dark:hover:bg-white/3">
-                  <span className="min-w-0 truncate font-extrabold text-stone-900 dark:text-stone-50">
-                    {channelMeta(key).short}
-                  </span>
-                  <div className="min-w-0">
+                <div className="group -mx-1 flex flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(5.5rem,1.35fr)_minmax(2.5rem,1fr)_minmax(4.5rem,0.85fr)_2.5rem] sm:items-center sm:gap-2 rounded-md border-b border-stone-100 px-2 sm:px-1 py-2 text-[11px] transition-colors last:border-0 hover:bg-stone-50 dark:border-white/5 dark:hover:bg-white/3">
+                  <div className="flex items-center justify-between gap-2 min-w-0 sm:contents">
+                    <span className="min-w-0 truncate font-extrabold text-stone-900 dark:text-stone-50">
+                      {channelMeta(key).short}
+                    </span>
+                    <div className="flex items-center gap-1.5 sm:hidden shrink-0">
+                      <span className={cn(NUM, 'text-stone-500 text-[10px]')}>
+                        {row.signups} signups
+                      </span>
+                      <span className="text-stone-300 dark:text-stone-600">·</span>
+                      <span
+                        className={cn(
+                          NUM,
+                          'font-bold text-stone-900 dark:text-stone-50 text-[10px]'
+                        )}
+                      >
+                        {share}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="min-w-0 w-full sm:w-auto">
                     <div className="h-1.5 w-full rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
                       <div
                         className={cn(
@@ -996,13 +1040,18 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
                       />
                     </div>
                   </div>
-                  <span className={cn(NUM, 'min-w-0 truncate text-right text-stone-500')}>
+                  <span
+                    className={cn(
+                      NUM,
+                      'hidden sm:block min-w-0 truncate text-right text-stone-500'
+                    )}
+                  >
                     {row.signups} signups
                   </span>
                   <span
                     className={cn(
                       NUM,
-                      'min-w-0 whitespace-nowrap text-right font-bold text-stone-900 dark:text-stone-50'
+                      'hidden sm:block min-w-0 whitespace-nowrap text-right font-bold text-stone-900 dark:text-stone-50'
                     )}
                   >
                     {share}%
@@ -1022,6 +1071,120 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
   );
 };
 
+const MarketChoroplethMap = ({ mapData, maxSignups, displayDays }) => {
+  const countryStyle = ({ countryValue }) => {
+    const intensity = countryValue ? 0.28 + 0.72 * (countryValue / maxSignups) : 0;
+    return {
+      fill: countryValue ? `rgba(90, 99, 223, ${intensity})` : 'rgba(120, 113, 108, 0.11)',
+      stroke: 'rgba(120, 113, 108, 0.32)',
+      strokeWidth: 0.55,
+      outline: 'none',
+    };
+  };
+
+  return (
+    <div className="min-w-0 border-b border-stone-200/80 bg-[#fbfafc] p-3 sm:p-4 lg:border-b-0 lg:border-r dark:border-white/[0.07] dark:bg-[#100f15]">
+      <div
+        className="mx-auto w-full max-w-[34rem] overflow-hidden"
+        data-testid="signup-country-map"
+      >
+        <span className="sr-only">
+          New user signup country map for the last {displayDays} days.
+        </span>
+        <WorldMap
+          data={mapData}
+          valueSuffix=" signups"
+          size="responsive"
+          backgroundColor="transparent"
+          borderColor="rgba(120, 113, 108, 0.32)"
+          tooltipBgColor="#292524"
+          tooltipTextColor="#ffffff"
+          styleFunction={countryStyle}
+          tooltipTextFunction={({ countryName: mapCountryName, countryValue }) =>
+            `${mapCountryName}: ${countryValue ?? 0} signup${countryValue === 1 ? '' : 's'}`
+          }
+        />
+      </div>
+      <div
+        className={cn(
+          MICRO,
+          'mt-1 flex items-center justify-center gap-2 text-stone-500 dark:text-stone-400'
+        )}
+      >
+        <span>Signup volume</span>
+        <span className="h-1.5 w-20 rounded-full bg-gradient-to-r from-[#5a63df]/20 to-[#5a63df]" />
+        <span>higher</span>
+      </div>
+    </div>
+  );
+};
+
+const MarketRankingList = ({ visibleMarkets }) => (
+  <div className="divide-y divide-stone-100 bg-white lg:grid lg:grid-rows-8 lg:h-[448px] dark:divide-white/5 dark:bg-[#131315]">
+    {visibleMarkets.map((market, index) => (
+      <div
+        key={market.country}
+        className="group flex flex-col justify-center gap-1 px-3 py-2 sm:px-4 sm:py-2.5 transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.035]"
+      >
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={cn(
+                NUM,
+                'w-3.5 shrink-0 text-center text-[10px] font-bold text-stone-400 dark:text-stone-500'
+              )}
+            >
+              {index + 1}
+            </span>
+            <span
+              className={cn(
+                NUM,
+                'grid h-6 w-7 sm:h-7 sm:w-8 shrink-0 place-items-center rounded-md border border-stone-200/80 bg-stone-50 text-[9px] font-black text-stone-600 transition-colors group-hover:border-stone-300 group-hover:bg-white dark:border-white/10 dark:bg-white/[0.045] dark:text-stone-300 dark:group-hover:bg-white/[0.075]'
+              )}
+            >
+              {countryShortLabel(market.country)}
+            </span>
+            <p className="truncate text-xs font-extrabold text-stone-900 dark:text-stone-50">
+              {countryName(market.country)}
+            </p>
+            <span
+              className={cn(
+                NUM,
+                'shrink-0 text-[10px] font-bold text-stone-500 dark:text-stone-400'
+              )}
+            >
+              {market.share ?? 0}%
+            </span>
+          </div>
+          <div className="shrink-0 flex items-baseline gap-1 text-right">
+            <span
+              className={cn(
+                NUM,
+                'text-sm sm:text-base font-bold leading-none text-stone-900 dark:text-stone-50'
+              )}
+            >
+              {market.signups ?? 0}
+            </span>
+            <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>signups</span>
+          </div>
+        </div>
+        <div
+          className={cn(
+            MICRO,
+            'flex flex-wrap items-center gap-x-2 gap-y-0.5 pl-6 sm:pl-[2.125rem] text-stone-500 dark:text-stone-400'
+          )}
+        >
+          <span>{market.activationRate ?? 0}% onboarded</span>
+          <span className="text-stone-300 dark:text-stone-600 select-none">·</span>
+          <span>{market.practiceRate ?? 0}% practice</span>
+          <span className="text-stone-300 dark:text-stone-600 select-none">·</span>
+          <span>{market.paidRate ?? 0}% paid</span>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const MarketSnapshotPanel = ({ markets, marketMap, summary, displayDays }) => {
   const visibleMarkets = markets
     .filter((market) => market.country && market.country !== 'unknown')
@@ -1036,16 +1199,6 @@ const MarketSnapshotPanel = ({ markets, marketMap, summary, displayDays }) => {
     value: market.signups ?? 0,
   }));
   const maxSignups = Math.max(...mapMarkets.map((market) => market.signups ?? 0), 1);
-
-  const countryStyle = ({ countryValue }) => {
-    const intensity = countryValue ? 0.28 + 0.72 * (countryValue / maxSignups) : 0;
-    return {
-      fill: countryValue ? `rgba(90, 99, 223, ${intensity})` : 'rgba(120, 113, 108, 0.11)',
-      stroke: 'rgba(120, 113, 108, 0.32)',
-      strokeWidth: 0.55,
-      outline: 'none',
-    };
-  };
 
   return (
     <m.div variants={itemVariants} className="col-span-12">
@@ -1070,99 +1223,12 @@ const MarketSnapshotPanel = ({ markets, marketMap, summary, displayDays }) => {
         </div>
         {visibleMarkets.length ? (
           <div className="grid min-w-0 items-start gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
-            <div className="min-w-0 border-b border-stone-200/80 bg-[#fbfafc] p-3 sm:p-4 lg:border-b-0 lg:border-r dark:border-white/[0.07] dark:bg-[#100f15]">
-              <div
-                className="mx-auto w-full max-w-[34rem] overflow-hidden"
-                data-testid="signup-country-map"
-              >
-                <span className="sr-only">
-                  New user signup country map for the last {displayDays} days.
-                </span>
-                <WorldMap
-                  data={mapData}
-                  valueSuffix=" signups"
-                  size="responsive"
-                  backgroundColor="transparent"
-                  borderColor="rgba(120, 113, 108, 0.32)"
-                  tooltipBgColor="#292524"
-                  tooltipTextColor="#ffffff"
-                  styleFunction={countryStyle}
-                  tooltipTextFunction={({ countryName: mapCountryName, countryValue }) =>
-                    `${mapCountryName}: ${countryValue ?? 0} signup${countryValue === 1 ? '' : 's'}`
-                  }
-                />
-              </div>
-              <div
-                className={cn(
-                  MICRO,
-                  'mt-1 flex items-center justify-center gap-2 text-stone-500 dark:text-stone-400'
-                )}
-              >
-                <span>Signup volume</span>
-                <span className="h-1.5 w-20 rounded-full bg-gradient-to-r from-[#5a63df]/20 to-[#5a63df]" />
-                <span>higher</span>
-              </div>
-            </div>
-            <div className="grid h-full grid-rows-8 divide-y divide-stone-100 bg-white lg:h-[448px] dark:divide-white/5 dark:bg-[#131315]">
-              {visibleMarkets.map((market, index) => (
-                <div
-                  key={market.country}
-                  className="group grid min-w-0 grid-cols-[1.25rem_2rem_minmax(0,1fr)_auto] items-center gap-2 px-4 py-2 transition-colors hover:bg-stone-50 dark:hover:bg-white/[0.035]"
-                >
-                  <span
-                    className={cn(NUM, 'text-[10px] font-bold text-stone-400 dark:text-stone-500')}
-                  >
-                    {index + 1}
-                  </span>
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span
-                      className={cn(
-                        NUM,
-                        'grid h-7 w-8 shrink-0 place-items-center rounded-md border border-stone-200/80 bg-stone-50 text-[9px] font-black text-stone-600 transition-colors group-hover:border-stone-300 group-hover:bg-white dark:border-white/10 dark:bg-white/[0.045] dark:text-stone-300 dark:group-hover:bg-white/[0.075]'
-                      )}
-                    >
-                      {countryShortLabel(market.country)}
-                    </span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex min-w-0 items-baseline gap-1.5">
-                      <p className="truncate text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
-                        {countryName(market.country)}
-                      </p>
-                      <span
-                        className={cn(
-                          NUM,
-                          'shrink-0 text-[10px] font-bold text-stone-500 dark:text-stone-400'
-                        )}
-                      >
-                        {market.share ?? 0}%
-                      </span>
-                    </div>
-                    <div
-                      className={cn(
-                        MICRO,
-                        'mt-0.5 flex min-w-0 gap-2 truncate text-stone-500 dark:text-stone-400'
-                      )}
-                    >
-                      <span>{market.activationRate ?? 0}% onboarded</span>
-                      <span>{market.practiceRate ?? 0}% practice</span>
-                      <span>{market.paidRate ?? 0}% paid</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={cn(
-                        NUM,
-                        'text-lg font-bold leading-none text-stone-900 dark:text-stone-50'
-                      )}
-                    >
-                      {market.signups ?? 0}
-                    </p>
-                    <p className={cn(MICRO, 'mt-1 text-stone-400 dark:text-stone-500')}>signups</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <MarketChoroplethMap
+              mapData={mapData}
+              maxSignups={maxSignups}
+              displayDays={displayDays}
+            />
+            <MarketRankingList visibleMarkets={visibleMarkets} />
           </div>
         ) : (
           <p className="px-4 py-8 text-center text-xs font-medium text-stone-500 dark:text-stone-400">

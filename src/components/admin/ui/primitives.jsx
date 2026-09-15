@@ -163,22 +163,31 @@ export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) 
   <div
     className={cn(
       PANEL,
-      'py-2.5 px-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
+      'py-2 sm:py-2.5 px-3 sm:px-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12 min-w-0',
       className
     )}
   >
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 min-w-0">
       {live && <LiveDot />}
-      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>{label}</p>
-      {tip && <InfoTip>{tip}</InfoTip>}
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>{label}</p>
+      {tip && <InfoTip className="shrink-0">{tip}</InfoTip>}
     </div>
-    <div className="flex items-baseline gap-2 mt-1">
-      <span className={cn(NUM, 'text-xl font-bold text-stone-900 dark:text-stone-50 leading-none')}>
+    <div className="flex items-baseline gap-2 mt-1 min-w-0 flex-wrap">
+      <span
+        className={cn(
+          NUM,
+          'text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-50 leading-none'
+        )}
+      >
         {value}
       </span>
       {delta}
     </div>
-    {sub && <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1')}>{sub}</p>}
+    {sub && (
+      <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-1 leading-snug break-words')}>
+        {sub}
+      </p>
+    )}
   </div>
 );
 
@@ -196,7 +205,9 @@ export const AdminPageHeader = ({ title, description, tip, children }) => (
         <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-1">{description}</p>
       )}
     </div>
-    {children && <div className="flex items-center gap-2 shrink-0">{children}</div>}
+    {children && (
+      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">{children}</div>
+    )}
   </div>
 );
 

@@ -57,7 +57,8 @@ const SectionTab = ({ section, isActive }) => {
 
 export default function GlobalSettings() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeSection = searchParams.get('section') || 'general';
+  const rawSection = searchParams.get('section') || 'general';
+  const activeSection = rawSection === 'ratelimits' ? 'rate-limits' : rawSection;
 
   const [loading, setLoading] = useState(true);
   const [healthLoading, setHealthLoading] = useState(activeSection === 'general');
@@ -222,7 +223,7 @@ export default function GlobalSettings() {
         animate="visible"
         aria-busy={isInitialLoad}
         className={cn(
-          'space-y-6 pb-12 pt-12 md:pt-0 max-w-7xl mx-auto px-1 sm:px-2',
+          'space-y-6 pb-12 pt-16 sm:pt-14 md:pt-0 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full min-w-0 overflow-x-clip',
           isInitialLoad && 'hidden'
         )}
         data-oid="_8_3dg3"
@@ -256,11 +257,11 @@ export default function GlobalSettings() {
         <Tabs
           value={activeSection}
           onValueChange={handleSectionChange}
-          className="w-full space-y-6"
+          className="w-full min-w-0 space-y-6"
           data-oid="bufrpat"
         >
           {/* Compact Segmented Tab Navigation */}
-          <div className="flex overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pb-1">
+          <div className="flex overflow-x-auto w-full min-w-0 max-w-full scrollbar-none sm:scrollbar-thin -mx-3 px-3 sm:mx-0 sm:px-0 pb-1.5">
             <TabsList className={ADMIN_TABS_LIST} data-oid="ybobvet">
               {SECTIONS.map((section) => (
                 <SectionTab

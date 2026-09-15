@@ -330,7 +330,7 @@ export default function AdminPanel() {
       </div>
 
       <div
-        className="relative z-10 p-4 md:p-8 lg:p-10 max-w-[1700px] mx-auto min-h-screen"
+        className="relative z-10 p-3 sm:p-4 md:p-8 lg:p-10 max-w-[1700px] mx-auto min-h-screen"
         data-oid="kqg:fgg"
       >
         <div className="w-full" data-oid="7js.n-c">

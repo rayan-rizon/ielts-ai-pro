@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Calendar, Clock, CreditCard, Mail, Radio, Search, Shield, Trash2 } from 'lucide-react';
+import { Calendar, Clock, CreditCard, Mail, Radio, Search, Shield, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MICRO, PANEL } from '../ui/primitives';
 import { SIGNUP_CHANNELS, SIGNUP_CHANNEL_KEYS } from '../shared/signupChannel';
@@ -71,7 +71,7 @@ export const ThemedDatePicker = ({ value, onChange, placeholder = 'Select date' 
           aria-label={placeholder}
           className={cn(
             FIELD_INPUT,
-            'h-8 px-2.5 min-w-[150px] inline-flex items-center justify-between gap-2 text-stone-800 dark:text-stone-100 hover:border-stone-400 dark:hover:border-white/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
+            'h-8 px-2.5 w-full sm:w-auto sm:min-w-[140px] inline-flex items-center justify-between gap-2 text-stone-800 dark:text-stone-100 hover:border-stone-400 dark:hover:border-white/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
           )}
         >
           <span
@@ -162,6 +162,203 @@ const SelectionActions = ({ count, loading, onWarn, onDelete }) => {
   );
 };
 
+const countActiveFilters = (filters) =>
+  [
+    Boolean(filters.search && filters.search.trim()),
+    filters.dateRange !== 'all',
+    filters.channel !== 'all',
+    filters.subscription !== 'all',
+    filters.subscriptionStatus !== 'all',
+    filters.role !== 'all',
+    filters.inactiveDays !== 'all',
+    Boolean(filters.startDate || filters.endDate),
+  ].filter(Boolean).length;
+
+const SearchFilterInput = ({ value, onChange, onClear }) => (
+  <div className="relative w-full sm:min-w-[200px] sm:flex-1">
+    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400 pointer-events-none" />
+    <Input
+      placeholder="Search name or email…"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(FIELD_INPUT, 'pl-8 pr-7 w-full')}
+    />
+    {value && (
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Clear search"
+        className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 grid place-items-center rounded text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 focus-visible:outline-none"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    )}
+  </div>
+);
+
+const FilterDropdowns = ({ filters, updateFilter }) => (
+  <div className="grid grid-cols-2 gap-2 w-full sm:contents">
+    {/* Date Range Preset */}
+    <div className="w-full sm:w-[170px] sm:shrink-0">
+      <FilterSelect
+        value={filters.dateRange || 'all'}
+        onValueChange={(value) => updateFilter('dateRange', value)}
+        icon={Calendar}
+        placeholder="Date range"
+      >
+        <SelectItem value="all">All dates</SelectItem>
+        <SelectItem value="today">Joined today</SelectItem>
+        <SelectItem value="7d">Joined last 7 days</SelectItem>
+        <SelectItem value="30d">Joined last 30 days</SelectItem>
+        <SelectItem value="this_month">Joined this month</SelectItem>
+        <SelectItem value="last_month">Joined last month</SelectItem>
+        <SelectItem value="custom">Custom date range…</SelectItem>
+      </FilterSelect>
+    </div>
+
+    {/* Plan Filter */}
+    <div className="w-full sm:w-[125px] sm:shrink-0">
+      <FilterSelect
+        value={filters.subscription}
+        onValueChange={(value) => updateFilter('subscription', value)}
+        icon={CreditCard}
+        placeholder="Plan"
+      >
+        <SelectItem value="all">All plans</SelectItem>
+        <SelectItem value="free">Free</SelectItem>
+        <SelectItem value="pro">Pro</SelectItem>
+        <SelectItem value="premium">Premium</SelectItem>
+      </FilterSelect>
+    </div>
+
+    {/* Acquisition Channel Filter */}
+    <div className="w-full sm:w-[155px] sm:shrink-0">
+      <FilterSelect
+        value={filters.channel || 'all'}
+        onValueChange={(value) => updateFilter('channel', value)}
+        icon={Radio}
+        placeholder="Channel"
+      >
+        <SelectItem value="all">All channels</SelectItem>
+        <SelectItem value="paid">Paid only</SelectItem>
+        {SIGNUP_CHANNEL_KEYS.map((key) => (
+          <SelectItem key={key} value={key}>
+            {SIGNUP_CHANNELS[key].label}
+          </SelectItem>
+        ))}
+      </FilterSelect>
+    </div>
+
+    {/* Role Filter */}
+    <div className="w-full sm:w-[120px] sm:shrink-0">
+      <FilterSelect
+        value={filters.role}
+        onValueChange={(value) => updateFilter('role', value)}
+        icon={Shield}
+        placeholder="Role"
+      >
+        <SelectItem value="all">All roles</SelectItem>
+        <SelectItem value="user">User</SelectItem>
+        <SelectItem value="admin">Admin</SelectItem>
+      </FilterSelect>
+    </div>
+
+    {/* Renewal Filter */}
+    <div className="w-full sm:w-[150px] sm:shrink-0">
+      <FilterSelect
+        value={filters.subscriptionStatus}
+        onValueChange={(value) => updateFilter('subscriptionStatus', value)}
+        icon={CreditCard}
+        placeholder="Renewal"
+      >
+        <SelectItem value="all">All renewals</SelectItem>
+        <SelectItem value="cancelling">Cancelling at period end</SelectItem>
+        <SelectItem value="expiring">Expiring within 7 days</SelectItem>
+      </FilterSelect>
+    </div>
+
+    {/* Activity Filter */}
+    <div className="w-full sm:w-[140px] sm:shrink-0">
+      <FilterSelect
+        value={filters.inactiveDays}
+        onValueChange={(value) => updateFilter('inactiveDays', value)}
+        icon={Clock}
+        placeholder="Activity"
+      >
+        <SelectItem value="all">All activity</SelectItem>
+        <SelectItem value="30">Inactive 30+ days</SelectItem>
+        <SelectItem value="60">Inactive 60+ days</SelectItem>
+        <SelectItem value="90">Inactive 90+ days</SelectItem>
+        <SelectItem value="180">Inactive 180+ days</SelectItem>
+        <SelectItem value="365">Inactive 1+ year</SelectItem>
+      </FilterSelect>
+    </div>
+  </div>
+);
+
+const FilterActionsFooter = ({ activeCount, onReset }) => (
+  <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-white/5 w-full sm:border-0 sm:pt-0 sm:w-auto sm:ml-auto">
+    <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 sm:hidden')}>
+      {activeCount} active filter{activeCount > 1 ? 's' : ''}
+    </span>
+    <button
+      type="button"
+      onClick={onReset}
+      className={cn(
+        MICRO,
+        'h-8 px-2.5 rounded-md text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-all duration-150 ease-smooth-out active:scale-95 ml-auto'
+      )}
+    >
+      Clear filters
+    </button>
+  </div>
+);
+
+const CustomDateRangeControls = ({ filters, updateFilter }) => (
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3.5 pt-2.5 border-t border-stone-200/60 dark:border-white/10 animate-in fade-in zoom-in-95 duration-200">
+    <div className="flex items-center gap-2 shrink-0">
+      <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Filter Field:</span>
+      <Select
+        value={filters.dateField || 'created_at'}
+        onValueChange={(val) => updateFilter('dateField', val)}
+      >
+        <SelectTrigger
+          aria-label="Filter Field"
+          className={cn(
+            FIELD_INPUT,
+            'h-8 text-[11px] w-full sm:w-[145px] px-2.5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
+          )}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="created_at">Joined Date</SelectItem>
+          <SelectItem value="last_active">Last Active</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+    <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 sm:inline')}>From:</span>
+        <ThemedDatePicker
+          value={filters.startDate || ''}
+          onChange={(val) => updateFilter('startDate', val)}
+          placeholder="Start date"
+        />
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+        <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 sm:inline')}>To:</span>
+        <ThemedDatePicker
+          value={filters.endDate || ''}
+          onChange={(val) => updateFilter('endDate', val)}
+          placeholder="End date"
+        />
+      </div>
+    </div>
+  </div>
+);
+
 export const UserManagementFilters = ({
   filters,
   onFiltersChange,
@@ -172,175 +369,24 @@ export const UserManagementFilters = ({
   onDeleteSelected,
 }) => {
   const updateFilter = (field, value) => onFiltersChange({ ...filters, [field]: value });
+  const activeCount = countActiveFilters(filters);
   const isCustomRange = filters.dateRange === 'custom';
 
   return (
-    <div className={cn(PANEL, 'p-3.5 space-y-3')}>
-      <div className="flex flex-wrap items-center gap-2.5">
-        {/* Search */}
-        <div className="relative min-w-[200px] flex-1">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
-          <Input
-            placeholder="Search name or email…"
-            value={filters.search}
-            onChange={(event) => updateFilter('search', event.target.value)}
-            className={cn(FIELD_INPUT, 'pl-8 w-full')}
-          />
-        </div>
+    <div className={cn(PANEL, 'p-3 sm:p-3.5 space-y-2.5 sm:space-y-3')}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
+        <SearchFilterInput
+          value={filters.search}
+          onChange={(val) => updateFilter('search', val)}
+          onClear={() => updateFilter('search', '')}
+        />
 
-        {/* Date Range Preset */}
-        <div className="w-[190px] shrink-0">
-          <FilterSelect
-            value={filters.dateRange || 'all'}
-            onValueChange={(value) => updateFilter('dateRange', value)}
-            icon={Calendar}
-            placeholder="Date range"
-          >
-            <SelectItem value="all">All dates</SelectItem>
-            <SelectItem value="today">Joined today</SelectItem>
-            <SelectItem value="7d">Joined last 7 days</SelectItem>
-            <SelectItem value="30d">Joined last 30 days</SelectItem>
-            <SelectItem value="this_month">Joined this month</SelectItem>
-            <SelectItem value="last_month">Joined last month</SelectItem>
-            <SelectItem value="custom">Custom date range…</SelectItem>
-          </FilterSelect>
-        </div>
+        <FilterDropdowns filters={filters} updateFilter={updateFilter} />
 
-        {/* Acquisition Channel Filter */}
-        <div className="w-[165px] shrink-0">
-          <FilterSelect
-            value={filters.channel || 'all'}
-            onValueChange={(value) => updateFilter('channel', value)}
-            icon={Radio}
-            placeholder="Channel"
-          >
-            <SelectItem value="all">All channels</SelectItem>
-            <SelectItem value="paid">Paid only</SelectItem>
-            {SIGNUP_CHANNEL_KEYS.map((key) => (
-              <SelectItem key={key} value={key}>
-                {SIGNUP_CHANNELS[key].label}
-              </SelectItem>
-            ))}
-          </FilterSelect>
-        </div>
-
-        {/* Plan Filter */}
-        <div className="w-[130px] shrink-0">
-          <FilterSelect
-            value={filters.subscription}
-            onValueChange={(value) => updateFilter('subscription', value)}
-            icon={CreditCard}
-            placeholder="Plan"
-          >
-            <SelectItem value="all">All plans</SelectItem>
-            <SelectItem value="free">Free</SelectItem>
-            <SelectItem value="pro">Pro</SelectItem>
-            <SelectItem value="premium">Premium</SelectItem>
-          </FilterSelect>
-        </div>
-
-        {/* Renewal Filter */}
-        <div className="w-[150px] shrink-0">
-          <FilterSelect
-            value={filters.subscriptionStatus}
-            onValueChange={(value) => updateFilter('subscriptionStatus', value)}
-            icon={CreditCard}
-            placeholder="Renewal"
-          >
-            <SelectItem value="all">All renewals</SelectItem>
-            <SelectItem value="cancelling">Cancelling at period end</SelectItem>
-            <SelectItem value="expiring">Expiring within 7 days</SelectItem>
-          </FilterSelect>
-        </div>
-
-        {/* Role Filter */}
-        <div className="w-[120px] shrink-0">
-          <FilterSelect
-            value={filters.role}
-            onValueChange={(value) => updateFilter('role', value)}
-            icon={Shield}
-            placeholder="Role"
-          >
-            <SelectItem value="all">All roles</SelectItem>
-            <SelectItem value="user">User</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-          </FilterSelect>
-        </div>
-
-        {/* Activity Filter */}
-        <div className="w-[140px] shrink-0">
-          <FilterSelect
-            value={filters.inactiveDays}
-            onValueChange={(value) => updateFilter('inactiveDays', value)}
-            icon={Clock}
-            placeholder="Activity"
-          >
-            <SelectItem value="all">All activity</SelectItem>
-            <SelectItem value="30">Inactive 30+ days</SelectItem>
-            <SelectItem value="60">Inactive 60+ days</SelectItem>
-            <SelectItem value="90">Inactive 90+ days</SelectItem>
-            <SelectItem value="180">Inactive 180+ days</SelectItem>
-            <SelectItem value="365">Inactive 1+ year</SelectItem>
-          </FilterSelect>
-        </div>
-
-        {/* Clear Filters Button */}
-        <button
-          onClick={onReset}
-          className={cn(
-            MICRO,
-            'h-9 px-3 rounded-md text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 shrink-0 ml-auto transition-all duration-150 ease-smooth-out active:scale-95'
-          )}
-        >
-          Clear filters
-        </button>
+        {activeCount > 0 && <FilterActionsFooter activeCount={activeCount} onReset={onReset} />}
       </div>
 
-      {/* Custom Date Range Controls */}
-      {isCustomRange && (
-        <div className="flex flex-wrap items-center gap-3.5 pt-2.5 border-t border-stone-200/60 dark:border-white/10 animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Filter Field:</span>
-            <Select
-              value={filters.dateField || 'created_at'}
-              onValueChange={(val) => updateFilter('dateField', val)}
-            >
-              <SelectTrigger
-                aria-label="Filter Field"
-                className={cn(
-                  FIELD_INPUT,
-                  'h-8 text-[11px] w-[145px] px-2.5 focus-visible:ring-2 focus-visible:ring-[#5a63df]/50'
-                )}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at">Joined Date</SelectItem>
-                <SelectItem value="last_active">Last Active</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>From:</span>
-              <ThemedDatePicker
-                value={filters.startDate || ''}
-                onChange={(val) => updateFilter('startDate', val)}
-                placeholder="Start date"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>To:</span>
-              <ThemedDatePicker
-                value={filters.endDate || ''}
-                onChange={(val) => updateFilter('endDate', val)}
-                placeholder="End date"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {isCustomRange && <CustomDateRangeControls filters={filters} updateFilter={updateFilter} />}
 
       <SelectionActions
         count={selectedCount}
