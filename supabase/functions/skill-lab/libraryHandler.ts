@@ -85,9 +85,16 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
     return await view(await state('complete', { answers: body.answers, result }));
   }
   if (!['dashboard', 'start'].includes(body.action)) throw new Error('Unknown practice action');
+  // Explanations are ~1.2 MB of the catalogue and are only ever read once a set
+  // is started (they go into the persisted snapshot) or a completed one is
+  // reviewed. The dashboard builds group summaries and never touches them.
+  const needsExplanations = body.action === 'start';
   const [dashboard, catalogue] = await Promise.all([
     state('dashboard'),
-    rpc('practice_library_catalogue', { p_auth: authId }),
+    rpc('practice_library_catalogue', {
+      p_auth: authId,
+      p_include_explanations: needsExplanations,
+    }),
   ]);
   const groups = (catalogue.passages || []).flatMap((p: any) =>
     buildLibraryGroups(p, catalogue.questions || [])

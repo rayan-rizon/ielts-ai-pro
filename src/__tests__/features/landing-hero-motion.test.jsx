@@ -67,9 +67,9 @@ describe('landing hero motion', () => {
     const features = readSource('src/features/core/components/landing/FeaturesSection.jsx');
 
     for (const asset of [
-      'ai-writing-feedback.png',
-      'ai-speaking-practice.png',
-      'progress-analytics.png',
+      'ai-writing-feedback.webp',
+      'ai-speaking-practice.webp',
+      'progress-analytics.webp',
     ]) {
       expect(features).toContain(`/landing-illustrations/${asset}`);
       expect(fs.existsSync(path.resolve('public/landing-illustrations', asset))).toBe(true);

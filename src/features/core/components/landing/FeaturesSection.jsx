@@ -9,6 +9,17 @@ const canvasClass =
   'relative mt-5 min-h-[194px] overflow-hidden rounded-[18px] border border-[#e7e4fb] bg-linear-to-b/srgb from-[#fcfbff] via-[#faf9ff] to-[#f4f2ff] dark:border-white/[0.07] dark:bg-white/2 dark:bg-none';
 const smoothLoop = { ease: [0.45, 0, 0.55, 1] };
 
+// The three card watermarks below are decorative: aria-hidden, drawn at 144 CSS
+// px (h-36 w-36) behind the content at ~10% opacity. They used to ship as
+// 1254x1254 PNGs — 3.1 MB for 56 KB worth of visible pixels, downloaded by every
+// visitor who scrolled this far. Regenerate at 2x from the originals (in git
+// history at e377ac26) with:
+//
+//   cwebp -q 82 -resize 288 288 <name>.png -o <name>.webp
+//
+// Keep width/height matching the file's intrinsic size so the browser reserves
+// the right box before decode.
+
 function FeatureHeader({ icon: Icon, title, description }) {
   return (
     <div className="relative z-10 flex items-start gap-3.5">
@@ -36,11 +47,11 @@ function WritingCard({ reduceMotion }) {
   return (
     <article className={`${cardClass} min-h-[390px]`}>
       <img
-        src="/landing-illustrations/ai-writing-feedback.png"
+        src="/landing-illustrations/ai-writing-feedback.webp"
         alt=""
         aria-hidden="true"
-        width="1254"
-        height="1254"
+        width="288"
+        height="288"
         loading="lazy"
         decoding="async"
         className="pointer-events-none absolute -right-10 -top-10 z-0 h-36 w-36 object-contain opacity-[0.1] transition-opacity duration-300 group-hover:opacity-[0.16] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]"
@@ -146,11 +157,11 @@ function SpeakingCard({ reduceMotion }) {
   return (
     <article className={`${cardClass} min-h-[390px]`}>
       <img
-        src="/landing-illustrations/ai-speaking-practice.png"
+        src="/landing-illustrations/ai-speaking-practice.webp"
         alt=""
         aria-hidden="true"
-        width="1254"
-        height="1254"
+        width="288"
+        height="288"
         loading="lazy"
         decoding="async"
         className="pointer-events-none absolute -right-8 -top-8 z-0 h-36 w-36 object-contain opacity-[0.1] transition-opacity duration-300 group-hover:opacity-[0.16] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]"
@@ -360,11 +371,11 @@ function AnalyticsCard({ reduceMotion }) {
   return (
     <article className={`${cardClass} min-h-[390px]`}>
       <img
-        src="/landing-illustrations/progress-analytics.png"
+        src="/landing-illustrations/progress-analytics.webp"
         alt=""
         aria-hidden="true"
-        width="1254"
-        height="1254"
+        width="288"
+        height="288"
         loading="lazy"
         decoding="async"
         className="pointer-events-none absolute -right-10 -top-10 z-0 h-36 w-36 object-contain opacity-[0.1] transition-opacity duration-300 group-hover:opacity-[0.16] dark:opacity-[0.14] dark:group-hover:opacity-[0.2]"

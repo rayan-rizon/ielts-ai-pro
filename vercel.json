@@ -60,7 +60,7 @@
     },
     {
       "source": "/ielts-band-score-feedback",
-      "destination": "/ielts-writing-checker",
+      "destination": "/ielts-band-score-calculator",
       "permanent": true
     },
     {
@@ -80,7 +80,7 @@
     },
     {
       "source": "/ielts-band-score-feedback/",
-      "destination": "/ielts-writing-checker",
+      "destination": "/ielts-band-score-calculator",
       "permanent": true
     },
     {

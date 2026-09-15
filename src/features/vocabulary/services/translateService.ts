@@ -32,11 +32,88 @@ export const SUPPORTED_LANGUAGES: Language[] = [
   { code: 'id', name: 'Indonesian' },
 ];
 
-// Cache for translations to avoid repeated API calls
+/**
+ * Translation caching and request control.
+ *
+ * Every vocabulary row renders its own definition cell, and each cell asked for
+ * its own translation on mount. A 30-row page therefore opened 30 parallel
+ * cross-origin requests to a free, rate-limited public API, repeated in full on
+ * every reload because the cache lived only in memory. Two rows sharing a
+ * definition both fetched it, because nothing was written to the cache until a
+ * response came back.
+ *
+ * Three things fix that without any component needing to change:
+ *
+ *  - `inFlight` deduplicates concurrent callers onto one promise per key.
+ *  - resolved translations persist to localStorage, so a reload is free.
+ *  - `withSlot` caps how many requests are open at once, so a long list trickles
+ *    instead of bursting and tripping the API's limiter.
+ */
+
+// Resolved translations only. `getCachedTranslation` is a synchronous read used
+// during render, so a pending promise must never land in here.
 const translationCache = new Map<string, string>();
+
+// Key -> promise, for requests that have not resolved yet.
+const inFlight = new Map<string, Promise<string>>();
+
+const STORAGE_KEY = 'vocabularyTranslationCache:v1';
+const MAX_PERSISTED = 500;
+const MAX_CONCURRENT_REQUESTS = 4;
 
 function buildCacheKey(text: string, sourceLang: LanguageCode, targetLang: LanguageCode): string {
   return `${text}_${sourceLang}_${targetLang}`;
+}
+
+let hydrated = false;
+
+/** Web Storage throws outright in some privacy modes, so every access is guarded. */
+function hydrateFromStorage(): void {
+  if (hydrated) return;
+  hydrated = true;
+  if (typeof window === 'undefined') return;
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value === 'string') translationCache.set(key, value);
+    }
+  } catch {
+    // Corrupt or unavailable storage is not worth failing a render over.
+  }
+}
+
+function persistToStorage(): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    // Keep the newest entries; Map preserves insertion order.
+    const entries = Array.from(translationCache.entries());
+    const trimmed = entries.slice(Math.max(0, entries.length - MAX_PERSISTED));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(trimmed)));
+  } catch {
+    // Quota or disabled storage: the in-memory cache stays authoritative.
+  }
+}
+
+let activeRequests = 0;
+const waiting: Array<() => void> = [];
+
+/** Minimal semaphore: run `task` once a request slot frees up. */
+async function withSlot<T>(task: () => Promise<T>): Promise<T> {
+  if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
+    await new Promise<void>((resolve) => waiting.push(resolve));
+  }
+  activeRequests += 1;
+  try {
+    return await task();
+  } finally {
+    activeRequests -= 1;
+    waiting.shift()?.();
+  }
 }
 
 async function fetchFromMyMemory(
@@ -100,46 +177,38 @@ export async function translateText(
     return text;
   }
 
+  hydrateFromStorage();
+
   const cacheKey = buildCacheKey(text, sourceLang, targetLang);
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey) || text;
   }
 
-  try {
-    const translatedText = await fetchFromMyMemory(text, sourceLang, targetLang);
-    if (translatedText !== text) {
-      translationCache.set(cacheKey, translatedText);
-    }
-    return translatedText;
-  } catch (error: any) {
-    console.error('[Translate] Translation failed:', error.message);
-    return text;
-  }
-}
+  // A second caller for the same definition joins the request already open
+  // rather than starting its own.
+  const pending = inFlight.get(cacheKey);
+  if (pending) return pending;
 
-/**
- * Batch translate multiple texts
- * @param texts - Array of texts to translate
- * @param targetLang - Target language code
- * @param sourceLang - Source language code
- * @returns Array of translated texts
- */
-export async function batchTranslate(
-  texts: string[],
-  targetLang: LanguageCode,
-  sourceLang: LanguageCode = 'en'
-): Promise<string[]> {
-  if (!targetLang || targetLang === sourceLang) {
-    return texts;
-  }
+  const request = withSlot(() => fetchFromMyMemory(text, sourceLang, targetLang))
+    .then((translatedText) => {
+      if (translatedText !== text) {
+        translationCache.set(cacheKey, translatedText);
+        persistToStorage();
+      }
+      return translatedText;
+    })
+    .catch((error: any) => {
+      console.error('[Translate] Translation failed:', error?.message);
+      // Unchanged contract: callers get the original text back on failure, and
+      // nothing is cached, so a later attempt can still succeed.
+      return text;
+    })
+    .finally(() => {
+      inFlight.delete(cacheKey);
+    });
 
-  const translations: string[] = [];
-  for (const text of texts) {
-    const translated = await translateText(text, targetLang, sourceLang);
-    translations.push(translated);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  return translations;
+  inFlight.set(cacheKey, request);
+  return request;
 }
 
 /**
@@ -147,6 +216,13 @@ export async function batchTranslate(
  */
 export function clearTranslationCache(): void {
   translationCache.clear();
+  inFlight.clear();
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Nothing actionable — the in-memory cache is already cleared.
+  }
 }
 
 /**
@@ -171,6 +247,7 @@ export function getCachedTranslation(
   targetLang: LanguageCode,
   sourceLang: LanguageCode = 'en'
 ): string | null {
+  hydrateFromStorage();
   const cacheKey = buildCacheKey(text, sourceLang, targetLang);
   return translationCache.get(cacheKey) || null;
 }

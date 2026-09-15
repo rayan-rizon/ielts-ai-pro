@@ -12,6 +12,17 @@ function toLocalKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+// `date.toLocaleDateString(undefined, opts)` builds a fresh Intl.DateTimeFormat
+// on every call. The grid used to format each of its 84 cells twice per render
+// — once for the tooltip, once for the aria-label — which is 168 formatter
+// constructions for 84 distinct strings. One reused formatter, and the strings
+// computed alongside the grid, costs nothing per render.
+const DATE_LABEL_FORMAT = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+});
+
 /**
  * Twelve weeks of practice as a heat grid. Opacity encodes volume — same
  * technique as the admin retention grid — so the whole quarter reads as one
@@ -20,12 +31,27 @@ function toLocalKey(date) {
 const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
   const { weeks, activeDays, totalSessions, best } = useMemo(() => {
     const today = new Date();
+    const todayKey = toLocalKey(today);
     const days = [];
 
     for (let i = TOTAL_DAYS - 1; i >= 0; i -= 1) {
       const date = new Date();
       date.setDate(today.getDate() - i);
-      days.push({ date, count: Number(dailyActivity[toLocalKey(date)]) || 0 });
+      const count = Number(dailyActivity[toLocalKey(date)]) || 0;
+      const isToday = toLocalKey(date) === todayKey;
+      const dateLabel = DATE_LABEL_FORMAT.format(date);
+      const sessions = `${count} session${count === 1 ? '' : 's'}`;
+
+      days.push({
+        date,
+        count,
+        isToday,
+        tip:
+          isToday && count === 0
+            ? `Today · No sessions yet — sit a test to log Day 1`
+            : `${sessions} · ${dateLabel}`,
+        ariaLabel: `${sessions} on ${dateLabel}${isToday ? ' (Today)' : ''}`,
+      });
     }
 
     const grouped = [];
@@ -95,25 +121,12 @@ const EngagementWidget = React.memo(({ dailyActivity = {} }) => {
               {Array.from({ length: 7 }).map((_, dayIndex) => {
                 const day = week[dayIndex];
                 if (!day) return <span key={dayIndex} className="aspect-square w-full" />;
-                const isToday = toLocalKey(day.date) === toLocalKey(new Date());
+                const isToday = day.isToday;
                 return (
-                  <Tip
-                    key={dayIndex}
-                    content={
-                      isToday && day.count === 0
-                        ? `Today · No sessions yet — sit a test to log Day 1`
-                        : `${day.count} session${day.count === 1 ? '' : 's'} · ${day.date.toLocaleDateString(
-                            undefined,
-                            { weekday: 'short', month: 'short', day: 'numeric' }
-                          )}`
-                    }
-                  >
+                  <Tip key={dayIndex} content={day.tip}>
                     <button
                       type="button"
-                      aria-label={`${day.count} session${day.count === 1 ? '' : 's'} on ${day.date.toLocaleDateString(
-                        undefined,
-                        { weekday: 'short', month: 'short', day: 'numeric' }
-                      )}${isToday ? ' (Today)' : ''}`}
+                      aria-label={day.ariaLabel}
                       className={cn(
                         'aspect-square w-full rounded-[3px] transition-transform duration-100 ease-smooth-out hover:scale-[1.25] active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]',
                         isToday &&
