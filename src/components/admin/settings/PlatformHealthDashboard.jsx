@@ -159,6 +159,7 @@ const METRIC_LABEL = {
   lunaCalls: 'Reading Luna',
   glmCalls: 'GLM 5.3 Flash',
   openrouterLunaCalls: 'OpenRouter Luna',
+  openrouterGeminiCalls: 'OpenRouter Gemini',
   directDeepseekCalls: 'Direct DeepSeek',
   geminiCalls: 'Gemini calls',
   cachedResponses: 'Served from cache',

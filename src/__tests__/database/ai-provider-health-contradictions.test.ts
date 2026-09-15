@@ -17,6 +17,13 @@ const migration = readFileSync(
   ),
   'utf8'
 );
+const standardizedHealthMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260915193302_standardize_ai_provider_health_recovery.sql'
+  ),
+  'utf8'
+);
 
 const readFunction = (name: string) =>
   readFileSync(resolve(process.cwd(), `supabase/functions/${name}/index.ts`), 'utf8');
@@ -82,6 +89,31 @@ describe('get_ai_provider_health contradictions', () => {
     expect(Number('1e-7')).toBeGreaterThan(0);
     expect(/^[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$/.test('1e-7')).toBe(true);
     expect(/^[0-9]+(\.[0-9]+)?$/.test('1e-7')).toBe(false);
+  });
+});
+
+describe('get_ai_provider_health provider and recovery standard', () => {
+  it('attributes OpenRouter Gemini separately from direct Google Gemini', () => {
+    expect(standardizedHealthMigration).toContain("'openrouter-gemini'");
+    expect(standardizedHealthMigration).toContain("'openrouterGeminiCalls', v_openrouter_gemini");
+    expect(standardizedHealthMigration).toContain("'google/gemini-%'");
+  });
+
+  it('counts recovery only when a fallback actually delivered a result', () => {
+    expect(standardizedHealthMigration).toContain(
+      "res_status NOT IN ('reserved', 'failed') AND NOT is_cached"
+    );
+    expect(standardizedHealthMigration).toContain("request_metadata->>'fallbackUsed' = 'true'");
+    expect(standardizedHealthMigration).not.toContain(
+      "res_status = 'failed'\n            AND request_metadata->>'deterministicFallback' = 'true'"
+    );
+  });
+
+  it('documents the route accurately and keeps learner-visible failures actionable', () => {
+    expect(standardizedHealthMigration).toContain(
+      'OpenRouter (Luna, Gemini, DeepSeek) -> Direct (DeepSeek, Gemini)'
+    );
+    expect(standardizedHealthMigration).toContain("WHEN v_errors > 0 THEN 'degraded'");
   });
 });
 
