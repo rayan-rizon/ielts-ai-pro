@@ -55,12 +55,12 @@
     },
     {
       "source": "/ai-ielts-preparation",
-      "destination": "/signup",
+      "destination": "/",
       "permanent": true
     },
     {
       "source": "/ielts-band-score-feedback",
-      "destination": "/analytics",
+      "destination": "/ielts-writing-checker",
       "permanent": true
     },
     {
@@ -75,12 +75,12 @@
     },
     {
       "source": "/ai-ielts-preparation/",
-      "destination": "/signup",
+      "destination": "/",
       "permanent": true
     },
     {
       "source": "/ielts-band-score-feedback/",
-      "destination": "/analytics",
+      "destination": "/ielts-writing-checker",
       "permanent": true
     },
     {
