@@ -1,9 +1,0 @@
-{
-  "pid": 74492,
-  "port": 7331,
-  "page": "/Users/rayanrizon/Documents/Project/Ielts Ai Pro/index.html",
-  "log": "/Users/rayanrizon/Documents/Project/Ielts Ai Pro/.refine-relay.log",
-  "version": "0.3.34",
-  "agentCmd": "node \"scripts/refine-gemini-agent.mjs\"",
-  "startedAt": "2026-09-13T23:03:49.182Z"
-}
