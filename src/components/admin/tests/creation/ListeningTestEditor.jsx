@@ -36,6 +36,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { uploadToR2 } from '@/lib/r2';
 import { normalizeSrtContent } from '@/utils/parseSrt';
+import { readTranscriptionInvocationError } from './transcriptionError';
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
 import MatchingFeaturesBuilder from '../builders/MatchingFeaturesBuilder';
 import MapLabelingBuilder from '../builders/MapLabelingBuilder';
@@ -835,14 +836,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       if (error) {
         // Supabase function invocation error (e.g. network, 500)
         console.error('Edge Function invocation error:', error);
-        // Try to parse error body if it's a stringified JSON
-        try {
-          const parsed = typeof error === 'string' ? JSON.parse(error) : error;
-          const msg = parsed.error || parsed.message || 'Unknown function error';
-          throw new Error(`Example Error: ${msg}`);
-        } catch {
-          throw new Error(error.message || 'Function invocation failed');
-        }
+        throw new Error(await readTranscriptionInvocationError(error));
       }
 
       if (!data.success) {

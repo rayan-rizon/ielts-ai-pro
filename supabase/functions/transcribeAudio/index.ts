@@ -14,6 +14,7 @@ import {
   getBurstLimitConfig,
   checkTierAccess,
 } from '../_shared/security.ts';
+import { transcriptionFailureResponse } from '../_shared/transcriptionFailure.ts';
 
 declare const Deno: any;
 
@@ -361,15 +362,10 @@ serve(async (req: Request) => {
       );
     }
     const corsHeaders = getCorsHeaders(req);
-    return new Response(
-      JSON.stringify({
-        // Upstream provider messages can contain implementation and quota
-        // details. Keep them in the server log above, but never return them
-        // to a learner.
-        error: 'We could not transcribe this audio. Please try again.',
-        success: false,
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const failure = transcriptionFailureResponse(error);
+    return new Response(JSON.stringify(failure.body), {
+      status: failure.status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
