@@ -5,73 +5,80 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AdminSidebar } from '@/features/core/components/Sidebar/AdminSidebar';
 import { supabase } from '@/lib/supabase';
 
-const paymentAlertFixture = vi.hoisted(() => ({
+const fixture = vi.hoisted(() => ({
   pendingCount: 3,
   stripePaymentCount: 2,
   stripeFailureCount: 1,
-  latestStripePaymentAt: '2026-08-01T12:00:00Z',
+  latestPaymentAt: '2026-08-01T12:00:00Z',
+  seenAt: '2026-01-01T00:00:00Z',
+  seenAtRpcError: null,
+  rpcCalls: [],
 }));
+
+/**
+ * Minimal chainable stand-in for the supabase query builder: it records the
+ * filters applied and resolves to the count the fixture says that query means.
+ */
+function makeQuery(table, columns) {
+  const filters = [];
+  const builder = {
+    filters,
+    eq(field, value) {
+      filters.push([field, value]);
+      return builder;
+    },
+    gt(field, value) {
+      filters.push(['gt:' + field, value]);
+      return builder;
+    },
+    not(field, op, value) {
+      filters.push(['not:' + field, op, value]);
+      return builder;
+    },
+    order() {
+      return builder;
+    },
+    limit() {
+      return Promise.resolve({
+        data: [{ created_at: fixture.latestPaymentAt }],
+        error: null,
+      });
+    },
+    then(resolve, reject) {
+      return resolvedResult(table, columns, filters).then(resolve, reject);
+    },
+  };
+  return builder;
+}
+
+function resolvedResult(table, columns, filters) {
+  if (table === 'users') {
+    return Promise.resolve({ count: fixture.stripeFailureCount, error: null });
+  }
+  const hasFilter = (field, value) => filters.some(([f, v]) => f === field && v === value);
+  if (hasFilter('status', 'pending')) {
+    return Promise.resolve({ count: fixture.pendingCount, error: null });
+  }
+  if (hasFilter('payment_method', 'stripe')) {
+    return Promise.resolve({ count: fixture.stripePaymentCount, error: null });
+  }
+  if (columns === 'created_at') {
+    return Promise.resolve({ data: [{ created_at: fixture.latestPaymentAt }], error: null });
+  }
+  return Promise.resolve({ count: 0, error: null });
+}
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn((table) => {
-      if (table === 'payment_requests') {
-        return {
-          select: vi.fn((columns) => {
-            if (columns === 'created_at') {
-              return {
-                eq: vi.fn(() => ({
-                  eq: vi.fn(() => ({
-                    not: vi.fn(() => ({
-                      order: vi.fn(() => ({
-                        limit: vi.fn(() =>
-                          Promise.resolve({
-                            data: [{ created_at: paymentAlertFixture.latestStripePaymentAt }],
-                            error: null,
-                          })
-                        ),
-                      })),
-                    })),
-                  })),
-                })),
-              };
-            }
-
-            return {
-              eq: vi.fn((field, val) => {
-                if (field === 'status' && val === 'pending') {
-                  return Promise.resolve({ count: paymentAlertFixture.pendingCount, error: null });
-                }
-                if (field === 'payment_method' && val === 'stripe') {
-                  return {
-                    eq: vi.fn(() => ({
-                      gt: vi.fn(() =>
-                        Promise.resolve({
-                          count: paymentAlertFixture.stripePaymentCount,
-                          error: null,
-                        })
-                      ),
-                    })),
-                  };
-                }
-                return Promise.resolve({ count: 0, error: null });
-              }),
-            };
-          }),
-        };
+    from: vi.fn((table) => ({
+      select: vi.fn((columns) => makeQuery(table, columns)),
+    })),
+    rpc: vi.fn((name) => {
+      fixture.rpcCalls.push(name);
+      if (fixture.seenAtRpcError) {
+        return Promise.resolve({ data: null, error: fixture.seenAtRpcError });
       }
-      if (table === 'users') {
-        return {
-          select: vi.fn(() => ({
-            not: vi.fn(() =>
-              Promise.resolve({ count: paymentAlertFixture.stripeFailureCount, error: null })
-            ),
-          })),
-        };
-      }
-      return {
-        select: vi.fn(),
-      };
+      return Promise.resolve({ data: fixture.seenAt, error: null });
     }),
     channel: vi.fn(() => ({
       on: vi.fn().mockReturnThis(),
@@ -96,10 +103,13 @@ describe('AdminSidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
-    paymentAlertFixture.pendingCount = 3;
-    paymentAlertFixture.stripePaymentCount = 2;
-    paymentAlertFixture.stripeFailureCount = 1;
-    paymentAlertFixture.latestStripePaymentAt = '2026-08-01T12:00:00Z';
+    fixture.pendingCount = 3;
+    fixture.stripePaymentCount = 2;
+    fixture.stripeFailureCount = 1;
+    fixture.latestPaymentAt = '2026-08-01T12:00:00Z';
+    fixture.seenAt = '2026-01-01T00:00:00Z';
+    fixture.seenAtRpcError = null;
+    fixture.rpcCalls = [];
     window.matchMedia =
       window.matchMedia ||
       vi.fn().mockImplementation((query) => ({
@@ -128,35 +138,51 @@ describe('AdminSidebar', () => {
     });
   });
 
-  it('renders payment alert badge when there are pending or stripe alerts', async () => {
-    window.localStorage.setItem('admin_stripe_payments_seen_at:admin-1', '2026-01-01T00:00:00Z');
+  it('renders payment alert badge for everything newer than the stored marker', async () => {
     renderAdminSidebar();
     // 3 pending + 2 stripe payments + 1 stripe failure = 6
     const badges = await screen.findAllByRole('status');
     expect(badges.length).toBeGreaterThan(0);
     expect(badges[0]).toHaveTextContent('6');
+    expect(fixture.rpcCalls).toContain('get_admin_payment_alert_seen_at');
   });
 
-  it('does not treat existing Stripe payments as new in a fresh browser', async () => {
-    paymentAlertFixture.pendingCount = 0;
-    paymentAlertFixture.stripeFailureCount = 0;
+  it('stays dismissed in a fresh browser because the marker lives on the server', async () => {
+    // A browser that has never stored anything locally still reads the marker
+    // the admin set elsewhere, so nothing counts as new.
+    fixture.pendingCount = 0;
+    fixture.stripePaymentCount = 0;
+    fixture.stripeFailureCount = 0;
 
     renderAdminSidebar();
 
     await waitFor(() => {
-      expect(supabase.from).toHaveBeenCalledTimes(3);
+      expect(supabase.rpc).toHaveBeenCalledWith('get_admin_payment_alert_seen_at');
     });
     await act(async () => {});
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
-    expect(window.localStorage.getItem('admin_stripe_payments_seen_at:admin-1')).toBe(
-      paymentAlertFixture.latestStripePaymentAt
-    );
+    expect(window.localStorage.length).toBe(0);
   });
 
-  it('suppresses payment alert badges when currently on the payments tab', async () => {
+  it('records the dismissal server-side when the payments tab is opened', async () => {
     renderAdminSidebar({ pathname: '/admin', search: '?tab=payments' });
     await waitFor(() => {
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(supabase.rpc).toHaveBeenCalledWith('mark_admin_payment_alerts_seen');
     });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('falls back to a session baseline when the marker cannot be read', async () => {
+    fixture.seenAtRpcError = { code: '42883', message: 'function does not exist' };
+
+    renderAdminSidebar();
+
+    await waitFor(() => {
+      expect(supabase.rpc).toHaveBeenCalledWith('get_admin_payment_alert_seen_at');
+    });
+    await act(async () => {});
+    // Existing payments are treated as already seen rather than crashing.
+    const badges = screen.queryAllByRole('status');
+    expect(badges.length).toBeGreaterThan(0);
   });
 });

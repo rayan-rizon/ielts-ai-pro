@@ -18,7 +18,6 @@ import {
 import { createPageUrl } from '@/utils';
 import { adminNavigationItems, analyticsNavigationItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
-import { getAuthUserId } from '@/features/auth/utils/adminAccess';
 import { useAdminPaymentAlerts } from './useAdminPaymentAlerts';
 
 /*
@@ -234,11 +233,8 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   const currentPath = location.pathname;
   const currentSearch = location.search || '';
   const isOnPaymentsTab = currentSearch.includes('tab=payments');
-  const stripeSeenKey = `admin_stripe_payments_seen_at:${getAuthUserId(user) || 'admin'}`;
-
   const { pendingCount, stripePaymentCount, stripeFailureCount } = useAdminPaymentAlerts({
     isOnPaymentsTab,
-    stripeSeenKey,
   });
 
   const isActiveAdminRoute = useCallback(

@@ -1,36 +1,76 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-const NO_STRIPE_PAYMENTS_SEEN_AT = '1970-01-01T00:00:00.000Z';
+const NO_PAYMENTS_SEEN_AT = '1970-01-01T00:00:00.000Z';
+const REFRESH_INTERVAL_MS = 60_000;
+const EMPTY_COUNTS = { pendingCount: 0, stripePaymentCount: 0, stripeFailureCount: 0 };
 
-function getStoredStripeSeenAt(stripeSeenKey) {
-  try {
-    return window.localStorage.getItem(stripeSeenKey);
-  } catch {
-    return null;
-  }
+/**
+ * The "seen at" marker belongs to the admin, not to the browser: dismissing an
+ * alert on a laptop has to dismiss it on the phone too. It lives in the
+ * database behind two SECURITY DEFINER functions keyed on auth.uid().
+ */
+async function fetchSeenAt() {
+  const { data, error } = await supabase.rpc('get_admin_payment_alert_seen_at');
+  if (error || !data) return null;
+  return data;
 }
 
-function storeStripeSeenAt(stripeSeenKey, seenAt) {
-  try {
-    window.localStorage.setItem(stripeSeenKey, seenAt);
-  } catch {
-    // Storage can be unavailable in private mode. Keep the in-memory baseline.
-  }
+async function markSeen() {
+  const { data, error } = await supabase.rpc('mark_admin_payment_alerts_seen');
+  if (error || !data) return null;
+  return data;
 }
 
-async function fetchLatestStripePaymentAt() {
+/**
+ * Fallback baseline for a database where the marker migration has not been
+ * applied yet: treat everything that already exists as seen for this session
+ * rather than flashing a badge for historical payments.
+ */
+async function fetchLatestPaymentAt() {
   const { data, error } = await supabase
     .from('payment_requests')
     .select('created_at')
-    .eq('payment_method', 'stripe')
-    .eq('status', 'approved')
     .not('created_at', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1);
 
   if (error) return null;
-  return data?.[0]?.created_at || NO_STRIPE_PAYMENTS_SEEN_AT;
+  return data?.[0]?.created_at || NO_PAYMENTS_SEEN_AT;
+}
+
+async function countPendingApprovals(seenAt) {
+  const { count, error } = await supabase
+    .from('payment_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .gt('created_at', seenAt);
+
+  if (error) return null;
+  return count || 0;
+}
+
+async function countNewStripePayments(seenAt) {
+  const { count, error } = await supabase
+    .from('payment_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('payment_method', 'stripe')
+    .eq('status', 'approved')
+    .gt('created_at', seenAt);
+
+  if (error) return null;
+  return count || 0;
+}
+
+async function countNewStripeFailures(seenAt) {
+  const { count, error } = await supabase
+    .from('users')
+    .select('*', { count: 'exact', head: true })
+    .not('payment_failed_at', 'is', null)
+    .gt('payment_failed_at', seenAt);
+
+  if (error) return null;
+  return count || 0;
 }
 
 function subscribeToPaymentChanges(supabaseClient, onUpdate) {
@@ -55,101 +95,67 @@ function subscribeToPaymentChanges(supabaseClient, onUpdate) {
   }
 }
 
-export function useAdminPaymentAlerts({ isOnPaymentsTab, stripeSeenKey }) {
-  const [pendingCount, setPendingCount] = useState(0);
-  const [stripePaymentCount, setStripePaymentCount] = useState(0);
-  const [stripeFailureCount, setStripeFailureCount] = useState(0);
+export function useAdminPaymentAlerts({ isOnPaymentsTab }) {
+  const [counts, setCounts] = useState(EMPTY_COUNTS);
 
   useEffect(() => {
     let mounted = true;
-    let stripeSeenAt = getStoredStripeSeenAt(stripeSeenKey);
+    let sessionBaseline = null;
 
-    const syncStripeSeenToLatest = async () => {
-      const latestStripePaymentAt = await fetchLatestStripePaymentAt();
-      if (!mounted || !latestStripePaymentAt) return null;
+    /**
+     * Re-read the marker on every pass so a dismissal made in another browser
+     * clears this one too, without needing its own realtime channel.
+     */
+    const resolveSeenAt = async () => {
+      const seenAt = isOnPaymentsTab ? await markSeen() : await fetchSeenAt();
+      if (seenAt) return seenAt;
 
-      stripeSeenAt = latestStripePaymentAt;
-      storeStripeSeenAt(stripeSeenKey, latestStripePaymentAt);
-      return latestStripePaymentAt;
+      if (!sessionBaseline) {
+        sessionBaseline = await fetchLatestPaymentAt();
+      }
+      return sessionBaseline;
     };
 
-    const fetchPendingCount = async () => {
-      const { count, error } = await supabase
-        .from('payment_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      const shouldSkip = !mounted || Boolean(error);
-      if (shouldSkip) return;
-      if (isOnPaymentsTab) return;
-
-      setPendingCount(count || 0);
-    };
-
-    const fetchStripePaymentCount = async () => {
+    const refresh = async () => {
+      const seenAt = await resolveSeenAt();
       if (!mounted) return;
 
-      if (isOnPaymentsTab || !stripeSeenAt) {
-        await syncStripeSeenToLatest();
-        if (!mounted) return;
-        setStripePaymentCount(0);
+      // Opening the Payments tab is the dismissal: nothing is new any more.
+      if (isOnPaymentsTab || !seenAt) {
+        setCounts(EMPTY_COUNTS);
         return;
       }
 
-      const { count, error } = await supabase
-        .from('payment_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('payment_method', 'stripe')
-        .eq('status', 'approved')
-        .gt('created_at', stripeSeenAt);
+      const [pendingCount, stripePaymentCount, stripeFailureCount] = await Promise.all([
+        countPendingApprovals(seenAt),
+        countNewStripePayments(seenAt),
+        countNewStripeFailures(seenAt),
+      ]);
 
       if (!mounted) return;
-      if (error) return;
 
-      setStripePaymentCount(count || 0);
+      // A failed query keeps the previous number rather than inventing a zero.
+      setCounts((previous) => ({
+        pendingCount: pendingCount ?? previous.pendingCount,
+        stripePaymentCount: stripePaymentCount ?? previous.stripePaymentCount,
+        stripeFailureCount: stripeFailureCount ?? previous.stripeFailureCount,
+      }));
     };
 
-    const fetchStripeFailureCount = async () => {
-      const { count, error } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .not('payment_failed_at', 'is', null);
+    if (isOnPaymentsTab) setCounts(EMPTY_COUNTS);
 
-      if (!mounted) return;
-      if (error) return;
-
-      setStripeFailureCount(count || 0);
-    };
-
-    const refreshAllCounts = () => {
-      fetchPendingCount();
-      fetchStripePaymentCount();
-      fetchStripeFailureCount();
-    };
-
-    refreshAllCounts();
-    const stripeFailureRefresh = window.setInterval(fetchStripeFailureCount, 60_000);
-    const channel = subscribeToPaymentChanges(supabase, refreshAllCounts);
+    refresh();
+    const refreshTimer = window.setInterval(refresh, REFRESH_INTERVAL_MS);
+    const channel = subscribeToPaymentChanges(supabase, refresh);
 
     return () => {
       mounted = false;
-      window.clearInterval(stripeFailureRefresh);
+      window.clearInterval(refreshTimer);
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [isOnPaymentsTab, stripeSeenKey]);
-
-  useEffect(() => {
-    if (!isOnPaymentsTab) return;
-
-    setPendingCount(0);
-    setStripePaymentCount(0);
   }, [isOnPaymentsTab]);
 
-  return {
-    pendingCount,
-    stripePaymentCount,
-    stripeFailureCount,
-  };
+  return counts;
 }
