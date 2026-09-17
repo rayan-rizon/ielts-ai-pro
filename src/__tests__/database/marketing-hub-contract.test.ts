@@ -272,6 +272,17 @@ describe('Admin Marketing Hub contracts', () => {
     expect(confirmationEmail).not.toContain('fonts.googleapis.com');
     expect(confirmationEmail).not.toMatch(/<svg\b/i);
     expect(confirmationEmail).toContain('Open the secure confirmation link');
+
+    const resetPasswordEmail = readFileSync(
+      resolve(process.cwd(), 'supabase/emails/reset-password.html'),
+      'utf8'
+    );
+    expect(resetPasswordEmail).toContain(
+      '<a href="{{ .ConfirmationURL }}" target="_blank" style="font-size:13px;font-weight:700;line-height:1.5;color:#6c4cff;text-decoration:underline">Open the secure password reset link</a>'
+    );
+    expect(resetPasswordEmail).not.toContain(
+      '<div style="font-family:Consolas,Menlo,Monaco,\'Courier New\',monospace;font-size:12px;line-height:1.5;color:#6c4cff;word-break:break-all">{{ .ConfirmationURL }}</div>'
+    );
   });
 
   it('sends a plain-text alternative alongside every HTML email', () => {

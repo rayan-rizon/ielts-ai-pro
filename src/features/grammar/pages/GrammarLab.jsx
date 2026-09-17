@@ -265,6 +265,7 @@ export default function GrammarLab() {
               user={grammar.user}
               isStarting={grammar.isStarting}
               isCompleted={grammar.dashboard?.completedGuideSlugs?.includes(selectedGuide?.slug)}
+              guideProgressUnavailable={grammar.dashboard?.guideProgressUnavailable}
               isUpdatingCompletion={grammar.isUpdatingGuideCompletion}
               onSetCompletion={(completed) =>
                 grammar.setGuideCompletion({ guideSlug: selectedGuide?.slug, completed })

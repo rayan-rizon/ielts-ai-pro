@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, Star, Clock, Brain, Languages, Trash2, Volume2 } from 'lucide-react';
+import { X, Star, Clock, Languages, Trash2, Volume2 } from 'lucide-react';
 import {
   translateText,
   SUPPORTED_LANGUAGES,
@@ -64,9 +64,6 @@ const WordHeader = ({ viewingWord }) => {
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" /> Reviewed:{' '}
             <span className="text-white">{viewingWord.times_reviewed || 0} times</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Brain className="h-3 w-3" /> Retention: <span className="text-white">88%</span>
           </div>
         </div>
       </div>

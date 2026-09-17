@@ -6,7 +6,6 @@ import {
   ArrowRight,
   BookOpen,
   Headphones,
-  Target,
   CheckCircle2,
   RotateCcw,
   Layers,
@@ -352,7 +351,16 @@ function SourceSetPicker({ sets, value, onChange }) {
   );
 }
 
-export default function PracticeHome({ data, focus, setFocus, module, busy, error, start }) {
+export default function PracticeHome({
+  data,
+  focus,
+  setFocus,
+  module,
+  activityId,
+  busy,
+  error,
+  start,
+}) {
   const [groupId, setGroupId] = useState('');
   const [subjectFilter, setSubjectFilter] = useState(module || 'all');
   const [exploreFocus, setExploreFocus] = useState(null);
@@ -577,6 +585,11 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                         {subject(s.focus)} · Step {Math.min(4, (s.stage || 0) + 1)} of 4
                       </p>
                       <p className={`${TITLE} mt-1 truncate`}>{focusLabel(s.focus)}</p>
+                      {allGroups.find((group) => group.id === s.group_id)?.title && (
+                        <p className={`mt-1 truncate text-[11px] ${MUTED}`}>
+                          {allGroups.find((group) => group.id === s.group_id).title}
+                        </p>
+                      )}
                     </div>
                     <ArrowRight size={14} className="shrink-0 text-[#5a63df] dark:text-[#afb5ff]" />
                   </Link>
@@ -594,6 +607,7 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
               There is no separate set for {focusLabel(focus)} yet, so we have selected{' '}
               <strong className="font-semibold">{focusLabel(selected)}</strong> instead. Pick a
               different question type below if you would rather practise something else.
+              {activityId && ' This other set will not complete your Learning Path task.'}
             </motion.p>
           )}
 
@@ -617,7 +631,7 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                   <div className="flex flex-col justify-between min-w-0 rounded-xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 shadow-3xs dark:border-white/[0.08] dark:from-[#15141c] dark:to-[#100f15]">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={`${MICRO} ${MUTED}`}>Recommended Drill</p>
+                        <p className={`${MICRO} ${MUTED}`}>Suggested practice</p>
                         {need?.mistakes?.length ? (
                           <Pill tone="warn">{need.label}</Pill>
                         ) : (
@@ -680,16 +694,17 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <p className={`${MICRO} ${MUTED}`}>Practice Workflow</p>
                         <span className="rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.08] px-2 py-0.5 text-[9.5px] font-bold text-[#5a63df] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
-                          3-stage loop
+                          4 steps
                         </span>
                       </div>
-                      <ol aria-label="How practice works" className="grid grid-cols-3 gap-2">
+                      <ol aria-label="How practice works" className="grid grid-cols-4 gap-2">
                         {[
                           need?.mistakes?.length
                             ? { num: '01', title: 'Review', sub: 'mistake', icon: History }
                             : { num: '01', title: 'Start', sub: 'baseline', icon: ReiconTarget },
                           { num: '02', title: 'Learn', sub: 'approach', icon: Lightbulb },
                           { num: '03', title: 'Practise', sub: 'questions', icon: Check },
+                          { num: '04', title: 'Check', sub: 'answers', icon: CheckCircle2 },
                         ].map((step) => {
                           const StepIcon = step.icon;
                           return (

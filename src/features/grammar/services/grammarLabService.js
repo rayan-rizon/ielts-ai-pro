@@ -49,6 +49,7 @@ export async function getGrammarDashboard() {
       ...dashboard,
       resources: [],
       resourcesUnavailable: true,
+      guideProgressUnavailable: Boolean(guideProgressResult.error),
       completedGuideSlugs: guideProgress,
       completedPracticeSkillSets,
     };
@@ -61,6 +62,7 @@ export async function getGrammarDashboard() {
   return {
     ...dashboard,
     resources: Array.from(latestBySlug.values()),
+    guideProgressUnavailable: Boolean(guideProgressResult.error),
     completedGuideSlugs: guideProgress,
     completedPracticeSkillSets,
   };

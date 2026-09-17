@@ -26,11 +26,15 @@ export async function fetchVocabularyItems(userId: string) {
 }
 
 export async function fetchDueItems(allItems: any[]) {
+  const isReviewable = (item: any) =>
+    typeof item?.definition === 'string' &&
+    Boolean(item.definition.trim()) &&
+    !/^(saved ielts vocabulary word|no definition)$/i.test(item.definition.trim());
   try {
     const res = await supabase.rpc('get_due_vocabulary', { p_limit: 50 });
     const hasData = Array.isArray(res.data) && res.data.length > 0;
     if (hasData) {
-      return res.data;
+      return res.data.filter(isReviewable);
     }
   } catch {
     console.warn('[Vocab] RPC unavailable, calculating client-side');
@@ -39,7 +43,8 @@ export async function fetchDueItems(allItems: any[]) {
   // Fallback: Calculate client-side
   const now = new Date();
   return allItems.filter(
-    (item) => !item.next_review_date || new Date(item.next_review_date) <= now
+    (item) =>
+      isReviewable(item) && (!item.next_review_date || new Date(item.next_review_date) <= now)
   );
 }
 

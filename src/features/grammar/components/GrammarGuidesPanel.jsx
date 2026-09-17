@@ -42,6 +42,7 @@ const SKILL_VISUALS = {
 export default function GrammarGuidesPanel({
   resources,
   resourcesUnavailable,
+  guideProgressUnavailable,
   user,
   completedGuideSlugs = [],
   recommendedSkill,
@@ -189,6 +190,11 @@ export default function GrammarGuidesPanel({
           Your 18 essential guides are ready. Supplementary online guides are temporarily
           unavailable.
         </div>
+      )}
+      {guideProgressUnavailable && (
+        <p role="status" className="mt-3 text-xs font-medium text-amber-700 dark:text-amber-300">
+          Guide completion is temporarily unavailable. You can still read and practise.
+        </p>
       )}
 
       {visibleGuides.length ? (

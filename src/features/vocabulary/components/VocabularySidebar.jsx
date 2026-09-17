@@ -2,6 +2,7 @@ import React from 'react';
 import QuickAddCard from './QuickAddCard';
 import SimulationHub from './SimulationHub';
 import NeuralProgress from './NeuralProgress';
+import { playableWords } from '@/features/vocabulary/hooks/useVocabularyGames';
 import UpcomingReviewsWidget from './UpcomingReviewsWidget';
 
 export default function VocabularySidebar({
@@ -46,7 +47,7 @@ export default function VocabularySidebar({
       <SimulationHub
         onStartSpeedQuiz={onStartSpeedQuiz}
         onStartMatchPairs={onStartMatchPairs}
-        wordCount={allVocabularyCount}
+        wordCount={playableWords(allVocabulary).length}
       />
     </div>
   );

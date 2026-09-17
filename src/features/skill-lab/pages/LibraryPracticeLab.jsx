@@ -65,6 +65,18 @@ function answerText(answer) {
   return answer == null ? 'Not answered' : String(answer);
 }
 
+function reviewAnswerText(question, answer) {
+  const value = answerText(answer);
+  if (question.type !== 'matching_features') return value;
+  const options = question.matching_features?.options;
+  if (!Array.isArray(options)) return value;
+  const index = /^[A-Z]$/i.test(value) ? value.toUpperCase().charCodeAt(0) - 65 : -1;
+  const option = options[index];
+  return typeof option === 'string'
+    ? `${value} — ${option.replace(/^[A-Z]\s*[.)]\s*/i, '')}`
+    : value;
+}
+
 function sourcePassageTitle(source) {
   const direct = source?.passage_title || source?.passageTitle;
   if (typeof direct === 'string' && direct.trim()) return direct.trim();
@@ -183,13 +195,13 @@ function ReviewAnswerCard({ question, item, answerEntry, answers, explanation, i
           <p
             className={`mt-1 font-semibold ${answer.isCorrect ? 'text-[rgb(var(--signal-ok))]' : 'text-[rgb(var(--signal-fault))]'}`}
           >
-            {answerText(userAnswer)}
+            {reviewAnswerText(question, userAnswer)}
           </p>
         </div>
         <div>
           <p className={`${MICRO} ${MUTED}`}>Correct answer</p>
           <p className="mt-1 font-semibold text-[rgb(var(--signal-ok))]">
-            {answerText(answer.correctAnswer)}
+            {reviewAnswerText(question, answer.correctAnswer)}
           </p>
         </div>
       </div>
@@ -728,7 +740,10 @@ export default function LibraryPracticeLab() {
         groupId: group.id,
         requestId: startId.current.id,
         sourceSessionId: params.get('sourceId'),
-        activityId: params.get('activityId'),
+        activityId:
+          !params.get('focus') || params.get('focus') === group.focus
+            ? params.get('activityId')
+            : null,
       });
       startId.current = null;
       navigate(`/practice-lab/session/${session.id}?library=1`);
@@ -833,7 +848,9 @@ export default function LibraryPracticeLab() {
       run(async () => {
         await flushAutosave().catch(() => {});
         await action('save', { sessionId, answers, stage });
-        navigate('/practice-lab');
+        navigate(
+          `/practice-lab?module=${data.focus.split(':')[0]}&focus=${encodeURIComponent(data.focus)}`
+        );
       });
     return (
       <main className="mx-auto max-w-7xl space-y-2.5 px-3 py-2 pb-16 md:px-5 md:py-3 md:pb-16">
@@ -940,7 +957,7 @@ export default function LibraryPracticeLab() {
                 {data.familiarity === 'new'
                   ? 'New questions'
                   : data.familiarity === 'familiar'
-                    ? 'Familiar passage or audio'
+                    ? 'Familiar source'
                     : 'Repeated questions'}
               </span>
             </div>
@@ -1196,6 +1213,7 @@ export default function LibraryPracticeLab() {
       focus={focus}
       setFocus={setFocus}
       module={params.get('module')}
+      activityId={params.get('activityId')}
       busy={busy}
       error={alert}
       start={start}

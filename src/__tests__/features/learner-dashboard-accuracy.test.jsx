@@ -108,7 +108,7 @@ describe('Learner dashboard accuracy', () => {
     render(<BandTrajectoryChart recentTests={[]} stats={{}} />, { wrapper: Wrapper });
 
     expect(screen.getByText('Take first test to set baseline')).toBeInTheDocument();
-    expect(screen.getByText('Plot score trajectory & deltas')).toBeInTheDocument();
+    expect(screen.getByText('Take tests to see progress over time')).toBeInTheDocument();
   });
 
   it('renders WeeklyMomentumChart 7-day velocity and today indicator in zero-state', () => {

@@ -198,6 +198,52 @@ describe('library practice page', () => {
     expect(within(feedback).getByText('B')).toHaveClass('text-[rgb(var(--signal-fault))]');
     expect(within(feedback).getByText('A')).toHaveClass('text-[rgb(var(--signal-ok))]');
   });
+  it('shows the meaning behind saved matching answer letters', async () => {
+    invoke.mockResolvedValue({
+      data: {
+        ...session,
+        stage: 3,
+        completed_at: '2026-09-08T00:00:00Z',
+        questions: [
+          {
+            id: 'q',
+            question_number: 1,
+            type: 'matching_features',
+            matching_features: {
+              options: ['A. Elkind', 'B. Miller & Almon'],
+              questions: [{ id: 'one', question_number: 1, question_text: 'Who described play?' }],
+            },
+          },
+        ],
+        result: {
+          correct: 0,
+          total: 1,
+          answers: {
+            q_one: { questionNumber: 1, userAnswer: 'A', correctAnswer: 'B', isCorrect: false },
+          },
+        },
+      },
+    });
+    mount('/practice-lab/session/session?library=1');
+    const feedback = await screen.findByLabelText('Feedback for question 1');
+    expect(within(feedback).getByText('A — Elkind')).toBeInTheDocument();
+    expect(within(feedback).getByText('B — Miller & Almon')).toBeInTheDocument();
+  });
+  it('does not attach a Learning Path task to a substituted question type', async () => {
+    mount('/practice-lab?module=reading&focus=reading%3Ashort_answer&activityId=task-1');
+    expect(
+      await screen.findByText(/will not complete your Learning Path task/)
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Review and practise' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith(
+        'skill-lab',
+        expect.objectContaining({
+          body: expect.objectContaining({ action: 'start', activityId: null }),
+        })
+      )
+    );
+  });
   it('keeps paid teacher help in a collapsible corner panel and restores keyboard focus', async () => {
     auth.user = { id: 'student', subscription_tier: 'premium' };
     invoke.mockImplementation(async (_, { body }) => ({

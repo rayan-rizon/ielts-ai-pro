@@ -44,15 +44,17 @@ export default function ReviewSession({
           <div className="relative h-[440px] w-full">
             <AnimatePresence mode="wait" initial={false}>
               {!isFlipped ? (
-                <m.div
+                <m.button
                   key="front"
+                  type="button"
+                  aria-label={`Reveal definition of ${currentItem.word}`}
                   initial={{ rotateY: 90, opacity: 0, scale: 0.95 }}
                   animate={{ rotateY: 0, opacity: 1, scale: 1 }}
                   exit={{ rotateY: -90, opacity: 0, scale: 0.95 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 120 }}
                   className={cn(
                     PANEL,
-                    'group absolute inset-0 flex cursor-pointer flex-col items-center justify-center overflow-hidden p-10'
+                    'group absolute inset-0 flex cursor-pointer flex-col items-center justify-center overflow-hidden p-10 text-inherit focus-visible:outline-2 focus-visible:outline-[#5a63df]'
                   )}
                   onClick={onFlip}
                 >
@@ -79,9 +81,9 @@ export default function ReviewSession({
 
                   <div className="mt-auto flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 transition-colors group-hover:text-[#5a63df] dark:text-slate-500">
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#5a63df]" />
-                    Tap to reveal
+                    Click or press Enter to reveal
                   </div>
-                </m.div>
+                </m.button>
               ) : (
                 <m.div
                   key="back"

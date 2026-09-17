@@ -23,6 +23,7 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
   const [period, setPeriod] = useState('thisWeek');
   const [progress, setProgress] = useState(EMPTY_PROGRESS);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let isCurrent = true;
@@ -37,12 +38,15 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
       }
 
       setIsLoading(true);
+      setLoadError(false);
       try {
         const events = await fetchVocabularyReviewEvents(user.id, period);
         if (isCurrent) setProgress(calculateRetentionProgress(events));
-      } catch (error) {
-        console.warn('Failed to load vocabulary retention progress:', error);
-        if (isCurrent) setProgress(EMPTY_PROGRESS);
+      } catch {
+        if (isCurrent) {
+          setProgress(EMPTY_PROGRESS);
+          setLoadError(true);
+        }
       } finally {
         if (isCurrent) setIsLoading(false);
       }
@@ -96,7 +100,9 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
               className="h-full w-full -rotate-90 transform"
               viewBox="0 0 36 36"
               role="img"
-              aria-label={`Retention rate: ${retention}%`}
+              aria-label={
+                loadError ? 'Review progress unavailable' : `Retention rate: ${retention}%`
+              }
             >
               <circle
                 cx="18"
@@ -124,7 +130,7 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
 
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-black leading-none tracking-tight text-slate-900 dark:text-white">
-                {isLoading ? '–' : `${retention}%`}
+                {isLoading || loadError || reviewed === 0 ? '–' : `${retention}%`}
               </span>
               <span className="mt-0.5 text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
                 Retained
@@ -134,10 +140,18 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
 
           <div className="space-y-1">
             <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
-              {reviewed === 0 ? 'Ready to build recall' : 'Effective Retention!'}
+              {loadError
+                ? 'Progress unavailable'
+                : reviewed === 0
+                  ? 'Ready to review'
+                  : 'Your review results'}
             </h4>
             <p className={cn('text-xs font-medium leading-relaxed', MUTED)}>
-              {isLoading ? 'Loading your review outcomes…' : message}
+              {isLoading
+                ? 'Loading your review results…'
+                : loadError
+                  ? 'We could not load your review results. Try this page again later.'
+                  : message}
             </p>
           </div>
         </div>
@@ -149,7 +163,7 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
               <span className="truncate">Reviewed</span>
             </div>
             <span className="mt-0.5 block text-sm font-black text-slate-900 dark:text-white sm:text-base">
-              {isLoading ? '–' : reviewed}
+              {isLoading || loadError ? '–' : reviewed}
             </span>
           </div>
 
@@ -159,7 +173,7 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
               <span className="truncate">Retained</span>
             </div>
             <span className="mt-0.5 block text-sm font-black text-slate-900 dark:text-white sm:text-base">
-              {isLoading ? '–' : retained}
+              {isLoading || loadError ? '–' : retained}
             </span>
           </div>
 
@@ -169,7 +183,7 @@ const NeuralProgress = memo(({ user, refreshKey = 0 }) => {
               <span className="truncate">Forgotten</span>
             </div>
             <span className="mt-0.5 block text-sm font-black text-slate-900 dark:text-white sm:text-base">
-              {isLoading ? '–' : forgotten}
+              {isLoading || loadError ? '–' : forgotten}
             </span>
           </div>
         </div>

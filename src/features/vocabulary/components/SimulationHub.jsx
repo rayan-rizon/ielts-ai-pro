@@ -36,7 +36,7 @@ export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs, wor
           <span className="truncate">Practice Arena</span>
         </h3>
         <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-          {ready ? `${wordCount} words ready` : `Needs ${MIN_WORDS} words`}
+          {ready ? `${wordCount} words ready` : `Needs ${MIN_WORDS} words with definitions`}
         </span>
       </div>
 
@@ -74,7 +74,7 @@ export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs, wor
         ))}
         {!ready && (
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-            Save at least {MIN_WORDS} words to play. You have {wordCount}.
+            Save at least {MIN_WORDS} words with definitions to play. You have {wordCount}.
           </p>
         )}
       </div>

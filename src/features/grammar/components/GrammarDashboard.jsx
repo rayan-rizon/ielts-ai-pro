@@ -130,6 +130,7 @@ export default function GrammarDashboard({
         <GrammarGuidesPanel
           resources={dashboard?.resources}
           resourcesUnavailable={dashboard?.resourcesUnavailable}
+          guideProgressUnavailable={dashboard?.guideProgressUnavailable}
           user={user}
           completedGuideSlugs={dashboard?.completedGuideSlugs}
           recommendedSkill={recommended}

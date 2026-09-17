@@ -1,5 +1,13 @@
 import { useState, useCallback } from 'react';
 
+export const playableWords = (words) =>
+  words.filter(
+    (item) =>
+      item?.word?.trim() &&
+      item?.definition?.trim() &&
+      !/^(saved ielts vocabulary word|no definition)$/i.test(item.definition.trim())
+  );
+
 /**
  * Custom hook for Speed Quiz game logic
  */
@@ -10,31 +18,30 @@ export function useSpeedQuiz({ allVocabulary }) {
   const [gameState, setGameState] = useState('menu');
 
   const startSpeedQuiz = useCallback(() => {
-    if (allVocabulary.length < 4) {
-      return { success: false, error: 'Need at least 4 words to play!' };
+    const words = playableWords(allVocabulary);
+    if (words.length < 4) {
+      return { success: false, error: 'Save at least 4 words with definitions to play.' };
     }
 
     // Shuffle and pick words
-    const shuffled = [...allVocabulary].sort(() => Math.random() - 0.5);
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
     const quizWords = shuffled.slice(0, Math.min(10, shuffled.length));
 
     const questions = quizWords
       .filter((word) => word && word.word)
       .map((word) => {
         // Get wrong answers from other words
-        const otherWords = allVocabulary.filter((w) => w.id !== word.id);
+        const otherWords = words.filter((w) => w.id !== word.id);
         const wrongAnswers = otherWords
           .sort(() => Math.random() - 0.5)
           .slice(0, 3)
-          .map((w) => w.definition || 'No definition');
+          .map((w) => w.definition);
 
-        const options = [...wrongAnswers, word.definition || 'No definition'].sort(
-          () => Math.random() - 0.5
-        );
+        const options = [...wrongAnswers, word.definition].sort(() => Math.random() - 0.5);
 
         return {
           word: word.word,
-          correctAnswer: word.definition || 'No definition',
+          correctAnswer: word.definition,
           options,
         };
       });
@@ -109,12 +116,13 @@ export function useMatchPairs({ allVocabulary }) {
   const [gameState, setGameState] = useState('menu');
 
   const startMatchPairs = useCallback(() => {
-    if (allVocabulary.length < 4) {
-      return { success: false, error: 'Need at least 4 words to play!' };
+    const words = playableWords(allVocabulary);
+    if (words.length < 4) {
+      return { success: false, error: 'Save at least 4 words with definitions to play.' };
     }
 
     // Pick 6 words for 12 cards (6 pairs)
-    const shuffled = [...allVocabulary].filter((w) => w && w.word).sort(() => Math.random() - 0.5);
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
     const selectedWords = shuffled.slice(0, Math.min(6, shuffled.length));
 
     // Create pairs: word cards and definition cards
@@ -132,7 +140,7 @@ export function useMatchPairs({ allVocabulary }) {
         id: `def-${index}`,
         pairId: index,
         type: 'definition',
-        content: word.definition || 'No definition',
+        content: word.definition,
         isFlipped: false,
         isMatched: false,
       });

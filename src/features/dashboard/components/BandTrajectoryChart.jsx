@@ -138,10 +138,12 @@ function StepTwoTile({ hasOneTest, target }) {
     ? 'bg-[#5a63df] text-white'
     : 'bg-slate-200 text-slate-500 dark:bg-white/10 dark:text-slate-400';
 
-  const title = hasOneTest ? 'Score a second test to draw trend' : 'Plot score trajectory & deltas';
+  const title = hasOneTest
+    ? 'Take another test to see progress'
+    : 'Take tests to see progress over time';
 
   const subtitle =
-    target != null ? `Target goal: Band ${target.toFixed(1)}` : 'Reveals progress slope';
+    target != null ? `Target band: ${target.toFixed(1)}` : 'Your results will appear here';
 
   return (
     <div className={cn(TILE, 'flex items-center gap-3 p-2.5', containerClass)}>
@@ -184,7 +186,7 @@ function TrajectoryLineChart({ data, target, domainFloor, domainCeil }) {
   return (
     <div
       role="region"
-      aria-label="Band trajectory score progression chart"
+      aria-label="Band score progress chart"
       className="min-h-[160px] w-full flex-1"
     >
       <ResponsiveContainer width="100%" height="100%">
@@ -234,13 +236,13 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
   return (
     <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
       <PanelTitle
-        label="Band trajectory"
+        label="Band score progress"
         accent
-        tip="Your band on each scored test, oldest to newest, against your target."
+        tip="Your band score on each scored test, from oldest to newest, against your target."
         action={
           latest != null ? (
             <span className={cn(MICRO, MUTED)}>
-              latest <FootNum>{latest.toFixed(1)}</FootNum>
+              latest band score <FootNum>{latest.toFixed(1)}</FootNum>
             </span>
           ) : null
         }
@@ -260,10 +262,10 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
       <PanelFootnote>
         {change != null ? (
           <span className="inline-flex items-center gap-1.5">
-            <Delta value={change} /> across <span className={NUM}>{data.length}</span> scored tests
+            <Delta value={change} /> band points since your first scored test
           </span>
         ) : (
-          <>score two tests to see movement</>
+          <>Take two scored tests to see your progress</>
         )}
       </PanelFootnote>
     </div>
