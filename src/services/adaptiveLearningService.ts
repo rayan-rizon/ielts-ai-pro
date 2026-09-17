@@ -289,8 +289,11 @@ export async function refreshLearningPathAfterTest(
     }
     // Every newly scored test is a meaningful event. The server-side fingerprint is the
     // source of truth and suppresses both AI usage and duplicate path rows when inputs match.
-    await generateAdaptiveLearningPath({ trigger: 'test_completed', module: testType });
-    await queryClient.invalidateQueries({ queryKey: ['learningPath'] });
+    try {
+      await generateAdaptiveLearningPath({ trigger: 'test_completed', module: testType });
+    } finally {
+      await queryClient.invalidateQueries({ queryKey: ['learningPath'] });
+    }
   } catch (err) {
     console.warn('Error in refreshLearningPathAfterTest:', err);
     throw err;

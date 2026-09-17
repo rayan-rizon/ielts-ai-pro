@@ -62,6 +62,17 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
 
   return (
     <div className="mt-2.5 rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-3 text-[11px] leading-relaxed text-slate-600 dark:border-white/10 dark:bg-white/4 dark:text-slate-300">
+      {['reading', 'writing', 'listening', 'speaking'].includes(task.module) && (
+        <p className="mb-1.5">
+          <strong>
+            {['exam', 'mock'].includes(task.requested_mode) ? 'Exam Mode' : 'Practice Mode'}
+          </strong>
+          {' — '}
+          {['exam', 'mock'].includes(task.requested_mode)
+            ? 'Check your progress under test conditions, without hints.'
+            : 'Learn at your pace and review the feedback.'}
+        </p>
+      )}
       <p>
         <strong className="font-extrabold text-slate-900 dark:text-slate-100">
           Why this helps:

@@ -1,4 +1,4 @@
-export const LEARNING_PATH_GENERATOR_VERSION = '2.2.0';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.3.0';
 
 export const STUDY_DAYS = [
   'monday',
@@ -72,6 +72,36 @@ const median = (values: number[]) => {
   return ordered.length % 2 ? ordered[midpoint] : (ordered[midpoint - 1] + ordered[midpoint]) / 2;
 };
 
+export function studyDateKey(now: Date | string = new Date(), timezone = 'UTC') {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: validStudyTimezone(timezone),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(now));
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function validStudyTimezone(timezone: string) {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: timezone });
+    return timezone;
+  } catch {
+    return 'UTC';
+  }
+}
+
+/** A plan covers seven calendar days, including rest days, in the learner's timezone. */
+export function isLearningPlanExpired(path: any, now: Date | string = new Date()) {
+  const generatedAt = new Date(path?.generated_at || '').getTime();
+  if (!Number.isFinite(generatedAt)) return true;
+  const timezone = path?.goal_snapshot?.study_availability?.timezone || 'UTC';
+  const start = path?.schedule_start_date || studyDateKey(new Date(generatedAt), timezone);
+  const end = toIsoDate(addDays(startOfUtcDay(start), 7));
+  return studyDateKey(now, timezone) >= end;
+}
+
 export function normalizeStudyAvailability(
   value: unknown,
   legacyWeeklyHours = 10,
@@ -97,10 +127,11 @@ export function normalizeStudyAvailability(
 
   return {
     version: 1,
-    timezone:
+    timezone: validStudyTimezone(
       typeof source.timezone === 'string' && source.timezone.trim()
         ? source.timezone.trim()
-        : timezone,
+        : timezone
+    ),
     days,
   };
 }
@@ -259,39 +290,79 @@ export function summarizeVocabularyEvidence(
   };
 }
 
+export function isScoredLearningSession(session: any) {
+  if (!session || session.is_completed === false) return false;
+  if (session.score == null || session.score === '' || typeof session.score === 'boolean')
+    return false;
+  const score = Number(session.score);
+  const module = String(session.test_type || '').toLowerCase();
+  if (!IELTS_MODULES.includes(module as any) || !Number.isFinite(score) || score < 0 || score > 9)
+    return false;
+  if (
+    ['writing', 'speaking'].includes(module) &&
+    session.evaluation_status &&
+    session.evaluation_status !== 'completed'
+  )
+    return false;
+  // Exclude known early exits, but keep real zero scores and unknown durations.
+  const content = session.content_data || {};
+  const timeLimit = module === 'reading' ? 3600 : module === 'listening' ? 2400 : 0;
+  const remaining = content.time_remaining == null ? NaN : Number(content.time_remaining);
+  const elapsed =
+    timeLimit && Number.isFinite(remaining) && remaining >= 0 ? timeLimit - remaining : NaN;
+  const seconds = [session.actual_duration_seconds, content.timeMetrics?.totalTimeSpent, elapsed]
+    .map(Number)
+    .find((value) => Number.isFinite(value) && value > 0 && value <= 14400);
+  return !(
+    score === 0 &&
+    ['reading', 'listening'].includes(module) &&
+    !(Number(content.correctAnswers ?? content.correct) > 0) &&
+    seconds != null &&
+    seconds < 300
+  );
+}
+
 export function aggregateReadiness(sessions: any[], now: Date | string = new Date()) {
   const cutoff = addDays(startOfUtcDay(now), -90).getTime();
   const recent = (Array.isArray(sessions) ? sessions : []).filter((session) => {
     const score = numberOr(session?.score, NaN);
     const completedAt = new Date(session?.completed_at || session?.created_at || 0).getTime();
     return (
-      IELTS_MODULES.includes(String(session?.test_type).toLowerCase() as any) &&
+      isScoredLearningSession(session) &&
       Number.isFinite(score) &&
       score >= 0 &&
       score <= 9 &&
-      completedAt >= cutoff
+      completedAt >= cutoff &&
+      completedAt <= new Date(now).getTime()
     );
   });
 
   const modules: Record<string, any> = {};
   IELTS_MODULES.forEach((module) => {
-    const moduleSessions = recent.filter(
-      (session) => String(session.test_type).toLowerCase() === module
-    );
+    const moduleSessions = recent
+      .filter((session) => String(session.test_type).toLowerCase() === module)
+      .sort(
+        (a, b) =>
+          Date.parse(b.completed_at || b.created_at) - Date.parse(a.completed_at || a.created_at)
+      );
     const scores = moduleSessions
       .map((session) => numberOr(session.score, NaN))
       .filter(Number.isFinite);
     const modeCounts = moduleSessions.reduce(
       (counts, session) => {
         const rawMode = String(session.test_mode || 'practice').toLowerCase();
-        const mode = rawMode === 'mock' ? 'exam' : rawMode === 'timed' ? 'timed' : 'practice';
+        const mode = ['mock', 'exam'].includes(rawMode)
+          ? 'exam'
+          : rawMode === 'timed'
+            ? 'timed'
+            : 'practice';
         counts[mode] += 1;
         return counts;
       },
       { practice: 0, timed: 0, exam: 0 }
     );
-    const latestExam = moduleSessions.find(
-      (session) => String(session.test_mode || '').toLowerCase() === 'mock'
+    const latestExam = moduleSessions.find((session) =>
+      ['mock', 'exam'].includes(String(session.test_mode || '').toLowerCase())
     );
     const latestExamScore = latestExam ? Number(latestExam.score) : NaN;
     const count = scores.length;
@@ -335,7 +406,7 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
           range: null,
           module_median: null,
           confidence: 'insufficient',
-          disclaimer: `Complete recent scored level checks for: ${missing_diagnostics.join(', ')}.`,
+          disclaimer: `Complete recent scored tests for: ${missing_diagnostics.join(', ')}.`,
         };
 
   return { window_days: 90, modules, overall, missing_diagnostics };
@@ -363,7 +434,7 @@ export function buildRoadmap(testDate: string | null | undefined, now: Date | st
       key: 'repair',
       name: 'Focused practice',
       objective: 'Work on confirmed focus skills with targeted practice and spaced review.',
-      checkpoint: 'Priority skills reach 70%+ accuracy across at least 20 new observations.',
+      checkpoint: 'Estimated skill progress reaches 75%+ with at least 20 recorded answers.',
     },
     {
       key: 'integration',
@@ -429,6 +500,40 @@ export function getAllocation(daysUntilExam: number | null) {
   return { measured_priority: 45, due_review: 20, assessment: 20, maintenance: 15 };
 }
 
+/** Progress per subject: learn with feedback first, then check transfer under exam conditions. */
+export function recommendAssessmentMode(
+  moduleReadiness: any,
+  targetBand = 7,
+  daysUntilExam: number | null = null
+) {
+  const count = Number(moduleReadiness?.sample_count || 0);
+  const medianScore = Number(moduleReadiness?.median ?? 0);
+  if (count < 2)
+    return {
+      mode: 'practice',
+      reason: 'Start in Practice Mode to build two scored results with feedback.',
+    };
+  if (daysUntilExam !== null && daysUntilExam >= 0 && daysUntilExam <= 14) {
+    return {
+      mode: 'exam',
+      reason:
+        'You have starting scores and your test is close. Try Exam Mode to check pacing without hints.',
+    };
+  }
+  if ((count >= 3 && medianScore >= targetBand - 1) || count >= 5) {
+    return {
+      mode: 'exam',
+      reason:
+        'You have repeated scored practice. Use Exam Mode to check how those skills hold up without hints and under time limits.',
+    };
+  }
+  return {
+    mode: 'practice',
+    reason:
+      'Build consistency in Practice Mode, review your feedback, then try Exam Mode after more scored practice.',
+  };
+}
+
 const labelSkill = (code: string) =>
   code
     .split('_')
@@ -459,15 +564,28 @@ function activityForCategory(
   category: string,
   evidence: any,
   readiness: any,
-  index: number
+  index: number,
+  targetBand = 7
 ): GeneratedActivity {
   const measured =
     evidence.measured_priorities[index % Math.max(1, evidence.measured_priorities.length)];
   const due = evidence.due_reviews[index % Math.max(1, evidence.due_reviews.length)];
   const early = evidence.early_signals[index % Math.max(1, evidence.early_signals.length)];
-  const strong = evidence.maintenance[index % Math.max(1, evidence.maintenance.length)];
+  const strongCandidates = evidence.maintenance.filter((skill: any) =>
+    IELTS_MODULES.includes(skill.module)
+  );
+  const strong = strongCandidates[index % Math.max(1, strongCandidates.length)];
   const missingModule =
     readiness.missing_diagnostics[index % Math.max(1, readiness.missing_diagnostics.length)];
+
+  // Empty evidence is a reason to measure, never evidence of a stronger skill.
+  if (
+    (category === 'measured_priority' && !measured) ||
+    (category === 'due_review' && !due) ||
+    (category === 'maintenance' && !strong)
+  ) {
+    return activityForCategory('assessment', evidence, readiness, index, targetBand);
+  }
 
   if (category === 'measured_priority' && measured) {
     const currentAccuracy = Math.round(measured.mastery * 100);
@@ -478,10 +596,12 @@ function activityForCategory(
       priority: 'high',
       skill_targets: [measured.skill_code],
       reason: `${currentAccuracy}% skill progress across ${measured.observations} results makes this a confirmed focus.`,
-      success_criterion: `Get at least ${Math.min(
-        9,
-        Math.max(1, Math.ceil(Math.min(90, currentAccuracy + 10) / 10))
-      )} of 10 questions right.`,
+      success_criterion: ['writing', 'speaking'].includes(measured.module)
+        ? `Complete a scored ${measured.module} response and review the feedback for ${labelSkill(measured.skill_code).toLowerCase()}.`
+        : `Get at least ${Math.min(
+            9,
+            Math.max(1, Math.ceil(Math.min(90, currentAccuracy + 10) / 10))
+          )} of 10 questions right.`,
       evidence: {
         class: 'measured_priority',
         observations: measured.observations,
@@ -502,7 +622,9 @@ function activityForCategory(
       priority: 'high',
       skill_targets: [due.skill_code],
       reason: `This previously practised skill is due for recall; it is not being inferred as a new weakness.`,
-      success_criterion: 'Recall the rule, re-attempt errors, and score 8/10 without notes.',
+      success_criterion: ['writing', 'speaking'].includes(due.module)
+        ? `Complete a scored ${due.module} response and compare this criterion with your previous feedback.`
+        : 'Recall the rule, re-attempt errors, and score 8/10 without notes.',
       evidence: { class: due.evidence_class, observations: due.observations, due: true },
       stage_key: 'repair',
       completion_policy: 'verified',
@@ -514,35 +636,39 @@ function activityForCategory(
   if (category === 'assessment') {
     const shouldDiagnoseGrammar =
       !missingModule && evidence.grammar_diagnostic_requested && index % 2 === 0;
-    const candidateAssessmentModule = early?.module || measured?.module;
+    const rankedModules = [...IELTS_MODULES].sort(
+      (a, b) =>
+        Number(readiness.modules?.[a]?.median ?? 0) - Number(readiness.modules?.[b]?.median ?? 0)
+    );
+    const belowTarget = rankedModules.filter(
+      (key) => Number(readiness.modules?.[key]?.median ?? 0) < targetBand
+    );
+    const assessmentModules = belowTarget.length ? belowTarget : rankedModules;
     const module = shouldDiagnoseGrammar
       ? 'grammar'
-      : missingModule ||
-        (IELTS_MODULES.includes(candidateAssessmentModule as any)
-          ? candidateAssessmentModule
-          : 'reading');
+      : missingModule || assessmentModules[index % assessmentModules.length];
     return {
       title: shouldDiagnoseGrammar
         ? 'Grammar level check'
-        : `${module.charAt(0).toUpperCase() + module.slice(1)} ${missingModule ? 'level check' : 'timed check'}`,
+        : `${module.charAt(0).toUpperCase() + module.slice(1)} ${missingModule ? 'practice test' : 'practice checkpoint'}`,
       module,
       activity_type: shouldDiagnoseGrammar
         ? 'grammar_diagnostic'
         : missingModule
           ? 'diagnostic'
-          : 'timed_assessment',
+          : 'practice_assessment',
       priority: 'high',
-      skill_targets: shouldDiagnoseGrammar ? [] : early ? [early.skill_code] : [],
+      skill_targets: !shouldDiagnoseGrammar && early?.module === module ? [early.skill_code] : [],
       reason: shouldDiagnoseGrammar
         ? 'Writing or Speaking score evidence is general. A level check is needed before naming a specific grammar focus.'
         : missingModule
-          ? `A recent scored ${module} level check is still missing, so the plan will measure before labelling a weakness.`
-          : 'A timed check keeps the readiness evidence current and tests transfer under pressure.',
+          ? `More scored ${module} test results are needed before the plan can identify reliable focus areas.`
+          : 'Use Practice Mode and feedback to build consistency before trying Exam Mode.',
       success_criterion: shouldDiagnoseGrammar
         ? 'Complete all 24 questions so the six grammar families can be measured separately.'
         : missingModule
           ? 'Complete a scored attempt so the next plan can use measured evidence.'
-          : 'Finish within the official time limit and review every incorrect answer.',
+          : 'Complete a scored attempt and review the feedback before your next attempt.',
       evidence: {
         class: shouldDiagnoseGrammar || missingModule ? 'diagnostic' : 'assessment',
         observations: shouldDiagnoseGrammar
@@ -554,15 +680,15 @@ function activityForCategory(
       },
       stage_key: shouldDiagnoseGrammar || missingModule ? 'foundation' : 'integration',
       completion_policy: 'verified',
-      requested_mode: shouldDiagnoseGrammar || missingModule ? 'practice' : 'timed',
+      requested_mode: 'practice',
       evidence_key: shouldDiagnoseGrammar
         ? `grammar-diagnostic:${evidence.grammar_diagnostic_source || 'general'}`
         : missingModule
           ? `module-diagnostic:${module}`
-          : `timed-check:${module}`,
+          : `practice-check:${module}`,
       routing: {
         route: module,
-        mode: shouldDiagnoseGrammar || missingModule ? 'diagnostic' : 'timed',
+        mode: shouldDiagnoseGrammar ? 'diagnostic' : 'practice',
       },
     };
   }
@@ -579,7 +705,9 @@ function activityForCategory(
     skill_targets: strong ? [strong.skill_code] : [],
     reason:
       'A short maintenance block protects stronger skills while the main effort stays focused elsewhere.',
-    success_criterion: 'Complete the set at 80%+ accuracy with steady timing.',
+    success_criterion: ['writing', 'speaking'].includes(module)
+      ? `Complete a scored ${module} response and check that your stronger criteria stay consistent.`
+      : 'Complete the set at 80%+ accuracy with steady timing.',
     evidence: {
       class: strong?.evidence_class || 'maintenance',
       observations: strong?.observations || 0,
@@ -598,6 +726,7 @@ export function buildSevenDaySchedule({
   readiness,
   vocabularyEvidence = null,
   testDate,
+  targetBand = 7,
   now = new Date(),
 }: {
   availability: StudyAvailability;
@@ -605,6 +734,7 @@ export function buildSevenDaySchedule({
   readiness: any;
   vocabularyEvidence?: any;
   testDate?: string | null;
+  targetBand?: number;
   now?: Date | string;
 }) {
   const start = startOfUtcDay(now);
@@ -637,6 +767,7 @@ export function buildSevenDaySchedule({
 
   const schedule: Record<string, any[]> = {};
   let taskCursor = 0;
+  const categoryCursors: Record<string, number> = {};
   for (let offset = 0; offset < 7; offset += 1) {
     const date = addDays(start, offset);
     const dateKey = toIsoDate(date);
@@ -655,9 +786,16 @@ export function buildSevenDaySchedule({
     const optionalMinutes = blockCount > 1 ? Math.floor(remaining / (blockCount - 1) / 5) * 5 : 0;
 
     for (let block = 0; block < blockCount; block += 1) {
-      const minutes = block === 0 ? primaryMinutes : clamp(optionalMinutes, 20, 60);
+      const usedToday = schedule[day].reduce(
+        (total: number, task: any) => total + task.estimated_time,
+        0
+      );
+      let minutes = Math.min(
+        capacity - usedToday,
+        block === 0 ? primaryMinutes : clamp(optionalMinutes, 20, 60)
+      );
       if (minutes < 20) continue;
-      const category = Object.keys(allocation).sort((a, b) => {
+      let category = Object.keys(allocation).sort((a, b) => {
         const deficitA =
           ((allocation as Record<string, number>)[a] / 100) * (assignedMinutes + minutes) -
           allocatedMinutes[a];
@@ -666,7 +804,15 @@ export function buildSevenDaySchedule({
           allocatedMinutes[b];
         return deficitB - deficitA;
       })[0];
-      let base = activityForCategory(category, evidence, readiness, taskCursor);
+      if (
+        (category === 'measured_priority' && !evidence.measured_priorities.length) ||
+        (category === 'due_review' && !evidence.due_reviews.length) ||
+        (category === 'maintenance' && !evidence.maintenance.length)
+      )
+        category = 'assessment';
+      const categoryIndex = categoryCursors[category] || 0;
+      categoryCursors[category] = categoryIndex + 1;
+      let base = activityForCategory(category, evidence, readiness, categoryIndex, targetBand);
       const grammarRepairsBeforeBlock = grammarRepairsSinceRetest;
       if (base.module === 'grammar' && base.activity_type === 'targeted_drill') {
         if (grammarRepairsSinceRetest >= 2) {
@@ -678,7 +824,7 @@ export function buildSevenDaySchedule({
             priority: 'high',
             skill_targets: base.skill_targets,
             reason:
-              'Two focused Grammar Lab repairs are complete. Use one scored IELTS response so its existing evaluation can measure progress without a separate AI call.',
+              'After the two planned Grammar Lab practice sessions, complete a scored IELTS response to check whether the skill carries into your writing or speaking.',
             success_criterion: `Complete one scored ${retestTarget === 'speaking' ? 'Speaking' : 'Writing'} test and review the updated Grammar evidence.`,
             evidence: base.evidence,
             stage_key: 'integration',
@@ -736,23 +882,41 @@ export function buildSevenDaySchedule({
           },
         };
       }
-      if (
-        category === 'assessment' &&
-        daysUntilExam !== null &&
-        daysUntilExam <= 14 &&
-        base.stage_key === 'integration'
-      ) {
-        base = {
-          ...base,
-          title: `${base.module.charAt(0).toUpperCase() + base.module.slice(1)} Exam Mode check`,
-          activity_type: 'exam_assessment',
-          stage_key: 'readiness',
-          requested_mode: 'exam',
-          evidence_key: `exam-check:${base.module}`,
-          reason:
-            'Your exam date is close, so this verified Exam Mode attempt checks pacing and current score evidence.',
-          routing: { ...base.routing, mode: 'exam' },
-        };
+      if (category === 'assessment' && IELTS_MODULES.includes(base.module as any)) {
+        const progression = recommendAssessmentMode(
+          readiness.modules?.[base.module],
+          targetBand,
+          daysUntilExam
+        );
+        const examMinutes = (
+          { reading: 60, writing: 60, listening: 40, speaking: 20 } as Record<string, number>
+        )[base.module];
+        if (progression.mode === 'exam' && capacity - usedToday >= examMinutes) {
+          minutes = Math.max(minutes, examMinutes);
+          base = {
+            ...base,
+            title: `${base.module.charAt(0).toUpperCase() + base.module.slice(1)} Exam Mode check`,
+            activity_type: 'exam_assessment',
+            stage_key:
+              Number(readiness.modules?.[base.module]?.latest_exam_score ?? -1) >= targetBand
+                ? 'readiness'
+                : 'integration',
+            requested_mode: 'exam',
+            evidence_key: `exam-check:${base.module}`,
+            reason: progression.reason,
+            success_criterion:
+              'Complete a full Exam Mode attempt within the official time limit, then review your score and feedback.',
+            routing: { ...base.routing, mode: 'exam' },
+          };
+        } else {
+          base = {
+            ...base,
+            reason:
+              progression.mode === 'exam'
+                ? `You are ready to try Exam Mode, but it needs ${examMinutes} minutes. Use Practice Mode today or add a longer study session.`
+                : progression.reason,
+          };
+        }
       }
       const activityKeyParts = [
         'v2',
@@ -797,6 +961,8 @@ export function buildSevenDaySchedule({
       );
       const replaced = schedule[targetDay][replaceIndex];
       const minutes = Math.min(replaced.estimated_time, vocabularyCapMinutes);
+      assignedMinutes += minutes - replaced.estimated_time;
+      if (replaced.module === 'grammar') grammarMinutes -= replaced.estimated_time;
       schedule[targetDay][replaceIndex] = {
         ...replaced,
         title: 'Vocabulary spaced review',
@@ -858,26 +1024,39 @@ export async function fingerprintLearningPathInputs(value: unknown) {
 }
 
 export function findRecurringObjectiveMistakes(sessions: any[]) {
-  const occurrences = new Map<string, Set<string>>();
-  (sessions || []).forEach((session: any) => {
-    const module = String(session.test_type || '').toLowerCase();
-    if (!['reading', 'listening'].includes(module) || !session.is_completed) return;
-    Object.entries(session.content_data?.typeStats || {}).forEach(
-      ([type, stats]: [string, any]) => {
-        const total = Number(stats?.total || 0);
-        const correct = Number(stats?.correct || 0);
-        if (total <= correct) return;
-        const key = `${module}:${type}`;
-        if (!occurrences.has(key)) occurrences.set(key, new Set());
-        occurrences.get(key)?.add(session.id);
-      }
-    );
-  });
-  return [...occurrences.entries()]
-    .filter(([, ids]) => ids.size >= 2)
-    .map(([key, ids]) => {
+  const observations = new Map<string, Array<{ id: string; accuracy: number }>>();
+  [...(sessions || [])]
+    .sort(
+      (a, b) =>
+        (Date.parse(b.completed_at || b.created_at) || 0) -
+        (Date.parse(a.completed_at || a.created_at) || 0)
+    )
+    .forEach((session: any) => {
+      const module = String(session.test_type || '').toLowerCase();
+      if (!['reading', 'listening'].includes(module) || !session.is_completed || !session.id)
+        return;
+      Object.entries(session.content_data?.typeStats || {}).forEach(
+        ([type, stats]: [string, any]) => {
+          const total = Number(stats?.total || 0);
+          const correct = Number(stats?.correct || 0);
+          if (total < 3 || correct < 0 || correct > total) return;
+          const key = `${module}:${type}`;
+          const points = observations.get(key) || [];
+          if (points.length < 3 && !points.some((point) => point.id === session.id)) {
+            points.push({ id: session.id, accuracy: correct / total });
+            observations.set(key, points);
+          }
+        }
+      );
+    });
+  return [...observations.entries()]
+    .filter(
+      ([, points]) =>
+        points[0].accuracy < 0.8 && points.filter((point) => point.accuracy < 0.8).length >= 2
+    )
+    .map(([key, points]) => {
       const [module, type] = key.split(':');
-      return { module, type, sessionCount: ids.size };
+      return { module, type, sessionCount: points.filter((point) => point.accuracy < 0.8).length };
     })
     .sort(
       (a, b) =>
@@ -890,10 +1069,20 @@ export function scheduleRecurringRepair(schedule: Record<string, any[]>, mistake
   if (!mistake) return schedule;
   const day = Object.keys(schedule).find((key) => (schedule[key] || []).length > 0);
   if (!day) return schedule;
-  const index = Math.max(0, (schedule[day] || []).length - 1);
+  const replaceable = schedule[day].findIndex(
+    (task) => task.is_optional && !String(task.activity_key || '').startsWith('result:')
+  );
+  const index = replaceable >= 0 ? replaceable : Math.max(0, schedule[day].length - 1);
   const existing = schedule[day][index];
+  if (String(existing.activity_key || '').startsWith('result:')) return schedule;
+  const evidenceKey = `recurring:${mistake.module}:${mistake.type}`;
   schedule[day][index] = {
     ...existing,
+    activity_key: `v2:${existing.scheduled_date || day}:repair:${evidenceKey}:${index}`,
+    evidence_key: evidenceKey,
+    stage_key: 'repair',
+    completion_policy: 'verified',
+    requested_mode: 'practice',
     title: `${mistake.module === 'reading' ? 'Reading' : 'Listening'} ${String(
       mistake.type
     ).replace(/_/g, ' ')} repair`,

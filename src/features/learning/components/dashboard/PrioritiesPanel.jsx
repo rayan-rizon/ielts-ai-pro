@@ -168,8 +168,7 @@ export default function PrioritiesPanel({ evidence, onStart }) {
         action={<ConfidenceBadge label={evidence?.confidence_label || 'diagnostic'} />}
       />
       <p id="priorities-title" className={cn('text-xs font-medium leading-relaxed', MUTED)}>
-        Your weakest skills first. Pick any row to practise it — the top one moves your band the
-        most.
+        Focus areas from your scored practice. Pick a skill to practise it and review your feedback.
       </p>
 
       <div className="mt-3 flex-1 overflow-hidden rounded-lg border border-[#eeedf7] bg-white dark:border-white/10 dark:bg-white/2">
@@ -183,7 +182,7 @@ export default function PrioritiesPanel({ evidence, onStart }) {
             />
           ))
         ) : (
-          <Empty icon={Gauge}>Complete a scored level check to find your first focus area.</Empty>
+          <Empty icon={Gauge}>Complete a scored practice test to find your first focus area.</Empty>
         )}
       </div>
 
@@ -191,7 +190,7 @@ export default function PrioritiesPanel({ evidence, onStart }) {
         <p
           className={cn(MICRO, MUTED, 'mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/10')}
         >
-          Percentages are how often you get that skill right, not a band score.
+          Percentages estimate skill progress from recorded answers. They are not IELTS band scores.
         </p>
       )}
     </section>

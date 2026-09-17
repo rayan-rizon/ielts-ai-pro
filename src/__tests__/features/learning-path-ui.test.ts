@@ -82,7 +82,7 @@ describe('Learning Path main page composition', () => {
 
   it('includes the useful revision, checkpoint, roadmap, schedule, and evidence sections', () => {
     expect(planSignals).toContain('Your plan guide');
-    expect(planSignals).toContain('What changed, and what to do next');
+    expect(planSignals).toContain('Check below to see why each task helps');
     expect(planSignals).toContain('Edit plan');
     // The plan guide now lives in the hero, in the space the illustration used to take.
     expect(hero).toContain('<PlanSignalsCard');
@@ -175,7 +175,7 @@ describe('Learning Path main page composition', () => {
         module: 'writing',
         activity_type: 'diagnostic',
       })
-    ).toBe('Writing level check');
+    ).toBe('Writing practice test');
   });
 
   it('translates older saved plan wording into learner-friendly terms', () => {
@@ -489,6 +489,7 @@ describe('Learning Path main page composition', () => {
     const path = {
       version: 2,
       input_fingerprint: 'same-inputs',
+      generator_version: '2.3.0',
       generated_at: '2026-07-23T09:00:00.000Z',
       goal_snapshot: {
         target_band: 7,
@@ -503,6 +504,7 @@ describe('Learning Path main page composition', () => {
         path,
         user,
         currentAvailability: availability,
+        now: new Date('2026-07-23T12:00:00Z'),
         sessions: [
           {
             score: 6.5,
@@ -518,6 +520,7 @@ describe('Learning Path main page composition', () => {
         path,
         user,
         currentAvailability: availability,
+        now: new Date('2026-07-23T12:00:00Z'),
         sessions: [
           {
             score: 7,
@@ -549,7 +552,9 @@ describe('Learning Path main page composition', () => {
     // The update-check control lives once, in the plan guide — not duplicated
     // in a page-level button row.
     expect(planSignals).toContain('Check for updates');
-    expect(planSignals).toContain('No AI request when nothing changed');
+    expect(planSignals).toContain(
+      'Checks your latest results; reuses the saved plan when nothing changed'
+    );
     // The decorative hero illustration was removed: that column now carries the plan guide.
     expect(hero).not.toContain('/images/learning-path/ai-coach-study-hero.webp');
     expect(dashboard).toContain('items-stretch');

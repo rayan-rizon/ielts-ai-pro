@@ -7,6 +7,7 @@ import ReadinessPanel from './ReadinessPanel';
 import WeekPulse from './WeekPulse';
 import ExamCountdownPanel from './ExamCountdownPanel';
 import CustomizeGoalsModal from './CustomizeGoalsModal';
+import FirstTestPanel from './FirstTestPanel';
 import { useLearningPathDashboard } from './useLearningPathDashboard';
 
 const SKELETON_BLOCK =
@@ -36,6 +37,17 @@ export default function LearningPathDashboard(props) {
   const dashboard = useLearningPathDashboard(props);
 
   if (isLoading) return <LearningPathLoadingView />;
+  if (!dashboard.hasTestEvidence && !props.previewMode) {
+    return (
+      <FirstTestPanel
+        navigate={props.navigate}
+        hasPreviousTests={props.stats?.totalTests > 0}
+        awaitingScore={(props.stats?.sessions || []).some((session) =>
+          ['pending', 'processing'].includes(session.evaluation_status)
+        )}
+      />
+    );
+  }
 
   const {
     customizeOpen,

@@ -6,6 +6,7 @@ import { buildActivityUrl } from '@/features/learning/utils/activityRoutes';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import {
   adaptLearningPathV1,
+  aggregateReadiness,
   getWeeklyCapacity,
   normalizeStudyAvailability,
 } from '../../../../../supabase/functions/_shared/learningPathV2';
@@ -39,7 +40,14 @@ export function useLearningPathDashboard({
   const [savingGoals, setSavingGoals] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedTask, setExpandedTask] = useState(null);
-  const firstPlanRequested = useRef(false);
+  const automaticRequests = useRef(new Set());
+  const recentReadiness = useMemo(
+    () => aggregateReadiness(stats?.sessions || []),
+    [stats?.sessions]
+  );
+  const hasTestEvidence = Object.values(recentReadiness.modules).some(
+    (module) => module.sample_count > 0
+  );
 
   const fallbackAvailability = useMemo(
     () =>
@@ -56,16 +64,6 @@ export function useLearningPathDashboard({
     test_date: user?.test_date ? String(user.test_date).slice(0, 10) : '',
     study_availability: fallbackAvailability,
   }));
-
-  useEffect(() => {
-    const isReadyToFetch =
-      !previewMode && !isLoading && !learningPath && !firstPlanRequested.current;
-    if (!isReadyToFetch) return;
-    firstPlanRequested.current = true;
-    generateAdaptiveLearningPath({ trigger: 'first_plan' })
-      .then(() => queryClient.invalidateQueries({ queryKey: ['learningPath'] }))
-      .catch((error) => console.warn('First learning path generation deferred:', error?.message));
-  }, [previewMode, isLoading, learningPath, queryClient]);
 
   useEffect(() => {
     if (!customizeOpen) return;
@@ -94,10 +92,48 @@ export function useLearningPathDashboard({
         user,
         sessions: stats?.sessions,
         currentAvailability: fallbackAvailability,
+        skillMap,
       }),
-    [path, user, stats?.sessions, fallbackAvailability]
+    [path, user, stats?.sessions, fallbackAvailability, skillMap]
   );
   const planUpdateAvailable = !previewMode && Boolean(refreshTrigger);
+
+  useEffect(() => {
+    if (previewMode || isLoading || !user?.id || refreshing || savingGoals || !hasTestEvidence)
+      return;
+    // One server check per visit covers corrected scores and vocabulary evidence
+    // that the combined page RPC does not expose. Fingerprint hits use no AI.
+    const visitKey = `${user.id}:evidence-check`;
+    const requestKey = refreshTrigger
+      ? `${user.id}:${path?.input_fingerprint || 'first'}:${refreshTrigger}`
+      : visitKey;
+    if (automaticRequests.current.has(requestKey)) return;
+    automaticRequests.current.add(requestKey);
+    automaticRequests.current.add(visitKey);
+    setRefreshing(true);
+    generateAdaptiveLearningPath({
+      trigger: refreshTrigger || 'manual_refresh',
+      timezone: fallbackAvailability.timezone,
+    })
+      .then(() => queryClient.invalidateQueries({ queryKey: ['learningPath'] }))
+      .catch((error) =>
+        toast.error('Your plan could not be updated', {
+          description: error?.message || 'Use Check for updates to retry.',
+        })
+      )
+      .finally(() => setRefreshing(false));
+  }, [
+    previewMode,
+    isLoading,
+    user?.id,
+    refreshing,
+    savingGoals,
+    refreshTrigger,
+    path?.input_fingerprint,
+    fallbackAvailability.timezone,
+    queryClient,
+    hasTestEvidence,
+  ]);
 
   const today = sevenDays[0];
 
@@ -216,13 +252,11 @@ export function useLearningPathDashboard({
         });
         return;
       }
-      if (!refreshTrigger) {
-        toast.success('Your plan is already current', {
-          description: 'No new score or goal change was found. No AI request was sent.',
-        });
-        return;
-      }
-      const result = await generateAdaptiveLearningPath({ trigger: refreshTrigger });
+      // Only the server sees all grammar, vocabulary, and corrected score evidence.
+      const result = await generateAdaptiveLearningPath({
+        trigger: refreshTrigger || 'manual_refresh',
+        timezone: fallbackAvailability.timezone,
+      });
       await queryClient.invalidateQueries({ queryKey: ['learningPath'] });
       toast.success(
         result?.cached ? 'Your plan is already current' : 'Plan updated from your latest results',
@@ -271,6 +305,7 @@ export function useLearningPathDashboard({
   };
 
   return {
+    hasTestEvidence,
     customizeOpen,
     setCustomizeOpen,
     savingGoals,

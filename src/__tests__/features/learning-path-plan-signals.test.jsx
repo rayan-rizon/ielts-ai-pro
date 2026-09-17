@@ -23,13 +23,13 @@ describe('Learning Path plan guide', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Your plan guide' })).toBeVisible();
-    expect(screen.getByText('What changed, and what to do next.')).toBeVisible();
+    expect(screen.getByText(/Check below to see why each task helps/)).toBeVisible();
     expect(screen.getByText('Evidence received')).toBeVisible();
     expect(screen.getByText('Your checkpoint')).toBeVisible();
     expect(screen.getByText('Your path updates')).toBeVisible();
     expect(screen.getByText('Test Completed')).toBeVisible();
     expect(screen.getByText('Next phase checkpoint')).toBeVisible();
-    expect(screen.getByText('Update ready')).toBeVisible();
+    expect(screen.getByText('Update needed')).toBeVisible();
     // Starting the recommended task is not this card's job — that lives in the
     // "Do this next" tile beside it. This card owns exactly refresh + edit.
     expect(screen.queryByRole('button', { name: /open next task/i })).not.toBeInTheDocument();
@@ -54,11 +54,14 @@ describe('Learning Path plan guide', () => {
     );
 
     expect(screen.getByText('Writing scored level check')).toBeVisible();
-    expect(screen.getByText('Plan is live')).toBeVisible();
+    expect(screen.getByText('Saved plan')).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Update plan' })).not.toBeInTheDocument();
 
     const checkButton = screen.getByRole('button', { name: 'Check for updates' });
-    expect(checkButton).toHaveAttribute('title', 'No AI request when nothing changed');
+    expect(checkButton).toHaveAttribute(
+      'title',
+      'Checks your latest results; reuses the saved plan when nothing changed'
+    );
     fireEvent.click(checkButton);
     expect(onRefresh).toHaveBeenCalledTimes(1);
 

@@ -85,6 +85,7 @@ export default function PlanSignalsCard({
   refreshing = false,
   onRefresh,
   className,
+  generatedAt,
 }) {
   const checkpointTitle = getFriendlyPlanText(checkpoint?.title || 'Complete a scored level check');
   const checkpointDetail = getFriendlyPlanText(
@@ -113,11 +114,14 @@ export default function PlanSignalsCard({
           </h2>
         </div>
         <Pill tone={refreshing ? 'accent' : planUpdateAvailable ? 'warn' : 'ok'}>
-          {refreshing ? 'Refreshing' : planUpdateAvailable ? 'Update ready' : 'Plan is live'}
+          {refreshing ? 'Updating plan' : planUpdateAvailable ? 'Update needed' : 'Saved plan'}
         </Pill>
       </div>
       <p className={cn('mt-1 text-[11px] font-medium leading-relaxed', MUTED)}>
-        What changed, and what to do next.
+        {generatedAt && Number.isFinite(Date.parse(generatedAt))
+          ? `Last updated ${new Date(generatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}. `
+          : 'Your first plan uses your goals and available study time. '}
+        Check below to see why each task helps.
       </p>
 
       <ol className="mt-3.5 min-w-0">
@@ -142,7 +146,7 @@ export default function PlanSignalsCard({
           state="next"
           label="Then"
           title="Your path updates"
-          detail="Your stage, focus areas, and next tasks refresh together."
+          detail="Scored tests and practice update your focus. An expired week renews when you open this page."
           isLast
         />
       </ol>
@@ -153,7 +157,7 @@ export default function PlanSignalsCard({
             type="button"
             onClick={onRefresh}
             disabled={refreshing}
-            title={planUpdateAvailable ? undefined : 'No AI request when nothing changed'}
+            title="Checks your latest results; reuses the saved plan when nothing changed"
             className={cn(
               'inline-flex h-8 flex-1 items-center justify-center rounded-lg px-3 text-[11px] font-bold transition-colors disabled:opacity-50',
               planUpdateAvailable

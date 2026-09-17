@@ -311,6 +311,7 @@ function HeroBanner({
           </div>
 
           <PlanSignalsCard
+            generatedAt={path?.generated_at}
             trigger={path?.generation_trigger}
             changeReason={path?.why_plan_changed}
             checkpoint={path?.next_checkpoint}

@@ -62,4 +62,13 @@ describe('refreshLearningPathAfterTest', () => {
     await refreshLearningPathAfterTest('user-1', 'reading', Number.NaN);
     expect(mocks.generateAdaptiveLearningPath).not.toHaveBeenCalled();
   });
+
+  it('refreshes visible evidence even when plan generation fails', async () => {
+    mockSubscription('pro');
+    mocks.generateAdaptiveLearningPath.mockRejectedValueOnce(new Error('Provider unavailable'));
+    await expect(refreshLearningPathAfterTest('user-1', 'writing', 6)).rejects.toThrow(
+      'Provider unavailable'
+    );
+    expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['learningPath'] });
+  });
 });

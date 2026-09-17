@@ -10,6 +10,10 @@ import {
 } from 'lucide-react';
 import {
   aggregateReadiness,
+  isLearningPlanExpired,
+  recommendAssessmentMode,
+  LEARNING_PATH_GENERATOR_VERSION,
+  studyDateKey,
   buildRoadmap,
   stableStringify,
   STUDY_DAYS,
@@ -96,7 +100,7 @@ export const ROADMAP_PRESENTATION = [
     shortName: 'Build foundations',
     icon: Sprout,
     objective: 'Establish trustworthy starting scores and close essential knowledge gaps.',
-    checkpoint: 'Starting scores established in at least three subjects using recent practice.',
+    checkpoint: 'Two recent scored attempts in every IELTS subject.',
     checkpointShort: '2 recent scores in every subject',
     surface:
       'bg-[linear-gradient(160deg,#ffffff_35%,#faf8ff_100%)] border-purple-200/50 shadow-[0_4px_20px_-10px_rgba(168,85,247,0.08)] dark:bg-none dark:bg-purple-950/15 dark:border-purple-500/20',
@@ -113,8 +117,8 @@ export const ROADMAP_PRESENTATION = [
     shortName: 'Repair priority skills',
     icon: BookOpen,
     objective: 'Improve the skills that recent answers confirm need attention.',
-    checkpoint: 'Focus skills reach 75%+ across 20 new answers.',
-    checkpointShort: '75%+ across 20 new answers',
+    checkpoint: 'Estimated skill progress reaches 75%+ with at least 20 recorded answers.',
+    checkpointShort: '75%+ progress with 20 recorded answers',
     surface:
       'bg-[linear-gradient(160deg,#ffffff_35%,#f5f8ff_100%)] border-indigo-200/60 shadow-[0_4px_20px_-10px_rgba(79,70,229,0.08)] dark:bg-none dark:bg-indigo-950/15 dark:border-indigo-500/20',
     nodeStyle:
@@ -250,8 +254,10 @@ const formatReviewTitle = (label, skill) => {
 };
 
 const ACTIVITY_TITLE_BUILDERS = {
-  diagnostic: (label) => `${label} level check`,
+  diagnostic: (label) => `${label} practice test`,
   timed_assessment: (label) => `Timed ${label.toLowerCase()} practice`,
+  practice_assessment: (label) => `${label} practice checkpoint`,
+  exam_assessment: (label) => `${label} Exam Mode check`,
   targeted_drill: (label, skill) => formatDrillTitle(label, skill),
   spaced_review: (label, skill) => formatReviewTitle(label, skill),
   maintenance: (label) => `${label} skills practice`,
@@ -263,7 +269,7 @@ const ACTIVITY_TITLE_BUILDERS = {
  */
 export function getFriendlyTaskTitle(task = {}) {
   const label = getModuleLabel(task.module);
-  const skill = getSkillTitle(task.skill_code);
+  const skill = getSkillTitle(task.skill_code || task.skill_targets?.[0]);
   const type = String(task?.activity_type || '').toLowerCase();
   const builder = ACTIVITY_TITLE_BUILDERS[type];
   if (builder) return builder(label, skill);
@@ -339,7 +345,7 @@ function buildTaskRankingContext(context) {
   const evidence = context.evidence || {};
   return {
     targetBand: Number(context.targetBand || 0),
-    daysLeft: Number(context.daysLeft),
+    daysLeft: context.daysLeft == null ? NaN : Number(context.daysLeft),
     readiness: context.readiness?.modules || context.readiness || {},
     confirmed: buildConfirmedPrioritySet(evidence.measured_priorities),
     due: buildDueReviewSet(evidence.due_reviews),
@@ -364,13 +370,15 @@ const priorityScore = (priority) => (priority === 'high' ? 50 : priority === 'me
 
 const aiRankScore = (rank) => {
   const value = Number(rank);
-  return Number.isFinite(value) ? Math.max(0, 45 - value * 3) : 0;
+  return Number.isFinite(value) && value > 0 ? Math.max(0, 45 - value * 3) : 0;
 };
 
 const targetGapScore = (task, context) => {
   const module = String(task.module || '').toLowerCase();
   const moduleReadiness = context.readiness?.[module] || {};
-  const moduleBand = Number(moduleReadiness.latest ?? moduleReadiness.band);
+  const moduleBand = Number(
+    moduleReadiness.median ?? moduleReadiness.latest ?? moduleReadiness.band ?? NaN
+  );
   if (context.targetBand <= 0 || !Number.isFinite(moduleBand)) return 0;
   return Math.max(0, context.targetBand - moduleBand) * 10;
 };
@@ -383,6 +391,7 @@ function scoreNextTask(task, context) {
   return (
     aiRankScore(task.ai_rank) +
     priorityScore(task.priority) +
+    (task.is_optional ? 0 : 10) +
     targetGapScore(task, context) +
     evidencePriorityScore(module, skills, context) +
     schedulePriorityScore(task, estimated, capacity, context)
@@ -433,7 +442,7 @@ export function buildFallbackTask({ readiness, evidence, targetBand = 7 } = {}) 
   return (
     buildMissingScoreTask(readiness) ||
     buildFocusSkillTask(evidence) ||
-    buildTimedAttemptTask(readiness) ||
+    buildTimedAttemptTask(readiness, targetBand) ||
     buildExamModeTask(readiness, targetBand) ||
     null
   );
@@ -459,7 +468,7 @@ const buildMissingScoreTask = (readiness) => {
   return synthesizeTask({
     module,
     activityType: 'diagnostic',
-    mode: 'diagnostic',
+    mode: 'practice',
     minutes: 30,
     reason: `${MODULE_STYLE[module]?.label || module} has no reliable starting score yet, so your plan cannot rank it against your other subjects.`,
     criterion: 'Finish one scored attempt so this subject joins your evidence.',
@@ -481,17 +490,20 @@ const buildFocusSkillTask = (evidence) => {
   });
 };
 
-const buildTimedAttemptTask = (readiness) => {
+const buildTimedAttemptTask = (readiness, targetBand) => {
   if (timedAttemptCount(readiness) >= PROGRESS_RULES.TIMED_ATTEMPT_TARGET) return null;
   const module = weakestScoredModule(readiness) || 'reading';
+  const progression = recommendAssessmentMode(readiness?.modules?.[module], targetBand);
   return synthesizeTask({
     module,
-    activityType: 'timed_assessment',
-    mode: 'timed',
+    activityType: progression.mode === 'exam' ? 'exam_assessment' : 'practice_assessment',
+    mode: progression.mode,
     minutes: 60,
-    reason:
-      'You have scores, but not yet under official section timing — that is the gap the next stage measures.',
-    criterion: 'Complete one full section inside the official time limit.',
+    reason: progression.reason,
+    criterion:
+      progression.mode === 'exam'
+        ? 'Complete one full section inside the official time limit.'
+        : 'Complete a scored practice attempt and review the feedback.',
   });
 };
 
@@ -503,7 +515,7 @@ const buildExamModeTask = (readiness, targetBand) => {
   return synthesizeTask({
     module,
     activityType: 'exam_assessment',
-    mode: 'mock',
+    mode: 'exam',
     minutes: 60,
     reason: `${MODULE_STYLE[module]?.label || module} has no Exam Mode score at band ${Number(targetBand || 7).toFixed(1)} yet.`,
     criterion: `Sit one Exam Mode attempt and score band ${Number(targetBand || 7).toFixed(1)} or above.`,
@@ -578,7 +590,7 @@ export function buildDashboardDays(days = []) {
 
 export function computeEvidence(path, skillMap = {}) {
   const savedEvidence = path?.evidence_summary;
-  if (savedEvidence && typeof savedEvidence === 'object')
+  if (!Object.hasOwn(skillMap, 'byModule') && savedEvidence && typeof savedEvidence === 'object')
     return normalizeSavedEvidence(savedEvidence);
 
   const skills = Object.values(skillMap?.byModule || {})
@@ -606,8 +618,7 @@ const normalizeSkillEvidence = (skill) => ({
 export function computeSevenDays(path, activityByKey = {}, availability = {}) {
   const schedule = path?.weekly_schedule || path?.schedule || path?.daily_schedule || {};
   const tasksBySchedule = groupTasksBySchedule(schedule, activityByKey);
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
+  const today = new Date(`${studyDateKey(new Date(), availability.timezone || 'UTC')}T12:00:00`);
 
   return Array.from({ length: 7 }, (_, offset) =>
     buildUpcomingDay({ today, offset, tasksBySchedule, availability })
@@ -882,6 +893,7 @@ const PHASE_TASK_MATCHERS = {
 };
 
 const taskMatchesPhase = (task, phaseKey) => {
+  if (task.stage_key) return task.stage_key === phaseKey;
   const type = String(task?.activity_type || '').toLowerCase();
   const title = String(task?.title || '').toLowerCase();
   const matcher = PHASE_TASK_MATCHERS[phaseKey] || PHASE_TASK_MATCHERS.readiness;
@@ -1205,6 +1217,14 @@ export function getPathProgress(phases = []) {
 }
 
 export function getSnapshotReadiness(rawReadiness, sessions) {
+  // Older RPC responses omitted test_mode. Keep their snapshot until migration,
+  // but use complete current evidence (including an empty history) when available.
+  if (
+    Array.isArray(sessions) &&
+    (!sessions.length || sessions.every((session) => Object.hasOwn(session, 'test_mode')))
+  ) {
+    return aggregateReadiness(sessions);
+  }
   if (rawReadiness && typeof rawReadiness === 'object') {
     return rawReadiness;
   }
@@ -1219,13 +1239,13 @@ export function getSnapshotRoadmap(rawRoadmap, userTestDate) {
 }
 
 export function getTargetBandValue(snapshotValue, userValue) {
-  return Number(snapshotValue || userValue || 7);
+  return Number(userValue ?? snapshotValue ?? 7);
 }
 
 export function getExamDateValue(snapshotValue, userValue) {
   // Account goals are the source of truth. A saved path is only a historical snapshot and can
   // briefly lag after a learner changes their exam date.
-  return userValue || snapshotValue || null;
+  return userValue === undefined ? snapshotValue || null : userValue || null;
 }
 
 export function getExamDaysLeft(examDate) {
@@ -1243,7 +1263,7 @@ export function getExamDaysLeft(examDate) {
 
 export function isExamDatePassed(examDate) {
   if (!examDate) return false;
-  return new Date(examDate).getTime() < Date.now();
+  return getExamDaysLeft(examDate) < 0;
 }
 
 export function computeDashboardSnapshot(path, user = {}, stats = {}) {
@@ -1282,11 +1302,12 @@ const resolveSnapshotRoadmap = ({
 const normalizeGoalDate = (value) => (value ? String(value).slice(0, 10) : '');
 
 const hasGoalChanged = (goal = {}, user = {}, currentAvailability = {}) => {
-  const targetChanged = Number(goal.target_band || 0) !== Number(user.target_band_score || 0);
+  const targetChanged = Number(goal.target_band || 7) !== Number(user.target_band_score || 7);
+  const examTypeChanged = (goal.exam_type || 'academic') !== (user.exam_type || 'academic');
   const dateChanged = normalizeGoalDate(goal.test_date) !== normalizeGoalDate(user.test_date);
   const availabilityChanged =
     stableStringify(goal.study_availability || {}) !== stableStringify(currentAvailability);
-  return targetChanged || dateChanged || availabilityChanged;
+  return targetChanged || dateChanged || availabilityChanged || examTypeChanged;
 };
 
 const isValidSessionScore = (session) => {
@@ -1314,9 +1335,17 @@ const isCurrentPlan = (path) => Boolean(path && path.version === 2 && path.input
 
 /**
  * Returns the meaningful event that justifies rebuilding the current plan.
- * A null result lets the UI stop before calling the Edge Function or AI provider.
+ * A null result means no locally detected change; a once-per-visit server check
+ * still verifies evidence unavailable to the page.
  */
-export function getPlanRefreshTrigger({ path, user, sessions, currentAvailability }) {
+export function getPlanRefreshTrigger({
+  path,
+  user,
+  sessions,
+  currentAvailability,
+  skillMap = {},
+  now = new Date(),
+}) {
   if (!isCurrentPlan(path)) return 'first_plan';
 
   const goal = path.goal_snapshot || {};
@@ -1324,6 +1353,13 @@ export function getPlanRefreshTrigger({ path, user, sessions, currentAvailabilit
 
   const generatedAt = Date.parse(path.generated_at || '');
   if (hasNewCompletedTest(sessions, generatedAt)) return 'test_completed';
+
+  const newPractice = Object.values(skillMap?.byModule || {})
+    .flat()
+    .some((skill) => Date.parse(skill.last_practiced_at || '') > generatedAt);
+  if (newPractice) return 'practice_completed';
+  if (isLearningPlanExpired(path, now)) return 'schedule_expired';
+  if (path.generator_version !== LEARNING_PATH_GENERATOR_VERSION) return 'manual_refresh';
 
   return null;
 }

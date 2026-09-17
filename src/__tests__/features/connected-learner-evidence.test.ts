@@ -144,14 +144,17 @@ describe('connected learner evidence', () => {
     });
     expect(findRecurringObjectiveMistakes([session('one', 3)])).toEqual([]);
 
-    const mistakes = findRecurringObjectiveMistakes([session('one', 3), session('two', 4)]);
+    const mistakes = findRecurringObjectiveMistakes([session('one', 3), session('two', 3)]);
     expect(mistakes).toEqual([{ module: 'reading', type: 'matching_headings', sessionCount: 2 }]);
 
     const schedule = {
       Monday: [{ activity_key: 'existing', title: 'General practice', module: 'reading' }],
     };
     expect(scheduleRecurringRepair(schedule, mistakes[0]).Monday[0]).toMatchObject({
-      activity_key: 'existing',
+      activity_key: 'v2:Monday:repair:recurring:reading:matching_headings:0',
+      requested_mode: 'practice',
+      stage_key: 'repair',
+      evidence_key: 'recurring:reading:matching_headings',
       activity_type: 'targeted_repair',
       priority: 'high',
       skill_targets: ['reading_matching_headings'],

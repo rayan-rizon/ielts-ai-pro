@@ -10,6 +10,9 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   aggregateReadiness,
+  isLearningPlanExpired,
+  isScoredLearningSession,
+  studyDateKey,
   buildRoadmap,
   buildSevenDaySchedule,
   findRecurringObjectiveMistakes,
@@ -53,9 +56,15 @@ const ALLOWED_TRIGGERS = new Set([
   'goal_changed',
   'result_recovery',
   'manual_refresh',
+  'schedule_expired',
+  'practice_completed',
 ]);
 
 const triggerMessage = (trigger: string, module?: string) => {
+  if (trigger === 'schedule_expired')
+    return 'Your previous seven-day plan ended. A new week was scheduled from your latest results and availability.';
+  if (trigger === 'practice_completed')
+    return 'New practice results changed the skill evidence used by your plan.';
   if (trigger === 'test_completed') {
     return `A newly completed${module ? ` ${module}` : ''} test changed the evidence used by your plan.`;
   }
@@ -72,20 +81,9 @@ const triggerMessage = (trigger: string, module?: string) => {
     return 'A result-specific recovery request was fitted into the broader exam roadmap.';
   }
   if (trigger === 'first_plan') {
-    return 'This is your first results-based plan. Level checks are used where more results are needed.';
+    return 'This is your first plan based on actual test results. Take practice tests in the other subjects to make it more complete.';
   }
   return 'Your evidence or goals changed since the previous revision.';
-};
-
-const localIsoDate = (timezone: string) => {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date());
-  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${value.year}-${value.month}-${value.day}`;
 };
 
 function isCurrentSkillEvidence(skill: any) {
@@ -97,17 +95,27 @@ function isCurrentSkillEvidence(skill: any) {
   return !isGeneratedCriterion || skill.evidence_version === '2026-07-29-v5';
 }
 
-const checkpointFor = (readiness: any, roadmap: any[]) => {
+const checkpointFor = (readiness: any, roadmap: any[], activities: any[] = []) => {
   if (readiness.missing_diagnostics.length) {
     const module = readiness.missing_diagnostics[0];
     return {
       type: 'diagnostic',
       module,
-      title: `${module.charAt(0).toUpperCase() + module.slice(1)} scored level check`,
+      title: `${module.charAt(0).toUpperCase() + module.slice(1)} practice test`,
       progress_definition:
         'Complete a scored attempt; two recent attempts are required before a module range is treated as sufficient.',
     };
   }
+  const assessment = activities.find((task: any) =>
+    ['exam_assessment', 'practice_assessment'].includes(task.activity_type)
+  );
+  if (assessment)
+    return {
+      type: assessment.requested_mode === 'exam' ? 'exam' : 'practice',
+      module: assessment.module,
+      title: assessment.title,
+      progress_definition: assessment.success_criterion,
+    };
   const current = roadmap.find((phase) => phase.current) || roadmap[roadmap.length - 1];
   return {
     type: current?.key === 'readiness' ? 'mock' : 'timed_check',
@@ -181,7 +189,7 @@ function mergeRecoveryTasks(schedule: Record<string, any[]>, previousPath: any, 
         0
       );
       const minutes = Math.max(20, Math.min(60, Number(task.estimated_time || 30)));
-      if (merged[day].length < 3 && (capacity === 0 || used + minutes <= capacity)) {
+      if (merged[day].length < 3 && capacity > 0 && used + minutes <= capacity) {
         merged[day].push({ ...task, estimated_time: minutes, is_optional: true });
       }
     });
@@ -202,6 +210,7 @@ async function buildCoachSummary({
   readiness,
   checkpoint,
   candidates,
+  scheduleOnly = false,
 }: any) {
   const metadata = {
     trigger,
@@ -222,6 +231,19 @@ async function buildCoachSummary({
       : readiness.overall.disclaimer,
     rankedActivityKeys: (candidates || []).map((candidate: any) => candidate.activity_key),
   };
+
+  if (scheduleOnly) {
+    await logApiUsage(supabase, authId, 'generateAdaptiveLearningPath', true, 0, {
+      ...metadata,
+      cacheStatus: 'schedule_renewal',
+      deterministicFallback: false,
+    });
+    return {
+      summary: { headline: 'Your next week is ready', explanation: fallback.explanation },
+      rankedActivityKeys: fallback.rankedActivityKeys,
+      deterministicFallback: false,
+    };
+  }
 
   if (!openRouterApiKey && !deepseekApiKey && !geminiApiKey) {
     await logApiUsage(supabase, authId, 'generateAdaptiveLearningPath', false, 0, {
@@ -439,18 +461,11 @@ serve(async (req: Request) => {
     }
 
     const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
-    const [
-      { data: sessions },
-      { data: skills },
-      { data: grammarAttempts },
-      { data: vocabularyItems },
-      { data: vocabularyReviews },
-      { data: latestRows },
-    ] = await Promise.all([
+    const evidenceResults = await Promise.all([
       supabase
         .from('test_sessions')
         .select(
-          'id, test_type, test_mode, score, completed_at, created_at, is_completed, content_data, evaluation_status, evaluation_version'
+          'id, test_type, test_mode, score, completed_at, created_at, is_completed, actual_duration_seconds, content_data, evaluation_status, evaluation_version'
         )
         .eq('user_id', profile.id)
         .eq('is_completed', true)
@@ -463,6 +478,7 @@ serve(async (req: Request) => {
           'skill_code, module, mastery_probability, confidence_level, practice_count, correct_count, last_practiced_at, next_review_at, evidence_version'
         )
         .eq('user_id', profile.id)
+        .order('skill_code')
         .limit(120),
       supabase
         .from('grammar_attempts')
@@ -477,6 +493,7 @@ serve(async (req: Request) => {
         .from('vocabulary_items')
         .select('id, next_review_date')
         .eq('user_id', profile.id)
+        .order('next_review_date', { ascending: true, nullsFirst: false })
         .limit(500),
       supabase
         .from('vocabulary_review_events')
@@ -493,6 +510,36 @@ serve(async (req: Request) => {
         .limit(1),
     ]);
 
+    // A failed read must not overwrite a good plan with an apparent empty history.
+    const failedRead = evidenceResults.find((result: any) => result.error);
+    if (failedRead) {
+      console.error('Learning Path evidence read failed', failedRead.error);
+      return errorResponse(
+        'Your latest results could not be loaded. Your saved plan is unchanged. Please retry.',
+        503,
+        corsHeaders
+      );
+    }
+    const [
+      sessionResult,
+      skillResult,
+      grammarResult,
+      vocabularyResult,
+      reviewResult,
+      latestResult,
+    ] = evidenceResults;
+    const sessions = (sessionResult.data || []).filter(isScoredLearningSession);
+    if (!sessions.length) {
+      return new Response(JSON.stringify({ learningPath: null, needsTest: true, cached: false }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const skills = skillResult.data || [];
+    const grammarAttempts = grammarResult.data || [];
+    const vocabularyItems = vocabularyResult.data || [];
+    const vocabularyReviews = reviewResult.data || [];
+    const latestRows = latestResult.data || [];
     const timezone = String(profile.study_availability?.timezone || body?.timezone || 'UTC');
     const availability = normalizeStudyAvailability(
       profile.study_availability,
@@ -500,6 +547,8 @@ serve(async (req: Request) => {
       timezone
     );
     const currentSkills = (skills || []).filter(isCurrentSkillEvidence);
+    const localToday = studyDateKey(new Date(), availability.timezone);
+    const evidence = summarizeEvidence(currentSkills);
     const fingerprintInput = {
       generator_version: LEARNING_PATH_GENERATOR_VERSION,
       goal: {
@@ -534,13 +583,15 @@ serve(async (req: Request) => {
         transfer_outcome: attempt.transfer_evaluation?.outcome || null,
         completed_at: attempt.completed_at || attempt.updated_at,
       })),
+      due_skills: evidence.due_reviews.map((skill: any) => skill.skill_code),
       vocabulary: summarizeVocabularyEvidence(vocabularyItems || [], vocabularyReviews || []),
     };
     const fingerprint = await fingerprintLearningPathInputs(fingerprintInput);
     const latest = latestRows?.[0];
     if (
       latest?.path_data?.input_fingerprint === fingerprint &&
-      latest?.path_data?.generator_version === LEARNING_PATH_GENERATOR_VERSION
+      latest?.path_data?.generator_version === LEARNING_PATH_GENERATOR_VERSION &&
+      !isLearningPlanExpired(latest.path_data)
     ) {
       await logApiUsage(supabase, authData.user.id, 'generateAdaptiveLearningPath', true, 0, {
         trigger,
@@ -556,14 +607,12 @@ serve(async (req: Request) => {
       );
     }
 
-    const evidence = summarizeEvidence(currentSkills);
     const readiness = aggregateReadiness(sessions || []);
     const vocabularyEvidence = summarizeVocabularyEvidence(
       vocabularyItems || [],
       vocabularyReviews || []
     );
     const recurringMistakes = findRecurringObjectiveMistakes(sessions || []);
-    const localToday = localIsoDate(availability.timezone);
     const planningTestDate =
       profile.test_date && new Date(profile.test_date).getTime() >= new Date(localToday).getTime()
         ? profile.test_date
@@ -575,6 +624,7 @@ serve(async (req: Request) => {
       readiness,
       vocabularyEvidence,
       testDate: planningTestDate,
+      targetBand: Number(profile.target_band_score || 7),
       now: localToday,
     });
     scheduleData.schedule = mergeRecoveryTasks(
@@ -586,7 +636,18 @@ serve(async (req: Request) => {
       scheduleData.schedule,
       recurringMistakes[0] || null
     );
-    const checkpoint = checkpointFor(readiness, roadmap);
+    const finalActivities = collectActivities(scheduleData.schedule);
+    scheduleData.weekly_planned_minutes = finalActivities.reduce(
+      (total: number, task: any) => total + task.estimated_time,
+      0
+    );
+    scheduleData.grammar_minutes = finalActivities
+      .filter((task: any) => task.module === 'grammar')
+      .reduce((total: number, task: any) => total + task.estimated_time, 0);
+    scheduleData.vocabulary_minutes = finalActivities
+      .filter((task: any) => task.module === 'vocabulary')
+      .reduce((total: number, task: any) => total + task.estimated_time, 0);
+    const checkpoint = checkpointFor(readiness, roadmap, finalActivities);
     const goalSnapshot = {
       target_band: Number(profile.target_band_score || 7),
       test_date: profile.test_date || null,
@@ -610,6 +671,7 @@ serve(async (req: Request) => {
       readiness,
       checkpoint,
       candidates: candidateActivities,
+      scheduleOnly: latest?.path_data?.input_fingerprint === fingerprint,
     });
     scheduleData.schedule = applyAiRanking(scheduleData.schedule, coach.rankedActivityKeys || []);
 
@@ -619,6 +681,7 @@ serve(async (req: Request) => {
       generator_version: LEARNING_PATH_GENERATOR_VERSION,
       input_fingerprint: fingerprint,
       generated_at: new Date().toISOString(),
+      schedule_start_date: localToday,
       generation_trigger: effectiveTrigger,
       goal_snapshot: goalSnapshot,
       evidence_summary: evidence,
