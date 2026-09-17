@@ -29,7 +29,6 @@ import {
 import {
   estimateTokenCostUsd,
   WRITING_DIRECT_GEMINI_MODEL,
-  WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
   WRITING_PRIMARY_MODEL,
 } from '../_shared/aiModelRegistry.ts';
 
@@ -802,7 +801,7 @@ Register and tone:
     }
 
     // Primary: GPT-5.6 Luna via OpenRouter (vision-capable, fast). Falls back
-    // to Gemini 2.5 Flash below on any provider or validation failure.
+    // directly to Google's Gemini 2.5 Flash on provider or validation failure.
     const schemaText = `
 REQUIRED JSON SHAPE (all keys required):
 {
@@ -907,30 +906,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     }
 
     if (!parsedFeedback) {
-      // Keep the first fallback on OpenRouter so the independently funded
-      // vision route remains available when the direct Google project hits its
-      // monthly cap. It accepts the same base64 Task 1 image content as Luna.
-      const openRouterFallback = await requestOpenRouterWritingFeedback(
-        WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
-        systemInstruction,
-        userContentParts,
-        schemaText,
-        taskCriterionKey,
-        MARKING_SEEDS[0]
-      );
-      if (openRouterFallback) {
-        modelUsed = WRITING_OPENROUTER_VISION_FALLBACK_MODEL;
-        parsedFeedback = openRouterFallback.parsedFeedback;
-        tokensUsed = openRouterFallback.tokensUsed;
-        promptTokens = openRouterFallback.promptTokens;
-        cachedPromptTokens = openRouterFallback.cachedPromptTokens;
-        outputTokens = openRouterFallback.outputTokens;
-        console.log(`Using independent vision fallback: ${modelUsed} for ${taskType}`);
-      }
-    }
-
-    if (!parsedFeedback) {
-      // Direct Gemini is the last-resort vision fallback.
+      // Direct Google Gemini is the vision fallback.
       //
       // Deliberately a single greedy pass, not an ensemble: this path only runs
       // when every Luna pass failed, and the priority there is returning a
@@ -1101,12 +1077,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
       taskType,
       model: modelUsed,
-      provider:
-        modelUsed === WRITING_PRIMARY_MODEL
-          ? 'openrouter-luna'
-          : modelUsed === WRITING_OPENROUTER_VISION_FALLBACK_MODEL
-            ? 'openrouter-gemini'
-            : 'gemini',
+      provider: modelUsed === WRITING_PRIMARY_MODEL ? 'openrouter-luna' : 'gemini',
       fallbackUsed: modelUsed !== WRITING_PRIMARY_MODEL,
       fallbackReason: modelUsed !== WRITING_PRIMARY_MODEL ? 'luna_no_parsable_feedback' : null,
       scoringPasses: consensus?.agreement.sampleCount ?? 1,

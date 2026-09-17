@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import {
   AI_ROUTES,
   WRITING_DIRECT_GEMINI_MODEL,
-  WRITING_OPENROUTER_VISION_FALLBACK_MODEL,
 } from '../../../supabase/functions/_shared/aiModelRegistry';
 
 const readFunction = (name: string) =>
@@ -28,26 +27,21 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(source).toContain('estimatedProviderCostUsd');
   });
 
-  it('keeps an independent vision fallback for Writing and DeepSeek fallback for Speaking', () => {
+  it('uses direct Google Gemini for Writing fallback and DeepSeek fallback for Speaking', () => {
     const writing = readFunction('generateDetailedFeedback');
     const speaking = readFunction('evaluateSpeakingTest');
     expect(writing).toContain('WRITING_DIRECT_GEMINI_MODEL');
-    expect(writing).toContain('WRITING_OPENROUTER_VISION_FALLBACK_MODEL');
+    expect(writing).not.toContain('WRITING_OPENROUTER_VISION_FALLBACK_MODEL');
     expect(writing).toContain('requestOpenRouterWritingFeedback');
-    const openRouterFallbackCall = writing.search(
-      /requestOpenRouterWritingFeedback\(\s*WRITING_OPENROUTER_VISION_FALLBACK_MODEL/
-    );
-    expect(openRouterFallbackCall).toBeGreaterThan(-1);
-    expect(openRouterFallbackCall).toBeLessThan(
-      writing.indexOf('generativelanguage.googleapis.com')
-    );
+    expect(writing).not.toContain("'openrouter-gemini'");
+    expect(writing).toContain("'x-goog-api-key': GEMINI_API_KEY");
     expect(writing).toContain("rateLimitType: 'provider'");
-    expect(
-      AI_ROUTES.find((route) => route.id === 'writing-detailed-feedback')?.steps[1].model
-    ).toBe(WRITING_OPENROUTER_VISION_FALLBACK_MODEL);
-    expect(
-      AI_ROUTES.find((route) => route.id === 'writing-detailed-feedback')?.steps[2].model
-    ).toBe(WRITING_DIRECT_GEMINI_MODEL);
+    const writingSteps = AI_ROUTES.find((route) => route.id === 'writing-detailed-feedback')?.steps;
+    expect(writingSteps?.map((step) => [step.role, step.model])).toEqual([
+      ['primary', 'openai/gpt-5.6-luna'],
+      ['fallback', WRITING_DIRECT_GEMINI_MODEL],
+      ['repair', WRITING_DIRECT_GEMINI_MODEL],
+    ]);
     expect(speaking).toContain('requestSpeakingEvaluation');
     expect(speaking).toContain("Deno.env.get('OPENROUTER_API_KEY')");
     expect(speaking).toContain("Deno.env.get('GEMINI_API_KEY')");
