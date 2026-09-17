@@ -521,31 +521,46 @@ const weakestScoredModule = (readiness) =>
 export function getFriendlyPlanText(text = '') {
   if (!text) return '';
 
-  return String(text)
-    .replace(/\bevidence quality is an early signal\b/gi, 'How sure we are: needs more results')
-    .replace(/\bmeasured priorit(?:y|ies)\b/gi, (match) =>
-      /ies$/i.test(match) ? 'confirmed focus areas' : 'confirmed focus'
-    )
-    .replace(/\ban early signal\b/gi, 'needs more results')
-    .replace(/\bearly signals?\b/gi, 'needs more results')
-    .replace(/\bevidence quality\b/gi, 'how sure we are')
-    .replace(/\bcriteria breakdown\b/gi, 'Writing/Speaking score areas')
-    .replace(/\blearning path signals\b/gi, 'your next study focus')
-    .replace(/\bwords learned\b/gi, 'saved vocabulary')
-    .replace(/\bmastery\b/gi, 'skill progress')
-    .replace(/\bdiagnostics?\b/gi, 'level check')
-    .replace(/\bdiagnostic check\b/gi, 'level check')
-    .replace(/\bdiagnostic test\b/gi, 'level check')
-    .replace(/\b(reading|writing|listening|speaking) diagnostic\b/gi, '$1 level check')
-    .replace(/\breadiness diagnostic\b/gi, 'score check')
-    .replace(/\bproactive_rebalance\b/gi, 'Plan updated for your target date')
-    .replace(/\brebalance\b/gi, 'Plan updated for target date')
-    .replace(/\bgoal_change\b/gi, 'Updated for your new goals')
-    .replace(/\btest_completed\b/gi, 'Updated from recent practice')
-    .replace(/\bmanual_refresh\b/gi, 'Refreshed by request')
-    .replace(/\bfirst_plan\b/gi, 'Initial plan created')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    String(text)
+      .replace(/\bevidence quality is an early signal\b/gi, 'How sure we are: needs more results')
+      .replace(/\bmeasured priorit(?:y|ies)\b/gi, (match) =>
+        /ies$/i.test(match) ? 'confirmed focus areas' : 'confirmed focus'
+      )
+      .replace(/\ban early signal\b/gi, 'needs more results')
+      .replace(/\bearly signals?\b/gi, 'needs more results')
+      .replace(/\bevidence quality\b/gi, 'how sure we are')
+      .replace(/\bcriteria breakdown\b/gi, 'Writing/Speaking score areas')
+      .replace(/\blearning path signals\b/gi, 'your next study focus')
+      .replace(/\bwords learned\b/gi, 'saved vocabulary')
+      .replace(/\bmastery\b/gi, 'skill progress')
+      .replace(/\bdiagnostics?\b/gi, 'level check')
+      .replace(/\bdiagnostic check\b/gi, 'level check')
+      .replace(/\bdiagnostic test\b/gi, 'level check')
+      .replace(/\b(reading|writing|listening|speaking) diagnostic\b/gi, '$1 level check')
+      .replace(/\breadiness diagnostic\b/gi, 'score check')
+      .replace(/\bproactive_rebalance\b/gi, 'Plan updated for your target date')
+      .replace(/\brebalance\b/gi, 'Plan updated for target date')
+      .replace(/\bgoal_change\b/gi, 'Updated for your new goals')
+      .replace(/\btest_completed\b/gi, 'Updated from recent practice')
+      .replace(/\bmanual_refresh\b/gi, 'Refreshed by request')
+      .replace(/\bfirst_plan\b/gi, 'Initial plan created')
+      // "Reach at least 11% on a 10-question check" is not a reachable score: on ten
+      // questions you can only land on multiples of ten. Restate the target as the
+      // number of questions it actually takes, which also reads better than a percent.
+      .replace(
+        /\breach at least (\d+)% on an? (\d+)-question check\b/gi,
+        (match, percent, questions) => {
+          const total = Number(questions);
+          const needed = Math.ceil((Number(percent) / 100) * total);
+          if (!Number.isFinite(total) || !Number.isFinite(needed) || total < 1) return match;
+          const target = Math.min(total, Math.max(1, needed));
+          return `Get at least ${target} of ${total} questions right`;
+        }
+      )
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 export function buildDashboardDays(days = []) {

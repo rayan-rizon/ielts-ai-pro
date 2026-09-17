@@ -137,7 +137,9 @@ export default function ReadinessPanel({ readiness, days = [], targetBand = 7, o
           tip="Median of your scored practice over the last 90 days. Never a predicted exam score."
           action={
             <Pill tone={isAvailable ? 'ok' : 'warn'}>
-              {isAvailable && range ? `Band ${range[0]}–${range[1]}` : 'Needs a level check'}
+              {isAvailable && range
+                ? `Overall band ${range[0]}–${range[1]}`
+                : 'Needs a level check'}
             </Pill>
           }
         />

@@ -13,7 +13,7 @@ function derivePrimaryTitle({ inProgressAttempt, primaryMode, shouldDiagnose, re
 
 function derivePrimaryDescription({ inProgressAttempt, primaryMode, shouldDiagnose, recommended }) {
   if (inProgressAttempt) {
-    return `${inProgressAttempt.totalQuestions} IELTS-focused questions are already saved in this attempt. Pick up where you stopped without using another allowance.`;
+    return `${inProgressAttempt.totalQuestions} IELTS-focused questions are waiting in this attempt. Pick up where you stopped without using another allowance.`;
   }
   if (primaryMode === 'retest')
     return 'Your next scored Writing or Speaking response will update Grammar evidence and refresh your AI Learning Path automatically.';

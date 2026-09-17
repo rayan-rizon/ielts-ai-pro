@@ -180,9 +180,9 @@ function PhaseCard({ phase, index, onStart, selected, onSelect, cardRef }) {
         <PhaseChecklist checklist={phase.checklist} />
 
         <div className="mt-auto space-y-2.5 pt-3.5">
-          {phase.dateRange && (
+          {phase.dateRange && phase.status !== 'Completed' && (
             <p className={cn(MICRO, 'flex items-center gap-1.5', MUTED)}>
-              <CalendarRange className="h-3 w-3" aria-hidden="true" /> {phase.dateRange}
+              <CalendarRange className="h-3 w-3" aria-hidden="true" /> Planned {phase.dateRange}
             </p>
           )}
 
@@ -305,7 +305,7 @@ function InteractiveStageRail({ phases, selectedIndex, onSelect, railFill }) {
                   onClick={() => onSelect(index)}
                   aria-current={isCurrent ? 'step' : undefined}
                   aria-pressed={selectedIndex === index}
-                  aria-label={`Open stage ${index + 1}: ${phase.shortName}. ${phase.status}.`}
+                  aria-label={`Open the ${phase.shortName} stage. ${phase.status}.`}
                   className="group relative z-10 flex h-8 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315]"
                 >
                   <span
@@ -456,11 +456,7 @@ export default function RoadmapSection({
             label="Your progress"
             accent
             className="mb-1"
-            action={
-              currentPhaseIndex >= 0 && (
-                <span className={cn(MICRO, MUTED)}>Stage {currentPhaseIndex + 1} of 4</span>
-              )
-            }
+            action={<span className={cn(MICRO, MUTED)}>{stagesDone} of 4 cleared</span>}
           />
           <h2
             id="roadmap-title"
@@ -471,7 +467,7 @@ export default function RoadmapSection({
           <p className="mt-1 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
             {examDatePassed
               ? 'Your saved exam date has passed. Choose a new date to place these stages on a new timeline.'
-              : 'Four stages. The line fills from verified practice — not from ticking boxes.'}
+              : 'Four stages, each measured from your verified practice. They can clear in any order.'}
             <span className="ml-1 font-bold text-[#5a63df] sm:hidden">Tap a stage to open it.</span>
           </p>
         </div>

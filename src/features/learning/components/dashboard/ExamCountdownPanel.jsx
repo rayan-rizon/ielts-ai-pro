@@ -135,7 +135,7 @@ export default function ExamCountdownPanel({
       <PanelTitle
         label="Time until your exam"
         accent
-        tip="Study time left is your saved weekly availability multiplied by the weeks remaining. It is not a score prediction."
+        tip="Study time left is the weekly availability you set multiplied by the weeks remaining. It is not a score prediction."
         action={
           <Pill tone={urgency === 'neutral' ? 'neutral' : urgency}>
             {!hasDate
@@ -215,7 +215,8 @@ export default function ExamCountdownPanel({
             ))}
           </div>
           <p className={cn(MICRO, MUTED, 'mt-1.5 leading-relaxed')}>
-            Sessions and study time are the availability you saved, spread across the weeks left.
+            Sessions and study time are the weekly availability you set, spread across the weeks
+            left.
           </p>
 
           <div className={cn(TILE, 'mt-auto flex items-start gap-2.5 p-3.5 sm:mt-4')}>

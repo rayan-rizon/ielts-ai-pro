@@ -146,7 +146,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
         <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5">
           {[
             { label: 'Planned this week', value: formatMinutes(stats.plannedMinutes) },
-            { label: 'Time you saved', value: formatMinutes(weeklyCapacity) },
+            { label: 'Your weekly budget', value: formatMinutes(weeklyCapacity) },
             { label: 'Study days', value: `${stats.plannedStudyDays} of 7` },
           ].map((row) => (
             <div key={row.label} className="flex items-baseline justify-between gap-2">
@@ -204,7 +204,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
             <p className="min-w-0 text-xs font-bold leading-snug text-slate-800 dark:text-slate-100">
               {stats.overflowDays
                 ? `${stats.overflowDays} ${stats.overflowDays === 1 ? 'day has' : 'days have'} more work than your saved time.`
-                : 'The scheduled work stays inside your saved weekly capacity.'}
+                : 'The scheduled work stays inside your weekly budget.'}
             </p>
           </div>
           {stats.overflowDays > 0 && onCustomize && (

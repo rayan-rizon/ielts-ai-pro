@@ -1,9 +1,12 @@
 import React from 'react';
-import { Zap, Clock, Target, ChevronRight, Layers, PenTool } from 'lucide-react';
+import { Zap, Clock, Target, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { IconChip, PANEL, TILE } from '@/features/dashboard/components/primitives';
 
-export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs }) {
+const MIN_WORDS = 4;
+
+export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs, wordCount = 0 }) {
+  const ready = wordCount >= MIN_WORDS;
   const games = [
     {
       id: 'quiz',
@@ -21,22 +24,6 @@ export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs }) {
       desc: 'Pair high-impact words with definitions.',
       tone: 'emerald',
     },
-    {
-      id: 'flashcards',
-      name: 'Smart Flashcards',
-      icon: Layers,
-      start: onStartSpeedQuiz,
-      desc: 'Interactive active recall card deck.',
-      tone: 'accent',
-    },
-    {
-      id: 'gapfill',
-      name: 'Sentence Fill',
-      icon: PenTool,
-      start: onStartMatchPairs,
-      desc: 'Insert target vocabulary in context.',
-      tone: 'sky',
-    },
   ];
 
   return (
@@ -48,23 +35,24 @@ export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs }) {
           <IconChip icon={Zap} />
           <span className="truncate">Practice Arena</span>
         </h3>
-        <button
-          onClick={onStartSpeedQuiz}
-          className="flex shrink-0 items-center gap-0.5 text-[10px] font-extrabold uppercase tracking-wider text-[#5a63df] transition-colors hover:underline dark:text-indigo-300"
-        >
-          <span>Explore all</span>
-          <ChevronRight className="h-3 w-3 shrink-0" />
-        </button>
+        <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          {ready ? `${wordCount} words ready` : `Needs ${MIN_WORDS} words`}
+        </span>
       </div>
 
       <div className="relative space-y-2.5 pt-3.5">
         {games.map((game) => (
-          <div
+          <button
+            type="button"
             key={game.id}
             onClick={game.start}
+            disabled={!ready}
             className={cn(
               TILE,
-              'group flex cursor-pointer items-center justify-between p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#c9cdf3] dark:hover:border-white/20'
+              'group flex w-full items-center justify-between p-3 text-left transition-all duration-200',
+              ready
+                ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#c9cdf3] dark:hover:border-white/20'
+                : 'cursor-not-allowed opacity-60'
             )}
           >
             <div className="flex min-w-0 items-center gap-3">
@@ -82,8 +70,13 @@ export default function SimulationHub({ onStartSpeedQuiz, onStartMatchPairs }) {
             <div className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 transition-all group-hover:bg-[#5a63df] group-hover:text-white dark:bg-white/10">
               <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </div>
-          </div>
+          </button>
         ))}
+        {!ready && (
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            Save at least {MIN_WORDS} words to play. You have {wordCount}.
+          </p>
+        )}
       </div>
     </div>
   );

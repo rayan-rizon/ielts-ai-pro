@@ -102,8 +102,8 @@ export default function QuickAddCard({
     if (!finalDefinition) {
       try {
         const details = await fetchDefinition(newWord.trim());
-        if (details) {
-          finalDefinition = details.definition || 'Saved word';
+        if (details?.definition) {
+          finalDefinition = details.definition;
           finalExample = details.example || '';
         }
       } catch (e) {
@@ -111,9 +111,20 @@ export default function QuickAddCard({
       }
     }
 
+    // A word saved with the placeholder "Saved IELTS vocabulary word" is dead weight:
+    // it cannot be reviewed, drilled or read back. Ask for a definition instead of
+    // persisting a filler string the learner never sees the origin of.
+    if (!finalDefinition) {
+      onShowAlert?.({
+        title: 'No definition found',
+        message: `We could not look up "${newWord.trim()}". Add a short definition yourself and save it again.`,
+      });
+      return;
+    }
+
     const result = await onAddWord({
       word: newWord.trim(),
-      definition: finalDefinition || 'Saved IELTS vocabulary word',
+      definition: finalDefinition,
       example: finalExample,
       source: selectedCategory,
     });

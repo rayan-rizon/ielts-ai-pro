@@ -80,8 +80,8 @@ const PageHeader = ({ stats, user }) => (
         Vocabulary Mastery
       </h1>
       <p className={cn('text-sm font-medium', MUTED)}>
-        Master high-precision vocabulary, active recall flashcards, and topic word lists for IELTS
-        Band 8.0+.
+        Master high-precision vocabulary, active recall flashcards, and topic word lists for the
+        IELTS band you are aiming for.
       </p>
     </div>
 
@@ -90,6 +90,7 @@ const PageHeader = ({ stats, user }) => (
         stats={stats}
         wordLimit={getWordLimit(user?.subscription_tier)}
         dueCount={stats?.dueForReviewCount || 0}
+        targetBand={user?.target_band_score}
       />
     </div>
   </div>
@@ -468,7 +469,7 @@ export default function Vocabulary() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="relative z-10 mx-auto max-w-[1600px] space-y-4 p-4 sm:p-6 md:p-8"
+        className="relative z-10 mx-auto max-w-[1600px] space-y-4 p-4 pt-16 sm:p-6 sm:pt-6 md:p-8"
       >
         <PageHeader stats={stats} user={user} />
 

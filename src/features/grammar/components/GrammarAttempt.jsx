@@ -136,6 +136,16 @@ export default function GrammarAttempt({
     headingRef.current?.focus({ preventScroll: true });
   }, [position]);
 
+  useEffect(() => {
+    if (!item || hasOptions) return;
+    if (item.questionFormat !== 'error_correction') return;
+    if (currentFeedback?.submitted) return;
+    if (!cleanSentence) return;
+    setAnswers((current) =>
+      current[item.id] === undefined ? { ...current, [item.id]: cleanSentence } : current
+    );
+  }, [item, hasOptions, cleanSentence, currentFeedback?.submitted]);
+
   const familyProgress = useMemo(() => {
     const groups = new Map();
     items.forEach((question) => {
@@ -202,7 +212,11 @@ export default function GrammarAttempt({
           {diagnostic ? 'Grammar level check' : 'Focused practice'}
         </Pill>
         <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-          {diagnostic ? 'Find your grammar priorities' : skillLabel(item.skillCode)}
+          {diagnostic
+            ? 'Find your grammar priorities'
+            : familyProgress.length === 1
+              ? skillLabel(familyProgress[0].skillCode)
+              : 'Mixed grammar practice'}
         </h1>
       </header>
 
@@ -263,19 +277,17 @@ export default function GrammarAttempt({
                       onClick={handleCopySentence}
                       disabled={Boolean(currentFeedback?.submitted)}
                       className="inline-flex items-center gap-1.5 rounded-md border border-[#5a63df]/25 bg-white px-2.5 py-1 text-xs font-bold text-[#5a63df] transition-all hover:bg-[#5a63df]/5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/15 dark:bg-[#1a1924] dark:text-indigo-300 dark:hover:bg-white/10"
-                      title="Copy original sentence into your answer field to edit it quickly"
+                      title="Put the original sentence back in your answer field"
                     >
                       {copied ? (
                         <>
                           <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                          <span className="text-emerald-600 dark:text-emerald-400">
-                            Copied into answer!
-                          </span>
+                          <span className="text-emerald-600 dark:text-emerald-400">Reset!</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-3.5 w-3.5" />
-                          <span>Copy sentence to edit</span>
+                          <span>Reset to original</span>
                         </>
                       )}
                     </button>

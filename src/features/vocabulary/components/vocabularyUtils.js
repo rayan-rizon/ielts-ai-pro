@@ -16,32 +16,52 @@ export const getPartOfSpeech = (item) => {
   return matched ? matched.pos : 'word';
 };
 
-const MEMORY_LEVELS = [
-  {
-    minLevel: 4,
-    label: 'Mastered',
-    percent: 85,
+const MASTERY_STEPS = 5;
+
+const TONE = {
+  emerald: {
     color: 'bg-emerald-500',
     badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
   },
-  {
-    minLevel: 2,
-    label: 'Learning',
-    percent: 55,
+  amber: {
     color: 'bg-amber-500',
     badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
   },
-];
-
-const DEFAULT_MEMORY = {
-  label: 'New',
-  percent: 30,
-  color: 'bg-indigo-500',
-  badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+  indigo: {
+    color: 'bg-indigo-500',
+    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+  },
+  slate: {
+    color: 'bg-slate-300 dark:bg-slate-600',
+    badgeClass: 'bg-slate-500/10 text-slate-600 dark:text-slate-300 border-slate-500/20',
+  },
 };
 
-export const getMemoryStrength = (masteryLevel = 0) => {
-  return MEMORY_LEVELS.find((m) => masteryLevel >= m.minLevel) || DEFAULT_MEMORY;
+/**
+ * Memory strength used to be three hardcoded percentages (30/55/85) keyed off a
+ * mastery bucket, printed under a "Memory strength" heading with a progress bar.
+ * Nothing measured them, and a word marked known by hand — never reviewed once —
+ * still displayed 85%.
+ *
+ * Now the number is a plain function of review history: `percent` is null until
+ * the word has actually been reviewed, and callers render a dash instead of a
+ * bar. A word the learner marked known without reviewing says exactly that.
+ */
+export const getMemoryStrength = (item = {}) => {
+  const source = typeof item === 'object' && item !== null ? item : {};
+  const level = Number(source.mastery_level) || 0;
+  const reviews = Number(source.times_reviewed) || 0;
+
+  if (reviews === 0) {
+    return level >= 4
+      ? { label: 'Marked known', percent: null, reviews, ...TONE.slate }
+      : { label: 'Not reviewed', percent: null, reviews, ...TONE.slate };
+  }
+
+  const percent = Math.round((Math.min(level, MASTERY_STEPS) / MASTERY_STEPS) * 100);
+  if (level >= 4) return { label: 'Mastered', percent, reviews, ...TONE.emerald };
+  if (level >= 2) return { label: 'Learning', percent, reviews, ...TONE.amber };
+  return { label: 'Fragile', percent, reviews, ...TONE.indigo };
 };
 
 export const computeCounts = (words) => {

@@ -63,7 +63,7 @@ const CardMemoryFooter = ({ source, memory }) => (
           {memory.label}
         </span>
         <span className="text-[11px] font-black text-slate-900 dark:text-white">
-          {memory.percent}%
+          {memory.percent != null ? `${memory.percent}%` : '—'}
         </span>
       </div>
     </div>
@@ -71,7 +71,7 @@ const CardMemoryFooter = ({ source, memory }) => (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/10">
       <div
         className="h-full rounded-full bg-[#5a63df] transition-all duration-500"
-        style={{ width: `${memory.percent}%` }}
+        style={{ width: `${memory.percent ?? 0}%` }}
       />
     </div>
   </div>
@@ -79,7 +79,7 @@ const CardMemoryFooter = ({ source, memory }) => (
 
 export const VocabularyCardItem = memo(({ item, onViewWord, onToggleMastery, onDeleteWord }) => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const memory = getMemoryStrength(item.mastery_level || 0);
+  const memory = getMemoryStrength(item);
 
   const handleSpeak = (e) => {
     e.stopPropagation();
@@ -118,7 +118,7 @@ export const VocabularyCardItem = memo(({ item, onViewWord, onToggleMastery, onD
 
             <div className="flex items-center gap-2">
               <span className="font-mono text-xs font-bold text-slate-400 dark:text-slate-500">
-                {item.ipa || `/${item.word}/`}
+                {item.ipa || ''}
               </span>
               <Badge
                 variant="outline"

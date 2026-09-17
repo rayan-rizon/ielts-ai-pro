@@ -145,6 +145,16 @@ export function useLearningPathDashboard({
     [scheduledTask, snapshot.readiness, evidence, snapshot.targetBand]
   );
   const primaryTask = scheduledTask || fallbackTask;
+
+  // The hero ranks the best task across the whole week, so on a rest day it was
+  // urging work the plan had deliberately not scheduled for today. Surface the
+  // mismatch instead of hiding it — the plan's own rest day should still hold.
+  const todayIsRestDay = Boolean(today && (today.tasks?.length ?? 0) === 0);
+  const primaryTaskIsToday = Boolean(scheduledTask && scheduledTask.dayIndex === 0);
+  const primaryTaskDayLabel =
+    scheduledTask && !primaryTaskIsToday && scheduledTask.day?.date
+      ? scheduledTask.day.date.toLocaleDateString(undefined, { weekday: 'long' })
+      : '';
   const nextTasks = useMemo(
     () =>
       sevenDays
@@ -285,6 +295,9 @@ export function useLearningPathDashboard({
     pathProgress,
     primaryTask,
     isFallbackTask: Boolean(fallbackTask),
+    todayIsRestDay,
+    primaryTaskIsToday,
+    primaryTaskDayLabel,
     nextTasks,
     startTask,
     toggleTask,

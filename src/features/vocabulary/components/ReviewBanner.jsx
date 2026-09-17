@@ -211,15 +211,7 @@ export default function ReviewBanner({
               )}
             >
               <Play className="h-3.5 w-3.5 fill-current" />
-              {hasDueItems ? 'Start Review Session' : 'Review Queue Clear'}
-            </Button>
-
-            <Button
-              onClick={onStartReview}
-              variant="outline"
-              className="h-10 w-full sm:w-auto rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
-            >
-              Review All Due ({dueForReview.length})
+              {hasDueItems ? `Start review session (${dueForReview.length})` : 'Review Queue Clear'}
             </Button>
           </div>
         </div>

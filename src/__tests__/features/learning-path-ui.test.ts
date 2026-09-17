@@ -129,7 +129,8 @@ describe('Learning Path main page composition', () => {
   });
 
   it('makes the roadmap rail keyboard-operable and gives every stage a descriptive name', () => {
-    expect(roadmap).toContain('aria-label={`Open stage ${index + 1}');
+    expect(roadmap).toContain('aria-label={`Open the ${phase.shortName} stage.');
+    expect(roadmap).not.toContain('Open stage ${index + 1}');
     expect(roadmap).toContain("event.key === 'Enter'");
     expect(roadmap).toContain("event.key === ' '");
     expect(roadmap).toContain('aria-pressed={selectedIndex === index}');
@@ -537,7 +538,11 @@ describe('Learning Path main page composition', () => {
     expect(roadmap).toContain('getPathProgress');
     expect(roadmap).toContain('const railFill = overallPercent;');
     expect(roadmap).toContain('railFill={railFill}');
-    expect(roadmap).toContain('Open stage ${index + 1}');
+    // The header counts cleared stages instead of printing an ordinal: stages 3
+    // and 4 could read DONE under a "Stage 2 of 4" heading.
+    expect(roadmap).toContain('{stagesDone} of 4 cleared');
+    expect(roadmap).not.toContain('Stage {currentPhaseIndex + 1} of 4');
+    expect(roadmap).toContain('They can clear in any order.');
     expect(roadmap).toContain("Planned: 'Planned'");
     expect(roadmap).not.toContain("Locked: 'Locked'");
     expect(roadmap).toContain('item.done');

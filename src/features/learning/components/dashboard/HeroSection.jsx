@@ -88,7 +88,7 @@ function StageStrip({ pathProgress }) {
         />
       </div>
       <p className="mt-2 truncate text-[11px] font-bold text-[#5a63df] dark:text-[#afb5ff]">
-        Stage {pathProgress.currentIndex + 1} of {pathProgress.totalStages} · {stage.shortName}
+        Now: {stage.shortName} · {pathProgress.stagesDone}/{pathProgress.totalStages} cleared
       </p>
       <p className={cn('mt-0.5 text-[11px] font-medium leading-snug', MUTED)}>
         {getFriendlyPlanText(stage.progressRule || stage.progressLabel)}
@@ -146,6 +146,9 @@ function HeroBanner({
   isLegacyPlan,
   primaryTask,
   isFallbackTask,
+  todayIsRestDay,
+  primaryTaskIsToday,
+  primaryTaskDayLabel,
   today,
   path,
   targetBand,
@@ -171,7 +174,7 @@ function HeroBanner({
   const reasonText =
     primaryTask?.reason ||
     path?.coach_summary?.explanation ||
-    'This fits the study time you saved for today.';
+    'This fits the study time you set aside for today.';
 
   const goalText = primaryTask?.success_criterion
     ? getFriendlyPlanText(primaryTask.success_criterion)
@@ -232,8 +235,11 @@ function HeroBanner({
         <div className="grid gap-2.5 p-2.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,330px)] sm:p-3">
           <div className={cn(TILE, 'flex min-w-0 flex-col p-4')}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <Eyebrow className="text-[#5a63df] dark:text-[#afb5ff]">Do this next</Eyebrow>
+              <Eyebrow className="text-[#5a63df] dark:text-[#afb5ff]">
+                {isFallbackTask || primaryTaskIsToday ? 'Do this next' : 'Next in your plan'}
+              </Eyebrow>
               <div className="flex shrink-0 items-center gap-1.5">
+                {todayIsRestDay && !isFallbackTask && <Pill tone="neutral">Rest day today</Pill>}
                 {isFallbackTask && (
                   <Pill tone="accent">
                     <Sparkles className="h-3 w-3" />
@@ -294,7 +300,11 @@ function HeroBanner({
               <p className={cn('text-[11px] font-medium leading-snug', MUTED)}>
                 {isFallbackTask
                   ? 'Nothing is scheduled today — this is the work that moves your stage furthest.'
-                  : 'Finishing it feeds your next score check.'}
+                  : todayIsRestDay && primaryTaskDayLabel
+                    ? `Your plan keeps today free. This is scheduled for ${primaryTaskDayLabel} — start it early if you want to.`
+                    : primaryTaskDayLabel
+                      ? `Scheduled for ${primaryTaskDayLabel}. Finishing it feeds your next score check.`
+                      : 'Finishing it feeds your next score check.'}
               </p>
             </div>
             <p className="sr-only">Finished tasks are never turned into a predicted IELTS score.</p>
@@ -338,7 +348,7 @@ function HeroBanner({
             tone="amber"
             label="Weekly study time"
             value={formatMinutes(weeklyCapacity)}
-            sub="Saved"
+            sub="Your budget"
           />
           {/* The only cell that does something, so it is the only cell that
               looks like it does: it lifts on hover and carries an edit glyph.

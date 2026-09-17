@@ -3,7 +3,12 @@ import { BookOpen, Target, Clock, Trophy, Flame } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Stat } from '@/features/dashboard/components/primitives';
 
-export default function VocabularyStats({ stats, wordLimit, dueCount = 0, className }) {
+const formatTargetBand = (targetBand) => {
+  const band = Number(targetBand);
+  return Number.isFinite(band) && band > 0 ? band.toFixed(1) : '—';
+};
+
+export default function VocabularyStats({ stats, wordLimit, dueCount = 0, targetBand, className }) {
   const displayLimit =
     wordLimit === Infinity ? stats.totalWords : `${stats.totalWords}/${wordLimit}`;
 
@@ -14,7 +19,7 @@ export default function VocabularyStats({ stats, wordLimit, dueCount = 0, classN
     // this is what the app is for, not a problem to be alarmed about.
     { icon: Clock, value: dueCount, label: 'Due today', tone: dueCount > 0 ? 'amber' : 'neutral' },
     { icon: Flame, value: `${stats.streak}d`, label: 'Streak', tone: 'amber' },
-    { icon: Trophy, value: '8.0+', label: 'Goal', tone: 'sky' },
+    { icon: Trophy, value: formatTargetBand(targetBand), label: 'Goal', tone: 'sky' },
   ];
 
   return (

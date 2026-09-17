@@ -182,13 +182,17 @@ describe('GrammarAttempt', () => {
     expect(screen.getByText('Because fewer commuters need to drive.')).toBeInTheDocument();
     expect(screen.queryByText('Because fewer commuters need to drive .')).not.toBeInTheDocument();
 
-    // Verify "Copy sentence to edit" button
-    const copyButton = screen.getByRole('button', { name: /Copy sentence to edit/i });
-    fireEvent.click(copyButton);
-
-    expect(await screen.findByText('Copied into answer!')).toBeInTheDocument();
-
+    // Error-correction items now start from the original sentence so the learner
+    // edits the one wrong word instead of retyping it (and mistyping it).
     const input = screen.getByRole('textbox', { name: /Your corrected sentence:/i });
+    await waitFor(() => expect(input).toHaveValue('Because fewer commuters need to drive.'));
+
+    // The button is now a way back to the original after editing.
+    fireEvent.change(input, { target: { value: 'scratch that' } });
+    const resetButton = screen.getByRole('button', { name: /Reset to original/i });
+    fireEvent.click(resetButton);
+
+    expect(await screen.findByText('Reset!')).toBeInTheDocument();
     expect(input).toHaveValue('Because fewer commuters need to drive.');
 
     // Edit input and submit with Enter

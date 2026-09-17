@@ -62,6 +62,9 @@ export default function LearningPathDashboard(props) {
     pathProgress,
     primaryTask,
     isFallbackTask,
+    todayIsRestDay,
+    primaryTaskIsToday,
+    primaryTaskDayLabel,
     nextTasks,
     startTask,
     toggleTask,
@@ -81,6 +84,9 @@ export default function LearningPathDashboard(props) {
         isLegacyPlan={isLegacyPlan}
         primaryTask={primaryTask}
         isFallbackTask={isFallbackTask}
+        todayIsRestDay={todayIsRestDay}
+        primaryTaskIsToday={primaryTaskIsToday}
+        primaryTaskDayLabel={primaryTaskDayLabel}
         today={today}
         path={path}
         targetBand={targetBand}

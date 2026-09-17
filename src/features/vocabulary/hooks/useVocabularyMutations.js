@@ -2,6 +2,9 @@ import { useState, useCallback } from 'react';
 import { UserPoints } from '@/features/gamification/services/UserPoints';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
 
+/** First review one day after saving, matching the SRS interval for a new item. */
+const nextDayIso = () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
 /**
  * Custom hook for vocabulary CRUD operations
  * Handles adding, deleting, and toggling mastery of vocabulary items
@@ -34,7 +37,9 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
           user_id: user?.id,
           created_by: user?.id,
           mastery_level: 0,
-          next_review_date: null,
+          // Due tomorrow, not "null". A null date read as due-right-now for every
+          // word ever saved, so the review queue never emptied and never ordered.
+          next_review_date: nextDayIso(),
           source,
         });
 
@@ -88,19 +93,10 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
           prev.map((item) => (item.id === id ? { ...item, mastery_level: newLevel } : item))
         );
 
-        // Award XP for mastering a word
-        if (newLevel >= 4 && user?.id) {
-          try {
-            await UserPoints.addPoints(
-              user.id,
-              10,
-              'vocabulary_mastery',
-              `vocabulary-mastery:${id}`
-            );
-          } catch (xpError) {
-            console.warn('Failed to update XP:', xpError);
-          }
-        }
+        // No XP here on purpose. Marking a word known is the learner's own claim,
+        // not a measured result — awarding points for it made every word worth 10
+        // points for one click. Review XP is granted in useReviewSession, where a
+        // recall attempt actually happened.
 
         return { success: true, newLevel };
       } catch (error) {
@@ -108,7 +104,7 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
         return { success: false, error: error.message };
       }
     },
-    [user, setAllVocabulary]
+    [setAllVocabulary]
   );
 
   const handleClearAllWords = useCallback(async () => {

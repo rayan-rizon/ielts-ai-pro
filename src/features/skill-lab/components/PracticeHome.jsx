@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
@@ -11,6 +12,7 @@ import {
   Layers,
   ChevronDown,
   History,
+  Search,
   PenTool,
   Mic,
   Check,
@@ -63,13 +65,15 @@ function computeNextNavIndex(key, currentIndex, length) {
   return (currentIndex + delta + length) % length;
 }
 
-function usePickerDismiss(pickerRef, triggerRef, setOpen) {
+function usePickerDismiss(pickerRef, listRef, triggerRef, setOpen) {
   useEffect(() => {
+    const isInside = (node) =>
+      Boolean(pickerRef.current?.contains(node) || listRef.current?.contains(node));
     const handlePointerDown = (event) => {
-      if (!pickerRef.current?.contains(event.target)) setOpen(false);
+      if (!isInside(event.target)) setOpen(false);
     };
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && pickerRef.current?.contains(event.target)) {
+      if (event.key === 'Escape' && isInside(event.target)) {
         setOpen(false);
         triggerRef.current?.focus();
       }
@@ -80,7 +84,7 @@ function usePickerDismiss(pickerRef, triggerRef, setOpen) {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [pickerRef, triggerRef, setOpen]);
+  }, [pickerRef, listRef, triggerRef, setOpen]);
 }
 
 function SourceSetOption({ set, index, isActive, isSelected, onSelect, setOptionRef }) {
@@ -114,43 +118,128 @@ function SourceSetOption({ set, index, isActive, isSelected, onSelect, setOption
   );
 }
 
+/**
+ * Positions the listbox against the trigger in viewport coordinates.
+ *
+ * The listbox is rendered through a portal on `document.body` rather than next
+ * to the trigger. Inside Practice Lab the picker sits several levels deep in a
+ * framer-motion panel, inside the app's scrolling content column — the old
+ * absolutely-positioned panel was painted under the Question Type Library below
+ * it, and raising z-index did nothing because the panels above it sit in their
+ * own stacking contexts. A portal has no ancestor that can clip or out-paint it.
+ */
+function useAnchoredPosition(triggerRef, open, optionCount) {
+  const [style, setStyle] = useState(null);
+
+  useEffect(() => {
+    if (!open) {
+      setStyle(null);
+      return undefined;
+    }
+
+    const place = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const gutter = 8;
+      const below = window.innerHeight - rect.bottom - gutter;
+      const above = rect.top - gutter;
+      // Roughly 49px per row plus the filter box, capped so the list never eats
+      // the whole viewport.
+      const wanted = Math.min(320, optionCount * 49 + 56);
+      const flip = below < Math.min(wanted, 200) && above > below;
+      setStyle({
+        position: 'fixed',
+        left: rect.left,
+        width: rect.width,
+        maxHeight: Math.max(160, Math.min(wanted, flip ? above : below)),
+        ...(flip ? { bottom: window.innerHeight - rect.top + 6 } : { top: rect.bottom + 6 }),
+      });
+    };
+
+    place();
+    // Any scroll in any container moves the trigger, so recompute on capture.
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => {
+      window.removeEventListener('scroll', place, true);
+      window.removeEventListener('resize', place);
+    };
+  }, [triggerRef, open, optionCount]);
+
+  return style;
+}
+
 function SourceSetPicker({ sets, value, onChange }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const pickerRef = useRef(null);
+  const listRef = useRef(null);
   const triggerRef = useRef(null);
+  const searchRef = useRef(null);
   const optionRefs = useRef([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Two pickers render on this page; a shared literal id made `aria-controls`
+  // and every `aria-activedescendant` ambiguous.
+  const listboxId = `practice-source-options-${useId()}`;
   const selected = sets.find((set) => set.id === value) || sets[0];
 
-  usePickerDismiss(pickerRef, triggerRef, setOpen);
+  // 40+ source sets is a scroll-and-hope list without a filter.
+  const visibleSets = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return sets;
+    return sets.filter((set) =>
+      `${set.title} ${focusLabel(set.focus)} ${familiarity(set.familiarity)}`
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [sets, query]);
+
+  usePickerDismiss(pickerRef, listRef, triggerRef, setOpen);
+
+  const position = useAnchoredPosition(triggerRef, open, visibleSets.length);
 
   useEffect(() => {
     if (open) optionRefs.current[activeIndex]?.focus();
-  }, [open, activeIndex]);
+  }, [open, activeIndex, visibleSets.length]);
+
+  useEffect(() => {
+    if (!open) setQuery('');
+  }, [open]);
 
   const selectedIndex = Math.max(
     0,
-    sets.findIndex((set) => set.id === selected?.id)
+    visibleSets.findIndex((set) => set.id === selected?.id)
   );
 
   const openPicker = () => {
-    setActiveIndex(selectedIndex);
+    setActiveIndex(Math.max(0, selectedIndex));
     setOpen((prev) => !prev);
+  };
+
+  const closePicker = () => {
+    setOpen(false);
+    triggerRef.current?.focus();
   };
 
   const handleTriggerKeyDown = (event) => {
     if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
       event.preventDefault();
-      setActiveIndex(selectedIndex);
+      setActiveIndex(Math.max(0, selectedIndex));
       setOpen(true);
     }
   };
 
   const handleListboxKeyDown = (event) => {
+    if (event.key === 'Tab') {
+      closePicker();
+      return;
+    }
     const navKeys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
     if (!navKeys.includes(event.key)) return;
     event.preventDefault();
-    setActiveIndex((prev) => computeNextNavIndex(event.key, prev, sets.length));
+    if (!visibleSets.length) return;
+    setActiveIndex((prev) => computeNextNavIndex(event.key, prev, visibleSets.length));
   };
 
   const handleSelect = (id) => {
@@ -164,10 +253,65 @@ function SourceSetPicker({ sets, value, onChange }) {
   };
 
   const activeOptionId =
-    open && sets[activeIndex] ? `practice-source-option-${sets[activeIndex].id}` : undefined;
+    open && visibleSets[activeIndex]
+      ? `practice-source-option-${visibleSets[activeIndex].id}`
+      : undefined;
   const triggerBorderClass = open
     ? 'border-[#5a63df] ring-2 ring-[#5a63df]/20 dark:border-[#8f97ff] dark:ring-[#8f97ff]/25'
     : '';
+
+  const listbox = (
+    <div
+      ref={listRef}
+      id={listboxId}
+      role="listbox"
+      aria-label="Available source sets"
+      onKeyDown={handleListboxKeyDown}
+      style={position ?? undefined}
+      className="z-[100] flex flex-col overflow-hidden rounded-xl border border-[#cfcddf] bg-white shadow-2xl dark:border-white/15 dark:bg-[#15141c]"
+    >
+      {sets.length > 6 && (
+        <div className="shrink-0 border-b border-[#eeedf7] p-2 dark:border-white/10">
+          <div className="relative">
+            <Search
+              size={13}
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setActiveIndex(0);
+              }}
+              placeholder={`Filter ${sets.length} source sets…`}
+              aria-label="Filter source sets"
+              className={`${focusRing} w-full rounded-md border border-[#e2e5f2] bg-[#fbfbfe] py-1.5 pl-7 pr-2 text-xs font-medium text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-100`}
+            />
+          </div>
+        </div>
+      )}
+      <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
+        {visibleSets.length === 0 ? (
+          <p className={`px-2.5 py-3 text-xs ${MUTED}`}>No source set matches “{query}”.</p>
+        ) : (
+          visibleSets.map((set, index) => (
+            <SourceSetOption
+              key={set.id}
+              set={set}
+              index={index}
+              isActive={index === activeIndex}
+              isSelected={set.id === selected?.id}
+              onSelect={handleSelect}
+              setOptionRef={setOptionRef}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div ref={pickerRef} className="relative">
@@ -178,7 +322,7 @@ function SourceSetPicker({ sets, value, onChange }) {
         aria-label="Choose a source set"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-controls="practice-source-options"
+        aria-controls={listboxId}
         aria-activedescendant={activeOptionId}
         onClick={openPicker}
         onKeyDown={handleTriggerKeyDown}
@@ -201,27 +345,9 @@ function SourceSetPicker({ sets, value, onChange }) {
           }`}
         />
       </button>
-      {open && (
-        <div
-          id="practice-source-options"
-          role="listbox"
-          aria-label="Available source sets"
-          onKeyDown={handleListboxKeyDown}
-          className="absolute inset-x-0 top-[calc(100%+0.35rem)] z-30 max-h-60 overflow-y-auto rounded-xl border border-[#cfcddf] bg-white p-1.5 shadow-xl dark:border-white/15 dark:bg-[#15141c]"
-        >
-          {sets.map((set, index) => (
-            <SourceSetOption
-              key={set.id}
-              set={set}
-              index={index}
-              isActive={index === activeIndex}
-              isSelected={set.id === selected?.id}
-              onSelect={handleSelect}
-              setOptionRef={setOptionRef}
-            />
-          ))}
-        </div>
-      )}
+      {open && position && typeof document !== 'undefined'
+        ? createPortal(listbox, document.body)
+        : null}
     </div>
   );
 }
@@ -277,6 +403,19 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
   const reset = data.reset_at
     ? new Date(data.reset_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '00:00 UTC';
+
+  // One gate for every "start a set" button. `requestedUnavailable` used to be part
+  // of this, which disabled the CTA even though `selected` had already fallen back to
+  // an available type — arriving from a Learning Path task for a focus with no sets
+  // left the whole page unusable. The CTA acts on `next`, so `next` is what gates it.
+  const canStart = Boolean(data.enabled && data.remaining && next);
+  const blockedReason = data.enabled
+    ? !data.remaining
+      ? `You have used all ${data.limit} sets for today. Your allowance resets at ${reset}.`
+      : !next
+        ? 'No library set is available for this question type yet.'
+        : ''
+    : 'New practice sets are paused right now, so this cannot be started.';
 
   const containerVariants = shouldReduceMotion ? undefined : STAGGER_CONTAINER;
   const itemVariants = shouldReduceMotion ? undefined : FADE_UP;
@@ -343,8 +482,8 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
               tone="accent"
               icon={Layers}
               label="Sets left today"
-              value={`${data.remaining ?? 0} / ${data.limit ?? 0}`}
-              sub={`Resets ${reset}`}
+              value={data.enabled ? `${data.remaining ?? 0} / ${data.limit ?? 0}` : '—'}
+              sub={data.enabled ? `Resets ${reset}` : 'Paused — nothing is being used'}
               tip="Daily allowance of targeted question sets with AI diagnostic feedback"
             />
             <Stat
@@ -353,7 +492,11 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
               icon={ReiconTarget}
               label="Question types"
               value={new Set(allGroups.map((g) => g.focus)).size}
-              sub={`${allGroups.length} available library sets`}
+              sub={
+                data.enabled
+                  ? `${allGroups.length} available library sets`
+                  : `${allGroups.length} library sets · paused`
+              }
               tip="Targeted Reading and Listening question formats from Cambridge tests"
             />
             <Stat
@@ -448,8 +591,9 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
               role="status"
               className={`${WELL} rounded-lg border border-amber-500/20 p-3 text-xs`}
             >
-              A separate set for {focusLabel(focus)} is not available. Select an available type
-              below to continue.
+              There is no separate set for {focusLabel(focus)} yet, so we have selected{' '}
+              <strong className="font-semibold">{focusLabel(selected)}</strong> instead. Pick a
+              different question type below if you would rather practise something else.
             </motion.p>
           )}
 
@@ -609,23 +753,27 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                         )}
                       </div>
                       <div className="mt-4 pt-3 border-t border-[#eeedf7] space-y-2.5 dark:border-white/[0.08]">
-                        <p className={`text-[11px] leading-relaxed ${MUTED}`}>
-                          {next.familiarity === 'new'
-                            ? 'This source test will be marked partly practised.'
-                            : next.familiarity === 'familiar'
-                              ? 'You have seen this passage or audio before.'
-                              : 'You have answered these questions before. Use them for revision.'}{' '}
-                          Your full-test result stays separate.
+                        <p
+                          className={`flex items-start gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] leading-relaxed ${
+                            next.familiarity === 'new'
+                              ? 'border-amber-500/25 bg-amber-500/5 text-amber-700 dark:text-amber-300'
+                              : `border-transparent ${MUTED}`
+                          }`}
+                        >
+                          <Lightbulb className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+                          <span>
+                            {next.familiarity === 'new'
+                              ? 'Heads up: this marks the source Cambridge test as partly practised, so save it for a clean mock if you want one.'
+                              : next.familiarity === 'familiar'
+                                ? 'You have seen this passage or audio before.'
+                                : 'You have answered these questions before. Use them for revision.'}{' '}
+                            Your full-test result stays separate.
+                          </span>
                         </p>
                         <Button
                           size="sm"
                           className="group w-full bg-linear-to-r from-[#5a63df] to-[#6d75ed] font-bold text-white shadow-xs transition-all duration-150 hover:from-[#4f58d4] hover:to-[#5e66e0] hover:shadow-sm active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-                          disabled={
-                            busy ||
-                            !data.enabled ||
-                            !data.remaining ||
-                            Boolean(requestedUnavailable)
-                          }
+                          disabled={busy || !canStart}
                           onClick={() => start(next)}
                         >
                           {busy
@@ -638,6 +786,11 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                             className="ml-1.5 transition-transform duration-150 group-hover:translate-x-0.5"
                           />
                         </Button>
+                        {blockedReason ? (
+                          <p role="status" className={`text-[11px] leading-relaxed ${MUTED}`}>
+                            {blockedReason}
+                          </p>
+                        ) : null}
                         {!data.remaining && (
                           <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
                             Today’s allowance is used. Resets at {reset}; resuming saved work is
@@ -1005,10 +1158,14 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                           />
                           {subject(f)}
                         </span>
-                        {result?.mistakes?.length > 0 ? (
-                          <Pill tone="warn">
-                            {result.repeatedDifficulty ? 'Worth another look' : 'Worth practising'}
+                        {result?.total > 0 && result.correct / result.total < 0.5 ? (
+                          <Pill tone="fault">
+                            {result.repeatedDifficulty ? 'Repeated difficulty' : 'Needs work'}
                           </Pill>
+                        ) : result?.total > 0 && result.correct / result.total < 0.8 ? (
+                          <Pill tone="warn">Worth practising</Pill>
+                        ) : result?.total > 0 ? (
+                          <Pill tone="ok">Strong</Pill>
                         ) : isSelected ? (
                           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#5a63df] text-white shadow-3xs dark:bg-[#8f97ff] dark:text-slate-950">
                             <Check size={10} strokeWidth={3} />
@@ -1111,15 +1268,21 @@ export default function PracticeHome({ data, focus, setFocus, module, busy, erro
                     <Button
                       ref={exploreActionRef}
                       size="sm"
-                      disabled={
-                        busy || !data.enabled || !data.remaining || Boolean(requestedUnavailable)
-                      }
+                      disabled={busy || !canStart}
                       onClick={() => start(next)}
                       className="whitespace-nowrap bg-linear-to-r from-[#5a63df] to-[#6d75ed] font-bold text-white shadow-xs transition-all duration-150 hover:from-[#4f58d4] hover:to-[#5e66e0] active:scale-[0.99]"
                     >
                       {next.familiarity === 'repeated' ? 'Practise again' : 'Review and practise'}
                       <ArrowRight size={14} className="ml-1.5" />
                     </Button>
+                    {blockedReason ? (
+                      <p
+                        role="status"
+                        className={`text-[11px] leading-relaxed sm:col-span-2 ${MUTED}`}
+                      >
+                        {blockedReason}
+                      </p>
+                    ) : null}
                   </div>
                 </motion.section>
               )}

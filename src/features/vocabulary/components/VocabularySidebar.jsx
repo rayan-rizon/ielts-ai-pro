@@ -43,7 +43,11 @@ export default function VocabularySidebar({
       />
 
       {/* Practice Arena Games */}
-      <SimulationHub onStartSpeedQuiz={onStartSpeedQuiz} onStartMatchPairs={onStartMatchPairs} />
+      <SimulationHub
+        onStartSpeedQuiz={onStartSpeedQuiz}
+        onStartMatchPairs={onStartMatchPairs}
+        wordCount={allVocabularyCount}
+      />
     </div>
   );
 }

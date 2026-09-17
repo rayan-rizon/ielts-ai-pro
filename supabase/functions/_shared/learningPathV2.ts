@@ -478,7 +478,10 @@ function activityForCategory(
       priority: 'high',
       skill_targets: [measured.skill_code],
       reason: `${currentAccuracy}% skill progress across ${measured.observations} results makes this a confirmed focus.`,
-      success_criterion: `Reach at least ${Math.min(90, currentAccuracy + 10)}% on a 10-question check.`,
+      success_criterion: `Get at least ${Math.min(
+        9,
+        Math.max(1, Math.ceil(Math.min(90, currentAccuracy + 10) / 10))
+      )} of 10 questions right.`,
       evidence: {
         class: 'measured_priority',
         observations: measured.observations,

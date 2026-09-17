@@ -64,7 +64,13 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
 
   useEffect(() => {
     const viewport = viewportRef.current;
-    if (!viewport || isPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (
+      !viewport ||
+      isPaused ||
+      !canHover ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       return undefined;
     }
 
@@ -123,7 +129,7 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
             </h3>
           </div>
           <p className={cn('text-xs font-medium', MUTED)}>
-            Explore focused kits while the shelf gently moves.
+            Focused word lists you can save into your bank. Swipe, or use the arrows.
           </p>
         </div>
 

@@ -63,19 +63,27 @@ const DefinitionCell = ({ definition, targetLanguage }) => {
   );
 };
 
-const MemoryMeterCell = ({ masteryLevel }) => {
-  const memory = getMemoryStrength(masteryLevel);
+const MemoryMeterCell = ({ item }) => {
+  const memory = getMemoryStrength(item);
+  const hasScore = memory.percent != null;
   return (
     <td className="px-3 py-3.5">
-      <div className="flex flex-col items-center gap-1 w-24 mx-auto">
+      <div
+        className="flex flex-col items-center gap-1 w-24 mx-auto"
+        title={
+          hasScore
+            ? `Reviewed ${memory.reviews} time${memory.reviews === 1 ? '' : 's'}`
+            : 'No reviews recorded yet'
+        }
+      >
         <div className="flex items-center justify-between w-full text-[10px] font-bold text-slate-700 dark:text-slate-300">
           <span>{memory.label}</span>
-          <span>{memory.percent}%</span>
+          <span>{hasScore ? `${memory.percent}%` : '—'}</span>
         </div>
         <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <div
             className={cn('h-full rounded-full transition-all', memory.color)}
-            style={{ width: `${memory.percent}%` }}
+            style={{ width: `${memory.percent ?? 0}%` }}
           />
         </div>
       </div>
@@ -170,7 +178,7 @@ export const VocabularyTableRow = memo(
                 {item.word}
               </span>
               <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-300">
-                {item.ipa || `/${item.word}/`}
+                {item.ipa || ''}
               </span>
             </div>
           </div>
@@ -196,7 +204,7 @@ export const VocabularyTableRow = memo(
           </Badge>
         </td>
 
-        <MemoryMeterCell masteryLevel={item.mastery_level || 0} />
+        <MemoryMeterCell item={item} />
 
         <TableRowActionsCell
           item={item}

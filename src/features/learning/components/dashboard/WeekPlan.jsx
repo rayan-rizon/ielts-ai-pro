@@ -368,7 +368,7 @@ export default function WeekPlan({
       <PanelTitle
         label="This week's plan"
         accent
-        tip="Each day is sized to the study time you saved for it. Amber means the day is over that limit."
+        tip="Each day is sized to the study time you set aside for it. Amber means the day is over that limit."
         action={
           <Pill tone={daysToMove ? 'warn' : 'accent'}>
             {plannedDays} study {plannedDays === 1 ? 'day' : 'days'}
@@ -477,8 +477,8 @@ export default function WeekPlan({
         )}
       >
         {daysToMove
-          ? `${daysToMove} ${daysToMove === 1 ? 'day is' : 'days are'} over the time you saved.`
-          : `${days.length - plannedDays} open ${days.length - plannedDays === 1 ? 'day' : 'days'} left this week.`}
+          ? `${daysToMove} ${daysToMove === 1 ? 'day is' : 'days are'} over your weekly budget.`
+          : `${days.length - plannedDays} ${days.length - plannedDays === 1 ? 'day has' : 'days have'} nothing scheduled this week.`}
       </p>
     </section>
   );
