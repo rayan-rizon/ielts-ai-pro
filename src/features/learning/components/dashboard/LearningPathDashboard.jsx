@@ -136,6 +136,7 @@ export default function LearningPathDashboard(props) {
           days={sevenDays}
           weeklyCapacity={weeklyCapacity}
           onCustomize={() => setCustomizeOpen(true)}
+          onStart={startTask}
         />
       </div>
 

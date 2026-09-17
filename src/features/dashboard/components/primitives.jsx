@@ -296,53 +296,73 @@ export const Stat = ({
   size = 'md',
   bare = false,
   className,
+  action,
   ...rest
-}) => (
-  <div
-    {...rest}
-    className={cn(
-      bare
-        ? 'px-3 py-2.5'
-        : cn(
-            PANEL,
-            size === 'sm' ? 'px-3 py-2' : 'px-3.5 py-3',
-            'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/18'
-          ),
-      className
-    )}
-  >
-    <div className="flex items-center gap-1.5">
-      {icon && <IconChip icon={icon} tone={tone} size="sm" />}
-      <p className={cn(MICRO, MUTED, bare && 'truncate')}>{label}</p>
-      {tip && <InfoTip label={`About ${label}`}>{tip}</InfoTip>}
-    </div>
+}) => {
+  const isNumeric =
+    typeof value === 'number' ||
+    (typeof value === 'string' &&
+      value.trim().length > 0 &&
+      /^[\d\s.,–\-+/%hmk:]+$/i.test(value.trim()));
+
+  return (
     <div
+      {...rest}
       className={cn(
-        'flex items-baseline gap-x-1.5',
-        // Wrapping, not truncating: in a two-column rail on a phone the value
-        // and its qualifier compete, and clipping turned a date into
-        // "AUG 31, 2…" while the value itself broke mid-phrase. The qualifier
-        // drops to its own line instead, which costs a line only when needed.
-        bare ? 'mt-1 flex-wrap gap-y-0.5' : 'mt-1.5'
+        bare
+          ? 'px-3 py-2.5'
+          : cn(
+              PANEL,
+              size === 'sm' ? 'px-3 py-2' : 'px-3.5 py-3',
+              'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/18'
+            ),
+        className
       )}
     >
-      <span
+      <div className="flex items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {icon && <IconChip icon={icon} tone={tone} size="sm" />}
+          <p className={cn(MICRO, MUTED, bare && 'truncate')}>{label}</p>
+          {tip && <InfoTip label={`About ${label}`}>{tip}</InfoTip>}
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
+      </div>
+      <div
         className={cn(
-          NUM,
-          'font-extrabold leading-none text-slate-900 dark:text-slate-50',
-          bare && 'whitespace-nowrap',
-          size === 'sm' || bare ? 'text-base' : 'text-2xl'
+          'flex items-baseline gap-x-1.5',
+          // Wrapping, not truncating: in a two-column rail on a phone the value
+          // and its qualifier compete, and clipping turned a date into
+          // "AUG 31, 2…" while the value itself broke mid-phrase. The qualifier
+          // drops to its own line instead, which costs a line only when needed.
+          bare ? 'mt-1 flex-wrap gap-y-0.5' : 'mt-1.5'
         )}
       >
-        {value}
-      </span>
-      {unit && <span className={cn(MICRO, MUTED, 'leading-none')}>{unit}</span>}
-      {delta}
-      {bare && sub && <span className={cn(MICRO, MUTED, 'leading-tight')}>{sub}</span>}
+        <span
+          className={cn(
+            isNumeric
+              ? cn(
+                  NUM,
+                  'font-extrabold text-slate-900 dark:text-slate-50',
+                  size === 'sm' || bare ? 'text-base' : 'text-2xl'
+                )
+              : cn(
+                  'font-sans font-bold text-slate-600 dark:text-slate-300',
+                  size === 'sm' || bare ? 'text-[13px] tracking-tight' : 'text-lg'
+                ),
+            'leading-none',
+            bare && 'whitespace-nowrap'
+          )}
+        >
+          {value}
+        </span>
+        {unit && <span className={cn(MICRO, MUTED, 'leading-none')}>{unit}</span>}
+        {delta}
+        {bare && sub && <span className={cn(MICRO, MUTED, 'leading-tight')}>{sub}</span>}
+      </div>
+      {!bare && sub && <p className={cn(MICRO, MUTED, 'mt-1.5')}>{sub}</p>}
     </div>
-    {!bare && sub && <p className={cn(MICRO, MUTED, 'mt-1.5')}>{sub}</p>}
-  </div>
-);
+  );
+};
 
 /**
  * A row of `bare` stats separated by hairlines instead of by borders — the

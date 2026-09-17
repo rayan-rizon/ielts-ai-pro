@@ -4,7 +4,6 @@ import { cn } from '@/lib/cn';
 import {
   Empty,
   IconChip,
-  MICRO,
   MUTED,
   NUM,
   PANEL,
@@ -92,18 +91,17 @@ function PriorityRow({ skill, index, onStart }) {
       }
       aria-label={`Practise ${skillName}, currently ${mastery}% correct`}
       className={cn(
-        'block w-full min-w-0 border-b border-[#eeedf7] px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-[#faf9ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:hover:bg-white/3',
-        isTopPriority && 'bg-[#5a63df]/3 dark:bg-[#8f97ff]/5'
+        'group block w-full min-w-0 border-b border-[#eeedf7] px-3 py-2.5 text-left transition-all duration-150 ease-smooth-out last:border-b-0 hover:bg-[#f8f7fd] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/[0.08] dark:hover:bg-white/[0.04]',
+        isTopPriority && 'bg-[#5a63df]/[0.03] dark:bg-[#8f97ff]/[0.04]'
       )}
     >
-      <div className="group flex min-w-0 items-start gap-2.5">
+      <div className="flex min-w-0 items-start gap-2.5">
         <span
           className={cn(
-            NUM,
-            'mt-0.5 w-4 shrink-0 text-center text-xs font-extrabold',
+            'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-bold',
             isTopPriority
-              ? 'text-[#5a63df] dark:text-[#afb5ff]'
-              : 'text-slate-400 dark:text-slate-500'
+              ? 'bg-[#5a63df]/12 text-[#5a63df] dark:bg-[#8f97ff]/20 dark:text-[#afb5ff]'
+              : 'bg-slate-100 text-slate-500 dark:bg-white/8 dark:text-slate-400'
           )}
         >
           {index + 1}
@@ -111,19 +109,24 @@ function PriorityRow({ skill, index, onStart }) {
         <IconChip icon={Icon} tone={getModuleTone(skill.module)} className="mt-0.5" />
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-1.5">
-            <p className="truncate text-xs font-bold leading-snug text-slate-900 dark:text-white">
+            <p className="truncate text-xs font-bold leading-snug text-slate-900 transition-colors duration-150 group-hover:text-[#5a63df] dark:text-white dark:group-hover:text-[#afb5ff]">
               {skillName}
             </p>
-            <span className="flex shrink-0 items-center gap-1">
+            <span className="flex shrink-0 items-center gap-1.5">
               <Pill tone={KIND_TONE[skill.tone] || 'neutral'}>
                 {KIND_LABEL[skill.kind] || skill.kind}
               </Pill>
-              <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} />
+              <ChevronRight
+                className={cn(
+                  'h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5',
+                  ROW_CHEVRON
+                )}
+              />
             </span>
           </div>
 
-          <div className="mt-1.5 flex items-center gap-2">
-            <div className={cn('h-1.5 flex-1 overflow-hidden rounded-full', WELL)}>
+          <div className="mt-2 flex items-center gap-2">
+            <div className={cn('h-2 flex-1 overflow-hidden rounded-full', WELL)}>
               <div
                 className={cn(
                   'h-full rounded-full transition-[width] duration-500 ease-out',
@@ -143,7 +146,7 @@ function PriorityRow({ skill, index, onStart }) {
             </span>
           </div>
 
-          <p className="mt-1 truncate text-[10px] font-medium">
+          <p className="mt-1 truncate text-[10.5px] font-medium">
             <span className={cn('font-bold', BAND_TEXT[band.tone])}>{band.text}</span>
             <span className={MUTED}> · {(skill.observations || 0).toLocaleString()} answers</span>
           </p>
@@ -171,7 +174,7 @@ export default function PrioritiesPanel({ evidence, onStart }) {
         Focus areas from your scored practice. Pick a skill to practise it and review your feedback.
       </p>
 
-      <div className="mt-3 flex-1 overflow-hidden rounded-lg border border-[#eeedf7] bg-white dark:border-white/10 dark:bg-white/2">
+      <div className="mt-3 flex-1 overflow-hidden rounded-xl border border-[#ebe9f6] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] dark:border-white/[0.08] dark:bg-white/[0.02]">
         {priorities.length > 0 ? (
           priorities.map((skill, index) => (
             <PriorityRow
@@ -187,9 +190,7 @@ export default function PrioritiesPanel({ evidence, onStart }) {
       </div>
 
       {priorities.length > 0 && (
-        <p
-          className={cn(MICRO, MUTED, 'mt-3 border-t border-[#eceafa] pt-2.5 dark:border-white/10')}
-        >
+        <p className="mt-3 border-t border-[#eceafa] pt-2 text-[11px] font-medium leading-relaxed text-slate-400 dark:border-white/10 dark:text-slate-500">
           Percentages estimate skill progress from recorded answers. They are not IELTS band scores.
         </p>
       )}

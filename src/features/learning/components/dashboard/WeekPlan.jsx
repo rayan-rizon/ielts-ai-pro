@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
   CalendarClock,
@@ -61,7 +62,7 @@ function TaskDetails({ task, canReschedule, onReschedule }) {
   }, [task.scheduled_date]);
 
   return (
-    <div className="mt-2.5 rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-3 text-[11px] leading-relaxed text-slate-600 dark:border-white/10 dark:bg-white/4 dark:text-slate-300">
+    <div className="rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-3 text-[11px] leading-relaxed text-slate-600 dark:border-white/10 dark:bg-white/4 dark:text-slate-300">
       {['reading', 'writing', 'listening', 'speaking'].includes(task.module) && (
         <p className="mb-1.5">
           <strong>
@@ -162,7 +163,7 @@ function CompletionControl({ task, friendlyTitle, onToggle }) {
         task.is_completed ? `Mark ${friendlyTitle} incomplete` : `Mark ${friendlyTitle} complete`
       }
       className={cn(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         task.is_completed
           ? 'border-[rgb(var(--signal-ok)/0.4)] bg-[rgb(var(--signal-ok)/0.12)] text-[rgb(var(--signal-ok))]'
           : 'border-[#e4e2f0] bg-slate-50/80 text-slate-400 hover:border-[#5a63df] hover:text-[#5a63df] dark:border-white/15 dark:bg-white/4 dark:text-slate-300 dark:hover:border-[#8f97ff] dark:hover:text-[#a9afff]'
@@ -200,7 +201,7 @@ function CalendarDay({ day, isToday, isSelected, onSelect }) {
           : 'Rest day'
       }.`}
       className={cn(
-        'group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border px-1 py-2.5 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+        'group flex min-w-0 flex-col items-center gap-1.5 rounded-xl border px-1 py-2.5 transition-all duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         isSelected
           ? 'border-[#5a63df] bg-[#5a63df]/10 dark:border-[#8f97ff]/60 dark:bg-[#8f97ff]/20'
           : 'border-transparent hover:border-[#e4e2f0] hover:bg-white dark:hover:border-white/10 dark:hover:bg-white/5'
@@ -266,9 +267,11 @@ function CalendarDay({ day, isToday, isSelected, onSelect }) {
 }
 
 function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, onReschedule }) {
+  const reduceMotion = useReducedMotion();
   const style = getModuleStyle(task.module);
   const Icon = style.icon;
   const friendlyTitle = getFriendlyTaskTitle(task);
+  const detailsId = `task-details-${task.activity_key || task.id}`;
 
   return (
     <div
@@ -283,7 +286,9 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
         <button
           type="button"
           onClick={onExpand}
-          className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+          aria-expanded={expanded}
+          aria-controls={detailsId}
+          className="min-w-0 flex-1 text-left rounded-lg -my-1 py-1 -ml-1 pl-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
         >
           <span className="flex items-center gap-2">
             <span
@@ -305,28 +310,61 @@ function TaskRow({ task, canReschedule, expanded, onExpand, onToggle, onStart, o
           type="button"
           onClick={() => onStart(task)}
           aria-label={`Start ${friendlyTitle}`}
-          className="flex h-8 shrink-0 items-center justify-center rounded-lg bg-[#5a63df] hover:bg-[#4850c8] px-3.5 text-[11px] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] shadow-xs"
+          className="flex h-8 shrink-0 items-center justify-center rounded-lg bg-[#5a63df] hover:bg-[#4850c8] px-3.5 text-[11px] font-bold text-white transition-all duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] shadow-xs"
         >
-          <Play className="h-3 w-3 fill-current sm:mr-1.5" />{' '}
+          <Play className="h-3 w-3 fill-current sm:mr-1.5 translate-x-px" />{' '}
           <span className="hidden sm:inline">Start</span>
         </button>
         <button
           type="button"
           onClick={onExpand}
+          aria-expanded={expanded}
+          aria-controls={detailsId}
           aria-label={`${expanded ? 'Hide' : 'Show'} details for ${friendlyTitle}`}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-slate-200 transition-all duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
         >
           <ChevronDown
             className={cn(
-              'h-3.5 w-3.5 transition-transform duration-200',
+              'h-3.5 w-3.5 transition-transform duration-250 ease-smooth-out',
               expanded && 'rotate-180'
             )}
           />
         </button>
       </div>
-      {expanded && (
-        <TaskDetails task={task} canReschedule={canReschedule} onReschedule={onReschedule} />
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <m.div
+            key={detailsId}
+            id={detailsId}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: 'auto',
+              opacity: 1,
+              transition: reduceMotion
+                ? { duration: 0 }
+                : {
+                    height: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+                    opacity: { duration: 0.2, delay: 0.04, ease: [0.22, 1, 0.36, 1] },
+                  },
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: reduceMotion
+                ? { duration: 0 }
+                : {
+                    opacity: { duration: 0.15, ease: 'easeOut' },
+                    height: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+                  },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2.5">
+              <TaskDetails task={task} canReschedule={canReschedule} onReschedule={onReschedule} />
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

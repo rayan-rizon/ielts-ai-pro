@@ -17,14 +17,14 @@ const STEP_STATE = {
     rail: 'bg-[rgb(var(--signal-ok)/0.35)]',
   },
   active: {
-    chip: 'border-[#5a63df]/35 bg-[#5a63df]/10 text-[#5a63df] dark:text-[#afb5ff]',
+    chip: 'border-[#5a63df]/35 bg-[#5a63df]/10 text-[#5a63df] dark:text-[#afb5ff] dark:border-[#8f97ff]/35 dark:bg-[#8f97ff]/12',
     label: 'text-[#5a63df] dark:text-[#afb5ff]',
-    rail: 'bg-[#eceafa] dark:bg-white/12',
+    rail: 'bg-slate-200 dark:bg-white/12',
   },
   next: {
-    chip: 'border-[#ebeaf7] bg-white text-slate-400 dark:border-white/11 dark:bg-white/4 dark:text-slate-500',
+    chip: 'border-[#e4e2f0] bg-slate-50/80 text-slate-400 dark:border-white/10 dark:bg-white/4 dark:text-slate-500',
     label: 'text-slate-400 dark:text-slate-500',
-    rail: 'bg-[#eceafa] dark:bg-white/12',
+    rail: 'bg-slate-200 dark:bg-white/12',
   },
 };
 
@@ -37,16 +37,16 @@ function GuideStep({ icon: Icon, state, label, title, detail, isLast }) {
   const tone = STEP_STATE[state] || STEP_STATE.next;
 
   return (
-    <li className="relative flex min-w-0 gap-2.5 pb-3 last:pb-0">
+    <li className="relative flex min-w-0 gap-3 pb-3.5 last:pb-0">
       {!isLast && (
         <span
           aria-hidden="true"
-          className={cn('absolute left-[13px] top-7 h-[calc(100%-1.75rem)] w-px', tone.rail)}
+          className={cn('absolute left-[13.5px] top-7 h-[calc(100%-1.6rem)] w-0.5', tone.rail)}
         />
       )}
       <span
         className={cn(
-          'relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border',
+          'relative z-10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-2xs',
           tone.chip
         )}
       >
@@ -54,10 +54,10 @@ function GuideStep({ icon: Icon, state, label, title, detail, isLast }) {
       </span>
       <div className="min-w-0 flex-1">
         <p className={cn(MICRO, 'truncate', tone.label)}>{label}</p>
-        <p className="mt-0.5 line-clamp-1 text-[11.5px] font-bold leading-snug text-slate-900 dark:text-white">
+        <p className="mt-0.5 text-xs font-bold leading-snug text-slate-900 dark:text-white">
           {title}
         </p>
-        <p className={cn('mt-0.5 line-clamp-2 text-[11px] font-medium leading-relaxed', MUTED)}>
+        <p className={cn('mt-0.5 text-[11px] font-medium leading-relaxed', MUTED)} title={detail}>
           {detail}
         </p>
       </div>
@@ -97,7 +97,11 @@ export default function PlanSignalsCard({
 
   return (
     <aside
-      className={cn(TILE, 'flex min-w-0 flex-col p-4', className)}
+      className={cn(
+        TILE,
+        'flex min-w-0 flex-col p-3.5 sm:p-4 shadow-2xs transition-all duration-150',
+        className
+      )}
       aria-labelledby="plan-signals-title"
     >
       <div className="flex items-center justify-between gap-2">
@@ -108,7 +112,7 @@ export default function PlanSignalsCard({
           />
           <h2
             id="plan-signals-title"
-            className="truncate text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100"
+            className="truncate text-[13px] font-extrabold tracking-tight text-slate-900 dark:text-white"
           >
             Your plan guide
           </h2>
@@ -151,7 +155,7 @@ export default function PlanSignalsCard({
         />
       </ol>
 
-      <div className="mt-auto flex flex-wrap gap-1.5 pt-3.5">
+      <div className="mt-auto grid grid-cols-2 gap-2 pt-3.5">
         {onRefresh && (
           <button
             type="button"
@@ -159,28 +163,31 @@ export default function PlanSignalsCard({
             disabled={refreshing}
             title="Checks your latest results; reuses the saved plan when nothing changed"
             className={cn(
-              'inline-flex h-8 flex-1 items-center justify-center rounded-lg px-3 text-[11px] font-bold transition-colors disabled:opacity-50',
+              'group inline-flex h-8.5 items-center justify-center rounded-lg px-2.5 text-[11px] font-bold shadow-xs transition-all duration-150 ease-smooth-out disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-[#8f97ff] dark:focus-visible:ring-offset-[#141319]',
               planUpdateAvailable
-                ? 'border border-amber-300/60 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-200'
-                : 'border border-[#e2e5f2] bg-white text-slate-600 hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white'
+                ? 'border border-amber-300/80 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 hover:text-amber-950 hover:shadow-sm active:scale-[0.97] active:bg-amber-200/80 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:border-amber-400/50 dark:hover:bg-amber-500/20 dark:hover:text-amber-100'
+                : 'border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#5a63df]/35 hover:bg-[#f4f3fb] hover:text-[#5a63df] hover:shadow-sm active:scale-[0.97] active:bg-[#edeafa] dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white'
             )}
           >
             <RefreshCw
               className={cn(
-                'mr-1.5 h-3.5 w-3.5',
+                'mr-1.5 h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:rotate-45 motion-reduce:transform-none',
                 refreshing && 'animate-spin motion-reduce:animate-none'
               )}
             />
-            {refreshing ? 'Updating…' : planUpdateAvailable ? 'Update plan' : 'Check for updates'}
+            <span className="truncate">
+              {refreshing ? 'Updating…' : planUpdateAvailable ? 'Update plan' : 'Check for updates'}
+            </span>
           </button>
         )}
         {onCustomize && (
           <button
             type="button"
             onClick={onCustomize}
-            className="inline-flex h-8 items-center rounded-lg border border-[#e2e5f2] bg-white px-3 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:text-white"
+            className="group inline-flex h-8.5 items-center justify-center rounded-lg border border-[#e2e5f2] bg-white px-2.5 text-[11px] font-bold text-slate-700 shadow-xs transition-all duration-150 ease-smooth-out hover:border-[#5a63df]/35 hover:bg-[#f4f3fb] hover:text-[#5a63df] hover:shadow-sm active:scale-[0.97] active:bg-[#edeafa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 motion-reduce:transform-none dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-[#8f97ff] dark:focus-visible:ring-offset-[#141319]"
           >
-            <Settings2 className="mr-1.5 h-3.5 w-3.5" /> Edit plan
+            <Settings2 className="mr-1.5 h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-hover:rotate-45 motion-reduce:transform-none" />{' '}
+            <span className="truncate">Edit plan</span>
           </button>
         )}
       </div>

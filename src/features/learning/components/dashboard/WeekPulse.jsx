@@ -38,34 +38,53 @@ function SubjectProgress({ moduleStats }) {
   return (
     <div className="mt-4">
       <p className={cn(MICRO, MUTED)}>Finished by subject</p>
-      <div className="mt-2 space-y-2">
+      <div className="mt-2 space-y-1.5">
         {rows.map(([module, counts]) => {
           const style = getModuleStyle(module);
           const Icon = style.icon;
           const pct = counts.total ? Math.round((counts.done / counts.total) * 100) : 0;
 
           return (
-            <div key={module} className="flex min-w-0 items-center gap-2">
+            <div
+              key={module}
+              className="group flex min-w-0 items-center gap-2.5 rounded-lg px-2 py-1 -mx-2 transition-colors hover:bg-[#f8f7fd] dark:hover:bg-white/[0.04]"
+            >
               <IconChip icon={Icon} tone={getModuleTone(module)} />
-              <span className="w-16 shrink-0 truncate text-[11px] font-bold text-slate-700 dark:text-slate-200">
+              <span className="w-18 shrink-0 truncate text-[11px] font-bold text-slate-700 dark:text-slate-200">
                 {style.label}
               </span>
-              <span className={cn('h-1.5 flex-1 overflow-hidden rounded-full', WELL)}>
-                <span
-                  className={cn(
-                    'block h-full rounded-full transition-[width] duration-500 ease-out',
-                    pct === 100 ? 'bg-[rgb(var(--signal-ok))]' : 'bg-[#5a63df] dark:bg-[#8f97ff]'
-                  )}
-                  style={{ width: `${Math.max(3, pct)}%` }}
-                />
-              </span>
-              <span
-                className={cn(
-                  NUM,
-                  'w-8 shrink-0 text-right text-[11px] font-bold text-slate-600 dark:text-slate-300'
-                )}
+              <div
+                className={cn('h-2 flex-1 overflow-hidden rounded-full', WELL)}
+                role="progressbar"
+                aria-valuenow={pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${style.label}: ${counts.done} of ${counts.total} completed`}
               >
-                {counts.done}/{counts.total}
+                <div
+                  className={cn(
+                    'h-full rounded-full transition-[width] duration-500 ease-out motion-reduce:transition-none',
+                    pct === 100
+                      ? 'bg-[rgb(var(--signal-ok))]'
+                      : 'bg-[linear-gradient(90deg,#5a63df,#8f97ff)]'
+                  )}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="w-8 shrink-0 text-right font-mono text-[11px] font-bold tabular-nums">
+                <span
+                  className={
+                    counts.done > 0
+                      ? pct === 100
+                        ? 'text-[rgb(var(--signal-ok))] font-extrabold'
+                        : 'text-[#5a63df] dark:text-[#afb5ff] font-extrabold'
+                      : 'text-slate-400 dark:text-slate-500'
+                  }
+                >
+                  {counts.done}
+                </span>
+                <span className="text-slate-300 dark:text-slate-600">/</span>
+                <span className="text-slate-600 dark:text-slate-300">{counts.total}</span>
               </span>
             </div>
           );
@@ -75,7 +94,7 @@ function SubjectProgress({ moduleStats }) {
   );
 }
 
-export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
+export default function WeekPulse({ days, weeklyCapacity, onCustomize, onStart }) {
   const reduceMotion = useReducedMotion();
   const stats = useMemo(() => {
     const tasks = days.flatMap((day) => day.tasks);
@@ -135,7 +154,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
         }
       />
 
-      <div className="mt-1 flex min-w-0 items-center gap-4">
+      <div className="mt-2 flex min-w-0 items-center gap-4">
         <Ring
           value={ringValue}
           size={72}
@@ -144,56 +163,80 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
           sublabel="done"
         />
         <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5">
-          {[
-            { label: 'Planned this week', value: formatMinutes(stats.plannedMinutes) },
-            { label: 'Your weekly budget', value: formatMinutes(weeklyCapacity) },
-            { label: 'Study days', value: `${stats.plannedStudyDays} of 7` },
-          ].map((row) => (
-            <div key={row.label} className="flex items-baseline justify-between gap-2">
-              <span className={cn(MICRO, MUTED, 'truncate')}>{row.label}</span>
-              <span
-                className={cn(
-                  NUM,
-                  'shrink-0 text-xs font-extrabold text-slate-900 dark:text-white'
-                )}
-              >
-                {row.value}
+          <div className="flex items-baseline justify-between gap-2 border-b border-[#eceafa]/60 pb-1 dark:border-white/[0.04]">
+            <span className={cn(MICRO, MUTED, 'truncate')}>Planned this week</span>
+            <span
+              className={cn(NUM, 'shrink-0 text-xs font-extrabold text-slate-900 dark:text-white')}
+            >
+              {formatMinutes(stats.plannedMinutes)}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-2 border-b border-[#eceafa]/60 pb-1 dark:border-white/[0.04]">
+            <span className={cn(MICRO, MUTED, 'truncate')}>Your weekly budget</span>
+            <span
+              className={cn(NUM, 'shrink-0 text-xs font-extrabold text-slate-900 dark:text-white')}
+            >
+              {formatMinutes(weeklyCapacity)}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className={cn(MICRO, MUTED, 'truncate')}>Study days</span>
+            <span className="shrink-0 text-xs font-extrabold text-slate-900 dark:text-white">
+              <span className="font-mono tabular-nums">{stats.plannedStudyDays}</span>
+              <span className="mx-1 font-sans text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                of
               </span>
-            </div>
-          ))}
+              <span className="font-mono tabular-nums">7</span>
+            </span>
+          </div>
         </div>
       </div>
 
       <SubjectProgress moduleStats={stats.moduleStats} />
 
-      <div className="mt-3 flex flex-1 flex-col justify-end space-y-2">
-        <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 sm:p-3 transition-colors dark:border-white/10 dark:bg-white/4">
-          <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-[#5a63df] dark:text-[#8f97ff]">
-            Next study session
-          </p>
+      <div className="mt-4 flex flex-1 flex-col justify-end space-y-2.5">
+        <div className="rounded-xl border border-[#ebe9f6] bg-white/90 p-3 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all dark:border-white/[0.08] dark:bg-white/[0.04]">
+          <div className="flex items-center justify-between gap-2">
+            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>Next study session</p>
+            {nextStudyTask && onStart && (
+              <button
+                type="button"
+                onClick={() => onStart(nextStudyTask)}
+                aria-label={`Start ${getFriendlyTaskTitle(nextStudyTask)}`}
+                className="inline-flex items-center gap-1 rounded-md bg-[#5a63df] px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs transition-all duration-150 hover:bg-[#4850c8] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+              >
+                Start <ArrowRight className="h-2.5 w-2.5" />
+              </button>
+            )}
+          </div>
           {nextStudyTask ? (
-            <div className="mt-1 space-y-0.5">
+            <div className="mt-1.5">
               <p className="line-clamp-1 text-xs font-extrabold leading-snug tracking-tight text-slate-900 dark:text-slate-100">
                 {getFriendlyTaskTitle(nextStudyTask)}
               </p>
-              <p className="text-[10px] font-mono tabular-nums text-slate-500 dark:text-slate-400 font-medium">
-                {DAY_FORMAT.format(nextStudyDay.date)} ·{' '}
-                {formatMinutes(nextStudyTask.estimated_time || nextStudyTask.estimated_minutes)}
+              <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {DAY_FORMAT.format(nextStudyDay.date)}
+                </span>
+                <span className="mx-1 text-slate-300 dark:text-slate-600">·</span>
+                <span className="font-mono font-bold tabular-nums text-slate-600 dark:text-slate-300">
+                  {formatMinutes(nextStudyTask.estimated_time || nextStudyTask.estimated_minutes)}
+                </span>
               </p>
             </div>
           ) : (
             <p className="mt-1 text-xs font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-              You have finished the scheduled work. Rest or edit your available days.
+              All scheduled tasks completed for this week. Great work!
             </p>
           )}
         </div>
 
         <div
           className={cn(
-            'flex items-center justify-between gap-2.5 rounded-lg border p-2.5 sm:p-3 transition-colors',
+            'flex items-center justify-between gap-2.5 rounded-xl border p-2.5 sm:p-3 transition-colors',
             stats.overflowDays
-              ? 'border-amber-500/30 bg-amber-500/8 dark:border-amber-500/30 dark:bg-amber-500/10'
-              : 'border-emerald-500/30 bg-emerald-500/8 dark:border-emerald-500/30 dark:bg-emerald-500/10'
+              ? 'border-amber-500/25 bg-amber-500/8 dark:border-amber-500/30 dark:bg-amber-500/10'
+              : 'border-[rgb(var(--signal-ok)/0.22)] bg-[rgb(var(--signal-ok)/0.05)] dark:border-[rgb(var(--signal-ok)/0.25)] dark:bg-[rgb(var(--signal-ok)/0.08)]'
           )}
         >
           <div className="flex min-w-0 items-center gap-2.5">
@@ -201,7 +244,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
               icon={stats.overflowDays ? CircleAlert : CheckCircle2}
               tone={stats.overflowDays ? 'amber' : 'emerald'}
             />
-            <p className="min-w-0 text-xs font-bold leading-snug text-slate-800 dark:text-slate-100">
+            <p className="min-w-0 text-xs font-semibold leading-snug text-slate-800 dark:text-slate-100">
               {stats.overflowDays
                 ? `${stats.overflowDays} ${stats.overflowDays === 1 ? 'day has' : 'days have'} more work than your saved time.`
                 : 'The scheduled work stays inside your weekly budget.'}
@@ -211,7 +254,7 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize }) {
             <button
               type="button"
               onClick={onCustomize}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md bg-amber-600 px-2.5 py-1 text-[10px] font-bold text-white transition-colors hover:bg-amber-700 shadow-xs"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-amber-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs transition-all duration-150 hover:bg-amber-700 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             >
               Fix schedule <ArrowRight className="h-3 w-3" />
             </button>

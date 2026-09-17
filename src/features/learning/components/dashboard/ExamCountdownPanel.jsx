@@ -74,11 +74,13 @@ function RunwayRow({ icon, label, value }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2">
       <IconChip icon={icon} size="sm" />
-      <p className={cn(MICRO, MUTED, 'min-w-0 flex-1 truncate')}>{label}</p>
+      <p className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-700 dark:text-slate-300">
+        {label}
+      </p>
       <p
         className={cn(
           NUM,
-          'shrink-0 text-sm font-extrabold leading-none text-slate-900 dark:text-white'
+          'shrink-0 text-xs font-extrabold leading-none text-slate-900 dark:text-white'
         )}
       >
         {value}
@@ -177,7 +179,9 @@ export default function ExamCountdownPanel({
             >
               {daysLeft}
             </span>
-            <span className={cn(MICRO, MUTED, 'pb-1')}>days left</span>
+            <span className="pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              days left
+            </span>
           </div>
 
           <div className={cn('mt-2.5 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
@@ -189,7 +193,7 @@ export default function ExamCountdownPanel({
               style={{ width: `${windowUsed}%` }}
             />
           </div>
-          <p className={cn(MICRO, MUTED, 'mt-1.5')}>
+          <p className="mt-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
             {Math.round(windowUsed)}% through a typical 12-week preparation window
           </p>
 
@@ -214,26 +218,33 @@ export default function ExamCountdownPanel({
               <RunwayRow key={row.label} {...row} />
             ))}
           </div>
-          <p className={cn(MICRO, MUTED, 'mt-1.5 leading-relaxed')}>
+          <p className="mt-1.5 text-[11px] font-medium leading-relaxed text-slate-400 dark:text-slate-500">
             Sessions and study time are the weekly availability you set, spread across the weeks
             left.
           </p>
 
-          <div className={cn(TILE, 'mt-auto flex items-start gap-2.5 p-3.5 sm:mt-4')}>
+          <div
+            className={cn(
+              TILE,
+              'mt-auto flex items-start gap-2.5 border-amber-200/70 bg-amber-50/40 p-3.5 shadow-2xs dark:border-amber-500/20 dark:bg-amber-500/6 sm:mt-4'
+            )}
+          >
             <IconChip
               icon={Flag}
               size="md"
               tone={runway.belowTarget.length ? 'amber' : 'emerald'}
             />
             <div className="min-w-0">
-              <p className={cn(MICRO, MUTED)}>What that time has to cover</p>
+              <p className={cn(MICRO, 'text-amber-800 dark:text-amber-400')}>
+                What that time has to cover
+              </p>
               <p className="mt-0.5 text-xs font-bold leading-snug text-slate-900 dark:text-white">
                 {runway.belowTarget.length === 0
                   ? `All four subjects already sit at band ${runway.target.toFixed(1)} or above.`
                   : `${runway.belowTarget.length} of 4 subjects still below band ${runway.target.toFixed(1)}.`}
               </p>
               {runway.largestGap && (
-                <p className={cn('mt-1 text-[11px] font-medium leading-relaxed', MUTED)}>
+                <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-600 dark:text-slate-300">
                   {runway.largestGap.gap === null
                     ? `${getModuleStyle(runway.largestGap.module).label} has no score yet — a level check there is worth more than more practice.`
                     : `Biggest gap is ${getModuleStyle(runway.largestGap.module).label}, ${runway.largestGap.gap.toFixed(1)} band below target.`}
@@ -245,9 +256,10 @@ export default function ExamCountdownPanel({
           <button
             type="button"
             onClick={onCustomize}
-            className="mt-2.5 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] px-4 text-xs font-bold text-slate-600 transition-colors hover:border-[#c9cdf3] hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/11 dark:text-slate-300 dark:hover:text-white"
+            className="group mt-2.5 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] bg-white px-4 text-xs font-bold text-slate-600 shadow-xs transition-all duration-150 ease-smooth-out hover:border-[#5a63df]/35 hover:bg-[#f4f3fb] hover:text-slate-900 hover:shadow-sm active:scale-[0.98] active:bg-[#edeafa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 motion-reduce:transform-none dark:border-white/11 dark:bg-white/5 dark:text-slate-300 dark:hover:border-white/20 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:ring-[#8f97ff] dark:focus-visible:ring-offset-[#141319]"
           >
-            <CalendarDays className="h-3.5 w-3.5" /> Change exam date or study time
+            <CalendarDays className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-6 motion-reduce:transform-none" />{' '}
+            Change exam date or study time
           </button>
         </>
       )}
