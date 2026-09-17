@@ -60,4 +60,25 @@ describe('Writing task initialization', () => {
       sample_answer: 'Task 1 sample',
     });
   });
+
+  it('opens the Learning Path recommended writing task for a fresh attempt', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/writing-task?taskId=writing-task-1&new_attempt=true&writingTask=Task+2'
+    );
+    const { result } = renderHook(() => useWritingInitialization(), { wrapper: RouterWrapper });
+
+    await act(async () => {
+      await result.current.initialize({ id: 'learner-1' });
+    });
+
+    const state = useWritingTestStore.getState();
+    expect(state.activeType).toBe('Task 2');
+    expect(state.task).toMatchObject({
+      activeType: 'Task 2',
+      prompt: 'Task 2 prompt',
+      sample_answer: 'Task 2 sample',
+    });
+  });
 });

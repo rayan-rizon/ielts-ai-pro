@@ -1,4 +1,4 @@
-export const LEARNING_PATH_GENERATOR_VERSION = '2.3.0';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.4.1';
 
 export const STUDY_DAYS = [
   'monday',
@@ -322,6 +322,16 @@ export function isScoredLearningSession(session: any) {
   );
 }
 
+function writingTaskFromSession(session: any) {
+  const content = session?.content_data || {};
+  const value = String(
+    content.activeType || content.task_type || content.taskType || session?.task_type || ''
+  ).toLowerCase();
+  if (/task\s*2|task2/.test(value)) return 'Task 2';
+  if (/task\s*1|task1/.test(value)) return 'Task 1';
+  return null;
+}
+
 export function aggregateReadiness(sessions: any[], now: Date | string = new Date()) {
   const cutoff = addDays(startOfUtcDay(now), -90).getTime();
   const recent = (Array.isArray(sessions) ? sessions : []).filter((session) => {
@@ -366,6 +376,10 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
     );
     const latestExamScore = latestExam ? Number(latestExam.score) : NaN;
     const count = scores.length;
+    const latestWritingTask =
+      module === 'writing'
+        ? moduleSessions.map(writingTaskFromSession).find(Boolean) || null
+        : null;
     modules[module] = {
       module,
       sample_count: count,
@@ -374,6 +388,12 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
       observed_range: count ? [Math.min(...scores), Math.max(...scores)] : null,
       mode_counts: modeCounts,
       latest_exam_score: Number.isFinite(latestExamScore) ? latestExamScore : null,
+      ...(module === 'writing'
+        ? {
+            latest_practice_task: latestWritingTask,
+            next_practice_task: latestWritingTask === 'Task 1' ? 'Task 2' : 'Task 1',
+          }
+        : {}),
       confidence:
         count >= 5 ? 'high' : count >= 3 ? 'moderate' : count >= 2 ? 'developing' : 'insufficient',
     };
@@ -557,6 +577,7 @@ type GeneratedActivity = {
   routing: {
     route: string;
     mode: string;
+    writing_task?: 'Task 1' | 'Task 2';
   };
 };
 
@@ -764,6 +785,7 @@ export function buildSevenDaySchedule({
   let assignedMinutes = 0;
   let grammarMinutes = 0;
   let grammarRepairsSinceRetest = 0;
+  let writingTaskCursor = 0;
 
   const schedule: Record<string, any[]> = {};
   let taskCursor = 0;
@@ -917,6 +939,24 @@ export function buildSevenDaySchedule({
                 : progression.reason,
           };
         }
+      }
+      if (base.module === 'writing' && base.requested_mode !== 'exam') {
+        const firstWritingTask =
+          readiness.modules?.writing?.next_practice_task === 'Task 2' ? 'Task 2' : 'Task 1';
+        const writingTask =
+          writingTaskCursor % 2 === 0
+            ? firstWritingTask
+            : firstWritingTask === 'Task 1'
+              ? 'Task 2'
+              : 'Task 1';
+        writingTaskCursor += 1;
+        base = {
+          ...base,
+          title: `Writing ${writingTask} practice`,
+          evidence_key: `${base.evidence_key}:writing-${writingTask === 'Task 1' ? 'task-1' : 'task-2'}`,
+          success_criterion: `Complete a scored Writing ${writingTask} response and review its criterion feedback.`,
+          routing: { ...base.routing, writing_task: writingTask },
+        };
       }
       const activityKeyParts = [
         'v2',

@@ -195,6 +195,11 @@ const titleCaseWords = (value = '') =>
   String(value)
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/[_:]+/g, ' ')
+    .replace(/\btaskachievement\b/gi, 'task achievement')
+    .replace(/\btaskresponse\b/gi, 'task response')
+    .replace(/\bcoherencecohesion\b/gi, 'coherence and cohesion')
+    .replace(/\blexicalresource\b/gi, 'lexical resource')
+    .replace(/\bgrammaticalrangeaccuracy\b/gi, 'grammatical range and accuracy')
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -219,7 +224,7 @@ const matchOriginalTitlePattern = (originalTitle) => {
     /^(Reading|Writing|Listening|Speaking)\s+(.+)\s+Repair$/i
   );
   if (repairMatch) {
-    return `${titleCaseWords(repairMatch[1])}: ${repairMatch[2].toLowerCase()} practice`;
+    return `${titleCaseWords(repairMatch[1])}: ${sentenceCase(repairMatch[2])} practice`;
   }
 
   const reviewMatch = originalTitle.match(
@@ -240,12 +245,26 @@ const getSkillTitle = (skillCode) => {
     /^(reading|writing|listening|speaking|general)[_:\s-]*/i,
     ''
   );
+  const simpleWritingLabels = {
+    taskachievement: 'Cover the task clearly',
+    taskresponse: 'Answer the question fully',
+    coherencecohesion: 'Organize ideas clearly',
+    lexicalresource: 'Use clear words',
+    grammaticalrangeaccuracy: 'Use accurate grammar',
+  };
+  const compact = raw.replace(/[\s_-]+/g, '').toLowerCase();
+  if (simpleWritingLabels[compact]) return simpleWritingLabels[compact];
   return titleCaseWords(raw);
+};
+
+const sentenceCase = (value = '') => {
+  const text = String(value).trim().toLowerCase();
+  return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : '';
 };
 
 const formatDrillTitle = (label, skill) => {
   const isCore = !skill || skill === 'Core Skill';
-  return isCore ? `${label} skills practice` : `${label}: ${skill.toLowerCase()} practice`;
+  return isCore ? `${label} skills practice` : `${label}: ${sentenceCase(skill)} practice`;
 };
 
 const formatReviewTitle = (label, skill) => {
@@ -271,6 +290,16 @@ export function getFriendlyTaskTitle(task = {}) {
   const label = getModuleLabel(task.module);
   const skill = getSkillTitle(task.skill_code || task.skill_targets?.[0]);
   const type = String(task?.activity_type || '').toLowerCase();
+  if (String(task.module || '').toLowerCase() === 'writing' && type !== 'exam_assessment') {
+    const routedTask = String(task?.routing?.writing_task || '');
+    const titleTask = String(task?.title || '').match(/Task\s*[12]/i)?.[0];
+    const taskNumber = /2/.test(routedTask || titleTask || '') ? 'Task 2' : 'Task 1';
+    if (type === 'diagnostic') return `Writing ${taskNumber} practice test`;
+    if (skill && skill !== 'Core Skill') {
+      return `Writing ${taskNumber}: ${skill}`;
+    }
+    return `Writing ${taskNumber} practice`;
+  }
   const builder = ACTIVITY_TITLE_BUILDERS[type];
   if (builder) return builder(label, skill);
 

@@ -17,6 +17,9 @@ function parseWritingUrlParams() {
     isNewAttempt: urlParams.get('new_attempt') === 'true',
     isResume: urlParams.get('resume') === 'true',
     isView: isViewMode,
+    writingTask: ['Task 1', 'Task 2'].includes(urlParams.get('writingTask'))
+      ? urlParams.get('writingTask')
+      : null,
   };
 }
 
@@ -261,18 +264,22 @@ function updateUrlWithSession(navigate, isNewAttempt, sessionId) {
  * - Fetching Task/Session data (via RPC or fallback)
  * - Handling Session validity/tab-safety
  */
-function applyTaskToStore(store, selectedTask) {
+function applyTaskToStore(store, selectedTask, preferredTaskType = null) {
   const { compositeTasks, currentTaskData, initialActiveType } =
     parseCompositeWritingTask(selectedTask);
   const activeType = useWritingTestStore.getState().activeType;
-  const finalActiveType = compositeTasks[activeType] ? activeType : initialActiveType;
+  const finalActiveType = compositeTasks[preferredTaskType]
+    ? preferredTaskType
+    : compositeTasks[activeType]
+      ? activeType
+      : initialActiveType;
   const finalTaskData = compositeTasks[finalActiveType] || currentTaskData;
   store.setTask(
     { ...selectedTask, ...finalTaskData, activeType: finalActiveType },
     compositeTasks,
     finalActiveType
   );
-  return initialActiveType;
+  return finalActiveType;
 }
 
 function syncSessionState(store, params) {
@@ -289,7 +296,7 @@ async function loadUserAndData(store, params, passedUser) {
   return { ...sessionAndTask, userData };
 }
 
-async function applySessionOrCreate({ store, selectedTask, existingSession }) {
+async function applySessionOrCreate({ store, selectedTask, existingSession, writingTask }) {
   if (!existingSession) {
     // Reset before deriving the active task. Resetting after setTask used to leave
     // Task 2's prompt/sample in `task` while the UI had switched back to Task 1.
@@ -297,7 +304,11 @@ async function applySessionOrCreate({ store, selectedTask, existingSession }) {
     store.setSession(null);
   }
 
-  const initialActiveType = applyTaskToStore(store, selectedTask);
+  const initialActiveType = applyTaskToStore(
+    store,
+    selectedTask,
+    existingSession ? null : writingTask
+  );
   if (existingSession) {
     restoreWritingSessionState(store, existingSession, initialActiveType);
   }
@@ -320,6 +331,7 @@ async function runInitialize(store, navigate, passedUser) {
       store,
       selectedTask,
       existingSession,
+      writingTask: params.writingTask,
     });
   } catch (err) {
     console.error('Initialization error:', err);

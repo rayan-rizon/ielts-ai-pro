@@ -98,10 +98,17 @@ function isCurrentSkillEvidence(skill: any) {
 const checkpointFor = (readiness: any, roadmap: any[], activities: any[] = []) => {
   if (readiness.missing_diagnostics.length) {
     const module = readiness.missing_diagnostics[0];
+    const plannedAssessment = activities.find(
+      (task: any) =>
+        task.module === module &&
+        ['diagnostic', 'practice_assessment', 'timed_assessment'].includes(task.activity_type)
+    );
     return {
       type: 'diagnostic',
       module,
-      title: `${module.charAt(0).toUpperCase() + module.slice(1)} practice test`,
+      title:
+        plannedAssessment?.title ||
+        `${module.charAt(0).toUpperCase() + module.slice(1)} practice test`,
       progress_definition:
         'Complete a scored attempt; two recent attempts are required before a module range is treated as sufficient.',
     };

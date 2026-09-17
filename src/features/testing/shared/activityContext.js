@@ -12,7 +12,11 @@ export function withLearningActivity(url, search = window.location.search) {
   const targetUrl = new URL(url, 'https://learning-path.local');
   const activityId = source.get('activityId');
   const mode = source.get('mode');
+  const writingTask = source.get('writingTask');
   if (activityId) targetUrl.searchParams.set('activityId', activityId);
   if (mode) targetUrl.searchParams.set('mode', mode);
+  if (writingTask === 'Task 1' || writingTask === 'Task 2') {
+    targetUrl.searchParams.set('writingTask', writingTask);
+  }
   return `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
 }

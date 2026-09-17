@@ -32,7 +32,7 @@ const availability = normalizeStudyAvailability({
 });
 const plan = {
   version: 2,
-  generator_version: '2.3.0',
+  generator_version: '2.4.1',
   input_fingerprint: 'same',
   generated_at: '2026-09-17T00:00:00Z',
   goal_snapshot: { target_band: 7, test_date: null, study_availability: availability },
@@ -150,7 +150,7 @@ describe('adaptive evidence integrity', () => {
         activity_type: 'targeted_drill',
         skill_targets: ['reading_matching_headings'],
       })
-    ).toContain('matching headings');
+    ).toContain('Matching headings');
   });
 });
 
@@ -272,6 +272,33 @@ describe('Practice Mode to Exam Mode progression', () => {
         );
       }
     }
+  });
+
+  it("alternates Writing Task 1 and Task 2 from the learner's latest scored writing work", () => {
+    const readiness = aggregateReadiness(
+      [
+        session('writing', 6, {
+          content_data: { activeType: 'Task 1' },
+          evaluation_status: 'completed',
+        }),
+      ],
+      now
+    );
+    expect(readiness.modules.writing.next_practice_task).toBe('Task 2');
+
+    const result = buildSevenDaySchedule({
+      availability,
+      evidence: summarizeEvidence([]),
+      readiness,
+      now,
+    });
+    const writingTask = Object.values(result.schedule)
+      .flat()
+      .find((task) => task.module === 'writing');
+    expect(writingTask).toMatchObject({
+      title: expect.stringContaining('Writing Task 2'),
+      routing: expect.objectContaining({ writing_task: 'Task 2' }),
+    });
   });
 
   it('keeps short sessions as practice rather than promising an impossible full exam', () => {

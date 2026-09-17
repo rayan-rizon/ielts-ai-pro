@@ -168,14 +168,30 @@ describe('Learning Path main page composition', () => {
         activity_type: 'targeted_drill',
         skill_code: 'listening_multiple_choice',
       })
-    ).toBe('Listening: multiple choice practice');
+    ).toBe('Listening: Multiple choice practice');
+    expect(
+      getFriendlyTaskTitle({
+        title: 'Listening gap fill repair',
+        module: 'listening',
+        activity_type: 'targeted_repair',
+      })
+    ).toBe('Listening: Gap fill practice');
     expect(
       getFriendlyTaskTitle({
         title: 'Writing diagnostic',
         module: 'writing',
         activity_type: 'diagnostic',
       })
-    ).toBe('Writing practice test');
+    ).toBe('Writing Task 1 practice test');
+    expect(
+      getFriendlyTaskTitle({
+        title: 'Writing practice',
+        module: 'writing',
+        activity_type: 'targeted_drill',
+        skill_targets: ['writing_taskachievement'],
+        routing: { writing_task: 'Task 2' },
+      })
+    ).toBe('Writing Task 2: Cover the task clearly');
   });
 
   it('translates older saved plan wording into learner-friendly terms', () => {
@@ -489,7 +505,7 @@ describe('Learning Path main page composition', () => {
     const path = {
       version: 2,
       input_fingerprint: 'same-inputs',
-      generator_version: '2.3.0',
+      generator_version: '2.4.1',
       generated_at: '2026-07-23T09:00:00.000Z',
       goal_snapshot: {
         target_band: 7,

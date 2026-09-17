@@ -26,6 +26,17 @@ describe('explicit Learning Path activity routing', () => {
     ).toBe('/writing?mode=practice&activityId=checkpoint-1');
   });
 
+  it('routes a specific writing recommendation into the matching task', () => {
+    expect(
+      buildActivityUrl({
+        id: 'writing-activity-1',
+        module: 'writing',
+        requested_mode: 'practice',
+        routing: { route: 'writing', mode: 'practice', writing_task: 'Task 2' },
+      })
+    ).toBe('/writing?mode=practice&writingTask=Task+2&activityId=writing-activity-1');
+  });
+
   it('does not infer an unknown activity as Reading', () => {
     expect(buildActivityUrl({ module: 'unknown' })).toBe('/dashboard');
   });
