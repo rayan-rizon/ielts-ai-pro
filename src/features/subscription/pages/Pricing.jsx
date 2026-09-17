@@ -11,6 +11,14 @@ import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 import { requirePublicEnv } from '@/lib/publicEnv';
 import { OUTAGE_COPY, isServiceOutageError, trackServiceError } from '@/lib/serviceOutage';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // Extracted Components
 import PricingCard from '../components/PricingCard';
@@ -249,9 +257,9 @@ function handleCheckoutFailure(error, planTier, billingInterval) {
   console.error('Checkout failed:', error);
 }
 
-function shouldOpenStripePortal(user, useManualBdPayment) {
-  if (useManualBdPayment) return false;
-  return Boolean(user?.stripe_subscription_id);
+function shouldOpenStripePortal(user) {
+  // Existing Stripe billing takes precedence over the learner's current location.
+  return Boolean(user?.stripe_customer_id && user?.stripe_subscription_id);
 }
 
 function PricingPlansGrid({
@@ -275,7 +283,9 @@ function PricingPlansGrid({
     >
       {plans.map((plan) => {
         const displayPrice = calculatePrice(plan.basePrice, billingInterval, promoDiscount);
-        const isActive = selectedPlan === plan.tier;
+        const isActive = user
+          ? (user.subscription_tier || 'free') === plan.tier
+          : selectedPlan === plan.tier;
 
         return (
           <PricingCard
@@ -299,6 +309,7 @@ export default function Pricing() {
   const [promoDiscount, setPromoDiscount] = useState(null);
   const [billingInterval, setBillingInterval] = useState('monthly');
   const [showManualPayment, setShowManualPayment] = useState(false);
+  const [showFreePlanDialog, setShowFreePlanDialog] = useState(false);
   const [manualPaymentData, setManualPaymentData] = useState(null);
 
   const {
@@ -576,7 +587,7 @@ export default function Pricing() {
     }
 
     if (planTier === 'free') {
-      setSelectedPlan('free');
+      if (user && user.subscription_tier !== 'free') setShowFreePlanDialog(true);
       return;
     }
 
@@ -590,9 +601,11 @@ export default function Pricing() {
       return;
     }
 
-    if (shouldOpenStripePortal(user, useManualBdPayment)) {
-      const portaled = await handleOpenPortal();
-      if (portaled !== false) return;
+    if (shouldOpenStripePortal(user)) {
+      // A failed portal must never fall through into a new checkout (or a
+      // Bangladesh manual payment) for an already-billed subscriber.
+      await handleOpenPortal();
+      return;
     }
 
     if (useManualBdPayment) {
@@ -605,6 +618,35 @@ export default function Pricing() {
 
   return (
     <>
+      <Dialog open={showFreePlanDialog} onOpenChange={setShowFreePlanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move to Free</DialogTitle>
+            <DialogDescription>
+              {user?.stripe_customer_id && user?.stripe_subscription_id
+                ? 'Cancel your recurring subscription in Plan & Billing. Paid access stays active until the end of the billing period, then changes to Free. Choosing a plan card does not cancel billing.'
+                : 'Your paid access was not set up as a Stripe subscription. Choosing Free here does not remove access or refund a payment. Contact support to request a change.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            {user?.stripe_customer_id && user?.stripe_subscription_id ? (
+              <a
+                href="/settings?tab=subscription"
+                className="rounded-lg bg-[#5a63df] px-4 py-2 text-center text-sm font-bold text-white"
+              >
+                Go to Plan &amp; Billing
+              </a>
+            ) : (
+              <a
+                href="mailto:support@ieltsai.pro?subject=Move%20my%20plan%20to%20Free"
+                className="rounded-lg bg-[#5a63df] px-4 py-2 text-center text-sm font-bold text-white"
+              >
+                Contact support
+              </a>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <DocumentHead
         title="IELTS Preparation Pricing Plans - Free to Premium | IELTS Ai Pro"
         description="Affordable, flexible IELTS prep plans starting at $9.99/month. Get unlimited mock tests, AI feedback, adaptive learning. Try free or upgrade to Premium for complete coaching."
@@ -644,7 +686,6 @@ export default function Pricing() {
 
           <SubscriptionManagementBanner
             user={user}
-            useManualBdPayment={useManualBdPayment}
             isLoading={isLoading}
             handleOpenPortal={handleOpenPortal}
           />

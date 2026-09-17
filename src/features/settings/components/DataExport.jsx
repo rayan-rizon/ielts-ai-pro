@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { m } from 'framer-motion';
-import { AlertCircle, CheckCircle2, Download, FileJson, Loader2 } from 'lucide-react';
+import {
+  AlertCircle,
+  BarChart3,
+  BookOpen,
+  CheckCircle2,
+  Download,
+  FileJson,
+  Loader2,
+  Trophy,
+  User,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
@@ -14,10 +24,10 @@ import {
 } from '@/features/dashboard/components/primitives';
 
 const CATEGORIES = [
-  { label: 'Profile', icon: '👤' },
-  { label: 'Test history', icon: '📊' },
-  { label: 'Vocabulary', icon: '📚' },
-  { label: 'Achievements', icon: '🏆' },
+  { label: 'Profile', icon: User, tone: 'accent' },
+  { label: 'Test history', icon: BarChart3, tone: 'sky' },
+  { label: 'Vocabulary', icon: BookOpen, tone: 'emerald' },
+  { label: 'Achievements', icon: Trophy, tone: 'amber' },
 ];
 
 export default function DataExport() {
@@ -99,9 +109,20 @@ export default function DataExport() {
 
       <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {CATEGORIES.map((item) => (
-          <div key={item.label} className={cn(TILE, 'p-2.5 text-center')}>
-            <span className="mb-1 block text-lg">{item.icon}</span>
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+          <div
+            key={item.label}
+            className={cn(
+              TILE,
+              'group flex flex-col items-center justify-center p-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/35 dark:hover:border-white/18'
+            )}
+          >
+            <IconChip
+              icon={item.icon}
+              tone={item.tone}
+              size="md"
+              className="mb-2 h-9 w-9 rounded-lg transition-transform duration-200 group-hover:scale-105 [&>svg]:h-4.5 [&>svg]:w-4.5"
+            />
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
               {item.label}
             </span>
           </div>
@@ -124,41 +145,46 @@ export default function DataExport() {
           onClick={handleExport}
           disabled={isExporting}
           className={cn(
-            'flex h-10 w-full items-center justify-center gap-1.5 rounded-lg text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-70',
+            'flex h-10 w-full items-center justify-center gap-2 rounded-lg text-xs font-bold text-white transition-all duration-150 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131315]',
             exportStatus === 'success'
-              ? 'bg-[rgb(var(--signal-ok))]'
+              ? 'bg-[rgb(var(--signal-ok))] hover:brightness-105'
               : exportStatus === 'error'
-                ? 'bg-[rgb(var(--signal-fault))]'
-                : 'bg-[#5a63df]'
+                ? 'bg-[rgb(var(--signal-fault))] hover:brightness-105'
+                : 'bg-[#5a63df] hover:bg-[#4d55cc] shadow-xs'
           )}
         >
           {isExporting ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Preparing export...
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+              <span>Preparing export...</span>
             </>
           ) : exportStatus === 'success' ? (
             <>
-              <CheckCircle2 className="h-4 w-4" />
-              Download complete!
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>Download complete!</span>
             </>
           ) : exportStatus === 'error' ? (
             <>
-              <AlertCircle className="h-4 w-4" />
-              Try again
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Try again</span>
             </>
           ) : (
             <>
-              <Download className="h-4 w-4" />
-              Download my data (JSON)
+              <Download className="h-4 w-4 shrink-0" />
+              <span>Download my data (JSON)</span>
             </>
           )}
         </button>
       </m.div>
 
-      <div className={cn(TILE, 'mt-4 flex items-start gap-2.5 p-3.5')}>
-        <IconChip icon={FileJson} size="sm" />
-        <div className="text-xs">
+      <div className={cn(TILE, 'mt-4 flex items-start gap-3 rounded-lg p-3.5')}>
+        <IconChip
+          icon={FileJson}
+          tone="accent"
+          size="md"
+          className="h-8 w-8 shrink-0 rounded-lg [&>svg]:h-4 [&>svg]:w-4"
+        />
+        <div className="min-w-0 flex-1 text-xs">
           <p className="mb-0.5 font-bold text-slate-900 dark:text-white">About your export</p>
           <p className={cn('font-medium leading-relaxed', MUTED)}>
             Your data will be exported in JSON format, which can be opened by any text editor or

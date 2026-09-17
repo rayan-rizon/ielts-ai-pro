@@ -27,6 +27,7 @@ import {
   Gift,
   BarChart3,
   Mail,
+  Lock,
 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -80,7 +81,7 @@ const navItems = [
   { id: 'usage', label: 'Usage Stats', icon: BarChart3 },
   { id: 'referrals', label: 'Referrals', icon: Gift },
   { id: 'subscription', label: 'Plan & Billing', icon: Crown },
-  { id: 'account', label: 'Security', icon: Shield },
+  { id: 'account', label: 'Security', icon: Lock },
   { id: 'preferences', label: 'Email', icon: Mail },
   { id: 'privacy', label: 'Privacy', icon: Shield },
 ];
@@ -207,6 +208,12 @@ export default function Settings() {
 
   const handleToggleCancellation = async () => {
     if (!user) return;
+    if (!user.stripe_customer_id || !user.stripe_subscription_id) {
+      toast.info('This plan is not billed through Stripe.', {
+        description: 'Contact support@ieltsai.pro to end or change your access.',
+      });
+      return;
+    }
     setIsCancelling(true);
     setShowCancelDialog(false);
     try {
@@ -254,8 +261,10 @@ export default function Settings() {
   };
 
   const handleOpenCustomerPortal = async () => {
-    if (!user?.stripe_customer_id) {
-      toast.error('No Stripe subscription found');
+    if (!user?.stripe_customer_id || !user?.stripe_subscription_id) {
+      toast.info('This plan is not billed through Stripe.', {
+        description: 'Contact support@ieltsai.pro to manage your access.',
+      });
       return;
     }
     setIsOpeningPortal(true);
@@ -274,7 +283,15 @@ export default function Settings() {
         },
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to open billing portal');
+      if (!response.ok) {
+        if (data.error === 'no_stripe_subscription') {
+          toast.info('This plan is not billed through Stripe.', {
+            description: 'Contact support@ieltsai.pro to manage your access.',
+          });
+          return;
+        }
+        throw new Error(data.error || 'Failed to open billing portal');
+      }
       if (data.url) window.open(data.url, '_blank');
     } catch (error) {
       toast.error('Failed to open billing portal', { description: error.message });

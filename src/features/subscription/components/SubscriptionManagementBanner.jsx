@@ -1,15 +1,10 @@
 import React from 'react';
 import { m } from 'framer-motion';
 
-export default function SubscriptionManagementBanner({
-  user,
-  useManualBdPayment,
-  isLoading,
-  handleOpenPortal,
-}) {
+export default function SubscriptionManagementBanner({ user, isLoading, handleOpenPortal }) {
   if (user?.subscription_tier === 'free') return null;
 
-  const showSupport = useManualBdPayment || !user?.stripe_subscription_id;
+  const showSupport = !user?.stripe_customer_id || !user?.stripe_subscription_id;
 
   return (
     <m.div

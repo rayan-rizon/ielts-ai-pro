@@ -137,7 +137,11 @@ function FeatureList({ plan, isPricingLoading }) {
 function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoading, onUpgrade }) {
   const isPro = plan.tier === 'pro';
   const buttonLabel =
-    plan.tier !== 'free' && isSubscribed ? 'Switch to this plan' : plan.buttonText;
+    plan.tier === 'free' && isSubscribed
+      ? 'Move to Free'
+      : plan.tier !== 'free' && isSubscribed
+        ? 'Switch to this plan'
+        : plan.buttonText;
 
   return (
     <button

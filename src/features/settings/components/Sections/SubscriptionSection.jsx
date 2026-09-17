@@ -40,7 +40,8 @@ export default function SubscriptionSection({
   navigate,
 }) {
   const isFree = user?.subscription_tier === 'free' || !user?.subscription_tier;
-  const isCancellingScheduled = !!user?.cancel_at_period_end;
+  const hasStripeSubscription = Boolean(user?.stripe_customer_id && user?.stripe_subscription_id);
+  const isCancellingScheduled = hasStripeSubscription && !!user?.cancel_at_period_end;
 
   return (
     <m.div
@@ -68,11 +69,7 @@ export default function SubscriptionSection({
                 {isCancellingScheduled && <Pill tone="fault">Cancelling</Pill>}
               </div>
               <h4 className="text-xl font-black text-slate-900 dark:text-white">
-                {isFree
-                  ? 'Basic learner'
-                  : user?.subscription_tier === 'pro'
-                    ? 'Pro member'
-                    : 'Premium elite'}
+                {isFree ? 'Basic learner' : user?.subscription_tier === 'pro' ? 'Pro' : 'Premium'}
               </h4>
               <p className={cn('text-xs font-medium', MUTED)}>
                 {isFree
@@ -92,7 +89,7 @@ export default function SubscriptionSection({
                 </button>
               ) : (
                 <>
-                  {user?.stripe_customer_id && (
+                  {hasStripeSubscription && (
                     <button
                       type="button"
                       onClick={handleOpenCustomerPortal}
@@ -104,7 +101,7 @@ export default function SubscriptionSection({
                       ) : (
                         <ExternalLink className="h-3.5 w-3.5" />
                       )}
-                      Stripe portal
+                      Manage Stripe billing
                     </button>
                   )}
                   <button
@@ -116,7 +113,7 @@ export default function SubscriptionSection({
                   </button>
                   <button
                     type="button"
-                    disabled={isCancelling}
+                    disabled={hasStripeSubscription && isCancelling}
                     onClick={() => {
                       if (isCancellingScheduled) {
                         handleToggleCancellation();
@@ -131,10 +128,12 @@ export default function SubscriptionSection({
                         : 'text-[rgb(var(--signal-fault))] hover:bg-[rgba(var(--signal-fault),0.08)]'
                     )}
                   >
-                    {isCancelling ? (
+                    {hasStripeSubscription && isCancelling ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : isCancellingScheduled ? (
                       'Reactivate subscription'
+                    ) : !hasStripeSubscription ? (
+                      'Request to end access'
                     ) : (
                       'Cancel subscription'
                     )}
@@ -151,28 +150,36 @@ export default function SubscriptionSection({
               <div className="mb-0.5 flex items-center gap-1.5 text-slate-400">
                 <Calendar className="h-3.5 w-3.5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">
-                  {isCancellingScheduled ? 'Expiry date' : 'Renewal date'}
+                  {isCancellingScheduled
+                    ? 'Expiry date'
+                    : hasStripeSubscription
+                      ? 'Renewal date'
+                      : 'Access until'}
                 </span>
               </div>
               <p className="text-sm font-extrabold text-slate-900 dark:text-white">
                 {format(new Date(user?.subscription_end_date), 'MMMM dd, yyyy')}
               </p>
             </div>
-            <div className={cn(TILE, 'p-3.5')}>
-              <div className="mb-0.5 flex items-center gap-1.5 text-slate-400">
-                <CreditCard className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Next charge</span>
+            {hasStripeSubscription && (
+              <div className={cn(TILE, 'p-3.5')}>
+                <div className="mb-0.5 flex items-center gap-1.5 text-slate-400">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    Next charge
+                  </span>
+                </div>
+                <p className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  {isCancellingScheduled
+                    ? '$0.00'
+                    : user?.subscription_amount
+                      ? `${user?.subscription_currency === 'BDT' ? '৳' : '$'}${Number(user?.subscription_amount).toFixed(2)}`
+                      : user?.subscription_tier === 'premium'
+                        ? '$15.99'
+                        : '$9.99'}
+                </p>
               </div>
-              <p className="text-sm font-extrabold text-slate-900 dark:text-white">
-                {isCancellingScheduled
-                  ? '$0.00'
-                  : user?.subscription_amount
-                    ? `${user?.subscription_currency === 'BDT' ? '৳' : '$'}${Number(user?.subscription_amount).toFixed(2)}`
-                    : user?.subscription_tier === 'premium'
-                      ? '$15.99'
-                      : '$9.99'}
-              </p>
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -190,8 +197,9 @@ export default function SubscriptionSection({
               Billing note
             </h4>
             <p className="mt-0.5 text-xs font-medium leading-relaxed text-amber-800/80 dark:text-amber-300/80">
-              Subscription billing is managed via Stripe. Changes reflect across your profile within
-              a few seconds.
+              {hasStripeSubscription
+                ? 'Your recurring subscription is managed through Stripe. You can cancel here or manage payment details in Stripe.'
+                : 'This access is not a Stripe subscription. To end or change it, contact support. Selecting Free does not end paid access or issue a refund.'}
             </p>
           </div>
         </div>
@@ -202,36 +210,44 @@ export default function SubscriptionSection({
           <DialogHeader className="space-y-2.5">
             <DialogTitle className="flex items-center gap-2.5 text-lg font-extrabold text-[rgb(var(--signal-fault))]">
               <AlertTriangle className="h-5 w-5 shrink-0" />
-              Cancel subscription?
+              {hasStripeSubscription ? 'Cancel subscription?' : 'End your paid access?'}
             </DialogTitle>
             <DialogDescription className={cn('text-xs font-medium leading-relaxed', MUTED)}>
-              Your subscription will remain active until{' '}
-              {user?.subscription_end_date ? (
-                <strong className="text-slate-700 dark:text-slate-200">
-                  {format(new Date(user.subscription_end_date), 'MMMM dd, yyyy')}
-                </strong>
+              {hasStripeSubscription ? (
+                <>
+                  Your subscription will remain active until{' '}
+                  {user?.subscription_end_date ? (
+                    <strong className="text-slate-700 dark:text-slate-200">
+                      {format(new Date(user.subscription_end_date), 'MMMM dd, yyyy')}
+                    </strong>
+                  ) : (
+                    'the end of the current billing period'
+                  )}
+                  . After that, your account will revert to the free plan.
+                </>
               ) : (
-                'the end of the current billing period'
+                'This access is not billed through Stripe. Contact support to request a change to Free; access stays unchanged until we confirm it.'
               )}
-              . After that, your account will revert to the free plan.
             </DialogDescription>
           </DialogHeader>
 
-          <div
-            className={cn(
-              TILE,
-              'my-3 border-[rgba(var(--signal-fault),0.25)] bg-[rgba(var(--signal-fault),0.05)] p-3.5'
-            )}
-          >
-            <p className="text-xs font-extrabold text-[rgb(var(--signal-fault))]">
-              You will lose access to:
-            </p>
-            <ul className="mt-1.5 list-inside list-disc space-y-1 text-xs font-medium text-[rgb(var(--signal-fault))]/80">
-              <li>All AI-powered assessments</li>
-              <li>Unlimited Speaking &amp; Writing tests</li>
-              <li>Detailed feedback &amp; analytics</li>
-            </ul>
-          </div>
+          {hasStripeSubscription && (
+            <div
+              className={cn(
+                TILE,
+                'my-3 border-[rgba(var(--signal-fault),0.25)] bg-[rgba(var(--signal-fault),0.05)] p-3.5'
+              )}
+            >
+              <p className="text-xs font-extrabold text-[rgb(var(--signal-fault))]">
+                You will lose access to:
+              </p>
+              <ul className="mt-1.5 list-inside list-disc space-y-1 text-xs font-medium text-[rgb(var(--signal-fault))]/80">
+                <li>All AI-powered assessments</li>
+                <li>Unlimited Speaking &amp; Writing tests</li>
+                <li>Detailed feedback &amp; analytics</li>
+              </ul>
+            </div>
+          )}
 
           <DialogFooter className="mt-1 flex-row gap-2.5">
             <button
@@ -239,20 +255,29 @@ export default function SubscriptionSection({
               onClick={() => setShowCancelDialog(false)}
               className="h-10 flex-1 rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all active:scale-95 dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
             >
-              Keep subscription
+              Keep current plan
             </button>
-            <button
-              type="button"
-              onClick={handleToggleCancellation}
-              disabled={isCancelling}
-              className="h-10 flex-1 rounded-lg bg-[rgb(var(--signal-fault))] text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
-            >
-              {isCancelling ? (
-                <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-              ) : (
-                'Confirm cancel'
-              )}
-            </button>
+            {hasStripeSubscription ? (
+              <button
+                type="button"
+                onClick={handleToggleCancellation}
+                disabled={isCancelling}
+                className="h-10 flex-1 rounded-lg bg-[rgb(var(--signal-fault))] text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
+              >
+                {isCancelling ? (
+                  <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                ) : (
+                  'Confirm cancel'
+                )}
+              </button>
+            ) : (
+              <a
+                href="mailto:support@ieltsai.pro?subject=End%20my%20plan%20access"
+                className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#5a63df] text-xs font-bold text-white"
+              >
+                Contact support
+              </a>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
