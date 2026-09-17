@@ -1,5 +1,4 @@
 import React from 'react';
-import { m } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -24,14 +23,7 @@ export default function GoalsSection({ formData, setFormData }) {
   }, [formData.test_date]);
 
   return (
-    <m.div
-      key="goals"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className={cn(PANEL, 'p-4 sm:p-5')}
-    >
+    <div className={cn(PANEL, 'p-4 sm:p-5')}>
       <PanelTitle label="Target score & exam date" accent />
       <p className="-mt-2 mb-4 text-xs font-medium text-slate-500 dark:text-slate-400">
         Configure your IELTS target band and exam timeline to optimize AI study recommendations.
@@ -120,6 +112,6 @@ export default function GoalsSection({ formData, setFormData }) {
           />
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import React from 'react';
-import { m } from 'framer-motion';
 import {
   AlertCircle,
   AlertTriangle,
@@ -44,14 +43,7 @@ export default function SubscriptionSection({
   const isCancellingScheduled = hasStripeSubscription && !!user?.cancel_at_period_end;
 
   return (
-    <m.div
-      key="subscription"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className="space-y-3"
-    >
+    <div className="space-y-3">
       <div className={cn(PANEL, 'p-4 sm:p-5')}>
         <PanelTitle label="Current subscription" accent />
         <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
@@ -83,7 +75,7 @@ export default function SubscriptionSection({
                 <button
                   type="button"
                   onClick={() => navigate('/pricing')}
-                  className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all active:scale-95"
+                  className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-colors duration-150 hover:bg-[#4a52c9] active:scale-[0.97]"
                 >
                   Upgrade now <ArrowRight className="h-3.5 w-3.5" />
                 </button>
@@ -94,7 +86,7 @@ export default function SubscriptionSection({
                       type="button"
                       onClick={handleOpenCustomerPortal}
                       disabled={isOpeningPortal}
-                      className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60"
+                      className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-colors duration-150 hover:bg-[#4a52c9] active:scale-[0.97] disabled:opacity-60"
                     >
                       {isOpeningPortal ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -107,7 +99,7 @@ export default function SubscriptionSection({
                   <button
                     type="button"
                     onClick={() => navigate('/pricing')}
-                    className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-all hover:border-[#c9cdf3] active:scale-95 dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#e2e5f2] bg-white text-xs font-bold text-slate-700 transition-colors duration-150 hover:border-[#c9cdf3] active:scale-[0.97] dark:border-white/10 dark:bg-white/4 dark:text-slate-200"
                   >
                     Change plan
                   </button>
@@ -122,7 +114,7 @@ export default function SubscriptionSection({
                       }
                     }}
                     className={cn(
-                      'inline-flex h-9 w-full items-center justify-center rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-60',
+                      'inline-flex h-9 w-full items-center justify-center rounded-lg text-xs font-bold transition-colors duration-150 active:scale-[0.97] disabled:opacity-60',
                       isCancellingScheduled
                         ? 'text-[rgb(var(--signal-ok))] hover:bg-[rgba(var(--signal-ok),0.08)]'
                         : 'text-[rgb(var(--signal-fault))] hover:bg-[rgba(var(--signal-fault),0.08)]'
@@ -281,6 +273,6 @@ export default function SubscriptionSection({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </m.div>
+    </div>
   );
 }

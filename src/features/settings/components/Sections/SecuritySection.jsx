@@ -1,5 +1,4 @@
 import React from 'react';
-import { m } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AlertTriangle, Loader2, ShieldCheck } from 'lucide-react';
@@ -14,14 +13,7 @@ export default function SecuritySection({
   setShowDeleteModal,
 }) {
   return (
-    <m.div
-      key="account"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className="space-y-3"
-    >
+    <div className="space-y-3">
       <div className={cn(PANEL, 'p-4 sm:p-5')}>
         <PanelTitle label="Change password" accent />
         <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
@@ -62,7 +54,7 @@ export default function SecuritySection({
             type="button"
             onClick={handleUpdatePassword}
             disabled={isUpdatingPassword || !passwordData.newPassword}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-colors duration-150 hover:bg-[#4a52c9] active:scale-[0.97] disabled:opacity-50"
           >
             {isUpdatingPassword ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -92,11 +84,11 @@ export default function SecuritySection({
         <button
           type="button"
           onClick={() => setShowDeleteModal(true)}
-          className="inline-flex h-9 shrink-0 items-center rounded-lg bg-[rgb(var(--signal-fault))] px-4 text-xs font-bold text-white transition-all active:scale-95"
+          className="inline-flex h-9 shrink-0 items-center rounded-lg bg-[rgb(var(--signal-fault))] px-4 text-xs font-bold text-white transition-opacity duration-150 hover:opacity-90 active:scale-[0.97]"
         >
           Delete account
         </button>
       </div>
-    </m.div>
+    </div>
   );
 }

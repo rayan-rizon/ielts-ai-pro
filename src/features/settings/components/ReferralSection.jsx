@@ -101,13 +101,7 @@ export default function ReferralSection() {
     stats?.next_tier && stats?.referral_count >= stats?.next_tier?.referrals_required;
 
   return (
-    <m.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className="w-full space-y-3"
-    >
+    <div className="w-full space-y-3">
       <AnimatePresence mode="wait">
         {isLoading ? (
           <m.div
@@ -363,6 +357,6 @@ export default function ReferralSection() {
           </m.div>
         )}
       </AnimatePresence>
-    </m.div>
+    </div>
   );
 }

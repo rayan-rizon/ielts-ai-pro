@@ -129,7 +129,6 @@ const SelectionActions = ({ count, loading, onWarn, onDelete }) => {
           transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="overflow-hidden"
         >
-          return (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2.5 rounded-lg bg-[rgb(var(--signal-warn)/0.08)] border border-[rgb(var(--signal-warn)/0.3)]">
             <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
               {count} user{count > 1 ? 's' : ''} selected

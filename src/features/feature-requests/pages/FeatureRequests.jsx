@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { m } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
+  Check,
   CheckCircle2,
   Clock3,
   Lightbulb,
   Loader2,
   Search,
   Send,
+  SlidersHorizontal,
   ThumbsUp,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
@@ -29,6 +32,13 @@ import {
   TITLE,
 } from '@/features/dashboard/components/primitives';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   FEATURE_AREAS,
   featureRequestService,
   REQUEST_STATUS,
@@ -36,11 +46,11 @@ import {
 } from '../featureRequestService';
 
 const primaryButton =
-  'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#5a63df] px-4 text-sm font-bold text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:focus-visible:ring-offset-[#100f15]';
+  'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#5a63df] px-4 text-sm font-bold text-white shadow-2xs transition-colors duration-150 hover:bg-[#4a52c9] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:focus-visible:ring-offset-[#100f15]';
 const quietButton =
-  'inline-flex min-h-9 items-center justify-center rounded-lg border border-[#e4e2f0] bg-white px-3 text-xs font-bold text-slate-700 transition-colors hover:border-[#5a63df]/40 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-slate-200';
+  'inline-flex min-h-9 items-center justify-center rounded-lg border border-[#e4e2f0] bg-white px-3 text-xs font-bold text-slate-700 transition-colors duration-150 hover:border-[#5a63df]/40 hover:text-[#5a63df] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/5 dark:text-slate-200';
 const field =
-  'w-full rounded-lg border border-[#e4e2f0] bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus-visible:border-[#5a63df]/50 focus-visible:ring-2 focus-visible:ring-[#5a63df]/25 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 dark:border-white/10 dark:bg-[#18171f] dark:text-white dark:placeholder:text-slate-500 dark:disabled:bg-white/[0.03]';
+  'w-full rounded-lg border border-[#e4e2f0] bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 placeholder:text-slate-400 focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/20 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 dark:border-white/10 dark:bg-[#18171f] dark:text-white dark:placeholder:text-slate-500 dark:disabled:bg-white/[0.03]';
 
 const REVIEW_STEPS = [
   { icon: Send, label: 'Send privately', detail: 'Only you and admins can see it' },
@@ -65,13 +75,36 @@ function PageSkeleton() {
   );
 }
 
+function RequestCardSkeleton() {
+  return (
+    <div className={cn(TILE, 'flex min-w-0 gap-3 p-3.5 sm:p-4 animate-pulse')}>
+      <div className="h-[68px] w-12 shrink-0 rounded-lg bg-slate-200/80 dark:bg-white/10" />
+      <div className="min-w-0 flex-1 space-y-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="h-4 w-44 rounded-md bg-slate-200/80 dark:bg-white/10" />
+          <div className="h-4 w-16 rounded-full bg-slate-200/80 dark:bg-white/10" />
+          <div className="h-4 w-16 rounded-full bg-slate-200/80 dark:bg-white/10" />
+        </div>
+        <div className="h-3.5 w-full rounded bg-slate-200/70 dark:bg-white/10" />
+        <div className="h-3.5 w-4/5 rounded bg-slate-200/70 dark:bg-white/10" />
+        <div className="h-2.5 w-28 rounded bg-slate-200/60 dark:bg-white/10 pt-1" />
+      </div>
+    </div>
+  );
+}
+
 function RequestCard({ request, onVote, voting }) {
   const status = REQUEST_STATUS[request.status] || REQUEST_STATUS.pending;
   const area = FEATURE_AREAS[request.category] || FEATURE_AREAS.other;
   const canVote = !request.is_mine && !['pending', 'declined'].includes(request.status);
 
   return (
-    <article className={cn(TILE, 'group flex min-w-0 gap-3 p-3.5 sm:p-4')}>
+    <article
+      className={cn(
+        TILE,
+        'group flex min-w-0 gap-3 p-3.5 sm:p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-2xs'
+      )}
+    >
       <button
         type="button"
         onClick={() => onVote(request.id)}
@@ -79,10 +112,10 @@ function RequestCard({ request, onVote, voting }) {
         aria-label={`${request.has_voted ? 'Remove vote from' : 'Upvote'} ${request.title}`}
         aria-pressed={Boolean(request.has_voted)}
         className={cn(
-          'flex h-[68px] w-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border text-xs font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed',
+          'flex h-[68px] w-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border text-xs font-bold transition-all duration-150 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed',
           request.has_voted
-            ? 'border-[#5a63df]/50 bg-[#5a63df]/10 text-[#4a52c9] dark:text-[#bdc2ff]'
-            : 'border-[#e4e2f0] bg-white text-slate-600 enabled:hover:border-[#5a63df]/40 enabled:hover:text-[#5a63df] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300',
+            ? 'border-[#5a63df] bg-[#5a63df]/12 text-[#434ac9] shadow-2xs dark:border-[#5a63df]/70 dark:bg-[#5a63df]/25 dark:text-[#c3c7ff]'
+            : 'border-[#e4e2f0] bg-white text-slate-600 enabled:hover:border-[#5a63df]/40 enabled:hover:text-[#5a63df] enabled:hover:bg-[#faf9ff] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300 dark:enabled:hover:bg-white/[0.06]',
           request.is_mine && 'bg-slate-50 text-slate-400 dark:bg-white/[0.02] dark:text-slate-500'
         )}
       >
@@ -290,33 +323,45 @@ export default function FeatureRequests() {
             <div className="border-b border-[#e4e2f0] p-4 dark:border-white/[0.07]">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div
-                  className="flex rounded-lg bg-[#f4f3fb] p-0.5 dark:bg-white/[0.06]"
+                  className="relative flex rounded-lg bg-[#f4f3fb] p-1 dark:bg-white/[0.06]"
                   role="tablist"
                   aria-label="Request views"
                 >
                   {[
                     ['board', 'Explore ideas'],
                     ['mine', 'My requests'],
-                  ].map(([value, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      role="tab"
-                      aria-selected={scope === value}
-                      onClick={() => {
-                        setScope(value);
-                        setOffset(0);
-                      }}
-                      className={cn(
-                        'rounded-md px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
-                        scope === value
-                          ? 'bg-white text-[#4a52c9] ring-1 ring-[#e4e2f0] dark:bg-white/10 dark:text-[#bdc2ff] dark:ring-white/10'
-                          : MUTED
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  ].map(([value, label]) => {
+                    const active = scope === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => {
+                          if (scope !== value) {
+                            setScope(value);
+                            setOffset(0);
+                          }
+                        }}
+                        className={cn(
+                          'relative z-10 rounded-md px-3.5 py-1.5 text-xs font-bold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+                          active
+                            ? 'text-[#434ac9] dark:text-[#c3c7ff]'
+                            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                        )}
+                      >
+                        {active && (
+                          <m.div
+                            layoutId="feature-tab-pill"
+                            className="absolute inset-0 rounded-md bg-white shadow-2xs dark:bg-white/12"
+                            transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                          />
+                        )}
+                        <span className="relative z-10">{label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
                 <span className={cn(MICRO, MUTED)} aria-live="polite">
                   <span className={NUM}>{page?.total || 0}</span> matching requests
@@ -325,30 +370,53 @@ export default function FeatureRequests() {
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <label className="relative flex-1">
                   <span className="sr-only">Search feature requests</span>
-                  <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <input
-                    className={cn(field, 'pl-9')}
+                    className={cn(field, 'pl-9 pr-9')}
                     value={search}
                     maxLength={100}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search by title or description"
                   />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      aria-label="Clear search"
+                      className="absolute right-2.5 top-2.5 rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </label>
-                <label className="sr-only" htmlFor="feature-sort">
-                  Sort ideas
-                </label>
-                <select
-                  id="feature-sort"
-                  className={cn(field, 'sm:w-36')}
-                  value={sort}
-                  onChange={(event) => {
-                    setSort(event.target.value);
-                    setOffset(0);
-                  }}
-                >
-                  <option value="top">Top voted</option>
-                  <option value="new">Newest</option>
-                </select>
+                <div className="sm:w-44">
+                  <Select
+                    value={sort}
+                    onValueChange={(val) => {
+                      setSort(val);
+                      setOffset(0);
+                    }}
+                  >
+                    <SelectTrigger
+                      id="feature-sort"
+                      aria-label="Sort feature requests"
+                      className="h-9 w-full rounded-lg border-[#e4e2f0] bg-white px-3 text-xs font-bold text-slate-700 shadow-2xs hover:border-[#5a63df]/40 focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-[#18171f] dark:text-slate-200"
+                    >
+                      <div className="flex items-center gap-2">
+                        <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
+                        <SelectValue placeholder="Sort ideas" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="border-[#e4e2f0] bg-white/95 backdrop-blur-md dark:border-white/10 dark:bg-[#141319]">
+                      <SelectItem value="top" className="text-xs font-medium cursor-pointer">
+                        Top voted
+                      </SelectItem>
+                      <SelectItem value="new" className="text-xs font-medium cursor-pointer">
+                        Newest
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -367,34 +435,61 @@ export default function FeatureRequests() {
                     Retry
                   </button>
                 </div>
-              ) : loading ? (
-                <div className="space-y-2 animate-pulse" aria-label="Loading requests">
-                  {[1, 2, 3].map((number) => (
-                    <div key={number} className="h-32 rounded-lg bg-slate-100 dark:bg-white/5" />
-                  ))}
-                </div>
-              ) : page?.items?.length ? (
-                <div className="space-y-2">
-                  {page.items.map((request) => (
-                    <RequestCard
-                      key={request.id}
-                      request={request}
-                      onVote={vote}
-                      voting={votingId === request.id}
-                    />
-                  ))}
-                </div>
               ) : (
-                <Empty
-                  icon={Lightbulb}
-                  title={scope === 'mine' ? 'No requests yet' : 'No ideas found'}
-                  message={
-                    scope === 'mine'
-                      ? 'Your private submissions and team updates will appear here.'
-                      : 'Try another search or submit the first idea.'
-                  }
-                  className="py-12"
-                />
+                <AnimatePresence mode="wait" initial={false}>
+                  {loading ? (
+                    <m.div
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-2"
+                      aria-label="Loading requests"
+                    >
+                      <RequestCardSkeleton />
+                      <RequestCardSkeleton />
+                      <RequestCardSkeleton />
+                    </m.div>
+                  ) : page?.items?.length ? (
+                    <m.div
+                      key={`content-${scope}-${sort}-${offset}`}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.18, ease: 'easeOut' }}
+                      className="space-y-2"
+                    >
+                      {page.items.map((request) => (
+                        <RequestCard
+                          key={request.id}
+                          request={request}
+                          onVote={vote}
+                          voting={votingId === request.id}
+                        />
+                      ))}
+                    </m.div>
+                  ) : (
+                    <m.div
+                      key="empty"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Empty
+                        icon={Lightbulb}
+                        title={scope === 'mine' ? 'No requests yet' : 'No ideas found'}
+                        message={
+                          scope === 'mine'
+                            ? 'Your private submissions and team updates will appear here.'
+                            : 'Try another search or submit the first idea.'
+                        }
+                        className="py-12"
+                      />
+                    </m.div>
+                  )}
+                </AnimatePresence>
               )}
               {!error && (offset > 0 || offset + 20 < (page?.total || 0)) && (
                 <nav
@@ -480,13 +575,16 @@ export default function FeatureRequests() {
                         aria-checked={selected}
                         onClick={() => setCategory(value)}
                         className={cn(
-                          'min-h-9 rounded-lg border px-2.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-50',
+                          'relative flex min-h-9 items-center justify-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-50',
                           selected
-                            ? 'border-[#5a63df]/50 bg-[#5a63df]/10 text-[#4a52c9] dark:text-[#bdc2ff]'
-                            : 'border-[#e4e2f0] bg-white text-slate-600 hover:border-[#5a63df]/30 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300'
+                            ? 'border-[#5a63df] bg-[#5a63df]/10 text-[#434ac9] shadow-2xs dark:border-[#5a63df]/70 dark:bg-[#5a63df]/20 dark:text-[#c3c7ff]'
+                            : 'border-[#e4e2f0] bg-white text-slate-600 hover:border-[#5a63df]/30 hover:bg-[#faf9ff] dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300 dark:hover:bg-white/[0.06]'
                         )}
                       >
-                        {meta.label}
+                        {selected && (
+                          <Check className="h-3 w-3 shrink-0 stroke-[3] text-[#5a63df] dark:text-[#a5adff]" />
+                        )}
+                        <span>{meta.label}</span>
                       </button>
                     );
                   })}

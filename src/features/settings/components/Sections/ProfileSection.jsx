@@ -3,7 +3,7 @@ import { m } from 'framer-motion';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
-import { BookOpen, CheckCircle2, Laptop, Mail, Moon, Shield, Sun, User } from 'lucide-react';
+import { BookOpen, Check, Laptop, Mail, Moon, Shield, Sun, User } from 'lucide-react';
 import { IconChip, MUTED, PANEL, PanelTitle } from '@/features/dashboard/components/primitives';
 
 const THEMES = [
@@ -24,14 +24,7 @@ const TEST_MODES = [
 
 export default function ProfileSection({ formData, setFormData, avatars, theme, setTheme }) {
   return (
-    <m.div
-      key="profile"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2"
-    >
+    <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
       {/* Left Column: Personal Info & Avatar */}
       <div className={cn(PANEL, 'p-4 sm:p-5')}>
         <PanelTitle label="Account details" accent />
@@ -81,28 +74,42 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
             <span className={cn('text-xs font-medium', MUTED)}>Pick avatar</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             {avatars.map((url) => {
               const isSelected = formData.avatar_url === url;
               return (
-                <button
-                  key={url}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, avatar_url: url })}
-                  className={cn(
-                    'relative h-14 w-14 overflow-hidden rounded-lg transition-all duration-200 active:scale-95 sm:h-16 sm:w-16',
-                    isSelected
-                      ? 'ring-2 ring-[#5a63df] ring-offset-2 dark:ring-offset-[#131315]'
-                      : 'border border-[#e4e2f0] opacity-50 hover:opacity-100 dark:border-white/10'
-                  )}
-                >
-                  <img src={url} alt="Avatar option" className="h-full w-full object-cover" />
+                <div key={url} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, avatar_url: url })}
+                    className={cn(
+                      'group relative h-14 w-14 overflow-hidden rounded-xl transition-all duration-200 active:scale-[0.96] sm:h-16 sm:w-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+                      isSelected
+                        ? 'border-2 border-[#5a63df] shadow-md shadow-[#5a63df]/15 ring-2 ring-[#5a63df]/20 ring-offset-2 ring-offset-white dark:ring-offset-[#131315]'
+                        : 'border border-[#e4e2f0] hover:border-[#5a63df]/40 hover:shadow-2xs dark:border-white/10 dark:hover:border-white/25'
+                    )}
+                  >
+                    <img
+                      src={url}
+                      alt="Avatar option"
+                      className={cn(
+                        'h-full w-full object-cover transition-transform duration-200',
+                        !isSelected && 'group-hover:scale-105'
+                      )}
+                    />
+                  </button>
+
                   {isSelected && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#5a63df]/20">
-                      <CheckCircle2 className="h-5 w-5 text-white drop-shadow" />
-                    </div>
+                    <m.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+                      className="pointer-events-none absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#5a63df] text-white shadow-xs ring-2 ring-white dark:ring-[#141319]"
+                    >
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </m.div>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -126,13 +133,21 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
                   type="button"
                   onClick={() => setTheme && setTheme(id)}
                   className={cn(
-                    'flex h-[72px] flex-col items-center justify-center gap-2 rounded-lg border text-sm font-bold transition-all',
+                    'relative flex h-[72px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
                     isSelected
-                      ? 'border-[#5a63df] bg-[#5a63df] text-white'
-                      : 'border-[#e2e5f2] bg-[#fbfbfe] text-slate-600 hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/3 dark:text-slate-300'
+                      ? 'border-[#5a63df] bg-[#5a63df]/9 text-[#434ac9] dark:border-[#5a63df] dark:bg-[#5a63df]/18 dark:text-[#c3c7ff] shadow-xs'
+                      : 'border-[#e2e5f2] bg-[#fbfbfe] text-slate-600 hover:border-[#c9cdf3] hover:bg-white dark:border-white/10 dark:bg-white/3 dark:text-slate-300 dark:hover:border-white/20'
                   )}
                 >
-                  <Icon className={cn('h-5 w-5', !isSelected && 'text-slate-400')} />
+                  {isSelected && (
+                    <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-[#5a63df]" />
+                  )}
+                  <Icon
+                    className={cn(
+                      'h-5 w-5 transition-colors duration-150',
+                      isSelected ? 'text-[#5a63df] dark:text-[#a5adff]' : 'text-slate-400'
+                    )}
+                  />
                   <span>{label}</span>
                 </button>
               );
@@ -156,29 +171,36 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
                   type="button"
                   onClick={() => setFormData({ ...formData, default_test_mode: mode.id })}
                   className={cn(
-                    'flex flex-col rounded-lg border p-3.5 text-left transition-all',
+                    'relative flex flex-col rounded-xl border p-3.5 text-left transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
                     isSelected
-                      ? 'border-[#5a63df]/40 bg-[#5a63df]/6'
-                      : 'border-[#e2e5f2] bg-[#fbfbfe] hover:border-[#c9cdf3] dark:border-white/10 dark:bg-white/3'
+                      ? 'border-[#5a63df] bg-[#5a63df]/8 text-slate-900 dark:border-[#5a63df] dark:bg-[#5a63df]/16 dark:text-white shadow-xs'
+                      : 'border-[#e2e5f2] bg-[#fbfbfe] hover:border-[#c9cdf3] hover:bg-white dark:border-white/10 dark:bg-white/3 dark:hover:border-white/20'
                   )}
                 >
                   <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Icon
-                        className={cn('h-4 w-4', isSelected ? 'text-[#5a63df]' : 'text-slate-400')}
+                        className={cn(
+                          'h-4 w-4 transition-colors',
+                          isSelected ? 'text-[#5a63df]' : 'text-slate-400'
+                        )}
                       />
                       <span
                         className={cn(
                           'text-sm font-bold',
                           isSelected
-                            ? 'text-[#5a63df] dark:text-[#a9afff]'
+                            ? 'text-[#434ac9] dark:text-[#c3c7ff]'
                             : 'text-slate-900 dark:text-white'
                         )}
                       >
                         {mode.label}
                       </span>
                     </div>
-                    {isSelected && <CheckCircle2 className="h-4 w-4 text-[#5a63df]" />}
+                    {isSelected && (
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#5a63df] text-white">
+                        <Check className="h-2.5 w-2.5 stroke-[3]" />
+                      </div>
+                    )}
                   </div>
                   <p className={cn('text-xs font-medium leading-normal', MUTED)}>{mode.desc}</p>
                 </button>
@@ -187,6 +209,6 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
           </div>
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }

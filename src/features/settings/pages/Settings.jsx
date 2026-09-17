@@ -1,11 +1,10 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUserProfile, useUpdateProfile } from '@/features/auth/hooks/useUserProfile';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { mergeDefaultTestMode } from '@/features/testing/shared/testMode';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +33,14 @@ import {
 import { m, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
-import { IconChip, MUTED, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
+import {
+  IconChip,
+  MUTED,
+  NUM,
+  PANEL,
+  Pill,
+  TILE,
+} from '@/features/dashboard/components/primitives';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { requirePublicEnv } from '@/lib/publicEnv';
 import {
@@ -42,32 +48,19 @@ import {
   normalizeStudyAvailability,
 } from '../../../../supabase/functions/_shared/learningPathV2';
 
-// Extracted Sections
+// Tab Sections
 import ProfileSection from '../components/Sections/ProfileSection';
-
-const GoalsSection = lazy(() => import('../components/Sections/GoalsSection'));
-const SubscriptionSection = lazy(() => import('../components/Sections/SubscriptionSection'));
-const SecuritySection = lazy(() => import('../components/Sections/SecuritySection'));
-const PrivacySection = lazy(() => import('../components/Sections/PrivacySection'));
-const UsageStatsSection = lazy(() => import('@/features/settings/components/UsageStatsSection'));
-const ReferralSection = lazy(() => import('@/features/settings/components/ReferralSection'));
-const EmailPreferencesSection = lazy(
-  () => import('../components/Sections/EmailPreferencesSection')
-);
+import GoalsSection from '../components/Sections/GoalsSection';
+import SubscriptionSection from '../components/Sections/SubscriptionSection';
+import SecuritySection from '../components/Sections/SecuritySection';
+import PrivacySection from '../components/Sections/PrivacySection';
+import UsageStatsSection from '@/features/settings/components/UsageStatsSection';
+import ReferralSection from '@/features/settings/components/ReferralSection';
+import EmailPreferencesSection from '../components/Sections/EmailPreferencesSection';
 
 const loadUserService = () => import('@/features/auth/services/User').then((module) => module.User);
 const loadSupabaseClient = () => import('@/lib/supabase').then((module) => module.supabase);
 const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
-
-function SettingsTabFallback() {
-  return (
-    <div className={cn(PANEL, 'space-y-3 p-5')}>
-      <Skeleton className="h-6 w-36 rounded-lg" />
-      <Skeleton className="h-20 w-full rounded-lg" />
-      <Skeleton className="h-20 w-full rounded-lg" />
-    </div>
-  );
-}
 
 const AVATARS = [
   'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
@@ -112,10 +105,11 @@ export default function Settings() {
   const tabParam = searchParams.get('tab');
 
   useEffect(() => {
-    if (!tabParam) return;
-    if (!navItems.some((item) => item.id === tabParam)) return;
-    if (tabParam === activeTab) return;
-    setActiveTab(tabParam);
+    const currentTabInUrl =
+      tabParam && navItems.some((item) => item.id === tabParam) ? tabParam : 'profile';
+    if (currentTabInUrl !== activeTab) {
+      setActiveTab(currentTabInUrl);
+    }
   }, [tabParam, activeTab]);
 
   // Form States
@@ -360,7 +354,7 @@ export default function Settings() {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-[#5a63df] px-5 text-sm font-bold text-white transition-colors hover:bg-[#4a52c9] disabled:opacity-60"
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-[#5a63df] px-5 text-sm font-bold text-white shadow-2xs transition-colors duration-150 hover:bg-[#4a52c9] active:scale-[0.97] disabled:opacity-60"
           >
             {isSaving ? <Clock className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save changes
@@ -373,30 +367,49 @@ export default function Settings() {
           <div className="space-y-3 lg:sticky lg:top-4 lg:col-span-3">
             {/* Navigation Tabs */}
             <div className={cn(PANEL, 'p-1.5')}>
-              <nav className="no-scrollbar flex gap-1 overflow-x-auto lg:flex-col">
+              <nav
+                className="no-scrollbar flex gap-1 overflow-x-auto lg:flex-col"
+                role="tablist"
+                aria-label="Settings navigation"
+              >
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
                   return (
                     <button
                       key={item.id}
+                      role="tab"
+                      aria-selected={isActive}
                       onClick={() => handleTabChange(item.id)}
                       className={cn(
-                        'relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm font-bold transition-all duration-200 ease-smooth-out active:scale-[0.98]',
+                        'group relative flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm font-bold outline-none transition-colors duration-150 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-[#5a63df]',
                         isActive
-                          ? 'bg-[#5a63df]/9 text-[#4a52c9] dark:bg-[#5a63df]/22 dark:text-[#c3c7ff]'
-                          : 'text-slate-600 hover:bg-[#5a63df]/5 hover:text-[#4a52c9] dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-slate-100'
+                          ? 'text-[#434ac9] dark:text-[#c3c7ff]'
+                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                       )}
                     >
                       {isActive && (
-                        <m.span
-                          layoutId="settings-active-indicator"
-                          className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df]"
-                          transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                        <m.div
+                          layoutId="settings-active-tab-pill"
+                          className="absolute inset-0 rounded-lg border border-[#5a63df]/25 bg-[#5a63df]/10 shadow-2xs dark:border-[#5a63df]/40 dark:bg-[#5a63df]/20"
+                          transition={{
+                            type: 'spring',
+                            stiffness: 420,
+                            damping: 32,
+                          }}
                         />
                       )}
-                      <Icon className={cn('h-4 w-4 shrink-0', !isActive && 'text-slate-400')} />
-                      <span>{item.label}</span>
+                      <span className="relative z-10 flex items-center gap-2.5">
+                        <Icon
+                          className={cn(
+                            'h-4 w-4 shrink-0 transition-colors duration-150',
+                            isActive
+                              ? 'text-[#5a63df] dark:text-[#a5adff]'
+                              : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300'
+                          )}
+                        />
+                        <span>{item.label}</span>
+                      </span>
                     </button>
                   );
                 })}
@@ -423,7 +436,7 @@ export default function Settings() {
                   <p className={cn('truncate text-xs font-medium', MUTED)}>{formData.email}</p>
                   <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
                     <Trophy className="h-3.5 w-3.5" />
-                    <span>Target Band {formData.target_band_score}</span>
+                    <span className={NUM}>Target Band {formData.target_band_score}</span>
                   </div>
                 </div>
               </div>
@@ -432,72 +445,83 @@ export default function Settings() {
 
           {/* Right Content Column (9 cols) */}
           <div className="space-y-3 lg:col-span-9">
-            <AnimatePresence mode="wait">
-              {activeTab === 'profile' && (
-                <m.div key="profile" className="space-y-3">
-                  <ProfileSection
-                    formData={formData}
-                    setFormData={setFormData}
-                    avatars={AVATARS}
-                    theme={theme}
-                    setTheme={setTheme}
-                  />
-                  <Link
-                    to="/feature-requests"
-                    className={cn(
-                      PANEL,
-                      'group flex items-center gap-3 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]'
-                    )}
-                  >
-                    <IconChip icon={Lightbulb} size="md" />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
-                        Suggest a feature
-                      </h3>
-                      <p className={cn('text-xs font-medium', MUTED)}>
-                        Share an idea, vote on requests, and follow team updates.
-                      </p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#5a63df]" />
-                  </Link>
-                </m.div>
-              )}
-              {activeTab !== 'profile' && (
-                <Suspense fallback={<SettingsTabFallback />}>
-                  {activeTab === 'goals' && (
-                    <GoalsSection key="goals" formData={formData} setFormData={setFormData} />
-                  )}
-                  {activeTab === 'subscription' && (
-                    <SubscriptionSection
-                      key="subscription"
-                      user={user}
-                      isOpeningPortal={isOpeningPortal}
-                      isCancelling={isCancelling}
-                      showCancelDialog={showCancelDialog}
-                      setShowCancelDialog={setShowCancelDialog}
-                      handleOpenCustomerPortal={handleOpenCustomerPortal}
-                      handleToggleCancellation={handleToggleCancellation}
-                      navigate={navigate}
-                    />
-                  )}
-                  {activeTab === 'account' && (
-                    <SecuritySection
-                      key="account"
-                      passwordData={passwordData}
-                      setPasswordData={setPasswordData}
-                      isUpdatingPassword={isUpdatingPassword}
-                      handleUpdatePassword={handleUpdatePassword}
+            <AnimatePresence mode="wait" initial={false}>
+              <m.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{
+                  duration: 0.16,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="space-y-3"
+              >
+                {activeTab === 'profile' && (
+                  <>
+                    <ProfileSection
+                      formData={formData}
+                      setFormData={setFormData}
+                      avatars={AVATARS}
                       theme={theme}
                       setTheme={setTheme}
-                      setShowDeleteModal={setShowDeleteModal}
                     />
-                  )}
-                  {activeTab === 'usage' && <UsageStatsSection key="usage" />}
-                  {activeTab === 'referrals' && <ReferralSection key="referrals" />}
-                  {activeTab === 'preferences' && <EmailPreferencesSection key="preferences" />}
-                  {activeTab === 'privacy' && <PrivacySection key="privacy" />}
-                </Suspense>
-              )}
+                    <Link
+                      to="/feature-requests"
+                      className={cn(
+                        PANEL,
+                        'group flex items-center gap-3 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/35 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]'
+                      )}
+                    >
+                      <IconChip icon={Lightbulb} size="md" />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                          Suggest a feature
+                        </h3>
+                        <p className={cn('text-xs font-medium', MUTED)}>
+                          Share an idea, vote on requests, and follow team updates.
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[#5a63df]" />
+                    </Link>
+                  </>
+                )}
+
+                {activeTab === 'goals' && (
+                  <GoalsSection formData={formData} setFormData={setFormData} />
+                )}
+
+                {activeTab === 'usage' && <UsageStatsSection />}
+
+                {activeTab === 'referrals' && <ReferralSection />}
+
+                {activeTab === 'subscription' && (
+                  <SubscriptionSection
+                    user={user}
+                    isOpeningPortal={isOpeningPortal}
+                    isCancelling={isCancelling}
+                    showCancelDialog={showCancelDialog}
+                    setShowCancelDialog={setShowCancelDialog}
+                    handleOpenCustomerPortal={handleOpenCustomerPortal}
+                    handleToggleCancellation={handleToggleCancellation}
+                    navigate={navigate}
+                  />
+                )}
+
+                {activeTab === 'account' && (
+                  <SecuritySection
+                    passwordData={passwordData}
+                    setPasswordData={setPasswordData}
+                    isUpdatingPassword={isUpdatingPassword}
+                    handleUpdatePassword={handleUpdatePassword}
+                    setShowDeleteModal={setShowDeleteModal}
+                  />
+                )}
+
+                {activeTab === 'preferences' && <EmailPreferencesSection />}
+
+                {activeTab === 'privacy' && <PrivacySection />}
+              </m.div>
             </AnimatePresence>
           </div>
         </div>

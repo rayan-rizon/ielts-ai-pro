@@ -58,13 +58,7 @@ export default function UsageStatsSection() {
     : 0;
 
   return (
-    <m.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className="w-full"
-    >
+    <div className="w-full">
       <AnimatePresence mode="wait">
         {isLoading ? (
           <m.div
@@ -241,6 +235,6 @@ export default function UsageStatsSection() {
           </m.div>
         )}
       </AnimatePresence>
-    </m.div>
+    </div>
   );
 }

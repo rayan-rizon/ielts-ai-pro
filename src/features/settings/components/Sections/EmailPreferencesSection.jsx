@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { m } from 'framer-motion';
 import { Bell, Mail, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
@@ -91,13 +90,7 @@ export default function EmailPreferencesSection() {
   };
 
   return (
-    <m.div
-      key="preferences"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-      className="space-y-4"
-    >
+    <div className="space-y-3">
       <div className={cn(PANEL, 'p-5')}>
         <div className="flex items-start gap-3">
           <IconChip icon={Mail} tone="accent" size="md" />
@@ -176,6 +169,6 @@ export default function EmailPreferencesSection() {
           </span>
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }
