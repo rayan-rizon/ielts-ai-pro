@@ -145,7 +145,6 @@ export const MODELS: Record<string, ModelEntry> = {
 export const READING_ASSISTANT_PRIMARY_MODEL = 'openai/gpt-oss-120b';
 export const READING_ASSISTANT_LUNA_FALLBACK_MODEL = 'openai/gpt-5.6-luna';
 export const READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL = 'deepseek/deepseek-v4-flash-0731';
-export const READING_ASSISTANT_GEMINI_FALLBACK_MODEL = 'gemini-2.5-flash';
 export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 // Backwards-compatible alias for callers that only need the first fallback.
 export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
@@ -288,18 +287,13 @@ export const AI_ROUTES: AiRoute[] = [
         when: 'GPT OSS and Luna are unavailable or invalid; try DeepSeek Flash.',
       },
       {
-        model: READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
-        role: 'fallback',
-        when: 'The OpenRouter routes are unavailable or invalid; use Gemini as a later recovery path.',
-      },
-      {
         model: READING_ASSISTANT_GLM_FALLBACK_MODEL,
         role: 'fallback',
         when: 'All earlier providers are unavailable or invalid; use GLM with low reasoning as the last resort.',
       },
     ],
     notes:
-      'Dictionary falls back to the existing public dictionary lookup. Exam mode is server-blocked; completed review is allowed. Provider order is GPT OSS 120B -> Luna -> DeepSeek -> Gemini -> GLM.',
+      'Dictionary sends the selected word with its own sentence and caches on that pair, shared by every learner. Exam mode is server-blocked; completed review is allowed. Provider order is GPT OSS 120B -> Luna -> DeepSeek -> GLM; every attempt in the chain is billed, so rejected answers are charged to the daily budget too.',
   },
   {
     id: 'skill-lab-transcription',

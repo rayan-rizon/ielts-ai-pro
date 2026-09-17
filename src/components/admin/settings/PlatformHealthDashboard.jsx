@@ -169,6 +169,7 @@ const METRIC_LABEL = {
   recoveredFallbacks: 'Recovered',
   servedCalls: 'Served',
   estimatedCostUsd: 'Est. cost',
+  wastedCostUsd: 'Rejected-answer cost',
 };
 
 const ALARM_KEYS = new Set([

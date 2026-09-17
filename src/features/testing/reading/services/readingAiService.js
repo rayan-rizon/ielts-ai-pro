@@ -4,9 +4,14 @@ import { getSupabaseClient } from '@/lib/supabase';
 const responseCache = new Map();
 const inFlightRequests = new Map();
 const MAX_CACHE_ENTRIES = 100;
-const CACHE_TTL_MS = 10 * 60 * 1000;
-const CLIENT_CACHE_VERSION = 3;
+const CACHE_TTL_MS = 60 * 60 * 1000;
+const CLIENT_CACHE_VERSION = 4;
+const STORAGE_KEY = `reading_assistant_cache_v${CLIENT_CACHE_VERSION}`;
 
+// The session id stays in the key: two Reading tests can both be at passage 0,
+// and a stale answer from the wrong passage is worse than a second lookup. What
+// this cache saves is the round trip -- the shared server cache is what stops a
+// second learner paying for the same explanation.
 const cacheKey = (userId, payload) =>
   JSON.stringify([
     CLIENT_CACHE_VERSION,
@@ -22,11 +27,51 @@ const cacheKey = (userId, payload) =>
     payload.targetLanguage || '',
   ]);
 
+/**
+ * Session storage, so a reload mid-test does not re-ask for every explanation
+ * the learner has already opened. It is scoped to the tab and cleared with it,
+ * which matches how long these answers stay relevant.
+ */
+function storage() {
+  try {
+    return typeof window === 'undefined' ? null : window.sessionStorage;
+  } catch {
+    // Private-mode and blocked-storage browsers throw on access alone.
+    return null;
+  }
+}
+
+let restored = false;
+function restore() {
+  if (restored) return;
+  restored = true;
+  try {
+    const saved = JSON.parse(storage()?.getItem(STORAGE_KEY) || '[]');
+    if (!Array.isArray(saved)) return;
+    const now = Date.now();
+    for (const [key, entry] of saved.slice(-MAX_CACHE_ENTRIES)) {
+      if (entry?.expiresAt > now) responseCache.set(key, entry);
+    }
+  } catch {
+    // A corrupt or unreadable cache is simply an empty one.
+  }
+}
+
+function persist() {
+  try {
+    storage()?.setItem(STORAGE_KEY, JSON.stringify([...responseCache]));
+  } catch {
+    // Over quota or unavailable: the in-memory cache still works.
+  }
+}
+
 function readCached(key) {
+  restore();
   const entry = responseCache.get(key);
   if (!entry) return null;
   if (entry.expiresAt <= Date.now()) {
     responseCache.delete(key);
+    persist();
     return null;
   }
   responseCache.delete(key);
@@ -35,11 +80,13 @@ function readCached(key) {
 }
 
 function remember(key, value) {
+  restore();
   responseCache.delete(key);
   if (responseCache.size >= MAX_CACHE_ENTRIES) {
     responseCache.delete(responseCache.keys().next().value);
   }
   responseCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+  persist();
 }
 
 export function createReadingAssistantRequestId() {
@@ -81,6 +128,12 @@ export async function requestReadingAssistance(payload) {
 export function clearReadingAssistantCache() {
   responseCache.clear();
   inFlightRequests.clear();
+  restored = false;
+  try {
+    storage()?.removeItem(STORAGE_KEY);
+  } catch {
+    // Nothing to clear when storage is unavailable.
+  }
 }
 
 export function isReadingAssistantAvailable({ session, testMode, isFinished, paired = false }) {

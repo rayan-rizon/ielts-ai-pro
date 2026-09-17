@@ -2,7 +2,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { getCorsHeaders, handleCorsPrelight, validateCsrfProtection } from '../_shared/security.ts';
 import {
-  requestGeminiJson,
   requestOpenRouterDeepSeekJson,
   requestOpenRouterLunaJson,
   requestOpenRouterJson,
@@ -10,7 +9,6 @@ import {
 } from '../_shared/textAiProvider.ts';
 import {
   READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
-  READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
   READING_ASSISTANT_GLM_FALLBACK_MODEL,
   READING_ASSISTANT_LUNA_FALLBACK_MODEL,
   READING_ASSISTANT_PRIMARY_MODEL,
@@ -18,6 +16,7 @@ import {
 import {
   actionOutputLimit,
   buildReadingPrompt,
+  cacheIdentity,
   normalizeAssistantResult,
   parseReadingSections,
   resolveSelection,
@@ -26,7 +25,7 @@ import {
 } from './validation.ts';
 
 declare const Deno: any;
-const CACHE_VERSION = 'reading-assistant-v3-plain-breakdown';
+const CACHE_VERSION = 'reading-assistant-v4-sentence-dictionary-cache';
 
 const response = (data: unknown, status: number, headers: Record<string, string>) =>
   new Response(JSON.stringify(data), {
@@ -62,20 +61,20 @@ function telemetryError(error: unknown) {
   return { provider: 'none', code: 'provider_failure', message: 'AI provider request failed' };
 }
 
-function isRepairableSchemaError(error: unknown) {
-  return (
-    error instanceof TextAiProviderError &&
-    (error.code === 'invalid_schema' || error.code === 'malformed_json')
-  );
+/**
+ * What a rejected attempt still cost.
+ *
+ * A provider bills a response it has generated even when we throw its content
+ * away for being off-contract, so those charges have to be added to the one that
+ * finally worked. Otherwise the daily budget only ever sees the last call and a
+ * bad run for the primary model can spend past the cap unnoticed.
+ */
+function billedCost(error: unknown) {
+  return error instanceof TextAiProviderError ? error.usage?.estimatedProviderCostUsd || 0 : 0;
 }
 
-async function requestGeminiReadingResult(options: Parameters<typeof requestGeminiJson>[0]) {
-  try {
-    return await requestGeminiJson(options);
-  } catch (error) {
-    if (!isRepairableSchemaError(error)) throw error;
-    return requestGeminiJson({ ...options, temperature: 0 });
-  }
+function billedTokens(error: unknown) {
+  return error instanceof TextAiProviderError ? error.usage?.tokensUsed || 0 : 0;
 }
 
 function fallbackReasonCodes(
@@ -107,7 +106,6 @@ async function requestReadingAssistantResult({
     'You are a concise IELTS Reading language assistant. Return only valid JSON.';
 
   const openRouterKey = Deno.env.get('OPENROUTER_API_KEY');
-  const geminiKey = Deno.env.get('GEMINI_API_KEY');
   if (openRouterKey) {
     try {
       generated = await requestOpenRouterJson({
@@ -167,24 +165,7 @@ async function requestReadingAssistantResult({
       })
     );
     if (generated) return { generated, primaryError, fallbackAttempts };
-  }
 
-  if (geminiKey) {
-    generated = await attemptFallback(READING_ASSISTANT_GEMINI_FALLBACK_MODEL, () =>
-      requestGeminiReadingResult({
-        apiKey: geminiKey,
-        geminiModel: READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
-        prompt,
-        systemPrompt,
-        maxOutputTokens,
-        timeoutMs: 12_000,
-        validateJson,
-      })
-    );
-    if (generated) return { generated, primaryError, fallbackAttempts };
-  }
-
-  if (openRouterKey) {
     generated = await attemptFallback(READING_ASSISTANT_GLM_FALLBACK_MODEL, () =>
       requestOpenRouterJson({
         apiKey: openRouterKey,
@@ -194,7 +175,10 @@ async function requestReadingAssistantResult({
         maxOutputTokens: Math.min(maxOutputTokens * 2, 2048),
         timeoutMs: 12_000,
         includeUsageAccounting: true,
-        disableReasoning: false,
+        // `disableReasoning` sends an explicit reasoning budget rather than
+        // removing one; paired with 'low' it is the hidden low-effort mode the
+        // model registry documents for this route.
+        disableReasoning: true,
         reasoningEffort: 'low',
         temperature: 0.2,
         validateJson,
@@ -310,7 +294,8 @@ Deno.serve(async (req: Request) => {
     selection = resolveSelection(
       sections[input.passageIndex],
       input.selectedText,
-      input.selectionStart
+      input.selectionStart,
+      input.action
     );
   } catch (error) {
     return response(
@@ -320,16 +305,19 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // Shared by every learner: the key carries no user or session identity, so the
+  // first person to look something up pays for it and everyone after is served
+  // from cache.
   const cacheKey = await sha256(
     JSON.stringify({
       version: CACHE_VERSION,
-      passage: passage.id,
-      passageIndex: input.passageIndex,
-      start: selection.start,
-      end: selection.end,
-      text: selection.selectedText,
-      action: input.action,
-      language: input.targetLanguage,
+      ...cacheIdentity(
+        input.action,
+        passage.id,
+        input.passageIndex,
+        selection,
+        input.targetLanguage
+      ),
     })
   );
   const { data: cachedRow } = await admin
@@ -417,11 +405,19 @@ Deno.serve(async (req: Request) => {
     // be enforced here rather than only asked for in the prompt.
     generated.parsed = normalizeAssistantResult(input.action, generated.parsed);
     const fallbackReason = fallbackReasonCodes(primaryError, fallbackAttempts);
+    // Rejected attempts were still billed, so the budget is charged for the whole
+    // chain rather than only the call that returned a usable answer.
+    const wastedCost =
+      billedCost(primaryError) +
+      fallbackAttempts.reduce((total, { error }) => total + billedCost(error), 0);
+    const wastedTokens =
+      billedTokens(primaryError) +
+      fallbackAttempts.reduce((total, { error }) => total + billedTokens(error), 0);
     await admin.rpc('reading_assistant_finish', {
       p_id: input.requestId,
       p_result: generated.parsed,
-      p_cost: generated.usage.estimatedProviderCostUsd,
-      p_tokens: generated.usage.tokensUsed,
+      p_cost: generated.usage.estimatedProviderCostUsd + wastedCost,
+      p_tokens: generated.usage.tokensUsed + wastedTokens,
       p_model: generated.model,
       p_latency: Date.now() - started,
       p_ok: true,
@@ -438,7 +434,7 @@ Deno.serve(async (req: Request) => {
       admin.from('ai_api_usage').insert({
         user_id: profile.id,
         endpoint: 'reading-assistant',
-        tokens_used: generated.usage.tokensUsed,
+        tokens_used: generated.usage.tokensUsed + wastedTokens,
         cached: false,
         request_metadata: {
           action: input.action,
@@ -446,6 +442,8 @@ Deno.serve(async (req: Request) => {
           provider: generated.provider,
           cached: false,
           reservationStatus: 'completed',
+          wastedProviderCostUsd: wastedCost,
+          wastedTokens,
           fallbackUsed:
             Boolean(primaryError) || fallbackAttempts.length > 0 || generated.fallbackUsed,
           fallbackReason: fallbackReason || generated.fallbackReason,
@@ -454,7 +452,7 @@ Deno.serve(async (req: Request) => {
             ...fallbackAttempts.map(({ model }) => model),
             generated.model,
           ].filter((model, index, chain) => chain.indexOf(model) === index),
-          estimatedProviderCostUsd: generated.usage.estimatedProviderCostUsd,
+          estimatedProviderCostUsd: generated.usage.estimatedProviderCostUsd + wastedCost,
           latencyMs: Date.now() - started,
         },
       }),
@@ -476,12 +474,23 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     const failed = telemetryError(error);
     const fallbackReason = fallbackReasonCodes(primaryError, fallbackAttempts);
+    // Nothing usable came back, but the providers that generated and then failed
+    // the contract still charged for it, so the budget has to absorb that.
+    // The rethrown error is the last attempt in the list, so it is de-duplicated
+    // before the charges are added up.
+    const attempts = [
+      ...new Set(
+        [primaryError, ...fallbackAttempts.map(({ error: item }) => item), error].filter(Boolean)
+      ),
+    ];
+    const wastedCost = attempts.reduce((total, item) => total + billedCost(item), 0);
+    const wastedTokens = attempts.reduce((total, item) => total + billedTokens(item), 0);
     await Promise.allSettled([
       admin.rpc('reading_assistant_finish', {
         p_id: input.requestId,
         p_result: null,
-        p_cost: 0,
-        p_tokens: 0,
+        p_cost: wastedCost,
+        p_tokens: wastedTokens,
         p_model: '',
         p_latency: Date.now() - started,
         p_ok: false,
@@ -489,12 +498,15 @@ Deno.serve(async (req: Request) => {
       admin.from('ai_api_usage').insert({
         user_id: profile.id,
         endpoint: 'reading-assistant',
-        tokens_used: 0,
+        tokens_used: wastedTokens,
         cached: false,
         request_metadata: {
           action: input.action,
           cached: false,
           reservationStatus: 'failed',
+          estimatedProviderCostUsd: wastedCost,
+          wastedProviderCostUsd: wastedCost,
+          wastedTokens,
           provider: failed.provider,
           failureReason: failed.code,
           fallbackReason,

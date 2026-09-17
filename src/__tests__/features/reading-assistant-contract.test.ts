@@ -3,9 +3,11 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   buildReadingPrompt,
+  cacheIdentity,
   normalizePassageText,
   parseReadingSections,
   resolveSelection,
+  sentenceAround,
   TRANSLATION_LANGUAGES,
   validateAssistBody,
   validateAssistantResult,
@@ -15,7 +17,6 @@ import {
 import {
   AI_ROUTES,
   READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
-  READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
   READING_ASSISTANT_GLM_FALLBACK_MODEL,
   READING_ASSISTANT_LUNA_FALLBACK_MODEL,
   READING_ASSISTANT_PRIMARY_MODEL,
@@ -149,10 +150,6 @@ describe('Reading assistant contract', () => {
           role: 'fallback',
           model: READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
         }),
-        expect.objectContaining({
-          role: 'fallback',
-          model: READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
-        }),
         expect.objectContaining({ role: 'fallback', model: READING_ASSISTANT_GLM_FALLBACK_MODEL }),
       ])
     );
@@ -160,7 +157,6 @@ describe('Reading assistant contract', () => {
       READING_ASSISTANT_PRIMARY_MODEL,
       READING_ASSISTANT_LUNA_FALLBACK_MODEL,
       READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
-      READING_ASSISTANT_GEMINI_FALLBACK_MODEL,
       READING_ASSISTANT_GLM_FALLBACK_MODEL,
     ]);
     expect(READING_ASSISTANT_PRIMARY_MODEL).toBe('openai/gpt-oss-120b');
@@ -177,9 +173,77 @@ describe('Reading assistant contract', () => {
     expect(prompt).toContain('The claim was not proven.');
   });
 
+  it('scopes a dictionary lookup to its own sentence, not a character window', () => {
+    const section =
+      'Forests store carbon. The results were not conclusive, although widely reported by Dr. Smith in 1990. Another claim followed.';
+    const at = section.indexOf('conclusive');
+    expect(sentenceAround(section, at, at + 'conclusive'.length)).toBe(
+      'The results were not conclusive, although widely reported by Dr. Smith in 1990.'
+    );
+
+    const resolved = resolveSelection(section, 'conclusive', at, 'dictionary');
+    // The sentence is the context, so an abbreviation must not truncate it.
+    expect(resolved.context).toContain('Dr. Smith in 1990.');
+    expect(resolved.context).not.toContain('Forests store carbon');
+    expect(resolved.context).not.toContain('Another claim');
+
+    // The wider window still applies to the actions that explain a span.
+    expect(resolveSelection(section, 'not conclusive', null, 'simplify').context).toContain(
+      'Forests store carbon'
+    );
+  });
+
+  it('caches a dictionary answer on the word and sentence so every learner shares it', () => {
+    const first =
+      'An early note. Rising sea levels threaten low-lying coastal settlements everywhere.';
+    const second =
+      'A different opening sentence entirely. Rising sea levels threaten low-lying coastal settlements everywhere.';
+    const key = (section: string, passageId: string, passageIndex: number) => {
+      const at = section.indexOf('threaten');
+      return cacheIdentity(
+        'dictionary',
+        passageId,
+        passageIndex,
+        resolveSelection(section, 'threaten', at, 'dictionary'),
+        null
+      );
+    };
+    // Same word, same sentence, different passage and different offsets: one key,
+    // so the second learner is served from cache instead of billing a new call.
+    expect(key(first, 'passage-a', 0)).toEqual(key(second, 'passage-b', 2));
+
+    const other = 'Rising costs threaten the programme.';
+    expect(key(other, 'passage-a', 0)).not.toEqual(key(first, 'passage-a', 0));
+
+    // The span actions stay pinned to their passage and offsets.
+    const spanKey = cacheIdentity(
+      'simplify',
+      'passage-a',
+      0,
+      resolveSelection(first, 'Rising sea levels', null, 'simplify'),
+      null
+    );
+    expect(spanKey).toMatchObject({ passage: 'passage-a', passageIndex: 0 });
+  });
+
+  it('charges the daily budget for attempts that were billed and then rejected', () => {
+    expect(functionSource).toContain(
+      'p_cost: generated.usage.estimatedProviderCostUsd + wastedCost'
+    );
+    expect(functionSource).toContain('billedCost(primaryError)');
+    // A run where every provider failed still cost money.
+    expect(functionSource).toContain('p_cost: wastedCost');
+  });
+
+  it('no longer routes Reading assistance through Gemini', () => {
+    expect(functionSource).not.toMatch(/gemini/i);
+    const route = AI_ROUTES.find((item) => item.id === 'reading-assistant');
+    expect(route?.steps.map((step) => step.model)).not.toContain('gemini-2.5-flash');
+  });
+
   it('versions and expires validated server cache entries', () => {
     expect(functionSource).toContain(
-      "const CACHE_VERSION = 'reading-assistant-v3-plain-breakdown'"
+      "const CACHE_VERSION = 'reading-assistant-v4-sentence-dictionary-cache'"
     );
     expect(functionSource).toContain(".gt('expires_at', new Date().toISOString())");
     expect(functionSource).toContain(

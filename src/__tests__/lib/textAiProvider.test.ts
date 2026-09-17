@@ -426,3 +426,60 @@ describe('text AI provider routing', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
+
+describe('billed-but-rejected attempts', () => {
+  const billedBody = {
+    model: OPENROUTER_LUNA_MODEL,
+    choices: [{ message: { content: '{"wrong":"shape"}' } }],
+    usage: { prompt_tokens: 400, completion_tokens: 200, total_tokens: 600, cost: 0.00031 },
+  };
+
+  it('attaches the charge to a response rejected for its shape', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse(billedBody));
+
+    const error = await requestOpenRouterLunaJson({
+      prompt: 'Explain this sentence.',
+      apiKey: 'test-key',
+      maxOutputTokens: 600,
+      validateJson: (value: any) => typeof value?.simplified === 'string',
+      fetchImpl,
+    }).catch((caught) => caught);
+
+    expect(error.code).toBe('invalid_schema');
+    // The provider generated and billed this answer even though we threw it away.
+    expect(error.usage?.estimatedProviderCostUsd).toBe(0.00031);
+    expect(error.usage?.tokensUsed).toBe(600);
+  });
+
+  it('attaches the charge to a response rejected as malformed JSON', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ ...billedBody, choices: [{ message: { content: 'not json at all' } }] })
+      );
+
+    const error = await requestOpenRouterLunaJson({
+      prompt: 'Explain this sentence.',
+      apiKey: 'test-key',
+      maxOutputTokens: 600,
+      fetchImpl,
+    }).catch((caught) => caught);
+
+    expect(error.code).toBe('malformed_json');
+    expect(error.usage?.estimatedProviderCostUsd).toBe(0.00031);
+  });
+
+  it('reports no charge for a failure that never reached the model', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ error: 'rate limited' }, 429));
+
+    const error = await requestOpenRouterLunaJson({
+      prompt: 'Explain this sentence.',
+      apiKey: 'test-key',
+      maxOutputTokens: 600,
+      fetchImpl,
+    }).catch((caught) => caught);
+
+    expect(error.code).toBe('http_error');
+    expect(error.usage).toBeNull();
+  });
+});

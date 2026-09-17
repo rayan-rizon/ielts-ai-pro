@@ -78,6 +78,15 @@ export class TextAiProviderError extends Error {
   provider: ProviderName | 'none';
   status: number | null;
   code: string;
+  /**
+   * What the rejected attempt still cost.
+   *
+   * A provider bills a response it has already generated even when we throw its
+   * content away for being malformed or off-contract, so a caller that walks a
+   * fallback chain can add this up instead of recording only the call that
+   * finally worked.
+   */
+  usage: TextAiUsage | null;
 
   constructor(
     message: string,
@@ -85,6 +94,7 @@ export class TextAiProviderError extends Error {
       provider: ProviderName | 'none';
       status?: number | null;
       code: string;
+      usage?: TextAiUsage | null;
     }
   ) {
     super(message);
@@ -92,6 +102,7 @@ export class TextAiProviderError extends Error {
     this.provider = options.provider;
     this.status = options.status ?? null;
     this.code = options.code;
+    this.usage = options.usage ?? null;
   }
 }
 
@@ -184,6 +195,52 @@ function assertValidJsonShape(
   }
 }
 
+/**
+ * Read the billed usage from an OpenAI-shaped response body.
+ *
+ * This is deliberately computed before the content is parsed or validated: the
+ * charge is already incurred by then, and `parseBilledJson` needs the figure to
+ * attach to a rejection.
+ */
+function openAiShapedUsage(data: any, costModel: string): TextAiUsage {
+  const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
+  const cachedPromptTokens = Math.min(
+    promptTokens,
+    positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
+  );
+  const outputTokens = positiveNumber(data?.usage?.completion_tokens);
+  const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
+  const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+  return {
+    promptTokens,
+    cachedPromptTokens,
+    outputTokens,
+    tokensUsed,
+    // Prefer the provider's own billed figure; the catalog rate is only used for
+    // responses that omit cost metadata, and stays 0 for unpriced models.
+    estimatedProviderCostUsd:
+      reportedCost ||
+      estimateTokenCostUsd(costModel, { promptTokens, cachedPromptTokens, outputTokens }),
+  };
+}
+
+/** Parse and shape-check a generated answer, tagging a rejection with its cost. */
+function parseBilledJson(
+  provider: ProviderName,
+  text: unknown,
+  usage: TextAiUsage,
+  validateJson?: (value: any) => boolean
+) {
+  try {
+    const parsed = parseJsonText(text);
+    assertValidJsonShape(provider, parsed, validateJson);
+    return parsed;
+  } catch (error) {
+    if (error instanceof TextAiProviderError) error.usage = usage;
+    throw error;
+  }
+}
+
 export async function requestDeepSeekJson(request: ProviderRequest): Promise<TextAiResult> {
   const fetchImpl = request.fetchImpl || fetch;
   try {
@@ -218,15 +275,9 @@ export async function requestDeepSeekJson(request: ProviderRequest): Promise<Tex
 
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content;
-    const parsed = parseJsonText(text);
-    assertValidJsonShape('deepseek', parsed, request.validateJson);
-    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
-    const cachedPromptTokens = Math.min(
-      promptTokens,
-      positiveNumber(data?.usage?.prompt_cache_hit_tokens)
-    );
-    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
-    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
+    // The direct API never reports a cost, so this always uses the catalog rate.
+    const usage = openAiShapedUsage(data, DEEPSEEK_TEXT_MODEL);
+    const parsed = parseBilledJson('deepseek', text, usage, request.validateJson);
 
     return {
       parsed,
@@ -236,17 +287,7 @@ export async function requestDeepSeekJson(request: ProviderRequest): Promise<Tex
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
-      usage: {
-        promptTokens,
-        cachedPromptTokens,
-        outputTokens,
-        tokensUsed,
-        estimatedProviderCostUsd: estimateTokenCostUsd(DEEPSEEK_TEXT_MODEL, {
-          promptTokens,
-          cachedPromptTokens,
-          outputTokens,
-        }),
-      },
+      usage,
     };
   } catch (error) {
     throw providerFailure('deepseek', error);
@@ -300,15 +341,9 @@ export async function requestOpenRouterDeepSeekJson(
 
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content;
-    const parsed = parseJsonText(text);
-    assertValidJsonShape('openrouter-deepseek', parsed, request.validateJson);
-    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
-    const cachedPromptTokens = positiveNumber(
-      data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens
-    );
-    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
-    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
-    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+    // Prefers OpenRouter's reported charge; otherwise its catalog base price.
+    const usage = openAiShapedUsage(data, OPENROUTER_DEEPSEEK_MODEL);
+    const parsed = parseBilledJson('openrouter-deepseek', text, usage, request.validateJson);
 
     return {
       parsed,
@@ -318,20 +353,7 @@ export async function requestOpenRouterDeepSeekJson(
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
-      usage: {
-        promptTokens,
-        cachedPromptTokens,
-        outputTokens,
-        tokensUsed,
-        // Prefer OpenRouter's reported charge; otherwise use its catalog base price.
-        estimatedProviderCostUsd:
-          reportedCost ||
-          estimateTokenCostUsd(OPENROUTER_DEEPSEEK_MODEL, {
-            promptTokens,
-            cachedPromptTokens,
-            outputTokens,
-          }),
-      },
+      usage,
     };
   } catch (error) {
     throw providerFailure('openrouter-deepseek', error);
@@ -374,16 +396,10 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
 
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content;
-    const parsed = parseJsonText(text);
-    assertValidJsonShape('openrouter-luna', parsed, request.validateJson);
-    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
-    const cachedPromptTokens = Math.min(
-      promptTokens,
-      positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
-    );
-    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
-    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
-    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+    // Prefers OpenRouter's billed cost; the catalog rate is only a fallback for
+    // responses that omit cost metadata.
+    const usage = openAiShapedUsage(data, OPENROUTER_LUNA_MODEL);
+    const parsed = parseBilledJson('openrouter-luna', text, usage, request.validateJson);
 
     return {
       parsed,
@@ -393,21 +409,7 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
-      usage: {
-        promptTokens,
-        cachedPromptTokens,
-        outputTokens,
-        tokensUsed,
-        // Prefer OpenRouter's billed cost. These catalog rates are only a
-        // fallback for responses that omit cost metadata and may change.
-        estimatedProviderCostUsd:
-          reportedCost ||
-          estimateTokenCostUsd(OPENROUTER_LUNA_MODEL, {
-            promptTokens,
-            cachedPromptTokens,
-            outputTokens,
-          }),
-      },
+      usage,
     };
   } catch (error) {
     throw providerFailure('openrouter-luna', error);
@@ -451,16 +453,9 @@ export async function requestVercelGatewayLunaJson(
 
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content;
-    const parsed = parseJsonText(text);
-    assertValidJsonShape('vercel-ai-gateway-luna', parsed, request.validateJson);
-    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
-    const cachedPromptTokens = Math.min(
-      promptTokens,
-      positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
-    );
-    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
-    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
-    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+    // The gateway serves the same model, so it is priced from the Luna entry.
+    const usage = openAiShapedUsage(data, OPENROUTER_LUNA_MODEL);
+    const parsed = parseBilledJson('vercel-ai-gateway-luna', text, usage, request.validateJson);
 
     return {
       parsed,
@@ -470,19 +465,7 @@ export async function requestVercelGatewayLunaJson(
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
-      usage: {
-        promptTokens,
-        cachedPromptTokens,
-        outputTokens,
-        tokensUsed,
-        estimatedProviderCostUsd:
-          reportedCost ||
-          estimateTokenCostUsd(OPENROUTER_LUNA_MODEL, {
-            promptTokens,
-            cachedPromptTokens,
-            outputTokens,
-          }),
-      },
+      usage,
     };
   } catch (error) {
     throw providerFailure('vercel-ai-gateway-luna', error);
@@ -566,16 +549,10 @@ export async function requestOpenRouterJson(
 
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content;
-    const parsed = parseJsonText(text);
-    assertValidJsonShape('openrouter', parsed, request.validateJson);
-    const promptTokens = positiveNumber(data?.usage?.prompt_tokens);
-    const cachedPromptTokens = Math.min(
-      promptTokens,
-      positiveNumber(data?.usage?.prompt_cache_hit_tokens ?? data?.usage?.cache_read_input_tokens)
-    );
-    const outputTokens = positiveNumber(data?.usage?.completion_tokens);
-    const tokensUsed = positiveNumber(data?.usage?.total_tokens) || promptTokens + outputTokens;
-    const reportedCost = positiveNumber(data?.usage?.cost ?? data?.cost);
+    // Unknown candidate models are absent from the registry, so an unreported
+    // cost stays 0 rather than silently guessing a rate.
+    const usage = openAiShapedUsage(data, request.model);
+    const parsed = parseBilledJson('openrouter', text, usage, request.validateJson);
 
     return {
       parsed,
@@ -585,21 +562,7 @@ export async function requestOpenRouterJson(
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
-      usage: {
-        promptTokens,
-        cachedPromptTokens,
-        outputTokens,
-        tokensUsed,
-        // Unknown candidate models are absent from the registry, so an
-        // unreported cost stays 0 rather than silently guessing a rate.
-        estimatedProviderCostUsd:
-          reportedCost ||
-          estimateTokenCostUsd(request.model, {
-            promptTokens,
-            cachedPromptTokens,
-            outputTokens,
-          }),
-      },
+      usage,
     };
   } catch (error) {
     throw providerFailure('openrouter', error);
@@ -646,8 +609,6 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
 
     const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    const parsed = parseJsonText(text);
-    assertValidJsonShape('gemini', parsed, request.validateJson);
     const promptTokens = positiveNumber(data?.usageMetadata?.promptTokenCount);
     const outputTokens =
       positiveNumber(data?.usageMetadata?.candidatesTokenCount) +
@@ -655,6 +616,18 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
     const tokensUsed =
       positiveNumber(data?.usageMetadata?.totalTokenCount) || promptTokens + outputTokens;
     const model = request.geminiModel || GEMINI_TEXT_FALLBACK_MODEL;
+    const usage: TextAiUsage = {
+      promptTokens,
+      cachedPromptTokens: 0,
+      outputTokens,
+      tokensUsed,
+      estimatedProviderCostUsd: estimateTokenCostUsd(model, {
+        promptTokens,
+        cachedPromptTokens: 0,
+        outputTokens,
+      }),
+    };
+    const parsed = parseBilledJson('gemini', text, usage, request.validateJson);
 
     return {
       parsed,
@@ -664,17 +637,7 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
       mode: 'non-thinking',
       fallbackUsed: false,
       fallbackReason: null,
-      usage: {
-        promptTokens,
-        cachedPromptTokens: 0,
-        outputTokens,
-        tokensUsed,
-        estimatedProviderCostUsd: estimateTokenCostUsd(model, {
-          promptTokens,
-          cachedPromptTokens: 0,
-          outputTokens,
-        }),
-      },
+      usage,
     };
   } catch (error) {
     throw providerFailure('gemini', error);

@@ -82,10 +82,103 @@ export function validateAssistBody(body: any) {
   };
 }
 
+// Periods that end a title or an abbreviation, not a sentence. Splitting on
+// these would hand the model half a sentence as its context.
+const ABBREVIATIONS = new Set([
+  'mr',
+  'mrs',
+  'ms',
+  'dr',
+  'prof',
+  'st',
+  'jr',
+  'sr',
+  'vs',
+  'etc',
+  'eg',
+  'ie',
+  'al',
+  'approx',
+  'est',
+  'fig',
+  'no',
+  'vol',
+  'pp',
+  'inc',
+  'ltd',
+  'co',
+  'dept',
+  'univ',
+]);
+
+/**
+ * Where the sentence ends, if the `[.!?]` at this index really closes one.
+ *
+ * Returns the index just past the terminator and any quote or bracket closing
+ * with it, so a following sentence does not inherit a stray `"`. Returns -1 when
+ * the mark is an abbreviation or an initial rather than a full stop.
+ */
+function sentenceBoundaryEnd(text: string, index: number) {
+  let after = index + 1;
+  while (after < text.length && /["'’”)\]]/.test(text[after])) after += 1;
+  const closes = () => {
+    // A terminator at the very end of the text closes the last sentence.
+    if (after >= text.length) return true;
+    if (!/\s/.test(text[after])) return false;
+    let next = after;
+    while (next < text.length && /\s/.test(text[next])) next += 1;
+    // Sentences restart with a capital, a digit or an opening quote.
+    if (next < text.length && !/["'“‘(\[A-Z0-9]/.test(text[next])) return false;
+    if (text[index] !== '.') return true;
+    const word = text.slice(0, index).match(/([A-Za-z]+)$/)?.[1];
+    // "1990." ends a sentence; "U.S." and "J. Smith" do not, nor do the titles
+    // above, so only a trailing word is disqualifying.
+    if (!word) return true;
+    return word.length > 1 && !ABBREVIATIONS.has(word.toLocaleLowerCase('en'));
+  };
+  return closes() ? after : -1;
+}
+
+// A selection inside a very long run of text without punctuation would otherwise
+// send the whole run as context, so the sentence is bounded either side.
+const SENTENCE_RADIUS = 400;
+
+/**
+ * The sentence a selection sits in.
+ *
+ * A word's sense is decided by its sentence, so Dictionary uses this as both the
+ * context it sends and the thing it caches on. Sentence-scoped keys survive an
+ * edit elsewhere in the passage, which character offsets do not.
+ */
+export function sentenceAround(sectionText: string, start: number, end: number) {
+  let from = Math.max(0, start - SENTENCE_RADIUS);
+  for (let i = start - 1; i >= from; i -= 1) {
+    if (!/[.!?]/.test(sectionText[i])) continue;
+    const boundary = sentenceBoundaryEnd(sectionText, i);
+    // The boundary can only be behind the selection; a quote closing after it is
+    // still part of the previous sentence.
+    if (boundary > -1 && boundary <= start) {
+      from = boundary;
+      break;
+    }
+  }
+  let to = Math.min(sectionText.length, end + SENTENCE_RADIUS);
+  for (let i = end; i < to; i += 1) {
+    if (!/[.!?]/.test(sectionText[i])) continue;
+    const boundary = sentenceBoundaryEnd(sectionText, i);
+    if (boundary > -1) {
+      to = boundary;
+      break;
+    }
+  }
+  return sectionText.slice(from, to).trim() || sectionText.slice(start, end);
+}
+
 export function resolveSelection(
   sectionText: string,
   selectedText: string,
-  preferredStart?: number | null
+  preferredStart?: number | null,
+  action?: ReadingAction
 ) {
   const normalizedSelection = normalizePassageText(selectedText);
   const lowerSection = sectionText.toLocaleLowerCase('en');
@@ -103,13 +196,49 @@ export function resolveSelection(
       : best
   );
   const end = start + normalizedSelection.length;
+  const sentence = sentenceAround(sectionText, start, end);
   const contextStart = Math.max(0, start - 500);
   const contextEnd = Math.min(sectionText.length, end + 500);
   return {
     selectedText: sectionText.slice(start, end),
     start,
     end,
-    context: sectionText.slice(contextStart, contextEnd),
+    sentence,
+    // A one-word lookup only needs its own sentence; the wider window is for the
+    // actions whose selection can span clauses.
+    context: action === 'dictionary' ? sentence : sectionText.slice(contextStart, contextEnd),
+  };
+}
+
+/**
+ * The identity a generated answer is cached under, shared by every learner.
+ *
+ * Dictionary keys on the word and its sentence, so the same word looked up again
+ * anywhere that sentence appears is served from cache instead of regenerated.
+ * The other actions explain a specific span, so they stay keyed to the passage
+ * and the offsets that span was resolved at.
+ */
+export function cacheIdentity(
+  action: ReadingAction,
+  passageId: string,
+  passageIndex: number,
+  selection: { selectedText: string; start: number; end: number; sentence: string },
+  targetLanguage?: string | null
+) {
+  if (action === 'dictionary')
+    return {
+      action,
+      word: selection.selectedText.trim().toLocaleLowerCase('en'),
+      sentence: selection.sentence.trim().toLocaleLowerCase('en'),
+    };
+  return {
+    action,
+    passage: passageId,
+    passageIndex,
+    start: selection.start,
+    end: selection.end,
+    text: selection.selectedText,
+    language: targetLanguage || null,
   };
 }
 
