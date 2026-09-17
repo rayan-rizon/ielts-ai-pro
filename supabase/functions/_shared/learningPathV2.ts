@@ -995,6 +995,29 @@ export function buildSevenDaySchedule({
     }
   }
 
+  // Fixed IELTS task times can make the final plan shorter than the provisional
+  // block budget. Recalculate Grammar's 20% ceiling from the actual non-Grammar
+  // minutes and trim a long Grammar block when needed.
+  const nonGrammarMinutes = assignedMinutes - grammarMinutes;
+  const finalGrammarCapMinutes = Math.min(
+    grammarBudgetMinutes,
+    Math.floor((nonGrammarMinutes * 0.25) / 5) * 5
+  );
+  let grammarExcess = Math.max(0, grammarMinutes - finalGrammarCapMinutes);
+  if (grammarExcess > 0) {
+    for (const day of [...STUDY_DAYS].reverse()) {
+      for (const task of [...(schedule[day] || [])].reverse()) {
+        if (task.module !== 'grammar' || grammarExcess <= 0) continue;
+        const reducible = Math.max(0, Number(task.estimated_time || 0) - 20);
+        const reduction = Math.min(reducible, grammarExcess);
+        task.estimated_time -= reduction;
+        grammarMinutes -= reduction;
+        assignedMinutes -= reduction;
+        grammarExcess -= reduction;
+      }
+    }
+  }
+
   let vocabularyMinutes = 0;
   const vocabularyCapMinutes = Math.max(
     0,
@@ -1052,7 +1075,7 @@ export function buildSevenDaySchedule({
     weekly_capacity_minutes: weeklyCapacity,
     weekly_planned_minutes: assignedMinutes,
     grammar_minutes: grammarMinutes,
-    grammar_cap_minutes: grammarBudgetMinutes,
+    grammar_cap_minutes: finalGrammarCapMinutes,
     vocabulary_minutes: vocabularyMinutes,
     vocabulary_cap_minutes: vocabularyCapMinutes,
   };
