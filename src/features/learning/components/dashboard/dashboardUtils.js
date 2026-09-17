@@ -246,7 +246,7 @@ const getSkillTitle = (skillCode) => {
     ''
   );
   const simpleWritingLabels = {
-    taskachievement: 'Cover the task clearly',
+    taskachievement: 'Answer every part of the prompt',
     taskresponse: 'Answer the question fully',
     coherencecohesion: 'Organize ideas clearly',
     lexicalresource: 'Use clear words',
@@ -290,15 +290,23 @@ export function getFriendlyTaskTitle(task = {}) {
   const label = getModuleLabel(task.module);
   const skill = getSkillTitle(task.skill_code || task.skill_targets?.[0]);
   const type = String(task?.activity_type || '').toLowerCase();
-  if (String(task.module || '').toLowerCase() === 'writing' && type !== 'exam_assessment') {
+  if (String(task.module || '').toLowerCase() === 'writing') {
+    if (type === 'exam_assessment' || String(task?.requested_mode).toLowerCase() === 'exam') {
+      return 'Writing Exam Mode';
+    }
     const routedTask = String(task?.routing?.writing_task || '');
     const titleTask = String(task?.title || '').match(/Task\s*[12]/i)?.[0];
-    const taskNumber = /2/.test(routedTask || titleTask || '') ? 'Task 2' : 'Task 1';
-    if (type === 'diagnostic') return `Writing ${taskNumber} practice test`;
-    if (skill && skill !== 'Core Skill') {
-      return `Writing ${taskNumber}: ${skill}`;
-    }
-    return `Writing ${taskNumber} practice`;
+    const skillKey = String(task.skill_code || task.skill_targets?.[0] || '')
+      .replace(/[\s_-]+/g, '')
+      .toLowerCase();
+    const criterionTask = skillKey.includes('taskachievement')
+      ? 'Task 1'
+      : skillKey.includes('taskresponse')
+        ? 'Task 2'
+        : null;
+    const taskNumber =
+      criterionTask || (/2/.test(routedTask || titleTask || '') ? 'Task 2' : 'Task 1');
+    return `Writing ${taskNumber} Practice Mode`;
   }
   const builder = ACTIVITY_TITLE_BUILDERS[type];
   if (builder) return builder(label, skill);
@@ -1388,7 +1396,7 @@ export function getPlanRefreshTrigger({
     .some((skill) => Date.parse(skill.last_practiced_at || '') > generatedAt);
   if (newPractice) return 'practice_completed';
   if (isLearningPlanExpired(path, now)) return 'schedule_expired';
-  if (path.generator_version !== LEARNING_PATH_GENERATOR_VERSION) return 'manual_refresh';
+  if (path.generator_version !== LEARNING_PATH_GENERATOR_VERSION) return 'generator_updated';
 
   return null;
 }

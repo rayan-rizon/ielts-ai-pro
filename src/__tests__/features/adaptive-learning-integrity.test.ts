@@ -32,7 +32,7 @@ const availability = normalizeStudyAvailability({
 });
 const plan = {
   version: 2,
-  generator_version: '2.4.1',
+  generator_version: '2.4.3',
   input_fingerprint: 'same',
   generated_at: '2026-09-17T00:00:00Z',
   goal_snapshot: { target_band: 7, test_date: null, study_availability: availability },
@@ -296,8 +296,36 @@ describe('Practice Mode to Exam Mode progression', () => {
       .flat()
       .find((task) => task.module === 'writing');
     expect(writingTask).toMatchObject({
-      title: expect.stringContaining('Writing Task 2'),
+      title: 'Writing Task 2 Practice Mode',
+      estimated_time: 40,
       routing: expect.objectContaining({ writing_task: 'Task 2' }),
+    });
+  });
+
+  it('keeps Task Achievement with Task 1 and uses its official 20-minute practice time', () => {
+    const result = buildSevenDaySchedule({
+      availability,
+      evidence: summarizeEvidence([
+        {
+          skill_code: 'writing_taskachievement',
+          module: 'writing',
+          mastery_probability: 0.4,
+          confidence_level: 0.8,
+          practice_count: 10,
+        },
+      ]),
+      readiness: aggregateReadiness([session('writing', 6)], now),
+      now,
+    });
+    const writingTask = Object.values(result.schedule)
+      .flat()
+      .find(
+        (task) =>
+          task.module === 'writing' && task.skill_targets?.includes('writing_taskachievement')
+      );
+    expect(writingTask).toMatchObject({
+      estimated_time: 20,
+      routing: expect.objectContaining({ writing_task: 'Task 1' }),
     });
   });
 

@@ -182,7 +182,7 @@ describe('Learning Path main page composition', () => {
         module: 'writing',
         activity_type: 'diagnostic',
       })
-    ).toBe('Writing Task 1 practice test');
+    ).toBe('Writing Task 1 Practice Mode');
     expect(
       getFriendlyTaskTitle({
         title: 'Writing practice',
@@ -191,7 +191,15 @@ describe('Learning Path main page composition', () => {
         skill_targets: ['writing_taskachievement'],
         routing: { writing_task: 'Task 2' },
       })
-    ).toBe('Writing Task 2: Cover the task clearly');
+    ).toBe('Writing Task 1 Practice Mode');
+    expect(
+      getFriendlyTaskTitle({
+        title: 'Writing Exam Mode check',
+        module: 'writing',
+        activity_type: 'exam_assessment',
+        requested_mode: 'exam',
+      })
+    ).toBe('Writing Exam Mode');
   });
 
   it('translates older saved plan wording into learner-friendly terms', () => {
@@ -505,7 +513,7 @@ describe('Learning Path main page composition', () => {
     const path = {
       version: 2,
       input_fingerprint: 'same-inputs',
-      generator_version: '2.4.1',
+      generator_version: '2.4.3',
       generated_at: '2026-07-23T09:00:00.000Z',
       goal_snapshot: {
         target_band: 7,
@@ -530,6 +538,16 @@ describe('Learning Path main page composition', () => {
         ],
       })
     ).toBeNull();
+
+    expect(
+      getPlanRefreshTrigger({
+        path: { ...path, generator_version: '2.4.1' },
+        user,
+        currentAvailability: availability,
+        now: new Date('2026-07-23T12:00:00Z'),
+        sessions: [],
+      })
+    ).toBe('generator_updated');
 
     expect(
       getPlanRefreshTrigger({

@@ -99,20 +99,24 @@ export function useLearningPathDashboard({
   const planUpdateAvailable = !previewMode && Boolean(refreshTrigger);
 
   useEffect(() => {
-    if (previewMode || isLoading || !user?.id || refreshing || savingGoals || !hasTestEvidence)
+    if (
+      previewMode ||
+      isLoading ||
+      !user?.id ||
+      refreshing ||
+      savingGoals ||
+      !hasTestEvidence ||
+      !refreshTrigger
+    )
       return;
-    // One server check per visit covers corrected scores and vocabulary evidence
-    // that the combined page RPC does not expose. Fingerprint hits use no AI.
-    const visitKey = `${user.id}:evidence-check`;
-    const requestKey = refreshTrigger
-      ? `${user.id}:${path?.input_fingerprint || 'first'}:${refreshTrigger}`
-      : visitKey;
+    // Tests, Grammar Lab, and Vocabulary refresh the plan when their evidence is saved.
+    // Opening an already-current page should stay instant and make no server or AI request.
+    const requestKey = `${user.id}:${path?.input_fingerprint || 'first'}:${refreshTrigger}`;
     if (automaticRequests.current.has(requestKey)) return;
     automaticRequests.current.add(requestKey);
-    automaticRequests.current.add(visitKey);
     setRefreshing(true);
     generateAdaptiveLearningPath({
-      trigger: refreshTrigger || 'manual_refresh',
+      trigger: refreshTrigger,
       timezone: fallbackAvailability.timezone,
     })
       .then(() => queryClient.invalidateQueries({ queryKey: ['learningPath'] }))

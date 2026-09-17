@@ -1,4 +1,4 @@
-export const LEARNING_PATH_GENERATOR_VERSION = '2.4.1';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.4.3';
 
 export const STUDY_DAYS = [
   'monday',
@@ -330,6 +330,16 @@ function writingTaskFromSession(session: any) {
   if (/task\s*2|task2/.test(value)) return 'Task 2';
   if (/task\s*1|task1/.test(value)) return 'Task 1';
   return null;
+}
+
+function writingTaskForActivity(activity: any, fallback: 'Task 1' | 'Task 2') {
+  const criterion = [activity?.title, activity?.evidence_key, ...(activity?.skill_targets || [])]
+    .join(' ')
+    .replace(/[\s_-]+/g, '')
+    .toLowerCase();
+  if (criterion.includes('taskachievement')) return 'Task 1' as const;
+  if (criterion.includes('taskresponse')) return 'Task 2' as const;
+  return fallback;
 }
 
 export function aggregateReadiness(sessions: any[], now: Date | string = new Date()) {
@@ -943,16 +953,20 @@ export function buildSevenDaySchedule({
       if (base.module === 'writing' && base.requested_mode !== 'exam') {
         const firstWritingTask =
           readiness.modules?.writing?.next_practice_task === 'Task 2' ? 'Task 2' : 'Task 1';
-        const writingTask =
+        const alternatingTask =
           writingTaskCursor % 2 === 0
             ? firstWritingTask
             : firstWritingTask === 'Task 1'
               ? 'Task 2'
               : 'Task 1';
         writingTaskCursor += 1;
+        const writingTask = writingTaskForActivity(base, alternatingTask);
+        const officialTaskMinutes = writingTask === 'Task 2' ? 40 : 20;
+        if (officialTaskMinutes > capacity - usedToday) continue;
+        minutes = officialTaskMinutes;
         base = {
           ...base,
-          title: `Writing ${writingTask} practice`,
+          title: `Writing ${writingTask} Practice Mode`,
           evidence_key: `${base.evidence_key}:writing-${writingTask === 'Task 1' ? 'task-1' : 'task-2'}`,
           success_criterion: `Complete a scored Writing ${writingTask} response and review its criterion feedback.`,
           routing: { ...base.routing, writing_task: writingTask },

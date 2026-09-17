@@ -49,11 +49,11 @@ describe('Learning Path refresh lifecycle', () => {
     expect(generate).toHaveBeenCalledTimes(1);
     expect(generate).toHaveBeenCalledWith({ trigger: 'first_plan', timezone: 'UTC' });
   });
-  it('checks server evidence on manual refresh even without a locally detected change', async () => {
+  it('keeps an already-current page quiet until the learner checks for updates', async () => {
     const path = {
       version: 2,
       input_fingerprint: 'current',
-      generator_version: '2.4.1',
+      generator_version: '2.4.3',
       generated_at: new Date().toISOString(),
       goal_snapshot: { target_band: 7, study_availability: availability },
     };
@@ -63,9 +63,9 @@ describe('Learning Path refresh lifecycle', () => {
       { wrapper }
     );
     expect(result.current.planUpdateAvailable).toBe(false);
-    await waitFor(() => expect(result.current.refreshing).toBe(false));
-    expect(generate).toHaveBeenCalledTimes(1);
-    generate.mockClear();
+    await act(async () => {});
+    expect(result.current.refreshing).toBe(false);
+    expect(generate).not.toHaveBeenCalled();
     await act(async () => result.current.refreshPlan());
     expect(generate).toHaveBeenCalledWith({ trigger: 'manual_refresh', timezone: 'UTC' });
   });

@@ -58,6 +58,7 @@ const ALLOWED_TRIGGERS = new Set([
   'manual_refresh',
   'schedule_expired',
   'practice_completed',
+  'generator_updated',
 ]);
 
 const triggerMessage = (trigger: string, module?: string) => {
@@ -82,6 +83,9 @@ const triggerMessage = (trigger: string, module?: string) => {
   }
   if (trigger === 'first_plan') {
     return 'This is your first plan based on actual test results. Take practice tests in the other subjects to make it more complete.';
+  }
+  if (trigger === 'generator_updated') {
+    return 'The study plan format was improved while keeping your latest results and goals.';
   }
   return 'Your evidence or goals changed since the previous revision.';
 };
@@ -678,7 +682,8 @@ serve(async (req: Request) => {
       readiness,
       checkpoint,
       candidates: candidateActivities,
-      scheduleOnly: latest?.path_data?.input_fingerprint === fingerprint,
+      scheduleOnly:
+        latest?.path_data?.input_fingerprint === fingerprint || trigger === 'generator_updated',
     });
     scheduleData.schedule = applyAiRanking(scheduleData.schedule, coach.rankedActivityKeys || []);
 
