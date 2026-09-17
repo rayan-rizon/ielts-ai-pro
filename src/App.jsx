@@ -143,6 +143,9 @@ const ListeningTest = lazyWithRetry(
 );
 const ReadingTest = lazyWithRetry(() => import('@/features/testing/reading/pages/ReadingTest.jsx'));
 const Settings = lazyWithRetry(() => import('@/features/settings/pages/Settings.jsx'));
+const FeatureRequests = lazyWithRetry(
+  () => import('@/features/feature-requests/pages/FeatureRequests.jsx')
+);
 const Vocabulary = lazyWithRetry(() => import('@/features/vocabulary/pages/Vocabulary.jsx'));
 const VocabularyKits = lazyWithRetry(
   () => import('@/features/vocabulary/pages/VocabularyKits.jsx')
@@ -506,6 +509,18 @@ const router = createBrowserRouter(
           <Layout currentPageName="Settings" data-oid="z1127ih">
             <LazyPage data-oid="d95:o9x">
               <Settings data-oid="ewz-jh3" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/feature-requests',
+      element: (
+        <ProtectedRoute>
+          <Layout currentPageName="FeatureRequests">
+            <LazyPage>
+              <FeatureRequests />
             </LazyPage>
           </Layout>
         </ProtectedRoute>

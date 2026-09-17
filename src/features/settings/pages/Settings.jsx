@@ -3,7 +3,7 @@ import { useUserProfile, useUpdateProfile } from '@/features/auth/hooks/useUserP
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 import { mergeDefaultTestMode } from '@/features/testing/shared/testMode';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -27,6 +27,8 @@ import {
   Gift,
   BarChart3,
   Mail,
+  Lightbulb,
+  ArrowRight,
   Lock,
 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
@@ -432,14 +434,33 @@ export default function Settings() {
           <div className="space-y-3 lg:col-span-9">
             <AnimatePresence mode="wait">
               {activeTab === 'profile' && (
-                <ProfileSection
-                  key="profile"
-                  formData={formData}
-                  setFormData={setFormData}
-                  avatars={AVATARS}
-                  theme={theme}
-                  setTheme={setTheme}
-                />
+                <m.div key="profile" className="space-y-3">
+                  <ProfileSection
+                    formData={formData}
+                    setFormData={setFormData}
+                    avatars={AVATARS}
+                    theme={theme}
+                    setTheme={setTheme}
+                  />
+                  <Link
+                    to="/feature-requests"
+                    className={cn(
+                      PANEL,
+                      'group flex items-center gap-3 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]'
+                    )}
+                  >
+                    <IconChip icon={Lightbulb} size="md" />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                        Suggest a feature
+                      </h3>
+                      <p className={cn('text-xs font-medium', MUTED)}>
+                        Share an idea, vote on requests, and follow team updates.
+                      </p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#5a63df]" />
+                  </Link>
+                </m.div>
               )}
               {activeTab !== 'profile' && (
                 <Suspense fallback={<SettingsTabFallback />}>

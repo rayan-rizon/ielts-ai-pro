@@ -21,6 +21,7 @@ import {
   Gift,
   FlaskConical,
   Target,
+  Lightbulb,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { ReiconChart } from '@/components/icons/ReiconChart';
@@ -75,6 +76,11 @@ export const adminNavigationItems = [
   { title: 'Resources', url: createPageUrl('AdminPanel') + '?tab=resources', icon: Library },
   { title: 'User Management', url: createPageUrl('AdminPanel') + '?tab=users', icon: Users },
   { title: 'AI Usage', url: createPageUrl('AdminPanel') + '?tab=ai-usage', icon: Cpu },
+  {
+    title: 'Feature Requests',
+    url: createPageUrl('AdminPanel') + '?tab=feature-requests',
+    icon: Lightbulb,
+  },
   { title: 'Promo Codes', url: createPageUrl('AdminPanel') + '?tab=promo', icon: Crown },
   { title: 'Referrals', url: createPageUrl('AdminPanel') + '?tab=referrals', icon: Gift },
   { title: 'Marketing', url: createPageUrl('AdminPanel') + '?tab=marketing', icon: Target },
