@@ -196,25 +196,56 @@ on `subscription_data`. They identify one browsing session; copying them onto
 the subscription would re-attribute every future renewal to whatever session
 happened to start it.
 
-### The cutover is ordered, and the order matters
+### The cutover — completed 2026-09-18
 
 GA4 does **not** deduplicate events by `transaction_id`. Exactly one producer
 may emit `purchase`, so the browser and the webhook must never both be live.
+The handoff was performed in this order, and the order is what makes it safe:
 
-1. GA4 Admin → Data Streams → the web stream → **Measurement Protocol API
-   secrets** → Create. Copy the secret.
-2. Set `GA4_MEASUREMENT_ID=G-GF63SJZ9ZJ` and `GA4_API_SECRET=<secret>` on the
+1. ✅ GA4 Admin → Data Streams → web stream → **Measurement Protocol API
+   secrets** → Create. Created as `stripe-webhook`. (The panel read "No API
+   secrets yet" — none had ever existed.)
+2. ✅ `GA4_MEASUREMENT_ID=G-GF63SJZ9ZJ` and `GA4_API_SECRET` set on the
    `stripe-webhook` function. Until both exist the sender makes no network call
    at all, so this step alone changes nothing.
-3. Deploy the client with `VITE_GA4_SERVER_PURCHASE=true`. The browser stops
-   pushing `subscription_purchase`, so the GTM `GA4 - Purchase` trigger stops
-   matching and the webhook becomes the single source of revenue truth.
+3. ✅ Client redeployed with `VITE_GA4_SERVER_PURCHASE=true` (Vercel, Production,
+   Config not Secret — it is compiled into the client bundle). The browser
+   stopped pushing `subscription_purchase`, so the GTM `GA4 - Purchase` trigger
+   no longer matches and the webhook is the single source of revenue truth.
 
 Steps 2 and 3 hand ownership over. Doing 2 without 3 double-counts every
 purchase where the payer did return to the success page; doing 3 without 2
-reports no purchases at all. Roll back by unsetting
-`VITE_GA4_SERVER_PURCHASE` — the GTM tag and trigger are left in place
-untouched precisely so the old path is one deploy away.
+reports no purchases at all. **A ~4 minute window between the two did occur on
+2026-09-18**; at ~5 payments/month the chance of a purchase landing in it was
+negligible, but a duplicate around 20:50 UTC+6 that day would have this cause.
+
+Roll back by deleting `VITE_GA4_SERVER_PURCHASE` and redeploying — the GTM tag
+and trigger were deliberately left in place so the old path is one deploy away.
+
+#### How it was verified
+
+- **The API secret works.** A valueless `mp_connectivity_check` event was sent
+  through the Measurement Protocol and observed arriving in GA4 DebugView.
+  Four of these events exist in the property; they carry no value and are not
+  key events.
+- **An HTTP 204 proves nothing.** `/debug/mp/collect` returns an identical empty
+  `validationMessages` array for the correct secret and for a deliberately
+  invalid one — the validation endpoint does not check the secret at all. This
+  is the same silent-discard behaviour that makes a bad secret so hard to
+  notice, so never treat a 2xx as confirmation. Only DebugView or Realtime is.
+- **The build flag actually flipped**, confirmed in the minified bundle rather
+  than assumed, because the guard is not constant-folded and the two builds look
+  identical around it:
+  - before: `be="true"===String({}?.VITE_GA4_SERVER_PURCHASE??"").toLowerCase()` → `false`
+  - after: `be="true"===String("true").toLowerCase()` → `true`
+
+  The guard `if(be&&"subscription_purchase"===e||Me({event:e,...d}))` therefore
+  short-circuits for purchases only; every other funnel event still pushes.
+
+- **An empty string is treated as unset.** `isConfigured()` tests
+  `Boolean(trimmed && trimmed)`, so a `GA4_API_SECRET` accidentally set to `""`
+  leaves the sender inert rather than half-enabled. This was hit for real during
+  setup and cost nothing.
 
 **Renewals are deliberately excluded.** Only `checkout.session.completed` sends
 a `purchase`; `invoice.paid` does not. This matches the semantics of the browser
