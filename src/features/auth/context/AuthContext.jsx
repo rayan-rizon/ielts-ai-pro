@@ -659,6 +659,13 @@ export const AuthProvider = ({ children }) => {
 
     if (upgradedFromFree && isManualBdSubscription) {
       const subscriptionAmount = Number(userProfile.subscription_amount);
+      // A manually approved bKash upgrade has no checkout session to name it,
+      // so derive a stable id from the account and the tier it moved to. This
+      // effect only runs on a free -> paid transition, making that pair unique
+      // per upgrade. Without it the event fell back to a fresh random id on
+      // every fire, which defeated both Meta's event-id dedup and the
+      // localStorage replay guard, and left GA4 with no transaction_id at all.
+      const manualTransactionId = `manual_bd_${userId}_${currentTier}`;
       trackAuthenticatedAppEvent(
         'subscription_purchase',
         {
@@ -670,6 +677,8 @@ export const AuthProvider = ({ children }) => {
               ? subscriptionAmount
               : undefined,
           currency: subscriptionCurrency || 'BDT',
+          transaction_id: manualTransactionId,
+          event_id: manualTransactionId,
           source: 'manual_bangladesh',
         },
         userProfile

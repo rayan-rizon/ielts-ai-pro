@@ -10,7 +10,27 @@ export { CONSENT_STORAGE_KEY, CONSENT_VERSION } from '@/lib/trackingConfig';
 const DEFAULT_IDS = {
   gtmId: 'GTM-TR6XQ2R3',
   pixelId: '991226963227159',
+  /**
+   * GA4 measurement id. The GA4 tags themselves live in GTM — this constant
+   * exists only to locate the `_ga_<STREAM>` session cookie, whose name is
+   * derived from the measurement id.
+   */
+  measurementId: 'G-GF63SJZ9ZJ',
 };
+
+/**
+ * Whether the GA4 `purchase` event is owned by the server.
+ *
+ * GA4 does not deduplicate events, so exactly one producer may emit `purchase`.
+ * Default (unset/false) keeps the historical behaviour: the browser pushes
+ * `subscription_purchase`, the GTM "GA4 - Purchase" trigger picks it up. Set
+ * `VITE_GA4_SERVER_PURCHASE=true` only once the Stripe webhook is configured
+ * with GA4_MEASUREMENT_ID and GA4_API_SECRET; the browser then stops pushing
+ * that event and the webhook becomes the single source of revenue truth.
+ * Meta reporting is unaffected either way — it never used the dataLayer.
+ */
+const GA4_SERVER_PURCHASE =
+  String(import.meta.env?.VITE_GA4_SERVER_PURCHASE ?? '').toLowerCase() === 'true';
 
 const FBC_BACKUP_KEY = '_fbc_backup';
 const SIGNUP_TRACKED_KEY = 'signup_tracked_for';
@@ -162,6 +182,58 @@ const writeStorage = (key, value) => {
 };
 
 const getFbp = () => getCookie('_fbp');
+
+/**
+ * GA4 client id, read from the `_ga` cookie.
+ *
+ * Format is `GA1.<domainDepth>.<clientId>` where the client id is itself
+ * `<random>.<firstSeenSeconds>`. Taking everything after the second dot keeps
+ * it correct regardless of the domain-depth digit.
+ */
+export const getGaClientId = () => {
+  const raw = getCookie('_ga');
+  if (!raw) return null;
+  const parts = raw.split('.');
+  if (parts.length < 4) return null;
+  const clientId = parts.slice(2).join('.');
+  return /^\d{1,20}\.\d{1,20}$/.test(clientId) ? clientId : null;
+};
+
+/**
+ * GA4 session id, read from the per-stream `_ga_<STREAM>` cookie.
+ *
+ * Google has shipped two encodings for this cookie and both are live in the
+ * wild, so parse defensively rather than assuming either:
+ *   GS1.1.<sessionId>.<sessionNumber>....   — dot separated
+ *   GS2.1.s<sessionId>$o<n>$g<n>$t<n>...    — `$`-delimited, `s`-prefixed
+ * Returning null only costs session-level attribution, never the purchase.
+ */
+export const getGaSessionId = () => {
+  const streamId = String(DEFAULT_IDS.measurementId || '').replace(/^G-/, '');
+  if (!streamId) return null;
+  const raw = getCookie(`_ga_${streamId}`);
+  if (!raw) return null;
+
+  // GS2 style: the session id is the `s`-prefixed field.
+  const gs2 = raw.match(/[.$]s(\d{6,20})(?:[$.]|$)/);
+  if (gs2) return gs2[1];
+
+  // GS1 style: third dot-separated segment.
+  const parts = raw.split('.');
+  if (parts.length >= 3 && /^\d{6,20}$/.test(parts[2])) return parts[2];
+
+  return null;
+};
+
+/**
+ * The GA4 session handle to carry through Stripe Checkout so the purchase can
+ * be reported server-side against the session that produced it. Both fields
+ * are optional — a missing value degrades attribution, never the payment.
+ */
+export const getGaSessionHandle = () => ({
+  ga_client_id: getGaClientId(),
+  ga_session_id: getGaSessionId(),
+});
 
 /**
  * Resolve the Meta click id.
@@ -425,7 +497,16 @@ export const trackAppEvent = (eventName, payload = {}) => {
   });
 
   const sanitizedPayload = sanitizeAnalyticsPayload(enrichedPayload);
-  pushDataLayer({ event: eventName, ...sanitizedPayload });
+
+  // When the server owns GA4 revenue, the browser must not also announce the
+  // purchase: the GTM "GA4 - Purchase" trigger listens for exactly this event
+  // name, and GA4 would count both copies. Meta is dispatched below through
+  // fbq and the Conversions API, neither of which reads the dataLayer, so
+  // suppressing this push costs nothing on the Meta side.
+  const suppressGa4Purchase = GA4_SERVER_PURCHASE && eventName === 'subscription_purchase';
+  if (!suppressGa4Purchase) {
+    pushDataLayer({ event: eventName, ...sanitizedPayload });
+  }
 
   if (purchaseMarker) writeStorage(purchaseMarker, '1');
 

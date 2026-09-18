@@ -167,6 +167,75 @@ Measurement is additionally gated to `ieltsai.pro` / `www.ieltsai.pro` in three
 places (see `docs/meta-conversions-api.md`), and the GTM host-gate trigger uses
 `^(www\.)?ieltsai\.pro$`.
 
+## Server-side purchase
+
+The browser is not a reliable place to report revenue. The client-side
+`subscription_purchase` event only fires if the payer's browser actually reaches
+`/subscription/success` and finishes running React — a closed tab, a dropped
+redirect, a blocked tag, or a payment finished on another device all produce a
+real charge GA4 never hears about. That is why the `Ielts Ai Pro (web) purchase`
+conversion in Google Ads read **"Awaiting conversions"** (0 conversions,
+lifetime) while Stripe had settled payments.
+
+The Stripe webhook is the opposite: Stripe retries it until acknowledged, and
+the `handle_stripe_event` RPC claims each event exactly once, so reporting from
+inside that claimed block counts every settled payment exactly once.
+
+**Attribution is preserved, not lost.** `Pricing.jsx` reads the GA4 `client_id`
+(`_ga`) and `session_id` (`_ga_GF63SJZ9ZJ`) at checkout time and sends them to
+`create-checkout-session`, which validates their shape and stores them as
+Stripe `metadata[ga_client_id]` / `metadata[ga_session_id]`. The webhook replays
+them through the Measurement Protocol, so the purchase lands on the session that
+actually earned it — with its campaign, source and gclid intact. A payment with
+no captured session (blocked cookie, or a manually approved bKash upgrade) is
+still reported, under a synthetic client id derived from the user id, so the
+revenue shows as unattributed rather than disappearing.
+
+`ga_client_id` / `ga_session_id` are set on the **session** metadata only, never
+on `subscription_data`. They identify one browsing session; copying them onto
+the subscription would re-attribute every future renewal to whatever session
+happened to start it.
+
+### The cutover is ordered, and the order matters
+
+GA4 does **not** deduplicate events by `transaction_id`. Exactly one producer
+may emit `purchase`, so the browser and the webhook must never both be live.
+
+1. GA4 Admin → Data Streams → the web stream → **Measurement Protocol API
+   secrets** → Create. Copy the secret.
+2. Set `GA4_MEASUREMENT_ID=G-GF63SJZ9ZJ` and `GA4_API_SECRET=<secret>` on the
+   `stripe-webhook` function. Until both exist the sender makes no network call
+   at all, so this step alone changes nothing.
+3. Deploy the client with `VITE_GA4_SERVER_PURCHASE=true`. The browser stops
+   pushing `subscription_purchase`, so the GTM `GA4 - Purchase` trigger stops
+   matching and the webhook becomes the single source of revenue truth.
+
+Steps 2 and 3 hand ownership over. Doing 2 without 3 double-counts every
+purchase where the payer did return to the success page; doing 3 without 2
+reports no purchases at all. Roll back by unsetting
+`VITE_GA4_SERVER_PURCHASE` — the GTM tag and trigger are left in place
+untouched precisely so the old path is one deploy away.
+
+**Renewals are deliberately excluded.** Only `checkout.session.completed` sends
+a `purchase`; `invoice.paid` does not. This matches the semantics of the browser
+event being replaced, and matters because Google Ads imports this conversion —
+crediting ads for recurring revenue no ad click caused would inflate apparent
+campaign performance and corrupt Smart Bidding. Reporting renewals is a separate
+decision, not a side effect of this change.
+
+**Meta is unaffected.** `trackAppEvent` dispatches Meta through `fbq` and the
+Conversions API, neither of which reads the dataLayer, so suppressing the
+dataLayer push costs nothing on the Meta side. Meta also dedupes on `eventID`,
+which the browser still supplies.
+
+### Known gap: bKash
+
+Manually approved bKash payments never touch Stripe, so they never reach this
+webhook. They are still reported by the browser path in `AuthContext.jsx`, which
+means they inherit the same reliability problem this change fixed for Stripe. As
+of Sep 2026 Bangladesh is 193 of ~600 signups, so closing this is worth doing —
+it needs the same treatment on the payment-approval path.
+
 ## Orphans left over from the Stape era
 
 - **`GTM-TGSX5DN3`** — a server container named "Ielts Ai Pro Server", the

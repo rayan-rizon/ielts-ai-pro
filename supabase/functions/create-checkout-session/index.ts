@@ -226,9 +226,30 @@ Deno.serve(async (req: Request) => {
     // =====================================================================
     // Input Validation (strict whitelist)
     // =====================================================================
-    const { tier, interval, currency, marketing_campaign_id, marketing_delivery_id } =
-      await req.json();
+    const {
+      tier,
+      interval,
+      currency,
+      marketing_campaign_id,
+      marketing_delivery_id,
+      ga_client_id,
+      ga_session_id,
+    } = await req.json();
     // NOTE: priceAmount is intentionally NOT destructured — it is IGNORED
+
+    // GA4 session handle, carried through Stripe so the webhook can report the
+    // purchase against the session that produced it. Client-supplied and
+    // therefore validated to an exact shape before it is stored: GA4 client ids
+    // are `<int>.<int>` and session ids are unix seconds. Anything else is
+    // dropped, which only costs attribution — never the sale.
+    const gaClientId =
+      typeof ga_client_id === 'string' && /^\d{1,20}\.\d{1,20}$/.test(ga_client_id.trim())
+        ? ga_client_id.trim()
+        : null;
+    const gaSessionId =
+      typeof ga_session_id === 'string' && /^\d{1,20}$/.test(ga_session_id.trim())
+        ? ga_session_id.trim()
+        : null;
 
     if (!tier || !interval) {
       return errorResponse('Missing tier or interval', 400, corsHeaders);
@@ -563,6 +584,11 @@ Deno.serve(async (req: Request) => {
       checkoutBody['metadata[promo_discount_type]'] = validatedDiscount.discount_type;
       checkoutBody['metadata[promo_discount_value]'] = String(validatedDiscount.discount_value);
     }
+    // Only on the session, not on subscription_data: these identify one
+    // browsing session, so copying them onto the subscription would re-attribute
+    // every future renewal to the session that happened to start it.
+    if (gaClientId) checkoutBody['metadata[ga_client_id]'] = gaClientId;
+    if (gaSessionId) checkoutBody['metadata[ga_session_id]'] = gaSessionId;
     checkoutBody['subscription_data[metadata][supabase_user_id]'] = userData.id;
     checkoutBody['subscription_data[metadata][supabase_auth_id]'] = user.id;
     checkoutBody['subscription_data[metadata][tier]'] = tier;

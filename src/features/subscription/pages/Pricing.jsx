@@ -5,7 +5,7 @@ import { getPlanPriceAndMeta, calculatePrice } from '@/lib/pricingUtils';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
-import { trackAppEvent, trackAuthenticatedAppEvent } from '@/lib/tracking';
+import { getGaSessionHandle, trackAppEvent, trackAuthenticatedAppEvent } from '@/lib/tracking';
 import { getMarketingAttribution } from '@/lib/marketingAttribution';
 import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/lib/promoOffer';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
@@ -93,6 +93,11 @@ const createStripeCheckout = async ({
       currency: currency.toLowerCase(),
       marketing_campaign_id: campaignId,
       marketing_delivery_id: deliveryId,
+      // Carries the GA4 session into Stripe so the webhook can report the
+      // purchase against the visit that earned it. Both values are null when
+      // GA has not set its cookies (blocked, or first paint not finished);
+      // the server drops them and the checkout proceeds unchanged.
+      ...getGaSessionHandle(),
     }),
   });
 

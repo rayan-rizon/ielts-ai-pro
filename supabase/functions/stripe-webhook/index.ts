@@ -15,6 +15,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
 import { sendEmail } from '../_shared/resend.ts';
 import { getEmailTemplate } from '../_shared/templates.ts';
+import { sendGa4Purchase } from '../_shared/ga4.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2023-10-16',
@@ -294,6 +295,29 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       currency: (session.currency || 'usd').toUpperCase(),
       marketing_campaign_id: session.metadata?.marketing_campaign_id || null,
       marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
+    });
+
+    // Report revenue to GA4 from here rather than from the browser. This block
+    // runs exactly once per Stripe event (the RPC claims it), so a webhook
+    // retry cannot double-count, and a payer who never returns to
+    // /subscription/success is still counted. Only NEW subscriptions are sent,
+    // matching the semantics of the browser event this replaces — renewals
+    // arrive via invoice.paid and are deliberately not reported as purchases,
+    // because Google Ads imports this conversion and must not be credited for
+    // recurring revenue no ad click caused.
+    //
+    // Inert until GA4_MEASUREMENT_ID and GA4_API_SECRET are set, and never
+    // throws: an analytics outage must not fail a settled payment.
+    await sendGa4Purchase({
+      clientId: session.metadata?.ga_client_id,
+      sessionId: session.metadata?.ga_session_id,
+      transactionId: session.id,
+      value: (session.amount_total || 0) / 100,
+      currency: (session.currency || 'usd').toUpperCase(),
+      tier,
+      interval: interval || 'monthly',
+      userId,
+      source: 'stripe_checkout',
     });
   }
 }
