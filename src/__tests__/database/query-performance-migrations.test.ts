@@ -9,6 +9,20 @@ const timezoneMigration = read('20260915195911_resolve_study_timezone_without_ca
 const catalogueMigration = read('20260915200133_narrow_practice_library_catalogue.sql');
 const fkIndexMigration = read('20260915200546_index_reading_assistant_session_fks.sql');
 const grantMigration = read('20260915203704_tighten_resolve_study_timezone_grant.sql');
+const catalogueCacheMigration = read('20260919124902_cache_practice_library_catalogue.sql');
+const materializedCatalogueMigration = read(
+  '20260919192500_materialize_practice_library_catalogue.sql'
+);
+const minimizedDashboardCatalogueMigration = read(
+  '20260919194000_minimize_practice_library_dashboard_catalogue.sql'
+);
+const minimizedListeningDashboardMigration = read(
+  '20260919195000_minimize_listening_dashboard_metadata.sql'
+);
+const targetedCatalogueMigration = read('20260919200000_target_practice_library_payloads.sql');
+const dashboardGroupCacheMigration = read(
+  '20260919201000_materialize_practice_library_dashboard_groups.sql'
+);
 
 describe('Grammar Lab timezone resolution', () => {
   it('replaces the pg_timezone_names scan with a reusable helper', () => {
@@ -64,6 +78,50 @@ describe('Grammar Lab timezone resolution', () => {
   });
 });
 
+describe('Skill Lab targeted catalogue payloads', () => {
+  it('pre-groups dashboard metadata and scopes full content to requested sources', () => {
+    expect(targetedCatalogueMigration).toContain(
+      'create or replace function public.practice_library_dashboard_groups(p_auth uuid)'
+    );
+    expect(targetedCatalogueMigration).toContain(
+      'create or replace function public.practice_library_catalogue_for_sources('
+    );
+    expect(targetedCatalogueMigration).toContain('where p.id = any(p_sources)');
+  });
+
+  it('keeps both RPCs service-role only', () => {
+    expect(targetedCatalogueMigration).toContain(
+      'grant execute on function public.practice_library_dashboard_groups(uuid) to service_role'
+    );
+    expect(targetedCatalogueMigration).toContain(
+      'grant execute on function public.practice_library_catalogue_for_sources(uuid, uuid[], boolean)'
+    );
+  });
+});
+
+describe('Skill Lab dashboard group cache', () => {
+  it('materializes exact grouped metadata per tier', () => {
+    expect(dashboardGroupCacheMigration).toContain(
+      'create table if not exists skill_lab_private.practice_library_dashboard_cache'
+    );
+    expect(dashboardGroupCacheMigration).toContain(
+      'public.practice_library_dashboard_groups_uncached(representative.auth_id)'
+    );
+    expect(dashboardGroupCacheMigration).toContain(
+      'left join skill_lab_private.practice_library_dashboard_cache c'
+    );
+  });
+
+  it('refreshes dashboard and catalogue caches from the same source triggers', () => {
+    expect(dashboardGroupCacheMigration).toContain(
+      'perform skill_lab_private.refresh_practice_library_catalogue_cache()'
+    );
+    expect(dashboardGroupCacheMigration).toContain(
+      'perform skill_lab_private.refresh_practice_library_dashboard_cache()'
+    );
+  });
+});
+
 describe('Skill Lab catalogue narrowing', () => {
   it('lets the dashboard action skip question explanations', () => {
     expect(catalogueMigration).toContain('p_include_explanations boolean default true');
@@ -116,6 +174,107 @@ describe('Skill Lab catalogue narrowing', () => {
       /p_include_explanations boolean default (\w+)/
     )?.[1];
     expect(defaultClause).toBe('true');
+  });
+});
+
+describe('Skill Lab catalogue egress cache', () => {
+  it('separates reusable static content from private learner history', () => {
+    expect(catalogueCacheMigration).toContain(
+      'create or replace function public.practice_library_catalogue_static'
+    );
+    expect(catalogueCacheMigration).toContain(
+      'create or replace function public.practice_library_history(p_auth uuid)'
+    );
+
+    const staticFunction = catalogueCacheMigration.split(
+      'create or replace function public.practice_library_history'
+    )[0];
+    expect(staticFunction).not.toContain("'history'");
+    expect(staticFunction).not.toContain('public.test_sessions');
+  });
+
+  it('versions static data from tier, row counts and latest updates', () => {
+    expect(catalogueCacheMigration).toContain(
+      'create or replace function public.practice_library_catalogue_version(p_auth uuid)'
+    );
+    expect(catalogueCacheMigration).toContain('passage_stats.row_count');
+    expect(catalogueCacheMigration).toContain('passage_stats.latest_update');
+    expect(catalogueCacheMigration).toContain('question_stats.row_count');
+    expect(catalogueCacheMigration).toContain('question_stats.latest_update');
+    expect(catalogueCacheMigration).toContain(
+      'create or replace function skill_lab_private.touch_catalogue_updated_at()'
+    );
+    expect(catalogueCacheMigration).toContain('create trigger practice_library_touch_passage');
+    expect(catalogueCacheMigration).toContain('create trigger practice_library_touch_question');
+  });
+
+  it('keeps every new RPC service-role only', () => {
+    for (const signature of [
+      'public.practice_library_catalogue_version(uuid)',
+      'public.practice_library_catalogue_static(uuid, boolean)',
+      'public.practice_library_history(uuid)',
+    ]) {
+      expect(catalogueCacheMigration).toContain(
+        `revoke all on function ${signature}\n  from public, anon, authenticated`
+      );
+      expect(catalogueCacheMigration).toContain(
+        `grant execute on function ${signature} to service_role`
+      );
+    }
+  });
+});
+
+describe('Skill Lab materialized catalogue cache', () => {
+  it('serves static payloads from a private tier cache', () => {
+    expect(materializedCatalogueMigration).toContain(
+      'create table if not exists skill_lab_private.practice_library_catalogue_cache'
+    );
+    expect(materializedCatalogueMigration).toContain(
+      'join skill_lab_private.practice_library_catalogue_cache c'
+    );
+    expect(materializedCatalogueMigration).toContain(
+      'grant execute on function public.practice_library_catalogue_static(uuid, boolean) to service_role'
+    );
+  });
+
+  it('refreshes the cache after source catalogue statements', () => {
+    expect(materializedCatalogueMigration).toContain(
+      'create or replace function skill_lab_private.refresh_practice_library_catalogue_cache()'
+    );
+    expect(materializedCatalogueMigration).toContain(
+      'after insert or update or delete or truncate on public.passages'
+    );
+    expect(materializedCatalogueMigration).toContain(
+      'after insert or update or delete or truncate on public.questions'
+    );
+  });
+});
+
+describe('Skill Lab dashboard catalogue payload', () => {
+  it('removes only Reading passage text from the summary variant', () => {
+    expect(minimizedDashboardCatalogueMigration).toContain(
+      "case when p_include_explanations or p.test_type = 'listening'"
+    );
+    expect(minimizedDashboardCatalogueMigration).toContain(
+      "jsonb_build_object('content', 'available')"
+    );
+    expect(minimizedDashboardCatalogueMigration).toContain(
+      'select skill_lab_private.refresh_practice_library_catalogue_cache()'
+    );
+  });
+
+  it('keeps Listening audio metadata while excluding transcripts from summaries', () => {
+    expect(minimizedListeningDashboardMigration).toContain(
+      'create or replace function skill_lab_private.dashboard_passage_content'
+    );
+    expect(minimizedListeningDashboardMigration).toContain(
+      "'audio_url', section.value -> 'audio_url'"
+    );
+    expect(minimizedListeningDashboardMigration).toContain(
+      "'duration_minutes', section.value -> 'duration_minutes'"
+    );
+    expect(minimizedListeningDashboardMigration).not.toContain("section.value -> 'transcript'");
+    expect(minimizedListeningDashboardMigration).not.toContain("section.value -> 'srt_content'");
   });
 });
 
