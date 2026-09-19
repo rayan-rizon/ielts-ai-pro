@@ -94,6 +94,14 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingSource:
       'OpenRouter catalog price, verified 2026-09-10. Billed usage.cost wins when returned.',
   },
+  'openai/gpt-oss-20b': {
+    id: 'openai/gpt-oss-20b',
+    vendor: 'OpenAI',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.02, cachedInputPerMillion: 0.02, outputPerMillion: 0.1 },
+    pricingSource:
+      'OpenRouter catalog base price, verified 2026-09-19. Billed usage.cost wins when returned.',
+  },
   'gemini-2.5-flash': {
     id: 'gemini-2.5-flash',
     vendor: 'Google',
@@ -131,15 +139,24 @@ export const MODELS: Record<string, ModelEntry> = {
   },
 };
 
-// Reading assistance uses the measured GPT OSS primary plus bounded provider fallbacks.
+// Reading assistance uses the smaller measured model only for the two actions
+// where it preserved the learner-facing contract. Translation and Breakdown
+// stay on 120B after 20B reversed an Urdu quantity and omitted hard structures.
 // Exporting the ids keeps the Edge Function, benchmark, pricing, and route map
 // on one source of truth.
 export const READING_ASSISTANT_PRIMARY_MODEL = 'openai/gpt-oss-120b';
+export const READING_ASSISTANT_FAST_MODEL = 'openai/gpt-oss-20b';
 export const READING_ASSISTANT_LUNA_FALLBACK_MODEL = 'openai/gpt-5.6-luna';
 export const READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL = 'deepseek/deepseek-v4-flash-0731';
 export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 // Backwards-compatible alias for callers that only need the first fallback.
 export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
+
+export function readingAssistantPrimaryModel(action: string) {
+  return action === 'dictionary' || action === 'simplify'
+    ? READING_ASSISTANT_FAST_MODEL
+    : READING_ASSISTANT_PRIMARY_MODEL;
+}
 export const WRITING_PRIMARY_MODEL = 'openai/gpt-5.6-luna';
 export const WRITING_DIRECT_GEMINI_MODEL = 'gemini-2.5-flash';
 
@@ -258,9 +275,14 @@ export const AI_ROUTES: AiRoute[] = [
     timeoutMs: 12000,
     steps: [
       {
+        model: READING_ASSISTANT_FAST_MODEL,
+        role: 'primary',
+        when: 'Dictionary and Simplify only: GPT OSS 20B first through OpenRouter with low reasoning and the validated JSON contract.',
+      },
+      {
         model: READING_ASSISTANT_PRIMARY_MODEL,
         role: 'primary',
-        when: 'GPT OSS 120B first through OpenRouter with low reasoning and the validated JSON contract.',
+        when: 'Translate and Breakdown use GPT OSS 120B first. It is also the first fallback when the 20B Dictionary or Simplify attempt is unavailable or invalid.',
       },
       {
         model: READING_ASSISTANT_LUNA_FALLBACK_MODEL,
@@ -279,7 +301,7 @@ export const AI_ROUTES: AiRoute[] = [
       },
     ],
     notes:
-      'Dictionary sends the selected word with its own sentence and caches on that pair, shared by every learner. Exam mode is server-blocked; completed review is allowed. Provider order is GPT OSS 120B -> Luna -> DeepSeek -> GLM; every attempt in the chain is billed, so rejected answers are charged to the daily budget too.',
+      'Dictionary sends the selected word with its own sentence and caches on that pair, shared by every learner. Exam mode is server-blocked; completed review is allowed. Dictionary/Simplify use GPT OSS 20B -> GPT OSS 120B -> Luna -> DeepSeek -> GLM. Translate/Breakdown use GPT OSS 120B -> Luna -> DeepSeek -> GLM. Every attempt in the chain is billed, so rejected answers are charged to the daily budget too.',
   },
   {
     id: 'skill-lab-transcription',

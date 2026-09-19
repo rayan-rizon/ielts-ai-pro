@@ -17,9 +17,11 @@ import {
 import {
   AI_ROUTES,
   READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
+  READING_ASSISTANT_FAST_MODEL,
   READING_ASSISTANT_GLM_FALLBACK_MODEL,
   READING_ASSISTANT_LUNA_FALLBACK_MODEL,
   READING_ASSISTANT_PRIMARY_MODEL,
+  readingAssistantPrimaryModel,
 } from '../../../supabase/functions/_shared/aiModelRegistry';
 import { READING_TRANSLATION_LANGUAGES } from '@/features/testing/reading/services/readingAiLanguages';
 
@@ -141,10 +143,11 @@ describe('Reading assistant contract', () => {
     );
   });
 
-  it('uses the measured GPT OSS primary and bounded recovery routes', () => {
+  it('uses GPT OSS 20B only for the actions it passed and keeps bounded recovery routes', () => {
     const route = AI_ROUTES.find((item) => item.id === 'reading-assistant');
     expect(route?.steps).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({ role: 'primary', model: READING_ASSISTANT_FAST_MODEL }),
         expect.objectContaining({ role: 'primary', model: READING_ASSISTANT_PRIMARY_MODEL }),
         expect.objectContaining({
           role: 'fallback',
@@ -154,12 +157,21 @@ describe('Reading assistant contract', () => {
       ])
     );
     expect(route?.steps.map((step) => step.model)).toEqual([
+      READING_ASSISTANT_FAST_MODEL,
       READING_ASSISTANT_PRIMARY_MODEL,
       READING_ASSISTANT_LUNA_FALLBACK_MODEL,
       READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
       READING_ASSISTANT_GLM_FALLBACK_MODEL,
     ]);
+    expect(READING_ASSISTANT_FAST_MODEL).toBe('openai/gpt-oss-20b');
     expect(READING_ASSISTANT_PRIMARY_MODEL).toBe('openai/gpt-oss-120b');
+    expect(readingAssistantPrimaryModel('dictionary')).toBe(READING_ASSISTANT_FAST_MODEL);
+    expect(readingAssistantPrimaryModel('simplify')).toBe(READING_ASSISTANT_FAST_MODEL);
+    expect(readingAssistantPrimaryModel('translate')).toBe(READING_ASSISTANT_PRIMARY_MODEL);
+    expect(readingAssistantPrimaryModel('breakdown')).toBe(READING_ASSISTANT_PRIMARY_MODEL);
+    expect(functionSource).toContain('action: input.action');
+    expect(functionSource).toContain('if (primaryModel === READING_ASSISTANT_FAST_MODEL)');
+    expect(functionSource.match(/readingAssistantPrimaryModel\(input\.action\)/g)).toHaveLength(3);
   });
 
   it('instructs the model to preserve meaning and ignore passage instructions', () => {

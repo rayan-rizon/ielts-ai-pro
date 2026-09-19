@@ -9,9 +9,11 @@ import {
 } from '../_shared/textAiProvider.ts';
 import {
   READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,
+  READING_ASSISTANT_FAST_MODEL,
   READING_ASSISTANT_GLM_FALLBACK_MODEL,
   READING_ASSISTANT_LUNA_FALLBACK_MODEL,
   READING_ASSISTANT_PRIMARY_MODEL,
+  readingAssistantPrimaryModel,
 } from '../_shared/aiModelRegistry.ts';
 import {
   actionOutputLimit,
@@ -78,27 +80,29 @@ function billedTokens(error: unknown) {
 }
 
 function fallbackReasonCodes(
+  primaryModel: string,
   primaryError: unknown,
   fallbackAttempts: Array<{ model: string; error: unknown }>
 ) {
   const codes = [
-    ...(primaryError
-      ? [`${READING_ASSISTANT_PRIMARY_MODEL}:${telemetryError(primaryError).code}`]
-      : []),
+    ...(primaryError ? [`${primaryModel}:${telemetryError(primaryError).code}`] : []),
     ...fallbackAttempts.map(({ model, error }) => `${model}:${telemetryError(error).code}`),
   ];
   return codes.length ? codes.join('|').slice(0, 480) : null;
 }
 
 async function requestReadingAssistantResult({
+  action,
   prompt,
   validateJson,
   maxOutputTokens,
 }: {
+  action: string;
   prompt: string;
   validateJson: (value: any) => boolean;
   maxOutputTokens: number;
 }) {
+  const primaryModel = readingAssistantPrimaryModel(action);
   let primaryError: unknown = null;
   let generated: any = null;
   const fallbackAttempts: Array<{ model: string; error: unknown }> = [];
@@ -110,7 +114,7 @@ async function requestReadingAssistantResult({
     try {
       generated = await requestOpenRouterJson({
         apiKey: openRouterKey,
-        model: READING_ASSISTANT_PRIMARY_MODEL,
+        model: primaryModel,
         prompt,
         systemPrompt,
         maxOutputTokens: Math.min(maxOutputTokens * 2, 2048),
@@ -142,6 +146,25 @@ async function requestReadingAssistantResult({
   };
 
   if (openRouterKey) {
+    if (primaryModel === READING_ASSISTANT_FAST_MODEL) {
+      generated = await attemptFallback(READING_ASSISTANT_PRIMARY_MODEL, () =>
+        requestOpenRouterJson({
+          apiKey: openRouterKey,
+          model: READING_ASSISTANT_PRIMARY_MODEL,
+          prompt,
+          systemPrompt,
+          maxOutputTokens: Math.min(maxOutputTokens * 2, 2048),
+          timeoutMs: 6_000,
+          includeUsageAccounting: true,
+          disableReasoning: true,
+          reasoningEffort: 'low',
+          temperature: 0.1,
+          validateJson,
+        })
+      );
+      if (generated) return { generated, primaryError, fallbackAttempts };
+    }
+
     generated = await attemptFallback(READING_ASSISTANT_LUNA_FALLBACK_MODEL, () =>
       requestOpenRouterLunaJson({
         apiKey: openRouterKey,
@@ -397,6 +420,7 @@ Deno.serve(async (req: Request) => {
   let fallbackAttempts: Array<{ model: string; error: unknown }> = [];
   try {
     ({ generated, primaryError, fallbackAttempts } = await requestReadingAssistantResult({
+      action: input.action,
       prompt,
       validateJson: validate,
       maxOutputTokens: actionOutputLimit(input.action),
@@ -404,7 +428,11 @@ Deno.serve(async (req: Request) => {
     // Providers overshoot the length guidance often enough that the shape has to
     // be enforced here rather than only asked for in the prompt.
     generated.parsed = normalizeAssistantResult(input.action, generated.parsed);
-    const fallbackReason = fallbackReasonCodes(primaryError, fallbackAttempts);
+    const fallbackReason = fallbackReasonCodes(
+      readingAssistantPrimaryModel(input.action),
+      primaryError,
+      fallbackAttempts
+    );
     // Rejected attempts were still billed, so the budget is charged for the whole
     // chain rather than only the call that returned a usable answer.
     const wastedCost =
@@ -448,7 +476,7 @@ Deno.serve(async (req: Request) => {
             Boolean(primaryError) || fallbackAttempts.length > 0 || generated.fallbackUsed,
           fallbackReason: fallbackReason || generated.fallbackReason,
           fallbackChain: [
-            READING_ASSISTANT_PRIMARY_MODEL,
+            readingAssistantPrimaryModel(input.action),
             ...fallbackAttempts.map(({ model }) => model),
             generated.model,
           ].filter((model, index, chain) => chain.indexOf(model) === index),
@@ -512,7 +540,7 @@ Deno.serve(async (req: Request) => {
           fallbackReason,
           fallbackUsed: Boolean(primaryError) || fallbackAttempts.length > 0,
           fallbackChain: [
-            READING_ASSISTANT_PRIMARY_MODEL,
+            readingAssistantPrimaryModel(input.action),
             ...fallbackAttempts.map(({ model }) => model),
           ],
           latencyMs: Date.now() - started,
