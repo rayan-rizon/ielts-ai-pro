@@ -131,25 +131,61 @@ const SignupsKpi = ({ kpis, displayDays }) => (
   />
 );
 
-const ActiveUsersKpi = ({ kpis, displayDays }) => (
-  <Kpi
-    label={`Active users · ${displayDays}d`}
-    value={kpis.active?.value ?? kpis.active?.wau ?? 0}
-    live
-    delta={<Delta value={kpis.active?.value ?? kpis.active?.wau} previous={kpis.active?.prev} />}
-    sub={`${kpis.active?.dau ?? 0} today · ${kpis.active?.mau ?? 0} monthly`}
-    tip={`Learners active in the last ${displayDays} days vs. the previous period.`}
-  />
-);
+const ActiveUsersKpi = ({ kpis, displayDays }) => {
+  const active = kpis.active || {};
+  const comparisonReady =
+    active.comparisonReady === true && active.comparisonBasis === 'daily_activity_history';
+  const hasExactCalendarMetrics = active.comparisonBasis === 'daily_activity_history';
+  const comparisonDate = active.comparisonAvailableOn
+    ? new Date(`${active.comparisonAvailableOn}T00:00:00+06:00`).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'Asia/Dhaka',
+      })
+    : null;
 
-const StickinessKpi = ({ kpis }) => (
-  <Kpi
-    label="Stickiness"
-    value={`${kpis.active?.stickiness ?? 0}%`}
-    sub="Daily ÷ monthly actives"
-    tip="Share of monthly active users active today."
-  />
-);
+  return (
+    <Kpi
+      label={`Active users · ${displayDays}d`}
+      value={active.value ?? active.wau ?? 0}
+      live
+      delta={
+        comparisonReady ? (
+          <Delta value={active.value ?? active.wau} previous={active.prev} />
+        ) : (
+          <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>
+            {hasExactCalendarMetrics ? 'baseline building' : 'history pending'}
+          </span>
+        )
+      }
+      sub={
+        hasExactCalendarMetrics
+          ? `${active.today ?? 0} today BDT · ${active.last30Days ?? 0} last 30d`
+          : 'Exact daily breakdown unavailable'
+      }
+      tip={
+        !hasExactCalendarMetrics
+          ? `Unique signed-in learners active during the current ${displayDays}-day Bangladesh calendar window. Exact daily and comparison history requires the activity-history migration.`
+          : comparisonReady
+            ? `Unique signed-in learners active during the current ${displayDays}-day Bangladesh calendar window vs. the complete previous window.`
+            : `Unique signed-in learners active during the current ${displayDays}-day Bangladesh calendar window. The first exact comparison${comparisonDate ? ` is available ${comparisonDate}` : ' is still building'}; incomplete historical data is never shown as a trend.`
+      }
+    />
+  );
+};
+
+const StickinessKpi = ({ kpis }) => {
+  const hasExactCalendarMetrics = kpis.active?.comparisonBasis === 'daily_activity_history';
+
+  return (
+    <Kpi
+      label="Stickiness"
+      value={hasExactCalendarMetrics ? `${kpis.active?.stickiness ?? 0}%` : '—'}
+      sub={hasExactCalendarMetrics ? 'Today BDT ÷ last 30d' : 'Exact daily basis pending'}
+      tip="Share of learners active in the last 30 Bangladesh calendar days who were active today."
+    />
+  );
+};
 
 const PayingKpi = ({ kpis }) => (
   <Kpi

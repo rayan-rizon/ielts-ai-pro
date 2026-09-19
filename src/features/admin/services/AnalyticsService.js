@@ -4,12 +4,32 @@ import { readAdminRpc } from './adminReadRpc';
 const getOverviewSnapshot = async (days) => {
   // Mark these reads as GET requests. Besides documenting their idempotency,
   // this enables Supabase's built-in retry support for transient fetch errors.
-  const [overviewResult, actionResult] = await Promise.all([
+  const [overviewResult, activeUsersResult, actionResult] = await Promise.all([
     readAdminRpc(supabase, 'get_admin_overview_with_signup_sources', { p_days: days }),
+    readAdminRpc(supabase, 'get_admin_active_users', { p_days: days }).catch((error) => {
+      // Keep mixed-version local/preview environments usable while the new
+      // migration rolls out. The UI deliberately hides legacy sub-metrics and
+      // comparisons rather than relabeling rolling data as calendar data.
+      if (error?.code === 'PGRST202') return null;
+      throw error;
+    }),
     readAdminRpc(supabase, 'get_admin_overview_actions'),
   ]);
 
-  return { ...overviewResult, actions: actionResult || [] };
+  const activeUsers = activeUsersResult || {
+    value: overviewResult?.kpis?.active?.value ?? overviewResult?.kpis?.active?.wau ?? 0,
+    comparisonReady: false,
+    comparisonBasis: 'legacy_latest_only',
+  };
+
+  return {
+    ...overviewResult,
+    kpis: {
+      ...overviewResult?.kpis,
+      active: activeUsers,
+    },
+    actions: actionResult || [],
+  };
 };
 
 export const AnalyticsService = {

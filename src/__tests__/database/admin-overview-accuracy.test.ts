@@ -21,6 +21,19 @@ const actionQueueMigration = readMigrationSource(
   '20260801134932_reconcile_admin_overview_action_queue.sql'
 ).toLowerCase();
 
+const activityHistoryMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260919202000_accurate_admin_active_user_history.sql'
+  ),
+  'utf8'
+).toLowerCase();
+
+const userService = readFileSync(
+  resolve(process.cwd(), 'src/features/auth/services/User.ts'),
+  'utf8'
+);
+
 const userManagement = readFileSync(
   resolve(process.cwd(), 'src/components/admin/UserManagement.jsx'),
   'utf8'
@@ -64,6 +77,29 @@ describe('admin overview accuracy contract', () => {
     expect(overviewSections).toContain('Revenue · ${displayDays}d');
     expect(overviewSections).toContain("data.trendMetric === 'testUsers'");
     expect(statusStrip).toContain('Status unavailable — service health could not be verified');
+  });
+
+  it('uses complete daily activity history for prior-period comparisons', () => {
+    expect(activityHistoryMigration).toContain(
+      'create table admin_analytics_private.user_activity_days'
+    );
+    expect(activityHistoryMigration).toContain('create trigger capture_user_activity_day');
+    expect(activityHistoryMigration).toContain('after update of last_active on public.users');
+    expect(activityHistoryMigration).toContain('count(distinct activity.user_id)');
+    expect(activityHistoryMigration).toContain("'comparisonready', v_comparison_ready");
+    expect(activityHistoryMigration).toContain("'comparisonbasis', 'daily_activity_history'");
+    expect(activityHistoryMigration).toContain(
+      'revoke all on function public.get_admin_active_users(integer) from public, anon'
+    );
+  });
+
+  it('records activity atomically and labels exact calendar windows', () => {
+    expect(activityHistoryMigration).toContain('user_auth_id is distinct from auth.uid()');
+    expect(activityHistoryMigration).toContain("at time zone 'asia/dhaka'");
+    expect(userService).toContain("supabase.rpc('update_user_last_active'");
+    expect(overviewSections).toContain('today BDT');
+    expect(overviewSections).toContain('last 30d');
+    expect(overviewSections).toContain('baseline building');
   });
 
   it('keeps the action queue current and sends subscription alerts to an exact filter', () => {

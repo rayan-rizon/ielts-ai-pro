@@ -93,7 +93,7 @@ export const User = {
     }
   },
 
-  // Update last_active timestamp for current user
+  // Update latest activity and the private daily activity history atomically.
   async updateLastActive(): Promise<boolean> {
     try {
       const {
@@ -101,18 +101,17 @@ export const User = {
       } = await supabase.auth.getSession();
       if (!session?.user) return false;
 
-      const { error } = await supabase
-        .from('users')
-        .update({ last_active: new Date().toISOString() })
-        .eq('auth_id', session.user.id);
+      const { error } = await supabase.rpc('update_user_last_active', {
+        user_auth_id: session.user.id,
+      });
 
       if (error) {
-        console.warn('Failed to update last_active:', error.message);
+        console.warn('Failed to record user activity:', error.message);
         return false;
       }
       return true;
     } catch (error) {
-      console.warn('Error updating last_active:', error);
+      console.warn('Error recording user activity:', error);
       return false;
     }
   },
