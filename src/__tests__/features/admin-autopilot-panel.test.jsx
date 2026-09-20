@@ -53,10 +53,7 @@ describe('Copilot action workspace', () => {
     setup();
     expect(await screen.findByText('Need a hand?')).toBeInTheDocument();
     expect(screen.getByText('In-app message')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Learner preview/i })).toHaveAttribute(
-      'href',
-      '/dashboard/notification-preview'
-    );
+    expect(screen.queryByRole('link', { name: /Learner preview/i })).not.toBeInTheDocument();
     expect(MarketingService.prepareCopilotActions).not.toHaveBeenCalled();
     expect(MarketingService.approveIntervention).not.toHaveBeenCalled();
   });

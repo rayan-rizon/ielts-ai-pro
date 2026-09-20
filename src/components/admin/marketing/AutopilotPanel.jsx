@@ -5,7 +5,6 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
-  ExternalLink,
   Mail,
   MessageSquare,
   RefreshCcw,
@@ -602,15 +601,6 @@ function AutopilotHeaderControls({
 
   return (
     <div className="flex shrink-0 items-center gap-1.5">
-      <a
-        href="/dashboard/notification-preview"
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 text-xs font-bold text-stone-700 transition-all duration-150 ease-smooth-out hover:bg-stone-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:border-white/15 dark:bg-[#131315] dark:text-stone-200 dark:hover:bg-white/5 dark:focus-visible:ring-offset-[#131315]"
-      >
-        <ExternalLink className="h-3.5 w-3.5" />
-        Learner preview
-      </a>
       <AdminButton variant="ghost" onClick={refresh} disabled={isBusy} aria-label="Refresh Copilot">
         <RefreshCcw className="h-3.5 w-3.5" />
         Refresh

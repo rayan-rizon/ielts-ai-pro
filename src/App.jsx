@@ -129,9 +129,6 @@ const EmailConfirmation = lazyWithRetry(
   () => import('@/features/auth/pages/EmailConfirmation.jsx')
 );
 const Dashboard = lazyWithRetry(() => import('@/features/dashboard/pages/Dashboard.jsx'));
-const AdminNotificationShowcase = lazyWithRetry(
-  () => import('@/features/marketing/pages/AdminNotificationShowcase.jsx')
-);
 const Listening = lazyWithRetry(() => import('@/features/testing/shared/pages/Listening.jsx'));
 const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Reading.jsx'));
 const Speaking = lazyWithRetry(() => import('@/features/testing/shared/pages/Speaking.jsx'));
@@ -381,19 +378,6 @@ const router = createBrowserRouter(
         </ProtectedRoute>
       ),
     },
-    {
-      path: '/dashboard/notification-preview',
-      element: (
-        <ProtectedRoute adminOnly data-oid="admin-notification-preview-gate">
-          <Layout currentPageName="Dashboard" data-oid="admin-notification-preview-layout">
-            <LazyPage data-oid="admin-notification-preview-page">
-              <AdminNotificationShowcase />
-            </LazyPage>
-          </Layout>
-        </ProtectedRoute>
-      ),
-    },
-
     {
       path: '/admin/login',
       element: (
