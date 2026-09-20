@@ -6,6 +6,7 @@ vi.mock('@/features/admin/services/MarketingService', () => ({
   default: { adminReport: vi.fn() },
 }));
 const window = { since: '2026-08-07T00:00:00Z', until: '2026-09-06T00:00:00Z' };
+const openWorkspace = () => fireEvent.click(screen.getByRole('button', { name: /Open/i }));
 describe('Admin operations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -15,6 +16,7 @@ describe('Admin operations', () => {
   });
   it('does not present no recommendations as proof of health', async () => {
     render(<AdminOperationsPanel />);
+    openWorkspace();
     expect(await screen.findByText('No new findings')).toBeInTheDocument();
     expect(screen.getByTitle(/not a full health check/)).toBeInTheDocument();
   });
@@ -32,6 +34,7 @@ describe('Admin operations', () => {
           }
     );
     render(<AdminOperationsPanel />);
+    openWorkspace();
     fireEvent.change(screen.getByRole('textbox', { name: 'Your question' }), {
       target: { value: 'What is the status of checkout attempts?' },
     });
@@ -45,6 +48,7 @@ describe('Admin operations', () => {
       throw new Error('Report unavailable');
     });
     render(<AdminOperationsPanel />);
+    openWorkspace();
     fireEvent.change(screen.getByRole('textbox', { name: 'Your question' }), {
       target: { value: 'How many checkouts?' },
     });
@@ -72,6 +76,7 @@ describe('Admin operations', () => {
       };
     });
     render(<AdminOperationsPanel />);
+    openWorkspace();
     fireEvent.click(screen.getByRole('button', { name: 'Learner history' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Find learner' }), {
       target: { value: 'Test' },

@@ -73,7 +73,10 @@ describe('Learner marketing surface', () => {
           cta_label: 'Open practice',
           cta_url: '/learning-path',
         },
-        intervention: { playbook_key: 'next_practice' },
+        intervention: {
+          playbook_key: 'next_practice',
+          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        },
       },
     ]);
     MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
@@ -83,6 +86,7 @@ describe('Learner marketing surface', () => {
     expect(await screen.findByText('Your next practice is ready')).toBeInTheDocument();
     expect(screen.getByTestId('learner-in-app-notification')).toHaveClass('fixed', 'md:right-4');
     expect(screen.getByText('Based on your saved result')).toBeInTheDocument();
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Open practice/i })).toHaveAttribute(
       'href',
       '/learning-path'

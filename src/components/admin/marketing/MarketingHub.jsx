@@ -31,6 +31,7 @@ import TemplatesPanel from './TemplatesPanel';
 import JourneysPanel from './JourneysPanel';
 import AutopilotPanel from './AutopilotPanel';
 import AdminOperationsPanel from './AdminOperationsPanel';
+import GrowthDecisionPanel from './GrowthDecisionPanel';
 
 /**
  * Tab order follows the operator's loop rather than the data model: read the
@@ -60,6 +61,7 @@ const EMPTY_DATA = {
   recovery: { waiting: 0, eligible: 0, sent: 0, recovered: 0, conversion_rate: 0 },
   autopilot: { policies: [], recommendations: [], interventions: [], channels: [], counts: {} },
   growth: null,
+  currentSubscriptions: { total: 0, pro: 0, premium: 0 },
 };
 
 export default function MarketingHub() {
@@ -83,6 +85,8 @@ export default function MarketingHub() {
         journeyMetrics,
         recovery,
         autopilot,
+        growth,
+        currentSubscriptions,
       ] = await Promise.all([
         MarketingService.listCampaigns(),
         MarketingService.listSegments(),
@@ -95,6 +99,8 @@ export default function MarketingHub() {
         MarketingService.getJourneyMetrics(30),
         MarketingService.getCheckoutRecoveryDashboard(),
         MarketingService.getAutopilotSnapshot(30),
+        MarketingService.getSubscriptionGrowth(),
+        MarketingService.getCurrentSubscriptionSummary(),
       ]);
       setData({
         campaigns,
@@ -108,6 +114,8 @@ export default function MarketingHub() {
         journeyMetrics,
         recovery,
         autopilot,
+        growth,
+        currentSubscriptions,
       });
     } catch (error) {
       console.error('Marketing hub load failed:', error);
@@ -237,6 +245,11 @@ export default function MarketingHub() {
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
+              <GrowthDecisionPanel
+                growth={data.growth}
+                currentSubscriptions={data.currentSubscriptions}
+                compact
+              />
               <AdminOperationsPanel refreshKey={data.autopilot} />
               <AutopilotPanel
                 autopilot={data.autopilot}
@@ -256,6 +269,10 @@ export default function MarketingHub() {
               transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
+              <GrowthDecisionPanel
+                growth={data.growth}
+                currentSubscriptions={data.currentSubscriptions}
+              />
               <CommandStrip campaigns={data.campaigns} dashboard={data.dashboard} />
               <AnalyticsPanel
                 dashboard={data.dashboard}

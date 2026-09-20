@@ -13,6 +13,9 @@ const journeyExpansionMigration = read(
 const deliveryStrategyMigration = read(
   'supabase/migrations/20260906163336_refine_autopilot_delivery_strategy.sql'
 );
+const offerMigration = read(
+  'supabase/migrations/20260920215530_add_20_percent_retention_offer.sql'
+);
 const worker = read('supabase/functions/retention-autopilot/index.ts');
 const dispatcher = read('supabase/functions/marketing-campaign-dispatch/index.ts');
 const learnerSurface = [
@@ -163,15 +166,18 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).toContain("body: candidate.content.message || 'Your next IELTS step is ready.'");
   });
 
-  it('keeps checkout assistance and the approved 15 percent offer in one intervention', () => {
+  it('provisions an approved 20 percent offer in the same high-intent intervention', () => {
     expect(worker).toContain("policy.playbook_key === 'checkout_recovery'");
     expect(journeyExpansionMigration).toContain(
       `WHEN 'checkout_recovery' THEN jsonb_build_array('in_app','email')`
     );
     expect(worker).toContain('chooseChannel(policy, preference, activeRecently, user)');
-    expect(worker).not.toContain('provision_autopilot_checkout_offer');
-    expect(migration).toContain("'percentage', 15");
-    expect(worker).not.toContain('promo_code: offer.code');
+    expect(worker).toContain('provision_autopilot_subscription_offer');
+    expect(offerMigration).toContain("'percentage', 20");
+    expect(offerMigration).toContain("interval '48 hours'");
+    expect(offerMigration).toContain("item->>'metric' IN ('plan_selected', 'pricing_visits')");
+    expect(worker).toContain('promo_code: offer.code');
+    expect(worker).toContain('offerDurationHours === 48');
     expect(migration).toContain('marketing_checkout_intents');
     expect(checkout).toContain("status: 'initiated'");
     expect(stripeWebhook).toContain("status: 'settled'");
@@ -205,7 +211,9 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).toContain('never expose internal keys or the word "playbook"');
     expect(worker).toContain('groundedRecommendations.length');
     expect(worker).toContain('recommendations: groundedRecommendations');
-    expect(worker).toContain("RETENTION_ANALYSIS_VERSION = '2026-09-13-action-review-v3'");
+    expect(worker).toContain("RETENTION_ANALYSIS_VERSION = '2026-09-21-lifecycle-experiment-v4'");
+    expect(worker).toContain('Prefer repairing product friction at the losing stage');
+    expect(worker).toContain('A selected plan is intent, not payment.');
   });
 
   it('uses GLM for every AI task in the Marketing Autopilot', () => {

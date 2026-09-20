@@ -8,7 +8,7 @@ import { AskAdminData } from './operations/AskAdminData';
 import { BriefingFindings } from './operations/BriefingFindings';
 import { LearnerTimeline } from './operations/LearnerTimeline';
 
-function useAdminBriefing(refreshKey) {
+function useAdminBriefing(refreshKey, enabled) {
   const [brief, setBrief] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -26,6 +26,7 @@ function useAdminBriefing(refreshKey) {
   };
 
   useEffect(() => {
+    if (!enabled) return undefined;
     let active = true;
     setError('');
     report('admin_briefing')
@@ -39,7 +40,7 @@ function useAdminBriefing(refreshKey) {
     return () => {
       active = false;
     };
-  }, [refreshKey]);
+  }, [enabled, refreshKey]);
 
   return { brief, error, busy, loadBriefing };
 }
@@ -90,46 +91,79 @@ function AdminHistoryAccordion({ isOpen }) {
 }
 
 export default function AdminOperationsPanel({ refreshKey }) {
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { brief, error, busy, loadBriefing } = useAdminBriefing(refreshKey);
+  const { brief, error, busy, loadBriefing } = useAdminBriefing(refreshKey, workspaceOpen);
 
   return (
     <div className={cn(PANEL, 'min-w-0 overflow-hidden')} id="admin-ai-workspace">
-      <PanelHeader label="AI Workspace" title="Insights & messages" accent="accent">
+      <PanelHeader label="Optional analysis" title="Ask Copilot" accent="accent">
         <AdminButton
-          variant={historyOpen ? 'primary' : 'outline'}
+          variant="outline"
           size="sm"
-          onClick={() => setHistoryOpen(!historyOpen)}
-          aria-expanded={historyOpen}
-          aria-controls="admin-history-panel"
+          onClick={() => setWorkspaceOpen((value) => !value)}
+          aria-expanded={workspaceOpen}
+          aria-controls="admin-ai-workspace-content"
         >
-          <History className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Learner history</span>
+          {workspaceOpen ? 'Close' : 'Open'}
           <ChevronDown
             className={cn(
-              'h-3.5 w-3.5 transition-transform duration-200 ease-out',
-              historyOpen && 'rotate-180'
+              'h-3.5 w-3.5 transition-transform duration-150 ease-out',
+              workspaceOpen && 'rotate-180'
             )}
             aria-hidden="true"
           />
         </AdminButton>
-        <AdminButton
-          variant="outline"
-          size="sm"
-          loading={busy}
-          onClick={loadBriefing}
-          aria-label="Refresh briefing"
-        >
-          <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-        </AdminButton>
       </PanelHeader>
 
-      <div className="p-3.5 sm:p-4">
-        <AskAdminData />
-        <BriefingStatus brief={brief} error={error} />
-        <BriefingFindings brief={brief} />
-        <AdminHistoryAccordion isOpen={historyOpen} />
-      </div>
+      <AnimatePresence initial={false}>
+        {workspaceOpen && (
+          <m.div
+            id="admin-ai-workspace-content"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
+            className="overflow-hidden border-t border-stone-200/80 dark:border-white/[0.07]"
+          >
+            <div className="flex justify-end gap-1.5 px-3.5 pt-3.5">
+              <AdminButton
+                variant={historyOpen ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setHistoryOpen(!historyOpen)}
+                aria-expanded={historyOpen}
+                aria-controls="admin-history-panel"
+              >
+                <History className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Learner history</span>
+                <ChevronDown
+                  className={cn(
+                    'h-3.5 w-3.5 transition-transform duration-200 ease-out',
+                    historyOpen && 'rotate-180'
+                  )}
+                  aria-hidden="true"
+                />
+              </AdminButton>
+              <AdminButton
+                variant="outline"
+                size="sm"
+                loading={busy}
+                onClick={loadBriefing}
+                aria-label="Refresh briefing"
+              >
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              </AdminButton>
+            </div>
+
+            <div className="px-3.5 pb-3.5 pt-2 sm:px-4 sm:pb-4">
+              <AskAdminData />
+              <BriefingStatus brief={brief} error={error} />
+              <BriefingFindings brief={brief} />
+              <AdminHistoryAccordion isOpen={historyOpen} />
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

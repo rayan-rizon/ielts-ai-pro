@@ -596,7 +596,12 @@ export function getCampaignTemplate(input: {
    * and the URL used in the List-Unsubscribe header.
    */
   unsubscribeUrl?: string;
-  offer?: { code: string; discountPercent?: number | null; expiresAt?: string | null } | null;
+  offer?: {
+    code: string;
+    discountPercent?: number | null;
+    expiresAt?: string | null;
+    durationHours?: number | null;
+  } | null;
 }): EmailTemplate {
   const baseUrl = BASE_URL;
   const name = escapeHtml(input.recipientName || 'there');
@@ -604,6 +609,22 @@ export function getCampaignTemplate(input: {
   const message = escapeHtml(input.message);
   const ctaLabel = escapeHtml(input.ctaLabel || 'Learn more');
   const objective = escapeHtml((input.objective || 'update').replaceAll('_', ' '));
+  const offerWindow = (() => {
+    if (!input.offer?.expiresAt) return 'Apply it at checkout when you choose your plan.';
+    const remainingHours = Math.max(
+      1,
+      Math.ceil((new Date(input.offer.expiresAt).getTime() - Date.now()) / 3_600_000)
+    );
+    const hours = Math.max(1, Number(input.offer.durationHours || remainingHours));
+    return hours > 48 && hours % 24 === 0
+      ? `Apply it at checkout within ${hours / 24} days.`
+      : `Apply it at checkout within ${hours} hours.`;
+  })();
+  const progressParagraph = input.offer
+    ? ''
+    : paragraph(
+        'Pick up where you left off, review your recent feedback, and choose the one thing that moves you closest to your target band.'
+      );
 
   const offerBlock = input.offer
     ? `
@@ -613,11 +634,7 @@ export function getCampaignTemplate(input: {
       input.offer.discountPercent ? `${escapeHtml(input.offer.discountPercent)}% off` : 'Your offer'
     }</p>
     <p style="margin:0;font-family:Consolas,Menlo,Monaco,'Courier New',monospace;font-size:22px;font-weight:800;letter-spacing:.08em;color:#4c43a8;line-height:1.2">${escapeHtml(input.offer.code)}</p>
-    <p style="margin:10px 0 0;font-size:13px;font-weight:500;line-height:1.5;color:#625d82">${
-      input.offer.expiresAt
-        ? 'Apply it at checkout within seven days.'
-        : 'Apply it at checkout when you choose your plan.'
-    }</p>
+    <p style="margin:10px 0 0;font-size:13px;font-weight:500;line-height:1.5;color:#625d82">${escapeHtml(offerWindow)}</p>
   </td></tr>
 </table>`
     : '';
@@ -627,7 +644,7 @@ ${eyebrow(objective)}
 ${heading(title)}
 ${lead(`Hi ${name},`)}
 ${paragraph(message)}
-${paragraph('Pick up where you left off, review your recent feedback, and choose the one thing that moves you closest to your target band.')}
+${progressParagraph}
 ${offerBlock}
 ${button(input.clickUrl, ctaLabel)}
 ${footnote('Your progress and practice history stay saved in your account, so you can return whenever you are ready.')}`;
@@ -641,13 +658,12 @@ ${footnote('Your progress and practice history stay saved in your account, so yo
 Hi ${input.recipientName || 'there'},
 
 ${input.message}
-
-Pick up where you left off, review your recent feedback, and choose the one thing that moves you closest to your target band.
+${input.offer ? '' : '\nPick up where you left off, review your recent feedback, and choose the one thing that moves you closest to your target band.\n'}
 ${
   input.offer
     ? `
 Your offer code: ${input.offer.code}${input.offer.discountPercent ? ` (${input.offer.discountPercent}% off)` : ''}
-${input.offer.expiresAt ? 'Apply it at checkout within seven days.' : 'Apply it at checkout when you choose your plan.'}
+${offerWindow}
 `
     : ''
 }

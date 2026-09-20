@@ -69,7 +69,7 @@ const RecoveryPanel = ({ recovery }) => {
   const metrics = [
     ['Waiting', recovery.waiting, 'Under two hours old'],
     ['Eligible now', recovery.eligible, 'Consent still required'],
-    ['Offer sent', recovery.sent, 'One-use 15% codes'],
+    ['Offer sent', recovery.sent, 'One-use 20% codes'],
     [
       'Recovered',
       recovery.recovered,
@@ -80,7 +80,7 @@ const RecoveryPanel = ({ recovery }) => {
     <div className={cn(PANEL, 'flex flex-col')}>
       <PanelHeader
         label="Checkout recovery"
-        title="Two-hour 15% offer"
+        title="48-hour 20% offer"
         accent={recovery.campaign_id ? 'ok' : 'idle'}
       >
         <Pill tone={recovery.campaign_id ? 'ok' : 'warn'}>
@@ -102,7 +102,7 @@ const RecoveryPanel = ({ recovery }) => {
         <Clock3 className="mt-px h-3 w-3 shrink-0 text-stone-400" />
         <p className={cn('text-[10px] font-medium leading-snug', MUTED)}>
           Only recognised free learners with marketing consent receive one assigned code, and each
-          expires after seven days. The scheduler checks every fifteen minutes.
+          expires after 48 hours. The scheduler checks every fifteen minutes.
         </p>
       </div>
     </div>

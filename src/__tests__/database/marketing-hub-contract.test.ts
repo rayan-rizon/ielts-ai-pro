@@ -59,6 +59,7 @@ const segmentsPanel = marketingFile('SegmentsPanel.jsx');
 const analyticsPanel = marketingFile('AnalyticsPanel.jsx');
 const autopilotPanel = marketingFile('AutopilotPanel.jsx');
 const commandStrip = marketingFile('CommandStrip.jsx');
+const growthDecisionPanel = marketingFile('GrowthDecisionPanel.jsx');
 const emailPreviewDialog = marketingFile('dialogs/EmailPreviewDialog.jsx');
 const marketingPanels = [
   campaignsPanel,
@@ -99,6 +100,23 @@ describe('Admin Marketing Hub contracts', () => {
     expect(marketingHub).toMatch(/<TabsContent[\s\S]*?value="performance"[\s\S]*?<AnalyticsPanel/);
     expect(autopilotPanel).toContain('Approve message');
     expect(commandStrip).toContain('personalized intervention');
+  });
+
+  it('connects the measured subscription funnel to the AI review workspace', () => {
+    expect(marketingHub).toContain('MarketingService.getSubscriptionGrowth()');
+    expect(marketingHub).toContain('MarketingService.getCurrentSubscriptionSummary()');
+    expect(marketingService).toContain("readAdminRpc(supabase, 'get_admin_overview'");
+    expect(growthDecisionPanel).toContain('current paying');
+    expect(growthDecisionPanel).toContain("stage.key === 'paid' ? 'New paid'");
+    expect(growthDecisionPanel).toContain('Largest measured loss:');
+    expect(growthDecisionPanel).toContain(
+      'AI proposes · an admin approves · outcomes are measured'
+    );
+    expect(growthDecisionPanel).toContain('before increasing message volume');
+    expect(growthDecisionPanel).toContain('visit');
+    expect(growthDecisionPanel).toContain('pricing at least twice within 48 hours');
+    expect(growthDecisionPanel).toContain('It prepares a helpful comparison');
+    expect(growthDecisionPanel).toContain('review; it does not send automatically');
   });
 
   it('keeps campaign writes admin-only and learner delivery reads owner-scoped', () => {
@@ -340,7 +358,7 @@ describe('Admin Marketing Hub contracts', () => {
   it('puts the live checkout recovery snapshot in analytics', () => {
     expect(marketingService).toContain('getCheckoutRecoveryDashboard');
     expect(analyticsPanel).toContain('const RecoveryPanel');
-    expect(analyticsPanel).toContain('Two-hour 15% offer');
+    expect(analyticsPanel).toContain('48-hour 20% offer');
     expect(analyticsPanel).toContain('Eligible now');
     expect(analyticsPanel).toContain('Offer sent');
     expect(analyticsPanel).toContain('Recovered');

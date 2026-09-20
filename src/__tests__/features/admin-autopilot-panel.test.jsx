@@ -53,6 +53,10 @@ describe('Copilot action workspace', () => {
     setup();
     expect(await screen.findByText('Need a hand?')).toBeInTheDocument();
     expect(screen.getByText('In-app message')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Learner preview/i })).toHaveAttribute(
+      'href',
+      '/dashboard/notification-preview'
+    );
     expect(MarketingService.prepareCopilotActions).not.toHaveBeenCalled();
     expect(MarketingService.approveIntervention).not.toHaveBeenCalled();
   });
@@ -200,15 +204,15 @@ describe('Copilot action workspace', () => {
     );
 
     await screen.findByText('Need a hand?');
-    // Automations are a standing panel now, not a drawer — every policy card and
-    // its Preview button is on screen without an expand step.
+    fireEvent.click(screen.getByText('Message automations'));
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Your 18 answers are still waiting' })
     ).toBeInTheDocument();
     expect(screen.getByText('Why this fits')).toBeInTheDocument();
-    expect(screen.getByText('Answered questions')).toBeInTheDocument();
+    expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+    expect(screen.getByText('18 of 40 answers saved')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Email' }));
     expect(screen.getByText('Hi Alex,')).toBeInTheDocument();

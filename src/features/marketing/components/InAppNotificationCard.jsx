@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import ExpiryTimer from '@/components/shared/ExpiryTimer';
 import {
   IconChip,
   MICRO,
@@ -115,6 +116,8 @@ const InAppNotificationCard = forwardRef(function InAppNotificationCard(
     contextLabel,
     ctaLabel = 'Open',
     ctaHref,
+    expiresAt,
+    urgent = false,
     onPrimary,
     onSnooze,
     onNotInterested,
@@ -148,6 +151,13 @@ const InAppNotificationCard = forwardRef(function InAppNotificationCard(
             <div className="flex flex-wrap items-center gap-2">
               <Pill tone={presentation.tone}>{presentation.label}</Pill>
               <span className={cn(MICRO, MUTED)}>IELTS AI Pro</span>
+              {expiresAt && (
+                <ExpiryTimer
+                  expiresAt={expiresAt}
+                  prefix={urgent ? 'Offer available' : 'Available'}
+                  urgent={urgent}
+                />
+              )}
             </div>
             <h2 id={headingId} className={cn(TITLE, 'mt-2 text-[15px] leading-snug')}>
               {title}

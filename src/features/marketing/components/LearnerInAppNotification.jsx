@@ -10,6 +10,8 @@ function getNotificationContent(notification) {
     contextLabel: content.context_label || '',
     ctaLabel: content.cta_label || 'Open',
     ctaUrl: content.cta_url || null,
+    offerExpiresAt: content.offer_expires_at || null,
+    urgent: Number(content.discount_percent || 0) > 0,
   };
 }
 
@@ -23,7 +25,8 @@ export default function LearnerInAppNotification({
   if (!notification) return null;
   if (typeof document === 'undefined') return null;
 
-  const { title, message, contextLabel, ctaLabel, ctaUrl } = getNotificationContent(notification);
+  const { title, message, contextLabel, ctaLabel, ctaUrl, offerExpiresAt, urgent } =
+    getNotificationContent(notification);
   const snooze = () => {
     const snoozeDate = new Date(Date.now() + 7 * 86_400_000).toISOString();
     onFeedback(notification, 'snoozed', snoozeDate);
@@ -40,6 +43,8 @@ export default function LearnerInAppNotification({
       contextLabel={contextLabel}
       ctaLabel={ctaLabel}
       ctaHref={ctaUrl ? MarketingDelivery.linkFor(notification) : null}
+      expiresAt={offerExpiresAt || (urgent ? notification.intervention?.expires_at : undefined)}
+      urgent={urgent}
       onPrimary={() => onClick(notification)}
       onSnooze={snooze}
       onNotInterested={() => onFeedback(notification, 'not_interested')}

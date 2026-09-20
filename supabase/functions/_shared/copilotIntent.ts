@@ -13,9 +13,13 @@ export function pricingIntentCandidate(user: any, events: any[], checkout: any, 
   const evidence = selected || views[0];
   return {
     content: {
-      title: 'Need help choosing a plan?',
-      message: 'Compare what each plan includes and choose what fits your practice.',
-      cta_label: 'Compare plans',
+      title: '20% off — your 48-hour offer is live',
+      message:
+        'Choose the plan that fits your practice in the next 48 hours to save 20% on your first subscription payment.',
+      context_label: selected
+        ? 'Based on the plan you selected'
+        : 'Based on your recent plan comparison',
+      cta_label: 'Claim 20% before it ends',
       cta_url: '/pricing',
     },
     evidence: [
@@ -24,6 +28,8 @@ export function pricingIntentCandidate(user: any, events: any[], checkout: any, 
         value: selected ? selected.plan_tier : views.length,
       },
       { metric: 'pricing_intent_at', value: evidence.occurred_at },
+      { metric: 'offer_discount_percent', value: 20 },
+      { metric: 'offer_duration_hours', value: 48 },
     ],
     rationale: selected
       ? 'Selected a paid plan; no checkout is recorded in the current window.'

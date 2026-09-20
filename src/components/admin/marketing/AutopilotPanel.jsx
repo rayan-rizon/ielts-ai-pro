@@ -4,6 +4,8 @@ import {
   Activity,
   Check,
   CheckCircle2,
+  ChevronDown,
+  ExternalLink,
   Mail,
   MessageSquare,
   RefreshCcw,
@@ -36,6 +38,7 @@ import AutopilotMessagePreviewDialog from './dialogs/AutopilotMessagePreviewDial
 import RecommendationCard, { severityMeta } from './autopilot/RecommendationCard';
 import AutopilotAutomations from './autopilot/AutopilotAutomations';
 import { useCopilotState } from './autopilot/useCopilotState';
+import ExpiryTimer from '@/components/shared/ExpiryTimer';
 
 const LABELS = {
   first_practice: 'Start a first practice',
@@ -139,11 +142,6 @@ function getDispatchTiming(channel) {
   return 'Send after approval, if still eligible';
 }
 
-function getValidityLabel(expired, expiresAt) {
-  if (expired) return 'Expired';
-  return `Valid until ${dateLabel(expiresAt)}`;
-}
-
 function ReviewCardWell({ content, showSubject }) {
   return (
     <div className={cn(WELL, 'my-2.5 break-words rounded-lg p-2.5')}>
@@ -161,10 +159,9 @@ function ReviewCardWell({ content, showSubject }) {
   );
 }
 
-function ReviewCardMessage({ item, expired }) {
+function ReviewCardMessage({ item }) {
   const showSubject = hasSubjectHeader(item);
   const timing = getDispatchTiming(item.recommended_channel);
-  const validity = getValidityLabel(expired, item.expires_at);
   const title = LABELS[item.playbook_key] || 'Help this learner';
 
   return (
@@ -174,9 +171,10 @@ function ReviewCardMessage({ item, expired }) {
         {item.rationale}
       </p>
       <ReviewCardWell content={item.content} showSubject={showSubject} />
-      <p className={cn(MUTED, 'text-[10px] font-medium leading-snug')}>
-        {timing} · {validity}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className={cn(MUTED, 'text-[10px] font-medium leading-snug')}>{timing}</p>
+        <ExpiryTimer expiresAt={item.expires_at} prefix="Review available" />
+      </div>
     </>
   );
 }
@@ -270,7 +268,7 @@ function ReviewCard({ item, busy, act, actionsEnabled = true }) {
     <article className={cn(PANEL, 'flex min-w-0 flex-col overflow-hidden')}>
       <ReviewCardHeader item={item} />
       <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5">
-        <ReviewCardMessage item={item} expired={expired} />
+        <ReviewCardMessage item={item} />
         <ReviewCardEvidence item={item} />
         <ReviewCardActions
           item={item}
@@ -604,6 +602,15 @@ function AutopilotHeaderControls({
 
   return (
     <div className="flex shrink-0 items-center gap-1.5">
+      <a
+        href="/dashboard/notification-preview"
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 text-xs font-bold text-stone-700 transition-all duration-150 ease-smooth-out hover:bg-stone-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:border-white/15 dark:bg-[#131315] dark:text-stone-200 dark:hover:bg-white/5 dark:focus-visible:ring-offset-[#131315]"
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+        Learner preview
+      </a>
       <AdminButton variant="ghost" onClick={refresh} disabled={isBusy} aria-label="Refresh Copilot">
         <RefreshCcw className="h-3.5 w-3.5" />
         Refresh
@@ -641,15 +648,7 @@ function AutopilotHeaderStats({ workspace }) {
       <div className="flex flex-col justify-between gap-2.5 border-b border-stone-200/80 px-4 py-3 sm:flex-row sm:items-start sm:gap-3 dark:border-white/[0.07]">
         <div className="min-w-0 flex-1">
           <SectionLabel accent="accent">Subscription Copilot</SectionLabel>
-          <p className={cn(TITLE, 'mt-1')}>Decide what happens next</p>
-          <p
-            className={cn(
-              MUTED,
-              'mt-0.5 text-[10px] font-medium leading-snug normal-case tracking-normal'
-            )}
-          >
-            Review learner messages and the few admin actions that matter now.
-          </p>
+          <p className={cn(TITLE, 'mt-1')}>Review queue</p>
         </div>
         <AutopilotHeaderControls
           busy={busy}
@@ -727,6 +726,8 @@ function AutopilotPagination({ offset, total, busy, onPrevious, onNext }) {
 }
 
 function AutopilotActionQueue({ workspace, onNavigate }) {
+  const [showAllMessages, setShowAllMessages] = useState(false);
+  const [showAllInsights, setShowAllInsights] = useState(false);
   const {
     state,
     busy,
@@ -739,6 +740,10 @@ function AutopilotActionQueue({ workspace, onNavigate }) {
     actionQueueRef,
   } = workspace;
   const queue = state?.queue || [];
+  const visibleQueue = showAllMessages ? queue : queue.slice(0, 3);
+  const visibleRecommendations = showAllInsights ? recommendations : recommendations.slice(0, 3);
+  const hiddenMessageCount = Math.max(0, queue.length - 3);
+  const hiddenRecommendationCount = Math.max(0, recommendations.length - 3);
 
   return (
     <div ref={actionQueueRef} className="min-w-0 scroll-mt-4 space-y-2.5">
@@ -749,34 +754,76 @@ function AutopilotActionQueue({ workspace, onNavigate }) {
         </span>
       </div>
       {actionCount > 0 ? (
-        <div className="grid grid-cols-1 items-start gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          <AnimatePresence mode="popLayout">
-            {queue.map((item) => (
-              <m.div
-                key={item.id}
-                layout="position"
-                variants={CARD_PRESENCE_VARIANTS}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-              >
-                <ReviewCard item={item} busy={busy} actionsEnabled={actionsEnabled} act={act} />
-              </m.div>
-            ))}
-            {recommendations.map((item) => (
-              <m.div
-                key={item.id}
-                layout="position"
-                variants={CARD_PRESENCE_VARIANTS}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-              >
-                <RecommendationCard item={item} busy={busy} act={act} onNavigate={onNavigate} />
-              </m.div>
-            ))}
-          </AnimatePresence>
-        </div>
+        <>
+          <div className="grid grid-cols-1 items-start gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <AnimatePresence mode="popLayout">
+              {visibleQueue.map((item) => (
+                <m.div
+                  key={item.id}
+                  layout="position"
+                  variants={CARD_PRESENCE_VARIANTS}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                >
+                  <ReviewCard item={item} busy={busy} actionsEnabled={actionsEnabled} act={act} />
+                </m.div>
+              ))}
+              {visibleRecommendations.map((item) => (
+                <m.div
+                  key={item.id}
+                  layout="position"
+                  variants={CARD_PRESENCE_VARIANTS}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                >
+                  <RecommendationCard item={item} busy={busy} act={act} onNavigate={onNavigate} />
+                </m.div>
+              ))}
+            </AnimatePresence>
+          </div>
+          {(hiddenMessageCount > 0 || hiddenRecommendationCount > 0) && (
+            <div className="flex flex-wrap justify-center gap-2 pt-1">
+              {hiddenMessageCount > 0 && (
+                <AdminButton
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAllMessages((value) => !value)}
+                  aria-expanded={showAllMessages}
+                >
+                  {showAllMessages
+                    ? 'Show fewer messages'
+                    : `Show ${hiddenMessageCount} more messages`}
+                  <ChevronDown
+                    className={cn(
+                      'h-3.5 w-3.5 transition-transform duration-150 ease-out',
+                      showAllMessages && 'rotate-180'
+                    )}
+                  />
+                </AdminButton>
+              )}
+              {hiddenRecommendationCount > 0 && (
+                <AdminButton
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAllInsights((value) => !value)}
+                  aria-expanded={showAllInsights}
+                >
+                  {showAllInsights
+                    ? 'Show fewer insights'
+                    : `Show ${hiddenRecommendationCount} more insights`}
+                  <ChevronDown
+                    className={cn(
+                      'h-3.5 w-3.5 transition-transform duration-150 ease-out',
+                      showAllInsights && 'rotate-180'
+                    )}
+                  />
+                </AdminButton>
+              )}
+            </div>
+          )}
+        </>
       ) : (
         <div className={PANEL}>
           <Empty icon={CheckCircle2} title="You are caught up">
@@ -814,18 +861,11 @@ function AutopilotResultsMonitor({ history = [] }) {
         </div>
       ) : (
         <div className="p-3.5">
-          <div className={cn(WELL, 'rounded-lg p-3')}>
-            <p className="text-[11px] font-extrabold text-stone-800 dark:text-stone-100">
-              No results yet
+          <div className={cn(WELL, 'flex items-center gap-2 rounded-lg p-3')}>
+            <CheckCircle2 className="h-4 w-4 text-stone-400" />
+            <p className={cn(MUTED, 'text-[11px] font-medium')}>
+              Results appear after an approved message is delivered.
             </p>
-            <div className="mt-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 text-[10px] font-medium">
-              <span className={cn(NUM, 'text-indigo-600 dark:text-indigo-400')}>01</span>
-              <span className={MUTED}>Approve a learner message</span>
-              <span className={cn(NUM, 'text-indigo-600 dark:text-indigo-400')}>02</span>
-              <span className={MUTED}>Copilot confirms delivery or suppression</span>
-              <span className={cn(NUM, 'text-indigo-600 dark:text-indigo-400')}>03</span>
-              <span className={MUTED}>Seen, clicked, returned, or subscribed appears here</span>
-            </div>
           </div>
         </div>
       )}

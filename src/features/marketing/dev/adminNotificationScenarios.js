@@ -1,0 +1,136 @@
+// Temporary, admin-only showcase data. These records never leave the browser
+// and deliberately contain no real learner identifiers or delivery IDs.
+export const ADMIN_NOTIFICATION_SCENARIOS = [
+  {
+    id: 'checkout-offer',
+    playbookKey: 'checkout_recovery',
+    category: 'Subscription',
+    label: 'Unfinished checkout · 20% offer',
+    title: 'Your 20% plan offer ends in 48 hours',
+    message:
+      'You already chose your plan. Complete your upgrade in the next 48 hours to save 20% on your first subscription payment.',
+    contextLabel: 'Based on your unfinished checkout',
+    ctaLabel: 'Claim 20% before it ends',
+    urgent: true,
+  },
+  {
+    id: 'pricing-offer',
+    playbookKey: 'quota_upgrade',
+    category: 'Subscription',
+    label: 'Plan interest · 20% offer',
+    title: '20% off — your 48-hour offer is live',
+    message:
+      'Choose the plan that fits your practice in the next 48 hours to save 20% on your first subscription payment.',
+    contextLabel: 'Based on the plan you selected',
+    ctaLabel: 'Claim 20% before it ends',
+    urgent: true,
+  },
+  {
+    id: 'quota-upgrade',
+    playbookKey: 'quota_upgrade',
+    category: 'Subscription',
+    label: 'Feedback allowance reached',
+    title: 'Keep your feedback loop moving',
+    message:
+      'You reached your current AI feedback allowance on more than one study day. Compare plans if more feedback would be useful.',
+    contextLabel: 'Based on 2 recent study days',
+    ctaLabel: 'Compare my options',
+  },
+  {
+    id: 'first-practice',
+    playbookKey: 'first_practice',
+    category: 'Activation',
+    label: 'First practice',
+    title: 'Make your first 15 minutes count',
+    message: 'Start with a short Reading check to build a useful baseline for your target band.',
+    contextLabel: 'Matched to your IELTS goal',
+    ctaLabel: 'Start my first practice',
+  },
+  {
+    id: 'next-practice',
+    playbookKey: 'next_practice',
+    category: 'Progress',
+    label: 'Next practice',
+    title: 'Turn your first result into progress',
+    message: 'Your first Reading result is saved. Review it and choose one focused follow-up.',
+    contextLabel: 'Based on your saved result',
+    ctaLabel: 'See my next step',
+  },
+  {
+    id: 'subscriber-help',
+    playbookKey: 'subscriber_feature_help',
+    category: 'Retention',
+    label: 'Unused plan benefit',
+    title: 'One plan benefit is ready to use',
+    message: 'Your plan includes guided practice and AI feedback. Try one short activity today.',
+    contextLabel: 'Included with your current plan',
+    ctaLabel: 'Use my plan benefit',
+  },
+  {
+    id: 'return-to-study',
+    playbookKey: 're_engagement',
+    category: 'Retention',
+    label: 'Return to study',
+    title: 'Pick up from your last saved step',
+    message:
+      'Your recent practice is still here. Continue with one short activity built from that progress.',
+    contextLabel: 'Your progress is still saved',
+    ctaLabel: 'Continue where I left off',
+  },
+  {
+    id: 'cancellation-support',
+    playbookKey: 'cancellation_support',
+    category: 'Retention',
+    label: 'Plan ending',
+    title: 'Use your remaining plan time well',
+    message:
+      'You still have 8 days of access. Review your progress and choose what you want to finish.',
+    contextLabel: 'Before your current access ends',
+    ctaLabel: 'Review my progress',
+  },
+  {
+    id: 'referral-credit',
+    playbookKey: 'referral_bonus_reminder',
+    category: 'Reward',
+    label: 'Referral credit',
+    title: 'Your 2 referral credits are ready',
+    message: 'Use your verified bonus credits before the current bonus period ends.',
+    contextLabel: '2 days before expiry',
+    ctaLabel: 'Use my credits',
+  },
+  {
+    id: 'score-plateau',
+    playbookKey: 'score_plateau',
+    category: 'Progress',
+    label: 'Steady score',
+    title: 'Try a new route to your next 0.5',
+    message: 'Three comparable Reading results point to one focused area worth practising next.',
+    contextLabel: 'Based on 3 comparable Reading results',
+    ctaLabel: 'See my focus area',
+  },
+  {
+    id: 'incomplete-test',
+    playbookKey: 'incomplete_test',
+    category: 'Activation',
+    label: 'Saved test',
+    title: 'Your 18 answers are still waiting',
+    message:
+      'Continue your saved Reading test without starting over. Your completed answers are safe.',
+    contextLabel: '18 of 40 answers saved',
+    ctaLabel: 'Resume my test',
+  },
+  {
+    id: 'exam-countdown',
+    playbookKey: 'exam_countdown',
+    category: 'Progress',
+    label: 'Exam countdown',
+    title: '15 days left: focus on what matters most',
+    message:
+      'Your study plan is fitted to your confirmed exam date, target band, and available time.',
+    contextLabel: '15 days to your confirmed exam',
+    ctaLabel: 'Open my 15-day plan',
+  },
+];
+
+export const scenarioForPlaybook = (playbookKey) =>
+  ADMIN_NOTIFICATION_SCENARIOS.find((scenario) => scenario.playbookKey === playbookKey);

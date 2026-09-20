@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react';
+import { ChevronDown, ShieldCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/cn';
 import MarketingService from '@/features/admin/services/MarketingService';
@@ -9,7 +9,6 @@ import {
   MUTED,
   Notice,
   PANEL,
-  PanelHeader,
   Pill,
   SIGNAL_BG,
   TILE,
@@ -84,47 +83,53 @@ export default function AutopilotAutomations({
     monitor.model_metadata.learners_scanned >= monitor.model_metadata.scan_limit;
 
   return (
-    <section className={cn(PANEL, 'overflow-hidden')}>
-      <PanelHeader
-        label="Automations"
-        title="What prepares messages for review"
-        description="The scheduled worker checks every 15 minutes; this page refreshes every 30 seconds."
-        accent={enabledPolicies ? 'ok' : 'idle'}
-      >
-        <Pill tone={enabledPolicies ? 'ok' : 'neutral'}>
-          {enabledPolicies} of {policies.length} on
-        </Pill>
-      </PanelHeader>
-
-      {isCoveragePartial && (
-        <div className="px-3.5 pt-3">
-          <Notice tone="warn" title="Coverage is partial">
-            The last check reached its {monitor.model_metadata.scan_limit}-learner limit, so some
-            learners were not looked at.
-          </Notice>
+    <details className={cn(PANEL, 'group overflow-hidden')}>
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#5a63df]">
+        <div className="min-w-0">
+          <p className="text-[12px] font-extrabold text-stone-900 dark:text-stone-50">
+            Message automations
+          </p>
+          <p className={cn(MICRO, MUTED, 'mt-1')}>Checks every 15 minutes</p>
         </div>
-      )}
+        <span className="flex shrink-0 items-center gap-2">
+          <Pill tone={enabledPolicies ? 'ok' : 'neutral'}>
+            {enabledPolicies}/{policies.length} on
+          </Pill>
+          <ChevronDown className="h-4 w-4 text-stone-400 transition-transform duration-150 ease-out group-open:rotate-180" />
+        </span>
+      </summary>
 
-      {policies.length > 0 ? (
-        <div className="grid grid-cols-1 gap-2.5 p-3.5 sm:grid-cols-2 xl:grid-cols-3">
-          {policies.map((policy) => (
-            <PolicyCard
-              key={policy.id}
-              policy={policy}
-              labels={labels}
-              busy={busy}
-              error={error}
-              act={act}
-              onPreviewPolicy={onPreviewPolicy}
-            />
-          ))}
-        </div>
-      ) : (
-        <Empty icon={ShieldCheck} title="No automations configured">
-          Automations are defined server-side. Once one exists it appears here, ready to be switched
-          on.
-        </Empty>
-      )}
-    </section>
+      <div className="border-t border-stone-200/80 dark:border-white/[0.07]">
+        {isCoveragePartial && (
+          <div className="px-3.5 pt-3">
+            <Notice tone="warn" title="Coverage is partial">
+              The last check reached its {monitor.model_metadata.scan_limit}-learner limit, so some
+              learners were not looked at.
+            </Notice>
+          </div>
+        )}
+
+        {policies.length > 0 ? (
+          <div className="grid grid-cols-1 gap-2.5 p-3.5 sm:grid-cols-2 xl:grid-cols-3">
+            {policies.map((policy) => (
+              <PolicyCard
+                key={policy.id}
+                policy={policy}
+                labels={labels}
+                busy={busy}
+                error={error}
+                act={act}
+                onPreviewPolicy={onPreviewPolicy}
+              />
+            ))}
+          </div>
+        ) : (
+          <Empty icon={ShieldCheck} title="No automations configured">
+            Automations are defined server-side. Once one exists it appears here, ready to be
+            switched on.
+          </Empty>
+        )}
+      </div>
+    </details>
   );
 }

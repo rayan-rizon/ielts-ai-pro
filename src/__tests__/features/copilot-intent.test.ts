@@ -13,6 +13,9 @@ describe('Pricing intent actions', () => {
     const first = pricingIntentCandidate(user, [event], null, now);
     expect(first.destination).toBe('/pricing');
     expect(first.evidence[0]).toEqual({ metric: 'plan_selected', value: 'premium' });
+    expect(first.content.title).toContain('20%');
+    expect(first.content.message).toContain('48 hours');
+    expect(first.evidence).toContainEqual({ metric: 'offer_discount_percent', value: 20 });
     expect(pricingIntentCandidate(user, [event], null, now + 1000).dedupeKey).toBe(first.dedupeKey);
   });
   it('does not infer intent from one pricing view, fresh clicks, or old events', () => {

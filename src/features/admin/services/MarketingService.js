@@ -241,6 +241,11 @@ export const MarketingService = {
     }
   },
 
+  async getCurrentSubscriptionSummary() {
+    const overview = await readAdminRpc(supabase, 'get_admin_overview', { p_days: 30 });
+    return overview?.kpis?.paying || { total: 0, pro: 0, premium: 0 };
+  },
+
   async updateAutopilotPolicy(id, patch) {
     const { data, error } = await supabase.rpc('set_marketing_autopilot_policy_state', {
       p_policy_id: id,
