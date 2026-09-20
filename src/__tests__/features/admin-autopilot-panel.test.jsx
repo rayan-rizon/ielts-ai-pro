@@ -210,7 +210,7 @@ describe('Copilot action workspace', () => {
     expect(
       await screen.findByRole('heading', { name: 'Your 18 answers are still waiting' })
     ).toBeInTheDocument();
-    expect(screen.getByText('Why this fits')).toBeInTheDocument();
+    expect(screen.queryByText('Why this fits')).not.toBeInTheDocument();
     expect(screen.queryByRole('timer')).not.toBeInTheDocument();
     expect(screen.getByText('18 of 40 answers saved')).toBeInTheDocument();
 

@@ -11,6 +11,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'You already chose your plan. Complete your upgrade in the next 48 hours to save 20% on your first subscription payment.',
     contextLabel: 'Based on your unfinished checkout',
     ctaLabel: 'Claim 20% before it ends',
+    ctaHref: '/pricing',
     urgent: true,
   },
   {
@@ -23,6 +24,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'Choose the plan that fits your practice in the next 48 hours to save 20% on your first subscription payment.',
     contextLabel: 'Based on the plan you selected',
     ctaLabel: 'Claim 20% before it ends',
+    ctaHref: '/pricing',
     urgent: true,
   },
   {
@@ -35,6 +37,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'You reached your current AI feedback allowance on more than one study day. Compare plans if more feedback would be useful.',
     contextLabel: 'Based on 2 recent study days',
     ctaLabel: 'Compare my options',
+    ctaHref: '/pricing',
   },
   {
     id: 'first-practice',
@@ -45,6 +48,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
     message: 'Start with a short Reading check to build a useful baseline for your target band.',
     contextLabel: 'Matched to your IELTS goal',
     ctaLabel: 'Start my first practice',
+    ctaHref: '/dashboard',
   },
   {
     id: 'next-practice',
@@ -55,6 +59,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
     message: 'Your first Reading result is saved. Review it and choose one focused follow-up.',
     contextLabel: 'Based on your saved result',
     ctaLabel: 'See my next step',
+    ctaHref: '/analytics',
   },
   {
     id: 'subscriber-help',
@@ -65,6 +70,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
     message: 'Your plan includes guided practice and AI feedback. Try one short activity today.',
     contextLabel: 'Included with your current plan',
     ctaLabel: 'Use my plan benefit',
+    ctaHref: '/dashboard',
   },
   {
     id: 'return-to-study',
@@ -76,6 +82,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'Your recent practice is still here. Continue with one short activity built from that progress.',
     contextLabel: 'Your progress is still saved',
     ctaLabel: 'Continue where I left off',
+    ctaHref: '/dashboard',
   },
   {
     id: 'cancellation-support',
@@ -87,6 +94,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'You still have 8 days of access. Review your progress and choose what you want to finish.',
     contextLabel: 'Before your current access ends',
     ctaLabel: 'Review my progress',
+    ctaHref: '/settings?tab=subscription',
   },
   {
     id: 'referral-credit',
@@ -97,6 +105,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
     message: 'Use your verified bonus credits before the current bonus period ends.',
     contextLabel: '2 days before expiry',
     ctaLabel: 'Use my credits',
+    ctaHref: '/settings?tab=referrals',
   },
   {
     id: 'score-plateau',
@@ -107,6 +116,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
     message: 'Three comparable Reading results point to one focused area worth practising next.',
     contextLabel: 'Based on 3 comparable Reading results',
     ctaLabel: 'See my focus area',
+    ctaHref: '/analytics',
   },
   {
     id: 'incomplete-test',
@@ -118,6 +128,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'Continue your saved Reading test without starting over. Your completed answers are safe.',
     contextLabel: '18 of 40 answers saved',
     ctaLabel: 'Resume my test',
+    ctaHref: '/reading',
   },
   {
     id: 'exam-countdown',
@@ -129,6 +140,7 @@ export const ADMIN_NOTIFICATION_SCENARIOS = [
       'Your study plan is fitted to your confirmed exam date, target band, and available time.',
     contextLabel: '15 days to your confirmed exam',
     ctaLabel: 'Open my 15-day plan',
+    ctaHref: '/learning-path',
   },
 ];
 

@@ -37,9 +37,13 @@ export default function ExpiryTimer({
           ? surface === 'light'
             ? 'border-stone-200 text-stone-500'
             : 'border-stone-200 text-stone-500 dark:border-white/10 dark:text-stone-400'
-          : surface === 'light'
-            ? 'border-amber-300/70 bg-amber-50 text-amber-800'
-            : 'border-amber-300/60 bg-amber-500/[0.07] text-amber-700 dark:border-amber-400/25 dark:text-amber-300',
+          : urgent
+            ? surface === 'light'
+              ? 'border-red-300 bg-red-50 text-red-700'
+              : 'border-red-400/70 bg-red-500/10 text-red-700 dark:border-red-400/35 dark:text-red-300'
+            : surface === 'light'
+              ? 'border-amber-300/70 bg-amber-50 text-amber-800'
+              : 'border-amber-300/60 bg-amber-500/[0.07] text-amber-700 dark:border-amber-400/25 dark:text-amber-300',
         className
       )}
     >

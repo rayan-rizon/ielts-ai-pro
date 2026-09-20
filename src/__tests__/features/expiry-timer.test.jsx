@@ -24,6 +24,14 @@ describe('ExpiryTimer', () => {
     );
   });
 
+  it('keeps the day-level countdown precise before the final day', () => {
+    const now = new Date('2026-09-21T00:00:00Z').getTime();
+    expect(formatExpiryCountdown('2026-09-22T23:59:00Z', now)).toEqual({
+      label: '1d 23h 59m left',
+      expired: false,
+    });
+  });
+
   it('makes a real limited-time offer explicit without changing its stored deadline', () => {
     render(<ExpiryTimer expiresAt="2099-09-21T01:02:03Z" urgent />);
     expect(screen.getByRole('timer')).toHaveTextContent(/Ends in/i);

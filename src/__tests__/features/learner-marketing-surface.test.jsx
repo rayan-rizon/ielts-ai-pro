@@ -63,34 +63,47 @@ describe('Learner marketing surface', () => {
   });
 
   it('does not stack an optional check-in with an active in-app suggestion', async () => {
-    MarketingDelivery.listActive.mockResolvedValue([
-      {
-        id: 'delivery-1',
-        channel: 'in_app',
-        content: {
-          title: 'Your next practice is ready',
-          message: 'Continue when you are ready.',
-          cta_label: 'Open practice',
-          cta_url: '/learning-path',
-        },
-        intervention: {
-          playbook_key: 'next_practice',
-          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        },
+    const delivery = {
+      id: 'delivery-1',
+      campaign_id: 'campaign-1',
+      user_id: 'learner-1',
+      channel: 'in_app',
+      content: {
+        title: 'Your next practice is ready',
+        message: 'Continue when you are ready.',
+        cta_label: 'Open practice',
+        cta_url: '/learning-path',
       },
-    ]);
+      intervention: {
+        playbook_key: 'next_practice',
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      },
+    };
+    MarketingDelivery.listActive.mockResolvedValue([delivery]);
     MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
 
     render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
 
     expect(await screen.findByText('Your next practice is ready')).toBeInTheDocument();
     expect(screen.getByTestId('learner-in-app-notification')).toHaveClass('fixed', 'md:right-4');
-    expect(screen.getByText('Based on your saved result')).toBeInTheDocument();
+    expect(screen.queryByText('Why this fits')).not.toBeInTheDocument();
+    expect(screen.queryByText('Based on your saved result')).not.toBeInTheDocument();
     expect(screen.queryByRole('timer')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Open practice/i })).toHaveAttribute(
       'href',
       '/learning-path'
     );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('link', { name: /Open practice/i }));
+    });
+    await waitFor(() => {
+      expect(MarketingDelivery.record).toHaveBeenCalledWith(delivery, 'clicked', {
+        destination: '/learning-path',
+      });
+      expect(MarketingDelivery.feedback).toHaveBeenCalledWith(delivery, 'clicked', {
+        metadata: { destination: '/learning-path' },
+      });
+    });
     await waitFor(() =>
       expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
     );

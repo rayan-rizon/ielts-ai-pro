@@ -38,8 +38,9 @@ export default function AdminNotificationShowcase() {
                 Learner notification showcase
               </h1>
               <p className={cn(MUTED, 'mt-1 max-w-2xl text-sm leading-relaxed')}>
-                Review every current message in the real learner-dashboard card. Buttons are inert
-                previews and do not create deliveries, discounts, or analytics events.
+                Review every current message in the real learner-dashboard card. Preview links open
+                their learner destination but do not create deliveries, discounts, or analytics
+                events.
               </p>
             </div>
             <Link
@@ -95,8 +96,8 @@ export default function AdminNotificationShowcase() {
                 playbookKey={scenario.playbookKey}
                 title={scenario.title}
                 message={scenario.message}
-                contextLabel={scenario.contextLabel}
                 ctaLabel={scenario.ctaLabel}
+                ctaHref={scenario.ctaHref}
                 expiresAt={scenario.urgent ? offerExpiry : undefined}
                 urgent={Boolean(scenario.urgent)}
               />

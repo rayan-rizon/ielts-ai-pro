@@ -23,7 +23,6 @@ import {
   MUTED,
   PANEL,
   Pill,
-  TILE,
   TITLE,
 } from '@/features/dashboard/components/primitives';
 
@@ -113,7 +112,6 @@ const InAppNotificationCard = forwardRef(function InAppNotificationCard(
     playbookKey,
     title,
     message,
-    contextLabel,
     ctaLabel = 'Open',
     ctaHref,
     expiresAt,
@@ -177,18 +175,6 @@ const InAppNotificationCard = forwardRef(function InAppNotificationCard(
               <X className="h-4 w-4" />
             </button>
           )}
-        </div>
-
-        <div className={cn(TILE, 'mt-3 flex items-center gap-2.5 px-3 py-2.5')}>
-          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
-            <Sparkles className="h-3 w-3" />
-          </span>
-          <div className="min-w-0">
-            <p className={cn(MICRO, MUTED)}>Why this fits</p>
-            <p className="mt-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-              {contextLabel || presentation.context}
-            </p>
-          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">

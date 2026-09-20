@@ -19,6 +19,12 @@ describe('AdminNotificationShowcase', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText('Claim 20% before it ends')).toHaveLength(2);
     expect(screen.getAllByRole('timer')).toHaveLength(2);
+    expect(screen.getAllByRole('link')).toHaveLength(13);
+    expect(screen.getAllByRole('link', { name: 'Claim 20% before it ends' })[0]).toHaveAttribute(
+      'href',
+      '/pricing'
+    );
+    expect(screen.queryByText('Why this fits')).not.toBeInTheDocument();
     expect(screen.queryByText('Approve message')).not.toBeInTheDocument();
   });
 

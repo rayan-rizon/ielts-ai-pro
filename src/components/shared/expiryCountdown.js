@@ -12,7 +12,11 @@ export function formatExpiryCountdown(expiresAt, now = Date.now()) {
   if (remaining >= DAY) {
     const days = Math.floor(remaining / DAY);
     const hours = Math.floor((remaining % DAY) / HOUR);
-    return { label: `${days}d ${String(hours).padStart(2, '0')}h left`, expired: false };
+    const minutes = Math.floor((remaining % HOUR) / MINUTE);
+    return {
+      label: `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m left`,
+      expired: false,
+    };
   }
 
   const hours = Math.floor(remaining / HOUR);
