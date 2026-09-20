@@ -343,6 +343,42 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('<title>IELTS Reading Strategy | IELTS Ai Pro</title>');
   });
 
+  it('applies query-aligned SEO metadata to priority articles without changing their slug', async () => {
+    const speakingTopicsArticle = {
+      ...article,
+      title: 'IELTS Speaking Topics: Questions, Cue Cards & Tips',
+      slug: 'ielts-speaking-topics-questions-cue-cards-tips',
+      description: 'Stored description',
+      meta_description: 'Stored metadata',
+      seo_tags: ['IELTS preparation'],
+      category: 'Speaking',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [speakingTopicsArticle],
+      })
+    );
+    const response = createResponse();
+
+    await blogHandler({ query: { slug: speakingTopicsArticle.slug } }, response);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain(
+      '<title>IELTS Speaking Topics, Questions &amp; Cue Cards | IELTS Ai Pro</title>'
+    );
+    expect(response.body).toContain(
+      '<meta name="description" content="Find common IELTS Speaking topics, Part 1 questions, Part 2 cue cards, Part 3 prompts, and practical answer tips for focused practice.">'
+    );
+    expect(response.body).toContain(
+      '<meta name="keywords" content="IELTS speaking questions, IELTS speaking topics, IELTS speaking topics and answers, IELTS speaking test topics, IELTS speaking practice questions, IELTS speaking cue cards, common IELTS speaking topics, IELTS speaking practice, IELTS preparation">'
+    );
+    expect(response.body).toContain(
+      'href="https://www.ieltsai.pro/blog/ielts-speaking-topics-questions-cue-cards-tips"'
+    );
+  });
+
   it('keeps the article title distinct from its H1 and repairs audited legacy citations', async () => {
     const legacyCitationArticle = {
       ...article,

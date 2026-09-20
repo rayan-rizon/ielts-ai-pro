@@ -962,7 +962,7 @@ export default function BlogIndex() {
         title={BLOG_LIBRARY_COPY.metaTitle}
         description={BLOG_LIBRARY_COPY.metaDescription}
         canonicalUrl="https://www.ieltsai.pro/blog"
-        keywords="IELTS blog, IELTS preparation tips, IELTS Band 7, IELTS study plan"
+        keywords={BLOG_LIBRARY_COPY.metaKeywords}
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',

@@ -65,6 +65,8 @@ export const BLOG_LIBRARY_COPY = {
   metaTitle: 'IELTS Preparation Tips & Expert Guides',
   metaDescription:
     'Practical IELTS Writing, Speaking, Reading, and Listening guides with proven strategies, focused study plans, exam updates, and online practice.',
+  metaKeywords:
+    'IELTS preparation tips, IELTS speaking questions, IELTS Writing Task 2, IELTS reading practice, IELTS listening practice, IELTS mock tests, IELTS study plan',
   heroEyebrow: 'IELTS blog library',
   heroTitle: 'IELTS tips for higher band scores',
   heroScript: 'Clear strategy. Focused practice.',

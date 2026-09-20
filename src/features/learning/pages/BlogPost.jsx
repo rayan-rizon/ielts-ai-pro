@@ -37,6 +37,7 @@ import {
 } from '@/features/learning/utils/blogCoverMeta';
 import { supabase } from '@/lib/supabase';
 import { SidebarPracticeCard } from '@/features/learning/components/SidebarPracticeCard';
+import { getBlogSeoMeta } from '@/features/learning/utils/blogSeo';
 
 const PRACTICE_LINKS = {
   Writing: '/ielts-writing-checker',
@@ -612,7 +613,11 @@ const BlogPost = () => {
 
   const preparedContent = prepareArticleContent(post?.content);
   const activeId = useTocActiveId(preparedContent.toc);
-  const description = post?.meta_description || post?.description || getExcerpt(post?.content);
+  const seoMeta = getBlogSeoMeta({
+    ...post,
+    description: post?.description || getExcerpt(post?.content),
+  });
+  const description = seoMeta.description;
   const practicePath = PRACTICE_LINKS[post?.category] || '/signup';
   const practiceLabel =
     PRACTICE_LABELS[post?.category] || `Start ${post?.category || 'IELTS'} practice`;
@@ -648,11 +653,12 @@ const BlogPost = () => {
   return (
     <>
       <DocumentHead
-        title={post.title}
+        title={seoMeta.title}
         description={description}
         canonicalUrl={canonicalUrl}
         image={socialImageUrl}
         type="article"
+        keywords={seoMeta.keywords.join(', ')}
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'Article',

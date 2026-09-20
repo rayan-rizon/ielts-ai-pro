@@ -104,7 +104,7 @@ export default function IeltsWritingChecker() {
         title="Free IELTS Writing Checker – Task 1 & 2 Feedback"
         description="Paste your Academic IELTS Task 1 or Task 2 response and instantly receive an estimated band score with detailed feedback on all four writing criteria."
         canonicalUrl="https://www.ieltsai.pro/ielts-writing-checker"
-        keywords="IELTS writing checker, IELTS Task 1 checker, IELTS Task 2 checker, free IELTS writing feedback, IELTS band score checker, Academic IELTS writing"
+        keywords="IELTS writing checker, AI IELTS writing checker, free IELTS writing checker, check IELTS writing online, IELTS Task 1 checker, IELTS Task 2 checker, IELTS writing feedback, Academic IELTS writing"
         structuredData={structuredData}
       />
       <PublicNavbar />

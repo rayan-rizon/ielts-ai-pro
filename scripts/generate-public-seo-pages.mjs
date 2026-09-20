@@ -21,6 +21,7 @@ function seoLandingPage(content) {
     path: content.path.replace(/^\//, ''),
     title: `${content.title} | IELTS Ai Pro`,
     description: content.description,
+    keywords: content.keywords,
     canonical: `https://www.ieltsai.pro${content.path}`,
     imageAlt: content.heroAlt,
     primaryCta: content.primaryCta,
@@ -37,6 +38,8 @@ const publicPages = [
     title: 'Free IELTS Writing Checker – Task 1 & 2 | IELTS Ai Pro',
     description:
       'Paste your Academic IELTS Task 1 or Task 2 response and instantly receive an estimated band score with detailed feedback on all four writing criteria.',
+    keywords:
+      'IELTS writing checker, AI IELTS writing checker, free IELTS writing checker, IELTS Task 1 checker, IELTS Task 2 checker, IELTS writing feedback, Academic IELTS writing',
     canonical: 'https://www.ieltsai.pro/ielts-writing-checker',
     imageAlt: 'Student practising Academic IELTS writing with a laptop and notebook',
     prerender: {
@@ -236,6 +239,8 @@ const publicPages = [
     title: 'IELTS Band Score Calculator | IELTS Ai Pro',
     description:
       'Free IELTS band score calculator: turn your Listening, Reading, Writing and Speaking scores into an overall band, plus raw score conversion.',
+    keywords:
+      'IELTS band score calculator, IELTS score calculator, IELTS band calculator, IELTS overall band score, IELTS listening score, IELTS reading score conversion, IELTS raw score conversion',
     canonical: 'https://www.ieltsai.pro/ielts-band-score-calculator',
     imageAlt: 'IELTS learner calculating an overall band score',
     prerender: {
@@ -528,6 +533,24 @@ function renderPublicPage(html, config) {
     `<meta name="description" content="${config.description}" />`,
     'description meta tag'
   );
+  if (config.keywords) {
+    const keywordTag = `<meta name="keywords" content="${config.keywords}" />`;
+    if (/<meta\s+name="keywords"[^>]*\/>/.test(page)) {
+      page = replaceTag(
+        page,
+        /<meta\s+name="keywords"[^>]*\/>/,
+        keywordTag,
+        'keywords meta tag'
+      );
+    } else {
+      page = replaceTag(
+        page,
+        /<meta\s+name="description"[^>]*\/>/,
+        (match) => `${match}\n  ${keywordTag}`,
+        'description meta tag for keyword insertion'
+      );
+    }
+  }
   page = replaceTag(
     page,
     /<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/,

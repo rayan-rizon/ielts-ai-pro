@@ -82,3 +82,17 @@ _tagger_*.cjs
 Blog/
 SEO-AUDIT.md
 SEO-KEYWORD-ANALYSIS.md
+
+# --- Local agent workspaces and installed skill artifacts ---
+.codebuddy/
+.commandcode/
+.continue/
+.devin/
+.hermes/
+.kiro/
+.pi/
+.trae/
+.windsurf/
+.claude/skills/bulk-classify/
+skills/
+skills-lock.json

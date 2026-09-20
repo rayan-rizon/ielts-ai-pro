@@ -89,7 +89,7 @@ const generatedSeoPages = {
   },
   '/ielts-speaking-practice-ai': {
     path: path.join(root, 'dist/ielts-speaking-practice-ai/index.html'),
-    title: 'AI IELTS Speaking Practice with Feedback | IELTS Ai Pro',
+    title: 'IELTS Speaking Practice Test with AI Feedback | IELTS Ai Pro',
     heading: 'IELTS Speaking practice tests with feedback you can act on',
     primaryHref: '/signup',
     secondaryHref: '/blog/ielts-speaking-topics-questions-cue-cards-tips',

@@ -21,12 +21,12 @@ export const SEO_LANDING_CONTENT = {
   speaking: {
     key: 'speaking',
     path: '/ielts-speaking-practice-ai',
-    title: 'AI IELTS Speaking Practice with Feedback',
+    title: 'IELTS Speaking Practice Test with AI Feedback',
     breadcrumb: 'IELTS Speaking practice',
     description:
-      'Practise IELTS Speaking Parts 1–3 with an AI simulator, estimated band guidance, and focused feedback on fluency, vocabulary, grammar, and pronunciation.',
+      'Practise IELTS Speaking Parts 1–3 with an AI practice test, common questions, band guidance, and feedback on fluency, vocabulary, grammar, and pronunciation.',
     keywords:
-      'AI IELTS speaking practice, IELTS speaking simulator, IELTS speaking questions, IELTS speaking feedback, IELTS speaking practice online',
+      'IELTS speaking practice, AI IELTS speaking practice, IELTS speaking practice test, IELTS speaking questions, IELTS speaking topics, IELTS speaking feedback, IELTS speaking test sample',
     eyebrow: 'AI speaking practice',
     heading: 'IELTS Speaking practice tests with feedback you can act on',
     headingLead: 'IELTS Speaking practice tests with feedback you can',
@@ -153,7 +153,7 @@ export const SEO_LANDING_CONTENT = {
     description:
       'Take Cambridge-style IELTS Reading and Listening practice tests online, review answers, estimate band scores, and track the mistakes that affect your result.',
     keywords:
-      'Cambridge IELTS practice test, free IELTS practice test, IELTS mock test online, IELTS reading practice test, IELTS listening practice test',
+      'IELTS practice test, IELTS practice tests, Cambridge IELTS practice test, IELTS mock test online, IELTS mock test free, IELTS reading practice test, IELTS listening practice test',
     eyebrow: 'Online IELTS practice tests',
     heading: 'Free online IELTS practice tests with a smarter review loop',
     headingLead: 'Free online IELTS practice tests with a smarter',

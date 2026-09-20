@@ -7,6 +7,7 @@ import {
   getBlogCategoryPresentation,
   getBlogLibraryHeading,
 } from '../src/features/learning/utils/blogPresentation.js';
+import { getBlogSeoMeta } from '../src/features/learning/utils/blogSeo.js';
 
 const SITE_URL = 'https://www.ieltsai.pro';
 const DEFAULT_IMAGE = `${SITE_URL}/og.webp`;
@@ -509,6 +510,7 @@ function articleSearchTitle(title) {
 function layout({
   title,
   description,
+  keywords = '',
   canonical,
   type = 'website',
   robots = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
@@ -570,6 +572,7 @@ function layout({
   </script>
   <title>${escapeHtml(fullTitle)}</title>
   <meta name="description" content="${escapeHtml(description)}">
+  ${keywords ? `<meta name="keywords" content="${escapeHtml(Array.isArray(keywords) ? keywords.join(', ') : keywords)}">` : ''}
   <meta name="robots" content="${escapeHtml(robots)}">
   <meta http-equiv="content-language" content="en">
   <link rel="canonical" href="${escapeHtml(canonical)}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.png" sizes="192x192" type="image/png"><link rel="shortcut icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -835,6 +838,7 @@ function renderIndex(posts, requestQuery = {}) {
   return layout({
     title: `${viewTitle}${pageSuffix}`,
     description,
+    keywords: BLOG_LIBRARY_COPY.metaKeywords,
     canonical,
     // Search results and thin pagination are useful navigation for people but
     // should not become standalone landing pages in the search index.
@@ -872,7 +876,8 @@ function renderIndex(posts, requestQuery = {}) {
 
 function renderArticle(post, allPosts = []) {
   const canonical = `${SITE_URL}/blog/${post.slug}`;
-  const description = post.meta_description || post.description;
+  const seoMeta = getBlogSeoMeta(post);
+  const description = seoMeta.description;
   const publishedAt = post.published_at || post.created_at;
   const prepared = prepareArticle(repairKnownContentLinks(post.content));
   const tags = (post.seo_tags || [])
@@ -882,7 +887,7 @@ function renderArticle(post, allPosts = []) {
   const socialImageUrl = absoluteImageUrl(post.thumbnail_url);
   const articleText = plainText(prepared.html);
   const citations = externalCitationUrls(prepared.html);
-  const keywords = Array.isArray(post.seo_tags) ? post.seo_tags.filter(Boolean) : [];
+  const keywords = seoMeta.keywords;
   const toc = prepared.toc
     .map(
       (item) =>
@@ -950,8 +955,9 @@ function renderArticle(post, allPosts = []) {
   return layout({
     // A page title must add useful context rather than repeat the visible H1.
     // The width guard preserves the most important leading query terms.
-    title: articleSearchTitle(post.title),
+    title: articleSearchTitle(seoMeta.title),
     description,
+    keywords,
     canonical,
     type: 'article',
     structuredData: [articleSchema, breadcrumbSchema],
