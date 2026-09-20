@@ -204,6 +204,12 @@ describe('Personalized retention autopilot contracts', () => {
     expect(adminPanel).toContain('New draft ready to review');
   });
 
+  it('loads the learner through the intervention user foreign key during review', () => {
+    expect(worker).toContain(
+      'user:users!marketing_interventions_user_id_fkey(id,email,full_name,marketing_email_unsubscribed_at)'
+    );
+  });
+
   it('stores only evidence-grounded recommendations in familiar language', () => {
     expect(worker).toContain('<allowed_evidence_facts>');
     expect(worker).toContain('factMap.has(item.metric_id)');

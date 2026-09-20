@@ -2186,12 +2186,19 @@ serve(async (req) => {
       const { data: intervention, error: interventionError } = await admin
         .from('marketing_interventions')
         .select(
-          '*, user:users(id,email,full_name,marketing_email_unsubscribed_at), policy:marketing_autopilot_policies(*)'
+          '*, user:users!marketing_interventions_user_id_fkey(id,email,full_name,marketing_email_unsubscribed_at), policy:marketing_autopilot_policies!marketing_interventions_playbook_key_fkey(*)'
         )
         .eq('id', body.intervention_id)
         .single();
-      if (interventionError || !intervention)
-        return errorResponse('Intervention not found', 404, headers);
+      if (interventionError) {
+        console.error('[copilot-review-lookup]', {
+          code: interventionError.code,
+          message: interventionError.message,
+          details: interventionError.details,
+        });
+        return errorResponse('Could not load this message. Refresh and try again.', 500, headers);
+      }
+      if (!intervention) return errorResponse('Intervention not found', 404, headers);
       if (!['needs_approval', 'prepared'].includes(intervention.status)) {
         return errorResponse('Intervention is no longer available for approval', 409, headers);
       }
