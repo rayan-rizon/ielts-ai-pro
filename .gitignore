@@ -40,6 +40,7 @@ Desktop.ini
 .env.development
 .env.staging
 .env*.local
+.envrc
 
 # --- Database and Backups ---
 # Backups may contain real user PII (emails, names) - never track any file in these dirs
@@ -82,6 +83,7 @@ _tagger_*.cjs
 Blog/
 SEO-AUDIT.md
 SEO-KEYWORD-ANALYSIS.md
+.env*
 
 # --- Local agent workspaces and installed skill artifacts ---
 .codebuddy/

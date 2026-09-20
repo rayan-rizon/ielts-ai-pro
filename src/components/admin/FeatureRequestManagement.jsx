@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import { classifyTexts } from '@/lib/classifier';
 import {
   AdminButton,
   AdminPageHeader,
@@ -62,6 +63,13 @@ const ADMIN_STATUS_TONE = {
 const field =
   'rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none transition-colors placeholder:text-stone-400 focus-visible:border-indigo-400/60 focus-visible:ring-2 focus-visible:ring-indigo-500/20 dark:border-white/10 dark:bg-[#18181b] dark:text-white dark:placeholder:text-stone-500';
 
+const AREA_ENTRIES = Object.entries(FEATURE_AREAS);
+const AREA_LABELS = AREA_ENTRIES.map(([, meta]) => meta.label);
+const AREA_KEY_BY_LABEL = Object.fromEntries(AREA_ENTRIES.map(([key, meta]) => [meta.label, key]));
+const AREA_SUGGESTION_INSTRUCTIONS =
+  'Which IELTS skill area does this feature request concern? Pick "other" only if it is not about a specific skill area.';
+const AREA_SUGGESTION_CONFIDENCE = 0.8;
+
 export default function FeatureRequestManagement() {
   const [status, setStatus] = useState('pending');
   const [search, setSearch] = useState('');
@@ -72,6 +80,7 @@ export default function FeatureRequestManagement() {
   const [savingId, setSavingId] = useState(null);
   const [notes, setNotes] = useState({});
   const [error, setError] = useState('');
+  const [areaSuggestions, setAreaSuggestions] = useState({});
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -96,6 +105,29 @@ export default function FeatureRequestManagement() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const items = page?.items;
+    if (!items?.length) return undefined;
+    let cancelled = false;
+    classifyTexts({
+      inputs: items.map((request) => `${request.title}\n${request.description}`.slice(0, 2000)),
+      labels: AREA_LABELS,
+      instructions: AREA_SUGGESTION_INSTRUCTIONS,
+    }).then((results) => {
+      if (cancelled || !results.length) return;
+      setAreaSuggestions((current) => {
+        const next = { ...current };
+        items.forEach((request, index) => {
+          if (results[index]) next[request.id] = results[index];
+        });
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [page]);
 
   const update = async (request, nextStatus) => {
     setSavingId(request.id);
@@ -202,6 +234,14 @@ export default function FeatureRequestManagement() {
                 const area = FEATURE_AREAS[request.category] || FEATURE_AREAS.other;
                 const nextStatus = NEXT_STATUS[request.status];
                 const note = notes[request.id] ?? request.admin_note ?? '';
+                const suggestion = areaSuggestions[request.id];
+                const suggestedKey = suggestion && AREA_KEY_BY_LABEL[suggestion.label];
+                const suggestedArea =
+                  suggestedKey &&
+                  suggestedKey !== request.category &&
+                  suggestion.confidence >= AREA_SUGGESTION_CONFIDENCE
+                    ? FEATURE_AREAS[suggestedKey]
+                    : null;
                 return (
                   <article key={request.id} className={cn(TILE, 'overflow-hidden')}>
                     <div className="grid min-w-0 gap-0 xl:grid-cols-[minmax(0,1fr)_21rem]">
@@ -218,6 +258,9 @@ export default function FeatureRequestManagement() {
                           >
                             {area.label}
                           </Pill>
+                          {suggestedArea && (
+                            <Pill tone="warn">Suggested: {suggestedArea.label}</Pill>
+                          )}
                         </div>
                         <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-stone-600 dark:text-stone-300">
                           {request.description}
