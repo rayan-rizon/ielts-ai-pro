@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/accordion';
 import { GlassPanel, SoftSection } from './LandingSection';
 import SkillBadgeStack from './SkillBadgeStack';
+import { WordByWordText } from '@/components/ui/word-by-word-text';
 
 const reveal = {
   hidden: { opacity: 0, y: 18 },
@@ -174,17 +175,18 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
             viewport={viewport}
             variants={{ show: { transition: { staggerChildren: 0.1 } } }}
           >
-            {/* Redesigned Title with Rays */}
-            <m.h2
-              variants={reveal}
-              className="text-balance text-[clamp(2.45rem,4.2vw,4.1rem)] font-black leading-[1.02] tracking-tight text-[#07142f] dark:text-white"
-            >
-              Got Questions? <br />
-              We&apos;ve Got <br />
-              <span className="relative inline-block font-handwritten mt-1 bg-linear-to-r/srgb from-[#4b72ee] via-[#5f55ee] to-[#8355e9] dark:from-indigo-400 dark:via-violet-400 dark:to-purple-300 bg-clip-text pb-3.5 text-[0.8em] leading-[1.08] tracking-normal text-transparent">
-                Answers.
+            <h2 className="text-balance text-[clamp(2.45rem,4.2vw,4.1rem)] font-black leading-[1.02] tracking-tight text-[#07142f] dark:text-white">
+              <WordByWordText text="Got Questions?" startIndex={0} /> <br />
+              <WordByWordText text="We've Got" startIndex={2} /> <br />
+              <span className="relative inline-block font-handwritten mt-1 pb-3.5 text-[0.8em] leading-[1.08] tracking-normal">
+                <WordByWordText
+                  text="Answers."
+                  startIndex={4}
+                  wordClassName="bg-linear-to-r/srgb from-[#4b72ee] via-[#5f55ee] to-[#8355e9] dark:from-indigo-400 dark:via-violet-400 dark:to-purple-300 bg-clip-text text-transparent"
+                />
                 <svg
-                  className="absolute bottom-0 left-0 w-full h-3 text-[#7790f5] dark:text-violet-400 opacity-80"
+                  className="animate-word-enter absolute bottom-0 left-0 w-full h-3 text-[#7790f5] dark:text-violet-400 opacity-80"
+                  style={{ '--word-delay': '380ms' }}
                   viewBox="0 0 200 10"
                   fill="none"
                   preserveAspectRatio="none"
@@ -210,7 +212,7 @@ function FAQSection({ faqs, viewport, handlePrimaryCta }) {
                   <path d="M4 12h4M6 6l3 3M6 18l3-3" />
                 </svg>
               </span>
-            </m.h2>
+            </h2>
 
             <m.p
               variants={reveal}

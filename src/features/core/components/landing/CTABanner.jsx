@@ -1,8 +1,9 @@
 import React from 'react';
 import { m, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles, Target, LineChart, Star, Check } from 'lucide-react';
-import { GlassPanel, SoftSection } from './LandingSection';
+import { SoftSection } from './LandingSection';
 import SkillBadgeStack from './SkillBadgeStack';
+import { WordByWordText } from '@/components/ui/word-by-word-text';
 
 const benefits = [
   {
@@ -36,11 +37,18 @@ function CTABannerHeader() {
       </span>
 
       <h2 className="mt-3.5 text-balance text-[clamp(1.85rem,3vw,3rem)] font-black leading-[1.05] tracking-tight text-slate-900 dark:text-white">
-        <span>Your Best IELTS Score is </span>
-        <span className="relative inline-block font-handwritten bg-linear-to-r/srgb from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-[1.02em] leading-[1.08] tracking-tight text-transparent">
-          One Click Away!
+        <span>
+          <WordByWordText text="Your Best IELTS Score is" startIndex={0} />{' '}
+        </span>
+        <span className="relative inline-block font-handwritten text-[1.02em] leading-[1.08] tracking-tight">
+          <WordByWordText
+            text="One Click Away!"
+            startIndex={5}
+            wordClassName="bg-linear-to-r/srgb from-violet-600 via-purple-600 to-indigo-600 dark:from-violet-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent"
+          />
           <svg
-            className="absolute bottom-0 left-0 w-full h-2.5 text-violet-500 dark:text-violet-300"
+            className="animate-word-enter absolute bottom-0 left-0 w-full h-2.5 text-violet-500 dark:text-violet-300"
+            style={{ '--word-delay': '620ms' }}
             viewBox="0 0 200 10"
             fill="none"
             preserveAspectRatio="none"

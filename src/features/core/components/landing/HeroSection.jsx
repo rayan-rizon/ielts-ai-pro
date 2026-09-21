@@ -7,6 +7,7 @@ import Quote from 'lucide-react/icons/quote';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Star from 'lucide-react/icons/star';
 import { Button } from '@/components/ui/button';
+import { WordByWordTextCSS } from '@/components/ui/word-by-word-text-css';
 import { cn } from '@/lib/cn';
 import {
   PANEL,
@@ -297,11 +298,14 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
             style={{ '--hero-enter-delay': '70ms' }}
             data-motion-entry="headline"
           >
-            <span className="block">IELTS Practice.</span>
+            <span className="block">
+              <WordByWordTextCSS text="IELTS Practice." delay={0.07} startIndex={0} />
+            </span>
             <span className="font-handwritten relative mt-2.5 sm:mt-3 inline-block w-fit max-w-full whitespace-nowrap text-[0.8em] min-[480px]:text-[0.86em] sm:text-[0.9em] lg:text-[0.88em] xl:text-[0.92em] leading-[1.08] tracking-[-0.035em] text-[#6d55e8] pr-6 sm:pr-7">
-              Smarter with AI.
+              <WordByWordTextCSS text="Smarter with AI." delay={0.07} startIndex={2} />
               <svg
-                className="absolute -bottom-2 sm:-bottom-2.5 left-[24%] h-2.5 sm:h-3 w-[52%] text-[#b89eff]"
+                className="animate-word-enter absolute -bottom-2 sm:-bottom-2.5 left-[24%] h-2.5 sm:h-3 w-[52%] text-[#b89eff]"
+                style={{ '--word-delay': '450ms' }}
                 viewBox="0 0 180 16"
                 fill="none"
                 aria-hidden="true"
@@ -314,7 +318,8 @@ export default function HeroSection({ handlePrimaryCta, handlePricing, isSignedI
                 />
               </svg>
               <svg
-                className="absolute -right-1 sm:-right-2 top-0 sm:-top-1 h-5 w-5 sm:h-6 sm:w-6 text-[#2cc2a0]"
+                className="animate-word-enter absolute -right-1 sm:-right-2 top-0 sm:-top-1 h-5 w-5 sm:h-6 sm:w-6 text-[#2cc2a0]"
+                style={{ '--word-delay': '520ms' }}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"

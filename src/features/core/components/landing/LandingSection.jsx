@@ -2,6 +2,7 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { WordByWordText, splitWords } from '@/components/ui/word-by-word-text';
 import { cn } from '@/lib/cn';
 
 export const landingReveal = {
@@ -27,6 +28,9 @@ export function SectionHeading({
   viewport,
   className,
 }) {
+  const titleWords = typeof title === 'string' ? splitWords(title) : [];
+  const scriptWords = typeof script === 'string' ? splitWords(script) : [];
+
   return (
     <m.div
       initial="hidden"
@@ -44,19 +48,30 @@ export function SectionHeading({
           {eyebrow}
         </span>
       </m.div>
-      <m.h2
-        variants={landingReveal}
-        className="mt-5 text-balance text-[clamp(2.35rem,5vw,4.35rem)] font-black leading-[0.98] tracking-[-0.055em] text-[#07142f] dark:text-white"
-      >
-        {title}{' '}
+      <h2 className="mt-5 text-balance text-[clamp(2.35rem,5vw,4.35rem)] font-black leading-[0.98] tracking-[-0.055em] text-[#07142f] dark:text-white">
+        {typeof title === 'string' ? <WordByWordText text={title} startIndex={0} /> : title}{' '}
         {script && (
           <span className="font-handwritten relative inline-block tracking-[-0.03em] text-[#5262ef]">
-            {script}
-            <span className="absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-linear-to-r/srgb from-[#89d9d0] to-[#7086f6] opacity-70" />
+            {typeof script === 'string' ? (
+              <WordByWordText text={script} startIndex={titleWords.length} />
+            ) : (
+              script
+            )}
+            <span
+              className="animate-word-enter absolute -bottom-1 left-[5%] h-[3px] w-[90%] -rotate-1 rounded-full bg-linear-to-r/srgb from-[#89d9d0] to-[#7086f6] opacity-70"
+              style={{
+                '--word-delay': `${Math.round((titleWords.length + scriptWords.length) * 75)}ms`,
+              }}
+            />
           </span>
         )}{' '}
-        {suffix}
-      </m.h2>
+        {suffix &&
+          (typeof suffix === 'string' ? (
+            <WordByWordText text={suffix} startIndex={titleWords.length + scriptWords.length} />
+          ) : (
+            suffix
+          ))}
+      </h2>
       {description && (
         <m.p
           variants={landingReveal}
