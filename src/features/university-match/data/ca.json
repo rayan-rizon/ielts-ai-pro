@@ -9,10 +9,10 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
-        "overall": 7.0,
+        "overall": 7,
         "minComponent": 6.5
       }
     },
@@ -30,7 +30,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "The English Language Admission Standard is 6.5 with no part less than 6.0. IELTS General, IELTS Indicator and the One Skill Retake are not accepted — only IELTS Academic. Graduate programmes set their own figures and are not covered here.",
@@ -47,7 +47,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Undergraduate admission asks 6.5 or better with individual component scores of 6.0 or better. Both IELTS Academic and IELTS for UKVI are accepted; the One Skill Retake is not. Scores must be sent electronically by the test centre. Graduate programmes set their own figures.",
@@ -64,7 +64,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Undergraduate admission asks 6.5 overall with a minimum of 6.0 in each of the four components. Individual graduate programmes (Engineering, Medical Sciences, Public Policy) publish their own figures, mostly in the same 6.5/6.0 range, and are not consolidated here.",
@@ -84,8 +84,8 @@
         "skills": {
           "writing": 6.5,
           "speaking": 6.5,
-          "reading": 6.0,
-          "listening": 6.0
+          "reading": 6,
+          "listening": 6
         }
       }
     },
@@ -103,7 +103,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Standard undergraduate entry is 6.5 overall with no component below 6.0. Graduate admission is set by the Faculty of Graduate Studies per programme and is not covered here.",
@@ -120,7 +120,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -128,7 +128,7 @@
         "programme": "School of Architecture",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0
+          "overall": 7
         }
       }
     ],
@@ -146,7 +146,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -172,7 +172,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Direct admission without an ESL requirement needs 6.5 overall with no band below 6.0. A lower score can still lead to conditional admission with mandatory English language coursework in first year.",
@@ -189,7 +189,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Standard undergraduate entry is 6.5 overall with no component less than 6.0. Some programmes ask for more — one example programme requires 7.0 overall with no component below 6.5.",
@@ -213,14 +213,14 @@
         "programme": "Nursing",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0
+          "overall": 7
         }
       },
       {
         "programme": "Education",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0
+          "overall": 7
         }
       }
     ],
@@ -238,7 +238,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -246,13 +246,1359 @@
         "programme": "Faculty of Law",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
     "notes": "Standard undergraduate entry is 6.5 overall with 6.0 in each of the four modules. Law is far higher: 7.0 overall with no section below 7.0.",
     "sourceUrl": "https://umanitoba.ca/explore/undergraduate-admissions/requirements/english-language-proficiency-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-alberta",
+    "name": "University of Alberta",
+    "country": "CA",
+    "city": "Edmonton, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Alberta requires IELTS 6.5 with no band less than 6.0 for standard undergraduate and postgraduate admission. Health and Education degrees require 7.0–7.5.",
+    "sourceUrl": "https://www.ualberta.ca/admissions/international/admission/english-language-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ottawa",
+    "name": "University of Ottawa",
+    "country": "CA",
+    "city": "Ottawa, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5
+        }
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Direct undergraduate entry requires IELTS 6.5 with at least 6.5 in Writing and no other band below 6.0. Postgraduate entry requires 7.0 overall (min 6.5).",
+    "sourceUrl": "https://www.uottawa.ca/study/undergraduate-studies/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-western",
+    "name": "Western University",
+    "country": "CA",
+    "city": "London, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Western requires IELTS Academic 6.5 with no individual band below 6.0 for both undergraduate and graduate admission. Nursing requires 7.0 with 6.5 in all bands.",
+    "sourceUrl": "https://welcome.uwo.ca/next-steps/requirements/english-language-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-montreal",
+    "name": "Université de Montréal",
+    "country": "CA",
+    "city": "Montreal, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UdeM English-taught graduate programmes (HEC Montréal, Mila joint programmes) require IELTS 6.5 with no section below 6.0. Most undergraduate degrees are French-taught.",
+    "sourceUrl": "https://admission.umontreal.ca/en/admissions/apply-to-udem/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-laval",
+    "name": "Université Laval",
+    "country": "CA",
+    "city": "Quebec City, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught graduate courses and business MBA require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.ulaval.ca/en/future-students/admission/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-saskatchewan",
+    "name": "University of Saskatchewan",
+    "country": "CA",
+    "city": "Saskatoon, SK",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "USask standard undergraduate entry requires IELTS 6.5 with no band below 6.0. Graduate degrees require 6.5 with no band below 6.5.",
+    "sourceUrl": "https://admissions.usask.ca/requirements/english-language-proficiency.php",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-york",
+    "name": "York University",
+    "country": "CA",
+    "city": "Toronto, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Liberal Arts & Professional Studies and Science require 6.5 overall. Lassonde Engineering and Schulich School of Business require 7.0 or higher.",
+    "sourceUrl": "https://futurestudents.yorku.ca/language-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-guelph",
+    "name": "University of Guelph",
+    "country": "CA",
+    "city": "Guelph, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate and graduate admission requires an overall IELTS band of 6.5 with no individual band below 6.0.",
+    "sourceUrl": "https://admission.uoguelph.ca/englprof",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-tmu",
+    "name": "Toronto Metropolitan University",
+    "country": "CA",
+    "city": "Toronto, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "TMU (formerly Ryerson) undergraduate baseline is IELTS 6.5 with all bands 6.0 or higher. Graduate programmes require 7.0 with all bands 6.5.",
+    "sourceUrl": "https://www.torontomu.ca/admissions/undergraduate/requirements/english-language/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-concordia",
+    "name": "Concordia University",
+    "country": "CA",
+    "city": "Montreal, QC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Concordia undergraduate requirement is IELTS 6.5 overall with no sub-score below 6.0. Graduate programmes require 6.5 overall with no sub-score below 6.5.",
+    "sourceUrl": "https://www.concordia.ca/admissions/undergraduate/requirements/english-language-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-windsor",
+    "name": "University of Windsor",
+    "country": "CA",
+    "city": "Windsor, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate baseline is IELTS 6.5 with no band below 6.0. Graduate baseline is 6.5 with no band below 6.0 (some master degrees require 7.0).",
+    "sourceUrl": "https://www.uwindsor.ca/future-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-brock",
+    "name": "Brock University",
+    "country": "CA",
+    "city": "St. Catharines, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Brock standard baseline is IELTS 6.5 with no band score under 6.0 for both undergraduate and graduate admission.",
+    "sourceUrl": "https://discover.brocku.ca/admissions/english-language-proficiency-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-laurier",
+    "name": "Wilfrid Laurier University",
+    "country": "CA",
+    "city": "Waterloo, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Laurier undergraduate baseline is 6.5 with no band below 6.0. Graduate studies baseline is 7.0 with no band below 6.5.",
+    "sourceUrl": "https://www.wlu.ca/future-students/undergraduate/applicants/international/english-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-lakehead",
+    "name": "Lakehead University",
+    "country": "CA",
+    "city": "Thunder Bay, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate and graduate admission requires IELTS 6.5 with no component score less than 6.0. Nursing requires 7.0.",
+    "sourceUrl": "https://www.lakeheadu.ca/admissions/how-to-apply/english-language-proficiency-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-trent",
+    "name": "Trent University",
+    "country": "CA",
+    "city": "Peterborough, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Trent requires IELTS 6.5 with no band lower than 6.0 for undergraduate degree entry. Graduate baseline is 6.5 (min 6.0).",
+    "sourceUrl": "https://www.trentu.ca/futurestudents/international/requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ontario-tech",
+    "name": "Ontario Tech University",
+    "country": "CA",
+    "city": "Oshawa, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Ontario Tech standard requirement is IELTS 6.5 with no band below 6.0 for undergraduate engineering and graduate programs.",
+    "sourceUrl": "https://ontariotechu.ca/admissions/undergraduate/english-language-proficiency.php",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-laurentian",
+    "name": "Laurentian University",
+    "country": "CA",
+    "city": "Sudbury, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Laurentian requires IELTS 6.5 with no band lower than 6.0 for undergraduate and graduate admission.",
+    "sourceUrl": "https://laurentian.ca/international/admissions/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-nipissing",
+    "name": "Nipissing University",
+    "country": "CA",
+    "city": "North Bay, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Nipissing requires IELTS 6.5 with a minimum of 6.0 in each band for undergraduate and graduate degrees.",
+    "sourceUrl": "https://www.nipissingu.ca/future-students/international/admissions/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-mun",
+    "name": "Memorial University of Newfoundland",
+    "country": "CA",
+    "city": "St. John's, NL",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "reading": 6,
+          "writing": 6
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Memorial requires IELTS 6.5 with at least 6.0 in Reading and Writing for undergraduate admission. Graduate studies requires 6.5 overall.",
+    "sourceUrl": "https://www.mun.ca/undergrad/admissions/general-admission-requirements/english-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-unb",
+    "name": "University of New Brunswick (UNB)",
+    "country": "CA",
+    "city": "Fredericton, NB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "UNB undergraduate baseline is IELTS 6.5 with no sub-score below 6.0. Graduate studies baseline is 7.0 with no sub-score below 6.5.",
+    "sourceUrl": "https://www.unb.ca/international/admission/english-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-smu",
+    "name": "Saint Mary's University",
+    "country": "CA",
+    "city": "Halifax, NS",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Saint Mary's requires IELTS 6.5 with no band score below 6.0 for both undergraduate and graduate admission.",
+    "sourceUrl": "https://www.smu.ca/international/english-language-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-stfx",
+    "name": "St. Francis Xavier University",
+    "country": "CA",
+    "city": "Antigonish, NS",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "StFX requires IELTS 6.5 with no sub-score below 6.0 for undergraduate degree courses.",
+    "sourceUrl": "https://www.stfx.ca/admissions/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-acadia",
+    "name": "Acadia University",
+    "country": "CA",
+    "city": "Wolfville, NS",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Acadia undergraduate baseline is IELTS 6.5 with no sub-score below 6.0.",
+    "sourceUrl": "https://www2.acadiau.ca/future-students/international/english-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-cbu",
+    "name": "Cape Breton University",
+    "country": "CA",
+    "city": "Sydney, NS",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "CBU requires IELTS 6.5 with no individual band below 6.0 for undergraduate and post-baccalaureate diplomas.",
+    "sourceUrl": "https://www.cbu.ca/future-students/international-students/admissions-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-msvu",
+    "name": "Mount Saint Vincent University",
+    "country": "CA",
+    "city": "Halifax, NS",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "MSVU undergraduate and graduate entry requires IELTS 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.msvu.ca/academics/admission-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-mta",
+    "name": "Mount Allison University",
+    "country": "CA",
+    "city": "Sackville, NB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Mount Allison requires IELTS 6.5 with no band score below 6.0 for bachelor degree admission.",
+    "sourceUrl": "https://www.mta.ca/admissions/english-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-stu",
+    "name": "St. Thomas University",
+    "country": "CA",
+    "city": "Fredericton, NB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "STU requires IELTS 6.5 with no sub-score under 6.0 for undergraduate admission.",
+    "sourceUrl": "https://www.stu.ca/future-students/international/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-upei",
+    "name": "University of Prince Edward Island (UPEI)",
+    "country": "CA",
+    "city": "Charlottetown, PE",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5
+        }
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "UPEI undergraduate requires IELTS 6.5 (Writing 6.5, other bands 6.0). Graduate programs require 7.0 (min 6.5).",
+    "sourceUrl": "https://www.upei.ca/future-students/apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-winnipeg",
+    "name": "University of Winnipeg",
+    "country": "CA",
+    "city": "Winnipeg, MB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UWinnipeg baseline is IELTS 6.5 with minimum 6.0 in Writing and Reading for undergraduate and graduate programs.",
+    "sourceUrl": "https://www.uwinnipeg.ca/future-student/international/admissions/language-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-brandon",
+    "name": "Brandon University",
+    "country": "CA",
+    "city": "Brandon, MB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Brandon requires IELTS 6.5 with no band less than 6.0 for undergraduate degrees.",
+    "sourceUrl": "https://www.brandonu.ca/future-students/apply/international/english-language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-regina",
+    "name": "University of Regina",
+    "country": "CA",
+    "city": "Regina, SK",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate degrees require IELTS 6.5 overall with no band below 6.0. Graduate degrees require 6.5 overall with no band below 6.0.",
+    "sourceUrl": "https://www.uregina.ca/international/future-students/admissions/english-language-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-lethbridge",
+    "name": "University of Lethbridge",
+    "country": "CA",
+    "city": "Lethbridge, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "ULethbridge requires IELTS 6.5 with no band below 6.0 for undergraduate and graduate admission.",
+    "sourceUrl": "https://www.ulethbridge.ca/future-student/english-language-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-mount-royal",
+    "name": "Mount Royal University",
+    "country": "CA",
+    "city": "Calgary, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "MRU requires IELTS Academic 6.5 with no score lower than 6.0 for degree programmes.",
+    "sourceUrl": "https://www.mtroyal.ca/Admission/AdmissionRequirements/EnglishLanguageProficiency/index.htm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-macewan",
+    "name": "MacEwan University",
+    "country": "CA",
+    "city": "Edmonton, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "MacEwan requires IELTS 6.5 with no band less than 6.0 for direct bachelor admission.",
+    "sourceUrl": "https://www.macewan.ca/apply-enrol/admissions/requirements/english-language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-unbc",
+    "name": "University of Northern British Columbia (UNBC)",
+    "country": "CA",
+    "city": "Prince George, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UNBC undergraduate and graduate admission requires IELTS 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.unbc.ca/admissions/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-viu",
+    "name": "Vancouver Island University",
+    "country": "CA",
+    "city": "Nanaimo, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "VIU undergraduate baseline is IELTS 6.5 with no band below 6.0. Graduate baseline is 7.0 with no band below 6.5.",
+    "sourceUrl": "https://international.viu.ca/admissions/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-tru",
+    "name": "Thompson Rivers University",
+    "country": "CA",
+    "city": "Kamloops, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "TRU requires IELTS 6.5 with no band below 6.0 for academic undergraduate and graduate entry.",
+    "sourceUrl": "https://www.tru.ca/truworld/admissions/english-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ufv",
+    "name": "University of the Fraser Valley",
+    "country": "CA",
+    "city": "Abbotsford, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UFV requires IELTS 6.5 with no band below 6.0 for degree programmes.",
+    "sourceUrl": "https://www.ufv.ca/admissions/entry-requirements/english-language-proficiency-requirement/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-capilano",
+    "name": "Capilano University",
+    "country": "CA",
+    "city": "North Vancouver, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Capilano requires IELTS 6.5 with no individual band below 6.0 for undergraduate degree courses.",
+    "sourceUrl": "https://www.capilanou.ca/admissions/apply-to-capu/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-kpu",
+    "name": "Kwantlen Polytechnic University (KPU)",
+    "country": "CA",
+    "city": "Surrey, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "KPU requires IELTS 6.5 with no band less than 6.0 for undergraduate degrees and diplomas.",
+    "sourceUrl": "https://www.kpu.ca/admission/requirements/english",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ecuad",
+    "name": "Emily Carr University of Art and Design",
+    "country": "CA",
+    "city": "Vancouver, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "speaking": 6.5,
+          "writing": 6.5
+        }
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Emily Carr requires IELTS 6.5 with Speaking/Writing 6.5 (min 6.0 each) for bachelor, and 7.0 for master.",
+    "sourceUrl": "https://www.ecuad.ca/admissions/application-info/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-royal-roads",
+    "name": "Royal Roads University",
+    "country": "CA",
+    "city": "Victoria, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Royal Roads requires IELTS 6.5 with minimum 6.0 in Writing and Speaking, and 6.0 in Reading and Listening.",
+    "sourceUrl": "https://www.royalroads.ca/admission/international-admissions/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-bishops",
+    "name": "Bishop's University",
+    "country": "CA",
+    "city": "Sherbrooke, QC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bishop's requires IELTS 6.5 with no sub-score below 6.0 for bachelor degree programmes.",
+    "sourceUrl": "https://www.ubishops.ca/future-current-students/admission-process/international-students/english-proficiency-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-sherbrooke",
+    "name": "Université de Sherbrooke",
+    "country": "CA",
+    "city": "Sherbrooke, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-medium graduate research programmes require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.usherbrooke.ca/admission/exigences-linguistiques",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-uqam",
+    "name": "UQAM (Université du Québec à Montréal)",
+    "country": "CA",
+    "city": "Montreal, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English graduate research programmes in environmental science and joint degrees require IELTS 6.5.",
+    "sourceUrl": "https://etudier.uqam.ca/exigences-linguistiques",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ets",
+    "name": "ÉTS (École de technologie supérieure)",
+    "country": "CA",
+    "city": "Montreal, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Engineering master research programs with English supervision require IELTS 6.5 with min 6.0.",
+    "sourceUrl": "https://www.etsmtl.ca/en/admissions/admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-enap",
+    "name": "ENAP (École nationale d'administration publique)",
+    "country": "CA",
+    "city": "Quebec City, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International public administration graduate certificates in English require IELTS 6.5.",
+    "sourceUrl": "https://www.enap.ca/en/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-inrs",
+    "name": "INRS (Institut national de la recherche scientifique)",
+    "country": "CA",
+    "city": "Quebec City, QC",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Graduate research master's and PhD programmes require IELTS 6.5 with at least 6.0 in all bands.",
+    "sourceUrl": "https://inrs.ca/en/study/admissions/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-moncton",
+    "name": "Université de Moncton",
+    "country": "CA",
+    "city": "Moncton, NB",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-medium graduate research programmes require IELTS 6.5.",
+    "sourceUrl": "https://www.umoncton.ca/international/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-kings-uwo",
+    "name": "King's University College at Western",
+    "country": "CA",
+    "city": "London, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "King's requires IELTS 6.5 with no band less than 6.0 for bachelor admission.",
+    "sourceUrl": "https://www.kings.uwo.ca/future-students/admissions/admission-requirements/english-language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-huron",
+    "name": "Huron University College",
+    "country": "CA",
+    "city": "London, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Huron requires IELTS 6.5 with no band less than 6.0 for undergraduate degree courses.",
+    "sourceUrl": "https://huronatwestern.ca/future-students/how-to-apply/international/language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-brescia",
+    "name": "Brescia University College",
+    "country": "CA",
+    "city": "London, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Brescia undergraduate degree entry requires IELTS 6.5 with no sub-band below 6.0.",
+    "sourceUrl": "https://brescia.uwo.ca/admissions/requirements/english_proficiency.php",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-concordia-edmonton",
+    "name": "Concordia University of Edmonton",
+    "country": "CA",
+    "city": "Edmonton, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "CUE requires IELTS 6.0 (min 5.5) for bachelor entry and 6.5 (min 6.0) for master entry.",
+    "sourceUrl": "https://concordia.ab.ca/admissions/international/english-language-proficiency-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ambrose",
+    "name": "Ambrose University",
+    "country": "CA",
+    "city": "Calgary, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Ambrose requires IELTS 6.5 with no section below 6.0 for arts and science bachelor degrees.",
+    "sourceUrl": "https://ambrose.edu/admissions/english-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-burman",
+    "name": "Burman University",
+    "country": "CA",
+    "city": "Lacombe, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Burman requires IELTS 6.5 with no band less than 6.0 for undergraduate degree programs.",
+    "sourceUrl": "https://www.burmanu.ca/admissions/international-students/language-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-st-marys-ab",
+    "name": "St. Mary's University (Calgary)",
+    "country": "CA",
+    "city": "Calgary, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "St. Mary's Calgary requires IELTS 6.5 with no individual band below 6.0 for bachelor admission.",
+    "sourceUrl": "https://stmu.ca/admission/international-students/english-language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-kings-edmonton",
+    "name": "The King's University (Edmonton)",
+    "country": "CA",
+    "city": "Edmonton, AB",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "The King's University requires IELTS 6.5 with no band below 6.0 for undergraduate entry.",
+    "sourceUrl": "https://www.kingsu.ca/admissions/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-twu",
+    "name": "Trinity Western University",
+    "country": "CA",
+    "city": "Langley, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "TWU requires IELTS 6.5 (all bands 6.0) for undergraduate, and 7.0 (all bands 6.5) for graduate degrees.",
+    "sourceUrl": "https://www.twu.ca/admissions-aid/undergraduate/international/english-proficiency-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-quest",
+    "name": "Quest University Canada",
+    "country": "CA",
+    "city": "Squamish, BC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bachelor of Arts and Sciences requires IELTS 6.5 with no component under 6.0.",
+    "sourceUrl": "https://questu.ca/admissions/international/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-first-nations",
+    "name": "First Nations University of Canada",
+    "country": "CA",
+    "city": "Regina, SK",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate entry requires IELTS 6.5 with no sub-score below 6.0.",
+    "sourceUrl": "https://www.fnuniv.ca/admissions/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-st-pauls",
+    "name": "Saint Paul University",
+    "country": "CA",
+    "city": "Ottawa, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Saint Paul requires IELTS 6.5 with no score less than 6.0 for bachelor and master degrees.",
+    "sourceUrl": "https://ustpaul.ca/en/admissions/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-ocad",
+    "name": "OCAD University",
+    "country": "CA",
+    "city": "Toronto, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "OCAD requires IELTS 6.5 with no band below 6.0 for BFA/BDes, and 7.0 for graduate MFA/MDes.",
+    "sourceUrl": "https://www.ocadu.ca/admissions/admission-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-nscad",
+    "name": "NSCAD University",
+    "country": "CA",
+    "city": "Halifax, NS",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Nova Scotia College of Art and Design requires IELTS 6.5 with no band below 6.0 for BFA and MFA.",
+    "sourceUrl": "https://nscad.ca/prospective-students/admissions/english-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-st-jeromes",
+    "name": "St. Jerome's University",
+    "country": "CA",
+    "city": "Waterloo, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5,
+          "speaking": 6.5
+        }
+      }
+    },
+    "notes": "As a federated university of Waterloo, requires IELTS 6.5 with 6.5 in Writing and Speaking, and 6.0 in Reading and Listening.",
+    "sourceUrl": "https://www.sju.ca/future-students/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-renison",
+    "name": "Renison University College",
+    "country": "CA",
+    "city": "Waterloo, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5,
+          "speaking": 6.5
+        }
+      }
+    },
+    "notes": "Follows Waterloo admissions standard: IELTS 6.5 with Writing/Speaking 6.5 and Reading/Listening 6.0.",
+    "sourceUrl": "https://uwaterloo.ca/renison/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-campion",
+    "name": "Campion College",
+    "country": "CA",
+    "city": "Regina, SK",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Federated with University of Regina; requires IELTS 6.5 with no band lower than 6.0.",
+    "sourceUrl": "https://campioncollege.ca/future-students/admissions/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-luther",
+    "name": "Luther College at the University of Regina",
+    "country": "CA",
+    "city": "Regina, SK",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate requirements follow University of Regina standard: IELTS 6.5 with no score below 6.0.",
+    "sourceUrl": "https://www.luthercollege.edu/university/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-st-michaels",
+    "name": "University of St. Michael's College",
+    "country": "CA",
+    "city": "Toronto, ON",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Undergraduate requirements follow University of Toronto standard (IELTS 6.5, min 6.0). Theology master requires 7.0.",
+    "sourceUrl": "https://stmikes.utoronto.ca/future-students/admission-requirements/",
     "lastVerified": "2026-09-22"
   }
 ]

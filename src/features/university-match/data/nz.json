@@ -8,12 +8,12 @@
     "scope": "university",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -30,12 +30,12 @@
     "scope": "university",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -43,8 +43,8 @@
         "programme": "Education (Teaching)",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
@@ -62,7 +62,7 @@
     "scope": "university",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -79,12 +79,12 @@
     "scope": "university",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Set out in the university's English language competency regulations: 6.0 with no band below 5.5 for undergraduate programmes, 6.5 with no band below 6.0 for postgraduate. Named professional programmes (Specialist Teaching, Planning) ask for more.",
@@ -100,12 +100,12 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -113,13 +113,76 @@
         "programme": "Initial Teacher Education",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
     "notes": "Undergraduate and graduate certificates/diplomas ask for 6.0 with no band below 5.5. Postgraduate programmes ask for 6.5 with no band below 6.0. Initial Teacher Education is far higher: 7.0 with no band below 7.0.",
     "sourceUrl": "https://www.waikato.ac.nz/int/about/calendar/admission/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nz-otago",
+    "name": "University of Otago",
+    "country": "NZ",
+    "city": "Dunedin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate baseline is 6.0 overall with no band below 5.5. Postgraduate coursework baseline is 6.5 overall with no band below 6.0. Health Sciences and Teacher Education programmes require 7.0+.",
+    "sourceUrl": "https://www.otago.ac.nz/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nz-aut",
+    "name": "Auckland University of Technology (AUT)",
+    "country": "NZ",
+    "city": "Auckland",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate admission requires IELTS Academic 6.0 overall with all bands 5.5 or higher. Postgraduate master's degrees require 6.5 overall with minimum 6.0 in each skill. Professional degrees like Nursing require higher.",
+    "sourceUrl": "https://www.aut.ac.nz/study/applying/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nz-lincoln",
+    "name": "Lincoln University",
+    "country": "NZ",
+    "city": "Lincoln",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate bachelor's degrees require IELTS 6.0 overall with no individual band below 5.5. Postgraduate coursework and master's degrees require 6.5 overall with no individual band below 6.0.",
+    "sourceUrl": "https://www.lincoln.ac.nz/study/apply/entry-requirements/english-language-requirements/",
     "lastVerified": "2026-09-22"
   }
 ]

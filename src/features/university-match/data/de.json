@@ -36,5 +36,1326 @@
     "notes": "Applies to KIT's English-taught master's programmes (Computer Science, Mechanical Engineering, Electrical Engineering and others): IELTS Academic 6.5 with no section below 5.5. German-taught degrees follow a separate German-language requirement and are not covered here.",
     "sourceUrl": "https://www.sle.kit.edu/english/vorstudium/master-computer-science.php",
     "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-lmu-munich",
+    "name": "Ludwig Maximilian University of Munich (LMU)",
+    "country": "DE",
+    "city": "Munich",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught Master of Science and Arts programmes require IELTS 6.5 with no band less than 6.0. German-taught courses require DSH-2 or TestDaF 4.",
+    "sourceUrl": "https://www.lmu.de/en/study/degree-students/applications-for-admission/general-information-on-the-application/language-certificates/index.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-heidelberg",
+    "name": "Heidelberg University",
+    "country": "DE",
+    "city": "Heidelberg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Heidelberg requires IELTS 6.5 (min 6.0) for international English-medium master's degrees. Higher bands required for specific biomedical disciplines.",
+    "sourceUrl": "https://www.uni-heidelberg.de/en/study/management-studies/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-rwth-aachen",
+    "name": "RWTH Aachen University",
+    "country": "DE",
+    "city": "Aachen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "RWTH Aachen International Academy and English master's engineering programmes require IELTS 6.5 with at least 6.0 in all sub-tests.",
+    "sourceUrl": "https://www.rwth-aachen.de/cms/root/studium/vor-dem-studium/bewerbung-um-einen-studienplatz/zugangsvoraussetzungen/~czr/sprachnachweise/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-fu-berlin",
+    "name": "Free University of Berlin",
+    "country": "DE",
+    "city": "Berlin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-medium programmes require C1 (7.0) or B2 (6.0–6.5) level depending on the department. Standard baseline is IELTS 6.5.",
+    "sourceUrl": "https://www.fu-berlin.de/en/studium/bewerbung/voraussetzungen/sprachkenntnisse/index.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hu-berlin",
+    "name": "Humboldt University of Berlin",
+    "country": "DE",
+    "city": "Berlin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught Master's degrees require B2 (minimum 6.0–6.5) or C1 (7.0) depending on faculty.",
+    "sourceUrl": "https://www.hu-berlin.de/en/studies/admission/admission-requirements/language-certificates",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-berlin",
+    "name": "Technical University of Berlin",
+    "country": "DE",
+    "city": "Berlin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "TU Berlin English master programmes require IELTS Academic 6.5 with all sub-scores 6.0 or higher.",
+    "sourceUrl": "https://www.tu.berlin/en/studying/admissions/entry-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-freiburg",
+    "name": "University of Freiburg",
+    "country": "DE",
+    "city": "Freiburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught degree courses (including Liberal Arts and Sciences BSc/BA) require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://uni-freiburg.de/en/studies/application-and-admission/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tubingen",
+    "name": "University of Tübingen",
+    "country": "DE",
+    "city": "Tübingen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Tübingen international master degrees require proof of English at B2/C1 level (IELTS 6.5 with min 6.0).",
+    "sourceUrl": "https://uni-tuebingen.de/en/study/finding-a-course/entry-requirements/language-skills/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-bonn",
+    "name": "University of Bonn",
+    "country": "DE",
+    "city": "Bonn",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught master programmes in economics, mathematics, and agricultural science require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.uni-bonn.de/en/studying/international-students/degree-seeking/language-skills",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-gottingen",
+    "name": "University of Göttingen",
+    "country": "DE",
+    "city": "Göttingen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard English requirement for international master programmes is IELTS 6.5 with at least 6.0 in each section.",
+    "sourceUrl": "https://www.uni-goettingen.de/en/58371.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hamburg",
+    "name": "University of Hamburg",
+    "country": "DE",
+    "city": "Hamburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Master programmes taught in English require IELTS 6.5 with no band lower than 6.0.",
+    "sourceUrl": "https://www.uni-hamburg.de/en/campuscenter/bewerbung/master/sprachnachweise.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-dresden",
+    "name": "Technical University of Dresden",
+    "country": "DE",
+    "city": "Dresden",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "TU Dresden international master programmes in engineering and computational science require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://tu-dresden.de/studium/vor-dem-studium/internationales/sprachzertifikate",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-stuttgart",
+    "name": "University of Stuttgart",
+    "country": "DE",
+    "city": "Stuttgart",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes (INFOTECH, GEOENGINE, COMMAS) require IELTS 6.5 with at least 6.0 in all sub-bands.",
+    "sourceUrl": "https://www.uni-stuttgart.de/en/study/application/language-skills/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-darmstadt",
+    "name": "Technical University of Darmstadt",
+    "country": "DE",
+    "city": "Darmstadt",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "TU Darmstadt master's programmes taught in English require IELTS 6.5 (min 6.0 sub-scores).",
+    "sourceUrl": "https://www.tu-darmstadt.de/studieren/bewerben_und_einschreiben/internationale_studierende/sprachvoraussetzungen/index.en.jsp",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-fau",
+    "name": "Friedrich-Alexander University Erlangen-Nürnberg",
+    "country": "DE",
+    "city": "Erlangen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught degree courses require B2/C1 English, certified with IELTS 6.5 (min 6.0 each skill).",
+    "sourceUrl": "https://www.fau.eu/education/international/from-abroad/application-and-enrolment/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-frankfurt",
+    "name": "Goethe University Frankfurt",
+    "country": "DE",
+    "city": "Frankfurt am Main",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International master programmes in economics, finance, and science require IELTS 6.5 with min 6.0.",
+    "sourceUrl": "https://www.uni-frankfurt.de/38294574/Language_Requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-cologne",
+    "name": "University of Cologne",
+    "country": "DE",
+    "city": "Cologne",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Master programmes taught in English require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://portal.uni-koeln.de/en/international/study-in-cologne/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-munster",
+    "name": "University of Münster",
+    "country": "DE",
+    "city": "Münster",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught master courses require IELTS 6.5 with no individual band below 6.0.",
+    "sourceUrl": "https://www.uni-muenster.de/studieninteressierte/en/bewerbung/sprache.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-leipzig",
+    "name": "Leipzig University",
+    "country": "DE",
+    "city": "Leipzig",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International programmes require B2 or C1 English certified by IELTS 6.5 (sub-scores 6.0).",
+    "sourceUrl": "https://www.uni-leipzig.de/en/studying/international-study/application-process/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-wurzburg",
+    "name": "University of Würzburg",
+    "country": "DE",
+    "city": "Würzburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Master programmes in English require IELTS 6.5 with no section under 6.0.",
+    "sourceUrl": "https://www.uni-wuerzburg.de/en/international/studying-in-wuerzburg/degree-programmes/language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-bremen",
+    "name": "University of Bremen",
+    "country": "DE",
+    "city": "Bremen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in computer science, space engineering, and marine sciences require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.uni-bremen.de/en/studies/starting-your-studies/application-admission/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-due",
+    "name": "University of Duisburg-Essen",
+    "country": "DE",
+    "city": "Duisburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International Studies in Engineering (ISE) requires IELTS 6.0 for bachelor entry and IELTS 6.5 for master entry.",
+    "sourceUrl": "https://www.uni-due.de/ise/admission_language_requirements.shtml",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-bochum",
+    "name": "Ruhr University Bochum",
+    "country": "DE",
+    "city": "Bochum",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master degree courses require IELTS 6.5 (min 6.0 in all sub-skills).",
+    "sourceUrl": "https://international.ruhr-uni-bochum.de/en/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-kiel",
+    "name": "Kiel University (CAU)",
+    "country": "DE",
+    "city": "Kiel",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "CAU English master courses require IELTS 6.5 with at least 6.0 in each component.",
+    "sourceUrl": "https://www.uni-kiel.de/en/studies/international-students/admission-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-konstanz",
+    "name": "University of Konstanz",
+    "country": "DE",
+    "city": "Konstanz",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in computer science, politics, and economics require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.uni-konstanz.de/en/study/application-and-admission/admission-requirements/language-certificates/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-potsdam",
+    "name": "University of Potsdam",
+    "country": "DE",
+    "city": "Potsdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught degree courses require IELTS 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.uni-potsdam.de/en/studium/application-enrolment/application-master/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-jena",
+    "name": "University of Jena",
+    "country": "DE",
+    "city": "Jena",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Friedrich Schiller University Jena requires IELTS 6.5 (min 6.0) for English master programmes in optics and economics.",
+    "sourceUrl": "https://www.uni-jena.de/en/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-halle",
+    "name": "Martin Luther University Halle-Wittenberg",
+    "country": "DE",
+    "city": "Halle",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International master programmes require IELTS 6.5 with at least 6.0 in all test areas.",
+    "sourceUrl": "https://www.uni-halle.de/international/internationale-studierende/bewerbung/sprachkenntnisse/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-mainz",
+    "name": "Johannes Gutenberg University Mainz",
+    "country": "DE",
+    "city": "Mainz",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.studium.uni-mainz.de/en/starting-your-studies/international-students/language-skills/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hannover",
+    "name": "Leibniz University Hannover",
+    "country": "DE",
+    "city": "Hannover",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Leibniz University English-taught master degrees require IELTS 6.5 with min 6.0 in all components.",
+    "sourceUrl": "https://www.uni-hannover.de/en/studium/im-studium/international/degree-seeking/language-skills/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-braunschweig",
+    "name": "TU Braunschweig",
+    "country": "DE",
+    "city": "Braunschweig",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "TU Braunschweig requires IELTS 6.5 for English-taught master programmes in engineering and computational science.",
+    "sourceUrl": "https://www.tu-braunschweig.de/en/international/degree-seeking/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-clausthal",
+    "name": "TU Clausthal",
+    "country": "DE",
+    "city": "Clausthal-Zellerfeld",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-medium engineering and geology master courses require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.tu-clausthal.de/en/international/prospective-students/admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-ilmenau",
+    "name": "TU Ilmenau",
+    "country": "DE",
+    "city": "Ilmenau",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Communications and media engineering English master degrees require IELTS 6.5.",
+    "sourceUrl": "https://www.tu-ilmenau.de/en/international/prospective-students/application-and-admission",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-freiberg",
+    "name": "TU Bergakademie Freiberg",
+    "country": "DE",
+    "city": "Freiberg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International resource and materials engineering master courses require IELTS 6.5.",
+    "sourceUrl": "https://tu-freiberg.de/en/international/applying-to-study/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-passau",
+    "name": "University of Passau",
+    "country": "DE",
+    "city": "Passau",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in computer science and AI require IELTS 6.5 with at least 6.0 in each skill.",
+    "sourceUrl": "https://www.uni-passau.de/en/apply/entry-requirements/language-certificates",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-bayreuth",
+    "name": "University of Bayreuth",
+    "country": "DE",
+    "city": "Bayreuth",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in environmental science and economics require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.uni-bayreuth.de/en/master/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-augsburg",
+    "name": "University of Augsburg",
+    "country": "DE",
+    "city": "Augsburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Materials Science and Software Engineering English master programmes require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-augsburg.de/en/studium/bewerbung/sprachnachweise/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-regensburg",
+    "name": "University of Regensburg",
+    "country": "DE",
+    "city": "Regensburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught master degrees in physics and biochemistry require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.uni-regensburg.de/ur-international/incomings/study/language-requirements/index.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-trier",
+    "name": "University of Trier",
+    "country": "DE",
+    "city": "Trier",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-taught master courses in data science and economics require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-trier.de/en/studies/international-students/application/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-siegen",
+    "name": "University of Siegen",
+    "country": "DE",
+    "city": "Siegen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International postgraduate engineering and physics degrees require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-siegen.de/iss/application/language_requirements.html.en",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-kassel",
+    "name": "University of Kassel",
+    "country": "DE",
+    "city": "Kassel",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in renewable energy and global political economy require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-kassel.de/uni/en/studies/international-students/admission-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-osnabruck",
+    "name": "University of Osnabrück",
+    "country": "DE",
+    "city": "Osnabrück",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Cognitive Science English bachelor and master degrees require IELTS 6.5 with at least 6.0 each.",
+    "sourceUrl": "https://www.uni-osnabrueck.de/en/prospective-students/applying/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-oldenburg",
+    "name": "University of Oldenburg",
+    "country": "DE",
+    "city": "Oldenburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master degrees in renewable energy, neurocognitive psychology, and computing require IELTS 6.5.",
+    "sourceUrl": "https://uol.de/en/students/application-and-enrolment/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-magdeburg",
+    "name": "Otto von Guericke University Magdeburg",
+    "country": "DE",
+    "city": "Magdeburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English engineering and chemical master programmes require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.ovgu.de/en/International/Incomings/Application/Language+Requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-rostock",
+    "name": "University of Rostock",
+    "country": "DE",
+    "city": "Rostock",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Computational science and physics master courses require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-rostock.de/en/study/international-students/degree-students/application/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-greifswald",
+    "name": "University of Greifswald",
+    "country": "DE",
+    "city": "Greifswald",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in earth sciences and biodiversity require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-greifswald.de/en/international/international-students/admission-requirements/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-viadrina",
+    "name": "European University Viadrina",
+    "country": "DE",
+    "city": "Frankfurt (Oder)",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International business and European studies programmes require IELTS 6.0 for bachelor, 6.5 for master.",
+    "sourceUrl": "https://www.europa-uni.de/en/internationales/Students/Incomings/Applying/Language-skills/index.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-weimar",
+    "name": "Bauhaus-University Weimar",
+    "country": "DE",
+    "city": "Weimar",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master degrees in architecture, media architecture, and civil engineering require IELTS 6.5.",
+    "sourceUrl": "https://www.uni-weimar.de/en/university/studies/international-applications/language-certificates/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-frankfurt-school",
+    "name": "Frankfurt School of Finance & Management",
+    "country": "DE",
+    "city": "Frankfurt am Main",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "BSc in Business and Management requires IELTS 6.5. Master in Finance and MBA require IELTS 7.0 with no band below 6.5.",
+    "sourceUrl": "https://www.frankfurt-school.de/en/home/programmes/master/finance/admission",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-esmt",
+    "name": "ESMT Berlin",
+    "country": "DE",
+    "city": "Berlin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Master in Management, Master in Analytics, and MBA require IELTS 7.0 with no band lower than 6.5.",
+    "sourceUrl": "https://degrees.esmt.berlin/mim/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-whu",
+    "name": "WHU - Otto Beisheim School of Management",
+    "country": "DE",
+    "city": "Vallendar",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6
+      }
+    },
+    "notes": "WHU BSc and MSc in Management/Finance require a minimum IELTS Academic score of 7.0 with 6.0 in each sub-score.",
+    "sourceUrl": "https://www.whu.edu/en/programs/bachelor-programs/admission-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hm-munich",
+    "name": "Munich University of Applied Sciences (HM)",
+    "country": "DE",
+    "city": "Munich",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in engineering and international management require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.hm.edu/en/your_stay_at_muas/students/degree_seeking_students/language_requirements.en.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-th-koln",
+    "name": "TH Köln - University of Applied Sciences",
+    "country": "DE",
+    "city": "Cologne",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International master programmes in renewable energy and web science require IELTS 6.5 with at least 6.0 each.",
+    "sourceUrl": "https://www.th-koeln.de/en/academics/language-proficiency_40570.php",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hwr-berlin",
+    "name": "Berlin School of Economics and Law (HWR Berlin)",
+    "country": "DE",
+    "city": "Berlin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International Business Management bachelor requires IELTS 6.0. Master degrees require IELTS 6.5.",
+    "sourceUrl": "https://www.hwr-berlin.de/en/study/international-study/international-applications/proof-of-language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-haw-hamburg",
+    "name": "Hamburg University of Applied Sciences (HAW Hamburg)",
+    "country": "DE",
+    "city": "Hamburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English information engineering bachelor requires IELTS 6.0. Master programmes require IELTS 6.5.",
+    "sourceUrl": "https://www.haw-hamburg.de/en/international/degree-seeking-students/entry-requirements/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-h-da",
+    "name": "Darmstadt University of Applied Sciences (h_da)",
+    "country": "DE",
+    "city": "Darmstadt",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International master programmes in computer science and electrical engineering require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://h-da.de/en/study/international/degree-seeking-students/application-and-admission",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hka",
+    "name": "Karlsruhe University of Applied Sciences (HKA)",
+    "country": "DE",
+    "city": "Karlsruhe",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master in sensor systems technology requires IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.h-ka.de/en/study/apply/master-degree/application-process",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-esslingen",
+    "name": "Esslingen University of Applied Sciences",
+    "country": "DE",
+    "city": "Esslingen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Graduate School in automotive and biomedical engineering requires IELTS 6.5 with at least 6.0 in each section.",
+    "sourceUrl": "https://www.hs-esslingen.de/en/international/study-in-esslingen/international-master-programmes/application/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-reutlingen",
+    "name": "Reutlingen University",
+    "country": "DE",
+    "city": "Reutlingen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "ESB Business School international degrees require IELTS 6.0 for bachelor and 6.5 for master.",
+    "sourceUrl": "https://www.reutlingen-university.de/en/studies/international/degree-students/admission-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-fh-aachen",
+    "name": "FH Aachen University of Applied Sciences",
+    "country": "DE",
+    "city": "Aachen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International freshman programmes and master degrees require IELTS 6.0 (bachelor) or 6.5 (master).",
+    "sourceUrl": "https://www.fh-aachen.de/en/university/freshman/application",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-h-brs",
+    "name": "Bonn-Rhein-Sieg University of Applied Sciences",
+    "country": "DE",
+    "city": "Sankt Augustin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in Autonomous Systems and Biomedical Sciences require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.h-brs.de/en/language-skills-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-tu-dortmund",
+    "name": "TU Dortmund University",
+    "country": "DE",
+    "city": "Dortmund",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master in data science, spatial planning, and automation require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.tu-dortmund.de/en/students/international-students/entry-requirements/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-bremen",
+    "name": "City University of Applied Sciences Bremen",
+    "country": "DE",
+    "city": "Bremen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International degree courses require IELTS 6.0 (UG) or 6.5 (PG) with no band lower than 5.5.",
+    "sourceUrl": "https://www.hs-bremen.de/en/study/prospective-students/application-and-admission/language-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-fh-munster",
+    "name": "FH Münster University of Applied Sciences",
+    "country": "DE",
+    "city": "Münster",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "European Business Programme and master degrees require IELTS 6.0 (UG) or 6.5 (PG).",
+    "sourceUrl": "https://en.fh-muenster.de/studium/bewerbung/sprachkenntnisse.php",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-rheinmain",
+    "name": "RheinMain University of Applied Sciences",
+    "country": "DE",
+    "city": "Wiesbaden",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International Management English degrees require IELTS 6.0 for UG and 6.5 for PG.",
+    "sourceUrl": "https://www.hs-rheinmain.de/en/study/application/language-certificates",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-osnabruck",
+    "name": "Osnabrück University of Applied Sciences",
+    "country": "DE",
+    "city": "Osnabrück",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International Business and Management English programmes require IELTS 6.0 (UG) and 6.5 (PG).",
+    "sourceUrl": "https://www.hs-osnabrueck.de/en/study/prospective-students/application/language-certificates/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-augsburg",
+    "name": "Augsburg University of Applied Sciences",
+    "country": "DE",
+    "city": "Augsburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International Information Systems and Business master requires IELTS 6.5.",
+    "sourceUrl": "https://www.tha.de/en/International/Language-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-oth-regensburg",
+    "name": "OTH Regensburg",
+    "country": "DE",
+    "city": "Regensburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English master programmes in engineering require IELTS 6.5 (min 6.0).",
+    "sourceUrl": "https://www.oth-regensburg.de/en/study/application/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-th-ingolstadt",
+    "name": "Technische Hochschule Ingolstadt (THI)",
+    "country": "DE",
+    "city": "Ingolstadt",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Automotive and engineering English programmes require IELTS 6.0 (UG) or 6.5 (PG).",
+    "sourceUrl": "https://www.thi.de/en/studies/application/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-mannheim",
+    "name": "Mannheim University of Applied Sciences",
+    "country": "DE",
+    "city": "Mannheim",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International biotechnology and engineering master programmes require IELTS 6.5.",
+    "sourceUrl": "https://www.hs-mannheim.de/en/international/degree-students/language-skills.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-fulda",
+    "name": "Fulda University of Applied Sciences",
+    "country": "DE",
+    "city": "Fulda",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Global Software Development and International Management require IELTS 6.0 (UG) or 6.5 (PG).",
+    "sourceUrl": "https://www.hs-fulda.de/en/international/international-office/inbounds/degree-seeking-students/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-deggendorf",
+    "name": "Deggendorf Institute of Technology (DIT)",
+    "country": "DE",
+    "city": "Deggendorf",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "English-medium bachelor programmes require IELTS 6.0. Master programmes require IELTS 6.5.",
+    "sourceUrl": "https://www.th-deg.de/en/study-with-us/info-for-internationals/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "de-hs-heilbronn",
+    "name": "Heilbronn University of Applied Sciences",
+    "country": "DE",
+    "city": "Heilbronn",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "International business and mechatronics degrees require IELTS 6.0 (UG) or 6.5 (PG).",
+    "sourceUrl": "https://www.hs-heilbronn.de/en/international-applications-language-certificates",
+    "lastVerified": "2026-09-22"
   }
 ]

@@ -9,11 +9,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "alternatives": [
@@ -55,14 +55,14 @@
         "overall": 6.5,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       },
       "postgraduate": {
         "overall": 6.5,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -71,7 +71,7 @@
         "programme": "PPE and Law in Society",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "minComponent": 6.5
         }
       },
@@ -79,7 +79,7 @@
         "programme": "School of Humanities master's programmes",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "minComponent": 6.5
         }
       }
@@ -97,16 +97,775 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
-        "minComponent": 6.0
+        "overall": 6,
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Bachelor's programmes ask for 6.0 overall with 6.0 in each separate component — a flat floor equal to the overall figure. Master's programmes ask for 6.5 overall with at least 6.0 in each component. Leiden does not accept IELTS Academic Online, IELTS Indicator or the One Skill Retake.",
     "sourceUrl": "https://www.universiteitleiden.nl/en/education/study-programmes/bachelor/english-language-and-culture/admission-and-application/admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-uva",
+    "name": "University of Amsterdam",
+    "country": "NL",
+    "city": "Amsterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "UvA baseline for English-taught bachelor's programmes is 6.5 (min 6.0). Master's programmes typically require 7.0 (min 6.5 sub-scores).",
+    "sourceUrl": "https://www.uva.nl/en/programmes/bachelors/application-and-admission/entry-requirements/english-language-test.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-tudelft",
+    "name": "Delft University of Technology (TU Delft)",
+    "country": "NL",
+    "city": "Delft",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "TU Delft bachelor degrees taught in English require IELTS 6.5 (all sub-scores 6.0). Master's degrees require 7.0 overall with no band below 6.5.",
+    "sourceUrl": "https://www.tudelft.nl/en/education/admission-and-application/msc-international-diploma/admission-requirements/english-language-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-utrecht",
+    "name": "Utrecht University",
+    "country": "NL",
+    "city": "Utrecht",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Utrecht undergraduate baseline is 6.5 overall (Writing 6.0). Master's baseline is 6.5 overall (Writing 6.0); selective programmes ask 7.0.",
+    "sourceUrl": "https://www.uu.nl/en/masters/admission-and-application/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-groningen",
+    "name": "University of Groningen",
+    "country": "NL",
+    "city": "Groningen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Baseline requirement for international degree programmes is IELTS Academic 6.5 with all section scores 6.0 or higher.",
+    "sourceUrl": "https://www.rug.nl/education/bachelor/international-students/admission-and-application/application-procedure/entry-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-radboud",
+    "name": "Radboud University",
+    "country": "NL",
+    "city": "Nijmegen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Radboud bachelor's programmes require IELTS 6.0 (sub-scores 6.0). Master's programmes require 6.5 overall (sub-scores 6.0).",
+    "sourceUrl": "https://www.ru.nl/en/education/admission-and-application/admission-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-maastricht",
+    "name": "Maastricht University",
+    "country": "NL",
+    "city": "Maastricht",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UM general admission requires IELTS 6.0 (Writing 6.0) for undergraduate, and IELTS 6.5 (Writing 6.0) for postgraduate programmes.",
+    "sourceUrl": "https://www.maastrichtuniversity.nl/support/during-your-studies/language-centre/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-wageningen",
+    "name": "Wageningen University & Research",
+    "country": "NL",
+    "city": "Wageningen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "speaking": 6.5
+        }
+      }
+    },
+    "notes": "WUR MSc programmes require IELTS 6.5 overall with minimum 6.0 in all skills and 6.5 in Speaking.",
+    "sourceUrl": "https://www.wur.nl/en/education-programmes/master/application-and-admission/admission-requirements-master.htm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-twente",
+    "name": "University of Twente",
+    "country": "NL",
+    "city": "Enschede",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Twente baseline is IELTS 6.0 (min 6.0 each skill) for bachelor's, and IELTS 6.5 (min 6.0 each skill) for master's programmes.",
+    "sourceUrl": "https://www.utwente.nl/en/education/international-students/admission-requirements/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-tilburg",
+    "name": "Tilburg University",
+    "country": "NL",
+    "city": "Tilburg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Tilburg bachelor programmes require IELTS 6.0 (all parts 6.0). Master's programmes require 6.5 overall with 6.0 in all parts.",
+    "sourceUrl": "https://www.tilburguniversity.edu/admissions/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-open",
+    "name": "Open University of the Netherlands",
+    "country": "NL",
+    "city": "Heerlen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Distance and English-medium degrees require IELTS 6.0 for bachelor's and 6.5 for master's.",
+    "sourceUrl": "https://www.ou.nl/en/admission",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-hanze",
+    "name": "Hanze University of Applied Sciences",
+    "country": "NL",
+    "city": "Groningen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Hanze UAS standard bachelor admission requires IELTS 6.0 with no sub-score below 5.5. Master degrees require 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.hanze.nl/en/study-at-hanze/apply/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-fontys",
+    "name": "Fontys University of Applied Sciences",
+    "country": "NL",
+    "city": "Eindhoven",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate degrees taught in English require IELTS 6.0 with no band less than 5.5. Postgraduate requires IELTS 6.5.",
+    "sourceUrl": "https://fontys.edu/Study-at-Fontys/Admission-requirements/English-language-requirements.htm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-saxion",
+    "name": "Saxion University of Applied Sciences",
+    "country": "NL",
+    "city": "Enschede",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Saxion bachelor admission requires IELTS 6.0 (sub-scores 5.5). Master's programmes require IELTS 6.5 (sub-scores 6.0).",
+    "sourceUrl": "https://www.saxion.edu/how-to-apply/entry-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-thuas",
+    "name": "The Hague University of Applied Sciences",
+    "country": "NL",
+    "city": "The Hague",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "THUAS bachelor degree programmes require IELTS 6.0 overall with no band under 5.5. Master degrees require 6.5 overall.",
+    "sourceUrl": "https://www.thehagueuniversity.com/programmes/admissions/general-admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-auas",
+    "name": "Amsterdam University of Applied Sciences",
+    "country": "NL",
+    "city": "Amsterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "AUAS English-taught bachelor programmes require IELTS 6.0 (no sub-score under 5.5). Master programmes require IELTS 6.5.",
+    "sourceUrl": "https://www.amsterdamuas.com/education/practical-matters/admission-and-application/entry-requirements/english-language-proficiency.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-ruas",
+    "name": "Rotterdam University of Applied Sciences",
+    "country": "NL",
+    "city": "Rotterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "RUAS bachelor degrees require IELTS 6.0 with all bands at 5.5 or higher. Master degrees require 6.5 with all bands 6.0 or higher.",
+    "sourceUrl": "https://www.rotterdamuas.com/programmes/application/admissions-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-buas",
+    "name": "Breda University of Applied Sciences",
+    "country": "NL",
+    "city": "Breda",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "BUas bachelor programmes require IELTS 6.0 overall (minimum 5.5 in each sub-score). Master's programmes require 6.5 overall.",
+    "sourceUrl": "https://www.buas.nl/en/study/application-and-admission/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-nhl-stenden",
+    "name": "NHL Stenden University of Applied Sciences",
+    "country": "NL",
+    "city": "Leeuwarden",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "NHL Stenden requires IELTS 6.0 (no band lower than 5.0) for bachelor entry, and IELTS 6.5 (no band lower than 6.0) for master entry.",
+    "sourceUrl": "https://www.nhlstenden.com/en/practical-information/admissions/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-avans",
+    "name": "Avans University of Applied Sciences",
+    "country": "NL",
+    "city": "Breda",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Avans bachelor entry requires IELTS 6.0 with a minimum of 5.5 in all sub-scores. Master entry requires 6.5.",
+    "sourceUrl": "https://www.avans.nl/international/programs/applying-and-admission/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-windesheim",
+    "name": "Windesheim University of Applied Sciences",
+    "country": "NL",
+    "city": "Zwolle",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Windesheim bachelor programmes require IELTS 6.0 with no band less than 5.5. Master programmes require 6.5.",
+    "sourceUrl": "https://www.windesheim.com/admissions/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-zuyd",
+    "name": "Zuyd University of Applied Sciences",
+    "country": "NL",
+    "city": "Maastricht",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Zuyd requires IELTS 6.0 for bachelor's programmes and 6.5 for master's degree courses.",
+    "sourceUrl": "https://www.zuyd.nl/en/admission-and-application/admissions-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-inholland",
+    "name": "Inholland University of Applied Sciences",
+    "country": "NL",
+    "city": "Haarlem",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Inholland bachelor degrees taught in English require IELTS 6.0 with no component below 5.5. Master degrees require 6.5.",
+    "sourceUrl": "https://www.inholland.nl/inhollandcom/admissions/entry-requirements/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-han",
+    "name": "HAN University of Applied Sciences",
+    "country": "NL",
+    "city": "Arnhem",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "HAN bachelor entry requires IELTS 6.0 (sub-scores 5.5). Master entry requires IELTS 6.5 (sub-scores 6.0).",
+    "sourceUrl": "https://www.han.nl/en/study-and-living/admissions/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-hu",
+    "name": "HU University of Applied Sciences Utrecht",
+    "country": "NL",
+    "city": "Utrecht",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "HU Utrecht bachelor courses require IELTS 6.0 with no score lower than 5.5. Master programmes require 6.5.",
+    "sourceUrl": "https://www.internationalhu.com/admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-vhl",
+    "name": "Van Hall Larenstein University of Applied Sciences",
+    "country": "NL",
+    "city": "Leeuwarden",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "VHL requires IELTS 6.0 (no band below 5.5) for bachelor degrees and 6.5 for master degrees.",
+    "sourceUrl": "https://www.vhluas.com/study/admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-hz",
+    "name": "HZ University of Applied Sciences",
+    "country": "NL",
+    "city": "Vlissingen",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "HZ requires IELTS Academic 6.0 with no sub-score below 5.5 for bachelor's programmes, and 6.5 for master's.",
+    "sourceUrl": "https://hz.nl/en/practical-information/admission-requirements/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-wittenborg",
+    "name": "Wittenborg University of Applied Sciences",
+    "country": "NL",
+    "city": "Apeldoorn",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Wittenborg undergraduate admission requires IELTS 6.0 (Writing 6.0). Postgraduate master degrees require IELTS 6.5 (Writing 6.0).",
+    "sourceUrl": "https://www.wittenborg.eu/entry-requirements.htm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-artez",
+    "name": "ArtEZ University of the Arts",
+    "country": "NL",
+    "city": "Arnhem",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "ArtEZ bachelor and master programmes in English require IELTS 6.0 with no band lower than 5.5.",
+    "sourceUrl": "https://www.artez.nl/en/admission/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-design-academy",
+    "name": "Design Academy Eindhoven",
+    "country": "NL",
+    "city": "Eindhoven",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bachelor entry requires IELTS 6.0. Master of Arts in Design requires IELTS 6.5.",
+    "sourceUrl": "https://www.designacademy.nl/study/admission-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-rietveld",
+    "name": "Gerrit Rietveld Academie",
+    "country": "NL",
+    "city": "Amsterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bachelor of Fine Arts and Design programmes require IELTS 6.0 overall with no sub-score below 5.5.",
+    "sourceUrl": "https://rietveldacademie.nl/en/page/507/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-kabk",
+    "name": "Royal Academy of Art, The Hague (KABK)",
+    "country": "NL",
+    "city": "The Hague",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "KABK requires IELTS 6.0 for bachelor and master degrees taught in English.",
+    "sourceUrl": "https://www.kabk.nl/en/admissions/general-admission-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-hotelschool",
+    "name": "Hotelschool The Hague",
+    "country": "NL",
+    "city": "The Hague",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bachelor in Hospitality Management requires IELTS 6.0 with all sub-scores 6.0. Master programme requires IELTS 6.5.",
+    "sourceUrl": "https://hotelschool.nl/admissions/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-ahk",
+    "name": "Amsterdam University of the Arts (AHK)",
+    "country": "NL",
+    "city": "Amsterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "English-taught arts programmes require IELTS 6.0 with no band below 5.5.",
+    "sourceUrl": "https://www.ahk.nl/en/practical-matters/application/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-codarts",
+    "name": "Codarts University for the Arts",
+    "country": "NL",
+    "city": "Rotterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Music and dance programmes require IELTS Academic 6.0 with minimum 5.5 in each component.",
+    "sourceUrl": "https://www.codarts.nl/en/study/practical-matters/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-humanistic",
+    "name": "University of Humanistic Studies",
+    "country": "NL",
+    "city": "Utrecht",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Master programmes taught in English require IELTS 6.5 overall with no score below 6.0.",
+    "sourceUrl": "https://www.uvh.nl/en/education/admissions",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-pthu",
+    "name": "Protestant Theological University (PThU)",
+    "country": "NL",
+    "city": "Amsterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Theology Master of Divinity programmes in English require IELTS 6.5 with at least 6.0 in Writing.",
+    "sourceUrl": "https://www.pthu.nl/en/education/admission-and-application/",
     "lastVerified": "2026-09-22"
   }
 ]

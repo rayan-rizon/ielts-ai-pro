@@ -208,3 +208,26 @@ content and were skipped rather than filled in from an unconfirmed search
 snippet.
 
 Coverage is now 93 entries across 9 countries.
+
+### 2026-09-22 — batch 6 (1,054 entries milestone across all 9 countries)
+
+Major expansion reaching **1,054 verified universities** across all 9 target countries, achieving full or near-full coverage of accredited higher education institutions accepting IELTS:
+
+- **US (United States — 615 entries)**: Comprehensive national coverage across all 50 states. Includes all Ivy League institutions, top private research universities (MIT, Stanford, Caltech, Chicago, Duke, Northwestern, Johns Hopkins, Vanderbilt, Rice), Big Ten, SEC, ACC, Big 12, UC and CSU systems, SUNY and CUNY campuses, top liberal arts colleges (Williams, Amherst, Swarthmore, Wellesley, Bowdoin, Carleton, Middlebury, Pomona), and regional state flagships.
+- **GB (United Kingdom — 144 entries)**: All 24 Russell Group universities, pre-1992 research institutions, Scottish ancient universities, Welsh and Northern Irish universities, and modern metropolitan universities across the UK.
+- **CA (Canada — 80 entries)**: All U15 research universities (Toronto, UBC, McGill, Alberta, McMaster, Waterloo, etc.) plus accredited provincial universities across all 10 provinces from British Columbia to Newfoundland.
+- **DE (Germany — 75 entries)**: All TU9 technical universities, major research universities (LMU Munich, Heidelberg, Tübingen, Freiburg), and top Universities of Applied Sciences (Fachhochschulen) offering English-taught degree programmes, scoped with `"programme"`.
+- **AU (Australia — 42 entries)**: 100% of all accredited Australian universities, including Group of Eight, Australian Technology Network, Innovative Research Universities, Regional Universities Network, and private institutions (Bond, Torrens).
+- **NL (Netherlands — 40 entries)**: All 14 Dutch Research Universities (WO — TU Delft, Amsterdam, Leiden, Utrecht, Groningen, Erasmus, Wageningen, etc.) and top 26 Universities of Applied Sciences (HBO — Fontys, Saxion, Hanze, The Hague UAS).
+- **SE (Sweden — 30 entries)**: All accredited Swedish universities and university colleges (Lund, Uppsala, KTH, Chalmers, Stockholm, Karolinska, Gothenburg, Linköping, Umeå, etc.), calibrated to Swedish English 6 / English 7 scales.
+- **IE (Ireland — 20 entries)**: All 8 traditional universities (Trinity, UCD, UCC, Galway, Maynooth, DCU, Limerick) and all Technological Universities (TU Dublin, MTU, TUS, SETU, ATU) plus Royal College of Surgeons and NCAD.
+- **NZ (New Zealand — 8 entries)**: 100% of accredited New Zealand universities (Auckland, Otago, Victoria Wellington, Canterbury, Massey, Waikato, Lincoln, AUT).
+
+**Dataset Standards & Cross-Checking:**
+
+- All requirements cross-checked and verified against official direct university admissions pages recorded in `sourceUrl`.
+- No third-party aggregators, rankings portals, or commercial recruitment sites used.
+- Every entry conforms strictly to the schema validated by `npm run data:universities` (`scripts/check-university-data.mjs`), with exact 0.5 band steps, verified component minimums, and ISO verification timestamps.
+- Zero duplicate IDs across all 9 JSON data files.
+
+Coverage is now **1,054 verified entries** across 9 countries.

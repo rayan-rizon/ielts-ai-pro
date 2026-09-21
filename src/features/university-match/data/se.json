@@ -87,7 +87,7 @@
         "requirement": {
           "overall": 7.5,
           "skills": {
-            "writing": 7.0
+            "writing": 7
           }
         }
       }
@@ -149,6 +149,489 @@
     "alternatives": ["Swedish upper secondary English 6", "Prior studies taught in English"],
     "notes": "Most master's programmes require English 6 (English B), the national standard met by IELTS Academic 6.5 with no section below 5.5. A small number of programmes (e.g. Theology) accept the lower English 5 standard instead.",
     "sourceUrl": "https://www.gu.se/en/study-in-gothenburg/apply/apply-for-masters-program",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-ki",
+    "name": "Karolinska Institute",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Master's programmes require Swedish English 6, equivalent to an overall IELTS Academic score of 6.5 with no section below 5.5.",
+    "sourceUrl": "https://education.ki.se/entry-requirements-for-master-programmes",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-umea",
+    "name": "Umeå University",
+    "country": "SE",
+    "city": "Umeå",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Standard English requirement for English-taught bachelor's and master's degrees corresponds to English 6 (IELTS 6.5 with no component under 5.5).",
+    "sourceUrl": "https://www.umu.se/en/education/apply-for-studies/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-slu",
+    "name": "Swedish University of Agricultural Sciences (SLU)",
+    "country": "SE",
+    "city": "Uppsala",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "SLU English-taught degree programmes require English 6: minimum 6.5 overall band score and no sub-score below 5.5.",
+    "sourceUrl": "https://www.slu.se/en/education/programmes-courses/general-entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-orebro",
+    "name": "Örebro University",
+    "country": "SE",
+    "city": "Örebro",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Degree programmes taught in English require Swedish English course 6, fulfilled by an IELTS Academic score of 6.5 (no section under 5.5).",
+    "sourceUrl": "https://www.oru.se/english/study/application-and-admission/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-karlstad",
+    "name": "Karlstad University",
+    "country": "SE",
+    "city": "Karlstad",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "English 6 proficiency level corresponds to IELTS Academic with an overall score of 6.5 and no band score lower than 5.5.",
+    "sourceUrl": "https://www.kau.se/en/education/application-and-admission/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-linnaeus",
+    "name": "Linnaeus University",
+    "country": "SE",
+    "city": "Växjö",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "For English-medium programmes, Linnaeus requires English 6, equivalent to an overall score of 6.5 with no band below 5.5 in Academic IELTS.",
+    "sourceUrl": "https://lnu.se/en/education/apply/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-mid-sweden",
+    "name": "Mid Sweden University",
+    "country": "SE",
+    "city": "Sundsvall",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "English 6 qualification requires an overall IELTS band of 6.5 with no score below 5.5.",
+    "sourceUrl": "https://www.miun.se/en/education/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-malardalen",
+    "name": "Mälardalen University",
+    "country": "SE",
+    "city": "Västerås",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Courses taught in English require English 6 (overall 6.5 with no component under 5.5).",
+    "sourceUrl": "https://www.mdu.se/en/malardalen-university/education/application-and-admission/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-malmo",
+    "name": "Malmö University",
+    "country": "SE",
+    "city": "Malmö",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "General entry requirement for courses and programmes in English corresponds to English 6 (IELTS Academic 6.5, min 5.5).",
+    "sourceUrl": "https://mau.se/en/education/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-ltu",
+    "name": "Luleå University of Technology",
+    "country": "SE",
+    "city": "Luleå",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "LTU requires English 6 for international bachelor's and master's programmes (IELTS 6.5 overall, no section below 5.5).",
+    "sourceUrl": "https://www.ltu.se/en/education/admissions/general-entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-halmstad",
+    "name": "Halmstad University",
+    "country": "SE",
+    "city": "Halmstad",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Standard English requirement is English 6, equivalent to Academic IELTS score 6.5 with all sub-scores at least 5.5.",
+    "sourceUrl": "https://www.hh.se/english/education/admissions/entry-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-jonkoping",
+    "name": "Jönköping University",
+    "country": "SE",
+    "city": "Jönköping",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Most English-taught programmes require English 6 (IELTS 6.5 with no band below 5.5). Pathways available for students with 5.5 or 6.0.",
+    "sourceUrl": "https://ju.se/en/study-at-ju/how-to-apply/entry-requirements/english-language-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-skovde",
+    "name": "University of Skövde",
+    "country": "SE",
+    "city": "Skövde",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Programmes require English 6, proven with IELTS Academic 6.5 with no sub-score below 5.5.",
+    "sourceUrl": "https://www.his.se/en/education/admission/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-boras",
+    "name": "University of Borås",
+    "country": "SE",
+    "city": "Borås",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Standard admission requires English 6, corresponding to an IELTS Academic score of 6.5 with no band lower than 5.5.",
+    "sourceUrl": "https://www.hb.se/en/international-student/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-sodertorn",
+    "name": "Södertörn University",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "English 6 is required for all degree programmes taught in English (IELTS 6.5 overall, no section under 5.5).",
+    "sourceUrl": "https://www.sh.se/english/sodertorn-university/education/how-to-apply/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-kristianstad",
+    "name": "Kristianstad University",
+    "country": "SE",
+    "city": "Kristianstad",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "International programmes require English 6 (IELTS 6.5 with no band less than 5.5).",
+    "sourceUrl": "https://www.hkr.se/en/study-at-hkr/application-and-admission/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-west",
+    "name": "University West",
+    "country": "SE",
+    "city": "Trollhättan",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "English 6 is required for degree programmes taught in English: IELTS Academic 6.5 overall and min 5.5 in each section.",
+    "sourceUrl": "https://www.hv.se/en/education/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-dalarna",
+    "name": "Dalarna University",
+    "country": "SE",
+    "city": "Falun",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Dalarna requires English 6 for English-taught bachelor's and master's programmes (IELTS 6.5, no band under 5.5).",
+    "sourceUrl": "https://www.du.se/en/study-at-du/application-and-admissions/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-bth",
+    "name": "Blekinge Institute of Technology (BTH)",
+    "country": "SE",
+    "city": "Karlskrona",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "BTH engineering and computer science master's degrees require English 6 (IELTS Academic 6.5 with no section under 5.5).",
+    "sourceUrl": "https://www.bth.se/eng/education/application-and-admission/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-hhs",
+    "name": "Stockholm School of Economics (SSE)",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6
+      }
+    },
+    "notes": "SSE requires English 7: minimum IELTS Academic score of 7.0 with no score below 6.0 for both BSc and MSc programmes.",
+    "sourceUrl": "https://www.hhs.se/en/education/bsc/admissions/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-gavle",
+    "name": "University of Gävle",
+    "country": "SE",
+    "city": "Gävle",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "International programmes require English 6 (IELTS Academic 6.5 with no individual band below 5.5).",
+    "sourceUrl": "https://www.hig.se/en/Ext/University-of-Gavle/Education/Entry-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-kkh",
+    "name": "Royal Institute of Art",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "English 6 proficiency level requires an overall IELTS band of 6.5 with no individual score below 5.5.",
+    "sourceUrl": "https://kkh.se/en/study/application/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-konstfack",
+    "name": "Konstfack University of Arts, Crafts and Design",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Master's programmes taught in English require English 6 (IELTS Academic 6.5, no band under 5.5).",
+    "sourceUrl": "https://www.konstfack.se/en/Education/Application-and-admission/General-entry-requirements/",
     "lastVerified": "2026-09-22"
   }
 ]

@@ -9,11 +9,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -31,10 +31,10 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
-          "min": 6.0,
-          "max": 7.0
+          "min": 6,
+          "max": 7
         }
       }
     },
@@ -44,7 +44,7 @@
         "level": "undergraduate",
         "requirement": {
           "overall": 7.5,
-          "minComponent": 7.0
+          "minComponent": 7
         }
       }
     ],
@@ -91,18 +91,18 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
-          "min": 6.0,
-          "max": 7.0
+          "min": 6,
+          "max": 7
         }
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
-          "min": 6.0,
-          "max": 7.0
+          "min": 6,
+          "max": 7
         }
       }
     },
@@ -121,7 +121,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
           "max": 7.5
@@ -129,7 +129,7 @@
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
           "max": 7.5
@@ -150,12 +150,12 @@
     "scope": "university",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -173,7 +173,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
           "max": 7.5
@@ -181,10 +181,10 @@
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -202,11 +202,11 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5,
         "range": {
-          "min": 6.0,
-          "max": 7.0
+          "min": 6,
+          "max": 7
         }
       }
     },
@@ -216,7 +216,7 @@
         "level": "undergraduate",
         "requirement": {
           "overall": 6.5,
-          "minComponent": 6.0,
+          "minComponent": 6,
           "skills": {
             "writing": 6.5,
             "speaking": 6.5
@@ -238,19 +238,19 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5,
         "range": {
-          "min": 6.0,
-          "max": 7.0
+          "min": 6,
+          "max": 7
         }
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -309,18 +309,18 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 8.0
+          "max": 8
         }
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 8.0
+          "max": 8
         }
       }
     },
@@ -338,7 +338,7 @@
     "scope": "programme",
     "requirements": {
       "postgraduate": {
-        "overall": 7.0,
+        "overall": 7,
         "minComponent": 6.5
       }
     },
@@ -355,11 +355,11 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -377,16 +377,16 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5,
         "range": {
-          "min": 6.0,
+          "min": 6,
           "max": 7.5
         }
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -403,12 +403,12 @@
     "scope": "university",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "skills": {
           "listening": 5.5,
           "reading": 5.5,
           "speaking": 5.5,
-          "writing": 6.0
+          "writing": 6
         }
       }
     },
@@ -426,10 +426,10 @@
     "requirements": {
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -447,11 +447,11 @@
     "scope": "programme",
     "requirements": {
       "postgraduate": {
-        "overall": 7.0,
-        "minComponent": 6.0,
+        "overall": 7,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -470,11 +470,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -491,7 +491,7 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -514,7 +514,7 @@
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -522,7 +522,7 @@
         "programme": "MSc Occupational Therapy (Pre-registration)",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "minComponent": 6.5
         }
       }
@@ -541,15 +541,15 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -571,7 +571,7 @@
         "minComponent": 5.5
       },
       "postgraduate": {
-        "overall": 7.0,
+        "overall": 7,
         "minComponent": 6.5
       }
     },
@@ -597,8 +597,8 @@
         "programme": "Medicine and Surgery",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
@@ -616,14 +616,14 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
         "minComponent": 5.5,
         "skills": {
-          "writing": 6.0
+          "writing": 6
         }
       }
     },
@@ -632,7 +632,7 @@
         "programme": "Westminster Law School",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "minComponent": 6.5
         }
       },
@@ -640,7 +640,7 @@
         "programme": "English Literature / Language (School of Humanities)",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "minComponent": 6.5
         }
       }
@@ -659,7 +659,7 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -668,12 +668,12 @@
         "programme": "Nursing",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "skills": {
             "writing": 6.5,
-            "reading": 7.0,
-            "listening": 7.0,
-            "speaking": 7.0
+            "reading": 7,
+            "listening": 7,
+            "speaking": 7
           }
         }
       },
@@ -681,8 +681,8 @@
         "programme": "Doctoral (PhD)",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
@@ -699,10 +699,10 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "skills": {
-          "reading": 6.0,
-          "writing": 6.0,
+          "reading": 6,
+          "writing": 6,
           "listening": 5.5,
           "speaking": 5.5
         }
@@ -722,11 +722,11 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -744,14 +744,14 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5,
         "range": {
-          "min": 6.0,
+          "min": 6,
           "max": 6.5
         }
       }
@@ -769,7 +769,7 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
@@ -791,14 +791,14 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
         "minComponent": 5.5,
         "skills": {
-          "writing": 6.0
+          "writing": 6
         }
       }
     },
@@ -815,7 +815,7 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -824,12 +824,12 @@
         "programme": "Nursing",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "skills": {
             "writing": 6.5,
-            "reading": 7.0,
-            "listening": 7.0,
-            "speaking": 7.0
+            "reading": 7,
+            "listening": 7,
+            "speaking": 7
           }
         }
       }
@@ -847,11 +847,11 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       }
     },
@@ -869,11 +869,2354 @@
     "requirements": {
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Postgraduate research figure covers most faculties: 6.5 overall with 6.0 in every element. Greenwich Business School, Education, Health & Human Sciences, and Law, Arts & Social Sciences ask for the stricter 6.5 with 6.5 in every element instead. Undergraduate figures are set per course and are not consolidated here.",
     "sourceUrl": "https://www.gre.ac.uk/international/support-and-help/courses",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-oxford",
+    "name": "University of Oxford",
+    "country": "GB",
+    "city": "Oxford",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7.5,
+        "minComponent": 7
+      },
+      "postgraduate": {
+        "overall": 7.5,
+        "minComponent": 7
+      }
+    },
+    "notes": "Oxford Higher Level requirement (standard across almost all undergraduate and graduate courses) is IELTS 7.5 with at least 7.0 in each component.",
+    "sourceUrl": "https://www.ox.ac.uk/admissions/undergraduate/applying-to-oxford/guide/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-cambridge",
+    "name": "University of Cambridge",
+    "country": "GB",
+    "city": "Cambridge",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7.5,
+        "minComponent": 7
+      },
+      "postgraduate": {
+        "overall": 7.5,
+        "minComponent": 7
+      }
+    },
+    "notes": "Cambridge requires IELTS Academic with an overall score of 7.5 and normally at least 7.0 in each element for undergraduate and postgraduate admission.",
+    "sourceUrl": "https://www.undergraduate.study.cam.ac.uk/international-students/international-entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-imperial",
+    "name": "Imperial College London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "range": {
+          "min": 6.5,
+          "max": 7
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "range": {
+          "min": 6.5,
+          "max": 7
+        }
+      }
+    },
+    "notes": "Imperial operates two tiers: Standard (IELTS 6.5 with 6.0 in all elements) and Higher (IELTS 7.0 with 6.5 in all elements). Most engineering is Standard; computing, business, and medicine are Higher.",
+    "sourceUrl": "https://www.imperial.ac.uk/study/apply/english-language/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-lse",
+    "name": "London School of Economics and Political Science (LSE)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7,
+        "minComponent": 7
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5,
+        "skills": {
+          "reading": 7
+        }
+      }
+    },
+    "notes": "LSE undergraduate entry requires IELTS 7.0 with 7.0 in each sub-component. Graduate programmes require 7.0 overall with Reading 7.0 and other components 6.5.",
+    "sourceUrl": "https://www.lse.ac.uk/study-at-lse/undergraduate/prospective-students/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-edinburgh",
+    "name": "University of Edinburgh",
+    "country": "GB",
+    "city": "Edinburgh",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5,
+        "range": {
+          "min": 6.5,
+          "max": 7
+        }
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6,
+        "range": {
+          "min": 6.5,
+          "max": 7
+        }
+      }
+    },
+    "notes": "Edinburgh sets requirements per degree. Standard undergraduate baseline is 6.5 (min 5.5). Postgraduate baseline is 7.0 (min 6.0) across most humanities and informatics.",
+    "sourceUrl": "https://www.ed.ac.uk/studying/international/student-admissions/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-glasgow",
+    "name": "University of Glasgow",
+    "country": "GB",
+    "city": "Glasgow",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5
+        }
+      }
+    },
+    "notes": "Undergraduate baseline is IELTS 6.5 with 6.0 in all sub-tests. Postgraduate taught programmes typically require 6.5 with at least 6.5 in Writing and 6.0 in others.",
+    "sourceUrl": "https://www.gla.ac.uk/international/englishlanguage/requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-southampton",
+    "name": "University of Southampton",
+    "country": "GB",
+    "city": "Southampton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Southampton Band C standard baseline is IELTS 6.5 with no band less than 6.0 for both undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.southampton.ac.uk/student-hub/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-durham",
+    "name": "Durham University",
+    "country": "GB",
+    "city": "Durham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Durham Band B baseline requires IELTS 6.5 with minimum 6.0 in all components. Law and English Literature require Band C/D (7.0 with 7.0 in writing).",
+    "sourceUrl": "https://www.durham.ac.uk/study/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-st-andrews",
+    "name": "University of St Andrews",
+    "country": "GB",
+    "city": "St Andrews",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "St Andrews Faculty of Arts standard requirement is IELTS 7.0 with 6.5 in each component. Faculty of Science standard is 6.5 with 6.0 in each component.",
+    "sourceUrl": "https://www.st-andrews.ac.uk/subjects/entry/language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-york",
+    "name": "University of York",
+    "country": "GB",
+    "city": "York",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "York standard undergraduate and postgraduate baseline is IELTS 6.5 with at least 6.0 in each skill.",
+    "sourceUrl": "https://www.york.ac.uk/study/undergraduate/applying/entry/english-language/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-exeter",
+    "name": "University of Exeter",
+    "country": "GB",
+    "city": "Exeter",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Exeter Profile B standard baseline is IELTS 6.5 with no band less than 6.0. Business, Law, and Medicine require 7.0.",
+    "sourceUrl": "https://www.exeter.ac.uk/study/international/entry/englishlanguage/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-qub",
+    "name": "Queen's University Belfast",
+    "country": "GB",
+    "city": "Belfast",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Queen's Belfast standard baseline is IELTS 6.5 with a minimum of 5.5 in each component.",
+    "sourceUrl": "https://www.qub.ac.uk/International/International-students/Applying/English-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-strathclyde",
+    "name": "University of Strathclyde",
+    "country": "GB",
+    "city": "Glasgow",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Strathclyde general entry requires IELTS 6.5 with no band below 5.5 for both undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.strath.ac.uk/studywithus/internationalstudents/englishlanguagerequirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-heriot-watt",
+    "name": "Heriot-Watt University",
+    "country": "GB",
+    "city": "Edinburgh",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Heriot-Watt requires IELTS 6.0 (min 5.5) for undergraduate degrees and 6.5 (min 6.0) for postgraduate master's degrees.",
+    "sourceUrl": "https://www.hw.ac.uk/study/apply/uk/english-language-requirements.htm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-dundee",
+    "name": "University of Dundee",
+    "country": "GB",
+    "city": "Dundee",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Dundee requires IELTS 6.0 with no band lower than 5.5 for undergraduate, and 6.5 with no band lower than 6.0 for postgraduate.",
+    "sourceUrl": "https://www.dundee.ac.uk/guides/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-city-st-georges",
+    "name": "City St George's, University of London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5
+        }
+      }
+    },
+    "notes": "Bayes Business School and City St George's require IELTS 6.5 (Writing 6.5, other sub-tests 6.0). Journalism and Law require 7.0.",
+    "sourceUrl": "https://www.city.ac.uk/prospective-students/apply/entry-requirements/english-language",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-soas",
+    "name": "SOAS University of London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "SOAS requires IELTS 6.5 with at least 6.5 in Writing for undergraduate, and 6.5 with 6.5 in all components for postgraduate.",
+    "sourceUrl": "https://www.soas.ac.uk/study/how-apply/undergraduate-applications/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-birkbeck",
+    "name": "Birkbeck, University of London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Birkbeck standard requirement across undergraduate and postgraduate programmes is IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.bbk.ac.uk/international/applying/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-goldsmiths",
+    "name": "Goldsmiths, University of London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5,
+        "skills": {
+          "writing": 6
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "writing": 6.5
+        }
+      }
+    },
+    "notes": "Goldsmiths undergraduate requires IELTS 6.0 (Writing 6.0, other bands 5.5). Postgraduate requires 6.5 (Writing 6.5, other bands 6.0).",
+    "sourceUrl": "https://www.gold.ac.uk/international/regions/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-surrey",
+    "name": "University of Surrey",
+    "country": "GB",
+    "city": "Guildford",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Surrey standard entry baseline is IELTS 6.5 with minimum 6.0 in each sub-skill for undergraduate and taught master's.",
+    "sourceUrl": "https://www.surrey.ac.uk/apply/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-leicester",
+    "name": "University of Leicester",
+    "country": "GB",
+    "city": "Leicester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Leicester standard undergraduate entry requires IELTS 6.5 with no band below 5.5. Postgraduate master degrees require 6.5 with 6.0 in all bands.",
+    "sourceUrl": "https://le.ac.uk/study/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-kent",
+    "name": "University of Kent",
+    "country": "GB",
+    "city": "Canterbury",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6,
+        "skills": {
+          "reading": 6,
+          "writing": 6
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Kent requires IELTS 6.5 (minimum 6.0 in Reading and Writing, 5.5 in Listening and Speaking) for undergraduate, and 6.5 (min 6.0) for postgraduate.",
+    "sourceUrl": "https://www.kent.ac.uk/courses/undergraduate/apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-aston",
+    "name": "Aston University",
+    "country": "GB",
+    "city": "Birmingham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Aston undergraduate baseline is IELTS 6.0 with no band below 5.5. Postgraduate business and engineering baseline is 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.aston.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-swansea",
+    "name": "Swansea University",
+    "country": "GB",
+    "city": "Swansea",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Swansea requires IELTS 6.0 (no band below 5.5) for undergraduate, and 6.5 (no band below 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.swansea.ac.uk/admissions/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-aberystwyth",
+    "name": "Aberystwyth University",
+    "country": "GB",
+    "city": "Aberystwyth",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Aberystwyth requires IELTS 6.5 (min 5.5 in each component) for undergraduate and 6.5 (min 6.0 in each component) for postgraduate.",
+    "sourceUrl": "https://www.aber.ac.uk/en/international/apply/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bangor",
+    "name": "Bangor University",
+    "country": "GB",
+    "city": "Bangor",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bangor standard undergraduate entry requires IELTS 6.0 (no band below 5.5). Postgraduate entry requires 6.5 (no band below 6.0).",
+    "sourceUrl": "https://www.bangor.ac.uk/international/applying/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-mmu",
+    "name": "Manchester Metropolitan University",
+    "country": "GB",
+    "city": "Manchester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Manchester Met requires IELTS 6.0 with no band less than 5.5 for undergraduate degrees, and 6.5 with no band less than 5.5 for postgraduate.",
+    "sourceUrl": "https://www.mmu.ac.uk/international/study-at-mmu/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-salford",
+    "name": "University of Salford",
+    "country": "GB",
+    "city": "Salford",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Salford requires IELTS 6.0 (min 5.5) for undergraduate admission and 6.5 (min 6.0) for postgraduate taught degrees.",
+    "sourceUrl": "https://www.salford.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bolton",
+    "name": "University of Bolton",
+    "country": "GB",
+    "city": "Bolton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bolton requires IELTS 6.0 with no component lower than 5.5 for undergraduate, and 6.5 for postgraduate degrees.",
+    "sourceUrl": "https://www.bolton.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uclan",
+    "name": "University of Central Lancashire (UCLan)",
+    "country": "GB",
+    "city": "Preston",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UCLan standard undergraduate baseline is IELTS 6.0 (min 5.5). Postgraduate baseline is 6.5 (min 6.0).",
+    "sourceUrl": "https://www.uclan.ac.uk/international/entry-requirements/english-language",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-edge-hill",
+    "name": "Edge Hill University",
+    "country": "GB",
+    "city": "Ormskirk",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Edge Hill requires IELTS 6.0 (min 5.5) for undergraduate bachelor's and 6.5 (min 6.0) for master's courses.",
+    "sourceUrl": "https://www.edgehill.ac.uk/departments/support/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-ljmu",
+    "name": "Liverpool John Moores University (LJMU)",
+    "country": "GB",
+    "city": "Liverpool",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "LJMU requires IELTS 6.0 with at least 5.5 in each component for undergraduate, and 6.5 with at least 6.0 for postgraduate.",
+    "sourceUrl": "https://www.ljmu.ac.uk/international/holding-an-offer/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-liverpool-hope",
+    "name": "Liverpool Hope University",
+    "country": "GB",
+    "city": "Liverpool",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Liverpool Hope requires IELTS 6.0 with all bands 6.0 for undergraduate, and 6.5 with all bands 6.0 for postgraduate.",
+    "sourceUrl": "https://www.hope.ac.uk/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-chester",
+    "name": "University of Chester",
+    "country": "GB",
+    "city": "Chester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Chester requires IELTS 6.0 (no element below 5.5) for undergraduate, and 6.5 (no element below 6.0) for postgraduate.",
+    "sourceUrl": "https://www.chester.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-cumbria",
+    "name": "University of Cumbria",
+    "country": "GB",
+    "city": "Carlisle",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Cumbria requires IELTS 6.0 (min 5.5) for undergraduate courses and 6.5 (min 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.cumbria.ac.uk/study/international-students/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-northumbria",
+    "name": "Northumbria University",
+    "country": "GB",
+    "city": "Newcastle upon Tyne",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Northumbria undergraduate degrees require IELTS 6.0 with no band less than 5.5. Postgraduate requires 6.5 with no band less than 5.5.",
+    "sourceUrl": "https://www.northumbria.ac.uk/international/international-admissions/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-sunderland",
+    "name": "University of Sunderland",
+    "country": "GB",
+    "city": "Sunderland",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Sunderland standard undergraduate and postgraduate entry is IELTS 6.0 with no band below 5.5 (pharmacy and nursing require 7.0).",
+    "sourceUrl": "https://www.sunderland.ac.uk/help/applying/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-teesside",
+    "name": "Teesside University",
+    "country": "GB",
+    "city": "Middlesbrough",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Teesside requires IELTS 6.0 (min 5.5) for bachelor degrees and 6.5 (min 6.0) for master degrees.",
+    "sourceUrl": "https://www.tees.ac.uk/international/english_language.cfm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-leeds-beckett",
+    "name": "Leeds Beckett University",
+    "country": "GB",
+    "city": "Leeds",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Leeds Beckett standard entry requires IELTS 6.0 (no band below 5.5) for undergraduate and 6.5 (no band below 6.0) for postgraduate.",
+    "sourceUrl": "https://www.leedsbeckett.ac.uk/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-leeds-trinity",
+    "name": "Leeds Trinity University",
+    "country": "GB",
+    "city": "Leeds",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Leeds Trinity standard requirement is IELTS 6.0 with no component below 5.5 for both undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.leedstrinity.ac.uk/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-huddersfield",
+    "name": "University of Huddersfield",
+    "country": "GB",
+    "city": "Huddersfield",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Huddersfield standard requirement is IELTS 6.0 with no band lower than 5.5 for both undergraduate and postgraduate taught degrees.",
+    "sourceUrl": "https://www.hud.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bradford",
+    "name": "University of Bradford",
+    "country": "GB",
+    "city": "Bradford",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bradford requires IELTS 6.0 (no component below 5.5) for undergraduate and 6.5 (no component below 6.0) for postgraduate.",
+    "sourceUrl": "https://www.bradford.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-york-st-john",
+    "name": "York St John University",
+    "country": "GB",
+    "city": "York",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "York St John standard entry requires IELTS 6.0 with no sub-skill below 5.5 for bachelor and master degrees.",
+    "sourceUrl": "https://www.yorksj.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-lincoln",
+    "name": "University of Lincoln",
+    "country": "GB",
+    "city": "Lincoln",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Lincoln requires IELTS 6.0 (min 5.5) for undergraduate admission and 6.5 (min 6.0) for postgraduate courses.",
+    "sourceUrl": "https://www.lincoln.ac.uk/studywithus/internationalstudents/englishlanguagerequirementsandenglishcourses/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-ntu",
+    "name": "Nottingham Trent University",
+    "country": "GB",
+    "city": "Nottingham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "NTU standard entry requires IELTS 6.0 (min 5.5) for undergraduate, and 6.5 (min 5.5) for postgraduate master's.",
+    "sourceUrl": "https://www.ntu.ac.uk/international/applying-to-ntu/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-derby",
+    "name": "University of Derby",
+    "country": "GB",
+    "city": "Derby",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Derby requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 6.0) for postgraduate programmes.",
+    "sourceUrl": "https://www.derby.ac.uk/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-dmu",
+    "name": "De Montfort University (DMU)",
+    "country": "GB",
+    "city": "Leicester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "DMU standard undergraduate entry requires IELTS 6.0 (min 5.5). Postgraduate requires 6.5 (min 5.5).",
+    "sourceUrl": "https://www.dmu.ac.uk/international/en/entry-requirements/english-language-requirements.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-northampton",
+    "name": "University of Northampton",
+    "country": "GB",
+    "city": "Northampton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Northampton requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.northampton.ac.uk/international/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-coventry",
+    "name": "Coventry University",
+    "country": "GB",
+    "city": "Coventry",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Coventry standard undergraduate entry requires IELTS 6.0 (min 5.5). Postgraduate requires 6.5 (min 5.5).",
+    "sourceUrl": "https://www.coventry.ac.uk/international-students-hub/new-students/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-wolverhampton",
+    "name": "University of Wolverhampton",
+    "country": "GB",
+    "city": "Wolverhampton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Wolverhampton requires IELTS 6.0 (min 5.5) for undergraduate bachelor's and 6.5 (min 6.0) for postgraduate master's.",
+    "sourceUrl": "https://www.wlv.ac.uk/international/international-entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bcu",
+    "name": "Birmingham City University (BCU)",
+    "country": "GB",
+    "city": "Birmingham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "BCU standard baseline is IELTS 6.0 with no band less than 5.5 for both undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.bcu.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-worcester",
+    "name": "University of Worcester",
+    "country": "GB",
+    "city": "Worcester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Worcester requires IELTS 6.0 (min 5.5) for undergraduate entry and 6.5 (min 5.5) for postgraduate entry.",
+    "sourceUrl": "https://www.worcester.ac.uk/study/international-students/entry-requirements/english-language-requirements.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-staffs",
+    "name": "Staffordshire University",
+    "country": "GB",
+    "city": "Stoke-on-Trent",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Staffordshire requires IELTS 6.0 with no band below 5.5 for undergraduate, and 6.5 with no band below 6.0 for postgraduate.",
+    "sourceUrl": "https://www.staffs.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-herts",
+    "name": "University of Hertfordshire",
+    "country": "GB",
+    "city": "Hatfield",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Hertfordshire requires IELTS 6.0 (min 5.5) for undergraduate bachelor's and 6.5 (min 5.5) for postgraduate master's.",
+    "sourceUrl": "https://www.herts.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-beds",
+    "name": "University of Bedfordshire",
+    "country": "GB",
+    "city": "Luton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Bedfordshire standard entry requires IELTS 6.0 with no band less than 5.5 for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.beds.ac.uk/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-anglia-ruskin",
+    "name": "Anglia Ruskin University (ARU)",
+    "country": "GB",
+    "city": "Cambridge",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "ARU requires IELTS 6.0 with minimum 5.5 in each component for undergraduate, and 6.5 with minimum 5.5 for postgraduate.",
+    "sourceUrl": "https://www.aru.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-suffolk",
+    "name": "University of Suffolk",
+    "country": "GB",
+    "city": "Ipswich",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Suffolk requires IELTS 6.0 with no component below 5.5 for bachelor admission, and 6.5 for master degrees.",
+    "sourceUrl": "https://www.uos.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-nuarts",
+    "name": "Norwich University of the Arts",
+    "country": "GB",
+    "city": "Norwich",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Norwich Arts requires IELTS 6.0 (min 5.5) for BA/BSc degrees and 6.5 (min 5.5) for MA/MSc programmes.",
+    "sourceUrl": "https://www.norwichuni.ac.uk/study-at-norwich/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-solent",
+    "name": "Solent University",
+    "country": "GB",
+    "city": "Southampton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Solent requires IELTS 6.0 with no band less than 5.5 for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.solent.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-winchester",
+    "name": "University of Winchester",
+    "country": "GB",
+    "city": "Winchester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Winchester requires IELTS 6.0 with no band lower than 5.5 for undergraduate, and 6.5 with no band lower than 6.0 for postgraduate.",
+    "sourceUrl": "https://www.winchester.ac.uk/study/international-students/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-chichester",
+    "name": "University of Chichester",
+    "country": "GB",
+    "city": "Chichester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Chichester requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.chi.ac.uk/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-brighton",
+    "name": "University of Brighton",
+    "country": "GB",
+    "city": "Brighton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Brighton requires IELTS 6.0 with at least 5.5 in each component for bachelor degrees, and 6.5 with at least 6.0 for master degrees.",
+    "sourceUrl": "https://www.brighton.ac.uk/international/applying-here/entry-requirements/english-language-requirements.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-canterbury-cc",
+    "name": "Canterbury Christ Church University",
+    "country": "GB",
+    "city": "Canterbury",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "CCCU requires IELTS 6.0 with no band less than 5.5 for undergraduate, and 6.5 with no band less than 6.0 for postgraduate.",
+    "sourceUrl": "https://www.canterbury.ac.uk/study-here/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uwl",
+    "name": "University of West London (UWL)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "UWL requires IELTS 6.0 with no component below 5.5 for undergraduate degrees, and 6.5 with no component below 5.5 for master degrees.",
+    "sourceUrl": "https://www.uwl.ac.uk/international/how-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-st-marys-twickenham",
+    "name": "St Mary's University, Twickenham",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "St Mary's Twickenham requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.stmarys.ac.uk/international/entry-requirements/english-language-requirements.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uwe-bristol",
+    "name": "UWE Bristol",
+    "country": "GB",
+    "city": "Bristol",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "UWE Bristol requires IELTS 6.0 with no band lower than 5.5 for undergraduate, and 6.5 with no band lower than 5.5 for postgraduate.",
+    "sourceUrl": "https://www.uwe.ac.uk/international/applying-to-uwe-bristol/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bath-spa",
+    "name": "Bath Spa University",
+    "country": "GB",
+    "city": "Bath",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Bath Spa requires IELTS 6.0 (no band below 5.5) for undergraduate and 6.5 (no band below 5.5) for postgraduate master degrees.",
+    "sourceUrl": "https://www.bathspa.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-gloucestershire",
+    "name": "University of Gloucestershire",
+    "country": "GB",
+    "city": "Cheltenham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Gloucestershire requires IELTS 6.0 with no component below 5.5 for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.glos.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-plymouth",
+    "name": "University of Plymouth",
+    "country": "GB",
+    "city": "Plymouth",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Plymouth requires IELTS 6.0 with 5.5 in each sub-element for undergraduate, and 6.5 with 5.5 in each sub-element for postgraduate.",
+    "sourceUrl": "https://www.plymouth.ac.uk/international/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-marjon",
+    "name": "Plymouth Marjon University",
+    "country": "GB",
+    "city": "Plymouth",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Marjon requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 6.0) for postgraduate master's.",
+    "sourceUrl": "https://www.marjon.ac.uk/study/international/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-falmouth",
+    "name": "Falmouth University",
+    "country": "GB",
+    "city": "Falmouth",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Falmouth requires IELTS 6.0 (no band under 5.5) for undergraduate degrees and 6.5 (no band under 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.falmouth.ac.uk/study/international/entry-requirements/english-language",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-aub",
+    "name": "Arts University Bournemouth (AUB)",
+    "country": "GB",
+    "city": "Poole",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "AUB requires IELTS 6.0 with no band lower than 5.5 for BA courses, and 6.5 with no band lower than 6.0 for MA courses.",
+    "sourceUrl": "https://aub.ac.uk/apply/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-gcu",
+    "name": "Glasgow Caledonian University",
+    "country": "GB",
+    "city": "Glasgow",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "GCU requires IELTS 6.0 with no sub-test lower than 5.5 for undergraduate and most postgraduate taught courses.",
+    "sourceUrl": "https://www.gcu.ac.uk/study/internationalstudents/entryrequirements/englishlanguagerequirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-napier",
+    "name": "Edinburgh Napier University",
+    "country": "GB",
+    "city": "Edinburgh",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Edinburgh Napier requires IELTS 6.0 with no component below 5.5 for undergraduate and postgraduate admission.",
+    "sourceUrl": "https://www.napier.ac.uk/study-with-us/international-students/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-qmu",
+    "name": "Queen Margaret University",
+    "country": "GB",
+    "city": "Edinburgh",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "QMU requires IELTS 6.0 (no band under 5.5) for undergraduate, and 6.5 (no band under 6.0) for postgraduate courses.",
+    "sourceUrl": "https://www.qmu.ac.uk/study-here/international-students/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rgu",
+    "name": "Robert Gordon University (RGU)",
+    "country": "GB",
+    "city": "Aberdeen",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "RGU requires IELTS 6.0 (min 5.5) for undergraduate degrees and 6.5 (min 5.5) for postgraduate master's degrees.",
+    "sourceUrl": "https://www.rgu.ac.uk/study/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-abertay",
+    "name": "Abertay University",
+    "country": "GB",
+    "city": "Dundee",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Abertay standard baseline is IELTS 6.0 with no sub-score lower than 5.5 for bachelor and master degrees.",
+    "sourceUrl": "https://www.abertay.ac.uk/international/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uhi",
+    "name": "University of the Highlands and Islands",
+    "country": "GB",
+    "city": "Inverness",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UHI requires IELTS 6.0 (min 5.5) for undergraduate degree admission and 6.5 (min 6.0) for postgraduate degree admission.",
+    "sourceUrl": "https://www.uhi.ac.uk/en/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uws",
+    "name": "University of the West of Scotland (UWS)",
+    "country": "GB",
+    "city": "Paisley",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "UWS standard requirement is IELTS 6.0 with no component below 5.5 for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.uws.ac.uk/international/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-cardiff-met",
+    "name": "Cardiff Metropolitan University",
+    "country": "GB",
+    "city": "Cardiff",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Cardiff Met standard entry requires IELTS 6.0 with no sub-score below 5.5 for both undergraduate and postgraduate coursework.",
+    "sourceUrl": "https://www.cardiffmet.ac.uk/international/study/applying/Pages/English-Language-Requirements.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-south-wales",
+    "name": "University of South Wales (USW)",
+    "country": "GB",
+    "city": "Pontypridd",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "USW requires IELTS 6.0 with minimum 5.5 in each element for undergraduate and postgraduate degrees.",
+    "sourceUrl": "https://www.southwales.ac.uk/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uwtsd",
+    "name": "University of Wales Trinity Saint David (UWTSD)",
+    "country": "GB",
+    "city": "Swansea",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "UWTSD requires IELTS 6.0 with no component below 5.5 for undergraduate and postgraduate programmes.",
+    "sourceUrl": "https://www.uwtsd.ac.uk/international/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-wrexham",
+    "name": "Wrexham University",
+    "country": "GB",
+    "city": "Wrexham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Wrexham (formerly Glyndwr) requires IELTS 6.0 with no band less than 5.5 for bachelor and master degrees.",
+    "sourceUrl": "https://wrexham.ac.uk/international-students/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-crav",
+    "name": "Cranfield University",
+    "country": "GB",
+    "city": "Cranfield",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Cranfield postgraduate aerospace and engineering degrees require IELTS 6.5 with at least 5.5 in all skills. Management MSc requires 7.0.",
+    "sourceUrl": "https://www.cranfield.ac.uk/study/application-guide/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-buckingham",
+    "name": "University of Buckingham",
+    "country": "GB",
+    "city": "Buckingham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Buckingham requires IELTS 6.5 with no band below 6.0 for undergraduate and postgraduate programmes (Medicine requires 7.5).",
+    "sourceUrl": "https://www.buckingham.ac.uk/international/admissions/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-brunel",
+    "name": "Brunel University London",
+    "country": "GB",
+    "city": "Uxbridge",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Brunel requires IELTS 6.0 (min 5.5) for undergraduate degrees and 6.5 (min 5.5) for postgraduate master degrees.",
+    "sourceUrl": "https://www.brunel.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-lsbu",
+    "name": "London South Bank University (LSBU)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "LSBU requires IELTS 6.0 (no element under 5.5) for undergraduate and 6.5 (no element under 5.5) for postgraduate.",
+    "sourceUrl": "https://www.lsbu.ac.uk/international/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-london-met",
+    "name": "London Metropolitan University",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "London Met requires IELTS 6.0 with at least 5.5 in each component for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.londonmet.ac.uk/international/applying/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-middlesex",
+    "name": "Middlesex University London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Middlesex requires IELTS 6.0 (min 5.5) for bachelor entry and 6.5 (min 6.0) for master entry.",
+    "sourceUrl": "https://www.mdx.ac.uk/study-with-us/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-roehampton",
+    "name": "University of Roehampton",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Roehampton requires IELTS 6.0 (min 5.5) for undergraduate degrees and 6.5 (min 5.5) for master's degrees.",
+    "sourceUrl": "https://www.roehampton.ac.uk/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uel",
+    "name": "University of East London (UEL)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "UEL standard requirement is IELTS 6.0 with no band less than 5.5 for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.uel.ac.uk/international/applying-abroad/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-ual",
+    "name": "University of the Arts London (UAL)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "UAL (Central Saint Martins, LCF, Chelsea) requires IELTS 6.0 (min 5.5) for BA and 6.5 (min 5.5) for MA courses.",
+    "sourceUrl": "https://www.arts.ac.uk/study-at-ual/international/language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rca",
+    "name": "Royal College of Art (RCA)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "RCA master degrees require IELTS 6.5 with at least 6.0 in the Writing test.",
+    "sourceUrl": "https://www.rca.ac.uk/studying-at-the-rca/apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-harper-adams",
+    "name": "Harper Adams University",
+    "country": "GB",
+    "city": "Newport",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Harper Adams agricultural university requires IELTS 6.0 for bachelor admission and 6.5 for master admission.",
+    "sourceUrl": "https://www.harper-adams.ac.uk/apply/international/english-requirements.cfm",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rau",
+    "name": "Royal Agricultural University (RAU)",
+    "country": "GB",
+    "city": "Cirencester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "RAU requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 6.0) for postgraduate degrees.",
+    "sourceUrl": "https://www.rau.ac.uk/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bishop-grosseteste",
+    "name": "Bishop Grosseteste University",
+    "country": "GB",
+    "city": "Lincoln",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "BGU requires IELTS 6.0 with no band less than 5.5 for undergraduate degrees and postgraduate diplomas.",
+    "sourceUrl": "https://www.bgu.ac.uk/study-here/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bpp",
+    "name": "BPP University",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "BPP requires IELTS 6.0 (min 5.5) for bachelor degrees and 6.5 (min 6.0) for master degrees (Bar course requires 7.5).",
+    "sourceUrl": "https://www.bpp.com/study/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-law",
+    "name": "The University of Law",
+    "country": "GB",
+    "city": "Guildford",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "ULaw requires IELTS 6.0 (min 5.5) for undergraduate LLB and 6.5 (min 6.0) for LLM courses.",
+    "sourceUrl": "https://www.law.ac.uk/study/international/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-newman",
+    "name": "Newman University",
+    "country": "GB",
+    "city": "Birmingham",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Newman standard entry requires IELTS 6.0 with no band less than 5.5 for undergraduate and postgraduate courses.",
+    "sourceUrl": "https://www.newman.ac.uk/study/international-students/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-regents",
+    "name": "Regent's University London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Regent's requires IELTS 6.0 (min 5.5) for undergraduate and 6.5 (min 5.5) for postgraduate master's.",
+    "sourceUrl": "https://www.regents.ac.uk/study/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-royal-holloway-arts",
+    "name": "Rose Bruford College",
+    "country": "GB",
+    "city": "Sidcup",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Drama and theatre arts degrees require IELTS 6.0 for bachelor and 6.5 for master degrees.",
+    "sourceUrl": "https://www.bruford.ac.uk/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-trinity-laban",
+    "name": "Trinity Laban Conservatoire of Music and Dance",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 5.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Trinity Laban undergraduate music requires IELTS 5.5; postgraduate master of music requires 6.5 (min 5.5 each).",
+    "sourceUrl": "https://www.trinitylaban.ac.uk/study/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rcm",
+    "name": "Royal College of Music",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 5.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "RCM BMus requires IELTS 5.5 (min 5.5); Master of Music requires 6.0 (min 5.5).",
+    "sourceUrl": "https://www.rcm.ac.uk/apply/how-to-apply/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-ram",
+    "name": "Royal Academy of Music",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 5.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "RAM undergraduate degree requires IELTS 5.5; Master of Arts in Performance requires 6.0.",
+    "sourceUrl": "https://www.ram.ac.uk/study/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rncm",
+    "name": "Royal Northern College of Music",
+    "country": "GB",
+    "city": "Manchester",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 5.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "RNCM BMus requires IELTS 5.5 (min 5.5); MMus requires 6.0 (min 5.5).",
+    "sourceUrl": "https://www.rncm.ac.uk/study-here/how-to-apply/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rcs",
+    "name": "Royal Conservatoire of Scotland",
+    "country": "GB",
+    "city": "Glasgow",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "RCS undergraduate requires IELTS 6.0 (min 5.5); postgraduate master degrees require 6.5 (min 6.0).",
+    "sourceUrl": "https://www.rcs.ac.uk/apply/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-rwcmd",
+    "name": "Royal Welsh College of Music & Drama",
+    "country": "GB",
+    "city": "Cardiff",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 5.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "RWCMD requires IELTS 5.5 for undergraduate BMus/BA and 6.0 for postgraduate MMus/MA.",
+    "sourceUrl": "https://www.rwcmd.ac.uk/study/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-guildhall",
+    "name": "Guildhall School of Music and Drama",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 5.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Guildhall requires IELTS 5.5 for BMus and 6.0 for Master of Music programmes.",
+    "sourceUrl": "https://www.gsmd.ac.uk/apply/international-applications/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-cssd",
+    "name": "Royal Central School of Speech and Drama",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Central requires IELTS 6.5 (min 6.0) for undergraduate BA acting/theatre, and 7.0 (min 6.5) for master's.",
+    "sourceUrl": "https://www.cssd.ac.uk/study-with-us/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-aecc",
+    "name": "Health Sciences University (AECC)",
+    "country": "GB",
+    "city": "Bournemouth",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Chiropractic, physiotherapy, and radiography degrees require IELTS 6.5 with at least 6.0 in all bands.",
+    "sourceUrl": "https://www.aecc.ac.uk/study/international/english-language-requirements/",
     "lastVerified": "2026-09-22"
   }
 ]

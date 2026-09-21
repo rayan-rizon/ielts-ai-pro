@@ -9,11 +9,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "One university-wide minimum of 6.5 with no band below 6.0, the same for undergraduate and postgraduate. Sydney states some faculties and courses set higher figures, so check the course page.",
@@ -30,7 +30,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
           "max": 7.5
@@ -38,10 +38,10 @@
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -50,16 +50,16 @@
         "programme": "Business and Law",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 6.0
+          "overall": 7,
+          "minComponent": 6
         }
       },
       {
         "programme": "Business and Law",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 6.0
+          "overall": 7,
+          "minComponent": 6
         }
       },
       {
@@ -68,10 +68,10 @@
         "requirement": {
           "overall": 7.5,
           "skills": {
-            "reading": 7.0,
-            "writing": 7.0,
-            "listening": 8.0,
-            "speaking": 8.0
+            "reading": 7,
+            "writing": 7,
+            "listening": 8,
+            "speaking": 8
           }
         }
       },
@@ -79,8 +79,8 @@
         "programme": "Social Work",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
@@ -98,11 +98,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -110,16 +110,16 @@
         "programme": "Master of Clinical Psychology",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       },
       {
         "programme": "Master of Professional Psychology",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
@@ -137,10 +137,10 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
-        "overall": 7.0,
+        "overall": 7,
         "minComponent": 6.5
       }
     },
@@ -159,10 +159,10 @@
         "requirement": {
           "overall": 7.5,
           "skills": {
-            "reading": 7.0,
-            "writing": 7.0,
-            "listening": 8.0,
-            "speaking": 8.0
+            "reading": 7,
+            "writing": 7,
+            "listening": 8,
+            "speaking": 8
           }
         }
       }
@@ -181,18 +181,18 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
-          "min": 6.0,
-          "max": 7.0
+          "min": 6,
+          "max": 7
         }
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -201,7 +201,7 @@
         "programme": "Education, Language & Literature, Communication & Media, Philosophy & Religious Studies",
         "level": "undergraduate",
         "requirement": {
-          "overall": 7.0,
+          "overall": 7,
           "minComponent": 6.5
         }
       }
@@ -220,11 +220,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Macquarie's standard tier, 'Competent English', is 6.5 overall with 6.0 in each band, the same for undergraduate and postgraduate coursework. Law, Medicine and Education ask for the higher 'Proficient English' tier instead.",
@@ -241,11 +241,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "RMIT sets English requirements per course rather than one university figure; 6.5 overall with no band below 6.0 is the common baseline for both undergraduate and postgraduate degrees, with some courses (including Medical Radiation and IT postgraduate) higher.",
@@ -262,11 +262,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Curtin's minimum standard is 6.5 overall with no band below 6.0, used as the baseline for both undergraduate and postgraduate entry; a published list of courses sets higher requirements.",
@@ -282,7 +282,7 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0
+        "overall": 6
       },
       "postgraduate": {
         "overall": 6.5
@@ -302,11 +302,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "notes": "Most Griffith degrees ask 6.5 overall with no sub-score below 6.0, the common figure for undergraduate and postgraduate coursework. Nursing, Midwifery and some other programmes set a higher requirement, shown on the specific degree listing.",
@@ -322,10 +322,10 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5,
         "range": {
-          "min": 6.0,
+          "min": 6,
           "max": 6.5
         }
       }
@@ -343,12 +343,12 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
-        "minComponent": 6.0
+        "overall": 6,
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -356,8 +356,8 @@
         "programme": "Master of Clinical Psychology",
         "level": "postgraduate",
         "requirement": {
-          "overall": 7.0,
-          "minComponent": 7.0
+          "overall": 7,
+          "minComponent": 7
         }
       }
     ],
@@ -374,12 +374,12 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
+        "overall": 6,
         "minComponent": 5.5
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "skills": {
           "writing": 6.5
         }
@@ -392,16 +392,625 @@
         "requirement": {
           "overall": 7.5,
           "skills": {
-            "listening": 8.0,
-            "speaking": 8.0,
-            "reading": 7.0,
-            "writing": 7.0
+            "listening": 8,
+            "speaking": 8,
+            "reading": 7,
+            "writing": 7
           }
         }
       }
     ],
     "notes": "Undergraduate baseline is 6.0 with no sub-band below 5.5. Postgraduate baseline is 6.5 with writing specifically at 6.5 and other sub-bands at least 6.0. The Master of Social Work (Qualifying) is far higher, with listening and speaking both at 8.0.",
     "sourceUrl": "https://www.une.edu.au/study/international/eligibility/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-melbourne",
+    "name": "University of Melbourne",
+    "country": "AU",
+    "city": "Melbourne, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Melbourne standard entry floor is IELTS 6.5 with no band below 6.0. Certain courses (Law, Teaching, Psychology) require 7.0 or higher.",
+    "sourceUrl": "https://study.unimelb.edu.au/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-uq",
+    "name": "University of Queensland",
+    "country": "AU",
+    "city": "Brisbane, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UQ baseline requirement is 6.5 overall with a minimum of 6.0 in all sub-bands for undergraduate and postgraduate coursework. Selected clinical and professional degrees require 7.0–7.5.",
+    "sourceUrl": "https://study.uq.edu.au/admissions/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-monash",
+    "name": "Monash University",
+    "country": "AU",
+    "city": "Melbourne, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Monash undergraduate and postgraduate standard baseline is IELTS 6.5 with no band less than 6.0. Specific faculties like Law, Education, and Pharmacy demand 7.0–7.5.",
+    "sourceUrl": "https://www.monash.edu/admissions/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-uts",
+    "name": "University of Technology Sydney (UTS)",
+    "country": "AU",
+    "city": "Sydney, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate and postgraduate coursework baseline is IELTS 6.5 with writing at 6.0. Education, Health, and Analytics courses require higher.",
+    "sourceUrl": "https://www.uts.edu.au/future-students/international/essential-information/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-qut",
+    "name": "Queensland University of Technology (QUT)",
+    "country": "AU",
+    "city": "Brisbane, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "QUT general entry requires IELTS 6.5 overall with no sub-score below 6.0. Health and Education degrees require 7.0 with higher component minimums.",
+    "sourceUrl": "https://www.qut.edu.au/study/applying/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-uow",
+    "name": "University of Wollongong",
+    "country": "AU",
+    "city": "Wollongong, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate admission requires IELTS 6.0 with minimum 6.0 in Reading and Writing. Postgraduate courses require 6.5 overall with 6.0 in each band.",
+    "sourceUrl": "https://www.uow.edu.au/study/international/apply/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-western-sydney",
+    "name": "Western Sydney University",
+    "country": "AU",
+    "city": "Sydney, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate and postgraduate degrees require IELTS 6.5 with no band less than 6.0. Nursing and Medicine require 7.0+.",
+    "sourceUrl": "https://www.westernsydney.edu.au/international/applying/admissions-process/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-latrobe",
+    "name": "La Trobe University",
+    "country": "AU",
+    "city": "Melbourne, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "La Trobe baseline is IELTS 6.0 with all bands 6.0 for undergraduate, and 6.5 with all bands 6.0 for postgraduate. Allied health degrees require 7.0.",
+    "sourceUrl": "https://www.latrobe.edu.au/international/apply/guide/english-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-flinders",
+    "name": "Flinders University",
+    "country": "AU",
+    "city": "Adelaide, SA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Flinders undergraduate baseline is 6.0 overall (Speaking and Writing 6.0). Postgraduate courses require 6.5 overall (all sub-scores 6.0).",
+    "sourceUrl": "https://www.flinders.edu.au/international/apply/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-unisa",
+    "name": "University of South Australia (UniSA)",
+    "country": "AU",
+    "city": "Adelaide, SA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UniSA standard undergraduate requirement is IELTS 6.0 (Reading and Writing 6.0). Postgraduate entry requires IELTS 6.5 (Reading and Writing 6.0).",
+    "sourceUrl": "https://study.unisa.edu.au/international/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-jcu",
+    "name": "James Cook University",
+    "country": "AU",
+    "city": "Townsville, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "JCU standard undergraduate entry requires IELTS 6.0 with no band less than 6.0. Postgraduate entry requires IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.jcu.edu.au/international-students/apply/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-murdoch",
+    "name": "Murdoch University",
+    "country": "AU",
+    "city": "Perth, WA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Murdoch baseline undergraduate entry requires IELTS 6.0 with no sub-score below 6.0. Postgraduate coursework degrees require 6.5 with no sub-score below 6.0.",
+    "sourceUrl": "https://www.murdoch.edu.au/study/international-students/apply-to-murdoch/entry-requirements/english-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-ecu",
+    "name": "Edith Cowan University (ECU)",
+    "country": "AU",
+    "city": "Perth, WA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate entry requires IELTS 6.0 with no band below 6.0. Standard postgraduate entry requires IELTS 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.ecu.edu.au/future-students/applying/english-entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-swinburne",
+    "name": "Swinburne University of Technology",
+    "country": "AU",
+    "city": "Melbourne, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate degrees require IELTS 6.0 overall with no band below 6.0. Postgraduate degrees require IELTS 6.5 overall with no band below 6.0.",
+    "sourceUrl": "https://www.swinburne.edu.au/study/international/apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-cdu",
+    "name": "Charles Darwin University",
+    "country": "AU",
+    "city": "Darwin, NT",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "CDU undergraduate requires IELTS 6.0 with no band less than 6.0. Postgraduate coursework requires IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.cdu.edu.au/international/how-apply/entry-requirements/english-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-scu",
+    "name": "Southern Cross University",
+    "country": "AU",
+    "city": "Lismore, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate standard requires IELTS 6.0 overall with no band less than 5.5. Postgraduate coursework requires IELTS 6.5 overall with no band less than 6.0.",
+    "sourceUrl": "https://www.scu.edu.au/study/international-students/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-unisq",
+    "name": "University of Southern Queensland",
+    "country": "AU",
+    "city": "Toowoomba, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate entry requires IELTS 6.0 with no sub-score below 5.5. Postgraduate master degrees require IELTS 6.5 with no sub-score below 6.0.",
+    "sourceUrl": "https://www.unisq.edu.au/study/apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-unisc",
+    "name": "University of the Sunshine Coast",
+    "country": "AU",
+    "city": "Sunshine Coast, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UniSC undergraduate degrees require IELTS 6.0 with no sub-test under 5.5. Postgraduate degrees require IELTS 6.5 with no sub-test under 6.0.",
+    "sourceUrl": "https://www.usc.edu.au/study/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-cqu",
+    "name": "CQUniversity",
+    "country": "AU",
+    "city": "Rockhampton, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate requirement is IELTS 6.0 with no band less than 5.5. Postgraduate requirement is IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://www.cqu.edu.au/international-students/how-to-apply/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-csu",
+    "name": "Charles Sturt University",
+    "country": "AU",
+    "city": "Bathurst, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 6
+      }
+    },
+    "notes": "Charles Sturt standard undergraduate admission requires IELTS 6.0 with no score below 5.5. Postgraduate master's coursework requires 6.0 with no band below 6.0.",
+    "sourceUrl": "https://www.csu.edu.au/international/applying/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-acu",
+    "name": "Australian Catholic University",
+    "country": "AU",
+    "city": "North Sydney, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate entry requires IELTS 6.0 with no component below 6.0. Standard postgraduate entry requires IELTS 6.5 with no component below 6.0.",
+    "sourceUrl": "https://www.acu.edu.au/international-students/admissions/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-federation",
+    "name": "Federation University Australia",
+    "country": "AU",
+    "city": "Ballarat, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate baseline is IELTS 6.0 with no band less than 6.0. Postgraduate coursework degrees require 6.0 with no band less than 6.0 (higher for health courses).",
+    "sourceUrl": "https://federation.edu.au/study/international-students/apply/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-vu",
+    "name": "Victoria University",
+    "country": "AU",
+    "city": "Melbourne, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "VU undergraduate requires IELTS 6.0 with no individual band below 6.0. Postgraduate degrees require IELTS 6.5 with no individual band below 6.0.",
+    "sourceUrl": "https://www.vu.edu.au/study-at-vu/how-to-apply/international-applicants/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-canberra",
+    "name": "University of Canberra",
+    "country": "AU",
+    "city": "Canberra, ACT",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "UC standard undergraduate baseline is IELTS 6.0 with all band scores 6.0 or higher. Postgraduate baseline is 6.5 with all bands 6.0 or higher.",
+    "sourceUrl": "https://www.canberra.edu.au/future-students/apply-to-uc/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-bond",
+    "name": "Bond University",
+    "country": "AU",
+    "city": "Gold Coast, QLD",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Bond standard admission requires IELTS 6.5 with no sub-band lower than 6.0 for both undergraduate and postgraduate degree programmes.",
+    "sourceUrl": "https://bond.edu.au/future-students/study-bond/how-apply/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-notre-dame",
+    "name": "University of Notre Dame Australia",
+    "country": "AU",
+    "city": "Fremantle, WA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Undergraduate baseline is IELTS 6.5 with no band less than 6.0. Postgraduate master's baseline is IELTS 7.0 with no band less than 6.5.",
+    "sourceUrl": "https://www.notredame.edu.au/international/how-to-apply/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-torrens",
+    "name": "Torrens University Australia",
+    "country": "AU",
+    "city": "Adelaide, SA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Torrens standard undergraduate admission requires IELTS 6.0 with no sub-score below 5.5. Postgraduate master degrees require IELTS 6.5 with no sub-score below 6.0.",
+    "sourceUrl": "https://www.torrens.edu.au/apply-online/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-divinity",
+    "name": "University of Divinity",
+    "country": "AU",
+    "city": "Melbourne, VIC",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 7,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Undergraduate degrees require IELTS 6.5 with 6.0 in all bands. Postgraduate coursework requires 7.0 with minimum 6.5 in all bands.",
+    "sourceUrl": "https://divinity.edu.au/study/admissions/admission-policy/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-avondale",
+    "name": "Avondale University",
+    "country": "AU",
+    "city": "Cooranbong, NSW",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Avondale standard undergraduate entry requires IELTS 6.0 overall with no band below 5.5. Postgraduate coursework requires IELTS 6.5 with no band below 6.0.",
+    "sourceUrl": "https://www.avondale.edu.au/study/international-students/entry-requirements/",
     "lastVerified": "2026-09-22"
   }
 ]

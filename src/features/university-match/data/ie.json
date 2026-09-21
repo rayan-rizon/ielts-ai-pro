@@ -9,18 +9,18 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0,
+        "minComponent": 6,
         "range": {
           "min": 6.5,
-          "max": 7.0
+          "max": 7
         }
       }
     },
@@ -40,7 +40,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -58,7 +58,7 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "higherRequirementProgrammes": [
@@ -85,11 +85,11 @@
     "requirements": {
       "undergraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       },
       "postgraduate": {
         "overall": 6.5,
-        "minComponent": 6.0
+        "minComponent": 6
       }
     },
     "preSessional": true,
@@ -106,16 +106,331 @@
     "scope": "programme",
     "requirements": {
       "undergraduate": {
-        "overall": 6.0,
-        "minComponent": 6.0
+        "overall": 6,
+        "minComponent": 6
       },
       "postgraduate": {
-        "overall": 6.0,
-        "minComponent": 6.0
+        "overall": 6,
+        "minComponent": 6
       }
     },
     "notes": "The minimum standard is unusually flat: 6.0 overall with no component below 6.0 — there is no lower floor under the headline figure, unlike most universities where the component floor sits half a band under the overall score. Some programmes (e.g. Law with a Language, Strategic Management) ask for 6.5 instead.",
     "sourceUrl": "https://www.tudublin.ie/study/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-dcu",
+    "name": "Dublin City University (DCU)",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "DCU requires IELTS 6.5 with no band less than 6.0 for both undergraduate and postgraduate programmes. Business School postgraduate courses require 6.5 with at least 6.5 in Writing.",
+    "sourceUrl": "https://www.dcu.ie/registry/english-language-requirements-non-native-speakers-english",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-limerick",
+    "name": "University of Limerick",
+    "country": "IE",
+    "city": "Limerick",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "General admission requires IELTS 6.5 with no band less than 6.0. Certain postgraduate programmes in Humanities and Education may require 7.0 overall.",
+    "sourceUrl": "https://www.ul.ie/global/incoming-students/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-maynooth",
+    "name": "Maynooth University",
+    "country": "IE",
+    "city": "Maynooth",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate entry requires IELTS 6.5 overall (minimum 6.0 in Writing). Postgraduate entry requires IELTS 6.5 overall with minimum 6.0 in each sub-test.",
+    "sourceUrl": "https://www.maynoothuniversity.ie/international/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-mtu",
+    "name": "Munster Technological University",
+    "country": "IE",
+    "city": "Cork",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate degrees require IELTS 6.0 with no band lower than 5.5. Postgraduate programmes require IELTS 6.5 with no band lower than 6.0.",
+    "sourceUrl": "https://international.cit.ie/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-atu",
+    "name": "Atlantic Technological University",
+    "country": "IE",
+    "city": "Galway",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "ATU standard undergraduate requirements are IELTS 6.0 with no individual score below 5.5. Taught postgraduate requires 6.5 with no score below 6.0.",
+    "sourceUrl": "https://www.atu.ie/international/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-setu",
+    "name": "South East Technological University",
+    "country": "IE",
+    "city": "Waterford",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "SETU requires IELTS 6.0 (no band below 5.5) for undergraduate degree programmes, and IELTS 6.5 (no band below 6.0) for postgraduate level 9 masters degrees.",
+    "sourceUrl": "https://www.setu.ie/study/international/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-tus",
+    "name": "Technological University of the Shannon",
+    "country": "IE",
+    "city": "Limerick",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "TUS standard undergraduate baseline is IELTS 6.0 overall with no band below 5.5. Postgraduate master's programmes require 6.5 overall with no band below 6.0.",
+    "sourceUrl": "https://tus.ie/international/how-to-apply/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-dkit",
+    "name": "Dundalk Institute of Technology",
+    "country": "IE",
+    "city": "Dundalk",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate degrees require IELTS 6.0 overall. Postgraduate courses require IELTS 6.5 overall with no section below 6.0.",
+    "sourceUrl": "https://www.dkit.ie/international/entry-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-iadt",
+    "name": "Dun Laoghaire Institute of Art, Design and Technology",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate baseline is IELTS 6.0 with no band less than 5.5. Postgraduate programmes require IELTS 6.5 with no band less than 6.0.",
+    "sourceUrl": "https://iadt.ie/study/international-students/entry-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-rcsi",
+    "name": "Royal College of Surgeons in Ireland",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Medical, Pharmacy, and Physiotherapy degree programmes require a minimum IELTS score of 6.5 with at least 6.5 in all four components.",
+    "sourceUrl": "https://www.rcsi.com/dublin/undergraduate/entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-nci",
+    "name": "National College of Ireland",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Standard undergraduate entry requires IELTS 6.0 overall with no band lower than 5.5. Master's degrees require IELTS 6.5 with no band lower than 6.0.",
+    "sourceUrl": "https://www.ncirl.ie/International/How-to-Apply/English-Language-Requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-dbs",
+    "name": "Dublin Business School",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "DBS undergraduate programmes require IELTS 6.0 (no component below 5.5). Postgraduate programmes require IELTS 6.5 (no component below 6.0).",
+    "sourceUrl": "https://www.dbs.ie/international-students/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-griffith",
+    "name": "Griffith College Ireland",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate bachelor's degrees require IELTS 6.0 overall. Postgraduate master's programmes require IELTS 6.5 overall with no section under 6.0.",
+    "sourceUrl": "https://www.griffith.ie/international/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-mic",
+    "name": "Mary Immaculate College",
+    "country": "IE",
+    "city": "Limerick",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "MIC requires IELTS 6.5 overall with a minimum of 6.0 in each sub-test for all undergraduate arts and postgraduate degree admissions.",
+    "sourceUrl": "https://www.mic.ul.ie/international/entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-shannon",
+    "name": "Shannon College of Hotel Management",
+    "country": "IE",
+    "city": "Shannon",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6
+      }
+    },
+    "notes": "Undergraduate business in international hotel management requires IELTS 6.0 with minimum 5.5 in each skill. Postgraduate programmes require 6.5 with 6.0 each.",
+    "sourceUrl": "https://www.universityofgalway.ie/shannoncollege/admissions/internationaladmissions/",
     "lastVerified": "2026-09-22"
   }
 ]

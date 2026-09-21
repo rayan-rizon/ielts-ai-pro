@@ -54,7 +54,7 @@ describe('UniversityMatchTool', () => {
     render(<UniversityMatchTool handlePrimaryCta={vi.fn()} />);
 
     const searchInput = screen.getByPlaceholderText(/Search university, city or country/i);
-    fireEvent.change(searchInput, { target: { value: 'Sheff' } });
+    fireEvent.change(searchInput, { target: { value: 'University of Sheff' } });
 
     // Dropdown list should be open
     const suggestionOption = screen.getByRole('option', { name: /University of Sheffield/i });
