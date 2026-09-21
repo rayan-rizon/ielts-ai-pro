@@ -88,18 +88,21 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
   return (
     <nav
       className={cn(
-        'fixed left-0 right-0 top-0 z-100 transition-all duration-350 ease-out',
+        'fixed left-0 right-0 top-0 z-100 transition-[padding,transform] duration-medium ease-sidebar motion-reduce:transition-none',
         cls.nav
       )}
       data-oid="t9q8_5n"
     >
       <div
-        className={cn('mx-auto w-full transition-all duration-350 ease-out', cls.wrapper)}
+        className={cn(
+          'mx-auto w-full transition-[max-width] duration-medium ease-sidebar motion-reduce:transition-none',
+          cls.wrapper
+        )}
         data-oid="ol47a-."
       >
         <div
           className={cn(
-            'relative flex items-center w-full transition-all duration-350 ease-out',
+            'relative flex items-center w-full transition-[height,padding,border-radius,background-color,border-color,box-shadow,backdrop-filter] duration-medium ease-sidebar motion-reduce:transition-none',
             cls.bar
           )}
           style={isScrolled ? { borderWidth: '1px' } : undefined}
@@ -125,7 +128,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
           {/* Centered Content Wrapper */}
           <div
             className={cn(
-              'flex items-center justify-between w-full transition-all duration-350 ease-out z-10',
+              'flex items-center justify-between w-full transition-[max-width,padding] duration-medium ease-sidebar motion-reduce:transition-none z-10',
               isScrolled ? 'max-w-full' : 'max-w-7xl mx-auto px-6 md:px-8'
             )}
           >
@@ -146,7 +149,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                 className={cn(
                   'relative h-10 w-10 sm:h-9 sm:w-9 rounded-full flex items-center justify-center p-0',
                   'bg-[#f4f3fb] dark:bg-white/5 border border-[#e4e2f0] dark:border-white/10',
-                  'transition-all duration-200 ease-sidebar hover:-translate-y-0.5 hover:shadow-sm active:scale-95 cursor-pointer overflow-hidden',
+                  'transition-[transform,background-color,border-color,box-shadow] duration-quick ease-sidebar motion-reduce:transition-none hover:-translate-y-0.5 hover:shadow-sm active:scale-95 cursor-pointer overflow-hidden',
                   'hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30'
                 )}
                 onClick={() => setTheme(isDark ? 'light' : 'dark')}
@@ -166,7 +169,7 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
               </Button>
 
               <Button
-                className="hidden lg:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 ease-sidebar bg-[#5a63df] hover:bg-[#4a52c9] text-white cursor-pointer"
+                className="hidden lg:inline-flex rounded-full px-5 md:px-6 h-8 md:h-9 text-xs md:text-sm font-extrabold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-[transform,background-color,box-shadow] duration-quick ease-sidebar motion-reduce:transition-none bg-[#5a63df] hover:bg-[#4a52c9] text-white cursor-pointer"
                 onClick={handlePrimaryCta}
                 data-oid="g5n7eo4"
               >
@@ -181,24 +184,33 @@ export default function Navbar({ isDark, setTheme, handlePrimaryCta, isSignedIn 
                   the X gets a quarter-turn so closing has the same bit of
                   delight opening does. */}
               <button
-                className="group lg:hidden h-10 w-10 sm:h-9 sm:w-9 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/8 dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-all duration-200 ease-sidebar"
+                className="group lg:hidden relative h-10 w-10 sm:h-9 sm:w-9 flex items-center justify-center p-0 rounded-full bg-[#f4f3fb] dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-[#e4e2f0] dark:border-white/10 hover:bg-[#5a63df]/8 dark:hover:bg-[#8f97ff]/[0.14] hover:text-[#5a63df] dark:hover:text-[#a9afff] hover:border-[#5a63df]/30 dark:hover:border-[#8f97ff]/30 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 transition-[transform,background-color,border-color,color,box-shadow] duration-quick ease-sidebar motion-reduce:transition-none"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileMenuOpen}
                 aria-controls="public-navbar-menu"
                 data-oid="bqhg9k2"
               >
-                {mobileMenuOpen ? (
-                  <X
-                    className="h-4.5 w-4.5 transition-transform duration-200 ease-sidebar group-hover:rotate-90"
-                    data-oid="h3.9c:4"
-                  />
-                ) : (
+                <span className="relative flex h-4.5 w-4.5 items-center justify-center">
                   <Menu
-                    className="h-4.5 w-4.5 transition-transform duration-200 ease-sidebar group-hover:scale-110"
+                    className={cn(
+                      'absolute h-4.5 w-4.5 transition-[opacity,transform] duration-quick ease-sidebar motion-reduce:transition-none',
+                      mobileMenuOpen
+                        ? 'rotate-90 scale-75 opacity-0'
+                        : 'rotate-0 scale-100 opacity-100'
+                    )}
                     data-oid="vli-0_y"
                   />
-                )}
+                  <X
+                    className={cn(
+                      'absolute h-4.5 w-4.5 transition-[opacity,transform] duration-quick ease-sidebar motion-reduce:transition-none',
+                      mobileMenuOpen
+                        ? 'rotate-0 scale-100 opacity-100'
+                        : '-rotate-90 scale-75 opacity-0'
+                    )}
+                    data-oid="h3.9c:4"
+                  />
+                </span>
               </button>
             </div>
           </div>

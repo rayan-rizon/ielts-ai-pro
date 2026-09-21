@@ -405,7 +405,7 @@ function UniversityRequirementsInsights() {
   );
 }
 
-function UniversityRequirementsFaq({ handlePrimaryCta }) {
+function UniversityRequirementsFaq({ onStartPractice }) {
   return (
     <section className="mx-auto mt-16 max-w-7xl px-5 sm:px-6 lg:px-8">
       <div className="border-t border-[#e6e8f5] pt-12 dark:border-white/8">
@@ -440,7 +440,7 @@ function UniversityRequirementsFaq({ handlePrimaryCta }) {
               </div>
               <button
                 type="button"
-                onClick={handlePrimaryCta}
+                onClick={onStartPractice}
                 className="mt-3.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#5a63df] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#4a53cf] active:scale-[0.98]"
               >
                 Start Practice Assessment
@@ -482,39 +482,27 @@ function UniversityRequirementsFaq({ handlePrimaryCta }) {
   );
 }
 
-function UniversityRequirementsCta({ handlePrimaryCta }) {
+function UniversityRequirementsCta({ onStartPractice }) {
   const learnerAvatars = [33, 47, 12, 32, 5];
 
   const benefits = [
-    {
-      icon: Target,
-      title: 'Target Calibration',
-      desc: 'Set your university minimum score.',
-    },
-    {
-      icon: LineChart,
-      title: 'Criterion-Level Scoring',
-      desc: 'Get instant examiner rubric feedback.',
-    },
-    {
-      icon: Star,
-      title: 'Bridge Weak Skills',
-      desc: 'Lift your lowest band before applying.',
-    },
+    { icon: Target, title: 'Target Calibration' },
+    { icon: LineChart, title: 'Criterion-Level Scoring' },
+    { icon: Star, title: 'Bridge Weak Skills' },
   ];
 
   return (
     <section className="mx-auto mt-16 max-w-7xl px-5 sm:px-6 lg:px-8">
-      <div className="relative isolate overflow-hidden rounded-3xl border border-[#ded9ff] bg-linear-to-br from-white via-[#f9f8ff] to-[#f2f0ff] p-6 shadow-sm dark:border-violet-500/25 dark:from-[#141319] dark:via-[#131218] dark:to-[#100f15] sm:p-8 lg:p-10">
-        <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+      <div className="relative isolate overflow-hidden rounded-3xl border border-[#ded9ff] bg-linear-to-br from-white via-[#f9f8ff] to-[#f2f0ff] p-5 shadow-sm dark:border-violet-500/25 dark:from-[#141319] dark:via-[#131218] dark:to-[#100f15] sm:p-7 lg:p-8">
+        <div className="relative z-10 grid items-center gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
           {/* Left Column */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#5e50ee] dark:border-violet-500/30 dark:bg-violet-950/50 dark:text-violet-200">
               <Sparkles className="h-3.5 w-3.5 text-[#6256ef] dark:text-violet-300" />
               Take the Next Step
             </span>
 
-            <h2 className="text-balance text-[clamp(1.8rem,3.2vw,2.8rem)] font-black leading-tight tracking-tight text-slate-900 dark:text-white">
+            <h2 className="text-balance text-[clamp(1.5rem,2.6vw,2.2rem)] font-black leading-tight tracking-tight text-slate-900 dark:text-white">
               Know the band you need.{' '}
               <span className="font-handwritten text-[#5a63df] dark:text-violet-300">
                 Now find out the band you have.
@@ -522,28 +510,24 @@ function UniversityRequirementsCta({ handlePrimaryCta }) {
             </h2>
 
             <p className="max-w-xl text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300">
-              IELTS Ai Pro grades your writing and speaking on official examiner criteria (Task
-              Response, Coherence & Cohesion, Lexical Resource, Grammar) to pinpoint the exact skill
-              holding your application back.
+              IELTS Ai Pro grades your writing and speaking against official examiner criteria to
+              pinpoint the exact skill holding your application back.
             </p>
 
-            {/* Benefit Row */}
-            <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-3">
+            {/* Benefit Row — one compact line, not three two-line blocks. The
+                description under each title only restated the title, so it
+                was height spent on repetition rather than new information. */}
+            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
               {benefits.map((b) => {
                 const BIcon = b.icon;
                 return (
-                  <div key={b.title} className="flex items-start gap-2.5">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:text-violet-300">
+                  <div key={b.title} className="flex items-center gap-1.5">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:text-violet-300">
                       <BIcon className="h-3.5 w-3.5" />
                     </span>
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                        {b.title}
-                      </h4>
-                      <p className="mt-0.5 text-[11px] font-medium leading-tight text-slate-500 dark:text-slate-400">
-                        {b.desc}
-                      </p>
-                    </div>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                      {b.title}
+                    </span>
                   </div>
                 );
               })}
@@ -554,25 +538,26 @@ function UniversityRequirementsCta({ handlePrimaryCta }) {
           <div className="flex justify-center lg:justify-end">
             <button
               type="button"
-              onClick={handlePrimaryCta}
+              onClick={onStartPractice}
               className="group relative block w-full max-w-full overflow-hidden rounded-2xl border border-[#ded9ff] bg-white text-left shadow-lg transition-all duration-250 ease-smooth-out transform-gpu will-change-transform [backface-visibility:hidden] hover:-translate-y-0.5 hover:shadow-xl dark:border-white/10 dark:bg-[#18171f] sm:max-w-[360px]"
             >
               {/* Card Header Banner */}
-              <div className="relative overflow-hidden bg-[#5a63df] p-5 text-white">
+              <div className="relative overflow-hidden bg-[#5a63df] p-4 text-white">
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
                   <Sparkles className="h-3 w-3" />
                   Free Diagnostic Included
                 </span>
 
-                <h3 className="mt-2.5 text-lg font-black tracking-tight leading-tight">
+                {/*
+                  No supporting paragraph here — it only repeated the left
+                  column's sentence in slightly different words. The badge,
+                  heading, and feature pills already say what this does.
+                */}
+                <h3 className="mt-2 text-base font-black tracking-tight leading-tight">
                   Test Your True IELTS Band
                 </h3>
 
-                <p className="mt-1 text-xs font-medium text-indigo-100 leading-relaxed">
-                  Real examiner rubrics for Writing & Speaking with instant score feedback.
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-1.5 text-[10px] font-bold text-white/90">
+                <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10px] font-bold text-white/90">
                   <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-0.5">
                     <Check className="h-3 w-3" /> Band 0-9 Estimate
                   </span>
@@ -583,7 +568,7 @@ function UniversityRequirementsCta({ handlePrimaryCta }) {
               </div>
 
               {/* Card Footer with Avatars */}
-              <div className="flex items-center justify-between border-t border-[#e4e2f0] bg-[#fbfbfe] px-5 py-3.5 dark:border-white/10 dark:bg-[#141319]">
+              <div className="flex items-center justify-between border-t border-[#e4e2f0] bg-[#fbfbfe] px-4 py-3 dark:border-white/10 dark:bg-[#141319]">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2" aria-hidden="true">
                     {learnerAvatars.slice(0, 3).map((avatar) => (
@@ -621,7 +606,9 @@ export default function UniversityRequirements() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  const handlePrimaryCta = () =>
+  // Practice CTAs on this page drive account creation: a signed-out visitor
+  // goes to sign-up, a signed-in one goes straight back to their dashboard.
+  const handleStartPractice = () =>
     navigate(user && !authLoading ? createPageUrl('Dashboard') : createPageUrl('SignUp'));
 
   return (
@@ -668,7 +655,7 @@ export default function UniversityRequirements() {
             title="Match Your Scores Against University Requirements"
             description={`Adjust your skill bands and choose your level. ${TOTAL_VERIFIED_ENTRIES} verified institutions checked against official admission pages with direct source links.`}
           />
-          <UniversityMatchTool handlePrimaryCta={handlePrimaryCta} />
+          <UniversityMatchTool handlePrimaryCta={handleStartPractice} />
         </m.section>
 
         {/* 3 Critical Rules Section */}
@@ -688,7 +675,7 @@ export default function UniversityRequirements() {
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <UniversityRequirementsFaq handlePrimaryCta={handlePrimaryCta} />
+          <UniversityRequirementsFaq onStartPractice={handleStartPractice} />
         </m.div>
 
         {/* Bottom CTA Banner */}
@@ -698,7 +685,7 @@ export default function UniversityRequirements() {
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          <UniversityRequirementsCta handlePrimaryCta={handlePrimaryCta} />
+          <UniversityRequirementsCta onStartPractice={handleStartPractice} />
         </m.div>
       </main>
 
