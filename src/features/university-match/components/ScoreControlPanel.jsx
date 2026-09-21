@@ -134,22 +134,24 @@ function CountrySelector({
             </SelectItem>
           ))}
 
-          <div className="my-1 border-t border-[#e4e2f0] px-2 pt-1.5 dark:border-white/10">
-            <span className={`${MICRO} ${MUTED} block pb-1`}>Upcoming Verification Batches</span>
-            <div className="grid grid-cols-2 gap-1">
-              {UPCOMING_COUNTRIES.slice(0, 4).map((cName) => (
-                <div
-                  key={cName}
-                  className="flex items-center justify-between rounded-md bg-[#f4f3fb] px-2 py-1 text-[10.5px] font-medium text-slate-500 dark:bg-white/[0.04] dark:text-slate-400"
-                >
-                  <span>{cName}</span>
-                  <span className="text-[8px] font-black uppercase tracking-wider text-slate-400">
-                    Soon
-                  </span>
-                </div>
-              ))}
+          {UPCOMING_COUNTRIES.length > 0 && (
+            <div className="my-1 border-t border-[#e4e2f0] px-2 pt-1.5 dark:border-white/10">
+              <span className={`${MICRO} ${MUTED} block pb-1`}>Upcoming Verification Batches</span>
+              <div className="grid grid-cols-2 gap-1">
+                {UPCOMING_COUNTRIES.slice(0, 4).map((cName) => (
+                  <div
+                    key={cName}
+                    className="flex items-center justify-between rounded-md bg-[#f4f3fb] px-2 py-1 text-[10.5px] font-medium text-slate-500 dark:bg-white/[0.04] dark:text-slate-400"
+                  >
+                    <span>{cName}</span>
+                    <span className="text-[8px] font-black uppercase tracking-wider text-slate-400">
+                      Soon
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </SelectContent>
       </Select>
 
@@ -159,10 +161,17 @@ function CountrySelector({
         setCountryCode={setCountryCode}
       />
 
-      <p className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-        <Sparkles className="h-3 w-3 text-[#5a63df] dark:text-violet-400" />
-        Next batch: {UPCOMING_COUNTRIES.slice(0, 4).join(', ')} verifying now.
-      </p>
+      {/*
+        No "next batch" line when nothing is queued — the sentence only made
+        sense while there was a named country waiting, and an empty join()
+        would have rendered "Next batch:  verifying now." with a dangling gap.
+      */}
+      {UPCOMING_COUNTRIES.length > 0 && (
+        <p className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+          <Sparkles className="h-3 w-3 text-[#5a63df] dark:text-violet-400" />
+          Next batch: {UPCOMING_COUNTRIES.slice(0, 4).join(', ')} verifying now.
+        </p>
+      )}
     </div>
   );
 }

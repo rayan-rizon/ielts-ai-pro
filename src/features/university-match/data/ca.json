@@ -92,5 +92,167 @@
     "notes": "Waterloo's standard path asks 6.5 overall with 6.5 in writing and speaking and 6.0 in reading and listening — a higher floor on the productive skills than the receptive ones, which is unusual. A flat alternative of 7.0 overall with no component below 6.0 is also accepted. Only tests taken on or after 1 May 2025 are accepted at time of writing.",
     "sourceUrl": "https://uwaterloo.ca/future-students/admissions/english-language-requirements",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ca-sfu",
+    "name": "Simon Fraser University",
+    "country": "CA",
+    "city": "Burnaby",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Standard undergraduate entry is 6.5 overall with no component below 6.0. Graduate admission is set by the Faculty of Graduate Studies per programme and is not covered here.",
+    "sourceUrl": "https://www.sfu.ca/students/admission/admission-requirements/english-language-requirement.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-dalhousie",
+    "name": "Dalhousie University",
+    "country": "CA",
+    "city": "Halifax",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "School of Architecture",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0
+        }
+      }
+    ],
+    "notes": "Standard undergraduate entry is 6.5 overall with 6.0 in each component. The School of Architecture asks for 7.0 instead. Graduate admission is set per faculty and is not covered here.",
+    "sourceUrl": "https://www.dal.ca/admissions/how-to-apply/undergraduate-admissions/international-applicants/english-language-requirements.html",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-queens",
+    "name": "Queen's University",
+    "country": "CA",
+    "city": "Kingston",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Department of English Literature",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.5
+        }
+      }
+    ],
+    "notes": "Standard undergraduate entry is 6.5 on the Academic Module with no band below 6.0. Graduate programmes generally ask for 7.0 or higher and are set per department — the English Literature MA/PhD asks 7.5.",
+    "sourceUrl": "https://www.queensu.ca/admission/applicants/english-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-carleton",
+    "name": "Carleton University",
+    "country": "CA",
+    "city": "Ottawa",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Direct admission without an ESL requirement needs 6.5 overall with no band below 6.0. A lower score can still lead to conditional admission with mandatory English language coursework in first year.",
+    "sourceUrl": "https://admissions.carleton.ca/esl/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-uvic",
+    "name": "University of Victoria",
+    "country": "CA",
+    "city": "Victoria",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Standard undergraduate entry is 6.5 overall with no component less than 6.0. Some programmes ask for more — one example programme requires 7.0 overall with no component below 6.5.",
+    "sourceUrl": "https://www.uvic.ca/undergraduate/admissions/language-requirements/index.php",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-calgary",
+    "name": "University of Calgary",
+    "country": "CA",
+    "city": "Calgary",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Nursing",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0
+        }
+      },
+      {
+        "programme": "Education",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0
+        }
+      }
+    ],
+    "notes": "Standard undergraduate requirement is 6.5 overall; the university's page does not publish a per-skill minimum alongside it. Nursing and Education ask for 7.0.",
+    "sourceUrl": "https://www.ucalgary.ca/future-students/undergraduate/admissions/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ca-manitoba",
+    "name": "University of Manitoba",
+    "country": "CA",
+    "city": "Winnipeg",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Faculty of Law",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "notes": "Standard undergraduate entry is 6.5 overall with 6.0 in each of the four modules. Law is far higher: 7.0 overall with no section below 7.0.",
+    "sourceUrl": "https://umanitoba.ca/explore/undergraduate-admissions/requirements/english-language-proficiency-requirements",
+    "lastVerified": "2026-09-22"
   }
 ]

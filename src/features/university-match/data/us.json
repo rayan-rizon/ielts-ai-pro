@@ -97,5 +97,124 @@
     "notes": "Applies to PhD and master's programmes admitted through the Griffin Graduate School of Arts and Sciences: overall 7.0 with at least 6.5 in Speaking. Harvard's professional schools (Kennedy School, Medical School, Business School) each publish separate figures and are not covered by this entry — check the specific school.",
     "sourceUrl": "https://gsas.harvard.edu/apply/applying-degree-programs/english-proficiency",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "us-purdue",
+    "name": "Purdue University",
+    "country": "US",
+    "city": "West Lafayette, IN",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Standard undergraduate requirement is 6.5 overall with a minimum of 6.0 in each section. IELTS Online Academic and IELTS Indicator are both accepted. Graduate admission is set per department and is not covered here.",
+    "sourceUrl": "https://admissions.purdue.edu/become-student/english-proficiency/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "us-osu",
+    "name": "Ohio State University",
+    "country": "US",
+    "city": "Columbus, OH",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5
+      }
+    },
+    "notes": "Undergraduate freshman admission asks for IELTS/IELTS Indicator 6.5 or higher. Ohio State's page does not publish a per-skill minimum alongside this figure, so none is shown here.",
+    "sourceUrl": "https://www.undergrad.osu.edu/apply/international-freshmen/apply-step-by-step",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "us-asu",
+    "name": "Arizona State University",
+    "country": "US",
+    "city": "Tempe, AZ",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Nursing (BSN)",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 6.5
+        }
+      },
+      {
+        "programme": "Fulton Schools of Engineering",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 6.5
+        }
+      },
+      {
+        "programme": "Walter Cronkite School of Journalism",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0
+        }
+      }
+    ],
+    "notes": "General undergraduate admission asks for an overall band of 6.0 with no per-skill minimum published. Nursing and Engineering ask for 6.5, and Journalism asks for 7.0.",
+    "sourceUrl": "https://admission.asu.edu/apply/international/undergrad/english-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "us-uga",
+    "name": "University of Georgia",
+    "country": "US",
+    "city": "Athens, GA",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "MAT in TESOL and World Language Education",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "skills": {
+            "writing": 6.5,
+            "speaking": 6.5
+          }
+        }
+      }
+    ],
+    "notes": "Graduate School's general figure is 6.5 overall with no band below 6.0. Undergraduate admission is set separately and is not covered here.",
+    "sourceUrl": "https://grad.uga.edu/admissions/requirements/international-applications/english-language-proficiency-requirement/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "us-virginia-tech",
+    "name": "Virginia Tech",
+    "country": "US",
+    "city": "Blacksburg, VA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Undergraduate admission asks for 6.5 overall with no subscore below 6.5 — an unusually flat floor equal to the overall figure, rather than a lower floor half a band under it.",
+    "sourceUrl": "https://www.vt.edu/admissions/international/requirements.html",
+    "lastVerified": "2026-09-22"
   }
 ]

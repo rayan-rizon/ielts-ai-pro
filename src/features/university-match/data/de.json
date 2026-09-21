@@ -18,5 +18,23 @@
     "notes": "IELTS applies only to TUM's English-taught degree programmes; German-taught degrees want TestDaF or DSH instead and IELTS will not substitute. The English-taught bar is 6.5 overall with no per-skill floor published. Certificates must be under two years old.",
     "sourceUrl": "https://www.tum.de/en/studies/application/application-info-portal/admission-requirements/language-certificates",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "de-kit",
+    "name": "Karlsruhe Institute of Technology (KIT)",
+    "country": "DE",
+    "city": "Karlsruhe",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": ["TOEFL iBT 90", "Prior degree taught in English", "Native speaker exemption"],
+    "notes": "Applies to KIT's English-taught master's programmes (Computer Science, Mechanical Engineering, Electrical Engineering and others): IELTS Academic 6.5 with no section below 5.5. German-taught degrees follow a separate German-language requirement and are not covered here.",
+    "sourceUrl": "https://www.sle.kit.edu/english/vorstudium/master-computer-science.php",
+    "lastVerified": "2026-09-22"
   }
 ]

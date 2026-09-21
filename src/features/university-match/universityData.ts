@@ -13,6 +13,7 @@ import ca from './data/ca.json';
 import de from './data/de.json';
 import gb from './data/gb.json';
 import ie from './data/ie.json';
+import nl from './data/nl.json';
 import nz from './data/nz.json';
 import se from './data/se.json';
 import us from './data/us.json';
@@ -35,10 +36,11 @@ export const COUNTRIES: readonly CountryOption[] = [
   { code: 'SE', name: 'Sweden', flag: '🇸🇪', entries: se as UniversityEntry[] },
   { code: 'DE', name: 'Germany', flag: '🇩🇪', entries: de as UniversityEntry[] },
   { code: 'US', name: 'United States', flag: '🇺🇸', entries: us as UniversityEntry[] },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱', entries: nl as UniversityEntry[] },
 ];
 
 /** Countries curation is working through next, shown as "coming soon". */
-export const UPCOMING_COUNTRIES: readonly string[] = ['Netherlands'];
+export const UPCOMING_COUNTRIES: readonly string[] = [];
 
 /**
  * Sentinel for "no country filter". The picker defaults to this: a learner

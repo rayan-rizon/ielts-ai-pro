@@ -47,5 +47,75 @@
     "notes": "Standard undergraduate minimum is 6.5 overall with not less than 6.0 in any component; some courses ask for more. Postgraduate figures are set per programme and are not consolidated here.",
     "sourceUrl": "https://www.ucd.ie/registry/prospectivestudents/admissions/policiesandgeneralregulations/generalrequirements/minimumenglishlanguagerequirements/",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ie-galway",
+    "name": "University of Galway",
+    "country": "IE",
+    "city": "Galway",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Medicine",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 6.5,
+          "minComponent": 6.5
+        }
+      }
+    ],
+    "notes": "Baseline for Arts, Business, Law, Science and Engineering undergraduate programmes is 6.5 with no section below 6.0. Medicine asks for 6.5 in every component instead of the usual 6.0 floor. Postgraduate figures are set per programme and are not consolidated here.",
+    "sourceUrl": "https://www.universityofgalway.ie/global-galway/studyinireland/entryrequirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-ucc",
+    "name": "University College Cork",
+    "country": "IE",
+    "city": "Cork",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "One floor of 6.5 overall with 6.0 in each band applies to both undergraduate and postgraduate programmes outside the College of Medicine and Health, which sets a higher figure.",
+    "sourceUrl": "https://www.ucc.ie/en/study/comparison/english/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "ie-tu-dublin",
+    "name": "TU Dublin",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.0,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "The minimum standard is unusually flat: 6.0 overall with no component below 6.0 — there is no lower floor under the headline figure, unlike most universities where the component floor sits half a band under the overall score. Some programmes (e.g. Law with a Language, Strategic Management) ask for 6.5 instead.",
+    "sourceUrl": "https://www.tudublin.ie/study/international/how-to-apply/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
   }
 ]

@@ -96,5 +96,59 @@
     "notes": "The general master's requirement is the national English 6 standard: IELTS Academic 6.5 with no part under 5.5. English-subject programmes set a much higher bar — the Master's in English Language and Linguistics asks 7.5 overall with at least 7.0 in writing.",
     "sourceUrl": "https://www.su.se/english/education/how-to-apply/entry-requirements/english-requirement",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "se-liu",
+    "name": "Linköping University",
+    "country": "SE",
+    "city": "Linköping",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": ["Swedish upper secondary English 6", "Prior studies taught in English"],
+    "notes": "Master's entry follows the national English 6 standard: IELTS Academic 6.5 overall with no section below 5.5. Bachelor's programmes are taught in Swedish and are not covered by this entry.",
+    "sourceUrl": "https://liu.se/en/article/masters-entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-chalmers",
+    "name": "Chalmers University of Technology",
+    "country": "SE",
+    "city": "Gothenburg",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": ["Swedish upper secondary English 6", "Prior studies taught in English"],
+    "notes": "Chalmers requires proficiency equivalent to Swedish upper secondary English 6, the national standard met by IELTS Academic 6.5 overall with no section below 5.5. All but one of Chalmers' master's programmes are taught in English; bachelor's programmes are Swedish-taught and not covered here.",
+    "sourceUrl": "https://www.chalmers.se/en/education/application-admission/entry_requirements/Pages/documentation-of-english-language-proficiency.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "se-gothenburg",
+    "name": "University of Gothenburg",
+    "country": "SE",
+    "city": "Gothenburg",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": ["Swedish upper secondary English 6", "Prior studies taught in English"],
+    "notes": "Most master's programmes require English 6 (English B), the national standard met by IELTS Academic 6.5 with no section below 5.5. A small number of programmes (e.g. Theology) accept the lower English 5 standard instead.",
+    "sourceUrl": "https://www.gu.se/en/study-in-gothenburg/apply/apply-for-masters-program",
+    "lastVerified": "2026-09-22"
   }
 ]

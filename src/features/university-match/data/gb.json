@@ -298,5 +298,582 @@
     "notes": "One university-wide minimum of 6.5 overall with no less than 5.5 in each subskill, published separately but identically for undergraduate and postgraduate applicants. Some courses set a higher requirement — check the course page.",
     "sourceUrl": "https://www.cardiff.ac.uk/study/international/english-language-requirements",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-ucl",
+    "name": "University College London (UCL)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 8.0
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 8.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "UCL runs five numbered levels, identical structure for undergraduate and postgraduate: Level 1 is 6.5 (6.0 each), Level 2 is 7.0 (6.5 each), Level 3 is 7.0 (7.0 each), Level 4 is 7.5 (7.0 each), Level 5 is 8.0 (8.0 each). The figure shown is Level 1, the most common. Your course page names its level.",
+    "sourceUrl": "https://www.ucl.ac.uk/prospective-students/undergraduate/application/requirements/english-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-imperial-business",
+    "name": "Imperial College London (Business School)",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 7.0,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Figure covers Imperial College Business School's postgraduate programmes only, not Imperial's other faculties, which set their own English requirements per department. All four scores must come from one sitting.",
+    "sourceUrl": "https://www.imperial.ac.uk/business-school/programmes/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-nottingham",
+    "name": "University of Nottingham",
+    "country": "GB",
+    "city": "Nottingham",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      }
+    },
+    "preSessional": true,
+    "notes": "University-wide floor is 6.0 with no less than 5.5 in any element, the same for undergraduate and postgraduate — but Nottingham states many schools and departments require a higher level than this floor, so check the specific course listing.",
+    "sourceUrl": "https://www.nottingham.ac.uk/studywithus/international-applicants/english-language/english-language-requirements.aspx",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-liverpool",
+    "name": "University of Liverpool",
+    "country": "GB",
+    "city": "Liverpool",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5,
+        "range": {
+          "min": 6.0,
+          "max": 7.5
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "Undergraduate floor is 6.0 with no component below 5.5, rising to 7.5 for some clinical courses. Postgraduate taught (master's) programmes ask 6.5 with no component below 6.0; postgraduate research asks the same or 6.5/5.5 depending on department.",
+    "sourceUrl": "https://www.liverpool.ac.uk/international/applying/entry-requirements/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-aberdeen",
+    "name": "University of Aberdeen",
+    "country": "GB",
+    "city": "Aberdeen",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "skills": {
+          "listening": 5.5,
+          "reading": 5.5,
+          "speaking": 5.5,
+          "writing": 6.0
+        }
+      }
+    },
+    "notes": "Undergraduate entry asks 6.0 overall with listening, reading and speaking each at 5.5 but writing specifically at 6.0 — a higher floor on writing alone, not a blanket minComponent. Medicine (MBChB) sits higher. Postgraduate runs two separate tiers (Standard/Higher) set per subject and is not covered here.",
+    "sourceUrl": "https://www.abdn.ac.uk/study/international/english/undergraduate-degrees---english-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bath",
+    "name": "University of Bath",
+    "country": "GB",
+    "city": "Bath",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Bath publishes three postgraduate-taught tiers: Standard 6.5 (6.0 each), Higher 7.0 (6.5 each), Highest 7.0 (7.0 each). The figure shown is Standard, the most common. Undergraduate figures are published separately and are not covered here.",
+    "sourceUrl": "https://www.bath.ac.uk/corporate-information/postgraduate-taught-courses-english-language-requirements-for-international-students/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-reading",
+    "name": "University of Reading",
+    "country": "GB",
+    "city": "Reading",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 7.0,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Reading's normal postgraduate-taught requirement is 7.0 with no element below 6.0; some courses instead ask the lower alternative of 6.5 with no element below 5.5. Undergraduate figures vary widely by course (from 6.5 up to 8.0 for Speech and Language Therapy) and are not consolidated here.",
+    "sourceUrl": "https://www.reading.ac.uk/ready-to-study/study/how-to-apply/entry-requirements-pg",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-loughborough",
+    "name": "Loughborough University",
+    "country": "GB",
+    "city": "Loughborough",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "One university-wide standard of 6.5 overall with 6.0 in each element, applied identically to undergraduate and postgraduate taught degrees. Some Schools set a higher figure, and postgraduate research can ask more depending on the department.",
+    "sourceUrl": "https://www.lboro.ac.uk/international/apply/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-hull",
+    "name": "University of Hull",
+    "country": "GB",
+    "city": "Hull",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      }
+    },
+    "preSessional": true,
+    "notes": "Baseline for most courses is 6.0 overall with 5.5 in each of reading, writing, speaking and listening. Hull states some courses need a higher score, and all four skills must come from one test sitting — scores cannot be combined across tests.",
+    "sourceUrl": "https://www.hull.ac.uk/study/international-students/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-royal-holloway",
+    "name": "Royal Holloway, University of London",
+    "country": "GB",
+    "city": "Egham",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "MSc Occupational Therapy (Pre-registration)",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.5
+        }
+      }
+    ],
+    "preSessional": true,
+    "notes": "Undergraduate baseline is 6.5 with no subscore below 5.5, though humanities and business courses specifically ask 6.0 in writing. Taught master's programmes ask 6.5 with no subscore below 6.0; research degrees ask 6.5 overall with writing at 7.0.",
+    "sourceUrl": "https://www.royalholloway.ac.uk/studying-here/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-portsmouth",
+    "name": "University of Portsmouth",
+    "country": "GB",
+    "city": "Portsmouth",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Most bachelor's degrees ask 6.0 with no component below 5.5. Most master's degrees ask between 6.5 and 7.0 with no component below 6.0 — the figure shown is the lower end of that published range.",
+    "sourceUrl": "https://www.port.ac.uk/study/international-students/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-uea",
+    "name": "University of East Anglia (UEA)",
+    "country": "GB",
+    "city": "Norwich",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 7.0,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Typical undergraduate entry is 6.5 with no less than 5.5 in each component, though some subjects (Literature, Drama and Creative Writing, Chemistry, Pharmacy) need 6.5 in each component instead. Postgraduate research in Social Sciences asks 7.0 with 6.5 in each component; other postgraduate courses vary between 6.5 and 7.0.",
+    "sourceUrl": "https://www.uea.ac.uk/apply/our-admissions-policy/english-language-equivalencies",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-lancaster",
+    "name": "Lancaster University",
+    "country": "GB",
+    "city": "Lancaster",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Medicine and Surgery",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "preSessional": true,
+    "notes": "Standard undergraduate baseline is 6.5 overall with no element below 5.5. Medicine and Surgery is far higher at 7.0 with no component below 7.0 — a search engine summary conflated this Medicine figure with the general entry standard, which is not correct. Some Science, Mathematics and Social Work courses also sit above the baseline.",
+    "sourceUrl": "https://www.lancaster.ac.uk/study/entry-requirements/undergraduate-english-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-westminster",
+    "name": "University of Westminster",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5,
+        "skills": {
+          "writing": 6.0
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Westminster Law School",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.5
+        }
+      },
+      {
+        "programme": "English Literature / Language (School of Humanities)",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.5
+        }
+      }
+    ],
+    "preSessional": true,
+    "notes": "Undergraduate baseline is 6.0 with no component below 5.5. Postgraduate baseline is 6.5 overall with writing specifically at 6.0 and other components at least 5.5. Law School and English Literature/Language postgraduate courses ask for 7.0 with 6.5 in each component instead.",
+    "sourceUrl": "https://www.westminster.ac.uk/study/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-sheffield-hallam",
+    "name": "Sheffield Hallam University",
+    "country": "GB",
+    "city": "Sheffield",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Nursing",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "skills": {
+            "writing": 6.5,
+            "reading": 7.0,
+            "listening": 7.0,
+            "speaking": 7.0
+          }
+        }
+      },
+      {
+        "programme": "Doctoral (PhD)",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "notes": "Standard undergraduate requirement is 6.0 with 5.5 in each of listening, speaking, reading and writing. Nursing sits much higher at 7.0 with 6.5 in writing and 7.0 in the other three skills. PhD entry requires 7.0 across every skill. Course pages give the exact figure per course.",
+    "sourceUrl": "https://www.shu.ac.uk/study-here/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-oxford-brookes",
+    "name": "Oxford Brookes University",
+    "country": "GB",
+    "city": "Oxford",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "skills": {
+          "reading": 6.0,
+          "writing": 6.0,
+          "listening": 5.5,
+          "speaking": 5.5
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Standard undergraduate entry is 6.0 overall with reading and writing each at 6.0 but listening and speaking only at 5.5 — the productive academic skills sit above the receptive ones rather than one flat floor. Law, Architecture, Interior Architecture, English Literature and Health & Social Care courses ask for more. Postgraduate figures are set per course and are not consolidated here.",
+    "sourceUrl": "https://www.brookes.ac.uk/study/international-students/applying-to-arriving/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-ulster",
+    "name": "Ulster University",
+    "country": "GB",
+    "city": "Belfast",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      }
+    },
+    "preSessional": true,
+    "notes": "Most courses ask for 6.0 overall with no band under 5.5, the same figure for undergraduate and postgraduate. Some courses set a higher requirement — check the specific course page.",
+    "sourceUrl": "https://www.ulster.ac.uk/global/apply/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-bournemouth",
+    "name": "Bournemouth University",
+    "country": "GB",
+    "city": "Bournemouth",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5,
+        "range": {
+          "min": 6.0,
+          "max": 6.5
+        }
+      }
+    },
+    "notes": "Bachelor's and taught master's programmes ask for 6.0 overall with no component below 5.5; research degrees (PhD) ask for 6.5 overall with the same 5.5 floor. Some courses set higher figures — check the specific course page.",
+    "sourceUrl": "https://www.bournemouth.ac.uk/study/international/international-entry-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-kingston",
+    "name": "Kingston University",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "preSessional": true,
+    "notes": "Undergraduate baseline is 6.0 with 5.5 in each element. Postgraduate baseline is 6.5 with 5.5 in each element, though some faculties ask for no element below 6.0 instead.",
+    "sourceUrl": "https://www.kingston.ac.uk/study/international-students/english-language-entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-essex",
+    "name": "University of Essex",
+    "country": "GB",
+    "city": "Colchester",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5,
+        "skills": {
+          "writing": 6.0
+        }
+      }
+    },
+    "notes": "Undergraduate baseline is 6.0 with 5.5 in each component. Postgraduate baseline is 6.5 overall with writing specifically at 6.0 and the remaining components at 5.5. Essex accepts English qualifications up to five years old rather than the more common two-year window.",
+    "sourceUrl": "https://www.essex.ac.uk/international/applying-to-essex",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-keele",
+    "name": "Keele University",
+    "country": "GB",
+    "city": "Keele",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Nursing",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "skills": {
+            "writing": 6.5,
+            "reading": 7.0,
+            "listening": 7.0,
+            "speaking": 7.0
+          }
+        }
+      }
+    ],
+    "notes": "Standard undergraduate requirement is 6.0 with 5.5 in every component. Nursing sits far higher: 7.0 overall with 6.5 in writing and 7.0 in the other three skills.",
+    "sourceUrl": "https://www.keele.ac.uk/study/undergraduate/apply/entryrequirements/internationalentryrequirements/englishlanguagerequirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-stirling",
+    "name": "University of Stirling",
+    "country": "GB",
+    "city": "Stirling",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      }
+    },
+    "notes": "Baseline for most undergraduate and postgraduate taught courses is 6.0 with no sub-skill below 5.5. Some postgraduate programmes (e.g. TESOL) ask for higher, uneven floors across skills instead.",
+    "sourceUrl": "https://www.stir.ac.uk/international/international-students/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "gb-greenwich",
+    "name": "University of Greenwich",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Postgraduate research figure covers most faculties: 6.5 overall with 6.0 in every element. Greenwich Business School, Education, Health & Human Sciences, and Law, Arts & Social Sciences ask for the stricter 6.5 with 6.5 in every element instead. Undergraduate figures are set per course and are not consolidated here.",
+    "sourceUrl": "https://www.gre.ac.uk/international/support-and-help/courses",
+    "lastVerified": "2026-09-22"
   }
 ]

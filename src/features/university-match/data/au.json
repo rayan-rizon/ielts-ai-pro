@@ -209,5 +209,199 @@
     "notes": "Most undergraduate and postgraduate programmes sit at 6.5 overall with 6.0 in each skill. Language-rich disciplines (Education, Language and Literature, Communication and Media Studies, Philosophy and Religious Studies) require 7.0 with 6.5 in each skill at both levels. A Pre-enrolment English Program is available for near-miss scores.",
     "sourceUrl": "https://adelaide.edu.au/study/international-students/how-to-apply/entry-requirements/english-language-proficiency/",
     "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "au-macquarie",
+    "name": "Macquarie University",
+    "country": "AU",
+    "city": "Sydney",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Macquarie's standard tier, 'Competent English', is 6.5 overall with 6.0 in each band, the same for undergraduate and postgraduate coursework. Law, Medicine and Education ask for the higher 'Proficient English' tier instead.",
+    "sourceUrl": "https://www.mq.edu.au/study/admissions-and-entry/apply/international/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-rmit",
+    "name": "RMIT University",
+    "country": "AU",
+    "city": "Melbourne",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "RMIT sets English requirements per course rather than one university figure; 6.5 overall with no band below 6.0 is the common baseline for both undergraduate and postgraduate degrees, with some courses (including Medical Radiation and IT postgraduate) higher.",
+    "sourceUrl": "https://www.rmit.edu.au/study-with-us/international-students/apply-to-rmit-international-students/entry-requirements/english-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-curtin",
+    "name": "Curtin University",
+    "country": "AU",
+    "city": "Perth",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Curtin's minimum standard is 6.5 overall with no band below 6.0, used as the baseline for both undergraduate and postgraduate entry; a published list of courses sets higher requirements.",
+    "sourceUrl": "https://www.curtin.edu.au/study/applying/english-language-requirements/",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-deakin",
+    "name": "Deakin University",
+    "country": "AU",
+    "city": "Melbourne",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5
+      }
+    },
+    "notes": "Deakin's current minimum is IELTS 6.0 (CEFR B2) for undergraduate courses and 6.5 (CEFR C1) for postgraduate coursework — Deakin's own page does not publish a per-skill minimum alongside these overall figures, so none is shown here. Many courses ask for more; check the specific course page.",
+    "sourceUrl": "https://www.deakin.edu.au/international-students/entry-requirements/english",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-griffith",
+    "name": "Griffith University",
+    "country": "AU",
+    "city": "Brisbane",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Most Griffith degrees ask 6.5 overall with no sub-score below 6.0, the common figure for undergraduate and postgraduate coursework. Nursing, Midwifery and some other programmes set a higher requirement, shown on the specific degree listing.",
+    "sourceUrl": "https://www.griffith.edu.au/apply/international/understanding-entry-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-tasmania",
+    "name": "University of Tasmania",
+    "country": "AU",
+    "city": "Hobart",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5,
+        "range": {
+          "min": 6.0,
+          "max": 6.5
+        }
+      }
+    },
+    "notes": "Most undergraduate courses ask 6.0 with no band below 5.5; some ask the higher 6.5 with no band below 6.0. Postgraduate coursework is generally similar but named professional programmes (e.g. Occupational Therapy) require substantially more — 7.0 with no band below 7.0 — so postgraduate is not consolidated into a single figure here.",
+    "sourceUrl": "https://www.utas.edu.au/study/apply/admission-requirements/english-language-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-newcastle",
+    "name": "University of Newcastle (Australia)",
+    "country": "AU",
+    "city": "Newcastle",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Master of Clinical Psychology",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "notes": "Undergraduate entry is an unusually flat 6.0 overall with 6.0 in every subtest — no gap between the overall figure and its floor. Postgraduate entry is 6.5 with 6.0 in every subtest, rising to 7.0 across the board for the Master of Clinical Psychology.",
+    "sourceUrl": "https://www.newcastle.edu.au/study/postgraduate/apply/english-language-proficiency",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "au-une",
+    "name": "University of New England (UNE)",
+    "country": "AU",
+    "city": "Armidale",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "skills": {
+          "writing": 6.5
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Master of Social Work (Qualifying)",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.5,
+          "skills": {
+            "listening": 8.0,
+            "speaking": 8.0,
+            "reading": 7.0,
+            "writing": 7.0
+          }
+        }
+      }
+    ],
+    "notes": "Undergraduate baseline is 6.0 with no sub-band below 5.5. Postgraduate baseline is 6.5 with writing specifically at 6.5 and other sub-bands at least 6.0. The Master of Social Work (Qualifying) is far higher, with listening and speaking both at 8.0.",
+    "sourceUrl": "https://www.une.edu.au/study/international/eligibility/english-language-requirements",
+    "lastVerified": "2026-09-22"
   }
 ]

@@ -163,3 +163,48 @@ The US shape is different from the other seven countries and worth flagging:
   not state an undergraduate minimum at all.
 
 Coverage is now 36 entries across 8 countries.
+
+### 2026-09-22 — batch 5 (57 entries, Netherlands added as a 9th country)
+
+Large expansion across all existing countries plus a new one:
+
+- **GB**: Queen Mary London, Newcastle, Cardiff, UCL, Imperial (Business School),
+  Nottingham, Liverpool, Aberdeen, Bath, Reading, Loughborough, Hull, Royal
+  Holloway, Portsmouth, UEA, Lancaster, Westminster, Sheffield Hallam, Oxford
+  Brookes, Ulster, Bournemouth, Kingston, Essex, Keele, Stirling, Greenwich
+  (26 new — total 34)
+- **AU**: UWA, Adelaide, Newcastle, UNE (4 new — total 13)
+- **CA**: McMaster, Waterloo, SFU, Dalhousie, Queen's, Carleton, UVic, Calgary,
+  Manitoba (9 new — total 12)
+- **US**: Berkeley, Columbia, Cornell, UT Austin, Boston University, Harvard
+  GSAS, Purdue, Ohio State, ASU, Georgia, Virginia Tech (11 new — total 11,
+  batch 1 was empty before this task started at 6)
+- **IE**: UCD, Galway, UCC, TU Dublin (4 new — total 6)
+- **NZ**: Victoria Wellington, Canterbury, Massey, Waikato (4 new — total 6)
+- **SE**: KTH, Stockholm, Linköping, Chalmers, Gothenburg (5 new — total 8)
+- **DE**: KIT (1 new — total 2)
+- **NL**: new country — TU Eindhoven, Erasmus (School of Economics), VU
+  Amsterdam, Leiden (4 entries)
+
+Same standard as every batch: every band read off the institution's own page.
+Two corrections this batch is worth recording, because they are exactly the
+failure mode this whole data set exists to prevent:
+
+- **Lancaster** — a search-engine summary reported the undergraduate baseline
+  as 7.0 with no component below 7.0. Lancaster's own page shows that figure
+  is **Medicine and Surgery only**; the actual undergraduate baseline is 6.5
+  with no element below 5.5.
+- **Manitoba** — a search summary suggested a general undergraduate floor of
+  5.5. The university's own admissions page states 6.5 overall with 6.0 in
+  each of the four modules.
+
+Several universities were investigated this batch and deliberately left out
+because no reliable single figure could be confirmed against an official
+page: University of Kent, University of Leicester, Bangor University (UK);
+UNC Chapel Hill (fetched page states no test-specific number); RMIT/Curtin/
+Griffith postgraduate detail beyond the baseline; University of Sydney's full
+faculty breakdown. A number of pages also returned HTTP 403 or unreadable PDF
+content and were skipped rather than filled in from an unconfirmed search
+snippet.
+
+Coverage is now 93 entries across 9 countries.

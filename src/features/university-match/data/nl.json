@@ -1,0 +1,112 @@
+[
+  {
+    "id": "nl-tue",
+    "name": "Eindhoven University of Technology (TU/e)",
+    "country": "NL",
+    "city": "Eindhoven",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "alternatives": [
+      "TOEFL iBT 90",
+      "Cambridge CAE/CPE (C1)",
+      "Native speaker or prior EMI degree exemption"
+    ],
+    "notes": "One figure applies to both bachelor's and master's admission: 6.5 overall with no section below 6.0. All TU/e bachelor's and master's programmes are taught in English. Only applicants from the US, UK, Ireland, Australia and New Zealand are exempt.",
+    "sourceUrl": "https://www.tue.nl/en/education/become-a-tue-student/admission-and-enrollment/language-proficiency-requirements",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-erasmus-ese",
+    "name": "Erasmus University Rotterdam (School of Economics)",
+    "country": "NL",
+    "city": "Rotterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.5
+      }
+    },
+    "alternatives": ["Prior degree taught fully in English"],
+    "notes": "Covers the Erasmus School of Economics' master's programmes (e.g. MSc Economics and Business): 6.5 overall with 6.5 required in every component — no gap between the overall figure and the floor. Other Erasmus faculties and schools set their own figures, sometimes lower (6.0 overall with 6.0 per component for some law and humanities programmes), and are not consolidated here.",
+    "sourceUrl": "https://www.eur.nl/en/ese/education/master/admission-requirements/students-international-diploma/economics-and-business",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-vu-amsterdam",
+    "name": "Vrije Universiteit Amsterdam",
+    "country": "NL",
+    "city": "Amsterdam",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "PPE and Law in Society",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.5
+        }
+      },
+      {
+        "programme": "School of Humanities master's programmes",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.5
+        }
+      }
+    ],
+    "notes": "Baseline for most bachelor's and master's programmes is 6.5 overall, with no per-skill floor published at that level. Selective programmes (PPE, Law in Society, most Humanities master's) instead ask for 7.0 with at least 6.5 in each of the four components.",
+    "sourceUrl": "https://vu.nl/en/education/more-about/language-proficiency-requirements-master",
+    "lastVerified": "2026-09-22"
+  },
+  {
+    "id": "nl-leiden",
+    "name": "Leiden University",
+    "country": "NL",
+    "city": "Leiden",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Bachelor's programmes ask for 6.0 overall with 6.0 in each separate component — a flat floor equal to the overall figure. Master's programmes ask for 6.5 overall with at least 6.0 in each component. Leiden does not accept IELTS Academic Online, IELTS Indicator or the One Skill Retake.",
+    "sourceUrl": "https://www.universiteitleiden.nl/en/education/study-programmes/bachelor/english-language-and-culture/admission-and-application/admission-requirements",
+    "lastVerified": "2026-09-22"
+  }
+]
