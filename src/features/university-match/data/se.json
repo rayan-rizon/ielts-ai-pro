@@ -1,0 +1,100 @@
+[
+  {
+    "id": "se-lund",
+    "name": "Lund University",
+    "country": "SE",
+    "city": "Lund",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": [
+      "Swedish upper secondary English 6",
+      "Prior university studies taught in English"
+    ],
+    "notes": "Sweden works from the national 'English 6' standard rather than a per-university band. English 6 is met by IELTS Academic 6.5 total with no section below 5.5. Individual programmes may demand more — the English master's programme asks 7.5 with no component under 7.0.",
+    "sourceUrl": "https://www.lunduniversity.lu.se/admissions/bachelors-and-masters-studies/entry-requirements/english-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "se-uppsala",
+    "name": "Uppsala University",
+    "country": "SE",
+    "city": "Uppsala",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": [
+      "Swedish upper secondary English 6",
+      "Prior university studies taught in English"
+    ],
+    "notes": "Master's entry asks IELTS Academic 6.5 overall with no section below 5.5, the national English 6 standard. Individual programmes can require more.",
+    "sourceUrl": "https://www.uu.se/en/study/masters-studies/application/entry-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "se-kth",
+    "name": "KTH Royal Institute of Technology",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "alternatives": ["Swedish upper secondary English 6", "Prior studies taught in English"],
+    "notes": "KTH follows the Swedish English 6 national standard: IELTS Academic 6.5 overall with no section below 5.5, for both bachelor's and master's programmes.",
+    "sourceUrl": "https://www.kth.se/en/studies/master/admissions/entry-requirements-for-master-s-studies-1.6915",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "se-stockholm",
+    "name": "Stockholm University",
+    "country": "SE",
+    "city": "Stockholm",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "English Language and Linguistics",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.5,
+          "skills": {
+            "writing": 7.0
+          }
+        }
+      }
+    ],
+    "alternatives": ["Swedish upper secondary English 6", "Prior studies taught in English"],
+    "notes": "The general master's requirement is the national English 6 standard: IELTS Academic 6.5 with no part under 5.5. English-subject programmes set a much higher bar — the Master's in English Language and Linguistics asks 7.5 overall with at least 7.0 in writing.",
+    "sourceUrl": "https://www.su.se/english/education/how-to-apply/entry-requirements/english-requirement",
+    "lastVerified": "2026-09-21"
+  }
+]

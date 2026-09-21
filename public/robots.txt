@@ -11,6 +11,7 @@ Allow: /
 Allow: /ielts-writing-checker
 Allow: /ielts-speaking-practice-ai
 Allow: /cambridge-ielts-practice-tests
+Allow: /ielts-university-requirements
 
 # Private/authenticated routes
 Disallow: /dashboard/

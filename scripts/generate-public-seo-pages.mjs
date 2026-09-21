@@ -307,6 +307,87 @@ const publicPages = [
     secondaryHref: '/cambridge-ielts-practice-tests',
   },
   {
+    path: 'ielts-university-requirements',
+    title: 'IELTS University Requirements by Country | IELTS Ai Pro',
+    description:
+      'Check IELTS university requirements by country. Compare overall scores and section minimums, then see which universities your band meets before applying.',
+    keywords:
+      'IELTS university requirements, IELTS requirements by university, IELTS score for university admission, minimum IELTS score for university, IELTS requirements by country, IELTS university entry requirements, university IELTS checker',
+    canonical: 'https://www.ieltsai.pro/ielts-university-requirements',
+    imageAlt: 'Student comparing IELTS university requirements by country',
+    prerender: {
+      heading: 'IELTS University Requirements by Country',
+      intro:
+        'Compare IELTS university requirements by country, course, and study level. Set your Listening, Reading, Writing, and Speaking bands to see which universities your score meets. Every requirement is checked against the university’s own page, dated, and linked to that source.',
+      sections: [
+        {
+          heading: 'How IELTS university requirements vary by country',
+          items: [
+            '<strong>Common taught-course baseline:</strong> many universities publish 6.0 to 6.5 overall with a minimum in each skill, while competitive programmes may require Band 7.0 or higher.',
+            '<strong>Country and institution matter:</strong> the same IELTS score can meet one university’s requirement and miss another’s, even for a similar course.',
+            '<strong>Foundation and pathway entry:</strong> some institutions accept a lower band when English support or a pre-sessional route is built into the offer.',
+            '<strong>Professional and research degrees:</strong> Medicine, Nursing, Law, Teaching, MBA, and research programmes often set higher or more specific component minimums.',
+          ],
+        },
+        {
+          heading: 'Why the component minimum decides most applications',
+          ordered: true,
+          items: [
+            '<strong>The overall band is only half the rule:</strong> nearly every university sets a floor for each of the four skills alongside the overall figure.',
+            '<strong>A high average can still fail:</strong> 6.5 overall built from 7.5 Listening, 7.0 Reading, 5.5 Writing, and 6.0 Speaking misses a 6.0 component floor, so the application is rejected despite the overall band being met.',
+            '<strong>The weakest skill is the binding constraint:</strong> raising one weak paper by half a band usually unlocks more universities than raising an already strong paper.',
+            '<strong>Check the per-skill line before applying:</strong> it is stated on the same page as the overall requirement and is the line most applicants skim past.',
+          ],
+        },
+        {
+          heading: 'Requirements are set per course and country',
+          items: [
+            '<strong>Many universities publish a range, not one number:</strong> a single institution can span 5.5 to 7.5 across its programmes and departments.',
+            '<strong>Tiered systems are common:</strong> courses may be assigned Standard, High, or Advanced levels, each with its own overall and component minimums.',
+            '<strong>Country rules are not interchangeable:</strong> UK, US, Canadian, Australian, and European institutions can use different score policies, accepted tests, and conditional pathways.',
+            '<strong>Check the official course page:</strong> the university’s current programme or admissions page is the authority before you pay an application fee.',
+          ],
+        },
+        {
+          heading: 'If your score falls short',
+          ordered: true,
+          items: [
+            '<strong>Check whether a pre-sessional route exists:</strong> many universities admit applicants slightly below the requirement onto a pre-sessional English course that leads into the degree.',
+            '<strong>Target the single weakest skill:</strong> re-sitting to lift one component is faster and cheaper than trying to raise every paper at once.',
+            '<strong>Look at the range, not the headline:</strong> a university whose typical requirement is above your band may still run courses at a lower level.',
+            '<strong>Confirm on the course page before paying a fee:</strong> requirements change between intakes, and the course page is the only authority.',
+          ],
+        },
+      ],
+      faqs: [
+        [
+          'What IELTS score do I need for university admission?',
+          'Many universities set a baseline of 6.0 to 6.5 overall with a minimum in each skill, while competitive courses may require 7.0 or higher. The exact requirement depends on the country, university, course, and study level.',
+        ],
+        [
+          'Can I be rejected if my overall band meets the requirement?',
+          'Yes. Almost every university sets a minimum for each of the four skills as well as an overall band. A 6.5 overall with 5.5 in Writing fails a 6.0 component minimum, so the application is rejected even though the overall figure looks high enough.',
+        ],
+        [
+          'Do all universities publish a single IELTS requirement?',
+          'No. Requirements often vary by country, course, department, and study level. Universities may publish a range or tiered levels instead of one figure, so this page shows the available requirement and links to the official university source.',
+        ],
+        [
+          'How current is this requirement data?',
+          'Every entry carries the date a person last checked it against the university’s own page and links to that page. Entries older than a year are flagged as possibly out of date rather than presented as current.',
+        ],
+        [
+          'What can I do if I am half a band short?',
+          'Many universities run pre-sessional English courses that admit applicants slightly below the requirement. Lifting a single weak skill is also usually faster than re-sitting the whole test.',
+        ],
+      ],
+    },
+    primaryCta: 'Check university IELTS requirements',
+    primaryHref: '#university-requirements-checker',
+    secondaryCta: 'Calculate your overall band score',
+    secondaryHref: '/ielts-band-score-calculator',
+  },
+  {
     path: 'privacy',
     title: 'Privacy Policy & Data Security | IELTS Ai Pro',
     description:

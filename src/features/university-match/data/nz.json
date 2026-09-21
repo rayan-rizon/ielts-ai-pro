@@ -1,0 +1,56 @@
+[
+  {
+    "id": "nz-auckland",
+    "name": "University of Auckland",
+    "country": "NZ",
+    "city": "Auckland",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "Undergraduate degree entry is 6.0 with no band below 5.5; postgraduate is 6.5 with no band below 6.0. Some programmes sit higher. Results are valid two years and the requirement must be met on one test certificate.",
+    "sourceUrl": "https://www.auckland.ac.nz/en/study/applications-and-admissions/entry-requirements/undergraduate-entry-requirements/undergraduate-english-language-requirements.html",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "nz-victoria-wellington",
+    "name": "Victoria University of Wellington",
+    "country": "NZ",
+    "city": "Wellington",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Education (Teaching)",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "preSessional": true,
+    "notes": "Standard undergraduate entry is 6.0 with no band below 5.5; standard postgraduate is 6.5 with no band below 6.0. Several named programmes (Education, Linguistics, TESOL) publish higher figures — check the programme page.",
+    "sourceUrl": "https://www.wgtn.ac.nz/international/applying/entry-requirements",
+    "lastVerified": "2026-09-21"
+  }
+]

@@ -31,6 +31,7 @@ const publicRoutes = [
   '/ielts-writing-checker',
   '/ielts-speaking-practice-ai',
   '/cambridge-ielts-practice-tests',
+  '/ielts-university-requirements',
   '/ielts-band-score-calculator',
   '/blog',
   '/about',
@@ -99,6 +100,15 @@ const generatedSeoPages = {
     title: 'Cambridge IELTS Practice Tests Online | IELTS Ai Pro',
     heading: 'Free online IELTS practice tests with a smarter review loop',
     primaryHref: '/signup',
+  },
+  '/ielts-university-requirements': {
+    path: path.join(root, 'dist/ielts-university-requirements/index.html'),
+    title: 'IELTS University Requirements by Country | IELTS Ai Pro',
+    description:
+      'Check IELTS university requirements by country. Compare overall scores and section minimums, then see which universities your band meets before applying.',
+    heading: 'IELTS University Requirements by Country',
+    primaryHref: '#university-requirements-checker',
+    secondaryHref: '/ielts-band-score-calculator',
   },
   '/about': {
     path: path.join(root, 'dist/about/index.html'),
@@ -251,6 +261,7 @@ const requiredRewrites = {
   '/ielts-writing-checker': '/ielts-writing-checker/index.html',
   '/ielts-speaking-practice-ai': '/ielts-speaking-practice-ai/index.html',
   '/cambridge-ielts-practice-tests': '/cambridge-ielts-practice-tests/index.html',
+  '/ielts-university-requirements': '/ielts-university-requirements/index.html',
 };
 for (const [source, destination] of Object.entries(requiredRewrites)) {
   if (rewrites.get(source) !== destination) {
@@ -290,6 +301,9 @@ for (const [route, config] of Object.entries(generatedSeoPages)) {
   const html = readFileSync(config.path, 'utf8');
   if (!html.includes(`<title>${config.title}</title>`)) {
     fail(`generated ${route} page is missing its page-specific title`);
+  }
+  if (config.description && !html.includes(`<meta name="description" content="${config.description}"`)) {
+    fail(`generated ${route} page is missing its page-specific description`);
   }
   if (!html.includes(`href="${siteUrl}${route}"`)) {
     fail(`generated ${route} page is missing its canonical URL`);

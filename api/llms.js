@@ -49,6 +49,7 @@ function renderLlmsTxt(posts = []) {
 - [AI IELTS Speaking Practice](${SITE_URL}/ielts-speaking-practice-ai): Public explanation of the Parts 1–3 simulator, estimated criterion feedback, limitations, and practice workflow.
 - [Cambridge-style IELTS Practice Tests](${SITE_URL}/cambridge-ielts-practice-tests): Public Reading and Listening practice hub with a diagnostic-review-repeat workflow.
 - [IELTS Band Score Calculator](${SITE_URL}/ielts-band-score-calculator): Overall-band rounding and Reading and Listening raw-score conversions.
+- [IELTS University Requirements by Country](${SITE_URL}/ielts-university-requirements): Compare country- and course-specific IELTS entry scores, including per-skill minimums and links to each institution's official source.
 - [IELTS Preparation Blog](${SITE_URL}/blog): Practical IELTS strategies, study plans, and exam guidance.
 - [About](${SITE_URL}/about): Platform mission and editorial context.
 - [Contact](${SITE_URL}/contact): Support and correction requests.

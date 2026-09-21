@@ -1,0 +1,213 @@
+[
+  {
+    "id": "au-sydney",
+    "name": "University of Sydney",
+    "country": "AU",
+    "city": "Sydney",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "One university-wide minimum of 6.5 with no band below 6.0, the same for undergraduate and postgraduate. Sydney states some faculties and courses set higher figures, so check the course page.",
+    "sourceUrl": "https://www.sydney.edu.au/study/how-to-apply/international-students/english-language-requirements.html",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "au-unsw",
+    "name": "UNSW Sydney",
+    "country": "AU",
+    "city": "Sydney",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.5
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Business and Law",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.0
+        }
+      },
+      {
+        "programme": "Business and Law",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.0
+        }
+      },
+      {
+        "programme": "Education",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.5,
+          "skills": {
+            "reading": 7.0,
+            "writing": 7.0,
+            "listening": 8.0,
+            "speaking": 8.0
+          }
+        }
+      },
+      {
+        "programme": "Social Work",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "notes": "UNSW sets the requirement per faculty. Most faculties (Arts, Design & Architecture, Engineering, Medicine & Health, Science, UNSW Canberra) use 6.5 with 6.0 in each subtest; Business and Law use 7.0. Education is the outlier at 7.5 with 8.0 listening and speaking.",
+    "sourceUrl": "https://www.unsw.edu.au/study/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "au-anu",
+    "name": "Australian National University",
+    "country": "AU",
+    "city": "Canberra",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Master of Clinical Psychology",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      },
+      {
+        "programme": "Master of Professional Psychology",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "notes": "The admission policy sets 6.5 overall with 6.0 in reading, writing, listening and speaking, the same figure for undergraduate and postgraduate coursework. Test must be under two years old.",
+    "sourceUrl": "https://policies.anu.edu.au/ppl/document/ANUP_000408",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "au-uwa",
+    "name": "University of Western Australia",
+    "country": "AU",
+    "city": "Perth",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 7.0,
+        "minComponent": 6.5
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Juris Doctor",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.5,
+          "minComponent": 6.5
+        }
+      },
+      {
+        "programme": "Master of Teaching (Secondary)",
+        "level": "postgraduate",
+        "requirement": {
+          "overall": 7.5,
+          "skills": {
+            "reading": 7.0,
+            "writing": 7.0,
+            "listening": 8.0,
+            "speaking": 8.0
+          }
+        }
+      }
+    ],
+    "notes": "Undergraduate baseline is 6.5 with no band below 6.0. Standard postgraduate coursework asks 7.0 with no band below 6.5, rising to 7.5 for the Juris Doctor and the Master of Teaching, the latter with an unusually high 8.0 in listening and speaking.",
+    "sourceUrl": "https://www.uwa.edu.au/study/how-to-apply/pathways-and-eligibility/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "au-adelaide",
+    "name": "University of Adelaide",
+    "country": "AU",
+    "city": "Adelaide",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.0,
+          "max": 7.0
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Education, Language & Literature, Communication & Media, Philosophy & Religious Studies",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.0,
+          "minComponent": 6.5
+        }
+      }
+    ],
+    "notes": "Most undergraduate and postgraduate programmes sit at 6.5 overall with 6.0 in each skill. Language-rich disciplines (Education, Language and Literature, Communication and Media Studies, Philosophy and Religious Studies) require 7.0 with 6.5 in each skill at both levels. A Pre-enrolment English Program is available for near-miss scores.",
+    "sourceUrl": "https://adelaide.edu.au/study/international-students/how-to-apply/entry-requirements/english-language-proficiency/",
+    "lastVerified": "2026-09-21"
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "ie-trinity-dublin",
+    "name": "Trinity College Dublin",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "alternatives": ["Prior degree taught through English"],
+    "notes": "Two published bands. Band B is 6.5 overall with 6.0 in each band and covers the majority of undergraduate and postgraduate courses; Band C is 7.0 with 6.5 in each band for selected courses. Results must be issued within two years of course start.",
+    "sourceUrl": "https://www.tcd.ie/study/english-language-requirements/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ie-ucd",
+    "name": "University College Dublin",
+    "country": "IE",
+    "city": "Dublin",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "Standard undergraduate minimum is 6.5 overall with not less than 6.0 in any component; some courses ask for more. Postgraduate figures are set per programme and are not consolidated here.",
+    "sourceUrl": "https://www.ucd.ie/registry/prospectivestudents/admissions/policiesandgeneralregulations/generalrequirements/minimumenglishlanguagerequirements/",
+    "lastVerified": "2026-09-21"
+  }
+]

@@ -42,6 +42,7 @@ describe('dynamic public sitemap', () => {
     expect(sitemap).toContain('<loc>https://www.ieltsai.pro/</loc>');
     expect(sitemap).toContain('<loc>https://www.ieltsai.pro/ielts-speaking-practice-ai</loc>');
     expect(sitemap).toContain('<loc>https://www.ieltsai.pro/cambridge-ielts-practice-tests</loc>');
+    expect(sitemap).toContain('<loc>https://www.ieltsai.pro/ielts-university-requirements</loc>');
     expect(sitemap).toContain(
       '<loc>https://www.ieltsai.pro/blog/ielts-reading-paraphrase-traps</loc>'
     );

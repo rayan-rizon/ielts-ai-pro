@@ -16,9 +16,9 @@ import MobileNavMenu from './MobileNavMenu';
 
 import Layers from 'lucide-react/icons/layers';
 import PenLine from 'lucide-react/icons/pen-line';
-import HelpCircle from 'lucide-react/icons/help-circle';
 import BookOpen from 'lucide-react/icons/book-open';
 import Calculator from 'lucide-react/icons/calculator';
+import GraduationCap from 'lucide-react/icons/graduation-cap';
 import Tag from 'lucide-react/icons/tag';
 
 const NAV_LINKS = [
@@ -35,12 +35,6 @@ const NAV_LINKS = [
     description: 'Instant Band 9 criteria feedback',
   },
   {
-    label: 'How it works',
-    href: '/#how-it-works',
-    icon: HelpCircle,
-    description: 'Learn about our AI evaluation engine',
-  },
-  {
     label: 'Blog',
     href: '/blog',
     icon: BookOpen,
@@ -51,6 +45,12 @@ const NAV_LINKS = [
     href: '/ielts-band-score-calculator',
     icon: Calculator,
     description: 'Calculate target overall band score',
+  },
+  {
+    label: 'Universities',
+    href: '/ielts-university-requirements',
+    icon: GraduationCap,
+    description: 'IELTS scores universities require',
   },
   {
     label: 'Pricing',

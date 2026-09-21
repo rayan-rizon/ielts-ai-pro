@@ -177,6 +177,11 @@ const IeltsWritingChecker = lazyWithRetry(
   () => import('@/features/core/pages/IeltsWritingChecker.jsx')
 );
 const IeltsSeoLanding = lazyWithRetry(() => import('@/features/core/pages/IeltsSeoLanding.jsx'));
+// Public by design: this is a top-of-funnel search entry point, so it must work
+// before anyone has an account. It moves inside the user panel later as well.
+const UniversityRequirements = lazyWithRetry(
+  () => import('@/features/core/pages/UniversityRequirements.jsx')
+);
 // Public by design: the unsubscribe link in every marketing email lands here,
 // and someone opting out is often not signed in.
 const UnsubscribeConfirmation = lazyWithRetry(
@@ -263,6 +268,14 @@ const router = createBrowserRouter(
       element: (
         <LazyPage data-oid="calc-page">
           <BandScoreCalculator data-oid="calc-comp" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/ielts-university-requirements',
+      element: (
+        <LazyPage data-oid="university-requirements-page">
+          <UniversityRequirements data-oid="university-requirements-comp" />
         </LazyPage>
       ),
     },

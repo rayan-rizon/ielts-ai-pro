@@ -9,6 +9,12 @@
       "autoPort": true
     },
     {
+      "name": "dev-vite",
+      "runtimeExecutable": "./node_modules/.bin/vite",
+      "runtimeArgs": ["--port", "5175", "--strictPort"],
+      "port": 5175
+    },
+    {
       "name": "preview",
       "runtimeExecutable": "./node_modules/.bin/vite",
       "runtimeArgs": ["preview", "--port", "4173", "--strictPort"],

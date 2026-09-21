@@ -1,0 +1,96 @@
+[
+  {
+    "id": "ca-toronto",
+    "name": "University of Toronto",
+    "country": "CA",
+    "city": "Toronto",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 7.0,
+        "minComponent": 6.5
+      }
+    },
+    "notes": "Undergraduate admission asks 6.5 with no band below 6.0. The School of Graduate Studies sets a higher bar of 7.0 with at least 6.5 in each component (sgs.utoronto.ca). Scores must be achieved on a single test date; the IELTS Indicator and One Skill Retake are not accepted.",
+    "sourceUrl": "https://future.utoronto.ca/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ca-ubc",
+    "name": "University of British Columbia",
+    "country": "CA",
+    "city": "Vancouver",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "The English Language Admission Standard is 6.5 with no part less than 6.0. IELTS General, IELTS Indicator and the One Skill Retake are not accepted — only IELTS Academic. Graduate programmes set their own figures and are not covered here.",
+    "sourceUrl": "https://you.ubc.ca/applying-ubc/requirements/english-language-competency/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ca-mcgill",
+    "name": "McGill University",
+    "country": "CA",
+    "city": "Montreal",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Undergraduate admission asks 6.5 or better with individual component scores of 6.0 or better. Both IELTS Academic and IELTS for UKVI are accepted; the One Skill Retake is not. Scores must be sent electronically by the test centre. Graduate programmes set their own figures.",
+    "sourceUrl": "https://www.mcgill.ca/undergraduate-admissions/apply/english-proficiency",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ca-mcmaster",
+    "name": "McMaster University",
+    "country": "CA",
+    "city": "Hamilton",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "notes": "Undergraduate admission asks 6.5 overall with a minimum of 6.0 in each of the four components. Individual graduate programmes (Engineering, Medical Sciences, Public Policy) publish their own figures, mostly in the same 6.5/6.0 range, and are not consolidated here.",
+    "sourceUrl": "https://future.mcmaster.ca/apply/requirements/english-proficiency/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "ca-waterloo",
+    "name": "University of Waterloo",
+    "country": "CA",
+    "city": "Waterloo",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "skills": {
+          "writing": 6.5,
+          "speaking": 6.5,
+          "reading": 6.0,
+          "listening": 6.0
+        }
+      }
+    },
+    "notes": "Waterloo's standard path asks 6.5 overall with 6.5 in writing and speaking and 6.0 in reading and listening — a higher floor on the productive skills than the receptive ones, which is unusual. A flat alternative of 7.0 overall with no component below 6.0 is also accepted. Only tests taken on or after 1 May 2025 are accepted at time of writing.",
+    "sourceUrl": "https://uwaterloo.ca/future-students/admissions/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  }
+]

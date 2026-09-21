@@ -11,6 +11,7 @@ import ModuleMeters from '@/features/dashboard/components/ModuleMeters';
 import OverallBandPanel from '@/features/dashboard/components/OverallBandPanel';
 import BandTrajectoryChart from '@/features/dashboard/components/BandTrajectoryChart';
 import WeeklyMomentumChart from '@/features/dashboard/components/WeeklyMomentumChart';
+import NextUpPanel from '@/features/dashboard/components/NextUpPanel';
 
 function Wrapper({ children }) {
   return (
@@ -137,5 +138,33 @@ describe('Learner dashboard accuracy', () => {
     expect(screen.getByText('True / False / Not Given')).toBeInTheDocument();
     expect(screen.getByText('Matching Headings')).toBeInTheDocument();
     expect(screen.getByText('Start diagnostic test to rank weak spots')).toBeInTheDocument();
+  });
+
+  it('renders NextUpPanel with whole-card animated border, Sparkles AI icon, and clean recommendations', () => {
+    const { container } = render(
+      <NextUpPanel
+        recommended={{ key: 'listening', title: 'Listening', href: '/listening-test' }}
+        stats={{ moduleAverages: { listening: 0.7 } }}
+        weakestSkill={{
+          module: 'reading',
+          skill_code: 'reading_short_answer',
+          mastery_probability: 0.01,
+          practice_count: 410,
+        }}
+        aiFocus={{ ai_reason: 'Scheduled activity: Reading practice' }}
+        user={{ subscription_tier: 'pro' }}
+      />,
+      { wrapper: Wrapper }
+    );
+
+    expect(container.querySelector('.dashboard-ai-card')).toBeInTheDocument();
+    expect(container.querySelector('.dashboard-ai-card__beam')).toBeInTheDocument();
+    expect(screen.getByText('Next up')).toBeInTheDocument();
+    expect(screen.getByText('0.7')).toBeInTheDocument();
+    expect(screen.getByText('Listening practice')).toBeInTheDocument();
+    expect(screen.getByText('1%')).toBeInTheDocument();
+    expect(screen.getByText('Short answer')).toBeInTheDocument();
+    expect(screen.getByText('Learning path')).toBeInTheDocument();
+    expect(screen.getByText('Update goals')).toBeInTheDocument();
   });
 });

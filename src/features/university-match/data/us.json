@@ -1,0 +1,101 @@
+[
+  {
+    "id": "us-berkeley",
+    "name": "University of California, Berkeley",
+    "country": "US",
+    "city": "Berkeley, CA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5
+      }
+    },
+    "notes": "Berkeley's freshman requirement is an overall band of 6.5, with no minimum stated for individual components on the admissions page. Graduate admission is set by the Graduate Division and by individual departments, and is not covered here. Test must be under 24 months old at course start.",
+    "sourceUrl": "https://admissions.berkeley.edu/requirements-for-international-students/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "us-columbia",
+    "name": "Columbia University",
+    "country": "US",
+    "city": "New York, NY",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7.5
+      }
+    },
+    "notes": "Columbia's undergraduate page states a minimum of 7.5 overall on IELTS Academic. Applicants can alternatively demonstrate proficiency with a 700+ SAT Reading & Writing score or full English-medium secondary schooling. Graduate schools within Columbia set their own figures and are not covered here.",
+    "sourceUrl": "https://undergrad.admissions.columbia.edu/apply/international/english-proficiency",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "us-cornell",
+    "name": "Cornell University",
+    "country": "US",
+    "city": "Ithaca, NY",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7.5
+      }
+    },
+    "notes": "Cornell frames 7.5 as the 'minimum competitive' IELTS Academic score for undergraduate applicants rather than a strict cutoff that automatically disqualifies a lower score — it is a benchmark for a strong application, not a hard floor. Treat this figure as a target, not a guarantee either way.",
+    "sourceUrl": "https://admissions.cornell.edu/resources/submit-english-language-proficiency",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "us-ut-austin",
+    "name": "University of Texas at Austin",
+    "country": "US",
+    "city": "Austin, TX",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5
+      }
+    },
+    "notes": "The minimum acceptable IELTS Academic score for undergraduate admission is an overall band of 6.5. The Graduate School sets the same 6.5 floor separately, though individual graduate programmes may ask for more.",
+    "sourceUrl": "https://admissions.utexas.edu/info-for/international-students/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "us-bu",
+    "name": "Boston University",
+    "country": "US",
+    "city": "Boston, MA",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 7.0
+      }
+    },
+    "notes": "BU states a total/overall score of 7 or higher satisfies its English proficiency requirement for all undergraduate programmes. Individual graduate schools (Engineering, Law, Public Health) publish their own figures, generally 6.5 to 7.0, and are not consolidated here.",
+    "sourceUrl": "https://www.bu.edu/admissions/apply/international/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "us-harvard-gsas",
+    "name": "Harvard University (Griffin Graduate School of Arts and Sciences)",
+    "country": "US",
+    "city": "Cambridge, MA",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "postgraduate": {
+        "overall": 7.0,
+        "skills": {
+          "speaking": 6.5
+        }
+      }
+    },
+    "notes": "Applies to PhD and master's programmes admitted through the Griffin Graduate School of Arts and Sciences: overall 7.0 with at least 6.5 in Speaking. Harvard's professional schools (Kennedy School, Medical School, Business School) each publish separate figures and are not covered by this entry — check the specific school.",
+    "sourceUrl": "https://gsas.harvard.edu/apply/applying-degree-programs/english-proficiency",
+    "lastVerified": "2026-09-21"
+  }
+]

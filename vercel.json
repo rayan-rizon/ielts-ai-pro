@@ -307,6 +307,10 @@
       "destination": "/cambridge-ielts-practice-tests/index.html"
     },
     {
+      "source": "/ielts-university-requirements",
+      "destination": "/ielts-university-requirements/index.html"
+    },
+    {
       "source": "/landing-v2",
       "destination": "/index.html"
     },

@@ -29,7 +29,8 @@
     "compare:text-ai": "node --experimental-strip-types scripts/compare-text-ai-providers.mjs",
     "ai:models": "node --experimental-strip-types scripts/ai-models.mjs",
     "ai:bench": "node --experimental-strip-types scripts/bench-ai-model.mjs",
-    "prepare": "if [ -d .git ]; then husky; fi"
+    "prepare": "if [ -d .git ]; then husky; fi",
+    "data:universities": "node scripts/check-university-data.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.2",

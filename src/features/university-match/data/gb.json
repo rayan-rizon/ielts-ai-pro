@@ -1,0 +1,302 @@
+[
+  {
+    "id": "gb-sheffield",
+    "name": "University of Sheffield",
+    "country": "GB",
+    "city": "Sheffield",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "One university-wide minimum for both levels. Some academic departments require a higher score.",
+    "sourceUrl": "https://www.sheffield.ac.uk/international/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-sussex",
+    "name": "University of Sussex",
+    "country": "GB",
+    "city": "Brighton",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.0,
+          "max": 7.0
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Medicine (BMBS)",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 7.5,
+          "minComponent": 7.0
+        }
+      }
+    ],
+    "preSessional": true,
+    "notes": "Courses map to one of three levels: Standard 6.0 (5.5 each), High 6.5 (6.0 each), Advanced 7.0 (6.5 each). The figure shown is the High level, which most courses use.",
+    "sourceUrl": "https://www.sussex.ac.uk/study/english-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-manchester",
+    "name": "University of Manchester",
+    "country": "GB",
+    "city": "Manchester",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "range": {
+          "min": 5.5,
+          "max": 7.5
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "range": {
+          "min": 5.5,
+          "max": 7.5
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "No single university-wide minimum. Each course sets its own requirement between 5.5 and 7.5, and sub-skill minimums may apply. Check the course profile before applying.",
+    "sourceUrl": "https://www.manchester.ac.uk/study/international/admissions/language-requirements/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-warwick",
+    "name": "University of Warwick",
+    "country": "GB",
+    "city": "Coventry",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.0,
+          "max": 7.0
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.0,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Three published bands: Band A 6.0 (5.5 each), Band B 6.5 (6.0 each), Band C 7.0 (6.5 each). The figure shown is Band B. Your course page names its band. Warwick requires all four scores from one sitting and does not accept the One Skill Retake.",
+    "sourceUrl": "https://warwick.ac.uk/study/undergraduate/applying/english-language-requirements/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-bristol",
+    "name": "University of Bristol",
+    "country": "GB",
+    "city": "Bristol",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.5
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.5
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Bristol publishes lettered profiles rather than one minimum. Verified: Profile A 7.5 (7.0 each), Profile B 7.0 (undergraduate needs 7.0 writing and 6.5 elsewhere; postgraduate 6.5 each), Profile E 6.5 (6.0 each). The figure shown is Profile E. Your course page names its profile — check it before applying.",
+    "sourceUrl": "https://www.bristol.ac.uk/study/language-requirements/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-leeds",
+    "name": "University of Leeds",
+    "country": "GB",
+    "city": "Leeds",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0
+      }
+    },
+    "preSessional": true,
+    "notes": "Baseline is 6.0 (5.5 each) for undergraduate degrees and 6.5 (6.0 each) for masters. Leeds states some courses sit higher, so confirm on the course page. Results must be under two years old at course start.",
+    "sourceUrl": "https://www.leeds.ac.uk/international-applying/doc/entry-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-kcl",
+    "name": "King's College London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.5
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "King's sets a lettered band per course. Undergraduate: Band A 7.5 (7.0 each), Band B 7.0 (6.5 each), Band D 6.5 (6.0 each). Postgraduate: Band B 7.0 (6.5 each), Band C 7.0 (6.5 reading and writing, 6.0 listening and speaking), Band D 6.5 (6.0 each). The figure shown is Band D. All four skills must come from one test.",
+    "sourceUrl": "https://www.kcl.ac.uk/study/undergraduate/how-to-apply/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-birmingham",
+    "name": "University of Birmingham",
+    "country": "GB",
+    "city": "Birmingham",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5,
+        "range": {
+          "min": 6.0,
+          "max": 7.0
+        }
+      }
+    },
+    "higherRequirementProgrammes": [
+      {
+        "programme": "Business School (Group B courses)",
+        "level": "undergraduate",
+        "requirement": {
+          "overall": 6.5,
+          "minComponent": 6.0,
+          "skills": {
+            "writing": 6.5,
+            "speaking": 6.5
+          }
+        }
+      }
+    ],
+    "preSessional": true,
+    "notes": "Undergraduate courses sit in one of four groups: A 6.0 (5.5 each), B 6.5 (6.0 each), C 7.0 (6.5 each), D 7.0 (7.0 each). The figure shown is Group A. Business School courses in Group B additionally need 6.5 in writing and speaking. Postgraduate figures are published separately and are not covered here.",
+    "sourceUrl": "https://www.birmingham.ac.uk/study/undergraduate/apply/entry-requirements/international-entry-requirements",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-qmul",
+    "name": "Queen Mary University of London",
+    "country": "GB",
+    "city": "London",
+    "ieltsAccepted": true,
+    "scope": "programme",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.0,
+        "minComponent": 5.5,
+        "range": {
+          "min": 6.0,
+          "max": 7.0
+        }
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 6.0,
+        "range": {
+          "min": 6.5,
+          "max": 7.0
+        }
+      }
+    },
+    "preSessional": true,
+    "notes": "Requirements are set per school on a numbered band scale. Undergraduate: Band 3 is 6.0 (5.5 each) for Engineering/Science/Maths schools, Band 4 is 6.5 (6.0 each) for Business/Economics, Band 5 is 7.0 (6.0 each) for Arts and health-related institutes. Postgraduate mostly sits at Band 4, with Band 5 for Arts and research programmes. Law has non-standard requirements set separately.",
+    "sourceUrl": "https://www.qmul.ac.uk/international-students/englishlanguagerequirements/undergraduate-and-postgraduate-programmes/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-newcastle",
+    "name": "Newcastle University",
+    "country": "GB",
+    "city": "Newcastle upon Tyne",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "preSessional": true,
+    "notes": "The typical undergraduate baseline is 6.5 overall with no less than 5.5 in each of the four skills; individual course pages state a higher figure where one applies. Postgraduate requirements are set per course rather than centrally and are not covered here.",
+    "sourceUrl": "https://www.ncl.ac.uk/international/language/",
+    "lastVerified": "2026-09-21"
+  },
+  {
+    "id": "gb-cardiff",
+    "name": "Cardiff University",
+    "country": "GB",
+    "city": "Cardiff",
+    "ieltsAccepted": true,
+    "scope": "university",
+    "requirements": {
+      "undergraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      },
+      "postgraduate": {
+        "overall": 6.5,
+        "minComponent": 5.5
+      }
+    },
+    "preSessional": true,
+    "notes": "One university-wide minimum of 6.5 overall with no less than 5.5 in each subskill, published separately but identically for undergraduate and postgraduate applicants. Some courses set a higher requirement — check the course page.",
+    "sourceUrl": "https://www.cardiff.ac.uk/study/international/english-language-requirements",
+    "lastVerified": "2026-09-21"
+  }
+]

@@ -13,6 +13,7 @@ const footerAppDestinations = {
   'Speaking Test Simulator': '/ielts-speaking-practice-ai',
   'Listening Practice Hub': '/cambridge-ielts-practice-tests#listening',
   'Reading Comprehension': '/cambridge-ielts-practice-tests#reading',
+  'University Requirements': '/ielts-university-requirements',
   'IELTS Prep Blog & Guides': '/blog',
   'Cambridge Practice Material': '/cambridge-ielts-practice-tests',
 };
@@ -58,6 +59,16 @@ test.describe('SEO - Title Tags', () => {
     const title = await page.title();
     expect(title.length).toBeGreaterThan(0);
   });
+
+  test('university requirements page should target country-level IELTS intent', async ({
+    page,
+  }) => {
+    await page.goto(`${BASE_URL}/ielts-university-requirements`);
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page).toHaveTitle('IELTS University Requirements by Country | IELTS Ai Pro');
+    await expect(page.locator('h1')).toHaveText('IELTS University Requirements by Country');
+  });
 });
 
 test.describe('SEO - Meta Descriptions', () => {
@@ -81,6 +92,19 @@ test.describe('SEO - Meta Descriptions', () => {
 
     expect(typeof metaDescription).toBe('string');
   });
+
+  test('university requirements page should have a keyword-aligned description', async ({
+    page,
+  }) => {
+    await page.goto(`${BASE_URL}/ielts-university-requirements`);
+    await page.waitForLoadState('domcontentloaded');
+
+    const metaDescription = await page.locator('meta[name="description"]').getAttribute('content');
+
+    expect(metaDescription).toContain('IELTS university requirements');
+    expect(metaDescription?.length).toBeGreaterThanOrEqual(120);
+    expect(metaDescription?.length).toBeLessThanOrEqual(170);
+  });
 });
 
 test.describe('SEO - Heading Structure', () => {
@@ -96,6 +120,14 @@ test.describe('SEO - Heading Structure', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page.locator('h1')).toHaveCount(1);
+  });
+
+  test('university requirements page should have a single intent-aligned h1', async ({ page }) => {
+    await page.goto(`${BASE_URL}/ielts-university-requirements`);
+    await page.waitForLoadState('domcontentloaded');
+
+    await expect(page.locator('h1')).toHaveCount(1);
+    await expect(page.locator('h1')).toContainText('IELTS University Requirements');
   });
 });
 

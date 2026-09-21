@@ -27,6 +27,12 @@ const CORE_ROUTES = [
     changefreq: 'monthly',
     priority: '0.9',
   },
+  {
+    path: '/ielts-university-requirements',
+    lastmod: '2026-09-21',
+    changefreq: 'weekly',
+    priority: '0.9',
+  },
   { path: '/blog', lastmod: '2026-07-26', changefreq: 'weekly', priority: '0.8' },
   { path: '/about', lastmod: '2026-07-26', changefreq: 'monthly', priority: '0.5' },
   { path: '/contact', lastmod: '2026-07-26', changefreq: 'monthly', priority: '0.4' },

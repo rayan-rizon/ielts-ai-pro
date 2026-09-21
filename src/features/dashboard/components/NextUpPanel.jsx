@@ -1,17 +1,9 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, ChevronRight } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
-import {
-  MUTED,
-  NUM,
-  PANEL,
-  PANEL_LINK,
-  PanelFootnote,
-  PanelTitle,
-  ROW_CHEVRON,
-} from './primitives';
+import { MUTED, NUM, PANEL_LINK, PanelFootnote, PanelTitle, ROW_CHEVRON } from './primitives';
 import { formatSkill, modulePage, stripModulePrefix } from './skillLabels';
 import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
@@ -43,8 +35,6 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
 
     if (weakestSkill?.skill_code) {
       const mastery = Math.round((Number(weakestSkill.mastery_probability) || 0) * 100);
-      // practice_count is questions answered of this type, not test sessions —
-      // one test can contribute dozens at once, so "sessions" overstated it.
       const attempts = Number(weakestSkill.practice_count) || 0;
       list.push({
         key: 'skill',
@@ -79,71 +69,82 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
   }, [recommended, stats, weakestSkill, aiFocus, isPro]);
 
   return (
-    <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
-      <PanelTitle
-        label="Next up"
-        accent
-        tip="Ranked by likely impact on your band."
-        action={
-          <span className={cn(NUM, 'text-[11px] font-bold text-slate-500 dark:text-slate-400')}>
-            {actions.length}
-          </span>
-        }
-      />
+    <div className="dashboard-ai-card h-full">
+      {/* Animated rotating border beam around the entire card */}
+      <div className="dashboard-ai-card__beam" aria-hidden="true" />
 
-      {actions.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
-          <CheckCircle2 className="h-6 w-6 text-[rgb(var(--signal-ok))] opacity-60" />
-          <p className={cn('mt-2 text-xs font-medium', MUTED)}>All recommended tasks complete.</p>
-          <Link
-            to={createPageUrl('Reading')}
-            className="mt-2 text-xs font-bold text-[#5a63df] transition-colors duration-150 ease-smooth-out hover:underline active:scale-95"
-          >
-            Practice Cambridge papers →
-          </Link>
-        </div>
-      ) : (
-        <div className="flex-1 space-y-1.5">
-          {actions.map((action, index) => (
+      {/* Card inner surface */}
+      <div className="dashboard-ai-card__inner flex h-full flex-col bg-linear-to-b from-white to-[#faf9ff] p-4 dark:from-[#141319] dark:to-[#100f15]">
+        <PanelTitle
+          label={
+            <span className="inline-flex items-center gap-1.5">
+              Next up
+              <Sparkles className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#8f97ff]" />
+            </span>
+          }
+          accent
+          tip="Ranked by likely impact on your band."
+          action={
+            <span className={cn(NUM, 'text-[11px] font-bold text-slate-500 dark:text-slate-400')}>
+              {actions.length}
+            </span>
+          }
+        />
+
+        {actions.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
+            <CheckCircle2 className="h-6 w-6 text-[rgb(var(--signal-ok))] opacity-60" />
+            <p className={cn('mt-2 text-xs font-medium', MUTED)}>All recommended tasks complete.</p>
             <Link
-              key={action.key}
-              to={action.to}
-              className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 ease-smooth-out hover:-translate-y-0.5 hover:bg-[#f7f6fd] hover:shadow-xs active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#131315]"
+              to={createPageUrl('Reading')}
+              className="mt-2 text-xs font-bold text-[#5a63df] transition-colors duration-150 ease-smooth-out hover:underline active:scale-95"
             >
-              <span
-                className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', RANK[index] || RANK[2])}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-1.5">
-                  {action.value ? (
-                    <span
-                      className={cn(NUM, 'text-sm font-bold text-slate-900 dark:text-slate-50')}
-                    >
-                      {action.value}
-                    </span>
-                  ) : null}
-                  <span className="text-[11px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
-                    {action.label}
-                  </span>
-                </div>
-                <p className={cn('mt-0.5 text-[10px] font-medium leading-snug', MUTED)}>
-                  {action.detail}
-                </p>
-              </div>
-              <ChevronRight className={cn('mt-1 h-3.5 w-3.5', ROW_CHEVRON)} />
+              Practice Cambridge papers →
             </Link>
-          ))}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="flex-1 space-y-1.5">
+            {actions.map((action, index) => (
+              <Link
+                key={action.key}
+                to={action.to}
+                className="group -mx-1 flex items-start gap-2.5 rounded-lg p-2.5 transition-all duration-150 ease-smooth-out hover:-translate-y-0.5 hover:bg-[#f7f6fd] hover:shadow-xs active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#131315]"
+              >
+                <span
+                  className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', RANK[index] || RANK[2])}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-1.5">
+                    {action.value ? (
+                      <span
+                        className={cn(NUM, 'text-sm font-bold text-slate-900 dark:text-slate-50')}
+                      >
+                        {action.value}
+                      </span>
+                    ) : null}
+                    <span className="text-[11px] font-extrabold leading-tight text-slate-800 dark:text-slate-100">
+                      {action.label}
+                    </span>
+                  </div>
+                  <p className={cn('mt-0.5 text-[10px] font-medium leading-snug', MUTED)}>
+                    {action.detail}
+                  </p>
+                </div>
+                <ChevronRight className={cn('mt-1 h-3.5 w-3.5', ROW_CHEVRON)} />
+              </Link>
+            ))}
+          </div>
+        )}
 
-      <PanelFootnote>
-        <Link
-          to={createPageUrl('Onboarding')}
-          className={cn(PANEL_LINK, 'min-h-6 py-1 px-1.5 -my-1 -mx-1.5')}
-        >
-          Update goals
-        </Link>
-      </PanelFootnote>
+        <PanelFootnote>
+          <Link
+            to={createPageUrl('Onboarding')}
+            className={cn(PANEL_LINK, 'min-h-6 -mx-1.5 -my-1 px-1.5 py-1')}
+          >
+            Update goals
+          </Link>
+        </PanelFootnote>
+      </div>
     </div>
   );
 });

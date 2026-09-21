@@ -37,6 +37,7 @@ const footerLinks = {
     icon: Layers,
     links: [
       { label: 'Band Score Calculator', href: '/ielts-band-score-calculator' },
+      { label: 'University Requirements', href: '/ielts-university-requirements' },
       { label: 'Writing Task Evaluator', href: '/ielts-writing-checker' },
       { label: 'Speaking Test Simulator', href: '/ielts-speaking-practice-ai' },
       { label: 'Listening Practice Hub', href: '/cambridge-ielts-practice-tests#listening' },
