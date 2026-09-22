@@ -38,6 +38,7 @@ const CORE_ROUTES = [
   { path: '/contact', lastmod: '2026-07-26', changefreq: 'monthly', priority: '0.4' },
   { path: '/privacy', lastmod: '2026-07-26', changefreq: 'yearly', priority: '0.2' },
   { path: '/terms', lastmod: '2026-07-26', changefreq: 'yearly', priority: '0.2' },
+  { path: '/refund', lastmod: '2026-09-22', changefreq: 'yearly', priority: '0.2' },
 ];
 
 function escapeXml(value = '') {

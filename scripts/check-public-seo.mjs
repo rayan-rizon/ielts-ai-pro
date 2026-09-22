@@ -10,7 +10,7 @@ const retiredRoutes = {
   '/ielts-mock-test-online': '/cambridge-ielts-practice-tests',
   '/free-ielts-practice-tests': '/cambridge-ielts-practice-tests',
   '/ai-ielts-preparation': '/signup',
-  '/ielts-band-score-feedback': '/analytics',
+  '/ielts-band-score-feedback': '/ielts-band-score-calculator',
 };
 const removedStaticPagePaths = [
   '/about',
@@ -25,6 +25,7 @@ const removedStaticPagePaths = [
   '/ielts-writing-checker',
   '/privacy',
   '/terms',
+  '/refund',
 ];
 const publicRoutes = [
   '/',
@@ -38,6 +39,7 @@ const publicRoutes = [
   '/contact',
   '/privacy',
   '/terms',
+  '/refund',
 ];
 
 const fail = (message) => {
@@ -131,6 +133,11 @@ const generatedSeoPages = {
   '/terms': {
     path: path.join(root, 'dist/terms/index.html'),
     title: 'Terms of Service & Usage Policy | IELTS Ai Pro',
+  },
+  '/refund': {
+    path: path.join(root, 'dist/refund/index.html'),
+    title: 'Refund & Cancellation Policy | IELTS Ai Pro',
+    heading: 'Refund & Cancellation Policy',
   },
 };
 
@@ -302,7 +309,10 @@ for (const [route, config] of Object.entries(generatedSeoPages)) {
   if (!html.includes(`<title>${config.title}</title>`)) {
     fail(`generated ${route} page is missing its page-specific title`);
   }
-  if (config.description && !html.includes(`<meta name="description" content="${config.description}"`)) {
+  if (
+    config.description &&
+    !html.includes(`<meta name="description" content="${config.description}"`)
+  ) {
     fail(`generated ${route} page is missing its page-specific description`);
   }
   if (!html.includes(`href="${siteUrl}${route}"`)) {

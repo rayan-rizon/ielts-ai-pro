@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Logo } from '@/components/shared/Logo';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import ChevronDown from 'lucide-react/icons/chevron-down';
@@ -16,6 +16,7 @@ import Linkedin from 'lucide-react/icons/linkedin';
 import Facebook from 'lucide-react/icons/facebook';
 import Instagram from 'lucide-react/icons/instagram';
 import { toast } from 'sonner';
+import { detectLocation } from '@/lib/pricingUtils';
 
 function XIcon({ size = 16, className }) {
   return (
@@ -70,6 +71,7 @@ const footerLinks = {
       { label: 'Contact Support', href: '/contact' },
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Service', href: '/terms' },
+      { label: 'Refund & Cancellation', href: '/refund' },
     ],
   },
 };
@@ -198,10 +200,36 @@ function FooterBrandSection({ handleCopyEmail }) {
   );
 }
 
-function FooterNavigationGrid() {
+function getFooterLegalLinks(isBangladesh) {
+  if (!isBangladesh) return footerLinks;
+
+  const legalDocuments = ['privacy', 'terms', 'refund-cancellation'];
+  const legalLabels = ['Privacy Notice', 'Terms & Conditions', 'Refund & Cancellation'];
+  const regionalCompanyLinks = [
+    { label: 'About Platform', href: '/about' },
+    { label: 'Contact Support', href: '/contact' },
+    ...legalDocuments.map((document, index) => ({
+      label: legalLabels[index],
+      href: `/bd/${document}`,
+    })),
+  ];
+
+  return {
+    ...footerLinks,
+    Company: { ...footerLinks.Company, links: regionalCompanyLinks },
+  };
+}
+
+function FooterNavigationGrid({ links, isBangladesh }) {
   const [openCategories, setOpenCategories] = React.useState({
     'Core Features': true,
   });
+
+  React.useEffect(() => {
+    if (isBangladesh) {
+      setOpenCategories((previous) => ({ ...previous, Company: true }));
+    }
+  }, [isBangladesh]);
 
   const toggleCategory = (title) => {
     setOpenCategories((prev) => ({
@@ -212,7 +240,7 @@ function FooterNavigationGrid() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3 sm:gap-x-6 sm:gap-y-8">
-      {Object.entries(footerLinks).map(([title, category]) => {
+      {Object.entries(links).map(([title, category]) => {
         const Icon = category.icon;
         const isOpen = !!openCategories[title];
 
@@ -263,30 +291,37 @@ function FooterNavigationGrid() {
   );
 }
 
-function FooterBottomBar({ currentYear }) {
+function FooterBottomBar({ currentYear, isBangladesh }) {
+  const legalLinks = isBangladesh
+    ? [
+        { label: 'Privacy Notice', href: '/bd/privacy' },
+        { label: 'Terms & Conditions', href: '/bd/terms' },
+        { label: 'Refund & Cancellation', href: '/bd/refund-cancellation' },
+      ]
+    : [
+        { label: 'Privacy Policy', href: '/privacy' },
+        { label: 'Terms of Service', href: '/terms' },
+        { label: 'Refund & Cancellation', href: '/refund' },
+      ];
+
   return (
     <div className="flex flex-col gap-5 pt-8 text-xs text-slate-400 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 font-medium text-center sm:text-left">
         <span className="text-slate-400">© {currentYear} IELTS Ai Pro</span>
         <span className="hidden sm:inline text-slate-700">•</span>
-        <Link
-          to="/privacy"
-          className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
-          onClick={scrollToPageTopImmediately}
-          viewTransition
-        >
-          Privacy Policy
-        </Link>
-        <span className="text-slate-700">•</span>
-        <Link
-          to="/terms"
-          className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
-          onClick={scrollToPageTopImmediately}
-          viewTransition
-        >
-          Terms of Service
-        </Link>
-        <span className="text-slate-700">•</span>
+        {legalLinks.map((link) => (
+          <React.Fragment key={link.href}>
+            <Link
+              to={link.href}
+              className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
+              onClick={scrollToPageTopImmediately}
+              viewTransition
+            >
+              {link.label}
+            </Link>
+            <span className="text-slate-700">•</span>
+          </React.Fragment>
+        ))}
         <Link
           to="/about"
           className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
@@ -320,6 +355,27 @@ function FooterBottomBar({ currentYear }) {
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const [detectedCountry, setDetectedCountry] = React.useState('');
+  const isRegionalLegalRoute =
+    location.pathname.startsWith('/bd/') || location.pathname.startsWith('/bn/');
+  const isBangladesh = isRegionalLegalRoute || detectedCountry === 'BD';
+  const regionalLinks = getFooterLegalLinks(isBangladesh);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    detectLocation()
+      .then((country) => {
+        if (!cancelled) setDetectedCountry(country || '');
+      })
+      .catch(() => {
+        if (!cancelled) setDetectedCountry('');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, location.search]);
 
   const handleCopyEmail = (e) => {
     e.preventDefault();
@@ -341,9 +397,9 @@ export default function Footer() {
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
         <div className="grid gap-10 border-b border-white/10 pb-10 lg:grid-cols-[1fr_2fr] items-start">
           <FooterBrandSection handleCopyEmail={handleCopyEmail} />
-          <FooterNavigationGrid />
+          <FooterNavigationGrid links={regionalLinks} isBangladesh={isBangladesh} />
         </div>
-        <FooterBottomBar currentYear={currentYear} />
+        <FooterBottomBar currentYear={currentYear} isBangladesh={isBangladesh} />
       </div>
     </footer>
   );

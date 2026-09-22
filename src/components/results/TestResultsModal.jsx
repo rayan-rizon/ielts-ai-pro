@@ -25,6 +25,7 @@ import { OverviewTab } from './test-results-modal/OverviewTab';
 import { DetailedAnalysisTab } from './test-results-modal/DetailedAnalysisTab';
 import { normalizeTestResults } from './test-results-modal/normalizeTestResults';
 import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 function getAssessmentMessage(score) {
   if (score >= 8.5) return 'Unstoppable! You are mastering this exam.';
@@ -134,6 +135,8 @@ const ModalFooter = ({
   onClose,
   onDownloadPdf,
   isDownloadingPdf,
+  sessionId,
+  testType,
 }) => (
   <div className="px-4 sm:px-5 py-2.5 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
@@ -141,6 +144,12 @@ const ModalFooter = ({
     </div>
 
     <div className="flex items-center gap-2.5 w-full sm:w-auto">
+      <AskAiCoachButton
+        compact
+        draft={`Explain the most important lesson from my completed ${testType} result. Use only evidence from this result.`}
+        sourceReference={sessionId ? { type: 'test_session', id: sessionId } : null}
+        className="h-9 flex-1 sm:flex-none"
+      />
       <Button
         variant="outline"
         onClick={onDownloadPdf}
@@ -370,6 +379,8 @@ const ModalContent = React.memo(
           onClose={onClose}
           onDownloadPdf={onDownloadPdf}
           isDownloadingPdf={isDownloadingPdf}
+          sessionId={sessionId}
+          testType={testType}
         />
       </motion.div>
     </TooltipProvider>

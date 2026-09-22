@@ -22,13 +22,18 @@ import {
   FlaskConical,
   Target,
   Lightbulb,
+  MessageCircleMore,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { ReiconChart } from '@/components/icons/ReiconChart';
 import { ReiconTarget } from '@/components/icons/ReiconTarget';
+import { AI_COACH_NAV_VISIBLE } from '@/features/ai-coach/config';
 
 export const userNavigationItems = [
   { title: 'Dashboard', url: createPageUrl('Dashboard'), icon: LayoutGrid },
+  ...(AI_COACH_NAV_VISIBLE
+    ? [{ title: 'AI Coach', url: createPageUrl('AiCoach'), icon: MessageCircleMore }]
+    : []),
   {
     title: 'AI Learning Path',
     url: createPageUrl('LearningPath'),

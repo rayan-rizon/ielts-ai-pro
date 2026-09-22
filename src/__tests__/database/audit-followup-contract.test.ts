@@ -69,15 +69,31 @@ describe('2026-08-27 audit follow-up contracts', () => {
     expect(evaluation).not.toMatch(/aggregatePronunciationEvidence\(allPartsPronunciation\)/);
   });
 
-  it('bounds learner uploads and avoids a second full-file allocation', () => {
+  it('bounds learner uploads and uses a transport-compatible temporary body', () => {
     const upload = readProjectFile('supabase/functions/r2-upload/index.ts');
 
     expect(upload).toContain('CHECKER_MAX_FILE_SIZE = 8 * 1024 * 1024');
+    expect(upload).toContain('CHECKER_RETENTION_MS = 24 * 60 * 60 * 1000');
     expect(upload).toContain('writing-checker/${user.id}');
     expect(upload).toContain('crypto.randomUUID()');
     expect(upload).toContain('file.slice(0, 16).arrayBuffer()');
-    expect(upload).toContain('Body: file');
-    expect(upload).not.toContain('await file.arrayBuffer()');
+    expect(upload).toContain('const fileBytes = new Uint8Array(await file.arrayBuffer())');
+    expect(upload).toContain('Body: fileBytes');
+    expect(upload).toContain(
+      "CacheControl: isWritingCheckerUpload ? 'no-store, max-age=0, must-revalidate'"
+    );
+    expect(upload).toContain('expires_at: expiresAt');
+  });
+
+  it('deletes temporary Task 1 images after evaluation and validates the user prefix', () => {
+    const feedback = readProjectFile('supabase/functions/generateDetailedFeedback/index.ts');
+
+    expect(feedback).toContain('DeleteObjectCommand');
+    expect(feedback).toContain('writing-checker/${userId}/');
+    expect(feedback).toContain(
+      'await deleteTemporaryWritingCheckerObject(temporaryWritingCheckerKey)'
+    );
+    expect(feedback).toContain('R2 lifecycle expiration remains the backstop');
   });
 
   it('keeps exactly one React Query provider and isolates the editor chunk', () => {

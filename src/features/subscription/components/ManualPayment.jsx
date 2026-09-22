@@ -50,6 +50,8 @@ const PAYMENT_METHODS = [
   },
 ];
 
+const BANGLADESH_POLICY_VERSION = '2026-09-22';
+
 export default function ManualPayment({ isOpen, onClose, planData: data, userId }) {
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS[0]);
   const [txnId, setTxnId] = useState('');
@@ -58,6 +60,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
   const [isSuccess, setIsSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -112,6 +115,11 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
 
     if (!cleanPhone || !cleanTxnId) {
       toast.error('Please enter both your phone number and Transaction ID');
+      return;
+    }
+
+    if (!acceptedPolicies) {
+      toast.error('Please review and accept the Bangladesh payment policies');
       return;
     }
 
@@ -176,6 +184,8 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
         currency: 'BDT',
         payment_method: selectedMethod.id,
         campaign_id: data.marketingCampaignId || null,
+        policies_accepted: true,
+        policy_version: BANGLADESH_POLICY_VERSION,
       });
 
       setIsSuccess(true);
@@ -468,11 +478,81 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                 </div>
               </div>
 
+              <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-[#e4e2f0] bg-[#fbfbfe] p-2.5 text-[10px] leading-relaxed text-slate-600 dark:border-white/[0.07] dark:bg-white/[0.03] dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={acceptedPolicies}
+                  onChange={(event) => setAcceptedPolicies(event.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#5a63df]"
+                  aria-label="Accept Bangladesh payment policies"
+                />
+                <span>
+                  I have read and agree to the Bangladesh{' '}
+                  <a
+                    href="/bd/terms"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
+                  >
+                    Terms
+                  </a>
+                  ,{' '}
+                  <a
+                    href="/bd/privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
+                  >
+                    Privacy Notice
+                  </a>
+                  , and{' '}
+                  <a
+                    href="/bd/refund-cancellation"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
+                  >
+                    Refund &amp; Cancellation Policy
+                  </a>
+                  . <span lang="bn">বাংলায়:</span>{' '}
+                  <a
+                    href="/bn/terms"
+                    target="_blank"
+                    rel="noreferrer"
+                    lang="bn"
+                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
+                  >
+                    শর্তাবলি
+                  </a>{' '}
+                  ·{' '}
+                  <a
+                    href="/bn/privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    lang="bn"
+                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
+                  >
+                    গোপনীয়তা বিজ্ঞপ্তি
+                  </a>{' '}
+                  ·{' '}
+                  <a
+                    href="/bn/refund-cancellation"
+                    target="_blank"
+                    rel="noreferrer"
+                    lang="bn"
+                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
+                  >
+                    রিফান্ড নীতি
+                  </a>
+                  .
+                </span>
+              </label>
+
               {/* Action Button & Security */}
               <div className="space-y-1.5 pt-0.5">
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !phone || !txnId}
+                  disabled={isSubmitting || !phone || !txnId || !acceptedPolicies}
                   className="w-full h-9.5 rounded-lg bg-[#5a63df] hover:bg-[#4a52c9] text-white font-bold text-xs tracking-tight transition-all duration-150 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
                 >
                   {isSubmitting ? (

@@ -590,56 +590,77 @@ function layout({
   <a class="skip" href="#main">Skip to content</a>
   <header id="public-header">
     <div class="mobile-backdrop" data-mobile-backdrop></div>
-    <nav class="site-nav" aria-label="Primary">
-      <a class="brand" href="/" aria-label="IELTS Ai Pro Home"><img src="/logo.svg" alt="IELTS Ai Pro Logo" class="brand-light" width="300" height="72"><img src="/footer.svg" alt="IELTS Ai Pro Logo" class="brand-dark" width="300" height="72"></a>
-      <div class="nav-center">
-        <a href="/#features">Platform</a>
-        <a href="/ielts-writing-checker">Writing checker</a>
-        <a href="/#how-it-works">How it works</a>
-        <a href="/blog">Blog</a>
-        <a href="/ielts-band-score-calculator">Calculator</a>
-        <a href="/#pricing">Pricing</a>
-      </div>
-      <div class="nav-actions">
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark theme" aria-pressed="false"><span class="theme-moon">${iconSvg('moon')}</span><span class="theme-sun">${iconSvg('sun')}</span></button>
-        <a class="button" href="/signup">Start Free ${iconSvg('arrow-right')}</a>
-        <button class="mobile-menu-btn" type="button" data-mobile-menu-btn aria-label="Open menu" aria-expanded="false"><span class="icon-menu">${iconSvg('menu')}</span><span class="icon-close">${iconSvg('x')}</span></button>
-      </div>
-    </nav>
-    <div class="mobile-card" data-mobile-card>
-      <div class="mobile-card-header">
-        <span class="mobile-card-sparkle">${iconSvg('sparkles')}</span>
-        <span>Menu</span>
-      </div>
+    <div class="nav-wrapper">
+      <nav class="site-nav" aria-label="Primary">
+        <div class="nav-scroll-progress" aria-hidden="true">
+          <div class="nav-scroll-progress-fill" data-scroll-progress-fill></div>
+        </div>
+        <div class="nav-content">
+          <a class="brand" href="/" aria-label="IELTS Ai Pro Home"><img src="/logo.svg" alt="IELTS Ai Pro Logo" class="brand-light" width="300" height="72" fetchpriority="high"><img src="/footer.svg" alt="IELTS Ai Pro Logo" class="brand-dark" width="300" height="72"></a>
+          <div class="nav-center">
+            <a href="/#features">Platform</a>
+            <a href="/ielts-writing-checker">Writing checker</a>
+            <a href="/blog">Blog</a>
+            <a href="/ielts-band-score-calculator">Calculator</a>
+            <a href="/ielts-university-requirements">Universities</a>
+            <a href="/#pricing">Pricing</a>
+          </div>
+          <div class="nav-actions">
+            <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark theme" aria-pressed="false"><span class="theme-moon">${iconSvg('moon')}</span><span class="theme-sun">${iconSvg('sun')}</span></button>
+            <a class="button" href="/signup">Start Free ${iconSvg('arrow-right')}</a>
+            <button class="mobile-menu-btn" type="button" data-mobile-menu-btn aria-label="Open menu" aria-expanded="false" aria-controls="public-navbar-menu"><span class="icon-menu">${iconSvg('menu')}</span><span class="icon-close">${iconSvg('x')}</span></button>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <div id="public-navbar-menu" class="mobile-card" data-mobile-card>
       <div class="mobile-card-links">
         <a href="/#features" class="mobile-card-link">
           <div class="mobile-link-icon">${iconSvg('layers')}</div>
-          <div class="mobile-link-body"><span class="mobile-link-label">Platform</span></div>
+          <div class="mobile-link-body">
+            <span class="mobile-link-label">Platform</span>
+            <p class="mobile-link-desc">Core IELTS AI tools &amp; practice suite</p>
+          </div>
           <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
         </a>
         <a href="/ielts-writing-checker" class="mobile-card-link">
           <div class="mobile-link-icon">${iconSvg('pen-line')}</div>
-          <div class="mobile-link-body"><span class="mobile-link-label">Writing checker</span><span class="mobile-link-badge">Popular</span></div>
-          <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
-        </a>
-        <a href="/#how-it-works" class="mobile-card-link">
-          <div class="mobile-link-icon">${iconSvg('help-circle')}</div>
-          <div class="mobile-link-body"><span class="mobile-link-label">How it works</span></div>
+          <div class="mobile-link-body">
+            <span class="mobile-link-label">Writing checker</span>
+            <p class="mobile-link-desc">Instant Band 9 criteria feedback</p>
+          </div>
           <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
         </a>
         <a href="/blog" class="mobile-card-link">
           <div class="mobile-link-icon">${iconSvg('book-open')}</div>
-          <div class="mobile-link-body"><span class="mobile-link-label">Blog</span></div>
+          <div class="mobile-link-body">
+            <span class="mobile-link-label">Blog</span>
+            <p class="mobile-link-desc">Study guides, strategies &amp; exam tips</p>
+          </div>
           <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
         </a>
         <a href="/ielts-band-score-calculator" class="mobile-card-link">
           <div class="mobile-link-icon">${iconSvg('calculator')}</div>
-          <div class="mobile-link-body"><span class="mobile-link-label">Calculator</span></div>
+          <div class="mobile-link-body">
+            <span class="mobile-link-label">Calculator</span>
+            <p class="mobile-link-desc">Calculate target overall band score</p>
+          </div>
+          <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
+        </a>
+        <a href="/ielts-university-requirements" class="mobile-card-link">
+          <div class="mobile-link-icon">${iconSvg('graduation-cap')}</div>
+          <div class="mobile-link-body">
+            <span class="mobile-link-label">Universities</span>
+            <p class="mobile-link-desc">IELTS scores universities require</p>
+          </div>
           <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
         </a>
         <a href="/#pricing" class="mobile-card-link">
           <div class="mobile-link-icon">${iconSvg('tag')}</div>
-          <div class="mobile-link-body"><span class="mobile-link-label">Pricing</span></div>
+          <div class="mobile-link-body">
+            <span class="mobile-link-label">Pricing</span>
+            <p class="mobile-link-desc">Flexible access &amp; membership plans</p>
+          </div>
           <span class="mobile-link-arrow">${iconSvg('chevron-right')}</span>
         </a>
       </div>
@@ -665,14 +686,57 @@ function layout({
           <details class="footer-group" open><summary><span class="footer-group-icon">▦</span>Core Features</summary><ul><li><a href="/ielts-band-score-calculator">Band Score Calculator</a></li><li><a href="/ielts-writing-checker">Writing Task Evaluator</a></li><li><a href="/ielts-speaking-practice-ai">Speaking Test Simulator</a></li><li><a href="/cambridge-ielts-practice-tests#listening">Listening Practice Hub</a></li><li><a href="/cambridge-ielts-practice-tests#reading">Reading Comprehension</a></li></ul></details>
           <details class="footer-group" open><summary><span class="footer-group-icon">▤</span>Test Prep</summary><ul><li><a href="/blog?category=Writing">Writing Band Score Criteria</a></li><li><a href="/blog?category=Speaking">Speaking Criteria Breakdown</a></li><li><a href="/blog?category=Reading">Reading Strategies</a></li><li><a href="/blog?category=Listening">Listening Strategies</a></li></ul></details>
           <details class="footer-group" open><summary><span class="footer-group-icon">✦</span>Resources</summary><ul><li><a href="/blog">IELTS Prep Blog &amp; Guides</a></li><li><a href="/cambridge-ielts-practice-tests">Cambridge Practice Material</a></li><li><a href="/blog?category=Mock%20Tests">Mock Test Guides</a></li><li><a href="/blog?category=Study%20Planning">Study Plans</a></li></ul></details>
-          <details class="footer-group" open><summary><span class="footer-group-icon">▣</span>Company</summary><ul><li><a href="/about">About Platform</a></li><li><a href="/contact">Contact Support</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li></ul></details>
+          <details class="footer-group" open><summary><span class="footer-group-icon">▣</span>Company</summary><ul><li><a href="/about">About Platform</a></li><li><a href="/contact">Contact Support</a></li><li><a href="/privacy" data-policy-key="privacy">Privacy Policy</a></li><li><a href="/terms" data-policy-key="terms">Terms of Service</a></li><li><a href="/refund" data-policy-key="refund">Refund &amp; Cancellation</a></li></ul></details>
         </nav>
       </div>
-      <div class="footer-bottom"><div class="footer-legal"><span>© ${new Date().getFullYear()} IELTS Ai Pro</span><span>•</span><a href="/privacy">Privacy Policy</a><span>•</span><a href="/terms">Terms of Service</a><span>•</span><a href="/about">About Platform</a></div><div class="footer-trust"><span class="independence-badge">✓ Independent prep platform. Not affiliated with IELTS, IDP, or British Council.</span><button class="back-to-top" type="button" aria-label="Scroll back to top" title="Back to top">${iconSvg('arrow-up')}</button></div></div>
+      <div class="footer-bottom"><div class="footer-legal"><span>© ${new Date().getFullYear()} IELTS Ai Pro</span><span>•</span><a href="/privacy" data-policy-key="privacy">Privacy Policy</a><span>•</span><a href="/terms" data-policy-key="terms">Terms of Service</a><span>•</span><a href="/refund" data-policy-key="refund">Refund &amp; Cancellation</a><span>•</span><a href="/about">About Platform</a></div><div class="footer-trust"><span class="independence-badge">✓ Independent prep platform. Not affiliated with IELTS, IDP, or British Council.</span><button class="back-to-top" type="button" aria-label="Scroll back to top" title="Back to top">${iconSvg('arrow-up')}</button></div></div>
     </div>
   </footer>
   <script>
-    (()=>{const root=document.documentElement;const h=document.getElementById('public-header');const mobBtn=document.querySelector('[data-mobile-menu-btn]');const mobCard=document.querySelector('[data-mobile-card]');const mobBackdrop=document.querySelector('[data-mobile-backdrop]');const toggleMobileMenu=(open)=>{const isCurrentlyOpen=mobCard?.classList.contains('is-open');const shouldOpen=open!==undefined?open:!isCurrentlyOpen;mobBtn?.setAttribute('aria-expanded',String(shouldOpen));mobBtn?.setAttribute('aria-label',shouldOpen?'Close menu':'Open menu');mobCard?.classList.toggle('is-open',shouldOpen);mobBackdrop?.classList.toggle('is-open',shouldOpen);document.body.style.overflow=shouldOpen?'hidden':''};mobBtn?.addEventListener('click',()=>toggleMobileMenu());mobBackdrop?.addEventListener('click',()=>toggleMobileMenu(false));mobCard?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggleMobileMenu(false)));const groups=[...document.querySelectorAll('.footer-group')];const sync=()=>h?.classList.toggle('is-scrolled',scrollY>20);const syncFooter=()=>groups.forEach((group,index)=>{group.open=innerWidth>=640||index===0});const theme=document.querySelector('[data-theme-toggle]');const syncTheme=()=>{const dark=root.classList.contains('dark');theme?.setAttribute('aria-pressed',String(dark));theme?.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme')};theme?.addEventListener('click',()=>{const dark=!root.classList.contains('dark');root.classList.toggle('dark',dark);root.classList.toggle('light',!dark);try{localStorage.setItem('vite-ui-theme',dark?'dark':'light')}catch(_){}syncTheme()});addEventListener('scroll',sync,{passive:true});addEventListener('resize',syncFooter,{passive:true});sync();syncFooter();syncTheme();document.querySelector('.back-to-top')?.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));document.querySelectorAll('[data-toc-card]').forEach(card=>{const toggle=card.querySelector('.toc-toggle');const links=[...card.querySelectorAll('[data-toc-link]')];const setOpen=open=>{card.dataset.tocOpen=String(open);toggle?.setAttribute('aria-expanded',String(open));toggle?.setAttribute('aria-label',open?'Collapse table of contents':'Expand table of contents')};setOpen(true);toggle?.addEventListener('click',()=>setOpen(card.dataset.tocOpen==='false'));links.forEach(link=>link.addEventListener('click',()=>{setOpen(true);links.forEach(item=>item.classList.toggle('is-active',item===link))}));const headings=links.map(link=>document.getElementById(link.getAttribute('href')?.slice(1))).filter(Boolean);if(headings.length&&'IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){links.forEach(link=>link.classList.toggle('is-active',link.getAttribute('href')==='#'+entry.target.id))}}),{rootMargin:'-80px 0px -75% 0px'});headings.forEach(heading=>observer.observe(heading))}});document.querySelectorAll('[data-featured-carousel]').forEach(carousel=>{const slides=[...carousel.querySelectorAll('[data-featured-slide]')];const dots=[...carousel.querySelectorAll('[data-carousel-dot]')];const count=carousel.querySelector('[data-carousel-count]');let active=0,timer,touchStart;const show=(index,direction=1)=>{active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>{const current=i===active;slide.classList.toggle('active',current);if(current){slide.style.setProperty('--slide-enter',(direction<0?'-':'')+'32px');slide.classList.remove('is-entering');void slide.offsetWidth;slide.classList.add('is-entering')}});dots.forEach((dot,i)=>{dot.classList.toggle('active',i===active);i===active?dot.setAttribute('aria-current','true'):dot.removeAttribute('aria-current')});if(count)count.textContent=(active+1)+' of '+slides.length};const stop=()=>clearInterval(timer);const start=()=>{stop();if(slides.length>1&&!matchMedia('(prefers-reduced-motion: reduce)').matches)timer=setInterval(()=>show(active+1,1),6000)};const move=direction=>{show(active+direction,direction);start()};carousel.querySelector('.carousel-prev')?.addEventListener('click',()=>move(-1));carousel.querySelector('.carousel-next')?.addEventListener('click',()=>move(1));dots.forEach((dot,i)=>dot.addEventListener('click',()=>{show(i,i>=active?1:-1);start()}));carousel.addEventListener('mouseenter',stop);carousel.addEventListener('mouseleave',start);carousel.addEventListener('focusin',stop);carousel.addEventListener('focusout',event=>{if(!carousel.contains(event.relatedTarget))start()});carousel.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();move(-1)}if(event.key==='ArrowRight'){event.preventDefault();move(1)}});carousel.addEventListener('touchstart',event=>{touchStart=event.touches[0]?.clientX},{passive:true});carousel.addEventListener('touchend',event=>{const end=event.changedTouches[0]?.clientX;if(typeof touchStart==='number'&&typeof end==='number'&&Math.abs(touchStart-end)>48)move(touchStart>end?1:-1);touchStart=undefined},{passive:true});show(0,0);start()})})();
+    (() => {
+      const documents = {
+        privacy: { global: ['/privacy', 'Privacy Policy'], local: ['/bd/privacy', 'Privacy Notice'] },
+        terms: { global: ['/terms', 'Terms of Service'], local: ['/bd/terms', 'Terms & Conditions'] },
+        refund: { global: ['/refund', 'Refund & Cancellation'], local: ['/bd/refund-cancellation', 'Refund & Cancellation'] },
+      };
+      const applyCountry = (country) => {
+        const inBangladesh = String(country || '').toUpperCase() === 'BD';
+        document.querySelectorAll('[data-policy-key]').forEach((link) => {
+          const document = documents[link.dataset.policyKey];
+          const destination = inBangladesh ? document?.local : document?.global;
+          if (!destination) return;
+          link.setAttribute('href', destination[0]);
+          link.textContent = destination[1];
+        });
+      };
+      let country = new URLSearchParams(window.location.search).get('country');
+      try {
+        if (country) {
+          localStorage.setItem('user_country', country.toUpperCase());
+        } else {
+          country = localStorage.getItem('user_country') || '';
+          if (!country && ['Asia/Dhaka', 'Asia/Chittagong'].includes(Intl.DateTimeFormat().resolvedOptions().timeZone)) {
+            country = 'BD';
+            localStorage.setItem('user_country', country);
+          }
+        }
+      } catch (_) {}
+      if (country) {
+        applyCountry(country);
+      } else {
+        fetch('https://ipapi.co/json/')
+          .then((response) => response.ok ? response.json() : null)
+          .then((data) => {
+            if (!data?.country_code) return;
+            try { localStorage.setItem('user_country', data.country_code.toUpperCase()); } catch (_) {}
+            applyCountry(data.country_code);
+          })
+          .catch(() => {});
+      }
+    })();
+  </script>
+  <script>
+    (()=>{const root=document.documentElement;const h=document.getElementById('public-header');const mobBtn=document.querySelector('[data-mobile-menu-btn]');const mobCard=document.querySelector('[data-mobile-card]');const mobBackdrop=document.querySelector('[data-mobile-backdrop]');const toggleMobileMenu=(open)=>{const isCurrentlyOpen=mobCard?.classList.contains('is-open');const shouldOpen=open!==undefined?open:!isCurrentlyOpen;mobBtn?.setAttribute('aria-expanded',String(shouldOpen));mobBtn?.setAttribute('aria-label',shouldOpen?'Close menu':'Open menu');mobCard?.classList.toggle('is-open',shouldOpen);mobBackdrop?.classList.toggle('is-open',shouldOpen);document.body.style.overflow=shouldOpen?'hidden':''};mobBtn?.addEventListener('click',()=>toggleMobileMenu());mobBackdrop?.addEventListener('click',()=>toggleMobileMenu(false));mobCard?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>toggleMobileMenu(false)));const groups=[...document.querySelectorAll('.footer-group')];const sync=()=>{h?.classList.toggle('is-scrolled',scrollY>20);const fill=document.querySelector('[data-scroll-progress-fill]');if(fill){const winScroll=document.body.scrollTop||document.documentElement.scrollTop;const height=document.documentElement.scrollHeight-document.documentElement.clientHeight;fill.style.width=(height>0?(winScroll/height)*100:0)+'%';}};const syncFooter=()=>groups.forEach((group,index)=>{group.open=innerWidth>=640||index===0});const theme=document.querySelector('[data-theme-toggle]');const syncTheme=()=>{const dark=root.classList.contains('dark');theme?.setAttribute('aria-pressed',String(dark));theme?.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme')};theme?.addEventListener('click',()=>{const dark=!root.classList.contains('dark');root.classList.toggle('dark',dark);root.classList.toggle('light',!dark);try{localStorage.setItem('vite-ui-theme',dark?'dark':'light')}catch(_){}syncTheme()});addEventListener('scroll',sync,{passive:true});addEventListener('resize',syncFooter,{passive:true});sync();syncFooter();syncTheme();document.querySelector('.back-to-top')?.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));document.querySelectorAll('[data-toc-card]').forEach(card=>{const toggle=card.querySelector('.toc-toggle');const links=[...card.querySelectorAll('[data-toc-link]')];const setOpen=open=>{card.dataset.tocOpen=String(open);toggle?.setAttribute('aria-expanded',String(open));toggle?.setAttribute('aria-label',open?'Collapse table of contents':'Expand table of contents')};setOpen(true);toggle?.addEventListener('click',()=>setOpen(card.dataset.tocOpen==='false'));links.forEach(link=>link.addEventListener('click',()=>{setOpen(true);links.forEach(item=>item.classList.toggle('is-active',item===link))}));const headings=links.map(link=>document.getElementById(link.getAttribute('href')?.slice(1))).filter(Boolean);if(headings.length&&'IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){links.forEach(link=>link.classList.toggle('is-active',link.getAttribute('href')==='#'+entry.target.id))}}),{rootMargin:'-80px 0px -75% 0px'});headings.forEach(heading=>observer.observe(heading))}});document.querySelectorAll('[data-featured-carousel]').forEach(carousel=>{const slides=[...carousel.querySelectorAll('[data-featured-slide]')];const dots=[...carousel.querySelectorAll('[data-carousel-dot]')];const count=carousel.querySelector('[data-carousel-count]');let active=0,timer,touchStart;const show=(index,direction=1)=>{active=(index+slides.length)%slides.length;slides.forEach((slide,i)=>{const current=i===active;slide.classList.toggle('active',current);if(current){slide.style.setProperty('--slide-enter',(direction<0?'-':'')+'32px');slide.classList.remove('is-entering');void slide.offsetWidth;slide.classList.add('is-entering')}});dots.forEach((dot,i)=>{dot.classList.toggle('active',i===active);i===active?dot.setAttribute('aria-current','true'):dot.removeAttribute('aria-current')});if(count)count.textContent=(active+1)+' of '+slides.length};const stop=()=>clearInterval(timer);const start=()=>{stop();if(slides.length>1&&!matchMedia('(prefers-reduced-motion: reduce)').matches)timer=setInterval(()=>show(active+1,1),6000)};const move=direction=>{show(active+direction,direction);start()};carousel.querySelector('.carousel-prev')?.addEventListener('click',()=>move(-1));carousel.querySelector('.carousel-next')?.addEventListener('click',()=>move(1));dots.forEach((dot,i)=>dot.addEventListener('click',()=>{show(i,i>=active?1:-1);start()}));carousel.addEventListener('mouseenter',stop);carousel.addEventListener('mouseleave',start);carousel.addEventListener('focusin',stop);carousel.addEventListener('focusout',event=>{if(!carousel.contains(event.relatedTarget))start()});carousel.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'){event.preventDefault();move(-1)}if(event.key==='ArrowRight'){event.preventDefault();move(1)}});carousel.addEventListener('touchstart',event=>{touchStart=event.touches[0]?.clientX},{passive:true});carousel.addEventListener('touchend',event=>{const end=event.changedTouches[0]?.clientX;if(typeof touchStart==='number'&&typeof end==='number'&&Math.abs(touchStart-end)>48)move(touchStart>end?1:-1);touchStart=undefined},{passive:true});show(0,0);start()})})();
   </script>
 </body></html>`;
 }

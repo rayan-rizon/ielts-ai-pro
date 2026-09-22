@@ -508,6 +508,72 @@ const publicPages = [
       ],
     },
   },
+  {
+    path: 'refund',
+    title: 'Refund & Cancellation Policy | IELTS Ai Pro',
+    description:
+      'Understand subscription cancellation, AI-credit usage, the unused-purchase refund window, and consumer rights for IELTS Ai Pro purchases made through Stripe.',
+    canonical: 'https://www.ieltsai.pro/refund',
+    imageAlt: 'IELTS Ai Pro refund and cancellation policy',
+    prerender: {
+      heading: 'Refund & Cancellation Policy',
+      intro:
+        'This policy explains the voluntary refund window for an unused first purchase, what happens when paid SaaS features or AI credits are used, and how to stop future subscription renewals.',
+      sections: [
+        {
+          heading: 'Scope and legal rights',
+          items: [
+            'This policy applies to paid IELTS Ai Pro purchases processed through Stripe. It does not exclude or limit consumer rights or remedies that cannot legally be excluded or limited where you live.',
+            'A statutory cancellation or withdrawal right is separate from the voluntary seven-day offer. Contact us within the applicable legal period; charges for service already provided will be handled only as local law permits.',
+          ],
+        },
+        {
+          heading: 'Canceling a subscription',
+          items: [
+            'Cancel from your account subscription settings to stop future renewals. Paid access normally continues until the current billing period ends; canceling alone does not refund that period or unused time unless law requires otherwise.',
+          ],
+        },
+        {
+          heading: 'Seven-day unused-purchase window',
+          items: [
+            'A voluntary full refund may be requested within seven calendar days of the first paid subscription purchase only if it is completely unused: no paid-only feature accessed, no paid AI request or evaluation consuming credits or allowances, no paid test started, and no paid-only material downloaded.',
+            'Seven days is a request window, not a free trial. Using any paid feature or one AI credit ends this voluntary offer. Using all included credits within seven days does not qualify the purchase for an unused-purchase refund.',
+            'A failed AI request that produced no usable result and consumed no credit or allowance is not completed usage for this voluntary offer.',
+          ],
+        },
+        {
+          heading: 'Non-refundable situations',
+          items: [
+            'Except where applicable law or a billing/service exception requires otherwise, used purchases, renewals, repeat purchases, purchases outside the seven-day window, unused subscription time or credits, change of mind, dissatisfaction with estimated AI feedback, and failure to achieve a particular IELTS result are not eligible for a voluntary refund.',
+            'This voluntary usage rule does not remove a non-waivable legal right or a remedy for a confirmed billing or service problem.',
+          ],
+        },
+        {
+          heading: 'Billing and service exceptions',
+          items: [
+            'We review confirmed duplicate or incorrect charges, payments where the purchased service was not supplied, material failures preventing the core paid service, reported unauthorized transactions, and any other remedy required by applicable law.',
+          ],
+        },
+        {
+          heading: 'How to request a refund',
+          items: [
+            'Email mail@ieltsai.pro from the account email with the purchase date, plan, amount, Stripe receipt or transaction reference, and a brief explanation. Never send a password, full card number, security code, or one-time code.',
+            'Approved refunds are submitted through Stripe to the original payment method where supported. Bank or card issuer posting times vary. A full refund ends the related paid access and unused entitlements.',
+          ],
+        },
+      ],
+      faqs: [
+        [
+          'Can I get a refund after using AI credits?',
+          'Not under the voluntary unused-purchase offer. Using one or all paid AI credits makes that purchase ineligible, while non-waivable legal rights and confirmed billing or service remedies remain unaffected.',
+        ],
+        [
+          'Does canceling renewals refund my current period?',
+          'No. Cancellation stops future renewals and paid access normally continues through the current period. A refund is handled separately under this policy and applicable law.',
+        ],
+      ],
+    },
+  },
 ].map((page) => ({ ...page, image: 'https://www.ieltsai.pro/ielts-hero-student.webp' }));
 
 const SITE_URL = 'https://www.ieltsai.pro';
@@ -617,12 +683,7 @@ function renderPublicPage(html, config) {
   if (config.keywords) {
     const keywordTag = `<meta name="keywords" content="${config.keywords}" />`;
     if (/<meta\s+name="keywords"[^>]*\/>/.test(page)) {
-      page = replaceTag(
-        page,
-        /<meta\s+name="keywords"[^>]*\/>/,
-        keywordTag,
-        'keywords meta tag'
-      );
+      page = replaceTag(page, /<meta\s+name="keywords"[^>]*\/>/, keywordTag, 'keywords meta tag');
     } else {
       page = replaceTag(
         page,

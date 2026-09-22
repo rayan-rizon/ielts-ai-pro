@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/features/core/components/landing/Navbar';
 import Footer from '@/features/core/components/landing/Footer';
 import { useTheme } from '@/components/theme-provider';
@@ -7,14 +7,25 @@ import { useAuth } from '@/features/auth/context/AuthContext.jsx';
 import { createPageUrl } from '@/utils';
 
 /**
- * Shell for the public legal documents (privacy, terms).
+ * Shell for the public legal documents (privacy, terms, and refund policy).
  *
  * These pages are read, not browsed: a single measured column, hairline rules
  * between sections instead of cards, and no decorative color. The only accent
  * is the primary link color, which is also what marks the active section in
  * the contents rail.
  */
-export function LegalPageLayout({ title, updatedAt, summary, sections, children }) {
+export function LegalPageLayout({
+  title,
+  updatedAt,
+  summary,
+  sections,
+  children,
+  eyebrow = 'Legal',
+  updatedLabel = 'Last updated',
+  contentsLabel = 'On this page',
+  documentLang = 'en',
+  languageLinks = [],
+}) {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { user, loading: authLoading } = useAuth();
@@ -32,16 +43,37 @@ export function LegalPageLayout({ title, updatedAt, summary, sections, children 
         isSignedIn={Boolean(user && !authLoading)}
       />
 
-      <main className="pt-20 sm:pt-24 pb-20">
+      <main lang={documentLang} className="pt-20 sm:pt-24 pb-20">
         <div className="mx-auto w-full max-w-5xl px-5 sm:px-8">
           <header className="border-b border-border/60 pb-8">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              Legal
+              {eyebrow}
             </p>
             <h1 className="mt-3 text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
               {title}
             </h1>
-            <p className="mt-3 text-sm text-muted-foreground">Last updated {updatedAt}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {updatedLabel} {updatedAt}
+            </p>
+            {languageLinks.length > 0 ? (
+              <nav aria-label="Document language" className="mt-5 flex flex-wrap gap-2">
+                {languageLinks.map(({ href, label, active, lang }) => (
+                  <Link
+                    key={href}
+                    to={href}
+                    lang={lang}
+                    aria-current={active ? 'page' : undefined}
+                    className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      active
+                        ? 'border-[#5a63df] bg-[#5a63df]/[0.06] text-[#4a52c9] dark:text-[#a9afff]'
+                        : 'border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
             {summary ? (
               <p className="mt-6 max-w-[68ch] text-[15px] leading-7 text-muted-foreground">
                 {summary}
@@ -50,7 +82,7 @@ export function LegalPageLayout({ title, updatedAt, summary, sections, children 
           </header>
 
           <div className="lg:grid lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12">
-            <TableOfContents sections={sections} activeId={activeId} />
+            <TableOfContents sections={sections} activeId={activeId} label={contentsLabel} />
             <div className="min-w-0 max-w-[68ch]">{children}</div>
           </div>
         </div>
@@ -61,12 +93,12 @@ export function LegalPageLayout({ title, updatedAt, summary, sections, children 
   );
 }
 
-function TableOfContents({ sections, activeId }) {
+function TableOfContents({ sections, activeId, label }) {
   return (
-    <nav aria-label="On this page" className="hidden lg:block">
+    <nav aria-label={label} className="hidden lg:block">
       <div className="sticky top-24 py-10">
         <p className="mb-4 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          On this page
+          {label}
         </p>
         <ol className="space-y-2.5 border-l border-border/60">
           {sections.map((section) => {
@@ -166,13 +198,18 @@ export function LegalDefinitions({ items }) {
   );
 }
 
-/** The single callout style on these pages. No severity colors. */
-export function LegalNote({ title, children }) {
+/** Legal notices use a neutral default; warnings can be highlighted when action matters. */
+export function LegalNote({ title, children, tone = 'neutral' }) {
+  const toneClasses =
+    tone === 'warning'
+      ? 'border-l-4 border-rose-600 bg-rose-50 text-rose-950 dark:border-rose-400 dark:bg-rose-950/40 dark:text-rose-100'
+      : 'border-l-2 border-border bg-muted/40 text-muted-foreground';
+
   return (
-    <div className="border-l-2 border-border bg-muted/40 py-3 pl-4 pr-4">
-      {title ? <p className="font-medium text-foreground">{title}</p> : null}
+    <aside className={`rounded-r-md py-3 pl-4 pr-4 ${toneClasses}`}>
+      {title ? <p className="font-semibold text-inherit">{title}</p> : null}
       <div className={title ? 'mt-1' : undefined}>{children}</div>
-    </div>
+    </aside>
   );
 }
 

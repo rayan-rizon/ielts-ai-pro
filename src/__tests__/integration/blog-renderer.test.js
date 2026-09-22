@@ -543,4 +543,41 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('Article not found');
     expect(response.body).toContain('/blog');
   });
+
+  it('renders a public navbar matching the marketing site navigation structure and design tokens', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [article] }));
+    const response = createResponse();
+
+    await blogHandler({ query: {} }, response);
+
+    expect(response.statusCode).toBe(200);
+    // Desktop navigation links
+    expect(response.body).toContain('href="/#features">Platform</a>');
+    expect(response.body).toContain('href="/ielts-writing-checker">Writing checker</a>');
+    expect(response.body).toContain('href="/blog">Blog</a>');
+    expect(response.body).toContain('href="/ielts-band-score-calculator">Calculator</a>');
+    expect(response.body).toContain('href="/ielts-university-requirements">Universities</a>');
+    expect(response.body).toContain('href="/#pricing">Pricing</a>');
+    // Obsolete link removed
+    expect(response.body).not.toContain('href="/#how-it-works"');
+
+    // Mobile navigation links and structure
+    expect(response.body).toContain('id="public-navbar-menu" class="mobile-card"');
+    expect(response.body).toContain(
+      'href="/ielts-university-requirements" class="mobile-card-link"'
+    );
+    expect(response.body).toContain('IELTS scores universities require');
+    expect(response.body).toContain('Core IELTS AI tools &amp; practice suite');
+    expect(response.body).toContain('Start Free Practice');
+
+    // Scroll progress bar
+    expect(response.body).toContain('class="nav-scroll-progress"');
+    expect(response.body).toContain('data-scroll-progress-fill');
+
+    // CSS rules for Learner Panel Design System
+    expect(BLOG_CSS).toContain('header#public-header.is-scrolled');
+    expect(BLOG_CSS).toContain('.nav-scroll-progress-fill');
+    expect(BLOG_CSS).toContain('border-bottom:1px solid #e4e2f0');
+    expect(BLOG_CSS).toContain('html.dark header#public-header.is-scrolled .site-nav');
+  });
 });

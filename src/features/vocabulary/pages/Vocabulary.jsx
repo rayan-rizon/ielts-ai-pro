@@ -38,6 +38,7 @@ import {
   useVocabularyData,
 } from '@/features/vocabulary/hooks';
 import { IconChip, MUTED, PANEL, Pill } from '@/features/dashboard/components/primitives';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 const ReviewSession = lazy(() => import('@/features/vocabulary/components/ReviewSession'));
 const GameModals = lazy(() =>
@@ -85,7 +86,11 @@ const PageHeader = ({ stats, user }) => (
       </p>
     </div>
 
-    <div className="flex w-full min-w-0 justify-start xl:w-auto xl:justify-end">
+    <div className="flex w-full min-w-0 flex-wrap items-center justify-start gap-2 xl:w-auto xl:justify-end">
+      <AskAiCoachButton
+        compact
+        draft="Help me practise vocabulary that fits my current IELTS level."
+      />
       <VocabularyStats
         stats={stats}
         wordLimit={getWordLimit(user?.subscription_tier)}

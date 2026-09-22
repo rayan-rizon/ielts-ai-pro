@@ -170,6 +170,15 @@ const METRIC_LABEL = {
   servedCalls: 'Served',
   estimatedCostUsd: 'Est. cost',
   wastedCostUsd: 'Rejected-answer cost',
+  dailySpendUsd: 'Today spend',
+  dailyBudgetUsd: 'Daily budget',
+  budgetUtilization: 'Budget used',
+  pendingReservations: 'Pending coach replies',
+  stuckReservations: 'Stuck coach replies',
+  completedReplies: 'Coach replies',
+  failedRequests: 'Coach failures',
+  featureEnabled: 'Release gate',
+  resetsAt: 'Budget reset',
 };
 
 const ALARM_KEYS = new Set([
@@ -178,6 +187,8 @@ const ALARM_KEYS = new Set([
   'credentialErrors',
   'stuck',
   'failedEvents',
+  'failedRequests',
+  'stuckReservations',
   'brokenPassages',
   'actionableProfileGaps',
   'failedEvaluations',
@@ -197,6 +208,7 @@ const PERCENT_METRICS = new Set([
   'eventFailureRate',
   'dispatchFailureRate',
   'connectionUtilization',
+  'budgetUtilization',
 ]);
 const HOUR_METRICS = new Set(['oldestPendingHours', 'oldestOrphanHours', 'oldestActionableHours']);
 
@@ -210,6 +222,10 @@ const METRIC_FORMATTERS = {
   lastRunAgeHours: (value) => `${value}h ago`,
   oldestStuckMinutes: formatMinutes,
   estimatedCostUsd: (value) => `$${Number(value).toFixed(6)}`,
+  dailySpendUsd: (value) => `$${Number(value).toFixed(4)}`,
+  dailyBudgetUsd: (value) => `$${Number(value).toFixed(2)}`,
+  featureEnabled: (value) => (value ? 'Enabled' : 'Disabled'),
+  resetsAt: (value) => new Date(value).toLocaleString(),
 };
 
 const NULL_METRIC_LABELS = {
@@ -239,6 +255,7 @@ const HEADLINE_KEY = {
   ai_feedback: 'errorRate',
   ai_text_providers: 'errorRate',
   ai_quota_reservations: 'stuck',
+  personalized_ai_coach: 'budgetUtilization',
   speech_synthesis: 'errorRate',
   payments_stripe: 'eventFailureRate',
   payments_manual: 'pending',
@@ -422,6 +439,9 @@ const overviewFor = (counts, total) => {
  * provider outage or a bad API key cannot be fixed from this screen.
  */
 const REPAIRS = {
+  personalized_ai_coach: {
+    how: 'Check the daily spend, pending and stuck reservations, recent failures, and p95 latency together. A budget pause resets at 00:00 UTC. Keep the release gate disabled until multilingual grounding benchmarks pass; investigate stuck reservations or provider failures before changing the budget.',
+  },
   ai_quota_reservations: {
     how: 'Each stranded reservation still counts against the learner’s daily quota, so they lose a request they never got. Releasing them deletes the phantom rows and hands the quota back. The underlying cause is an edge function exiting before it finalises the reservation.',
     action: {

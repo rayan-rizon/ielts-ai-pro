@@ -20,6 +20,10 @@ const writingFunction = readFileSync(
   resolve(process.cwd(), 'supabase/functions/generateDetailedFeedback/index.ts'),
   'utf8'
 );
+const writingProvider = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/_shared/writingProvider.ts'),
+  'utf8'
+);
 
 const sampleWith = (task: number, cc: number, lr: number, gra: number) => ({
   criteriaScores: {
@@ -159,10 +163,13 @@ describe('writing score consistency', () => {
   });
 
   describe('sampling is pinned', () => {
-    it('sets an explicit temperature and seed instead of the provider default', () => {
-      expect(writingFunction).toContain('temperature: MARKING_TEMPERATURE');
-      expect(writingFunction).toContain('seed,');
-      expect(writingFunction).toContain('top_p: 1');
+    it('uses Luna-compatible deterministic controls instead of unsupported sampling parameters', () => {
+      expect(writingProvider).toContain('seed,');
+      expect(writingProvider).not.toContain('temperature:');
+      expect(writingProvider).not.toContain('top_p:');
+      expect(writingProvider).toContain(
+        "provider: { sort: 'throughput', require_parameters: true }"
+      );
     });
 
     it('marks once and escalates only when a further marker could change the band', () => {
@@ -173,8 +180,8 @@ describe('writing score consistency', () => {
 
     it('bills every pass that returned and credits cached prompt tokens', () => {
       expect(writingFunction).toContain('cachedPromptTokens += pass.cachedPromptTokens');
-      expect(writingFunction).toContain('prompt_tokens_details?.cached_tokens');
-      expect(writingFunction).not.toContain('cachedPromptTokens: 0');
+      expect(writingProvider).toContain('prompt_tokens_details?.cached_tokens');
+      expect(writingProvider).toContain('cachedPromptTokens');
     });
 
     it('never re-rolls the score on a JSON repair retry', () => {

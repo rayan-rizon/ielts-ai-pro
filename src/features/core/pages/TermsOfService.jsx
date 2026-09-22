@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import DocumentHead from '@/components/shared/DocumentHead';
 import {
   LegalPageLayout,
@@ -8,7 +9,7 @@ import {
   LegalNote,
 } from '@/features/core/components/legal/LegalPageLayout';
 
-const LAST_UPDATED = 'January 18, 2026';
+const LAST_UPDATED = 'September 22, 2026';
 
 const SECTIONS = [
   { id: 'acceptance', title: 'Acceptance of terms' },
@@ -132,8 +133,7 @@ export default function TermsOfService() {
         <LegalSection id="subscriptions" title="6. Subscriptions and billing">
           <p>
             A free plan is available without payment details. Paid plans are billed in advance
-            through our payment processor, Stripe, and renew automatically for the same period until
-            canceled.
+            through Stripe and renew for the billing period shown at checkout until canceled.
           </p>
           <LegalDefinitions
             items={[
@@ -144,8 +144,17 @@ export default function TermsOfService() {
               },
               {
                 term: 'Refunds',
-                description:
-                  'We offer a 7-day money-back guarantee on an initial subscription upgrade if the platform does not meet your expectations. Renewals are not refundable.',
+                description: (
+                  <>
+                    Refunds are governed by our{' '}
+                    <Link className="text-primary hover:underline" to="/refund">
+                      Refund &amp; Cancellation Policy
+                    </Link>
+                    . The voluntary seven-day offer applies only to a completely unused first paid
+                    purchase; using any paid feature or AI credit makes it ineligible for that
+                    voluntary offer. Mandatory consumer rights and remedies remain unaffected.
+                  </>
+                ),
               },
               {
                 term: 'Price changes',

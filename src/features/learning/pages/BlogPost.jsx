@@ -529,7 +529,6 @@ const BlogPost = () => {
   const [post, setPost] = useState(null);
   const [relatedPosts, setRelatedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [scrolled, setScrolled] = useState(0);
   const [copied, setCopied] = useState(false);
   const countedResourceIdsRef = useRef(new Set());
 
@@ -601,16 +600,6 @@ const BlogPost = () => {
     fetchPost();
   }, [slug, navigate]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-      setScrolled(totalScroll > 0 ? Math.min((window.scrollY / totalScroll) * 100, 100) : 0);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const preparedContent = prepareArticleContent(post?.content);
   const activeId = useTocActiveId(preparedContent.toc);
   const seoMeta = getBlogSeoMeta({
@@ -674,13 +663,6 @@ const BlogPost = () => {
       />
 
       <div className="min-h-screen bg-[#f7f9ff] font-sans text-slate-950 dark:bg-[#080b12] dark:text-white">
-        <div className="fixed left-0 top-0 z-120 h-0.5 w-full bg-slate-100 dark:bg-white/10">
-          <div
-            className="h-full bg-linear-to-r/srgb from-indigo-500 to-violet-500"
-            style={{ width: `${scrolled}%` }}
-          />
-        </div>
-
         <PublicNavbar />
 
         <main className="pt-16">

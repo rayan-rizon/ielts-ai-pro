@@ -55,7 +55,7 @@
     },
     {
       "source": "/ai-ielts-preparation",
-      "destination": "/",
+      "destination": "/signup",
       "permanent": true
     },
     {
@@ -75,7 +75,7 @@
     },
     {
       "source": "/ai-ielts-preparation/",
-      "destination": "/",
+      "destination": "/signup",
       "permanent": true
     },
     {
@@ -106,6 +106,11 @@
     {
       "source": "/terms/",
       "destination": "/terms",
+      "permanent": true
+    },
+    {
+      "source": "/refund/",
+      "destination": "/refund",
       "permanent": true
     },
     {
@@ -239,7 +244,7 @@
       ]
     },
     {
-      "source": "/(dashboard|login|signup|register|forgot-password|update-password|settings|upgrade|pricing|onboarding|practice-lab)",
+      "source": "/(dashboard|login|signup|register|forgot-password|update-password|settings|upgrade|pricing|onboarding|practice-lab|ai-coach|feature-requests)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -356,6 +361,14 @@
     },
     {
       "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ai-coach",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/feature-requests",
       "destination": "/index.html"
     },
     {
@@ -505,6 +518,34 @@
     {
       "source": "/terms",
       "destination": "/terms/index.html"
+    },
+    {
+      "source": "/refund",
+      "destination": "/refund/index.html"
+    },
+    {
+      "source": "/bd/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bd/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bd/refund-cancellation",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bn/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bn/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/bn/refund-cancellation",
+      "destination": "/index.html"
     },
     {
       "source": "/privacy",

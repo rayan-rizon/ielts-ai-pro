@@ -2,6 +2,8 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 // @ts-ignore
 import { createClient } from 'npm:@supabase/supabase-js@2';
 // @ts-ignore
+import { DeleteObjectCommand, S3Client } from 'npm:@aws-sdk/client-s3@3.400.0';
+// @ts-ignore
 import {
   getCorsHeaders,
   handleCorsPrelight,
@@ -31,12 +33,12 @@ import {
   WRITING_DIRECT_GEMINI_MODEL,
   WRITING_PRIMARY_MODEL,
 } from '../_shared/aiModelRegistry.ts';
+import { requestOpenRouterWritingFeedback } from '../_shared/writingProvider.ts';
 
 // @ts-ignore
 declare const Deno: any;
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Examiner-grade consistency settings.
 //
@@ -49,37 +51,17 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // scripts settle on one pass, so the accuracy is bought only where it changes
 // the answer rather than on every submission.
 //
-// Passes are seeded and share a low temperature so repeat marking of the same
-// script is reproducible while the draws stay independent enough for a median
-// to mean something. Byte-identical reports across resubmissions come from the
-// input-hash cache, not from greedy decoding.
+// Passes are seeded so repeat marking of the same script is reproducible while
+// the draws stay independent enough for a median to mean something. Byte-
+// identical reports across resubmissions come from the input-hash cache, not
+// from greedy decoding.
 const MARKING_SEEDS = [17, 4242, 90210];
-const MARKING_TEMPERATURE = 0.3;
 // Escalate only while a further pass can still change the reported band.
 const MAX_MARKING_PASSES = MARKING_SEEDS.length;
 const DISAGREEMENT_BANDS = 1;
-const MARKING_REASONING_EFFORT = 'none';
 
 if (!GEMINI_API_KEY) {
   console.error('GEMINI_API_KEY environment variable is not configured');
-}
-
-function buildOpenRouterMessageContent(
-  systemInstruction: string,
-  userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
-  schemaText: string
-) {
-  const content: any[] = [{ type: 'text', text: `${systemInstruction}\n${schemaText}` }];
-  for (const part of userContentParts) {
-    if (part.text) content.push({ type: 'text', text: part.text });
-    if (part.inline_data) {
-      content.push({
-        type: 'image_url',
-        image_url: { url: `data:${part.inline_data.mime_type};base64,${part.inline_data.data}` },
-      });
-    }
-  }
-  return content;
 }
 
 function arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
@@ -111,115 +93,6 @@ async function fetchGeminiWithTimeout(input: string, init: RequestInit, timeoutM
   }
 }
 
-// OpenRouter writing-provider adapter. Both the primary and independent
-// fallback are vision-capable (needed for Task 1 charts/maps), and the JSON
-// contract is restated as text via schemaText. Any transport, parsing, or shape
-// failure returns null so the caller advances to the next provider.
-async function requestOpenRouterWritingFeedback(
-  model: string,
-  systemInstruction: string,
-  userContentParts: Array<{ text?: string; inline_data?: { mime_type: string; data: string } }>,
-  schemaText: string,
-  requiredCriterionKey: string,
-  seed: number
-): Promise<{
-  parsedFeedback: Record<string, any>;
-  tokensUsed: number;
-  promptTokens: number;
-  cachedPromptTokens: number;
-  outputTokens: number;
-} | null> {
-  if (!OPENROUTER_API_KEY) return null;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 25000);
-  try {
-    const response = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'X-Title': 'IELTS Ai Pro',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'user',
-            content: buildOpenRouterMessageContent(systemInstruction, userContentParts, schemaText),
-          },
-        ],
-        response_format: { type: 'json_object' },
-        // Pinned sampling. Without an explicit temperature OpenRouter applied
-        // the model default (~1.0), which is why the same essay could come back
-        // a half band apart on consecutive submissions. The seed is per-pass so
-        // escalation draws stay independent while each pass stays reproducible
-        // for a given script.
-        temperature: MARKING_TEMPERATURE,
-        top_p: 1,
-        seed,
-        // Hidden reasoning stays off. Output is roughly two thirds of the cost
-        // of a pass, and reasoning tokens are billed as output, so enabling it
-        // is the single most expensive lever here. It may well mark better —
-        // but escalation already buys accuracy against a measured signal (how
-        // far two markers actually diverged), whereas a reasoning budget is an
-        // unmeasured bet. Raise MARKING_REASONING_EFFORT to 'low' to trial it,
-        // and compare scoreMaxSpread before and after to see if it paid.
-        reasoning: { effort: MARKING_REASONING_EFFORT, exclude: true },
-        max_tokens: 4096,
-        provider: { sort: 'throughput', require_parameters: true },
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      console.warn(`${model} writing pass (seed ${seed}) failed with HTTP ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content;
-    if (!text) return null;
-
-    const parsedFeedback = parseStructuredJson(text);
-    const criteria = parsedFeedback?.criteriaScores;
-    const hasRequiredScores =
-      criteria &&
-      [
-        requiredCriterionKey,
-        'CoherenceAndCohesion',
-        'LexicalResource',
-        'GrammaticalRangeAndAccuracy',
-      ].every((key) => Number.isFinite(Number(criteria[key])));
-    const hasRequiredTaskAnalysis =
-      requiredCriterionKey !== 'TaskAchievement' ||
-      (parsedFeedback?.taskAnalysis &&
-        typeof parsedFeedback.taskAnalysis.visualType === 'string' &&
-        typeof parsedFeedback.taskAnalysis.visualReadable === 'boolean' &&
-        Array.isArray(parsedFeedback.taskAnalysis.observedFeatures));
-    if (!hasRequiredScores || !hasRequiredTaskAnalysis) {
-      console.warn(`${model} writing pass (seed ${seed}) failed schema validation`);
-      return null;
-    }
-
-    return {
-      parsedFeedback,
-      tokensUsed: Number(data?.usage?.total_tokens) || 0,
-      promptTokens: Number(data?.usage?.prompt_tokens) || 0,
-      // The rubric prefix is identical on every pass and every learner's
-      // submission, so the provider serves most of it from its prompt cache at
-      // a reduced rate. Reporting it as full-price input overstated the spend.
-      cachedPromptTokens: Number(data?.usage?.prompt_tokens_details?.cached_tokens) || 0,
-      outputTokens: Number(data?.usage?.completion_tokens) || 0,
-    };
-  } catch (e) {
-    console.warn(`${model} writing pass (seed ${seed}) threw:`, e);
-    return null;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
 function isTrustedImageUrl(rawUrl: string): boolean {
   try {
     const parsed = new URL(rawUrl);
@@ -242,10 +115,43 @@ function isTrustedImageUrl(rawUrl: string): boolean {
   }
 }
 
+function getTemporaryWritingCheckerKey(rawUrl: string, userId: string): string | null {
+  try {
+    const parsed = new URL(rawUrl);
+    const r2PublicUrl = Deno.env.get('R2_PUBLIC_URL');
+    if (!r2PublicUrl || parsed.origin !== new URL(r2PublicUrl).origin) return null;
+
+    const decodedPath = decodeURIComponent(parsed.pathname).replace(/^\/+/, '');
+    const expectedPrefix = `writing-checker/${userId}/`;
+    if (!decodedPath.startsWith(expectedPrefix) || decodedPath.includes('..')) return null;
+    return decodedPath;
+  } catch {
+    return null;
+  }
+}
+
+async function deleteTemporaryWritingCheckerObject(key: string): Promise<void> {
+  const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
+  const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
+  const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
+  const bucket = Deno.env.get('R2_BUCKET_NAME');
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
+    throw new Error('R2 cleanup is not configured');
+  }
+
+  const client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+}
+
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   let quotaReservationId: string | undefined;
   let serviceClient: any;
+  let temporaryWritingCheckerKey: string | null = null;
 
   if (req.method === 'OPTIONS') {
     return handleCorsPrelight(req);
@@ -381,6 +287,7 @@ serve(async (req: Request) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      temporaryWritingCheckerKey = getTemporaryWritingCheckerKey(imageUrl, user.id);
     }
 
     const wordCount = countWords(writingText);
@@ -843,20 +750,29 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     ];
     let firstPassSecurity: Record<string, string> | null = null;
     let escalationReason: string | null = null;
+    let lunaFailureReason: string | null = null;
+    let lunaProviderStatus: number | null = null;
+    let lunaRejectedTokensUsed = 0;
+    let lunaRejectedProviderCostUsd = 0;
 
     for (let passIndex = 0; passIndex < MAX_MARKING_PASSES; passIndex++) {
-      const pass = await requestOpenRouterWritingFeedback(
-        WRITING_PRIMARY_MODEL,
+      const pass = await requestOpenRouterWritingFeedback({
+        model: WRITING_PRIMARY_MODEL,
+        apiKey: OPENROUTER_API_KEY,
         systemInstruction,
         userContentParts,
         schemaText,
-        taskCriterionKey,
-        MARKING_SEEDS[passIndex]
-      );
+        requiredCriterionKey: taskCriterionKey,
+        seed: MARKING_SEEDS[passIndex],
+      });
 
-      if (!pass) {
+      if (!pass.ok) {
         // A pass that never returned cannot be marked as agreement. Stop here
         // and let whatever did return decide, or fall through to Gemini.
+        lunaFailureReason = pass.failureReason;
+        lunaProviderStatus = pass.providerStatus;
+        lunaRejectedTokensUsed += pass.tokensUsed;
+        lunaRejectedProviderCostUsd += pass.estimatedProviderCostUsd;
         break;
       }
 
@@ -1074,28 +990,38 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
     // `provider` is what platform health attributes calls by. Without it every
     // row lands in the "unknown provider" bucket and the provider breakdown is
     // meaningless — which is exactly what it showed before this was added.
-    await finalizeApiUsage(supabase, quotaReservation.reservationId, tokensUsed, false, {
-      taskType,
-      model: modelUsed,
-      provider: modelUsed === WRITING_PRIMARY_MODEL ? 'openrouter-luna' : 'gemini',
-      fallbackUsed: modelUsed !== WRITING_PRIMARY_MODEL,
-      fallbackReason: modelUsed !== WRITING_PRIMARY_MODEL ? 'luna_no_parsable_feedback' : null,
-      scoringPasses: consensus?.agreement.sampleCount ?? 1,
-      scoreMaxSpread: consensus?.agreement.maxSpread ?? null,
-      scoreConfidence: consensus?.agreement.confidence ?? null,
-      escalationReason,
-      cachedPromptTokens,
-      providerLatencyMs,
-      promptTokens,
-      outputTokens,
-      // Without this the admin cost panel sums nothing and renders $0.000000 as
-      // if it were a measured figure.
-      estimatedProviderCostUsd: estimateTokenCostUsd(modelUsed, {
-        promptTokens,
+    await finalizeApiUsage(
+      supabase,
+      quotaReservation.reservationId,
+      tokensUsed + lunaRejectedTokensUsed,
+      false,
+      {
+        taskType,
+        model: modelUsed,
+        provider: modelUsed === WRITING_PRIMARY_MODEL ? 'openrouter-luna' : 'gemini',
+        fallbackUsed: modelUsed !== WRITING_PRIMARY_MODEL,
+        fallbackReason: modelUsed !== WRITING_PRIMARY_MODEL ? lunaFailureReason : null,
+        providerStatus: modelUsed !== WRITING_PRIMARY_MODEL ? lunaProviderStatus : null,
+        providerFailureReason: modelUsed !== WRITING_PRIMARY_MODEL ? lunaFailureReason : null,
+        scoringPasses: consensus?.agreement.sampleCount ?? 1,
+        scoreMaxSpread: consensus?.agreement.maxSpread ?? null,
+        scoreConfidence: consensus?.agreement.confidence ?? null,
+        escalationReason,
         cachedPromptTokens,
+        providerLatencyMs,
+        promptTokens,
         outputTokens,
-      }),
-    });
+        // Without this the admin cost panel sums nothing and renders $0.000000 as
+        // if it were a measured figure.
+        estimatedProviderCostUsd:
+          estimateTokenCostUsd(modelUsed, {
+            promptTokens,
+            cachedPromptTokens,
+            outputTokens,
+          }) + lunaRejectedProviderCostUsd,
+        wastedProviderCostUsd: lunaRejectedProviderCostUsd,
+      }
+    );
     quotaReservationId = undefined;
 
     try {
@@ -1133,5 +1059,17 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+  } finally {
+    if (temporaryWritingCheckerKey) {
+      try {
+        await deleteTemporaryWritingCheckerObject(temporaryWritingCheckerKey);
+        console.log('Deleted temporary Writing Task 1 image:', temporaryWritingCheckerKey);
+      } catch (cleanupError) {
+        // R2 lifecycle expiration remains the backstop for abandoned or
+        // failed cleanup attempts; never replace a learner result with a
+        // cleanup error.
+        console.error('Failed to delete temporary Writing Task 1 image:', cleanupError);
+      }
+    }
   }
 });

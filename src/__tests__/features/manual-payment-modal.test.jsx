@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ManualPayment from '@/features/subscription/components/ManualPayment';
 import { supabase } from '@/lib/supabase';
+import { trackAppEvent } from '@/lib/tracking';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -52,6 +53,10 @@ describe('ManualPayment Modal', () => {
     expect(screen.getByText('Upgrade to Pro Plan')).toBeInTheDocument();
     expect(screen.getAllByText('৳499').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('01676663311')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Refund & Cancellation Policy' })).toHaveAttribute(
+      'href',
+      '/bd/refund-cancellation'
+    );
   });
 
   it('calls onClose when close button is clicked or Escape is pressed', async () => {
@@ -107,6 +112,9 @@ describe('ManualPayment Modal', () => {
     fireEvent.change(trxInput, { target: { value: 'TRX12345678' } });
 
     const submitBtn = screen.getByRole('button', { name: /Submit Payment Request/i });
+    expect(submitBtn).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /Accept Bangladesh payment policies/i }));
+    expect(submitBtn).toBeEnabled();
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
@@ -129,5 +137,13 @@ describe('ManualPayment Modal', () => {
       expect(screen.getByText('Payment Request Submitted')).toBeInTheDocument();
       expect(screen.getByText('Pending Verification')).toBeInTheDocument();
     });
+
+    expect(trackAppEvent).toHaveBeenCalledWith(
+      'manual_subscription_request_submitted',
+      expect.objectContaining({
+        policies_accepted: true,
+        policy_version: '2026-09-22',
+      })
+    );
   });
 });

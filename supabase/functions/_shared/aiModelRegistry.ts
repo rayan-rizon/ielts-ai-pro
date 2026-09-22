@@ -58,17 +58,17 @@ export const MODELS: Record<string, ModelEntry> = {
     id: 'z-ai/glm-5.3-flash',
     vendor: 'Z.ai',
     access: 'openrouter',
-    pricing: { inputPerMillion: 0.075, cachedInputPerMillion: 0.015, outputPerMillion: 0.25 },
+    pricing: { inputPerMillion: 0.15, cachedInputPerMillion: 0.05, outputPerMillion: 0.5 },
     pricingSource:
-      'OpenRouter catalog price, verified 2026-09-06. Billed usage.cost wins when returned.',
+      'OpenRouter catalog price, verified 2026-09-22. Billed usage.cost wins when returned.',
   },
   'deepseek/deepseek-v4-flash-0731': {
     id: 'deepseek/deepseek-v4-flash-0731',
     vendor: 'DeepSeek',
     access: 'openrouter',
-    pricing: { inputPerMillion: 0.06, cachedInputPerMillion: 0.012, outputPerMillion: 0.12 },
+    pricing: { inputPerMillion: 0.04, cachedInputPerMillion: 0.016, outputPerMillion: 0.64 },
     pricingSource:
-      'OpenRouter catalog base price, verified 2026-08-27. Per-endpoint rates range from $0.03/M (OpenInference) to $0.20/M (Phala), so the billed usage.cost wins when returned.',
+      'OpenRouter catalog base price, verified 2026-09-22. Billed usage.cost wins when returned.',
   },
   'deepseek-v4-flash': {
     id: 'deepseek-v4-flash',
@@ -90,17 +90,17 @@ export const MODELS: Record<string, ModelEntry> = {
     id: 'openai/gpt-oss-120b',
     vendor: 'OpenAI',
     access: 'openrouter',
-    pricing: { inputPerMillion: 0.037, cachedInputPerMillion: 0.037, outputPerMillion: 0.17 },
+    pricing: { inputPerMillion: 0.15, cachedInputPerMillion: 0.075, outputPerMillion: 0.6 },
     pricingSource:
-      'OpenRouter catalog price, verified 2026-09-10. Billed usage.cost wins when returned.',
+      'OpenRouter catalog price, verified 2026-09-22. Billed usage.cost wins when returned.',
   },
   'openai/gpt-oss-20b': {
     id: 'openai/gpt-oss-20b',
     vendor: 'OpenAI',
     access: 'openrouter',
-    pricing: { inputPerMillion: 0.02, cachedInputPerMillion: 0.02, outputPerMillion: 0.1 },
+    pricing: { inputPerMillion: 0.03, cachedInputPerMillion: 0.03, outputPerMillion: 0.13 },
     pricingSource:
-      'OpenRouter catalog base price, verified 2026-09-19. Billed usage.cost wins when returned.',
+      'OpenRouter catalog base price, verified 2026-09-22. Billed usage.cost wins when returned.',
   },
   'gemini-2.5-flash': {
     id: 'gemini-2.5-flash',
@@ -151,6 +151,8 @@ export const READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL = 'deepseek/deepseek-v4-f
 export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 // Backwards-compatible alias for callers that only need the first fallback.
 export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
+export const AI_COACH_PRIMARY_MODEL = 'openai/gpt-oss-120b';
+export const AI_COACH_FALLBACK_MODEL = 'openai/gpt-5.6-luna';
 
 export function readingAssistantPrimaryModel(action: string) {
   return action === 'dictionary' || action === 'simplify'
@@ -163,6 +165,27 @@ export const WRITING_DIRECT_GEMINI_MODEL = 'gemini-2.5-flash';
 // --- Routes -----------------------------------------------------------------
 
 export const AI_ROUTES: AiRoute[] = [
+  {
+    id: 'personalized-ai-coach',
+    surface: 'Learner panel: personalized IELTS AI Coach',
+    file: 'supabase/functions/ai-coach/index.ts',
+    maxOutputTokens: 1200,
+    timeoutMs: 20000,
+    steps: [
+      {
+        model: AI_COACH_PRIMARY_MODEL,
+        role: 'primary',
+        when: 'One grounded, schema-validated coaching reply after deterministic evidence retrieval.',
+      },
+      {
+        model: AI_COACH_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'The primary call fails or returns unsupported evidence/actions; no further repair chain.',
+      },
+    ],
+    notes:
+      'Feature-gated. Input is capped at 6,000 tokens, output at 1,200 tokens, and the shared provider budget is $3 per UTC day.',
+  },
   {
     id: 'writing-detailed-feedback',
     surface: 'Writing: detailed essay feedback',

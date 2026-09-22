@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { BarChart2, LockKeyhole } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MUTED, Pill, TierBadge } from '@/features/dashboard/components/primitives';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 const TIMEFRAME_LABELS = {
   '7d': '7 days',
@@ -44,6 +45,10 @@ export default function AnalyticsHeader({
       </div>
 
       <div className="flex items-center gap-2">
+        <AskAiCoachButton
+          compact
+          draft="Explain the most important pattern in my completed IELTS results. Use only evidence you can verify."
+        />
         <span className={cn('hidden text-[11px] font-semibold sm:inline', MUTED)}>Showing</span>
         <div
           className="no-scrollbar flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4"

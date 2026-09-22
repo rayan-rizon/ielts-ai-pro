@@ -34,6 +34,14 @@ const normalizeEndpointStats = (data) =>
   });
 
 export const AIApiUsage = {
+  async getCoachBudgetStatus() {
+    const isUserAdmin = await User.isAdmin();
+    if (!isUserAdmin) throw new Error('Admin access required');
+    const { data, error } = await supabase.rpc('get_ai_coach_budget_status');
+    if (error) throw error;
+    return data;
+  },
+
   // Get aggregated usage stats paginated via RPC
   async getUserStatsPaginated({
     page = 1,

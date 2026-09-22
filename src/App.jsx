@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 import { isChunkLoadError } from '@/lib/chunkLoadRecovery';
+import GlobalLegalRoute from '@/features/core/components/legal/GlobalLegalRoute.jsx';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import MaintenanceGate from '@/components/shared/MaintenanceGate';
@@ -129,6 +130,7 @@ const EmailConfirmation = lazyWithRetry(
   () => import('@/features/auth/pages/EmailConfirmation.jsx')
 );
 const Dashboard = lazyWithRetry(() => import('@/features/dashboard/pages/Dashboard.jsx'));
+const AiCoach = lazyWithRetry(() => import('@/features/ai-coach/pages/AiCoach.jsx'));
 const Listening = lazyWithRetry(() => import('@/features/testing/shared/pages/Listening.jsx'));
 const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Reading.jsx'));
 const Speaking = lazyWithRetry(() => import('@/features/testing/shared/pages/Speaking.jsx'));
@@ -167,6 +169,12 @@ const BlogIndex = lazyWithRetry(() => import('@/features/learning/pages/BlogInde
 const BlogPost = lazyWithRetry(() => import('@/features/learning/pages/BlogPost.jsx'));
 const PrivacyPolicy = lazyWithRetry(() => import('@/features/core/pages/PrivacyPolicy.jsx'));
 const TermsOfService = lazyWithRetry(() => import('@/features/core/pages/TermsOfService.jsx'));
+const GlobalRefundPolicy = lazyWithRetry(
+  () => import('@/features/core/pages/GlobalRefundPolicy.jsx')
+);
+const BangladeshLegalPage = lazyWithRetry(
+  () => import('@/features/core/pages/BangladeshLegalPage.jsx')
+);
 const NotFound = lazyWithRetry(() => import('@/features/core/pages/NotFound.jsx'));
 const About = lazyWithRetry(() => import('@/features/core/pages/About.jsx'));
 const Contact = lazyWithRetry(() => import('@/features/core/pages/Contact.jsx'));
@@ -386,6 +394,18 @@ const router = createBrowserRouter(
           <Layout currentPageName="Dashboard" data-oid="k9so93y">
             <LazyPage data-oid="68oq19r">
               <Dashboard data-oid="-.oi-50" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/ai-coach',
+      element: (
+        <ProtectedRoute>
+          <Layout currentPageName="AiCoach">
+            <LazyPage>
+              <AiCoach />
             </LazyPage>
           </Layout>
         </ProtectedRoute>
@@ -827,7 +847,19 @@ const router = createBrowserRouter(
       path: '/terms',
       element: (
         <LazyPage data-oid="sreucji">
-          <TermsOfService data-oid="m4_kqjl" />
+          <GlobalLegalRoute documentType="terms">
+            <TermsOfService data-oid="m4_kqjl" />
+          </GlobalLegalRoute>
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/refund',
+      element: (
+        <LazyPage>
+          <GlobalLegalRoute documentType="refund">
+            <GlobalRefundPolicy />
+          </GlobalLegalRoute>
         </LazyPage>
       ),
     },
@@ -843,7 +875,57 @@ const router = createBrowserRouter(
       path: '/privacy',
       element: (
         <LazyPage data-oid="-s9wkj.">
-          <PrivacyPolicy data-oid=":r:pqo6" />
+          <GlobalLegalRoute documentType="privacy">
+            <PrivacyPolicy data-oid=":r:pqo6" />
+          </GlobalLegalRoute>
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/bd/terms',
+      element: (
+        <LazyPage>
+          <BangladeshLegalPage documentType="terms" language="en" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/bd/privacy',
+      element: (
+        <LazyPage>
+          <BangladeshLegalPage documentType="privacy" language="en" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/bd/refund-cancellation',
+      element: (
+        <LazyPage>
+          <BangladeshLegalPage documentType="refund" language="en" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/bn/terms',
+      element: (
+        <LazyPage>
+          <BangladeshLegalPage documentType="terms" language="bn" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/bn/privacy',
+      element: (
+        <LazyPage>
+          <BangladeshLegalPage documentType="privacy" language="bn" />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/bn/refund-cancellation',
+      element: (
+        <LazyPage>
+          <BangladeshLegalPage documentType="refund" language="bn" />
         </LazyPage>
       ),
     },

@@ -27,6 +27,7 @@ serve(async (req) => {
   try {
     const ADMIN_MAX_FILE_SIZE = 50 * 1024 * 1024;
     const CHECKER_MAX_FILE_SIZE = 8 * 1024 * 1024;
+    const CHECKER_RETENTION_MS = 24 * 60 * 60 * 1000;
     const MAX_MULTIPART_OVERHEAD = 1024 * 1024;
     const uploadPurpose = req.headers.get('x-upload-purpose') || 'admin-content';
     const isWritingCheckerUpload = uploadPurpose === 'writing-checker';
@@ -129,22 +130,31 @@ serve(async (req) => {
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
     const keyPrefix = isWritingCheckerUpload ? `writing-checker/${user.id}` : 'uploads';
     const key = `${keyPrefix}/${crypto.randomUUID()}-${sanitizedName}`;
+    const expiresAt = isWritingCheckerUpload
+      ? new Date(Date.now() + CHECKER_RETENTION_MS).toISOString()
+      : null;
 
-    // Inspect only the header bytes. Passing the File/Blob directly lets the
-    // S3 fetch handler stream it instead of allocating a second full-size copy.
+    // Inspect only the header bytes before uploading. The AWS SDK's Deno
+    // transport does not accept a web File as a request body; it calls
+    // Buffer.from(File) and fails with ERR_INVALID_ARG_TYPE. The checker is
+    // capped at 8 MB, so this bounded copy is the compatible transport body.
     const signatureBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
     if (!hasExpectedFileSignature(fileType, signatureBytes)) {
       return errorResponse('File content does not match its declared type.', 415, corsHeaders);
     }
+    const fileBytes = new Uint8Array(await file.arrayBuffer());
 
     // Upload to R2
     await S3.send(
       new PutObjectCommand({
         Bucket: R2_BUCKET_NAME,
         Key: key,
-        Body: file,
-        ContentLength: file.size,
+        Body: fileBytes,
+        ContentLength: fileBytes.byteLength,
         ContentType: file.type,
+        // Checker visuals are disposable learner input. Prevent a CDN edge
+        // from retaining a public response after the object is deleted.
+        CacheControl: isWritingCheckerUpload ? 'no-store, max-age=0, must-revalidate' : undefined,
       })
     );
 
@@ -154,6 +164,7 @@ serve(async (req) => {
       JSON.stringify({
         file_url: fileUrl,
         key: key,
+        expires_at: expiresAt,
         message: 'File uploaded successfully',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }

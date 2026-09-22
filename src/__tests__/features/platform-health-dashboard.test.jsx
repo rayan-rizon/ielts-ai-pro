@@ -237,6 +237,45 @@ describe('PlatformHealthDashboard operations console', () => {
     expect(screen.queryByText('Not recorded')).not.toBeInTheDocument();
   });
 
+  it('shows personalized coach budget and lifecycle health in the central directory', async () => {
+    mocks.get.mockResolvedValueOnce({
+      ...health,
+      services: [
+        {
+          key: 'personalized_ai_coach',
+          label: 'Personalized AI Coach',
+          category: 'ai',
+          provider: 'OpenRouter GPT-OSS 120B -> GPT-5.6 Luna',
+          status: 'attention',
+          source: 'ai_coach_private operations and budget ledger',
+          impact: 'Daily coach spend has crossed the $2.40 warning threshold.',
+          metrics: {
+            dailySpendUsd: 2.41,
+            dailyBudgetUsd: 3,
+            budgetUtilization: 80.3,
+            pendingReservations: 1,
+            stuckReservations: 0,
+            completedReplies: 492,
+            failedRequests: 2,
+            p95LatencyMs: 7400,
+            featureEnabled: true,
+          },
+        },
+      ],
+    });
+    mocks.incidents.mockResolvedValueOnce([]);
+
+    render(<PlatformHealthDashboard />);
+
+    expect((await screen.findAllByText('Personalized AI Coach')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('80.3%').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { expanded: false, name: /Personalized AI Coach/ }));
+    expect(screen.getAllByText('Today spend').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$2.4100').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Pending coach replies').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Enabled').length).toBeGreaterThan(0);
+  });
+
   it('filters and searches the full provider directory without hiding incident context', async () => {
     render(<PlatformHealthDashboard />);
 

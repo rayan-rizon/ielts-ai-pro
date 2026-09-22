@@ -25,6 +25,7 @@ import {
   PANEL,
   Pill,
 } from '@/features/dashboard/components/primitives';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled = false }) {
   const content = (
@@ -214,13 +215,19 @@ export default function GrammarLab() {
                   Build accurate grammar for Academic IELTS Writing and Speaking
                 </p>
               </div>
-              <GrammarHeaderStats
-                dashboard={grammar.dashboard}
-                isStarting={grammar.isStarting}
-                onReview={() =>
-                  startAttempt({ mode: 'review', targetSkills: null, questionCount: 5 })
-                }
-              />
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <AskAiCoachButton
+                  compact
+                  draft="Explain my Grammar Lab progress and give me one short practice question."
+                />
+                <GrammarHeaderStats
+                  dashboard={grammar.dashboard}
+                  isStarting={grammar.isStarting}
+                  onReview={() =>
+                    startAttempt({ mode: 'review', targetSkills: null, questionCount: 5 })
+                  }
+                />
+              </div>
             </header>
           )}
 

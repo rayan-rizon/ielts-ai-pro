@@ -35,6 +35,7 @@ const NavItem = memo(({ item, isActive }) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const hasAiBadge =
     item.title === 'Writing Practice' ||
+    item.title === 'AI Coach' ||
     item.title === 'AI Learning Path' ||
     item.title === 'Practice Lab';
 

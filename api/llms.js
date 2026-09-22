@@ -64,6 +64,7 @@ ${articles || '- No published articles are currently available.'}
 
 - [Privacy Policy](${SITE_URL}/privacy)
 - [Terms of Service](${SITE_URL}/terms)
+- [Refund & Cancellation Policy](${SITE_URL}/refund)
 `;
 }
 

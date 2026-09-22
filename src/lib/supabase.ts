@@ -87,7 +87,7 @@ export async function uploadFile(
 export async function uploadToR2(
   file: File,
   { purpose = 'admin-content' }: { purpose?: UploadPurpose } = {}
-): Promise<{ file_url: string; key: string }> {
+): Promise<{ file_url: string; key: string; expires_at?: string | null }> {
   const {
     data: { session },
   } = await supabase.auth.getSession();

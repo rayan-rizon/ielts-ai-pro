@@ -239,7 +239,7 @@ function UniversityRequirementsHero() {
           {/* Right Column: Properly Masked & Blended Image */}
           <div className="relative h-[280px] sm:h-[340px] lg:h-full lg:min-h-0 w-full overflow-hidden">
             <img
-              src="/landing-illustrations/university-requirements-campus-hero-v3.webp"
+              src="/assets/university-requirements/university-requirements-campus-hero-v3.webp"
               alt="International student walking through a university campus with an admissions folder"
               width="1774"
               height="887"
@@ -284,18 +284,14 @@ function UniversityRequirementsHero() {
   );
 }
 
-function UniversityRequirementsJourney() {
+function UniversityRequirementsCheckerHeader() {
   return (
-    <section
-      id="university-requirements-journey"
-      className="mx-auto mt-5 max-w-7xl px-5 sm:px-6 lg:px-8"
-    >
-      <div
-        className={`${PANEL} grid items-center gap-5 overflow-hidden p-4 sm:p-5 lg:grid-cols-[150px_minmax(0,1fr)_auto] lg:gap-6`}
-      >
-        <div className="relative mx-auto h-28 w-28 shrink-0 sm:h-32 sm:w-32 lg:h-36 lg:w-36">
+    <div className={`${PANEL} mb-6 overflow-hidden p-4 sm:p-5 lg:p-6`}>
+      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left sm:gap-6 lg:gap-7">
+        {/* 3D Journey Illustration */}
+        <div className="relative mx-auto h-24 w-24 shrink-0 sm:mx-0 sm:h-28 sm:w-28 lg:h-32 lg:w-32">
           <img
-            src="/landing-illustrations/university-requirements-journey-v1.png"
+            src="/assets/university-requirements/university-requirements-journey-v1.png"
             alt="Passport, world map, graduation cap, and university application checklist"
             width="1254"
             height="1254"
@@ -304,19 +300,28 @@ function UniversityRequirementsJourney() {
             className="h-full w-full object-contain"
           />
         </div>
-        <div className="min-w-0 text-center lg:text-left">
-          <span className={`${MICRO} text-[#5a63df] dark:text-violet-300`}>
-            From score to campus
-          </span>
-          <h2 className="mt-1.5 text-lg font-black tracking-tight text-[#07142f] dark:text-white sm:text-xl">
-            Plan your university shortlist with more confidence.
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-center gap-2 sm:justify-start">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-[#ded9ff] bg-[#f2f0ff] text-[#5a63df] dark:border-violet-400/20 dark:bg-violet-500/10 dark:text-violet-300">
+              <GraduationCap className="h-3.5 w-3.5 stroke-2" />
+            </span>
+            <span className={`${MICRO} text-[#5a63df] dark:text-violet-300`}>
+              01 · Requirements Checker
+            </span>
+          </div>
+          <h2 className="mt-2 text-lg font-black tracking-tight text-[#07142f] dark:text-white sm:text-xl lg:text-2xl">
+            Match Your Scores Against University Requirements
           </h2>
-          <p className="mt-1.5 max-w-2xl text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-[13px]">
-            Start with the country and study level, test your four bands, and open the official
-            source for every result that fits.
+          <p className="mt-1 max-w-2xl text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-400 sm:text-[13.5px]">
+            Adjust your skill bands and choose your level. {TOTAL_VERIFIED_ENTRIES} verified
+            institutions checked against official admission pages with direct source links.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-2 border-t border-[#e6e8f5] pt-3 text-center dark:border-white/8 lg:w-[310px] lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+
+        {/* 3 Quick Steps */}
+        <div className="hidden border-l border-[#e6e8f5] pl-5 text-center dark:border-white/8 md:grid md:grid-cols-3 md:gap-3 md:w-[240px] lg:w-[260px] lg:pl-6">
           {[
             ['01', 'Compare'],
             ['02', 'Check'],
@@ -333,7 +338,7 @@ function UniversityRequirementsJourney() {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -631,32 +636,14 @@ export default function UniversityRequirements() {
           <UniversityRequirementsHero />
         </m.div>
 
-        <m.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <UniversityRequirementsJourney />
-        </m.div>
-
         {/* Requirements Matcher Tool Section */}
-        <m.section
+        <section
           id="university-requirements-checker"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.08 }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto max-w-7xl px-5 pt-10 sm:px-6 lg:px-8"
+          className="mx-auto max-w-7xl px-5 pt-6 sm:pt-8 sm:px-6 lg:px-8"
         >
-          <SectionHeading
-            icon={GraduationCap}
-            index="01"
-            eyebrow="Requirements Checker"
-            title="Match Your Scores Against University Requirements"
-            description={`Adjust your skill bands and choose your level. ${TOTAL_VERIFIED_ENTRIES} verified institutions checked against official admission pages with direct source links.`}
-          />
+          <UniversityRequirementsCheckerHeader />
           <UniversityMatchTool handlePrimaryCta={handleStartPractice} />
-        </m.section>
+        </section>
 
         {/* 3 Critical Rules Section */}
         <m.div

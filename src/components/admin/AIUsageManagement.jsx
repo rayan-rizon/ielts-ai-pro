@@ -1,6 +1,6 @@
 import { m } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
-import { CalendarDays, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CalendarDays, RefreshCw } from 'lucide-react';
 import { AIApiUsage } from '@/entities';
 import { toast } from 'sonner';
 import {
@@ -38,6 +38,7 @@ const AIUsageManagement = () => {
   });
   const [dailyStats, setDailyStats] = useState([]);
   const [endpointStats, setEndpointStats] = useState([]);
+  const [coachBudget, setCoachBudget] = useState(null);
   const [dateRange, setDateRange] = useState(30);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,7 +52,7 @@ const AIUsageManagement = () => {
         if (isManualRefresh) setRefreshing(true);
         else setLoading(true);
 
-        const [paginatedUsers, aggTotals] = await Promise.all([
+        const [paginatedUsers, aggTotals, coachBudgetStatus] = await Promise.all([
           AIApiUsage.getUserStatsPaginated({
             page: currentPage,
             pageSize,
@@ -59,6 +60,7 @@ const AIUsageManagement = () => {
             sortDirection,
           }),
           AIApiUsage.getUsageAggregates(),
+          AIApiUsage.getCoachBudgetStatus().catch(() => null),
         ]);
 
         const formattedUsers = (paginatedUsers.data || []).map((u) => ({
@@ -86,6 +88,7 @@ const AIUsageManagement = () => {
         setTotalPages(Math.ceil((paginatedUsers.total || 0) / pageSize));
 
         setTotals(aggTotals || {});
+        setCoachBudget(coachBudgetStatus);
         setLastUpdatedAt(new Date());
       } catch (error) {
         console.error('Error fetching user stats:', error);
@@ -186,6 +189,21 @@ const AIUsageManagement = () => {
       <m.div variants={FADE_UP}>
         <AIUsageStatsCards totals={totals} loading={loading} />
       </m.div>
+
+      {coachBudget?.warning ? (
+        <m.div
+          variants={FADE_UP}
+          role="status"
+          className="flex items-start gap-2 rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2.5 text-amber-950 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100"
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="text-xs font-semibold">
+            AI Coach has used ${Number(coachBudget.spentUsd || 0).toFixed(2)} of its $
+            {Number(coachBudget.budgetUsd || 3).toFixed(2)} daily budget
+            {coachBudget.exhausted ? ' and new replies are paused.' : '.'}
+          </p>
+        </m.div>
+      ) : null}
 
       <m.div variants={FADE_UP}>
         <AIUsageCharts

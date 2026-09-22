@@ -6,6 +6,7 @@ import { createPageUrl } from '@/utils';
 import { MUTED, NUM, PANEL_LINK, PanelFootnote, PanelTitle, ROW_CHEVRON } from './primitives';
 import { formatSkill, modulePage, stripModulePrefix } from './skillLabels';
 import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 /** Priority rail colour. Reserved for genuine ranking, not decoration. */
 const RANK = ['bg-[#5a63df]', 'bg-[#9a9fe8]', 'bg-slate-300 dark:bg-white/20'];
@@ -137,12 +138,19 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
         )}
 
         <PanelFootnote>
-          <Link
-            to={createPageUrl('Onboarding')}
-            className={cn(PANEL_LINK, 'min-h-6 -mx-1.5 -my-1 px-1.5 py-1')}
-          >
-            Update goals
-          </Link>
+          <span className="flex w-full items-center justify-between gap-2">
+            <Link
+              to={createPageUrl('Onboarding')}
+              className={cn(PANEL_LINK, 'min-h-6 -mx-1.5 -my-1 px-1.5 py-1')}
+            >
+              Update goals
+            </Link>
+            <AskAiCoachButton
+              compact
+              draft="What should I practise next, based on my completed results?"
+              className="min-h-6 px-2 py-1 text-[10px]"
+            />
+          </span>
         </PanelFootnote>
       </div>
     </div>

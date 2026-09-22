@@ -33,6 +33,8 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(writing).toContain('WRITING_DIRECT_GEMINI_MODEL');
     expect(writing).not.toContain('WRITING_OPENROUTER_VISION_FALLBACK_MODEL');
     expect(writing).toContain('requestOpenRouterWritingFeedback');
+    expect(writing).toContain('../_shared/writingProvider.ts');
+    expect(writing).not.toContain('MARKING_TEMPERATURE');
     expect(writing).not.toContain("'openrouter-gemini'");
     expect(writing).toContain("'x-goog-api-key': GEMINI_API_KEY");
     expect(writing).toContain("rateLimitType: 'provider'");
@@ -48,6 +50,22 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(writing).not.toContain('DEEPSEEK_API_KEY');
     expect(speaking).not.toContain('DEEPSEEK_API_KEY');
     expect(speaking).not.toContain('AI_GATEWAY_API_KEY');
+  });
+
+  it('keeps Luna fallback telemetry specific enough to identify provider contract failures', () => {
+    const provider = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/_shared/writingProvider.ts'),
+      'utf8'
+    );
+    const writing = readFunction('generateDetailedFeedback');
+
+    expect(provider).toContain("provider: { sort: 'throughput', require_parameters: true }");
+    expect(provider).not.toContain('temperature:');
+    expect(provider).not.toContain('top_p:');
+    expect(provider).toContain('openrouter_luna_${code}');
+    expect(writing).toContain('providerFailureReason');
+    expect(writing).toContain('wastedProviderCostUsd');
+    expect(writing).not.toContain('luna_no_parsable_feedback');
   });
 
   it('requires grounded Task 1 visual evidence and uses the public Band 3 mismatch boundary', () => {
