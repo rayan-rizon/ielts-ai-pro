@@ -178,6 +178,9 @@ const RevenueAnalyticsWrapper = () => {
           revenueBdt: revenueData.revenueBdt,
           previousUsd: revenueData.previousUsd,
           previousBdt: revenueData.previousBdt,
+          // Records are purged after six months, so a comparison window
+          // older than that would read as a fake zero.
+          previousRetained: revenueData.previousRetained !== false,
           trend: revenueData.trend || [],
           paymentMethods: revenueData.paymentMethods || [],
         });

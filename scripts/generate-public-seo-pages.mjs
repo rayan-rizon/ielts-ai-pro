@@ -449,7 +449,7 @@ const publicPages = [
         ],
         [
           'How long is my data kept?',
-          'Each category has its own retention period, set out in the data retention section of the policy. Practice history is retained while the account is active so that progress tracking works, and is removed when the account is deleted.',
+          'Each category has its own retention period, set out in the data retention section of the policy. Practice history is retained while the account is active so that progress tracking works, and is removed when the account is deleted. Payment, refund, and AI usage records are kept for at most six months.',
         ],
       ],
     },

@@ -307,6 +307,9 @@ verify_jwt = false
 [functions.admin-payment-history]
 verify_jwt = true
 
+[functions.admin-billing]
+verify_jwt = true
+
 [functions.admin-email-stats]
 verify_jwt = true
 

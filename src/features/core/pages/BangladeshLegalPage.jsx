@@ -10,7 +10,7 @@ import {
 } from '@/features/core/components/legal/LegalPageLayout';
 import { detectLocation } from '@/lib/pricingUtils';
 
-const LAST_UPDATED = { en: 'September 22, 2026', bn: '২২ সেপ্টেম্বর ২০২৬' };
+const LAST_UPDATED = { en: 'September 23, 2026', bn: '২৩ সেপ্টেম্বর ২০২৬' };
 
 const ROUTES = {
   terms: { en: '/bd/terms', bn: '/bn/terms' },
@@ -327,7 +327,9 @@ const EnglishPrivacy = () => (
     <LegalSection id="retention" title="8. Retention and security">
       <LegalList
         items={[
-          'Subscription, transaction, consent, dispute, and refund evidence is normally kept for at least six years, or longer where law or an active dispute requires it.',
+          'Payment, refund, and dispute records (amount, date, method, transaction reference, and for bKash or Nagad the sending number) are kept for up to six months from the payment, including after account deletion, and are then deleted.',
+          'AI usage records (which feature ran, when, and its processing cost) are kept for up to six months, or until the account is deleted if sooner.',
+          'The date of your first payment and the number of refunds are kept while the account exists, so the seven-day refund applies only to a first purchase.',
           'Learning content is kept while needed for the account and is deleted or de-identified after a valid deletion request, subject to legal, security, fraud, and dispute records.',
           'Backups may remain for up to 90 days after deletion from active systems.',
           'We use access controls, encryption in transit, monitoring, and least-access practices, but no online system is risk-free.',
@@ -646,7 +648,9 @@ const BanglaPrivacy = () => (
     <LegalSection id="retention" title="৮. তথ্য সংরক্ষণ ও নিরাপত্তা">
       <LegalList
         items={[
-          'সাবস্ক্রিপশন, লেনদেন, সম্মতি, বিরোধ ও রিফান্ডের প্রমাণ সাধারণত কমপক্ষে ছয় বছর রাখা হয়; আইন বা চলমান বিরোধে প্রয়োজন হলে আরও বেশি সময় রাখা হতে পারে।',
+          'পেমেন্ট, রিফান্ড ও বিরোধের রেকর্ড (পরিমাণ, তারিখ, পদ্ধতি, লেনদেন নম্বর এবং বিকাশ বা নগদের ক্ষেত্রে প্রেরকের নম্বর) পেমেন্টের তারিখ থেকে সর্বোচ্চ ছয় মাস রাখা হয়, অ্যাকাউন্ট মুছে ফেলা হলেও; এরপর তা মুছে ফেলা হয়।',
+          'AI ব্যবহারের রেকর্ড (কোন ফিচার, কখন চলেছে এবং প্রক্রিয়াকরণ খরচ) সর্বোচ্চ ছয় মাস রাখা হয়, অথবা অ্যাকাউন্ট মুছে ফেলা হলে তার আগেই মুছে যায়।',
+          'প্রথম পেমেন্টের তারিখ ও রিফান্ডের সংখ্যা অ্যাকাউন্ট থাকা পর্যন্ত রাখা হয়, যাতে সাত দিনের রিফান্ড শুধু প্রথম ক্রয়ে প্রযোজ্য থাকে।',
           'অ্যাকাউন্টের জন্য প্রয়োজন থাকা পর্যন্ত শেখার কনটেন্ট রাখা হয়। বৈধ মুছে ফেলার অনুরোধের পর আইন, নিরাপত্তা, প্রতারণা ও বিরোধের জন্য প্রয়োজনীয় রেকর্ড ছাড়া তা মুছে ফেলা বা পরিচয়বিহীন করা হয়।',
           'সক্রিয় সিস্টেম থেকে মুছে ফেলার পর ব্যাকআপে সর্বোচ্চ ৯০ দিন তথ্য থাকতে পারে।',
           'আমরা প্রবেশ নিয়ন্ত্রণ, পরিবহনের সময় এনক্রিপশন, নজরদারি এবং প্রয়োজনসীমিত প্রবেশাধিকার ব্যবহার করি; তবে কোনো অনলাইন ব্যবস্থা সম্পূর্ণ ঝুঁকিমুক্ত নয়।',

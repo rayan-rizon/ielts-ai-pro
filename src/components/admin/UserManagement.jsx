@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { cn } from '@/lib/cn';
 import RefinedDeleteModal from './shared/RefinedDeleteModal';
+import CustomerBillingSheet from './billing/CustomerBillingSheet';
 import { AdminButton, AdminPageHeader, STAGGER_CONTAINER, FADE_UP } from './ui/primitives';
 import { UserManagementFilters } from './users/UserManagementFilters';
 import { UserManagementTable } from './users/UserManagementTable';
@@ -79,6 +80,7 @@ const UserManagement = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortField, setSortField] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [billingUserId, setBillingUserId] = useState(null);
   const requestId = useRef(0);
 
   useEffect(() => {
@@ -308,7 +310,7 @@ const UserManagement = () => {
       <m.div variants={FADE_UP}>
         <AdminPageHeader
           title="Users"
-          description="Accounts, access roles, subscription tiers, and inactivity warnings"
+          description="Accounts, subscriptions, billing and refund evidence, and inactivity warnings"
           tip="Manage registered accounts. Filters and sorting run server-side."
         >
           <AdminButton variant="outline" onClick={fetchUsers} className="flex-1 sm:flex-initial">
@@ -345,6 +347,7 @@ const UserManagement = () => {
           onSort={handleSort}
           onEditUser={setEditingUser}
           onDeleteUser={setUserToDelete}
+          onOpenBilling={(user) => setBillingUserId(user.id)}
           onReset={resetFilters}
           pagination={{
             currentPage,
@@ -367,6 +370,12 @@ const UserManagement = () => {
         onNewUserChange={setNewUser}
         onCreate={handleCreateUser}
         onUpdate={handleUpdateUser}
+      />
+      <CustomerBillingSheet
+        userId={billingUserId}
+        open={Boolean(billingUserId)}
+        onOpenChange={(next) => !next && setBillingUserId(null)}
+        onChanged={fetchUsers}
       />
     </m.div>
   );

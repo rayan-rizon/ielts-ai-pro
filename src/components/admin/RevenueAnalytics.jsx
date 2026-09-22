@@ -32,7 +32,8 @@ const AXIS = { fill: '#a8a29e', fontSize: 10, fontWeight: 700 };
 const GRID = 'rgba(168,162,158,0.22)';
 const USD = '#16966c';
 const BDT = '#6366f1';
-const RANGES = ['30D', '90D', '1Y'];
+// Payment records are kept for six months, so no range reaches further back.
+const RANGES = ['30D', '90D', '6M'];
 const bdt = (value) => `৳${Number(value || 0).toLocaleString()}`;
 const usd = (value) =>
   `$${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -114,18 +115,29 @@ const RevenueAnalytics = ({
         <div className={cn(PANEL, 'px-3.5 py-2.5')}>
           <p className={cn(MICRO, MUTED)}>Previous equal period</p>
           <div className="mt-2">
-            <DualValue
-              primary={bdt(analyticsData.previousBdt)}
-              primaryLabel="Local · BDT"
-              secondary={usd(analyticsData.previousUsd)}
-              secondaryLabel="Global · USD"
-            />
+            {analyticsData.previousRetained === false ? (
+              <p className="text-[11px] font-medium leading-relaxed text-stone-500 dark:text-stone-400">
+                Not retained. Payment records are kept for six months, so there is no earlier period
+                to compare with.
+              </p>
+            ) : (
+              <DualValue
+                primary={bdt(analyticsData.previousBdt)}
+                primaryLabel="Local · BDT"
+                secondary={usd(analyticsData.previousUsd)}
+                secondaryLabel="Global · USD"
+              />
+            )}
           </div>
         </div>
         <Kpi
           label="Settled transactions"
           value={Number(stats.transactions || 0).toLocaleString()}
-          sub={`${stats.previousTransactions || 0} in prior period`}
+          sub={
+            analyticsData.previousRetained === false
+              ? 'prior period not retained'
+              : `${stats.previousTransactions || 0} in prior period`
+          }
           tip="Approved manual payments and paid billing records after de-duplication."
         />
         <Kpi

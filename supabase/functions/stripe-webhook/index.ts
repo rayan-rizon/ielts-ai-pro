@@ -7,6 +7,9 @@
  * - customer.subscription.deleted: Reset to free tier on cancellation
  * - invoice.paid: Record successful recurring payments
  * - invoice.payment_failed: Handle failed payments
+ * - charge.refunded / charge.refund.updated: Record refunds in payment_refunds
+ *   (including refunds issued from the Stripe dashboard)
+ * - charge.dispute.*: Record chargebacks in payment_refunds
  *
  * Uses the unified `handle_stripe_event` RPC for atomic updates with idempotency.
  */
@@ -170,6 +173,27 @@ Deno.serve(async (req: Request) => {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         await handlePaymentFailed(invoice, event.id);
+        break;
+      }
+
+      case 'charge.refunded': {
+        const charge = event.data.object as Stripe.Charge;
+        await handleChargeRefunds(charge.id);
+        break;
+      }
+
+      case 'charge.refund.updated': {
+        const refund = event.data.object as Stripe.Refund;
+        const chargeId = stripeObjectId(refund.charge);
+        if (chargeId) await handleChargeRefunds(chargeId);
+        break;
+      }
+
+      case 'charge.dispute.created':
+      case 'charge.dispute.updated':
+      case 'charge.dispute.closed': {
+        const dispute = event.data.object as Stripe.Dispute;
+        await handleDispute(dispute);
         break;
       }
 
@@ -632,4 +656,149 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
   console.log(
     `[Webhook] Flagged user ${userData.auth_id} with payment_failed_at for in-app notification (attempt #${attemptCount})`
   );
+}
+
+// ---------------------------------------------------------------------------
+// Refunds and disputes
+// ---------------------------------------------------------------------------
+// These write to public.payment_refunds through service_record_provider_refund,
+// which is idempotent on the Stripe refund/dispute id. They deliberately do not
+// claim a stripe_events row: platform health reads that table as "payment
+// events that should have produced a payment row".
+
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  'BIF',
+  'CLP',
+  'DJF',
+  'GNF',
+  'JPY',
+  'KMF',
+  'KRW',
+  'MGA',
+  'PYG',
+  'RWF',
+  'UGX',
+  'VND',
+  'VUV',
+  'XAF',
+  'XOF',
+  'XPF',
+]);
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function stripeObjectId(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  const id = (value as { id?: unknown }).id;
+  return typeof id === 'string' ? id : null;
+}
+
+function majorUnits(amount: number | null | undefined, currency: string | null | undefined) {
+  const code = String(currency || 'usd').toUpperCase();
+  return ZERO_DECIMAL_CURRENCIES.has(code) ? Number(amount || 0) : Number(amount || 0) / 100;
+}
+
+/**
+ * The payment_requests.transaction_id a charge was recorded under: the
+ * Checkout Session id for a first purchase, the invoice id for a renewal.
+ */
+async function resolvePaymentTransactionId(charge: Stripe.Charge): Promise<string | null> {
+  const invoiceId = stripeObjectId(charge.invoice);
+  if (invoiceId) {
+    const { data: renewal } = await supabase
+      .from('payment_requests')
+      .select('transaction_id')
+      .eq('transaction_id', invoiceId)
+      .maybeSingle();
+    if (renewal) return invoiceId;
+
+    const invoice = await stripe.invoices.retrieve(invoiceId);
+    const subscriptionId = stripeObjectId(invoice.subscription);
+    // Only the subscription's first invoice belongs to its Checkout Session.
+    if (invoice.billing_reason === 'subscription_create' && subscriptionId) {
+      const sessions = await stripe.checkout.sessions.list({
+        subscription: subscriptionId,
+        limit: 1,
+      } as Stripe.Checkout.SessionListParams);
+      if (sessions.data[0]?.id) return sessions.data[0].id;
+    }
+    return invoiceId;
+  }
+
+  const paymentIntentId = stripeObjectId(charge.payment_intent);
+  if (paymentIntentId) {
+    const sessions = await stripe.checkout.sessions.list({
+      payment_intent: paymentIntentId,
+      limit: 1,
+    });
+    if (sessions.data[0]?.id) return sessions.data[0].id;
+  }
+  return null;
+}
+
+async function handleChargeRefunds(chargeId: string) {
+  const charge = await stripe.charges.retrieve(chargeId);
+  const transactionId = await resolvePaymentTransactionId(charge);
+  const refunds = await stripe.refunds.list({ charge: chargeId, limit: 100 });
+
+  for (const refund of refunds.data) {
+    const appRefundId = refund.metadata?.refund_id;
+    const status =
+      refund.status === 'succeeded'
+        ? 'succeeded'
+        : refund.status === 'failed'
+          ? 'failed'
+          : refund.status === 'canceled'
+            ? 'canceled'
+            : 'pending';
+
+    const { error } = await supabase.rpc('service_record_provider_refund', {
+      p_provider: 'stripe',
+      p_kind: 'refund',
+      p_provider_refund_ref: refund.id,
+      p_status: status,
+      p_amount: majorUnits(refund.amount, refund.currency),
+      p_currency: String(refund.currency || charge.currency || 'usd').toUpperCase(),
+      p_payment_transaction_id: transactionId,
+      p_provider_payment_ref: stripeObjectId(charge.payment_intent) || charge.id,
+      p_customer_ref: stripeObjectId(charge.customer),
+      p_app_refund_id: appRefundId && UUID_PATTERN.test(appRefundId) ? appRefundId : null,
+      p_failure_reason: refund.failure_reason || null,
+    });
+    if (error) throw error;
+  }
+
+  console.log(`[Webhook] ✅ Recorded ${refunds.data.length} refund(s) for charge ${chargeId}`);
+}
+
+async function handleDispute(dispute: Stripe.Dispute) {
+  const chargeId = stripeObjectId(dispute.charge);
+  const charge = chargeId ? await stripe.charges.retrieve(chargeId) : null;
+  const transactionId = charge ? await resolvePaymentTransactionId(charge) : null;
+
+  // A lost dispute returns the money to the cardholder; a won one does not.
+  const status =
+    dispute.status === 'lost'
+      ? 'succeeded'
+      : dispute.status === 'won' || dispute.status === 'warning_closed'
+        ? 'canceled'
+        : 'pending';
+
+  const { error } = await supabase.rpc('service_record_provider_refund', {
+    p_provider: 'stripe',
+    p_kind: 'chargeback',
+    p_provider_refund_ref: dispute.id,
+    p_status: status,
+    p_amount: majorUnits(dispute.amount, dispute.currency),
+    p_currency: String(dispute.currency || 'usd').toUpperCase(),
+    p_payment_transaction_id: transactionId,
+    p_provider_payment_ref: stripeObjectId(dispute.payment_intent) || chargeId,
+    p_customer_ref: charge ? stripeObjectId(charge.customer) : null,
+    p_app_refund_id: null,
+    p_failure_reason: `Dispute ${dispute.status}: ${dispute.reason}`,
+  });
+  if (error) throw error;
+
+  console.log(`[Webhook] ✅ Recorded dispute ${dispute.id} (${dispute.status})`);
 }

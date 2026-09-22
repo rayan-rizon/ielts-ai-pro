@@ -5,6 +5,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  FileSearch,
   Hash,
   Loader2,
   Phone,
@@ -17,6 +18,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { matchesPaymentSearch, mergePaymentHistory } from './paymentHistory';
+import CustomerBillingSheet from './billing/CustomerBillingSheet';
+import RefundLedgerPanel from './billing/RefundLedgerPanel';
 import {
   NUM,
   MICRO,
@@ -29,7 +32,7 @@ import {
   FADE_UP,
 } from './ui/primitives';
 
-const STATUS_TONE = { pending: 'warn', approved: 'ok', rejected: 'fault' };
+const STATUS_TONE = { pending: 'warn', approved: 'ok', rejected: 'fault', refunded: 'accent' };
 
 const StatusPill = ({ status }) => (
   <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status] || 'neutral'), 'shrink-0')}>
@@ -42,6 +45,7 @@ const FILTERS = [
   { value: 'pending', label: 'Pending' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
+  { value: 'refunded', label: 'Refunded' },
 ];
 
 export default function PaymentManagement() {
@@ -50,6 +54,8 @@ export default function PaymentManagement() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [isProcessing, setIsProcessing] = useState(null);
+  const [billingUserId, setBillingUserId] = useState(null);
+  const [ledgerKey, setLedgerKey] = useState(0);
 
   useEffect(() => {
     fetchRequests();
@@ -145,6 +151,7 @@ export default function PaymentManagement() {
       pending: pending.length,
       approved: requests.filter((r) => r.status === 'approved').length,
       rejected: requests.filter((r) => r.status === 'rejected').length,
+      refunded: requests.filter((r) => r.status === 'refunded').length,
       oldestHours: pending.length ? Math.round((Date.now() - oldest) / 3600000) : 0,
     };
   }, [requests]);
@@ -189,6 +196,20 @@ export default function PaymentManagement() {
           {full && <span>Reject</span>}
         </button>
       </div>
+    ) : request.user?.id ? (
+      <button
+        type="button"
+        onClick={() => setBillingUserId(request.user.id)}
+        className={cn(
+          MICRO,
+          'inline-flex items-center gap-1 rounded-md border border-stone-300 dark:border-white/15 px-2 h-7 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50',
+          full && 'w-full justify-center h-9'
+        )}
+        aria-label={`Review billing and refund evidence for ${request.user.full_name || request.user.email || 'this learner'}`}
+      >
+        <FileSearch className="w-3 h-3" />
+        Review
+      </button>
     ) : (
       <span
         className={cn(MICRO, 'inline-flex items-center gap-1 text-stone-500 dark:text-stone-400')}
@@ -208,8 +229,8 @@ export default function PaymentManagement() {
       <m.div variants={FADE_UP}>
         <AdminPageHeader
           title="Payments"
-          description="Review and approve manual subscription payments"
-          tip="Pending manual payments. Approving one upgrades the learner's plan."
+          description="Approve manual payments, check refund evidence, and issue refunds"
+          tip="Approving a manual payment upgrades the learner's plan. Review opens the learner's payments, AI usage since purchase, and refund options."
         >
           <div className="relative w-full sm:w-56">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
@@ -225,7 +246,7 @@ export default function PaymentManagement() {
       </m.div>
 
       {/* Queue state */}
-      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Kpi
           label="Awaiting review"
           value={stats.pending}
@@ -234,6 +255,7 @@ export default function PaymentManagement() {
         />
         <Kpi label="Approved" value={stats.approved} sub="upgrades applied" />
         <Kpi label="Rejected" value={stats.rejected} sub="declined transfers" />
+        <Kpi label="Refunded" value={stats.refunded} sub="money returned" />
         <Kpi label="Total records" value={requests.length} sub="manual + Stripe" />
       </m.div>
 
@@ -451,6 +473,20 @@ export default function PaymentManagement() {
           </table>
         </div>
       </m.div>
+
+      <m.div variants={FADE_UP}>
+        <RefundLedgerPanel onOpenCustomer={setBillingUserId} refreshKey={ledgerKey} />
+      </m.div>
+
+      <CustomerBillingSheet
+        userId={billingUserId}
+        open={Boolean(billingUserId)}
+        onOpenChange={(next) => !next && setBillingUserId(null)}
+        onChanged={() => {
+          setLedgerKey((key) => key + 1);
+          fetchRequests();
+        }}
+      />
     </m.div>
   );
 }

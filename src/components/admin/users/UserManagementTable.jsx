@@ -6,6 +6,7 @@ import {
   Clock,
   Edit,
   Mail,
+  ReceiptText,
   Search,
   Sparkles,
   Trash2,
@@ -110,7 +111,7 @@ const SortIcon = ({ active, direction }) => {
   );
 };
 
-const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
+const UserRow = ({ user, selected, onToggle, onEdit, onDelete, onOpenBilling }) => {
   const tier = user.subscription_tier || 'free';
   const role = user.role || 'user';
   return (
@@ -133,9 +134,19 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
             {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
-              {user.full_name || 'Anonymous user'}
-            </p>
+            {onOpenBilling ? (
+              <button
+                type="button"
+                onClick={onOpenBilling}
+                className="block max-w-full truncate text-left font-extrabold text-[11px] text-stone-900 dark:text-stone-50 hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 rounded-sm"
+              >
+                {user.full_name || 'Anonymous user'}
+              </button>
+            ) : (
+              <p className="font-extrabold text-[11px] text-stone-900 dark:text-stone-50 truncate">
+                {user.full_name || 'Anonymous user'}
+              </p>
+            )}
             <p className={cn(NUM, 'text-[10px] text-stone-500 dark:text-stone-400')}>
               {user.id.slice(0, 8)}
             </p>
@@ -193,6 +204,17 @@ const UserRow = ({ user, selected, onToggle, onEdit, onDelete }) => {
       </td>
       <td className="py-3 px-4">
         <div className="flex justify-end items-center gap-1">
+          {onOpenBilling && (
+            <button
+              type="button"
+              onClick={onOpenBilling}
+              aria-label={`Billing and usage for ${user.full_name || user.email || 'user'}`}
+              title="Billing, refunds and AI usage"
+              className="h-7 w-7 grid place-items-center rounded-md text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+            >
+              <ReceiptText className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             type="button"
             onClick={onEdit}
@@ -222,6 +244,7 @@ const TableBody = ({
   onToggleUser,
   onEditUser,
   onDeleteUser,
+  onOpenBilling,
   onReset,
 }) => {
   if (loading && users.length === 0) {
@@ -262,6 +285,7 @@ const TableBody = ({
       onToggle={() => onToggleUser(user.id)}
       onEdit={() => onEditUser(user)}
       onDelete={() => onDeleteUser(user)}
+      onOpenBilling={onOpenBilling ? () => onOpenBilling(user) : undefined}
     />
   ));
 };
@@ -278,6 +302,7 @@ export const UserManagementTable = ({
   onSort,
   onEditUser,
   onDeleteUser,
+  onOpenBilling,
   onReset,
   pagination,
 }) => (
@@ -334,6 +359,7 @@ export const UserManagementTable = ({
             onToggleUser={onToggleUser}
             onEditUser={onEditUser}
             onDeleteUser={onDeleteUser}
+            onOpenBilling={onOpenBilling}
             onReset={onReset}
           />
         </tbody>

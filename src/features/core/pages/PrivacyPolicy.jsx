@@ -10,7 +10,7 @@ import {
   LegalTable,
 } from '@/features/core/components/legal/LegalPageLayout';
 
-const LAST_UPDATED = 'January 18, 2026';
+const LAST_UPDATED = 'September 23, 2026';
 
 const SECTIONS = [
   { id: 'information-collection', title: 'Information collection' },
@@ -116,6 +116,16 @@ export default function PrivacyPolicy() {
                 description: 'IP address, browser type, device info, usage logs.',
               },
               {
+                term: 'Payment records',
+                description:
+                  'Plan, amount, currency, payment method, transaction reference, refund and dispute history. For bKash or Nagad payments, the sending wallet number. Card details are handled by Stripe and never reach us.',
+              },
+              {
+                term: 'AI usage records',
+                description:
+                  'Which AI feature ran, when, whether it succeeded, and its processing cost. Used to enforce plan limits, keep the service reliable, and check refund eligibility.',
+              },
+              {
                 term: 'Consent records',
                 description: 'Cookie preferences, marketing opt-ins, timestamps.',
               },
@@ -204,6 +214,11 @@ export default function PrivacyPolicy() {
               retention schedule.
             </p>
           </LegalNote>
+          <p>
+            Payment, refund, and dispute records are the exception: they are detached from the
+            deleted account but kept until six months after the payment, so that refunds,
+            chargebacks, and fraud checks can still be handled. They are then deleted.
+          </p>
         </LegalSection>
 
         <LegalSection id="breach-notification" title="Data breach notification policy">
@@ -244,7 +259,26 @@ export default function PrivacyPolicy() {
               { term: 'Supabase', description: 'Database and authentication (US/EU regions).' },
               { term: 'Vercel', description: 'Website hosting (global CDN with EU presence).' },
               { term: 'Stripe', description: 'Payment processing (PCI DSS compliant, EU/US).' },
-              { term: 'Google AI', description: 'AI-powered feedback generation (US).' },
+              {
+                term: 'Google',
+                description: 'Gemini AI feedback and Text-to-Speech examiner voices (US).',
+              },
+              {
+                term: 'OpenRouter',
+                description:
+                  'Routes AI feedback requests to model providers such as OpenAI, DeepSeek, and Z.ai (US).',
+              },
+              { term: 'DeepSeek', description: 'AI feedback and learning-plan generation.' },
+              {
+                term: 'Cloudflare',
+                description:
+                  'Speech transcription (Workers AI) and audio file storage (R2), global.',
+              },
+              {
+                term: 'Microsoft Azure',
+                description: 'Pronunciation assessment of speaking recordings.',
+              },
+              { term: 'Resend', description: 'Account and service email delivery (US).' },
             ]}
           />
           <p>
@@ -261,7 +295,15 @@ export default function PrivacyPolicy() {
             rows={[
               ['Account and profile data', 'Until account deletion + 30 days'],
               ['Test performance data', 'Until account deletion'],
-              ['Payment records', '7 years (legal requirement)'],
+              [
+                'Payment, refund, and dispute records',
+                'Up to 6 months from the payment, including after account deletion',
+              ],
+              ['AI usage records', 'Up to 6 months, or until account deletion if sooner'],
+              [
+                'First payment date and refund count',
+                'Until account deletion (so the 7-day refund applies only to a first purchase)',
+              ],
               ['Consent records', 'Until account deletion + 3 years'],
               ['Security logs', '90 days'],
               ['Backup data', '90 days after deletion'],
