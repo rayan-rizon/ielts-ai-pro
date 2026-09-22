@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { Calendar, Crown, Percent, Power, Tag, Ticket, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -16,13 +17,18 @@ const formatRevenue = (revenue = {}) =>
     .map(([currency, amount]) => `${currency} ${Number(amount).toFixed(2)}`)
     .join(' · ') || 'No revenue';
 
-const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
+// AnimatePresence mode="popLayout" measures each child through a ref.
+const PromoCard = forwardRef(function PromoCard(
+  { promo, metrics, index, onToggle, onDelete },
+  ref
+) {
   const isExpired = new Date(promo.valid_until) < new Date();
   const status = isExpired ? 'expired' : promo.is_active ? 'active' : 'paused';
   const usagePercentage = Math.min(((promo.current_uses || 0) / (promo.max_uses || 1)) * 100, 100);
   const grant = promo.grants_subscription;
   return (
     <m.div
+      ref={ref}
       layout
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -134,7 +140,7 @@ const PromoCard = ({ promo, metrics, index, onToggle, onDelete }) => {
       )}
     </m.div>
   );
-};
+});
 
 export const PromoCodeGrid = ({
   loading,
