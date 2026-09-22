@@ -182,7 +182,10 @@ Deno.serve(async (req: Request) => {
         break;
       }
 
-      case 'charge.refund.updated': {
+      // charge.refund.updated fires only for some payment methods;
+      // refund.updated covers every refund. Both carry the same Refund.
+      case 'charge.refund.updated':
+      case 'refund.updated': {
         const refund = event.data.object as Stripe.Refund;
         const chargeId = stripeObjectId(refund.charge);
         if (chargeId) await handleChargeRefunds(chargeId);
@@ -604,9 +607,10 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
 
   // Record the failed event for tracking with attempt count
   const attemptCount = invoice.attempt_count || 1;
-  await supabase
-    .from('stripe_events')
-    .insert({
+  // supabase-js v2 has no .onConflict(); the old chain threw here, so the
+  // dunning flag and email below never ran. A replayed event is skipped.
+  await supabase.from('stripe_events').upsert(
+    {
       id: eventId,
       type: 'invoice.payment_failed',
       status: 'processed',
@@ -620,9 +624,9 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
           ? new Date(invoice.next_payment_attempt * 1000).toISOString()
           : null,
       },
-    })
-    .onConflict('id')
-    .ignore();
+    },
+    { onConflict: 'id', ignoreDuplicates: true }
+  );
 
   // Flag the user's profile so the app can show an in-app dunning notice.
   // This is cleared when a subsequent invoice.paid event is received.

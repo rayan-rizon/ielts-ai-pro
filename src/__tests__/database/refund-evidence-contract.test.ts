@@ -10,6 +10,9 @@ const migration = read(
 const sessionStartFix = read(
   'supabase/migrations/20260922182922_refund_evidence_ignores_session_start_markers.sql'
 );
+const foreignRefundGuard = read(
+  'supabase/migrations/20260922193901_ignore_foreign_provider_refunds.sql'
+);
 const webhook = read('supabase/functions/stripe-webhook/index.ts');
 const adminBilling = read('supabase/functions/admin-billing/index.ts');
 
@@ -126,10 +129,27 @@ describe('session start markers', () => {
   });
 });
 
+describe('shared Stripe account', () => {
+  it('ignores refunds and disputes that match none of our payments or customers', () => {
+    const guard = foreignRefundGuard.indexOf('IF v_payment.id IS NULL AND v_user_id IS NULL THEN');
+    expect(guard).toBeGreaterThan(-1);
+    // The guard must run before anything is written.
+    expect(guard).toBeLessThan(foreignRefundGuard.indexOf('INSERT INTO public.payment_refunds'));
+    expect(foreignRefundGuard).toContain("'ignored', true");
+  });
+});
+
 describe('refund edge functions', () => {
+  it('records failed renewals with supabase-js v2 syntax so dunning still runs', () => {
+    expect(webhook).not.toMatch(/\.onConflict\('/);
+    expect(webhook).toContain("{ onConflict: 'id', ignoreDuplicates: true }");
+  });
+
   it('records Stripe refunds and disputes without claiming a payment stripe_events row', () => {
     expect(webhook).toContain("case 'charge.refunded':");
     expect(webhook).toContain("case 'charge.dispute.closed':");
+    // charge.refund.updated only fires for some payment methods.
+    expect(webhook).toContain("case 'refund.updated':");
     expect(webhook).toContain("rpc('service_record_provider_refund'");
     const refundSection = webhook.slice(webhook.indexOf('async function handleChargeRefunds'));
     expect(refundSection).not.toContain("from('stripe_events')");
