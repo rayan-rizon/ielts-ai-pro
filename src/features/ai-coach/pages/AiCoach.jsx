@@ -166,9 +166,12 @@ function CoachLoadingSkeleton() {
       aria-busy="true"
       aria-label="Loading Ava coach"
     >
-      <div className="mx-auto grid max-w-[1440px] grid-cols-12 items-stretch gap-3">
+      <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
         <aside
-          className={cn(PANEL, 'order-3 col-span-12 flex min-h-[72vh] flex-col p-3 lg:col-span-3')}
+          className={cn(
+            PANEL,
+            'order-3 col-span-12 flex min-h-[72vh] flex-col p-3 lg:min-h-[calc(100dvh-2.5rem)]'
+          )}
         >
           <div className="flex items-center justify-between">
             <div className="h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
@@ -187,7 +190,7 @@ function CoachLoadingSkeleton() {
         <section
           className={cn(
             PANEL,
-            'relative order-2 col-span-12 flex min-h-[72vh] flex-col overflow-hidden lg:col-span-9'
+            'relative order-2 col-span-12 flex min-h-[72vh] flex-col overflow-hidden lg:min-h-[calc(100dvh-2.5rem)]'
           )}
         >
           <div className="flex items-center justify-between border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
@@ -499,7 +502,7 @@ function CoachMessage({ message, onAction, actionBusy }) {
       {assistant ? <CoachAvatar size="sm" className="mt-1" decorative /> : null}
       <div
         className={cn(
-          'ai-coach-message max-w-[min(88%,46rem)] rounded-xl border px-3.5 py-3 text-sm leading-6',
+          'ai-coach-message max-w-[min(94%,68rem)] rounded-xl border px-3.5 py-3 text-sm leading-6',
           assistant
             ? 'border-[#e4e2f0] bg-white text-slate-700 dark:border-white/[0.07] dark:bg-[#151419] dark:text-slate-200'
             : 'border-[#5a63df] bg-[#5a63df] text-white'
@@ -821,11 +824,11 @@ export default function AiCoach() {
 
   return (
     <main className="ai-coach-canvas min-h-full p-3 text-slate-900 dark:text-white md:p-5">
-      <div className="mx-auto grid max-w-[1440px] grid-cols-12 items-stretch gap-3">
+      <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
         <aside
           className={cn(
             PANEL,
-            'order-3 col-span-12 flex h-full flex-col p-3 lg:col-span-3 lg:min-h-[72vh]'
+            'order-3 col-span-12 flex h-full flex-col p-3 lg:min-h-[calc(100dvh-2.5rem)]'
           )}
         >
           <div className="flex items-center justify-between">
@@ -904,7 +907,7 @@ export default function AiCoach() {
         <section
           className={cn(
             PANEL,
-            'relative order-2 col-span-12 flex h-full min-h-[72vh] flex-col overflow-hidden lg:col-span-9'
+            'relative order-2 col-span-12 flex h-full min-h-[72vh] flex-col overflow-hidden lg:min-h-[calc(100dvh-2.5rem)]'
           )}
         >
           <div className="ava-coach-bar flex flex-wrap items-center justify-between gap-3 border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">

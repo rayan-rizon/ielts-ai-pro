@@ -1705,6 +1705,21 @@
     linear-gradient(90deg, rgba(169, 151, 255, 0.035) 1px, transparent 1px);
 }
 
+.ai-coach-layout {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+@media (min-width: 1024px) {
+  .ai-coach-layout {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+  }
+
+  .ai-coach-layout > aside,
+  .ai-coach-layout > section {
+    grid-column: auto;
+  }
+}
+
 .ava-display {
   font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
   font-weight: 800;
