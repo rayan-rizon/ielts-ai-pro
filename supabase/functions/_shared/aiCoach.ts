@@ -172,11 +172,11 @@ export function detectCoachLanguage(message: string, preferred: CoachLanguage = 
   if (/\p{Script=Bengali}/u.test(text))
     return { language: 'bn' as const, source: 'message' as const, ambiguous: false };
   if (/\p{Script=Devanagari}/u.test(text)) {
-    const language = /(छ|छु|गर्न|नेपाली)/u.test(text) ? 'ne' : 'hi';
+    const language: CoachLanguage = /(छ|छु|गर्न|नेपाली)/u.test(text) ? 'ne' : 'hi';
     return { language, source: 'message' as const, ambiguous: false };
   }
   if (/\p{Script=Arabic}/u.test(text)) {
-    const language = /[ٹڈڑںھہےی]/u.test(text) ? 'ur' : 'ar';
+    const language: CoachLanguage = /[ٹڈڑںھہےی]/u.test(text) ? 'ur' : 'ar';
     return { language, source: 'message' as const, ambiguous: false };
   }
   if (/\p{Script=Han}/u.test(text))

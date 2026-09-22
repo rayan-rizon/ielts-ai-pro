@@ -416,10 +416,12 @@ Deno.serve(async (req: Request) => {
         .from('users')
         .select('id')
         .eq('auth_id', authUser.id)
-        .single();
-      await admin
+        .maybeSingle();
+      if (!profile) throw new Error('Account unavailable');
+      const { error } = await admin
         .from('ai_coach_preferences')
         .upsert({ user_id: profile.id, explanation_language: body.explanationLanguage });
+      if (error) throw error;
       return response({ explanationLanguage: body.explanationLanguage }, 200, headers);
     }
     if (body.operation === 'delete_conversation') {
@@ -428,7 +430,8 @@ Deno.serve(async (req: Request) => {
         .from('users')
         .select('id')
         .eq('auth_id', authUser.id)
-        .single();
+        .maybeSingle();
+      if (!profile) throw new Error('Account unavailable');
       const { error } = await admin
         .from('ai_coach_conversations')
         .delete()
@@ -631,7 +634,7 @@ Deno.serve(async (req: Request) => {
       }
     }
     generated.parsed.actions = validateActions(generated.parsed.actions, context, input.message);
-    const failedAttemptCost = chargedAttempts.reduce(
+    const failedAttemptCost = chargedAttempts.reduce<number>(
       (total, attempt) => total + billedCost(attempt),
       0
     );
@@ -642,7 +645,7 @@ Deno.serve(async (req: Request) => {
       : measuredCost;
     const tokens =
       generated.usage.tokensUsed +
-      chargedAttempts.reduce((total, attempt) => total + billedTokens(attempt), 0);
+      chargedAttempts.reduce<number>((total, attempt) => total + billedTokens(attempt), 0);
     const { data: final, error: finishError } = await admin.rpc('ai_coach_finish', {
       p_operation_id: input.requestId,
       p_user_message: input.message,
@@ -684,8 +687,8 @@ Deno.serve(async (req: Request) => {
       const attempts = chargedAttempts.includes(error)
         ? [...chargedAttempts]
         : [...chargedAttempts, error];
-      const cost = attempts.reduce((total, item) => total + billedCost(item), 0);
-      const tokens = attempts.reduce((total, item) => total + billedTokens(item), 0);
+      const cost = attempts.reduce<number>((total, item) => total + billedCost(item), 0);
+      const tokens = attempts.reduce<number>((total, item) => total + billedTokens(item), 0);
       const unknownProviderCost =
         providerAttempted && attempts.filter(hasKnownBilledCost).length < providerCallCount;
       await admin.rpc('ai_coach_finish', {

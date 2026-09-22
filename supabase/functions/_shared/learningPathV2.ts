@@ -450,7 +450,7 @@ export function buildRoadmap(testDate: string | null | undefined, now: Date | st
   );
   // Keep a planning horizon for task allocation when a date is missing or expired, but do not
   // surface that internal horizon as a learner's exam timeline.
-  const examDate = hasScheduledExam ? parsedExam : addDays(start, 84);
+  const examDate = hasScheduledExam && parsedExam ? parsedExam : addDays(start, 84);
   const totalDays = Math.max(1, Math.ceil((examDate.getTime() - start.getTime()) / 86400000));
 
   const templates = [
