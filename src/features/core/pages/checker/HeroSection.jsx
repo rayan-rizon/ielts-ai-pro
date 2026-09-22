@@ -39,11 +39,10 @@ function HeroCopy() {
       className="max-w-2xl"
     >
       <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[.14em] text-indigo-700 shadow-sm dark:border-white/10 dark:bg-white/4 dark:text-indigo-300 dark:shadow-none">
-        <Sparkles className="h-3.5 w-3.5" /> Free Academic IELTS Writing Checker
+        <Sparkles className="h-3.5 w-3.5" /> Free AI feedback
       </div>
       <h1 className="mt-6 text-[2.25rem] font-black leading-[1.08] tracking-[-.04em] text-[#0d1740] dark:text-white sm:text-[3rem] lg:text-[3.50rem]">
-        <span className="block">Free IELTS Writing Checker</span>
-        <span className="block text-indigo-600 dark:text-indigo-400">for Task 1 &amp; Task 2</span>
+        IELTS Writing Checker
       </h1>
       <p className="font-handwritten mt-4 text-3xl leading-tight text-violet-600 dark:text-violet-400 sm:text-4xl">
         Write Better. Score Higher.
