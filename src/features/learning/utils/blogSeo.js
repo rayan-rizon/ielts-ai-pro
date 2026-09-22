@@ -5,7 +5,7 @@
  */
 const BLOG_SEO_OVERRIDES = {
   'ielts-speaking-topics-questions-cue-cards-tips': {
-    title: 'IELTS Speaking Topics, Questions & Cue Cards',
+    title: 'IELTS Speaking Questions & Topics',
     description:
       'Find common IELTS Speaking topics, Part 1 questions, Part 2 cue cards, Part 3 prompts, and practical answer tips for focused practice.',
     keywords: [
@@ -43,6 +43,46 @@ const BLOG_SEO_OVERRIDES = {
       'IELTS mock tests',
       'IELTS practice tests',
       'IELTS preparation',
+    ],
+  },
+  'ielts-writing-task-2-two-part-question': {
+    title: 'IELTS Writing Task 2 Two-Part Questions',
+    keywords: [
+      'IELTS Writing Task 2 two-part questions',
+      'IELTS Task 2 answer both questions',
+      'IELTS Writing Task 2 questions',
+    ],
+  },
+  'ielts-listening-multiple-choice-part-3': {
+    title: 'IELTS Listening Multiple Choice: Part 3',
+    keywords: [
+      'IELTS Listening multiple choice',
+      'IELTS Listening Part 3',
+      'IELTS Listening multiple choice strategy',
+    ],
+  },
+  'ielts-writing-task-1-overview-key-features': {
+    title: 'IELTS Writing Task 1 Overview: Key Features',
+    keywords: [
+      'IELTS Writing Task 1 overview',
+      'IELTS Task 1 key features',
+      'IELTS Writing Task 1 overview examples',
+    ],
+  },
+  'ielts-reading-matching-headings-main-idea': {
+    title: 'IELTS Reading Matching Headings: Main Idea',
+    keywords: [
+      'IELTS Reading matching headings',
+      'IELTS matching headings main idea',
+      'IELTS Reading headings strategy',
+    ],
+  },
+  'ielts-overall-band-score-rounding-calculator': {
+    title: 'IELTS Overall Band Score Rounding',
+    keywords: [
+      'IELTS overall band score calculator',
+      'IELTS band score rounding',
+      'how IELTS overall score is calculated',
     ],
   },
 };

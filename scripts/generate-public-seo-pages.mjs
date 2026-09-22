@@ -35,11 +35,11 @@ function seoLandingPage(content) {
 const publicPages = [
   {
     path: 'ielts-writing-checker',
-    title: 'Free IELTS Writing Checker – Task 1 & 2 | IELTS Ai Pro',
+    title: 'IELTS Writing Checker: Task 1 & 2 | IELTS Ai Pro',
     description:
       'Paste your Academic IELTS Task 1 or Task 2 response and instantly receive an estimated band score with detailed feedback on all four writing criteria.',
     keywords:
-      'IELTS writing checker, AI IELTS writing checker, free IELTS writing checker, IELTS Task 1 checker, IELTS Task 2 checker, IELTS writing feedback, Academic IELTS writing',
+      'IELTS writing checker, free IELTS writing checker, online IELTS writing feedback, AI IELTS writing checker, check IELTS writing online, IELTS Task 1 checker, IELTS Task 2 checker',
     canonical: 'https://www.ieltsai.pro/ielts-writing-checker',
     imageAlt: 'Student practising Academic IELTS writing with a laptop and notebook',
     prerender: {
@@ -240,7 +240,7 @@ const publicPages = [
     description:
       'Free IELTS band score calculator: turn your Listening, Reading, Writing and Speaking scores into an overall band, plus raw score conversion.',
     keywords:
-      'IELTS band score calculator, IELTS score calculator, IELTS band calculator, IELTS overall band score, IELTS listening score, IELTS reading score conversion, IELTS raw score conversion',
+      'IELTS band score calculator, IELTS score calculator, IELTS band calculator, IELTS test band calculator, IELTS score and band calculator, calculate IELTS score, IELTS reading score conversion, IELTS raw score conversion',
     canonical: 'https://www.ieltsai.pro/ielts-band-score-calculator',
     imageAlt: 'IELTS learner calculating an overall band score',
     prerender: {

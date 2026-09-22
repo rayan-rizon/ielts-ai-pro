@@ -85,7 +85,7 @@ const notFoundHtml = readFileSync(notFoundPath, 'utf8');
 const generatedSeoPages = {
   '/ielts-writing-checker': {
     path: path.join(root, 'dist/ielts-writing-checker/index.html'),
-    title: 'Free IELTS Writing Checker – Task 1 & 2 | IELTS Ai Pro',
+    title: 'IELTS Writing Checker: Task 1 & 2 | IELTS Ai Pro',
     heading: 'Free IELTS Writing Checker for Task 1 & Task 2',
     primaryHref: '#checker',
     secondaryHref: '/blog/ielts-writing-task-1-maps',

@@ -366,7 +366,7 @@ describe('server-rendered IELTS blog', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain(
-      '<title>IELTS Speaking Topics, Questions &amp; Cue Cards | IELTS Ai Pro</title>'
+      '<title>IELTS Speaking Questions &amp; Topics | IELTS Ai Pro</title>'
     );
     expect(response.body).toContain(
       '<meta name="description" content="Find common IELTS Speaking topics, Part 1 questions, Part 2 cue cards, Part 3 prompts, and practical answer tips for focused practice.">'
