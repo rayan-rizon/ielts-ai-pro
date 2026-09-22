@@ -76,6 +76,7 @@ describe('public writing checker signup handoff', () => {
 
   it('requires the Task 1 visual before opening the signup gate and preserves it', async () => {
     renderWorkspace();
+    expect(screen.getByLabelText('Task 1 image')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Load demo' }));
     fireEvent.click(screen.getByRole('button', { name: 'Analyse' }));
 

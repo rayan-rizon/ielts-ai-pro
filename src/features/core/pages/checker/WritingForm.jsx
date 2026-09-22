@@ -254,11 +254,14 @@ function Task1ImageField({ taskImageFile, onImageChange }) {
         </div>
         <div>
           <label htmlFor="task-image" className={cn(TITLE, 'text-xs font-extrabold')}>
-            Add your original Task 1 visual
+            Task 1 visual <span className="text-[#5a63df] dark:text-[#afb5ff]">(required)</span>
           </label>
-          <p className="mt-0.5 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
-            Upload the chart, graph, table, map or process image needed for accurate Task
-            Achievement feedback.
+          <p
+            id="task-image-help"
+            className="mt-0.5 text-[11px] leading-4 text-slate-500 dark:text-slate-400"
+          >
+            Upload the original chart, graph, table, map or process image before requesting
+            feedback.
           </p>
         </div>
       </div>
@@ -266,6 +269,8 @@ function Task1ImageField({ taskImageFile, onImageChange }) {
         id="task-image"
         type="file"
         accept="image/png,image/jpeg,image/webp"
+        aria-describedby="task-image-help"
+        aria-required="true"
         onChange={onImageChange}
         className="mt-2.5 block w-full rounded-lg border border-[#e4e2f0] bg-white p-1.5 text-xs font-semibold text-slate-600 file:mr-2.5 file:rounded-md file:border-0 file:bg-[#5a63df] file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-[#4b54cf] dark:border-white/10 dark:bg-white/4 dark:text-slate-300"
       />

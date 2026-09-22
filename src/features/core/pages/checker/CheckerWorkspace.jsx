@@ -29,7 +29,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
   const [error, setError] = useState('');
   const [showSignupGate, setShowSignupGate] = useState(false);
   const [showPromptField, setShowPromptField] = useState(false);
-  const [showTaskImageField, setShowTaskImageField] = useState(false);
+  const [showTaskImageField, setShowTaskImageField] = useState(true);
   const [taskImageFile, setTaskImageFile] = useState(null);
   const autoSubmitRef = useRef(false);
   const restoredSubmissionRef = useRef(null);
@@ -141,7 +141,7 @@ export default function CheckerWorkspace({ user, authLoading }) {
     setError('');
     setShowSignupGate(false);
     setShowPromptField(false);
-    setShowTaskImageField(false);
+    setShowTaskImageField(taskType === 'Task 1');
   };
 
   const handleSubmit = (event) => {
