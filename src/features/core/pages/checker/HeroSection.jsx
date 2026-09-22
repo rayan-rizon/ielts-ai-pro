@@ -12,7 +12,7 @@ export default function HeroSection({ user, authLoading }) {
         <div className="pointer-events-none absolute -left-40 top-28 h-96 w-96 rounded-full bg-indigo-200/35 blur-3xl dark:bg-[#5a63df]/10" />
         <div className="pointer-events-none absolute -right-40 top-10 h-136 w-136 rounded-full bg-violet-200/40 blur-3xl dark:bg-[#5a63df]/8" />
         <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr]">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_.92fr]">
             <HeroCopy />
             <HeroVisual />
           </div>
@@ -41,13 +41,13 @@ function HeroCopy() {
       <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[.14em] text-indigo-700 shadow-sm dark:border-white/10 dark:bg-white/4 dark:text-indigo-300 dark:shadow-none">
         <Sparkles className="h-3.5 w-3.5" /> Free AI feedback
       </div>
-      <h1 className="mt-6 text-[2.25rem] font-black leading-[1.08] tracking-[-.04em] text-[#0d1740] dark:text-white sm:text-[3rem] lg:text-[3.50rem]">
+      <h1 className="mt-6 text-[2.25rem] font-black leading-[1.08] tracking-[-.04em] text-[#0d1740] dark:text-white sm:text-[3rem] lg:whitespace-nowrap lg:text-[3.25rem]">
         IELTS Writing Checker
       </h1>
       <p className="font-handwritten mt-4 text-3xl leading-tight text-violet-600 dark:text-violet-400 sm:text-4xl">
         Write Better. Score Higher.
       </p>
-      <p className="mt-5 max-w-xl text-base font-medium leading-8 text-slate-600 dark:text-slate-300 sm:text-lg">
+      <p className="mt-5 max-w-xl text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300 sm:text-[15.5px]">
         Paste your Academic IELTS Task 1 report or Task 2 essay, then get an estimated band score
         and detailed feedback across all four writing criteria.
       </p>
@@ -110,7 +110,7 @@ function HeroVisual() {
         <img
           src="/ielts-hero-student.webp"
           alt="Student practising Academic IELTS writing with a laptop and notebook"
-          className="aspect-4/3 w-full rounded-[30px] object-cover"
+          className="aspect-[16/10] w-full rounded-[30px] object-cover"
           width="1200"
           height="900"
         />
