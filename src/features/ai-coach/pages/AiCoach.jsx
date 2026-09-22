@@ -1102,7 +1102,7 @@ export default function AiCoach() {
                       : canSend
                         ? 'Ask anything about your IELTS practice…'
                         : state.status?.budgetAvailable === false
-                          ? 'AI replies will return after the daily platform reset'
+                          ? 'AI replies are temporarily unavailable'
                           : 'Daily replies are unavailable'
                   }
                   className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-1.5 py-2.5 text-base leading-6 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed sm:text-sm"
