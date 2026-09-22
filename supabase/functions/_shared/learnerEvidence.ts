@@ -139,7 +139,7 @@ export function buildLearnerEvidence({
       observedAt: attempt.completed_at || attempt.updated_at,
     });
   }
-  if (vocabulary?.due_count || vocabulary?.review_count)
+  if (vocabulary?.due_count || vocabulary?.reviews_30d)
     evidence.push({
       id: 'vocabulary:summary',
       category: 'vocabulary_review',

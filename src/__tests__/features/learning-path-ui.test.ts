@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildFallbackTask,
   buildRoadmapViewModel,
@@ -238,9 +238,21 @@ describe('Learning Path main page composition', () => {
     expect(dateKey('not-a-date')).toBe('');
   });
 
+  // The seven-day view starts from today in the study timezone (UTC unless
+  // set), not the machine's local date. Pin the clock and use the pinned UTC
+  // date so these tests pass at any hour in any timezone.
+  const PINNED_STUDY_DATE = '2026-07-23';
+  const pinClockToNoonUtc = () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(`${PINNED_STUDY_DATE}T12:00:00Z`));
+    return new Date(`${PINNED_STUDY_DATE}T12:00:00`);
+  };
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('keeps saved task completion and scheduled dates in the seven-day view', () => {
-    const current = new Date();
-    current.setHours(12, 0, 0, 0);
+    const current = pinClockToNoonUtc();
     const today = dateKey(current);
     const dayName = current.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     const activityKey = `plan:${today}:primary`;
@@ -273,8 +285,7 @@ describe('Learning Path main page composition', () => {
   });
 
   it('keeps legacy weekday-only tasks without repeating schedule work for every day', () => {
-    const current = new Date();
-    current.setHours(12, 0, 0, 0);
+    const current = pinClockToNoonUtc();
     const dayName = current.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     const days = computeSevenDays({
       weekly_schedule: {
