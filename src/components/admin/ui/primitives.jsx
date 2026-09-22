@@ -1,7 +1,7 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { m } from 'framer-motion';
 import { Slot } from '@radix-ui/react-slot';
-import { AlertTriangle, ChevronRight, Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, Check, ChevronRight, Copy, Info, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 
@@ -452,34 +452,94 @@ export const StatRail = ({ className, children }) => (
   </div>
 );
 
-export const StatCell = ({ label, value, sub, tip, live = false, tone, className, children }) => (
-  <div
-    className={cn(
-      'flex min-w-0 flex-col justify-center bg-white px-3.5 py-3 dark:bg-[#131315]',
-      className
-    )}
-  >
-    <div className="flex items-center gap-1.5">
-      {live && <LiveDot />}
-      <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
-      {tip && <InfoTip>{tip}</InfoTip>}
-    </div>
-    <div className="mt-1.5 flex min-h-6 items-center">
-      {children || (
-        <p
-          className={cn(
-            NUM,
-            'text-2xl font-extrabold leading-none',
-            tone ? SIGNAL_TEXT[tone] : 'text-stone-900 dark:text-stone-50'
-          )}
-        >
-          {value}
-        </p>
+export const StatCell = ({
+  label,
+  value,
+  sub,
+  tip,
+  live = false,
+  tone,
+  size = 'lg',
+  className,
+  children,
+}) => {
+  const isTextLong = typeof value === 'string' && value.length > 8;
+  const sizeClasses =
+    {
+      sm: 'text-xs sm:text-[13px] font-bold',
+      md: 'text-sm sm:text-base font-bold',
+      lg: isTextLong
+        ? 'text-xs sm:text-[13px] font-bold tracking-tight'
+        : 'text-xl sm:text-2xl font-extrabold',
+    }[size] || 'text-xl sm:text-2xl font-extrabold';
+
+  return (
+    <div
+      className={cn(
+        'flex min-w-0 flex-col justify-center bg-white px-3.5 py-3 dark:bg-[#131315]',
+        className
       )}
+    >
+      <div className="flex min-w-0 items-center gap-1.5">
+        {live && <LiveDot />}
+        <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
+        {tip && <InfoTip className="shrink-0">{tip}</InfoTip>}
+      </div>
+      <div className="mt-1.5 flex min-h-6 items-center">
+        {children || (
+          <p
+            className={cn(
+              NUM,
+              sizeClasses,
+              'leading-tight',
+              tone ? SIGNAL_TEXT[tone] : 'text-stone-900 dark:text-stone-50'
+            )}
+          >
+            {value}
+          </p>
+        )}
+      </div>
+      {sub && <p className={cn(MICRO, MUTED, 'mt-1.5 truncate')}>{sub}</p>}
     </div>
-    {sub && <p className={cn(MICRO, MUTED, 'mt-1.5 truncate')}>{sub}</p>}
-  </div>
-);
+  );
+};
+
+/** Reusable 1-click copy button with instant feedback. */
+export const CopyButton = ({ value, label = 'Copy', className }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e) => {
+    e.stopPropagation();
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(String(value));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // ignore
+    }
+  };
+
+  return (
+    <Tip content={copied ? 'Copied to clipboard' : label}>
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label={copied ? 'Copied' : label}
+        className={cn(
+          'inline-flex h-5 w-5 items-center justify-center rounded text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-200 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a63df]',
+          className
+        )}
+      >
+        {copied ? (
+          <Check className="h-3 w-3 text-[rgb(var(--signal-ok))]" />
+        ) : (
+          <Copy className="h-3 w-3" />
+        )}
+      </button>
+    </Tip>
+  );
+};
 
 /** Multi-select chip used across the admin forms (channels, tiers, rules). */
 export const ToggleChip = ({ active, onClick, children, className }) => (

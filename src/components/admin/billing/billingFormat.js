@@ -137,3 +137,31 @@ const ENDPOINT_LABELS = {
   generateStudyRecommendations: 'Study recommendations (auto)',
 };
 export const endpointLabel = (endpoint) => ENDPOINT_LABELS[endpoint] || endpoint;
+
+/** Clean up and normalize policy reasons for clear display. */
+export const formatReason = (reason) => {
+  if (!reason) return '';
+  // Fix awkward template string: "1 practice test(s) were started..." -> "1 practice test was started..."
+  let text = reason.replace(
+    /^1 practice test\(s\) were started after purchase — check whether they were paid-only\./,
+    '1 practice test was started after purchase — verify if it required paid access.'
+  );
+  text = text.replace(
+    /^(\d+) practice test\(s\) were started after purchase — check whether they were paid-only\./,
+    '$1 practice tests were started after purchase — verify if they required paid access.'
+  );
+  return text;
+};
+
+/** Deep link to payment provider dashboard if applicable. */
+export const getProviderUrl = (provider, transactionId) => {
+  if (!transactionId) return null;
+  const p = String(provider || '').toLowerCase();
+  if (p === 'stripe') {
+    if (transactionId.startsWith('cs_')) {
+      return `https://dashboard.stripe.com/payments?query=${encodeURIComponent(transactionId)}`;
+    }
+    return `https://dashboard.stripe.com/payments/${encodeURIComponent(transactionId)}`;
+  }
+  return null;
+};
