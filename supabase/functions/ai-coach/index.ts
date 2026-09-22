@@ -234,6 +234,10 @@ async function handleHistory(admin: any, authId: string, body: any) {
     .eq('user_id', profile.id)
     .lt('created_at', before)
     .order('created_at', { ascending: false })
+    // Both messages in one coach turn can share Postgres' transaction timestamp.
+    // Role is the deterministic tie-breaker so reversing this page keeps the
+    // learner question before Ava's answer.
+    .order('role', { ascending: true })
     .limit(20);
   if (error) throw error;
   return {
@@ -510,6 +514,7 @@ Deno.serve(async (req: Request) => {
       .eq('conversation_id', reservation.conversationId)
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
+      .order('role', { ascending: true })
       .limit(8);
     const systemPrompt = groundedCoachSystemPrompt(language);
     const promptData: any = {

@@ -108,6 +108,15 @@ const formatReset = (value) =>
       }).format(new Date(value))
     : '00:00 UTC';
 
+const sortCoachMessages = (items = []) =>
+  [...items].sort((a, b) => {
+    const aTime = Date.parse(a.created_at || a.createdAt || '') || 0;
+    const bTime = Date.parse(b.created_at || b.createdAt || '') || 0;
+    if (aTime !== bTime) return aTime - bTime;
+    if (a.role !== b.role) return a.role === 'user' ? -1 : 1;
+    return String(a.id || '').localeCompare(String(b.id || ''));
+  });
+
 function CoachAvatar({ size = 'md', className, decorative = false }) {
   const sizes = {
     sm: 'h-8 w-8',
@@ -150,6 +159,67 @@ function CoachPulse({ compact = false }) {
   );
 }
 
+function CoachLoadingSkeleton() {
+  return (
+    <main
+      className="ai-coach-canvas min-h-full p-3 text-slate-900 dark:text-white md:p-5"
+      aria-busy="true"
+      aria-label="Loading Ava coach"
+    >
+      <div className="mx-auto grid max-w-[1440px] grid-cols-12 items-stretch gap-3">
+        <aside
+          className={cn(PANEL, 'order-3 col-span-12 flex min-h-[72vh] flex-col p-3 lg:col-span-3')}
+        >
+          <div className="flex items-center justify-between">
+            <div className="h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
+            <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-200 dark:bg-white/10" />
+          </div>
+          <div className="mt-4 space-y-2">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-9 animate-pulse rounded-lg bg-slate-100 dark:bg-white/[0.06]"
+              />
+            ))}
+          </div>
+          <div className={cn(TILE, 'mt-auto h-24 animate-pulse')} />
+        </aside>
+        <section
+          className={cn(
+            PANEL,
+            'relative order-2 col-span-12 flex min-h-[72vh] flex-col overflow-hidden lg:col-span-9'
+          )}
+        >
+          <div className="flex items-center justify-between border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
+            <div className="flex items-center gap-3">
+              <CoachAvatar size="sm" decorative />
+              <div className="space-y-1.5">
+                <div className="h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
+                <div className="h-3 w-32 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
+              </div>
+            </div>
+            <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+          </div>
+          <div className="flex flex-1 items-center justify-center p-6">
+            <div className="flex w-full max-w-xl flex-col items-center gap-4">
+              <div className="relative grid h-40 w-40 place-items-center">
+                <CoachPulse compact />
+                <CoachAvatar size="lg" decorative />
+              </div>
+              <div className="h-3 w-28 animate-pulse rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+              <div className="h-8 w-64 animate-pulse rounded-lg bg-slate-200 dark:bg-white/10" />
+              <div className="h-4 w-80 max-w-full animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
+            </div>
+          </div>
+          <div className="border-t border-[#e4e2f0] p-3 dark:border-white/[0.07] sm:p-4">
+            <div className="h-20 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/[0.06]" />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
 function AvaWelcome({ available, onSelect }) {
   return (
     <div className="ava-welcome mx-auto flex w-full max-w-4xl flex-col items-center text-center">
@@ -164,7 +234,10 @@ function AvaWelcome({ available, onSelect }) {
               key={intro.lang}
               lang={intro.lang}
               dir={intro.dir || 'ltr'}
-              className="ava-greeting__line"
+              className={cn(
+                'ava-greeting__line',
+                intro.lang === 'zh-CN' ? 'ava-greeting__line--cjk' : 'ava-greeting__line--spaced'
+              )}
               style={{ '--ava-language-index': index }}
             >
               {intro.before}
@@ -518,9 +591,12 @@ export default function AiCoach() {
   const [sending, setSending] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [switchingConversation, setSwitchingConversation] = useState(false);
   const endRef = useRef(null);
   const recoveryRef = useRef(null);
   const composerRef = useRef(null);
+  const conversationCacheRef = useRef(new Map());
+  const historyRequestRef = useRef(0);
 
   useEffect(() => {
     if (!AI_COACH_ENABLED) {
@@ -562,15 +638,32 @@ export default function AiCoach() {
   }, [messages, sending]);
 
   const selectConversation = async (id) => {
+    if (!id || id === conversationId) return;
+    const requestId = ++historyRequestRef.current;
     setConversationId(id);
-    setMessages([]);
-    setNextBefore(null);
+    const cached = conversationCacheRef.current.get(id);
+    if (cached) {
+      setMessages(cached.messages);
+      setNextBefore(cached.nextBefore);
+      setSwitchingConversation(false);
+      return;
+    }
+    setSwitchingConversation(true);
     try {
       const data = await loadCoachHistory(id);
-      setMessages(data.messages || []);
-      setNextBefore(data.nextBefore || null);
+      if (requestId !== historyRequestRef.current) return;
+      const orderedMessages = sortCoachMessages(data.messages || []);
+      const nextCursor = data.nextBefore || null;
+      conversationCacheRef.current.set(id, {
+        messages: orderedMessages,
+        nextBefore: nextCursor,
+      });
+      setMessages(orderedMessages);
+      setNextBefore(nextCursor);
     } catch (error) {
-      toast.error(error.message);
+      if (requestId === historyRequestRef.current) toast.error(error.message);
+    } finally {
+      if (requestId === historyRequestRef.current) setSwitchingConversation(false);
     }
   };
 
@@ -578,7 +671,15 @@ export default function AiCoach() {
     if (!conversationId || !nextBefore) return;
     try {
       const data = await loadCoachHistory(conversationId, nextBefore);
-      setMessages((current) => [...(data.messages || []), ...current]);
+      const earlierMessages = sortCoachMessages(data.messages || []);
+      setMessages((current) => {
+        const nextMessages = sortCoachMessages([...earlierMessages, ...current]);
+        conversationCacheRef.current.set(conversationId, {
+          messages: nextMessages,
+          nextBefore: data.nextBefore || null,
+        });
+        return nextMessages;
+      });
       setNextBefore(data.nextBefore || null);
     } catch (error) {
       toast.error(error.message);
@@ -591,6 +692,7 @@ export default function AiCoach() {
     if (!text || sending || !state.status?.enabled) return;
     setDraft('');
     setSending(true);
+    conversationCacheRef.current.delete(conversationId);
     const recovery = recoveryRef.current?.text === text ? recoveryRef.current : null;
     const requestId = recovery?.requestId || crypto.randomUUID();
     const optimisticId = `local-${requestId}`;
@@ -607,18 +709,23 @@ export default function AiCoach() {
       setConversationId(nextConversationId);
       recoveryRef.current = null;
       setSourceReference(null);
-      setMessages((current) => [
-        ...current,
-        {
-          id: result.messageId,
-          role: 'assistant',
-          content: result.answer,
-          responseLanguage: result.responseLanguage,
-          evidenceRefs: result.evidenceRefs,
-          exercise: result.exercise,
-          actions: result.actions || [],
-        },
-      ]);
+      const assistantMessage = {
+        id: result.messageId,
+        role: 'assistant',
+        content: result.answer,
+        responseLanguage: result.responseLanguage,
+        evidenceRefs: result.evidenceRefs,
+        exercise: result.exercise,
+        actions: result.actions || [],
+      };
+      setMessages((current) => {
+        const nextMessages = [...current, assistantMessage];
+        conversationCacheRef.current.set(nextConversationId, {
+          messages: nextMessages,
+          nextBefore,
+        });
+        return nextMessages;
+      });
       setState((current) => ({
         ...current,
         status: {
@@ -681,14 +788,17 @@ export default function AiCoach() {
   const removeConversation = async (id) => {
     try {
       await deleteCoachConversation(id);
+      conversationCacheRef.current.delete(id);
       setState((current) => ({
         ...current,
         conversations: current.conversations.filter((item) => item.id !== id),
       }));
       if (conversationId === id) {
+        historyRequestRef.current += 1;
         setConversationId(null);
         setMessages([]);
         setNextBefore(null);
+        setSwitchingConversation(false);
       }
     } catch (error) {
       toast.error(error.message);
@@ -707,12 +817,7 @@ export default function AiCoach() {
     requestAnimationFrame(() => composerRef.current?.focus());
   };
 
-  if (state.loading)
-    return (
-      <div className="grid min-h-[60vh] place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#5a63df]" />
-      </div>
-    );
+  if (state.loading) return <CoachLoadingSkeleton />;
 
   return (
     <main className="ai-coach-canvas min-h-full p-3 text-slate-900 dark:text-white md:p-5">
@@ -728,9 +833,11 @@ export default function AiCoach() {
             <button
               type="button"
               onClick={() => {
+                historyRequestRef.current += 1;
                 setConversationId(null);
                 setMessages([]);
                 setNextBefore(null);
+                setSwitchingConversation(false);
               }}
               className={cn(
                 FOCUS_RING,
@@ -834,13 +941,15 @@ export default function AiCoach() {
             <div className="flex flex-wrap items-center justify-end gap-2">
               {state.status?.enabled ? (
                 <>
-                  <span
-                    className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400"
-                    title="Daily reply reset time"
-                  >
-                    <Clock3 className="h-3.5 w-3.5 text-[#5a63df]" aria-hidden="true" />
-                    Resets {formatReset(state.status?.quotaResetsAt)}
-                  </span>
+                  {remaining === 0 ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400"
+                      title="Daily reply reset time"
+                    >
+                      <Clock3 className="h-3.5 w-3.5 text-[#5a63df]" aria-hidden="true" />
+                      Resets {formatReset(state.status?.quotaResetsAt)}
+                    </span>
+                  ) : null}
                   <Pill tone={remaining > 2 ? 'emerald' : 'amber'} className="shrink-0">
                     {remaining} replies left
                   </Pill>
@@ -852,7 +961,12 @@ export default function AiCoach() {
               )}
             </div>
           </div>
-          <div className="flex-1 space-y-4 overflow-y-auto p-3 [content-visibility:auto] sm:p-5">
+          <div
+            className={cn(
+              'relative flex-1 space-y-4 overflow-y-auto p-3 [content-visibility:auto] sm:p-5',
+              switchingConversation && 'ai-coach-conversation-switching'
+            )}
+          >
             <AnimatePresence mode="wait" initial={false}>
               {state.error ? (
                 <motion.div
@@ -920,6 +1034,12 @@ export default function AiCoach() {
                 </motion.div>
               )}
             </AnimatePresence>
+            {switchingConversation ? (
+              <div className="ai-coach-switching-indicator" role="status" aria-live="polite">
+                <Loader2 className="h-4 w-4 animate-spin text-[#5a63df]" />
+                Opening conversation…
+              </div>
+            ) : null}
             {sending ? (
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <Loader2 className="h-4 w-4 animate-spin text-[#5a63df]" />
