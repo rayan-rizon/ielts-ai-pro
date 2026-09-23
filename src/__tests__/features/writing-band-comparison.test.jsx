@@ -20,11 +20,20 @@ describe('Writing practice coaching interface', () => {
             },
           ],
           languageNotes: [],
-          limitations: [],
+          limitations: [
+            'The task visual was not checked for this language example; use your scored feedback to review data accuracy.',
+          ],
         }}
       />
     );
     expect(screen.getByText('Your answer and Band 8.0 example')).toBeInTheDocument();
+    expect(
+      screen.getByText('Compare your sentence with the Band 8.0 example. Each change has a reason.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Task 1 visuals were not rechecked. Confirm details with your feedback.')
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/AI-generated example is for practice/)).not.toBeInTheDocument();
     expect(
       screen.getByText(
         (_, element) => element.tagName === 'P' && element.textContent === 'The figure rose.'

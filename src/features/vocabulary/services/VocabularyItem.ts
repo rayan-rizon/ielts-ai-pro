@@ -96,6 +96,22 @@ export const VocabularyItem = {
     return count || 0;
   },
 
+  async findByWord(
+    userId: string,
+    word: string
+  ): Promise<Pick<VocabularyItemType, 'id' | 'word'> | null> {
+    const pattern = word.trim().replace(/[\\%_]/g, '\\$&');
+    const { data, error } = await supabase
+      .from('vocabulary_items')
+      .select('id, word')
+      .eq('user_id', userId)
+      .ilike('word', pattern)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
   async create(data: Partial<VocabularyItemType>): Promise<VocabularyItemType> {
     const { data: newItem, error } = await supabase
       .from('vocabulary_items')

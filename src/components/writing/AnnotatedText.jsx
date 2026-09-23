@@ -7,12 +7,19 @@ import {
   Lightbulb,
   Sparkles,
   BookOpen,
+  Check,
+  LoaderCircle,
+  Plus,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { PANEL, WELL, MICRO, NUM } from '@/features/dashboard/components/primitives';
-import { plainWritingText } from '@/features/testing/writing/utils/writingCoaching';
+import {
+  clarifyVocabularySuggestion,
+  LINKING_RELATIONS,
+  plainWritingText,
+} from '@/features/testing/writing/utils/writingCoaching';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -516,8 +523,48 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
 
 // ─── Vocabulary Card ──────────────────────────────────────────────────────────
 
-const VocabularyCard = ({ enhancement, sourceSentence }) => {
-  const alternatives = (enhancement.alternatives ?? []).filter(Boolean).slice(0, 2);
+const vocabularyTermKey = (word) =>
+  String(word || '')
+    .trim()
+    .toLocaleLowerCase();
+
+function replaceVocabularyPhrase(sentence, original, alternative) {
+  if (!sentence || !original) return sentence || '';
+  const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return sentence.replace(new RegExp(`\\b${escaped}\\b`, 'i'), alternative);
+}
+
+function vocabularySentencePreview(sentence, phrase) {
+  const text = String(sentence || '').trim();
+  const maxLength = 112;
+  if (text.length <= maxLength) return text;
+
+  const phraseIndex = text.toLocaleLowerCase().indexOf(String(phrase || '').toLocaleLowerCase());
+  if (phraseIndex < 0) return `${text.slice(0, maxLength - 1).trimEnd()}…`;
+
+  let start = Math.max(0, phraseIndex - 42);
+  let end = Math.min(text.length, phraseIndex + String(phrase).length + 48);
+  if (start > 0) {
+    const nextSpace = text.indexOf(' ', start);
+    if (nextSpace >= 0) start = nextSpace + 1;
+  }
+  if (end < text.length) {
+    const previousSpace = text.lastIndexOf(' ', end);
+    if (previousSpace > start) end = previousSpace;
+  }
+
+  return `${start > 0 ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`;
+}
+
+const VocabularyCard = ({
+  enhancement,
+  sourceSentence,
+  onSaveVocabularyWord,
+  savedVocabularyTerms,
+  savingVocabularyTerms,
+}) => {
+  const suggestion = clarifyVocabularySuggestion(enhancement);
+  const alternatives = suggestion.alternatives ?? [];
 
   return (
     <motion.div
@@ -533,29 +580,74 @@ const VocabularyCard = ({ enhancement, sourceSentence }) => {
         </p>
       </div>
       {sourceSentence && (
-        <p className="line-clamp-3 break-words border-l-2 border-[#d2d7f8] pl-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
-          “{sourceSentence}”
-        </p>
+        <details className="border-l-2 border-[#d2d7f8] pl-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
+          <summary className="inline-flex w-fit cursor-pointer flex-wrap items-baseline gap-x-1.5 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]">
+            <span>“{vocabularySentencePreview(sourceSentence, suggestion.original)}”</span>
+            <span className="text-[10px] font-semibold text-[#5a63df] dark:text-indigo-300">
+              Full sentence
+            </span>
+          </summary>
+          <p className="mt-1 whitespace-normal break-words">“{sourceSentence}”</p>
+        </details>
       )}
       {alternatives.length > 0 && (
         <div className="border-t border-[#e4e2f0] pt-2 dark:border-white/[0.07]">
-          <p className={MICRO}>Alternatives to consider</p>
-          <ul className="mt-1.5 space-y-1.5">
-            {alternatives.map((alternative) => (
-              <li
-                key={alternative}
-                className="break-words text-xs font-semibold text-[#4b55cb] dark:text-indigo-300"
-              >
-                {alternative}
-              </li>
-            ))}
+          <p className={MICRO}>Try</p>
+          <ul className="mt-1.5 space-y-2">
+            {alternatives.map((alternative) => {
+              const termKey = vocabularyTermKey(alternative);
+              const isSaved = savedVocabularyTerms?.has(termKey);
+              const isSaving = savingVocabularyTerms?.has(termKey);
+              return (
+                <li key={alternative} className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="min-w-0 flex-1 break-words text-xs font-semibold text-[#4b55cb] dark:text-indigo-300">
+                    {alternative}
+                  </span>
+                  {onSaveVocabularyWord && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onSaveVocabularyWord({
+                          word: alternative,
+                          original: suggestion.original,
+                          context: suggestion.context,
+                          example: replaceVocabularyPhrase(
+                            sourceSentence,
+                            suggestion.original,
+                            alternative
+                          ),
+                        })
+                      }
+                      disabled={isSaved || isSaving}
+                      aria-label={`${isSaved ? 'Saved' : 'Add'} “${alternative}” to your vocabulary list`}
+                      className={cn(
+                        'inline-flex min-h-7 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1',
+                        isSaved
+                          ? 'border-[rgb(var(--signal-ok)/0.35)] bg-[rgb(var(--signal-ok)/0.08)] text-[rgb(var(--signal-ok))]'
+                          : 'border-[#e4e2f0] bg-white text-[#5a63df] hover:bg-[#f4f3fb] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10',
+                        (isSaving || isSaved) && 'cursor-default'
+                      )}
+                    >
+                      {isSaving ? (
+                        <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                      ) : isSaved ? (
+                        <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      <span>{isSaved ? 'Saved' : isSaving ? 'Saving' : 'Add'}</span>
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
-      {enhancement.context && (
+      {suggestion.context && (
         <p className="text-[11px] leading-5 text-slate-600 dark:text-slate-300">
-          <span className="font-bold">Meaning: </span>
-          {enhancement.context}
+          <span className="font-bold">Why it fits: </span>
+          {suggestion.context}
         </p>
       )}
     </motion.div>
@@ -749,6 +841,9 @@ export default function AnnotatedText({
   annotations = [],
   vocabularyEnhancements = [],
   writingAnalysis,
+  onSaveVocabularyWord,
+  savedVocabularyTerms = new Set(),
+  savingVocabularyTerms = new Set(),
   onApplyCorrection,
   onIgnoreAnnotation,
   focusAnnotation,
@@ -808,19 +903,21 @@ export default function AnnotatedText({
           </div>
           {writingAnalysis && (
             <p className="text-xs text-slate-600 dark:text-slate-300">
-              Band 8 uses precise, natural language. Try an alternative only if it keeps your
-              meaning. Repetition and linker counts are not automatic errors.
+              Save useful phrases. Counts are hints, not grades.
             </p>
           )}
           {vocabularyEnhancements?.length > 0 && (
             <div>
-              <h4 className={MICRO}>Vocabulary ideas from your answer</h4>
+              <h4 className={MICRO}>Vocabulary ideas</h4>
               <div className="mt-2 grid grid-cols-1 gap-2.5 xl:grid-cols-2">
                 {vocabularyEnhancements.map((enhancement, i) => (
                   <VocabularyCard
                     key={i}
                     enhancement={enhancement}
                     sourceSentence={vocabularySourceSentence(text, enhancement.original)}
+                    onSaveVocabularyWord={onSaveVocabularyWord}
+                    savedVocabularyTerms={savedVocabularyTerms}
+                    savingVocabularyTerms={savingVocabularyTerms}
                   />
                 ))}
               </div>
@@ -829,10 +926,10 @@ export default function AnnotatedText({
           {writingAnalysis && (
             <div className="space-y-4 border-t border-[#e4e2f0] pt-3 dark:border-white/[0.07]">
               <div className="min-w-0">
-                <h4 className="text-sm font-bold">Words used several times</h4>
+                <h4 className="text-sm font-bold">Repeated words</h4>
                 <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
-                  The count shows how often a word appears in your answer. Topic words from the
-                  question may need repeating; change a word only when another fits naturally.
+                  Shows how many times each word appears in your answer. “In prompt” means the task
+                  uses it too. Topic words often repeat.
                 </p>
                 {writingAnalysis.repeated.length > 0 ? (
                   <ul className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -841,9 +938,7 @@ export default function AnnotatedText({
                         <div className="flex min-w-0 items-center justify-between gap-2">
                           <span className="min-w-0 break-words">
                             <strong className="text-sm">{word}</strong>
-                            {inPrompt && (
-                              <span className="ml-1 text-slate-500">from the question</span>
-                            )}
+                            {inPrompt && <span className="ml-1 text-slate-500">in the prompt</span>}
                           </span>
                           <span
                             className={cn(
@@ -851,13 +946,26 @@ export default function AnnotatedText({
                               'shrink-0 rounded-md bg-white px-2 py-1 text-[11px] font-bold dark:bg-white/10'
                             )}
                           >
-                            {count} {count === 1 ? 'use' : 'uses'}
+                            {count} {count === 1 ? 'occurrence' : 'occurrences'}
                           </span>
                         </div>
-                        {examples?.[0] && (
-                          <p className="mt-1 line-clamp-2 break-words text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
-                            “{examples[0]}”
-                          </p>
+                        {examples?.length > 0 && (
+                          <details className="mt-1.5">
+                            <summary className="w-fit cursor-pointer rounded-sm text-[11px] font-semibold text-[#5a63df] outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-indigo-300">
+                              Show {examples.length}{' '}
+                              {examples.length === 1 ? 'sentence' : 'sentences'}
+                            </summary>
+                            <ul className="mt-2 space-y-2">
+                              {examples.map((example, index) => (
+                                <li
+                                  key={`${word}-${index}`}
+                                  className="whitespace-normal break-words border-l-2 border-[#d2d7f8] pl-2 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300"
+                                >
+                                  “{example}”
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
                         )}
                       </li>
                     ))}
@@ -867,14 +975,13 @@ export default function AnnotatedText({
                 )}
               </div>
               <div className="min-w-0 border-t border-[#e4e2f0] pt-3 dark:border-white/[0.07]">
-                <h4 className="text-sm font-bold">How you connect ideas</h4>
+                <h4 className="text-sm font-bold">How your ideas connect</h4>
                 <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
-                  These are linking phrases found in your answer. The number shows how many times
-                  each type appears. Clear ideas do not need lots of linkers.
+                  Counts show how often each linker appears. Open a card to check its fit.
                 </p>
                 {writingAnalysis.linking.length > 0 ? (
                   <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-                    {writingAnalysis.linking.map(({ category, count, phrases }) => (
+                    {writingAnalysis.linking.map(({ category, count, phrases, matches }) => (
                       <li
                         key={category}
                         className={cn(WELL, 'min-w-0 rounded-lg px-3 py-2.5 text-xs')}
@@ -885,9 +992,49 @@ export default function AnnotatedText({
                             {count} {count === 1 ? 'use' : 'uses'}
                           </span>
                         </div>
-                        <p className="mt-1 break-words text-slate-600 dark:text-slate-300">
-                          {phrases.join(', ')}
+                        <p className="mt-1 text-[11px] leading-5 text-slate-600 dark:text-slate-300">
+                          {LINKING_RELATIONS[category] || 'Shows a relationship between ideas.'}
                         </p>
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {phrases.map((phrase) => (
+                            <span
+                              key={phrase}
+                              className="rounded-md border border-[#e4e2f0] bg-white px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                            >
+                              {phrase}
+                            </span>
+                          ))}
+                        </div>
+                        {matches?.length > 0 && (
+                          <details className="mt-1.5">
+                            <summary className="w-fit cursor-pointer rounded-sm text-[11px] font-semibold text-[#5a63df] outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-indigo-300">
+                              View {matches.length === 1 ? 'sentence' : 'sentences'}
+                            </summary>
+                            <ul className="mt-2 space-y-2">
+                              {matches.map((match, index) => (
+                                <li
+                                  key={`${match.phrase}-${index}`}
+                                  className="space-y-1 border-l-2 border-[#d2d7f8] pl-2 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300"
+                                >
+                                  {match.previousSentence && (
+                                    <p className="whitespace-normal break-words">
+                                      <span className="font-semibold text-slate-500">
+                                        Previous idea:{' '}
+                                      </span>
+                                      {match.previousSentence}
+                                    </p>
+                                  )}
+                                  <p className="whitespace-normal break-words">
+                                    <span className="font-semibold text-slate-500">
+                                      Your sentence:{' '}
+                                    </span>
+                                    {match.sentence}
+                                  </p>
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -899,14 +1046,37 @@ export default function AnnotatedText({
           )}
           {writingAnalysis?.paragraphOpenings?.length > 0 && (
             <details className="border-t border-[#e4e2f0] pt-2 text-xs dark:border-white/[0.07]">
-              <summary className="cursor-pointer font-bold">
-                Paragraph flow · {writingAnalysis.paragraphCount} paragraphs
+              <summary className="flex cursor-pointer items-center gap-2 font-bold">
+                <span>Paragraph flow</span>
+                <span
+                  className={cn(
+                    NUM,
+                    'rounded-md bg-[#f1f0fa] px-2 py-0.5 text-[10px] dark:bg-white/10'
+                  )}
+                >
+                  {writingAnalysis.paragraphCount}{' '}
+                  {writingAnalysis.paragraphCount === 1 ? 'paragraph' : 'paragraphs'}
+                </span>
+                <span className="ml-auto text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                  View openings
+                </span>
               </summary>
-              <ol className="mt-2 space-y-1.5">
+              <ol className="mt-2 grid gap-2 sm:grid-cols-2">
                 {writingAnalysis.paragraphOpenings.map((opening, index) => (
-                  <li key={index} className={cn(WELL, 'min-w-0 p-2')}>
-                    <span className={MICRO}>Paragraph {index + 1}</span>
-                    <span className="mt-1 block break-words">{opening}</span>
+                  <li
+                    key={index}
+                    className={cn(WELL, 'flex min-w-0 items-start gap-2 rounded-lg p-2')}
+                  >
+                    <span
+                      className={cn(
+                        NUM,
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold dark:bg-white/10'
+                      )}
+                      aria-label={`Paragraph ${index + 1}`}
+                    >
+                      {index + 1}
+                    </span>
+                    <span className="line-clamp-2 min-w-0 break-words leading-5">{opening}</span>
                   </li>
                 ))}
               </ol>

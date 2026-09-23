@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, Loader2, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { callEdgeFunction } from '@/utils/api';
 import { PANEL, WELL, MICRO, NUM } from '@/features/dashboard/components/primitives';
@@ -48,6 +48,12 @@ function highlightChanges(source, revision) {
       );
     });
   return { original: changed(left, rightCounts), example: changed(right, leftCounts) };
+}
+
+function conciseLimitation(note) {
+  if (/task (?:1 )?visuals?.*(?:not checked|not rechecked)/i.test(note))
+    return 'Task 1 visuals were not rechecked. Confirm details with your feedback.';
+  return note;
 }
 
 function useCoachingRecord(sessionId, taskType, feedback, originalHtml) {
@@ -155,8 +161,7 @@ export function BandComparison({
           <h2 className="text-base font-bold">Band 8.0 example</h2>
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Compare your own answer with an AI example aiming at Band 8.0 features, sentence by
-          sentence. Try revising first so you can test your own ideas.
+          Compare your sentences with an AI example aiming for Band 8.0 features.
         </p>
         <p className="text-xs text-slate-500">
           This is a learning example, not an examiner-certified score. Each saved answer can request
@@ -164,7 +169,7 @@ export function BandComparison({
         </p>
         {status === 'failed' && (
           <p className="text-xs text-amber-700 dark:text-amber-300">
-            This example could not be prepared. Your report and revision are still available.
+            This example could not be prepared. Open the Editor tab to revise your answer.
           </p>
         )}
         {error && (
@@ -204,15 +209,12 @@ export function BandComparison({
       <div className={`${PANEL} p-4`}>
         <h2 className="text-base font-bold">Your answer and Band 8.0 example</h2>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          Read each row across: your sentence, a suggested version, then why it changed. The example
-          is AI generated and is not an official band score.
+          Compare your sentence with the Band 8.0 example. Each change has a reason.
         </p>
         {transformation.limitations?.length > 0 && (
-          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
-            {transformation.limitations.map((note, i) => (
-              <p key={i}>{note}</p>
-            ))}
-          </div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            {transformation.limitations.map(conciseLimitation).join(' ')}
+          </p>
         )}
       </div>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -361,9 +363,7 @@ function RevisionStudio({
         taskType,
       });
       setRecord(result.data);
-      setMessage(
-        'Revision checked. This is an assisted practice estimate; your original result is unchanged.'
-      );
+      setMessage('Revision checked. Your original score is unchanged.');
     } catch (error) {
       setRevisionError(error.message || 'Could not recheck this revision.');
     } finally {
@@ -382,8 +382,7 @@ function RevisionStudio({
         <div>
           <h2 className="text-base font-bold">Revise your answer</h2>
           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-            Use your feedback to rewrite the answer yourself, then request a new check. Your first
-            score stays unchanged; this check is assisted practice.
+            Make a new draft from your feedback. Your original score stays the same.
           </p>
         </div>
         <span className={`${NUM} shrink-0 text-xs text-slate-500`}>
@@ -405,7 +404,7 @@ function RevisionStudio({
           aria-label="Your revised answer"
           value={text}
           onChange={(event) => setText(event.target.value)}
-          className="min-h-[240px] w-full resize-y rounded-lg border border-[#e4e2f0] bg-white p-3 font-serif text-sm leading-7 text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5a63df] dark:border-white/[0.07] dark:bg-[#16151b] dark:text-slate-100"
+          className="min-h-[420px] w-full max-h-[75vh] resize-y rounded-lg border border-[#e4e2f0] bg-white p-3 font-serif text-sm leading-7 text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5a63df] sm:min-h-[520px] lg:min-h-[48vh] dark:border-white/[0.07] dark:bg-[#16151b] dark:text-slate-100"
         />
         <div className="flex flex-wrap items-center gap-2">
           <span className={`${NUM} text-xs text-slate-500`}>
@@ -442,10 +441,7 @@ function RevisionStudio({
           </p>
         )}
         {(record?.revision_history?.length || 0) >= 5 && (
-          <p className="text-xs text-slate-500">
-            You have checked five revisions of this answer. Try a new question to practise
-            independently.
-          </p>
+          <p className="text-xs text-slate-500">Five checks used. Try a new question.</p>
         )}
         {revisionBand > 0 &&
           comparableVersions &&
@@ -510,7 +506,7 @@ function RevisionStudio({
 }
 
 export function WritingCoach({ session, taskType, feedback, originalHtml }) {
-  const { record, setRecord, loading, error, setError, unavailable, setUnavailable, ensureRecord } =
+  const { record, setRecord, loading, error, setError, unavailable, setUnavailable } =
     useCoachingRecord(session?.id, taskType, feedback, originalHtml);
   const [busy, setBusy] = useState(false);
   const original = sourceForFeedback(feedback, originalHtml);
@@ -543,31 +539,12 @@ export function WritingCoach({ session, taskType, feedback, originalHtml }) {
   };
   return (
     <div className="space-y-3 border-t border-[#e4e2f0] pt-4 text-slate-900 dark:border-white/[0.07] dark:text-slate-100">
-      <div className={`${PANEL} p-4`}>
-        <h2 className="text-base font-bold">Improve this answer</h2>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          Use the priorities above to revise your answer, then compare a Band 8.0 example when you
-          are ready.
-        </p>
-      </div>
       {loading ? (
         <p role="status" className="flex items-center gap-2 p-2 text-xs">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading saved revision…
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading Band 8.0 example…
         </p>
       ) : (
         <>
-          {!unavailable && (
-            <RevisionStudio
-              key={`${session?.id}:${taskType}`}
-              record={record}
-              ensureRecord={ensureRecord}
-              session={session}
-              taskType={taskType}
-              original={originalHtml}
-              feedback={feedback}
-              setRecord={setRecord}
-            />
-          )}
           <BandComparison
             transformation={record?.transformation}
             original={original}
@@ -581,6 +558,54 @@ export function WritingCoach({ session, taskType, feedback, originalHtml }) {
                 ? 'Band 8.0 examples are temporarily unavailable. Your scored feedback is still ready to use.'
                 : undefined
             }
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+export function WritingRevisionEditor({ session, taskType, feedback, originalHtml, onBack }) {
+  const { record, setRecord, loading, error, unavailable, ensureRecord } = useCoachingRecord(
+    session?.id,
+    taskType,
+    feedback,
+    originalHtml
+  );
+  const original = sourceForFeedback(feedback, originalHtml);
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-1 pb-2">
+      <button type="button" className={`${buttonClass} w-fit`} onClick={onBack}>
+        <ArrowLeft className="mr-1 inline h-3.5 w-3.5" /> Back to editor
+      </button>
+      {loading ? (
+        <p role="status" className="flex items-center gap-2 p-2 text-xs">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading saved revision…
+        </p>
+      ) : unavailable ? (
+        <p
+          role="status"
+          className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200"
+        >
+          Revision practice is temporarily unavailable.
+        </p>
+      ) : (
+        <>
+          {error && (
+            <p role="alert" className="text-xs text-rose-700 dark:text-rose-300">
+              {error}
+            </p>
+          )}
+          <RevisionStudio
+            key={`${session?.id}:${taskType}`}
+            record={record}
+            ensureRecord={ensureRecord}
+            session={session}
+            taskType={taskType}
+            original={original}
+            feedback={feedback}
+            setRecord={setRecord}
           />
         </>
       )}

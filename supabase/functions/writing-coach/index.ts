@@ -319,7 +319,7 @@ serve(async (req: Request) => {
     }));
     if (taskType === 'Task 1')
       parsed.limitations.unshift(
-        'The task visual was not checked for this language example; use your scored feedback to review data accuracy.'
+        'Task 1 visuals were not rechecked. Use your feedback to confirm data accuracy.'
       );
     parsed.limitations = parsed.limitations.slice(0, 3);
     const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(original));

@@ -11,6 +11,7 @@ import { WritingHeader } from '../components/WritingTest/components/WritingHeade
 import { TaskPanel } from '../components/WritingTest/components/TaskPanel';
 import { WritingEditor } from '../components/WritingTest/components/WritingEditor';
 import { FeedbackPanel } from '../components/WritingTest/components/FeedbackPanel';
+import { WritingRevisionEditor } from '../components/WritingTest/components/WritingCoach';
 import { WritingDialogs } from '../components/WritingTest/components/WritingDialogs';
 import { WritingTestProvider } from '../components/WritingTest/context/WritingTestContext';
 import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingTaskLogic';
@@ -19,6 +20,7 @@ import AnnotatedText from '@/components/writing/AnnotatedText';
 import { analyzeWriting } from '../utils/writingCoaching';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useWritingVocabularySave } from '../hooks/useWritingVocabularySave';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
 const MemoizedTaskPanel = React.memo(TaskPanel);
@@ -159,6 +161,7 @@ function WritingMobileTabToggle({ activeTab, onTabChange, wordCount, targetLimit
 
 function WritingTaskContent() {
   const { userProfile: authUser } = useAuth();
+  const vocabularySaver = useWritingVocabularySave(authUser);
   const logic = useWritingTaskLogic(authUser);
   const isMobile = useIsMobile();
 
@@ -303,6 +306,9 @@ function WritingTaskContent() {
             loadingMessage={loadingMessage}
             coachSession={testMode !== 'exam' ? logic.session : null}
             coachTaskType={activeType}
+            onSaveVocabularyWord={vocabularySaver.onSaveVocabularyWord}
+            savedVocabularyTerms={vocabularySaver.savedVocabularyTerms}
+            savingVocabularyTerms={vocabularySaver.savingVocabularyTerms}
             data-oid="xaa39j6"
           />
         )}
@@ -397,7 +403,15 @@ function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
   );
 }
 
-function AnnotatedReviewPane({ feedback, writing, setWriting, focusAnnotation }) {
+function AnnotatedReviewPane({
+  feedback,
+  writing,
+  setWriting,
+  focusAnnotation,
+  onSaveVocabularyWord,
+  savedVocabularyTerms,
+  savingVocabularyTerms,
+}) {
   const analysis = React.useMemo(
     () => analyzeWriting(feedback.originalSource || writing, feedback.taskPrompt),
     [feedback.originalSource, feedback.taskPrompt, writing]
@@ -417,6 +431,9 @@ function AnnotatedReviewPane({ feedback, writing, setWriting, focusAnnotation })
         annotations={feedback.annotations || []}
         vocabularyEnhancements={feedback.vocabularyEnhancements || []}
         writingAnalysis={analysis}
+        onSaveVocabularyWord={onSaveVocabularyWord}
+        savedVocabularyTerms={savedVocabularyTerms}
+        savingVocabularyTerms={savingVocabularyTerms}
         onApplyCorrection={applyCorrection}
         focusAnnotation={focusAnnotation}
         cardClassName="min-h-[500px]"
@@ -462,17 +479,30 @@ function WritingPaneBody({
   loadingMessage,
   coachSession,
   coachTaskType,
+  onSaveVocabularyWord,
+  savedVocabularyTerms,
+  savingVocabularyTerms,
 }) {
+  const [showRevision, setShowRevision] = useState(false);
+  useEffect(() => setShowRevision(false), [activeType, viewMode]);
+
   const isFeedbackMode = isMobile && hasFeedback && viewMode === 'feedback';
   const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
   const isQuestionMode = hasFeedback && viewMode === 'question';
+  const isRevisionMode =
+    hasFeedback &&
+    viewMode === 'edit' &&
+    showRevision &&
+    Boolean(currentFeedback && coachSession?.id && coachTaskType);
   const contentKey = isFeedbackMode
     ? 'feedback'
     : isReviewMode
       ? 'review'
       : isQuestionMode
         ? 'question'
-        : 'editor';
+        : isRevisionMode
+          ? 'revision'
+          : 'editor';
 
   let content;
   if (isFeedbackMode) {
@@ -499,28 +529,56 @@ function WritingPaneBody({
         writing={writing}
         setWriting={setWriting}
         focusAnnotation={focusAnnotation}
+        onSaveVocabularyWord={onSaveVocabularyWord}
+        savedVocabularyTerms={savedVocabularyTerms}
+        savingVocabularyTerms={savingVocabularyTerms}
       />
     );
   } else if (isQuestionMode) {
     content = (
       <QuestionViewPane task={task} showSample={showSample} setShowSample={setShowSample} />
     );
+  } else if (isRevisionMode) {
+    content = (
+      <WritingRevisionEditor
+        session={coachSession}
+        taskType={coachTaskType}
+        feedback={currentFeedback}
+        originalHtml={currentFeedback?.originalSource || writing}
+        onBack={() => setShowRevision(false)}
+      />
+    );
   } else {
     content = (
-      <WritingEditor
-        key={activeType}
-        writing={writing}
-        setWriting={setWriting}
-        wordCount={wordCount}
-        targetLimit={activeType === 'Task 2' ? 250 : 150}
-        isCompleted={isCompleted}
-        testMode={testMode}
-        isAnalyzing={isAnalyzing}
-        currentFeedback={currentFeedback}
-        title={`${activeType} Response`}
-        subtitle={`Draft your ${activeType.toLowerCase()} essay`}
-        data-oid="p08gpnf"
-      />
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        {hasFeedback && currentFeedback && coachSession?.id && coachTaskType && (
+          <div className="flex justify-end px-1">
+            <button
+              type="button"
+              onClick={() => setShowRevision(true)}
+              className="inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-[#5a63df] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#4953cf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df]"
+            >
+              <PenLine className="h-3.5 w-3.5" aria-hidden="true" /> Revise with feedback
+            </button>
+          </div>
+        )}
+        <div className="min-h-0 flex-1">
+          <WritingEditor
+            key={activeType}
+            writing={writing}
+            setWriting={setWriting}
+            wordCount={wordCount}
+            targetLimit={activeType === 'Task 2' ? 250 : 150}
+            isCompleted={isCompleted}
+            testMode={testMode}
+            isAnalyzing={isAnalyzing}
+            currentFeedback={currentFeedback}
+            title={`${activeType} Response`}
+            subtitle={`Draft your ${activeType.toLowerCase()} essay`}
+            data-oid="p08gpnf"
+          />
+        </div>
+      </div>
     );
   }
 
@@ -557,6 +615,9 @@ function WritingEditorPane({
   loadingMessage,
   coachSession,
   coachTaskType,
+  onSaveVocabularyWord,
+  savedVocabularyTerms,
+  savingVocabularyTerms,
 }) {
   const activeType = useWritingTestStore((state) => state.activeType);
   const writing = useWritingTestStore((state) => state.drafts[activeType] || '');
@@ -611,6 +672,9 @@ function WritingEditorPane({
           loadingMessage={loadingMessage}
           coachSession={coachSession}
           coachTaskType={coachTaskType}
+          onSaveVocabularyWord={onSaveVocabularyWord}
+          savedVocabularyTerms={savedVocabularyTerms}
+          savingVocabularyTerms={savingVocabularyTerms}
         />
       </div>
     </div>
