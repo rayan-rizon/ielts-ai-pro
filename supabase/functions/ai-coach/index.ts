@@ -86,12 +86,89 @@ function validateActions(actions: any[], context: any, message: string) {
   });
 }
 
+const EVIDENCE_SKILL_LABELS: Record<string, string> = {
+  matching_features: 'Matching Features',
+  notes_completion: 'Notes Completion',
+  yes_no_not_given: 'Yes/No/Not Given',
+  true_false_not_given: 'True/False/Not Given',
+};
+
+function evidenceLabel(value: unknown) {
+  const original = String(value || 'Learning evidence').trim();
+  const raw = original.replace(/[_:]+/g, ' ');
+  const skill = original.match(
+    /^(reading|writing|listening|speaking|grammar|vocabulary)[_:](.+)$/i
+  );
+  if (skill) {
+    const module = skill[1][0].toUpperCase() + skill[1].slice(1).toLowerCase();
+    const skillKey = skill[2].trim().toLowerCase().replace(/\s+/g, '_');
+    const name =
+      EVIDENCE_SKILL_LABELS[skillKey] ||
+      skill[2].trim().replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+    return `${module} · ${name}`;
+  }
+  return raw.replace(/\b[a-z]/g, (letter) => letter.toUpperCase()).replace(/\bIelts\b/g, 'IELTS');
+}
+
+function evidenceDate(value: unknown) {
+  if (typeof value !== 'string' || !value) return '';
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
 function evidenceClaim(item: any) {
-  const value =
-    item?.value && typeof item.value === 'object'
-      ? JSON.stringify(item.value)
-      : String(item?.value ?? 'available');
-  return `${item?.label || 'Learning evidence'}: ${value}`.slice(0, 240);
+  const label = evidenceLabel(item?.label);
+  const value = item?.value && typeof item.value === 'object' ? item.value : {};
+  const details: string[] = [];
+
+  const hasNumber = (number: unknown) =>
+    number != null && number !== '' && Number.isFinite(Number(number));
+  if (item?.category === 'completed_result') {
+    if (hasNumber(value.score)) details.push(`score ${Number(value.score)}`);
+    if (typeof value.mode === 'string' && value.mode.trim())
+      details.push(`${evidenceLabel(value.mode)} mode`);
+    const completed = evidenceDate(value.completedAt);
+    if (completed) details.push(`completed ${completed}`);
+  } else if (item?.category === 'measured_skill' || item?.category === 'early_skill') {
+    const mastery = Number(value.mastery);
+    if (hasNumber(value.mastery)) {
+      const percent = mastery <= 1 ? Math.round(mastery * 100) : Math.round(mastery);
+      details.push(
+        `${item.category === 'early_skill' ? 'early signal' : 'mastery estimate'} ${percent}%`
+      );
+    }
+    if (hasNumber(value.observations)) details.push(`${Number(value.observations)} observations`);
+  } else if (item?.category === 'comparable_trend') {
+    for (const key of ['latest', 'previous', 'delta']) {
+      if (hasNumber(value[key]))
+        details.push(
+          `${key} ${key === 'delta' && Number(value[key]) > 0 ? '+' : ''}${Number(value[key])}`
+        );
+    }
+  } else if (item?.category === 'grammar_practice') {
+    if (hasNumber(value.correct) && hasNumber(value.total))
+      details.push(`${Number(value.correct)} of ${Number(value.total)} correct`);
+    const completed = evidenceDate(item?.observedAt);
+    if (completed) details.push(`completed ${completed}`);
+  } else if (item?.category === 'goal') {
+    if (typeof item.value === 'number' || typeof item.value === 'string') {
+      details.push(
+        item.label === 'IELTS test date'
+          ? evidenceDate(item.value) || String(item.value)
+          : String(item.value)
+      );
+    } else if (hasNumber(value.weeklyHours)) {
+      details.push(`${Number(value.weeklyHours)} hours per week`);
+    }
+  }
+
+  return [label, ...details].filter(Boolean).join(' · ').slice(0, 180);
 }
 
 async function loadContext(admin: any, profile: any, sourceReference: any) {
@@ -550,6 +627,7 @@ Deno.serve(async (req: Request) => {
     );
     if (context.source)
       evidenceById.set(`source:${context.source.id}`, {
+        category: 'completed_result',
         label: `${context.source.testType} completed result`,
         value: { score: context.source.score, mode: context.source.testMode },
       });
@@ -570,11 +648,13 @@ Deno.serve(async (req: Request) => {
           .join(' ');
         const answerNumbers = value.answer.match(/\d+(?:\.\d+)?/g) || [];
         if (answerNumbers.some((number: string) => !citedText.includes(number))) return false;
-        value.evidenceRefs = value.evidenceRefs.map((ref: any) => ({
-          id: ref.id,
-          claim: evidenceClaim(evidenceById.get(ref.id)),
-        }));
       }
+      // Never trust model-supplied citation wording. Convert all valid references,
+      // including references on general questions, to concise source-derived text.
+      value.evidenceRefs = value.evidenceRefs.map((ref: any) => ({
+        id: ref.id,
+        claim: evidenceClaim(evidenceById.get(ref.id)),
+      }));
       if (
         personalQuestion &&
         evidenceIds.size === 0 &&
