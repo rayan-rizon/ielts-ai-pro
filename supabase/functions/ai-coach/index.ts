@@ -4,7 +4,6 @@ import { getCorsHeaders, handleCorsPrelight, validateCsrfProtection } from '../_
 import { requestOpenRouterJson, TextAiProviderError } from '../_shared/textAiProvider.ts';
 import {
   AI_COACH_MAX_INPUT_TOKENS,
-  AI_COACH_MAX_OUTPUT_TOKENS,
   asksForPersonalEvidence,
   detectCoachLanguage,
   estimateCoachInputTokens,
@@ -14,7 +13,11 @@ import {
   validateCoachReply,
   validateCoachSendBody,
 } from '../_shared/aiCoach.ts';
-import { AI_COACH_FALLBACK_MODEL, AI_COACH_PRIMARY_MODEL } from '../_shared/aiModelRegistry.ts';
+import {
+  AI_COACH_FALLBACK_MODEL,
+  AI_COACH_MAX_OUTPUT_TOKENS,
+  AI_COACH_PRIMARY_MODEL,
+} from '../_shared/aiModelRegistry.ts';
 import { buildLearnerEvidence } from '../_shared/learnerEvidence.ts';
 
 declare const Deno: any;
@@ -143,7 +146,8 @@ function evidenceClaim(item: any) {
         `${item.category === 'early_skill' ? 'early signal' : 'mastery estimate'} ${percent}%`
       );
     }
-    if (hasNumber(value.observations)) details.push(`${Number(value.observations)} observations`);
+    if (hasNumber(value.observations))
+      details.push(`${Number(value.observations).toLocaleString('en-US')} practice records`);
   } else if (item?.category === 'comparable_trend') {
     for (const key of ['latest', 'previous', 'delta']) {
       if (hasNumber(value[key]))

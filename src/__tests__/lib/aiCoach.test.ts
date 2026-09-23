@@ -2,12 +2,22 @@ import { describe, expect, it } from 'vitest';
 
 import {
   asksForPersonalEvidence,
+  AI_COACH_MAX_ANSWER_CHARS,
+  AI_COACH_MAX_INPUT_TOKENS,
   detectCoachLanguage,
   estimateCoachInputTokens,
+  groundedCoachSystemPrompt,
   safeCoachFallbackReply,
   validateCoachReply,
   validateCoachSendBody,
 } from '../../../supabase/functions/_shared/aiCoach';
+import {
+  AI_COACH_FALLBACK_MODEL,
+  AI_COACH_MAX_OUTPUT_TOKENS,
+  AI_COACH_PRIMARY_MODEL,
+  AI_ROUTES,
+  MODELS,
+} from '../../../supabase/functions/_shared/aiModelRegistry';
 
 const requestId = '6a2c3432-6f1b-47a7-87e3-a56320f642f1';
 
@@ -97,6 +107,46 @@ describe('personalized AI Coach language selection', () => {
 });
 
 describe('personalized AI Coach request and reply validation', () => {
+  it('allows fuller replies within the registered cost-bounded output limit', () => {
+    const route = AI_ROUTES.find((item) => item.id === 'personalized-ai-coach');
+    expect(AI_COACH_MAX_OUTPUT_TOKENS).toBe(1800);
+    expect(route?.maxOutputTokens).toBe(AI_COACH_MAX_OUTPUT_TOKENS);
+    expect(route?.notes).toContain('below the $0.005 reservation');
+    expect(groundedCoachSystemPrompt('en')).toContain('2-5 short paragraphs or bullets');
+
+    const worstCasePrimaryAndFallbackCost = [
+      MODELS[AI_COACH_PRIMARY_MODEL],
+      MODELS[AI_COACH_FALLBACK_MODEL],
+    ].reduce((total, model) => {
+      const pricing = model.pricing;
+      return (
+        total +
+        (AI_COACH_MAX_INPUT_TOKENS * pricing.inputPerMillion +
+          AI_COACH_MAX_OUTPUT_TOKENS * pricing.outputPerMillion) /
+          1_000_000
+      );
+    }, 0);
+
+    expect(worstCasePrimaryAndFallbackCost).toBeLessThan(0.005);
+  });
+
+  it('accepts longer explanations while keeping a firm response-size bound', () => {
+    const reply = {
+      answer: 'a'.repeat(15_000),
+      responseLanguage: 'en',
+      groundingStatus: 'general',
+      evidenceRefs: [],
+      exercise: null,
+      actions: [],
+    };
+
+    expect(AI_COACH_MAX_ANSWER_CHARS).toBe(18_000);
+    expect(validateCoachReply(reply, new Set())).toBe(true);
+    expect(
+      validateCoachReply({ ...reply, answer: 'a'.repeat(AI_COACH_MAX_ANSWER_CHARS + 1) }, new Set())
+    ).toBe(false);
+  });
+
   it('uses a conservative multilingual input estimate', () => {
     expect(estimateCoachInputTokens('a'.repeat(400))).toBe(100);
     expect(estimateCoachInputTokens('বাংলা')).toBeGreaterThan(5);

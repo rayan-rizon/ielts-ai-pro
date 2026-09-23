@@ -153,6 +153,9 @@ export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
 export const AI_COACH_PRIMARY_MODEL = 'openai/gpt-oss-120b';
 export const AI_COACH_FALLBACK_MODEL = 'openai/gpt-6-luna';
+// Worst-case full-context primary + fallback usage costs about $0.00348 at
+// registered rates, below the $0.005 per-request reservation in ai_coach settings.
+export const AI_COACH_MAX_OUTPUT_TOKENS = 1_800;
 
 export function readingAssistantPrimaryModel(action: string) {
   return action === 'dictionary' || action === 'simplify'
@@ -173,7 +176,7 @@ export const AI_ROUTES: AiRoute[] = [
     id: 'personalized-ai-coach',
     surface: 'Learner panel: personalized IELTS AI Coach',
     file: 'supabase/functions/ai-coach/index.ts',
-    maxOutputTokens: 1200,
+    maxOutputTokens: AI_COACH_MAX_OUTPUT_TOKENS,
     timeoutMs: 20000,
     steps: [
       {
@@ -188,7 +191,7 @@ export const AI_ROUTES: AiRoute[] = [
       },
     ],
     notes:
-      'Feature-gated. Input is capped at 6,000 tokens, output at 1,200 tokens, and the shared provider budget is $3 per UTC day.',
+      'Feature-gated. Input is capped at 6,000 tokens, output at 1,800 tokens, and the shared provider budget is $3 per UTC day. The 1,800-token limit keeps the full primary-plus-fallback worst case below the $0.005 reservation.',
   },
   {
     id: 'writing-detailed-feedback',

@@ -29,7 +29,7 @@ import {
   TILE,
 } from '@/features/dashboard/components/primitives';
 import { AI_COACH_ENABLED, isRtlLanguage, takeCoachDraft } from '../config';
-import { formatEvidenceClaim } from '../utils/evidenceReferences.js';
+import { EvidenceRefs } from '../components/EvidenceRefs.jsx';
 import {
   bootstrapCoach,
   checkCoachExercise,
@@ -311,27 +311,6 @@ function AvaWelcome({ available, onSelect }) {
         <ShieldCheck className="h-4 w-4 text-emerald-500" />
         Advice is linked to your learning evidence when available
       </div>
-    </div>
-  );
-}
-
-function EvidenceRefs({ refs = [] }) {
-  if (!refs.length) return null;
-  return (
-    <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Evidence used">
-      {refs.map((ref) => {
-        const claim = formatEvidenceClaim(ref);
-        return (
-          <span
-            key={`${ref.id}-${claim}`}
-            title={claim}
-            className="inline-flex max-w-full items-center gap-1 rounded-md border border-[#5a63df]/15 bg-[#5a63df]/[0.05] px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300"
-          >
-            <ShieldCheck className="h-3 w-3 shrink-0 text-[#5a63df]" />
-            <span className="truncate">{claim}</span>
-          </span>
-        );
-      })}
     </div>
   );
 }

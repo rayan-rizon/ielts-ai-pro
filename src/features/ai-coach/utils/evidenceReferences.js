@@ -70,7 +70,8 @@ export function formatEvidenceClaim(ref) {
       `mastery estimate ${mastery <= 1 ? Math.round(mastery * 100) : Math.round(mastery)}%`
     );
   }
-  if (hasNumber(value.observations)) details.push(`${Number(value.observations)} observations`);
+  if (hasNumber(value.observations))
+    details.push(`${Number(value.observations).toLocaleString('en-US')} practice records`);
   if (hasNumber(value.correct) && hasNumber(value.total))
     details.push(`${Number(value.correct)} of ${Number(value.total)} correct`);
   if (hasNumber(value.weeklyHours)) details.push(`${Number(value.weeklyHours)} hours per week`);
@@ -78,4 +79,28 @@ export function formatEvidenceClaim(ref) {
   if (completed) details.push(`completed ${completed}`);
 
   return [formatEvidenceLabel(legacy[1]), ...details].filter(Boolean).join(' · ');
+}
+
+const EVIDENCE_DETAIL_START =
+  /^(?:score\b|latest\b|previous\b|delta\b|mastery estimate\b|early signal\b|\d[\d,]* (?:observations?|practice records?)\b|\d[\d,]* of \d[\d,]* correct\b|completed\b|\d+(?:\.\d+)? hours? per week\b)/i;
+
+/** Split a source-derived evidence claim into a readable title and supporting details. */
+export function formatEvidenceReference(ref) {
+  const claim = formatEvidenceClaim(ref);
+  const parts = claim.split(/\s+·\s+/).filter(Boolean);
+  const detailIndex = parts.findIndex((part) => EVIDENCE_DETAIL_START.test(part));
+
+  if (detailIndex > 0) {
+    return {
+      claim,
+      title: parts.slice(0, detailIndex).join(' · '),
+      details: parts.slice(detailIndex),
+    };
+  }
+
+  if (parts.length > 1) {
+    return { claim, title: parts[0], details: parts.slice(1) };
+  }
+
+  return { claim, title: claim, details: [] };
 }
