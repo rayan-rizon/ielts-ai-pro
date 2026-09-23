@@ -108,6 +108,36 @@ const PRICE_TO_INTERVAL: Record<string, string> = {
   [Deno.env.get('STRIPE_PREMIUM_QUARTERLY_PRICE_ID') || '']: 'quarterly',
 };
 
+// A price can be retired and replaced while an existing subscription keeps
+// billing on the old price. Resolve the product/metadata before falling back
+// to the mutable price-ID configuration so a stale mapping cannot downgrade a
+// paid learner during renewal.
+const PRODUCT_TO_TIER: Record<string, string> = {
+  [Deno.env.get('STRIPE_PRO_PRODUCT_ID') || 'prod_TsKoWTD1JjXebq']: 'pro',
+  [Deno.env.get('STRIPE_PREMIUM_PRODUCT_ID') || 'prod_TsKulU8disXiO6']: 'premium',
+};
+
+function validTier(value: unknown): 'pro' | 'premium' | null {
+  return value === 'pro' || value === 'premium' ? value : null;
+}
+
+function resolveSubscriptionTier(subscription: Stripe.Subscription, priceId?: string) {
+  const price = subscription.items.data[0]?.price;
+  const productId = typeof price?.product === 'string' ? price.product : price?.product?.id;
+  const productTier = productId ? validTier(PRODUCT_TO_TIER[productId]) : null;
+  const metadataTier = validTier(subscription.metadata?.tier);
+  const mappedPriceTier = priceId ? validTier(PRICE_TO_TIER[priceId]) : null;
+
+  if (productTier && metadataTier && productTier !== metadataTier) {
+    console.warn(
+      `[Webhook] Stripe product/metadata tier mismatch for ${subscription.id}: ` +
+        `product=${productTier}, metadata=${metadataTier}; using product tier`
+    );
+  }
+
+  return productTier || metadataTier || mappedPriceTier || 'pro';
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -383,7 +413,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     try {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       const priceId = subscription.items.data[0]?.price.id;
-      tier = PRICE_TO_TIER[priceId] || subscription.metadata?.tier || 'pro';
+      tier = resolveSubscriptionTier(subscription, priceId);
       interval = PRICE_TO_INTERVAL[priceId] || subscription.metadata?.interval || 'monthly';
     } catch (e) {
       console.warn('[Webhook] Could not retrieve subscription details:', e);
@@ -484,9 +514,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, even
   // `past_due` locks a learner out of the customer portal precisely when they
   // need it to repair their payment method.
   const retainsBillingAccess = ['active', 'trialing', 'past_due'].includes(subscription.status);
-  const tier = retainsBillingAccess
-    ? PRICE_TO_TIER[priceId] || subscription.metadata?.tier || 'pro'
-    : 'free';
+  const tier = retainsBillingAccess ? resolveSubscriptionTier(subscription, priceId) : 'free';
   const interval = PRICE_TO_INTERVAL[priceId] || subscription.metadata?.interval || 'monthly';
 
   const endDate = subscription.current_period_end

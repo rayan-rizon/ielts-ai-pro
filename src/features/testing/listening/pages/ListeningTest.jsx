@@ -1,6 +1,7 @@
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedTestGate from '@/features/testing/paired/PairedTestGate';
 import React, { useState } from 'react';
+import { Navigate, useLocation, useParams } from 'react-router-dom';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { cn } from '@/lib/cn';
@@ -20,6 +21,19 @@ import { useListeningTestNavigation } from '../components/ListeningTest/hooks/us
 import ListeningTestMainContent from '../components/ListeningTest/components/ListeningTestMainContent';
 import ListeningTestOverlays from '../components/ListeningTest/components/ListeningTestOverlays';
 import ListeningTestSheet from '../components/ListeningTestSheet';
+
+export function hasListeningTestEntry(location, routeId = '') {
+  const params = new URLSearchParams(location?.search || '');
+  const hashParams = new URLSearchParams((location?.hash || '').replace(/^#/, ''));
+
+  return Boolean(
+    routeId ||
+    params.get('test-id') ||
+    params.get('room') ||
+    params.get('together') === 'true' ||
+    hashParams.get('invite')
+  );
+}
 
 function ListeningTestInner() {
   const [showAnswerSheet, setShowAnswerSheet] = useState(false);
@@ -208,6 +222,13 @@ function ListeningTestInner() {
 }
 
 export default function ListeningTest() {
+  const location = useLocation();
+  const { id } = useParams();
+
+  if (!hasListeningTestEntry(location, id)) {
+    return <Navigate to="/listening" replace />;
+  }
+
   return (
     <PairedTestGate type="listening">
       <React.Suspense
