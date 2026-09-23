@@ -155,6 +155,7 @@ const PLAN_CARD_CONFIGS = {
     checkColorClass: 'text-[#5a63df] dark:text-[#afb5ff]',
     borderClass: 'border-[#5a63df]/35 dark:border-[#8f97ff]/30 shadow-xs',
     getFeatures: (data) => [
+      'Unlimited Reading & Listening tests',
       `${data.writingLimit} AI Writing Evaluations / month`,
       `${data.speakingLimit} AI Speaking Sessions / month`,
       'Unlimited AI Reading Assistant',
@@ -177,6 +178,7 @@ const PLAN_CARD_CONFIGS = {
     checkColorClass: 'text-sky-600 dark:text-sky-400',
     borderClass: 'hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12',
     getFeatures: (data) => [
+      'Unlimited Reading & Listening tests',
       `${data.writingLimit} AI Writing Evaluations / month`,
       `${data.speakingLimit} AI Speaking Sessions / month`,
       'Unlimited AI Reading Assistant',

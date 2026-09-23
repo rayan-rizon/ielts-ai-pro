@@ -1,7 +1,7 @@
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import PairedTestGate from '@/features/testing/paired/PairedTestGate';
 import React, { useState } from 'react';
-import { Navigate, useLocation, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import PremiumLoading from '@/components/ui/PremiumLoading';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { cn } from '@/lib/cn';
@@ -109,6 +109,19 @@ function ListeningTestInner() {
       {isAwaitingStart && examEligibility.eligible && (
         <div className="px-4 pb-2">
           <TakeWithFriend test={state.testData} />
+        </div>
+      )}
+      {isAwaitingStart && state.error && (
+        <div
+          role="alert"
+          className="mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[rgba(var(--signal-fault),0.25)] bg-[rgba(var(--signal-fault),0.04)] px-3 py-2 text-xs text-[rgb(var(--signal-fault))]"
+        >
+          <span>{state.error}</span>
+          {state.error.includes('free listening test limit') && (
+            <Link className="font-bold underline" to="/pricing">
+              See unlimited plans
+            </Link>
+          )}
         </div>
       )}
       <ListeningTestHeader

@@ -47,8 +47,12 @@ export function configurePricingPlans(defaultPlans, pricingConfig) {
         if (feature.includes('AI Speaking Session')) {
           return featureStrings.speakingFeature;
         }
+        if (feature === 'Reading & Listening practice tests') {
+          return [featureStrings.readingFeature, featureStrings.listeningFeature];
+        }
         return feature;
       })
+      .flat()
       .filter(Boolean);
 
     return {

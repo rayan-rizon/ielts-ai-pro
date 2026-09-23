@@ -2,7 +2,11 @@ import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useReadingTestDispatch, useReadingTestState } from '../context/ReadingTestContext';
-import { createTestSession, initializeTest } from '@/lib/testInitializer';
+import {
+  createTestSession,
+  getObjectiveStartErrorMessage,
+  initializeTest,
+} from '@/lib/testInitializer';
 import {
   getLearningActivityId,
   getRequestedTestMode,
@@ -56,6 +60,7 @@ export function useReadingTestLogic(
   const [selectedMode, setSelectedMode] = useState(() => getRequestedTestMode(location.search));
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
+  const startRequestIdRef = useRef(crypto.randomUUID());
 
   // Results & Status State
   const [isFinished, setIsFinished] = useState(false);
@@ -354,12 +359,12 @@ export function useReadingTestLogic(
       setError(null);
       try {
         const newSession = await createTestSession({
-          userId: user.id,
           passageId: testData.id,
           type: 'reading',
           testMode,
           durationSeconds: EXAM_DURATION_SECONDS,
           learningPathActivityId: getLearningActivityId(location.search),
+          requestId: startRequestIdRef.current,
         });
         dispatch({ type: 'RESET_TEST' });
         dispatch({ type: 'SET_TIME', payload: EXAM_DURATION_SECONDS });
@@ -369,7 +374,7 @@ export function useReadingTestLogic(
         navigate(`/reading-test/${newSession.id}`, { replace: true });
       } catch (startError) {
         console.error('Failed to start reading test:', startError);
-        setError('Failed to start the test. Please try again.');
+        setError(getObjectiveStartErrorMessage(startError, 'reading'));
       } finally {
         setIsStarting(false);
       }

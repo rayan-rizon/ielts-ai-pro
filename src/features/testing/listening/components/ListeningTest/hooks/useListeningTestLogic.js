@@ -2,7 +2,11 @@ import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useListeningTestDispatch, useListeningTestState } from '../context/ListeningTestContext';
-import { initializeTest } from '@/lib/testInitializer';
+import {
+  createTestSession,
+  getObjectiveStartErrorMessage,
+  initializeTest,
+} from '@/lib/testInitializer';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import {
   getLearningActivityId,
@@ -25,7 +29,6 @@ import {
   getExamRemainingSeconds,
   getSessionTestMode,
   resolveNewAttemptMode,
-  toPersistedTestMode,
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
 import { trackAppEvent } from '@/lib/tracking';
@@ -77,6 +80,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
   const [selectedMode, setSelectedMode] = useState(() => getRequestedTestMode());
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
+  const startRequestIdRef = useRef(crypto.randomUUID());
   const [examReview, setExamReview] = useState(false);
   const audioPlayerRef = useRef(null);
   const awardXP = awardXPFromPage || (async () => ({ success: false }));
@@ -522,22 +526,14 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
           testMode === 'exam'
             ? audioDurations.reduce((total, value) => total + value, 0) + LISTENING_REVIEW_SECONDS
             : 40 * 60;
-        const newSession = await TestSession.create({
-          user_id: currentUser.id,
-          test_type: 'listening',
-          test_mode: toPersistedTestMode(testMode),
-          is_completed: false,
-          duration_minutes: Math.ceil(durationSeconds / 60),
-          passage_id: testData.id,
-          learning_path_activity_id: getLearningActivityId(),
-          content_data: {
-            passage_id: testData.id,
-            title: testData.title,
-            test_mode: testMode,
-            duration_seconds: durationSeconds,
-            audio_durations: audioDurations,
-            review_seconds: testMode === 'exam' ? LISTENING_REVIEW_SECONDS : 0,
-          },
+        const newSession = await createTestSession({
+          passageId: testData.id,
+          type: 'listening',
+          testMode,
+          durationSeconds,
+          learningPathActivityId: getLearningActivityId(),
+          audioDurations,
+          requestId: startRequestIdRef.current,
         });
         dispatch({ type: ACTIONS.RESET_TEST });
         dispatch({ type: ACTIONS.SET_SESSION, payload: newSession });
@@ -553,7 +549,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
         console.error('Failed to start listening test:', startError);
         dispatch({
           type: ACTIONS.SET_ERROR,
-          payload: 'Failed to start the test or load its audio. Please try again.',
+          payload: getObjectiveStartErrorMessage(startError, 'listening'),
         });
       } finally {
         setIsStarting(false);

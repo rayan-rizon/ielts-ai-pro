@@ -50,6 +50,16 @@ export function useUserUsageStats() {
   const tier = user?.role === 'admin' ? 'admin' : rawTier;
 
   const { data: dbLimits, isLoading: isLoadingLimits } = useTierLimits(tier);
+  const objectiveQuota = useQuery({
+    queryKey: ['objective-test-quotas', user?.id],
+    enabled: !!user?.id,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_objective_test_quotas');
+      if (error) throw error;
+      return data;
+    },
+  });
   const baseLimits =
     dbLimits || FALLBACK_LIMITS[tier] || FALLBACK_LIMITS[rawTier] || FALLBACK_LIMITS.free;
 
@@ -167,6 +177,7 @@ export function useUserUsageStats() {
           limit: limits.vocabulary,
         },
         tests: query.data.testCounts,
+        testStarts: objectiveQuota.data,
         tier,
       }
     : null;
@@ -174,6 +185,7 @@ export function useUserUsageStats() {
   return {
     ...query,
     data: stats,
-    isLoading: query.isLoading || isLoadingLimits,
+    error: query.error || objectiveQuota.error,
+    isLoading: query.isLoading || objectiveQuota.isLoading || isLoadingLimits,
   };
 }

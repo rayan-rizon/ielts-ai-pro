@@ -1122,6 +1122,10 @@ export type Database = {
           daily_limit: number;
           id: string;
           monthly_limit: number;
+          reading_daily_limit: number;
+          reading_monthly_limit: number;
+          listening_daily_limit: number;
+          listening_monthly_limit: number;
           speaking_daily_limit: number;
           speaking_monthly_limit: number;
           tier: string;
@@ -1135,6 +1139,10 @@ export type Database = {
           daily_limit?: number;
           id?: string;
           monthly_limit?: number;
+          reading_daily_limit?: number;
+          reading_monthly_limit?: number;
+          listening_daily_limit?: number;
+          listening_monthly_limit?: number;
           speaking_daily_limit?: number;
           speaking_monthly_limit?: number;
           tier: string;
@@ -1148,6 +1156,10 @@ export type Database = {
           daily_limit?: number;
           id?: string;
           monthly_limit?: number;
+          reading_daily_limit?: number;
+          reading_monthly_limit?: number;
+          listening_daily_limit?: number;
+          listening_monthly_limit?: number;
           speaking_daily_limit?: number;
           speaking_monthly_limit?: number;
           tier?: string;
@@ -1694,6 +1706,7 @@ export type Database = {
       get_learning_path_data: { Args: { p_user_id: string }; Returns: Json };
       get_my_public_user_id: { Args: never; Returns: string };
       get_my_user_id: { Args: never; Returns: string };
+      get_objective_test_quotas: { Args: never; Returns: Json };
       get_recent_sessions: {
         Args: { p_limit?: number; p_user_id: string };
         Returns: {
@@ -1827,6 +1840,18 @@ export type Database = {
       };
       redeem_promo_code: { Args: { code_lookup: string }; Returns: Json };
       redeem_subscription_promo: { Args: { p_code: string }; Returns: Json };
+      start_objective_test: {
+        Args: {
+          p_passage_id: string;
+          p_test_type: string;
+          p_test_mode: string;
+          p_duration_seconds: number;
+          p_learning_path_activity_id?: string | null;
+          p_audio_durations?: Json;
+          p_request_id?: string | null;
+        };
+        Returns: Json;
+      };
       update_study_streak: {
         Args: { p_user_id: string };
         Returns: {
@@ -1871,12 +1896,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1896,13 +1921,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1921,13 +1945,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1946,13 +1969,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1963,13 +1985,12 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
