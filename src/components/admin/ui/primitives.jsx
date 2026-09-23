@@ -352,8 +352,8 @@ export const FunnelStep = ({ label, value, share, drop, isFirst }) => (
 /**
  * Inline callout inside a card — "cannot send", "assign a campaign", "armed".
  *
- * Every panel had hand-rolled this as a bare `border-[rgb(var(--signal-*))]`
- * strip with its own padding, icon size and text size, so the same severity
+ * Every panel had hand-rolled a signal-coloured border strip with its own
+ * padding, icon size and text size, so the same severity
  * read differently on a campaign card than on a journey card. One component
  * fixes the shape; the tone stays the caller's decision.
  */
