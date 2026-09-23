@@ -2,6 +2,8 @@ export const BLOG_COVER_WIDTH = 1200;
 export const BLOG_COVER_HEIGHT = 675;
 
 const COVER_ALT_BY_SLUG = {
+  'compare-ai-platforms-for-ielts-writing-feedback-in-2026':
+    'IELTS learner comparing AI writing feedback platforms, criterion scores, and band progress',
   '7-places-to-get-free-full-ielts-mock-exams-online':
     'IELTS learner studying 7 places to get free full ielts mock exams online with a laptop and notebook',
   'ai-ielts-feedback-vs-human-tutors-which-to-trust':
