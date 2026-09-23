@@ -8,10 +8,11 @@ import {
   Sparkles,
   BookOpen,
   X,
-  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { PANEL, WELL, MICRO, NUM } from '@/features/dashboard/components/primitives';
+import { plainWritingText } from '@/features/testing/writing/utils/writingCoaching';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -515,97 +516,77 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
 
 // ─── Vocabulary Card ──────────────────────────────────────────────────────────
 
-const VocabularyCard = ({ enhancement }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const alternatives = enhancement.alternatives ?? [];
-  const preview = alternatives.slice(0, 2);
-  const overflow = alternatives.length - 2;
+const VocabularyCard = ({ enhancement, sourceSentence }) => {
+  const alternatives = (enhancement.alternatives ?? []).filter(Boolean).slice(0, 2);
 
   return (
     <motion.div
       layout="position"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group relative space-y-2 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 transition-shadow duration-200 hover:shadow-sm dark:border-white/10 dark:bg-white/3 sm:p-3"
+      className="min-w-0 space-y-2.5 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-3 dark:border-white/10 dark:bg-white/3"
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="p-1.5 rounded-lg bg-[#efedff] text-[#5661e9] dark:bg-indigo-500/15 dark:text-indigo-300 shrink-0">
-            <BookOpen className="w-3.5 h-3.5" />
-          </div>
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-0.5">
-              Original Phrase
-            </span>
-            <span className="text-xs font-black text-slate-950 dark:text-white leading-snug wrap-break-word">
-              "{enhancement.original}"
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/60 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20 dark:hover:text-white dark:border-white/10 transition-all active:scale-95"
-            title="Toggle Details"
-          >
-            <ChevronDown
-              className={cn(
-                'w-3.5 h-3.5 transition-transform duration-200',
-                isExpanded && 'rotate-180'
-              )}
-            />
-          </button>
-        </div>
+      <div>
+        <p className={MICRO}>Your wording</p>
+        <p className="mt-1 break-words text-sm font-bold text-slate-900 dark:text-white">
+          {enhancement.original}
+        </p>
       </div>
-
+      {sourceSentence && (
+        <p className="line-clamp-3 break-words border-l-2 border-[#d2d7f8] pl-2 text-xs leading-5 text-slate-600 dark:text-slate-300">
+          “{sourceSentence}”
+        </p>
+      )}
       {alternatives.length > 0 && (
-        <motion.div
-          layout
-          transition={{ layout: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
-          className="space-y-2 overflow-hidden border-t border-[#e2e5f6] pt-1 dark:border-white/10"
-        >
-          {isExpanded ? (
-            <>
-              <p className="border-l-2 border-[#5661e9] py-0.5 pl-2.5 text-xs font-medium italic text-slate-600 dark:border-indigo-500 dark:text-slate-300">
-                "{enhancement.context}"
-              </p>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {alternatives.map((alt, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center rounded-full border border-[#d2d7f8] bg-[#efedff] px-2.5 py-1 text-xs font-bold text-[#5661e9] dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-200"
-                  >
-                    {alt}
-                  </span>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              <span className="mr-0.5 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Try:
-              </span>
-              {preview.map((alt, i) => (
-                <span
-                  key={i}
-                  className="max-w-[240px] truncate rounded-full border border-[#d2d7f8] bg-[#efedff]/80 px-2.5 py-0.5 text-[11px] font-bold leading-normal text-[#5661e9] dark:border-indigo-500/30 dark:bg-indigo-500/15 dark:text-indigo-300"
-                >
-                  {alt}
-                </span>
-              ))}
-              {overflow > 0 && (
-                <span className="py-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                  +{overflow} more
-                </span>
-              )}
-            </div>
-          )}
-        </motion.div>
+        <div className="border-t border-[#e4e2f0] pt-2 dark:border-white/[0.07]">
+          <p className={MICRO}>Alternatives to consider</p>
+          <ul className="mt-1.5 space-y-1.5">
+            {alternatives.map((alternative) => (
+              <li
+                key={alternative}
+                className="break-words text-xs font-semibold text-[#4b55cb] dark:text-indigo-300"
+              >
+                {alternative}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {enhancement.context && (
+        <p className="text-[11px] leading-5 text-slate-600 dark:text-slate-300">
+          <span className="font-bold">Meaning: </span>
+          {enhancement.context}
+        </p>
       )}
     </motion.div>
   );
 };
+
+function vocabularySourceSentence(text, phrase) {
+  if (!text || !phrase) return '';
+  const source = plainWritingText(text);
+  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = source.match(new RegExp(`\\b${escaped}\\b`, 'i'));
+  if (!match) return '';
+  const before = source.slice(0, match.index);
+  const after = source.slice(match.index + match[0].length);
+  const start = Math.max(
+    before.lastIndexOf('. '),
+    before.lastIndexOf('! '),
+    before.lastIndexOf('? '),
+    before.lastIndexOf('\n')
+  );
+  const endCandidates = [
+    after.indexOf('. '),
+    after.indexOf('! '),
+    after.indexOf('? '),
+    after.indexOf('\n'),
+  ].filter((index) => index >= 0);
+  const end = endCandidates.length
+    ? Math.min(...endCandidates) + match.index + match[0].length + 1
+    : source.length;
+  return source.slice(start < 0 ? 0 : start + (source[start] === '\n' ? 1 : 2), end).trim();
+}
 
 // ─── Annotation State Hook ────────────────────────────────────────────────────
 
@@ -767,6 +748,7 @@ export default function AnnotatedText({
   text,
   annotations = [],
   vocabularyEnhancements = [],
+  writingAnalysis,
   onApplyCorrection,
   onIgnoreAnnotation,
   focusAnnotation,
@@ -785,14 +767,7 @@ export default function AnnotatedText({
     handleActivate,
   } = useAnnotationState({ annotations, onApplyCorrection, onIgnoreAnnotation, focusAnnotation });
 
-  const plainText = useMemo(
-    () =>
-      text
-        ?.replace(/<[^>]*>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim() || '',
-    [text]
-  );
+  const plainText = useMemo(() => plainWritingText(text).replace(/\s+/g, ' ').trim(), [text]);
 
   const segments = useAnnotatedSegments(plainText, filteredAnnotations);
 
@@ -823,20 +798,121 @@ export default function AnnotatedText({
         />
       </div>
 
-      {vocabularyEnhancements?.length > 0 && (
-        <div className="space-y-2 pt-2">
-          <div className="flex items-center gap-2 px-1">
+      {(vocabularyEnhancements?.length > 0 || writingAnalysis) && (
+        <section className={cn(PANEL, 'space-y-3 p-3.5 sm:p-4')}>
+          <div className="flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-[#5661e9] dark:text-indigo-400" />
-            <h3 className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">
-              Vocabulary Upgrade
+            <h3 className="text-sm font-black text-slate-900 dark:text-white">
+              {writingAnalysis ? 'Band 8 vocabulary & cohesion' : 'Vocabulary Upgrade'}
             </h3>
           </div>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
-            {vocabularyEnhancements.map((enhancement, i) => (
-              <VocabularyCard key={i} enhancement={enhancement} />
-            ))}
-          </div>
-        </div>
+          {writingAnalysis && (
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              Band 8 uses precise, natural language. Try an alternative only if it keeps your
+              meaning. Repetition and linker counts are not automatic errors.
+            </p>
+          )}
+          {vocabularyEnhancements?.length > 0 && (
+            <div>
+              <h4 className={MICRO}>Vocabulary ideas from your answer</h4>
+              <div className="mt-2 grid grid-cols-1 gap-2.5 xl:grid-cols-2">
+                {vocabularyEnhancements.map((enhancement, i) => (
+                  <VocabularyCard
+                    key={i}
+                    enhancement={enhancement}
+                    sourceSentence={vocabularySourceSentence(text, enhancement.original)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          {writingAnalysis && (
+            <div className="space-y-4 border-t border-[#e4e2f0] pt-3 dark:border-white/[0.07]">
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold">Words used several times</h4>
+                <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                  The count shows how often a word appears in your answer. Topic words from the
+                  question may need repeating; change a word only when another fits naturally.
+                </p>
+                {writingAnalysis.repeated.length > 0 ? (
+                  <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {writingAnalysis.repeated.map(({ word, count, inPrompt, examples }) => (
+                      <li key={word} className={cn(WELL, 'min-w-0 rounded-lg px-3 py-2.5 text-xs')}>
+                        <div className="flex min-w-0 items-center justify-between gap-2">
+                          <span className="min-w-0 break-words">
+                            <strong className="text-sm">{word}</strong>
+                            {inPrompt && (
+                              <span className="ml-1 text-slate-500">from the question</span>
+                            )}
+                          </span>
+                          <span
+                            className={cn(
+                              NUM,
+                              'shrink-0 rounded-md bg-white px-2 py-1 text-[11px] font-bold dark:bg-white/10'
+                            )}
+                          >
+                            {count} {count === 1 ? 'use' : 'uses'}
+                          </span>
+                        </div>
+                        {examples?.[0] && (
+                          <p className="mt-1 line-clamp-2 break-words text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+                            “{examples[0]}”
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-xs text-slate-500">No prominent repetition found.</p>
+                )}
+              </div>
+              <div className="min-w-0 border-t border-[#e4e2f0] pt-3 dark:border-white/[0.07]">
+                <h4 className="text-sm font-bold">How you connect ideas</h4>
+                <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                  These are linking phrases found in your answer. The number shows how many times
+                  each type appears. Clear ideas do not need lots of linkers.
+                </p>
+                {writingAnalysis.linking.length > 0 ? (
+                  <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {writingAnalysis.linking.map(({ category, count, phrases }) => (
+                      <li
+                        key={category}
+                        className={cn(WELL, 'min-w-0 rounded-lg px-3 py-2.5 text-xs')}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <strong>{category}</strong>
+                          <span className={cn(NUM, 'shrink-0 text-[11px]')}>
+                            {count} {count === 1 ? 'use' : 'uses'}
+                          </span>
+                        </div>
+                        <p className="mt-1 break-words text-slate-600 dark:text-slate-300">
+                          {phrases.join(', ')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-xs text-slate-500">No listed linkers found.</p>
+                )}
+              </div>
+            </div>
+          )}
+          {writingAnalysis?.paragraphOpenings?.length > 0 && (
+            <details className="border-t border-[#e4e2f0] pt-2 text-xs dark:border-white/[0.07]">
+              <summary className="cursor-pointer font-bold">
+                Paragraph flow · {writingAnalysis.paragraphCount} paragraphs
+              </summary>
+              <ol className="mt-2 space-y-1.5">
+                {writingAnalysis.paragraphOpenings.map((opening, index) => (
+                  <li key={index} className={cn(WELL, 'min-w-0 p-2')}>
+                    <span className={MICRO}>Paragraph {index + 1}</span>
+                    <span className="mt-1 block break-words">{opening}</span>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </section>
       )}
     </div>
   );

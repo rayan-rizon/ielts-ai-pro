@@ -86,15 +86,13 @@ describe('Writing feedback panel', () => {
     expect(screen.queryByText('Tips for Next Time')).not.toBeInTheDocument();
   });
 
-  it('connects grammar and idea-development feedback to the appropriate practice', () => {
+  it('links grammar feedback to Grammar Lab without sending writing issues to Practice Lab', () => {
     render(<FeedbackPanel feedback={feedback} />);
-    const destinations = screen
-      .getAllByRole('link', { name: /Practise this skill/ })
-      .map((link) => link.getAttribute('href'));
-    expect(destinations).toContain('/grammar');
-    expect(
-      destinations.some((href) => href.startsWith('/practice-lab?skill=writing_paragraph_support'))
-    ).toBe(true);
+    expect(screen.getAllByRole('link', { name: 'Open Grammar Lab' }).length).toBeGreaterThan(0);
+    screen
+      .getAllByRole('link', { name: 'Open Grammar Lab' })
+      .forEach((link) => expect(link).toHaveAttribute('href', '/grammar'));
+    expect(screen.queryByRole('link', { name: /Practise this skill/ })).not.toBeInTheDocument();
   });
 
   it('shows why each correction matters without another click', () => {
@@ -102,6 +100,38 @@ describe('Writing feedback panel', () => {
 
     expect(screen.getByText('Why it matters:')).toBeInTheDocument();
     expect(screen.getByText('A plural subject needs a plural verb.')).toBeInTheDocument();
+  });
+
+  it('explains an already requested review without exposing the server error code', () => {
+    const handleGetFeedback = vi.fn();
+    render(
+      <FeedbackPanel
+        feedback={null}
+        feedbackError="duplicate_request"
+        handleGetFeedback={handleGetFeedback}
+      />
+    );
+
+    expect(screen.getByText('Check your saved review')).toBeInTheDocument();
+    expect(screen.getByText(/A review was already requested for this answer/)).toBeInTheDocument();
+    expect(screen.queryByText('duplicate_request')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Check for saved review' }));
+    expect(handleGetFeedback).toHaveBeenCalledTimes(1);
+  });
+
+  it('presents a pending review as in progress', () => {
+    render(
+      <FeedbackPanel
+        feedback={null}
+        feedbackError="Your feedback is still being prepared. Check again in a moment; it will appear here when ready."
+        handleGetFeedback={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Your review is being prepared')).toBeInTheDocument();
+    expect(screen.getByText('Review in progress')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Check for saved review' })).toBeInTheDocument();
+    expect(screen.queryByText('Review interrupted')).not.toBeInTheDocument();
   });
 
   it('opens the exact annotated evidence for a grounded priority', () => {

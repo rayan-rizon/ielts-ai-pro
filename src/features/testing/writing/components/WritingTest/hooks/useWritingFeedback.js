@@ -206,6 +206,7 @@ export function useWritingFeedback(awardXP) {
       return { type, cached: false, text: currentTextRaw, isBelowMinimum, prompt, imageUrl };
     });
     const requiredPartReviews = analysisPlan.filter((item) => !item.cached).length;
+    const isRetryingFailedEvaluation = store.session?.evaluation_status === 'failed';
 
     // Claim the in-memory mutex before the asynchronous quota preflight. The
     // database claim below remains the cross-tab/process safeguard, while this
@@ -242,6 +243,7 @@ export function useWritingFeedback(awardXP) {
             (!Number.isFinite(monthlyRemaining) || monthlyRemaining >= requiredPartReviews);
           if (
             requiredPartReviews > 0 &&
+            !isRetryingFailedEvaluation &&
             quota &&
             (quota.allowed === false || !hasEnoughPartReviews)
           ) {

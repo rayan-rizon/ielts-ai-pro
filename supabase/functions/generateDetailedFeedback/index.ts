@@ -34,6 +34,7 @@ import {
   WRITING_PRIMARY_MODEL,
 } from '../_shared/aiModelRegistry.ts';
 import { requestOpenRouterWritingFeedback } from '../_shared/writingProvider.ts';
+import { recoverWritingFeedback } from '../_shared/writingFeedbackRecovery.ts';
 
 // @ts-ignore
 declare const Deno: any;
@@ -462,7 +463,7 @@ COMPACT FEEDBACK CONTRACT
 - priorities: exactly the 3 highest band-gain issues, ordered by impact. issue is maximum 12 words; action is maximum 14 words and must be concrete. Use only the allowed criterion labels.
 - priorities evidenceText: only when a priority is supported by an annotation, include that annotation's originalText exactly. Otherwise omit evidenceText; never invent an anchor.
 - annotations: 0–10 high-value highlights. originalText must be an exact, unique 1–7 word substring. suggestion is maximum 12 words. explanation is maximum 14 words and must state why the change matters for clarity, accuracy, or the relevant band criterion. Use severity='error' only for genuine grammar, spelling, word-form, tense, agreement, missing-element, or factual-reporting errors. Style preferences are suggestions, never errors. Do not repeat an issue.
-- vocabularyEnhancements: 0–4 natural, context-fitting upgrades; two alternatives each. Never force exotic synonyms.
+- vocabularyEnhancements: 0–4 precise, natural options that could strengthen Band 8-level lexical control in this exact answer. original must be an exact phrase from the response. Give two alternatives only when both preserve the intended meaning and fit the surrounding grammar; otherwise return one. context briefly explains the meaning or usage distinction. Do not reward difficult words for their own sake, force exotic synonyms, or claim that a word alone earns Band 8.
 - Do not output separate weaknesses, suggestions, corrections, or overallBand. The server derives correction rows from grounded error annotations.
 - Output JSON only and follow the response schema. No markdown or bold markers.
 `;
@@ -673,14 +674,31 @@ Register and tone:
     if (!quotaReservation.allowed) {
       return quotaExceededResponse(quotaReservation, corsHeaders);
     }
-    quotaReservationId = quotaReservation.reservationId;
-
     if (quotaReservation.alreadyReserved) {
+      const previous = await recoverWritingFeedback(
+        supabase,
+        quotaReservation.reservationId,
+        inputHash
+      );
+      if (previous.state === 'available') {
+        return new Response(JSON.stringify(previous.response), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (previous.state === 'missing') {
+        return errorResponse(
+          'The earlier review finished, but its saved result is unavailable. Please contact support so your review can be recovered.',
+          503,
+          corsHeaders
+        );
+      }
       return duplicateReservationResponse(
         corsHeaders,
         'This writing feedback is already being generated. Please wait for the existing result.'
       );
     }
+    quotaReservationId = quotaReservation.reservationId;
 
     // Cache saves provider cost, not learner entitlement. Reserve first so a
     // globally cached essay review counts exactly like a newly generated one.
@@ -695,6 +713,7 @@ Register and tone:
         taskType,
         inputHash,
         provider: 'feedback-cache',
+        response: { success: true, data: cachedEntry.feedback_json },
       });
       if (!finalized) {
         throw new Error('Failed to finalize cached Writing quota reservation');
@@ -1020,6 +1039,7 @@ Output JSON only, matching this shape exactly. No markdown or bold markers.
             outputTokens,
           }) + lunaRejectedProviderCostUsd,
         wastedProviderCostUsd: lunaRejectedProviderCostUsd,
+        response: { success: true, data: feedbackData },
       }
     );
     quotaReservationId = undefined;

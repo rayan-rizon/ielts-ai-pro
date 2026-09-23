@@ -16,6 +16,7 @@ import { WritingTestProvider } from '../components/WritingTest/context/WritingTe
 import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingTaskLogic';
 import { useWritingTestStore } from '../store/useWritingTestStore';
 import AnnotatedText from '@/components/writing/AnnotatedText';
+import { analyzeWriting } from '../utils/writingCoaching';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -57,8 +58,12 @@ function WritingFeedbackDrawer({
   handleGetFeedback,
   loadingMessage,
   onShowInEssay,
+  coachSession,
+  coachTaskType,
+  originalHtml,
+  isMobile,
 }) {
-  if (!hasFeedbackPane) return null;
+  if (!hasFeedbackPane || isMobile) return null;
 
   return (
     <motion.div
@@ -66,13 +71,10 @@ function WritingFeedbackDrawer({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="hidden md:flex relative right-0 top-0 bottom-0 md:w-1/2 md:basis-1/2 md:flex-1 min-w-0 bg-white dark:bg-[#08080a] border-l border-[#e4e2f0] dark:border-white/[0.07] z-20 flex-col h-full"
+      className="relative flex h-full min-h-0 min-w-0 w-full flex-col border-l border-[#e4e2f0] bg-white dark:border-white/[0.07] dark:bg-[#08080a]"
       data-oid="zsyqr7w"
     >
-      <div
-        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-white/10"
-        data-oid="178ww4r"
-      >
+      <div className="min-h-0 flex-1" data-oid="178ww4r">
         <MemoizedFeedbackPanel
           feedback={currentFeedback}
           isAnalyzing={isAnalyzing}
@@ -80,6 +82,9 @@ function WritingFeedbackDrawer({
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
           onShowInEssay={onShowInEssay}
+          coachSession={coachSession}
+          coachTaskType={coachTaskType}
+          originalHtml={originalHtml}
           onClose={() => {}}
           data-oid="zp34i4j"
         />
@@ -256,7 +261,8 @@ function WritingTaskContent() {
 
       <div
         className={cn(
-          'relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row transition-all duration-300',
+          'relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden transition-all duration-300',
+          hasFeedbackPane ? 'md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]' : 'md:flex-row',
           isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
         )}
         aria-disabled={isAwaitingStart || undefined}
@@ -295,6 +301,8 @@ function WritingTaskContent() {
             handleShowInEssay={handleShowInEssay}
             handleGetFeedback={handleGetFeedback}
             loadingMessage={loadingMessage}
+            coachSession={testMode !== 'exam' ? logic.session : null}
+            coachTaskType={activeType}
             data-oid="xaa39j6"
           />
         )}
@@ -308,6 +316,14 @@ function WritingTaskContent() {
             handleGetFeedback={handleGetFeedback}
             loadingMessage={loadingMessage}
             onShowInEssay={handleShowInEssay}
+            coachSession={testMode !== 'exam' ? logic.session : null}
+            coachTaskType={activeType}
+            originalHtml={
+              currentFeedback?.originalSource ||
+              useWritingTestStore.getState().drafts[activeType] ||
+              ''
+            }
+            isMobile={isMobile}
           />
         </AnimatePresence>
       </div>
@@ -382,6 +398,10 @@ function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
 }
 
 function AnnotatedReviewPane({ feedback, writing, setWriting, focusAnnotation }) {
+  const analysis = React.useMemo(
+    () => analyzeWriting(feedback.originalSource || writing, feedback.taskPrompt),
+    [feedback.originalSource, feedback.taskPrompt, writing]
+  );
   const applyCorrection = useCallback(
     (annotation) => {
       const source = feedback.originalSource || writing;
@@ -396,6 +416,7 @@ function AnnotatedReviewPane({ feedback, writing, setWriting, focusAnnotation })
         text={feedback.originalSource || writing}
         annotations={feedback.annotations || []}
         vocabularyEnhancements={feedback.vocabularyEnhancements || []}
+        writingAnalysis={analysis}
         onApplyCorrection={applyCorrection}
         focusAnnotation={focusAnnotation}
         cardClassName="min-h-[500px]"
@@ -439,6 +460,8 @@ function WritingPaneBody({
   handleShowInEssay,
   handleGetFeedback,
   loadingMessage,
+  coachSession,
+  coachTaskType,
 }) {
   const isFeedbackMode = isMobile && hasFeedback && viewMode === 'feedback';
   const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
@@ -462,6 +485,9 @@ function WritingPaneBody({
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
           onShowInEssay={handleShowInEssay}
+          coachSession={coachSession}
+          coachTaskType={coachTaskType}
+          originalHtml={currentFeedback?.originalSource || writing}
           onClose={() => {}}
         />
       </div>
@@ -529,6 +555,8 @@ function WritingEditorPane({
   handleShowInEssay,
   handleGetFeedback,
   loadingMessage,
+  coachSession,
+  coachTaskType,
 }) {
   const activeType = useWritingTestStore((state) => state.activeType);
   const writing = useWritingTestStore((state) => state.drafts[activeType] || '');
@@ -549,7 +577,7 @@ function WritingEditorPane({
       className={cn(
         'relative z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#fcfcfc] dark:bg-[#08080a]',
         hasFeedback
-          ? 'w-full md:w-1/2 md:basis-1/2 md:flex-1 h-full md:border-r border-[#e4e2f0] dark:border-white/[0.07]'
+          ? 'w-full h-full md:min-w-0 md:border-r border-[#e4e2f0] dark:border-white/[0.07]'
           : 'w-full md:w-1/2 md:basis-1/2 md:flex-1 h-full'
       )}
       data-oid="ctlrd56"
@@ -581,6 +609,8 @@ function WritingEditorPane({
           handleShowInEssay={handleShowInEssay}
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
+          coachSession={coachSession}
+          coachTaskType={coachTaskType}
         />
       </div>
     </div>

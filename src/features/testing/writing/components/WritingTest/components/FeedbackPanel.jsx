@@ -1,4 +1,5 @@
 import PracticeSkillLink from '@/features/skill-lab/components/PracticeSkillLink';
+import { WritingCoach } from './WritingCoach';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -21,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
-import { PANEL, WELL, Pill, MICRO, NUM, MUTED } from '@/features/dashboard/components/primitives';
+import { PANEL, WELL, Pill } from '@/features/dashboard/components/primitives';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingAnalysis from './WritingAnalysis';
 import {
@@ -293,12 +294,22 @@ function ScoreRing({ score }) {
 
 function ErrorState({ feedbackError, handleGetFeedback }) {
   const setShowUpgradeDialog = useWritingTestStore((s) => s.setShowUpgradeDialog);
+  const isDuplicateRequest =
+    typeof feedbackError === 'string' &&
+    /duplicate_request|already being (generated|processed)/i.test(feedbackError);
+  const isPendingReview =
+    typeof feedbackError === 'string' && /feedback is still being prepared/i.test(feedbackError);
+  const isExistingReview = isDuplicateRequest || isPendingReview;
   const isQuotaError =
     typeof feedbackError === 'string' &&
     (feedbackError.includes('task review') ||
-      feedbackError.includes('evaluation') ||
       feedbackError.includes('allowance') ||
       feedbackError.includes('Upgrade'));
+  const explanation = isDuplicateRequest
+    ? 'A review was already requested for this answer. Check whether the result is ready; if it is still being prepared, return in a moment.'
+    : isPendingReview
+      ? 'Check again shortly to see your review here.'
+      : feedbackError || 'The analysis service is temporarily unavailable.';
 
   return (
     <motion.div
@@ -306,31 +317,24 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="flex min-h-[480px] flex-1 items-center justify-center p-4 sm:p-6 text-center"
+      className="flex min-h-[320px] flex-1 items-center justify-center p-4 sm:p-6"
     >
-      <div
-        className={cn(
-          PANEL,
-          'relative w-full max-w-[460px] overflow-hidden p-6 sm:p-7 text-center shadow-md sm:shadow-lg'
-        )}
-      >
-        {/* Subtle background radial texture matching Learner Panel dialogs */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[16px_16px] opacity-[0.06] dark:opacity-[0.10]"
-        />
-
-        <div className="relative z-10 flex flex-col items-center">
+      <div className={cn(PANEL, 'w-full max-w-[460px] p-5 sm:p-6')}>
+        <div className="flex flex-col items-start">
           {/* Status Icon Badge */}
           <div
             className={cn(
-              'mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl border shadow-xs',
-              isQuotaError
-                ? 'border-amber-500/25 bg-amber-500/10 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300'
-                : 'border-rose-500/25 bg-rose-500/10 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/15 dark:text-rose-300'
+              'mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border',
+              isExistingReview
+                ? 'border-[#d2d7f8] bg-[#efedff] text-[#5a63df] dark:border-indigo-400/25 dark:bg-indigo-400/10 dark:text-indigo-300'
+                : isQuotaError
+                  ? 'border-amber-500/25 bg-amber-500/10 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300'
+                  : 'border-rose-500/25 bg-rose-500/10 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/15 dark:text-rose-300'
             )}
           >
-            {isQuotaError ? (
+            {isExistingReview ? (
+              <RefreshCw className="h-5 w-5" strokeWidth={2.25} />
+            ) : isQuotaError ? (
               <Lock className="h-5 w-5" strokeWidth={2.25} />
             ) : (
               <AlertTriangle className="h-5 w-5" strokeWidth={2.25} />
@@ -340,23 +344,31 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
           {/* Eyebrow Pill */}
           <div className="mb-2">
             <Pill
-              tone={isQuotaError ? 'amber' : 'fault'}
+              tone={isQuotaError ? 'amber' : isExistingReview ? 'accent' : 'fault'}
               className="text-[10px] px-2.5 py-0.5 font-bold uppercase tracking-wider"
             >
-              {isQuotaError ? 'Allowance Limit' : 'Review Interrupted'}
+              {isQuotaError
+                ? 'Allowance limit'
+                : isPendingReview
+                  ? 'Review in progress'
+                  : isExistingReview
+                    ? 'Review already requested'
+                    : 'Review interrupted'}
             </Pill>
           </div>
 
           {/* Centered Title */}
-          <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 text-center w-full">
-            We could not finish the review
+          <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+            {isDuplicateRequest
+              ? 'Check your saved review'
+              : isPendingReview
+                ? 'Your review is being prepared'
+                : 'We could not finish the review'}
           </h2>
 
           {/* Refined Description Box */}
-          <div className="mt-3 w-full rounded-xl border border-[#e4e2f0] bg-[#fbfbfe] px-4 py-3 dark:border-white/[0.07] dark:bg-white/[0.02]">
-            <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">
-              {feedbackError || 'The analysis service is temporarily unavailable.'}
-            </p>
+          <div className={cn(WELL, 'mt-3 w-full rounded-lg px-3 py-3')}>
+            <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">{explanation}</p>
           </div>
 
           {/* Action Buttons */}
@@ -381,7 +393,7 @@ function ErrorState({ feedbackError, handleGetFeedback }) {
               )}
             >
               <RefreshCw className="h-3.5 w-3.5" strokeWidth={2.25} />
-              <span>Try again</span>
+              <span>{isExistingReview ? 'Check for saved review' : 'Try again'}</span>
             </Button>
           </div>
         </div>
@@ -795,6 +807,9 @@ export function FeedbackPanel({
   handleGetFeedback,
   loadingMessage,
   onShowInEssay,
+  coachSession,
+  coachTaskType,
+  originalHtml,
 }) {
   const allFeedbacks = useWritingTestStore((state) => state.feedbacks);
   const [showAllCorrections, setShowAllCorrections] = useState(false);
@@ -864,6 +879,15 @@ export function FeedbackPanel({
               showAll={showAllCorrections}
               onToggleShowAll={() => setShowAllCorrections((v) => !v)}
             />
+
+            {coachSession?.id && coachTaskType && (
+              <WritingCoach
+                session={coachSession}
+                taskType={coachTaskType}
+                feedback={feedback}
+                originalHtml={originalHtml}
+              />
+            )}
 
             <div className="flex items-center gap-2 px-1 pb-1 text-[10px] leading-4 text-slate-400 dark:text-slate-500">
               <Info className="h-3 w-3 shrink-0" /> Practice estimate based on public IELTS

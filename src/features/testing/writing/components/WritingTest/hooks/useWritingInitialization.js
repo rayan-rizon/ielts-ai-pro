@@ -243,6 +243,23 @@ function restoreWritingSessionState(store, existingSession, initialActiveType) {
   if (timeRemaining !== undefined) store.setTime(timeRemaining);
 
   restoreFeedbacks(store, feedbacks, initialActiveType);
+
+  // A session can contain a saved response and report for only one task. Keep
+  // the learner on that task when their last selected tab points to an empty
+  // part, so the essay and its feedback are visible together after recovery.
+  const {
+    activeType,
+    feedbacks: restoredFeedbacks,
+    compositeTasks,
+  } = useWritingTestStore.getState();
+  const otherType = activeType === 'Task 1' ? 'Task 2' : 'Task 1';
+  if (
+    !isValidFeedback(restoredFeedbacks?.[activeType]) &&
+    isValidFeedback(restoredFeedbacks?.[otherType]) &&
+    compositeTasks?.[otherType]
+  ) {
+    store.switchTaskFull(otherType);
+  }
 }
 
 function updateUrlWithSession(navigate, isNewAttempt, sessionId) {

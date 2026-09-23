@@ -217,6 +217,21 @@ export const AI_ROUTES: AiRoute[] = [
     ],
   },
   {
+    id: 'writing-band-8-comparison',
+    surface: 'Writing Practice: optional Band 8 example comparison',
+    file: 'supabase/functions/writing-coach/index.ts',
+    maxOutputTokens: 3000,
+    steps: [
+      {
+        model: WRITING_PRIMARY_MODEL,
+        role: 'primary',
+        when: 'One requested transformation of a saved practice answer; cached per original session part.',
+      },
+    ],
+    notes:
+      'One generation per session part. Server budget reservation is $0.005 and shared daily cap is $3.',
+  },
+  {
     id: 'speaking-evaluation',
     surface: 'Speaking: band scoring',
     file: 'supabase/functions/evaluateSpeakingTest/index.ts',
