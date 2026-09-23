@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
-import { Loader2, Type, LayoutPanelLeft, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2, Type } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { NUM } from '@/features/dashboard/components/primitives';
 
 // Hoisted so the <ReactQuill> `modules` prop keeps a stable identity across
 // renders instead of being rebuilt on every keystroke-driven re-render.
@@ -59,8 +59,6 @@ export function WritingEditor({
   targetLimit,
   isCompleted,
   testMode = 'practice',
-  isSidebarClosed,
-  onToggleSidebar,
   title,
   subtitle,
 }) {
@@ -128,37 +126,41 @@ export function WritingEditor({
 
   return (
     <div
-      className={cn('h-full min-h-0 w-full bg-[#fcfcfc] p-2 pt-0 md:p-4 md:pt-0 dark:bg-[#08080a]')}
+      className={cn('h-full min-h-0 w-full bg-[#fcfcfc] p-1.5 sm:p-2.5 md:p-3 dark:bg-[#08080a]')}
       data-oid="d7m1g:5"
     >
       {/* Editor Card */}
       <div
         className={cn(
-          'relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 dark:bg-[#131315]',
+          'relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl sm:rounded-2xl border bg-white shadow-xs transition-all duration-300 dark:bg-[#131315]',
           isFocused
-            ? 'border-indigo-400 dark:border-indigo-500/30 ring-4 ring-indigo-500/4 dark:ring-indigo-500/2'
+            ? 'border-indigo-400 dark:border-indigo-500/40 ring-2 ring-indigo-500/10 dark:ring-indigo-500/20'
             : 'border-[#e4e2f0] dark:border-white/[0.07]'
         )}
         data-oid="h1s38r1"
       >
         {/* Header - Matches Annotation Card Header */}
         <div
-          className="flex-none px-6 py-2.5 border-b border-[#ebeaf7] dark:border-white/[0.07] flex items-center justify-between bg-white dark:bg-[#131315]"
+          className="flex-none px-3.5 py-2.5 sm:px-4 sm:py-2.5 border-b border-[#ebeaf7] dark:border-white/[0.07] flex items-center justify-between gap-2.5 bg-white dark:bg-[#131315]"
           data-oid="h0d5wu9"
         >
-          <div className="flex items-center gap-3" data-oid="oc:4-p.">
-            <div className="p-1.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl" data-oid="0rmcfsb">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1" data-oid="oc:4-p.">
+            <div
+              className="p-1.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg sm:rounded-xl shrink-0"
+              data-oid="0rmcfsb"
+            >
               <Type className="w-4 h-4 text-indigo-500" data-oid="vq38o:0" />
             </div>
-            <div data-oid="yfw.ehj">
+            <div className="min-w-0 flex-1" data-oid="yfw.ehj">
               <h3
-                className="font-bold text-slate-800 dark:text-slate-100 text-sm"
+                className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate"
+                title={title || 'Writing Workspace'}
                 data-oid="yy3cf5a"
               >
                 {title || 'Writing Workspace'}
               </h3>
               <p
-                className="text-[10px] text-slate-400 dark:text-slate-400 font-medium"
+                className="text-[10px] text-slate-400 dark:text-slate-400 font-medium truncate hidden min-[480px]:block"
                 data-oid="m8-5q3s"
               >
                 {subtitle || 'Write your response below'}
@@ -166,37 +168,28 @@ export function WritingEditor({
             </div>
           </div>
 
-          <div className="flex items-center gap-2" data-oid="toggle-wrapper">
-            {/* Mobile Sidebar Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleSidebar}
-              className="lg:hidden h-8 w-8 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-              title={isSidebarClosed ? 'Show Task' : 'Hide Task'}
-              data-oid="mobile-toggle"
-            >
-              {isSidebarClosed ? (
-                <LayoutPanelLeft className="w-4 h-4" />
-              ) : (
-                <EyeOff className="w-4 h-4" />
-              )}
-            </Button>
-
+          <div className="flex items-center gap-2 shrink-0" data-oid="toggle-wrapper">
             {/* Word Count Badge */}
             <div
               className={cn(
-                'flex items-center gap-2 px-2.5 py-1 rounded-full border text-[11px] font-bold transition-colors',
+                'flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border text-[10px] sm:text-[11px] font-bold transition-colors select-none shrink-0',
                 isTargetMet
-                  ? 'bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400'
-                  : 'bg-slate-50 border-slate-100 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-600 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400'
+                  : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-slate-400'
               )}
               data-oid="sjizwz3"
             >
-              <span data-oid=".cj99vs">{localWordCount} words</span>
-              <span className="w-px h-3 bg-current opacity-20 mx-0.5" data-oid="sx.vo_a"></span>
-              <span className="opacity-70" data-oid="445lc2_">
-                Target: {targetLimit || 150}
+              <span className={NUM} data-oid=".cj99vs">
+                {localWordCount} <span className="hidden min-[360px]:inline">words</span>
+              </span>
+              <span
+                className="w-px h-2.5 sm:h-3 bg-current opacity-20 mx-0.5"
+                aria-hidden="true"
+                data-oid="sx.vo_a"
+              />
+              <span className={`opacity-75 ${NUM}`} data-oid="445lc2_">
+                <span className="hidden min-[420px]:inline">Target: </span>
+                {targetLimit || 150}
               </span>
             </div>
           </div>
@@ -204,7 +197,7 @@ export function WritingEditor({
 
         {/* Editor Area */}
         <div
-          className="flex-1 flex flex-col relative bg-[#f4f3fb]/25 dark:bg-white/1.5 min-h-0"
+          className="flex-1 flex flex-col relative bg-[#f4f3fb]/20 dark:bg-white/1.5 min-h-0"
           data-oid="-xg5pl7"
         >
           <Suspense fallback={<EditorSkeleton data-oid=":m0npyd" />} data-oid="6d2awu9">
@@ -232,7 +225,7 @@ export function WritingEditor({
                                [&_.ql-editor]:h-full
                                [&_.ql-editor]:min-h-[220px]
                                md:[&_.ql-editor]:min-h-[260px]
-                               [&_.ql-editor]:px-4 md:[&_.ql-editor]:px-6 [&_.ql-editor]:pt-3! [&_.ql-editor]:pb-4! [&_.ql-editor.ql-blank::before]:top-3!
+                               [&_.ql-editor]:px-3.5 sm:[&_.ql-editor]:px-5 md:[&_.ql-editor]:px-6 [&_.ql-editor]:pt-3! [&_.ql-editor]:pb-4! [&_.ql-editor.ql-blank::before]:top-3!
                                [&_.ql-editor]:text-[16px]
                                [&_.ql-editor]:leading-8
                                [&_.ql-editor]:font-serif
@@ -259,10 +252,10 @@ export function WritingEditor({
 
         {/* Editor Status Bar */}
         <div
-          className="flex-none px-6 py-2.5 border-t border-[#ebeaf7] dark:border-white/[0.07] flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#131315] text-xs text-slate-400 font-medium"
+          className="flex-none px-3.5 py-2 sm:px-5 sm:py-2.5 border-t border-[#ebeaf7] dark:border-white/[0.07] flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-[#131315] text-xs text-slate-400 font-medium"
           data-oid="editor-status-bar"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -272,10 +265,14 @@ export function WritingEditor({
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-300">
-            <span>{(localValue || '').replace(/<[^>]*>?/gm, '').length} characters</span>
-            <span className="w-px h-3 bg-slate-200 dark:bg-white/10"></span>
-            <span>Estimated: {Math.max(1, Math.ceil(localWordCount / 200))} min read</span>
+          <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-slate-500 dark:text-slate-300">
+            <span className={NUM}>
+              {(localValue || '').replace(/<[^>]*>?/gm, '').length} characters
+            </span>
+            <span className="w-px h-3 bg-slate-200 dark:bg-white/10" aria-hidden="true" />
+            <span className={NUM}>
+              Est. {Math.max(1, Math.ceil(localWordCount / 200))} min read
+            </span>
           </div>
         </div>
       </div>

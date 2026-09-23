@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
+import { NUM } from '@/features/dashboard/components/primitives';
 
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60);
@@ -11,6 +12,7 @@ const formatTime = (seconds) => {
 
 const WritingTestClock = memo(() => {
   const timeLeft = useWritingTestStore((state) => state.timeRemaining);
+  const shouldReduceMotion = useReducedMotion();
 
   // IELTS standard color logic:
   // Critical: < 5 mins (300s) -> Red Pulse
@@ -35,20 +37,31 @@ const WritingTestClock = memo(() => {
     textClasses = 'text-amber-600 dark:text-amber-400';
   }
 
+  const formatted = formatTime(timeLeft);
+
   return (
     <motion.div
-      animate={isCritical ? { scale: [1, 1.05, 1], opacity: [1, 0.8, 1] } : {}}
-      transition={isCritical ? { repeat: Infinity, duration: 1.5, ease: 'easeInOut' } : {}}
-      className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border shadow-sm transition-all duration-500 ${containerClasses}`}
+      role="timer"
+      aria-label={`Time remaining: ${formatted}`}
+      animate={
+        isCritical && !shouldReduceMotion ? { scale: [1, 1.05, 1], opacity: [1, 0.8, 1] } : {}
+      }
+      transition={
+        isCritical && !shouldReduceMotion
+          ? { repeat: Infinity, duration: 1.5, ease: 'easeInOut' }
+          : {}
+      }
+      className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border shadow-xs transition-all duration-300 ${containerClasses}`}
       data-oid="fm9fwgz"
     >
       <Clock
-        className={`w-4 h-4 ${iconClasses} ${isCritical ? 'animate-pulse' : ''}`}
+        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${iconClasses} ${isCritical && !shouldReduceMotion ? 'animate-pulse' : ''}`}
+        aria-hidden="true"
         data-oid="f4rktgb"
       />
 
-      <span className={`text-sm font-bold tabular-nums ${textClasses}`} data-oid="lv411iv">
-        {formatTime(timeLeft)}
+      <span className={`text-xs sm:text-sm font-bold ${NUM} ${textClasses}`} data-oid="lv411iv">
+        {formatted}
       </span>
     </motion.div>
   );

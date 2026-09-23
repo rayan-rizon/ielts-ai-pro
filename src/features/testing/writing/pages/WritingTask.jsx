@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, PenLine } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 import XPNotification from '@/components/XPNotification';
@@ -16,6 +17,7 @@ import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingT
 import { useWritingTestStore } from '../store/useWritingTestStore';
 import AnnotatedText from '@/components/writing/AnnotatedText';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
 const MemoizedTaskPanel = React.memo(TaskPanel);
@@ -64,7 +66,7 @@ function WritingFeedbackDrawer({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="absolute md:relative right-0 top-0 bottom-0 w-full md:w-1/2 bg-white dark:bg-[#08080a] border-l border-[#e4e2f0] dark:border-white/[0.07] shadow-2xl z-20 flex flex-col h-full"
+      className="hidden md:flex relative right-0 top-0 bottom-0 md:w-1/2 md:basis-1/2 md:flex-1 min-w-0 bg-white dark:bg-[#08080a] border-l border-[#e4e2f0] dark:border-white/[0.07] z-20 flex-col h-full"
       data-oid="zsyqr7w"
     >
       <div
@@ -105,13 +107,62 @@ function useWritingInitialTaskPanelState(hasFeedbackPane) {
   return [showTask, setShowTask];
 }
 
+function WritingMobileTabToggle({ activeTab, onTabChange, wordCount, targetLimit }) {
+  const tabs = [
+    { id: 'question', label: 'Question', icon: BookOpen },
+    {
+      id: 'editor',
+      label: `Essay (${wordCount}/${targetLimit || 150}w)`,
+      icon: PenLine,
+    },
+  ];
+
+  return (
+    <div className="flex items-center justify-center w-full px-2 py-1.5 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] md:hidden z-30 shrink-0">
+      <div className="flex items-center w-full max-w-sm rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/[0.07] dark:bg-white/4">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onTabChange(tab.id)}
+              className={cn(
+                'group relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-bold transition-all duration-150',
+                isActive
+                  ? 'text-[#5a63df] dark:text-white'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeWritingMobileTab"
+                  className="pointer-events-none absolute inset-0 -z-10 rounded-md bg-white shadow-xs dark:bg-indigo-600"
+                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                />
+              )}
+              <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="truncate">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function WritingTaskContent() {
   const { userProfile: authUser } = useAuth();
   const logic = useWritingTaskLogic(authUser);
+  const isMobile = useIsMobile();
 
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const feedbackError = useWritingTestStore((state) => state.feedbackError);
+  const activeType = useWritingTestStore((state) => state.activeType) || 'Task 1';
+  const wordCount = useWritingTestStore((state) => state.wordCount);
+  const targetLimit = activeType === 'Task 2' ? 250 : 150;
 
   const {
     task,
@@ -142,8 +193,9 @@ function WritingTaskContent() {
     Boolean(currentFeedback || isAnalyzing || feedbackError) &&
     (testMode !== 'exam' || isCompleted);
 
-  const [showTask, setShowTask] = useWritingInitialTaskPanelState(hasFeedbackPane);
-  const [viewMode, setViewMode] = useState('review');
+  const [showTask] = useWritingInitialTaskPanelState(hasFeedbackPane);
+  const [mobileTab, setMobileTab] = useState('question');
+  const [viewMode, setViewMode] = useState(() => (isMobile ? 'feedback' : 'review'));
   const [focusAnnotation, setFocusAnnotation] = useState(null);
   const showTaskPanel = showTask && !hasFeedbackPane;
 
@@ -153,8 +205,12 @@ function WritingTaskContent() {
   }, []);
 
   useEffect(() => {
-    if (hasFeedbackPane) setViewMode('review');
-  }, [hasFeedbackPane]);
+    if (hasFeedbackPane && isMobile) {
+      setViewMode('feedback');
+    } else if (hasFeedbackPane && !isMobile) {
+      setViewMode('review');
+    }
+  }, [hasFeedbackPane, isMobile]);
 
   useEffect(() => {
     initialize();
@@ -188,6 +244,16 @@ function WritingTaskContent() {
         data-oid=".3a0f71"
       />
 
+      {/* Mobile Mode Switcher when testing/practicing */}
+      {!hasFeedbackPane && (
+        <WritingMobileTabToggle
+          activeTab={mobileTab}
+          onTabChange={setMobileTab}
+          wordCount={wordCount}
+          targetLimit={targetLimit}
+        />
+      )}
+
       <div
         className={cn(
           'relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden md:flex-row transition-all duration-300',
@@ -197,29 +263,41 @@ function WritingTaskContent() {
         inert={isAwaitingStart ? '' : undefined}
         data-oid="50emge."
       >
-        {showTaskPanel && (
+        {/* On Mobile during test: show TaskPanel if mobileTab === 'question' */}
+        {/* On Desktop during test: show TaskPanel if showTaskPanel */}
+        {((isMobile && !hasFeedbackPane && mobileTab === 'question') ||
+          (!isMobile && showTaskPanel)) && (
           <MemoizedTaskPanel
             task={task}
             showSample={showSample}
             setShowSample={setShowSample}
             allowSample={testMode !== 'exam' || isCompleted}
+            onSwitchToEditor={isMobile ? () => setMobileTab('editor') : undefined}
             data-oid="oxbs3rj"
           />
         )}
 
-        <MemoizedWritingEditorPane
-          task={task}
-          testMode={testMode}
-          isSidebarClosed={!showTaskPanel}
-          onToggleSidebar={() => setShowTask((prev) => !prev)}
-          hasFeedback={hasFeedbackPane}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          focusAnnotation={focusAnnotation}
-          showSample={showSample}
-          setShowSample={setShowSample}
-          data-oid="xaa39j6"
-        />
+        {/* On Mobile during test: show Editor if mobileTab === 'editor' */}
+        {/* In feedback mode or desktop: render EditorPane */}
+        {((isMobile && !hasFeedbackPane && mobileTab === 'editor') ||
+          (isMobile && hasFeedbackPane) ||
+          !isMobile) && (
+          <MemoizedWritingEditorPane
+            task={task}
+            testMode={testMode}
+            hasFeedback={hasFeedbackPane}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            focusAnnotation={focusAnnotation}
+            showSample={showSample}
+            setShowSample={setShowSample}
+            isMobile={isMobile}
+            handleShowInEssay={handleShowInEssay}
+            handleGetFeedback={handleGetFeedback}
+            loadingMessage={loadingMessage}
+            data-oid="xaa39j6"
+          />
+        )}
 
         <AnimatePresence initial={false} data-oid="i3plaxk">
           <WritingFeedbackDrawer
@@ -254,17 +332,24 @@ function WritingTaskContent() {
   );
 }
 
-function WritingViewModeToggle({ viewMode, setViewMode }) {
-  const tabs = [
-    { id: 'review', label: 'Annotation' },
-    { id: 'question', label: 'Question' },
-    { id: 'edit', label: 'Editor' },
-  ];
+function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
+  const tabs = isMobile
+    ? [
+        { id: 'feedback', label: 'Report' },
+        { id: 'review', label: 'Annotation' },
+        { id: 'question', label: 'Question' },
+        { id: 'edit', label: 'Draft' },
+      ]
+    : [
+        { id: 'review', label: 'Annotation' },
+        { id: 'question', label: 'Question' },
+        { id: 'edit', label: 'Editor' },
+      ];
 
   return (
-    <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#08080a]/85 backdrop-blur-md border-b border-[#e4e2f0] dark:border-white/[0.07] px-3 py-1.5 sm:px-4">
+    <div className="sticky top-0 z-40 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 py-1.5 sm:px-4">
       <div className="flex items-center justify-center w-full">
-        <div className="flex items-center rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-1 shadow-xs dark:border-white/[0.07] dark:bg-white/4">
+        <div className="flex items-center rounded-lg sm:rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 sm:p-1 shadow-xs dark:border-white/[0.07] dark:bg-white/4 w-full sm:w-auto max-w-md sm:max-w-none">
           {tabs.map((tab) => {
             const isActive = viewMode === tab.id;
             return (
@@ -273,16 +358,16 @@ function WritingViewModeToggle({ viewMode, setViewMode }) {
                 type="button"
                 onClick={() => setViewMode(tab.id)}
                 className={cn(
-                  'group relative z-10 flex flex-1 items-center justify-center rounded-full px-3 py-1.5 text-[11px] font-extrabold text-center transition-colors duration-200 min-[480px]:px-3.5 min-[480px]:text-xs sm:px-4.5 sm:text-sm sm:flex-none',
+                  'group relative z-10 flex flex-1 items-center justify-center rounded-md sm:rounded-full px-2 py-1 sm:px-4 sm:py-1.5 text-[11px] sm:text-xs font-bold text-center transition-colors duration-200 sm:flex-none',
                   isActive
-                    ? 'text-[#5661e9] dark:text-white'
+                    ? 'text-[#5a63df] dark:text-white'
                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeWritingTab"
-                    className="pointer-events-none absolute inset-0 -z-10 rounded-full border border-[#d2d7f8] bg-white shadow-xs dark:border-indigo-500/30 dark:bg-indigo-600"
+                    className="pointer-events-none absolute inset-0 -z-10 rounded-md sm:rounded-full border border-[#d2d7f8] bg-white shadow-xs dark:border-indigo-500/30 dark:bg-indigo-600"
                     transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                   />
                 )}
@@ -338,6 +423,7 @@ function WritingPaneBody({
   hasFeedback,
   viewMode,
   currentFeedback,
+  feedbackError,
   writing,
   setWriting,
   task,
@@ -348,19 +434,39 @@ function WritingPaneBody({
   isCompleted,
   isAnalyzing,
   testMode,
-  isSidebarClosed,
-  onToggleSidebar,
   focusAnnotation,
+  isMobile,
+  handleShowInEssay,
+  handleGetFeedback,
+  loadingMessage,
 }) {
+  const isFeedbackMode = isMobile && hasFeedback && viewMode === 'feedback';
   const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
   const isQuestionMode = hasFeedback && viewMode === 'question';
-  const contentKey = isReviewMode ? 'review' : isQuestionMode ? 'question' : 'editor';
-
-  const showReview = contentKey === 'review' && hasFeedback && Boolean(currentFeedback);
-  const showQuestion = contentKey === 'question' && hasFeedback;
+  const contentKey = isFeedbackMode
+    ? 'feedback'
+    : isReviewMode
+      ? 'review'
+      : isQuestionMode
+        ? 'question'
+        : 'editor';
 
   let content;
-  if (showReview) {
+  if (isFeedbackMode) {
+    content = (
+      <div className="flex-1 overflow-y-auto">
+        <MemoizedFeedbackPanel
+          feedback={currentFeedback}
+          isAnalyzing={isAnalyzing}
+          feedbackError={feedbackError}
+          handleGetFeedback={handleGetFeedback}
+          loadingMessage={loadingMessage}
+          onShowInEssay={handleShowInEssay}
+          onClose={() => {}}
+        />
+      </div>
+    );
+  } else if (isReviewMode) {
     content = (
       <AnnotatedReviewPane
         feedback={currentFeedback}
@@ -369,7 +475,7 @@ function WritingPaneBody({
         focusAnnotation={focusAnnotation}
       />
     );
-  } else if (showQuestion) {
+  } else if (isQuestionMode) {
     content = (
       <QuestionViewPane task={task} showSample={showSample} setShowSample={setShowSample} />
     );
@@ -385,8 +491,6 @@ function WritingPaneBody({
         testMode={testMode}
         isAnalyzing={isAnalyzing}
         currentFeedback={currentFeedback}
-        isSidebarClosed={isSidebarClosed}
-        onToggleSidebar={onToggleSidebar}
         title={`${activeType} Response`}
         subtitle={`Draft your ${activeType.toLowerCase()} essay`}
         data-oid="p08gpnf"
@@ -395,14 +499,14 @@ function WritingPaneBody({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-1 pt-2 pb-6 sm:px-2 sm:pt-2.5">
+    <div className="flex min-h-0 flex-1 flex-col px-1 pt-1.5 pb-4 sm:px-2 sm:pt-2.5 sm:pb-6">
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={contentKey}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="flex min-h-0 flex-1 flex-col"
         >
           {content}
@@ -415,14 +519,16 @@ function WritingPaneBody({
 function WritingEditorPane({
   task,
   testMode,
-  isSidebarClosed,
-  onToggleSidebar,
   hasFeedback,
   viewMode,
   setViewMode,
   focusAnnotation,
   showSample,
   setShowSample,
+  isMobile,
+  handleShowInEssay,
+  handleGetFeedback,
+  loadingMessage,
 }) {
   const activeType = useWritingTestStore((state) => state.activeType);
   const writing = useWritingTestStore((state) => state.drafts[activeType] || '');
@@ -430,6 +536,7 @@ function WritingEditorPane({
   const isCompleted = useWritingTestStore((state) => state.isCompleted);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
+  const feedbackError = useWritingTestStore((state) => state.feedbackError);
   const setDraft = useWritingTestStore((state) => state.setDraft);
 
   const setWriting = useCallback(
@@ -440,16 +547,16 @@ function WritingEditorPane({
   return (
     <div
       className={cn(
-        'relative z-30 flex min-h-0 flex-col overflow-hidden bg-[#fcfcfc] dark:bg-[#08080a]',
+        'relative z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#fcfcfc] dark:bg-[#08080a]',
         hasFeedback
-          ? 'w-full md:w-1/2 h-full border-r border-[#e4e2f0] dark:border-white/[0.07]'
-          : isSidebarClosed
-            ? 'w-full h-full'
-            : 'w-full md:w-1/2 h-1/2 md:h-full'
+          ? 'w-full md:w-1/2 md:basis-1/2 md:flex-1 h-full md:border-r border-[#e4e2f0] dark:border-white/[0.07]'
+          : 'w-full md:w-1/2 md:basis-1/2 md:flex-1 h-full'
       )}
       data-oid="ctlrd56"
     >
-      {hasFeedback && <WritingViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />}
+      {hasFeedback && (
+        <WritingViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isMobile={isMobile} />
+      )}
       <div
         className="flex flex-1 min-h-0 flex-col overflow-y-auto"
         style={{ scrollbarGutter: 'stable' }}
@@ -458,6 +565,7 @@ function WritingEditorPane({
           hasFeedback={hasFeedback}
           viewMode={viewMode}
           currentFeedback={currentFeedback}
+          feedbackError={feedbackError}
           writing={writing}
           setWriting={setWriting}
           task={task}
@@ -468,9 +576,11 @@ function WritingEditorPane({
           isCompleted={isCompleted}
           isAnalyzing={isAnalyzing}
           testMode={testMode}
-          isSidebarClosed={isSidebarClosed}
-          onToggleSidebar={onToggleSidebar}
           focusAnnotation={focusAnnotation}
+          isMobile={isMobile}
+          handleShowInEssay={handleShowInEssay}
+          handleGetFeedback={handleGetFeedback}
+          loadingMessage={loadingMessage}
         />
       </div>
     </div>
