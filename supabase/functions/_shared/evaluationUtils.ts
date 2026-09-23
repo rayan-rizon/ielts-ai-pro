@@ -451,6 +451,18 @@ export function normalizeWritingEvaluation(
           originalText: annotation.originalText,
           type: annotation.type,
           suggestion: compactFeedbackText(annotation.suggestion, 1, 90),
+          replacementText:
+            annotation.severity === 'error' &&
+            ['grammar', 'spelling'].includes(annotation.type) &&
+            sourceText.indexOf(annotation.originalText) ===
+              sourceText.lastIndexOf(annotation.originalText) &&
+            typeof annotation.replacementText === 'string' &&
+            annotation.replacementText.trim() !== annotation.originalText.trim() &&
+            !/^(?:avoid|use|add|specify|compare|explain|name|replace|consider|include|clarify)\b/i.test(
+              annotation.replacementText.trim()
+            )
+              ? compactFeedbackText(annotation.replacementText, 1, 90)
+              : '',
           explanation: compactFeedbackText(annotation.explanation, 1, 105),
           severity: annotation.severity,
         }))
@@ -476,24 +488,23 @@ export function normalizeWritingEvaluation(
         .slice(0, 6)
     : [];
 
-  // The compact v3 model contract emits each issue once as an annotation. Build the
-  // correction comparison from those grounded annotations instead of paying the model
-  // to repeat the same text in a separate array. Keep legacy corrections for old caches.
-  const corrections = suppliedCorrections.length
-    ? suppliedCorrections
-    : annotations
+  // Suggestions are advice, never paste-ready corrections. Only an explicit,
+  // validated replacement may appear in the correction comparison.
+  const corrections = Array.isArray(raw.annotations)
+    ? annotations
         .filter(
           (annotation: any) =>
             annotation.severity === 'error' &&
-            annotation.suggestion &&
-            annotation.suggestion.trim() !== annotation.originalText.trim()
+            annotation.replacementText &&
+            annotation.replacementText.trim() !== annotation.originalText.trim()
         )
         .map((annotation: any) => ({
           original: annotation.originalText,
-          correction: annotation.suggestion,
+          correction: annotation.replacementText,
           explanation: annotation.explanation,
         }))
-        .slice(0, 6);
+        .slice(0, 6)
+    : suppliedCorrections;
 
   const vocabularyEnhancements = Array.isArray(
     raw.vocabularyEnhancements || raw.vocabulary_enhancements

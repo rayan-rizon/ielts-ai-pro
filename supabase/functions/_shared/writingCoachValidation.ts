@@ -34,6 +34,58 @@ function numericTokens(text: string) {
   return (text.match(/\b\d+(?:[.,]\d+)?%?\b/g) || []).sort().join('|');
 }
 
+const COMPARISON_WORDS =
+  /\b(?:above|below|exceed|exceeds|fewer|greater|higher|highest|larger|less|lower|lowest|majority|minority|more|most|outnumber|outnumbers|smaller)\b/gi;
+
+// Covers quantitative, directional, map, and process claims across visual types.
+// The coach has no image and cannot safely rewrite these claims on its own.
+const VISUAL_FACT_WORDS =
+  /\b(?:after|before|built|constructed|converted|cooled|declined|decreased|demolished|doubled|east|fell|filtered|flows?|half|heated|increased|largest|least|left|mixed|north|peaked|percent(?:age)?s?|produced|proportion|quarter|removed|replaced|right|risen?|rose|share|south|stable|stages?|transported|west|widened)\b/i;
+
+function comparisonWords(text: string) {
+  return (text.match(COMPARISON_WORDS) || [])
+    .map((word) => word.toLowerCase())
+    .sort()
+    .join('|');
+}
+
+/**
+ * The language coach has no Task 1 visual. Keep data-bearing sentences and
+ * comparison claims verbatim rather than presenting unverified visual facts as
+ * a Band 8 rewrite. Also sanitizes examples saved before this guard existed.
+ */
+export function guardTask1Transformation<T extends { segments?: any[] }>(
+  value: T,
+  units: ReturnType<typeof sentences>
+): T {
+  if (!Array.isArray(value?.segments)) return value;
+  return {
+    ...value,
+    segments: value.segments.map((segment: any) => {
+      const ids = Array.isArray(segment?.sourceSentenceIds)
+        ? segment.sourceSentenceIds.map(Number)
+        : [];
+      const original = ids.map((id: number) => units[id - 1]?.source || '').join(' ');
+      if (!original || typeof segment?.revisedText !== 'string') return segment;
+      if (
+        numericTokens(original) ||
+        VISUAL_FACT_WORDS.test(original) ||
+        VISUAL_FACT_WORDS.test(segment.revisedText) ||
+        comparisonWords(original) ||
+        comparisonWords(segment.revisedText)
+      ) {
+        return {
+          ...segment,
+          revisedText: original,
+          changeTags: [],
+          shortReason: 'Original wording retained because the visual was not rechecked.',
+        };
+      }
+      return segment;
+    }),
+  };
+}
+
 export function resultValidationError(value: any, units: ReturnType<typeof sentences>) {
   if (value?.schemaVersion !== 1) return 'schema version is missing or unsupported';
   if (Number(value?.targetBand) !== 8) return 'target band is missing or invalid';

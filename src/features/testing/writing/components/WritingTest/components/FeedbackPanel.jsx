@@ -145,7 +145,7 @@ function useImprovements(feedback, showAll) {
         original: compactUiText(item.original, 88),
         correction: compactUiText(item.correction, 88),
         explanation: compactUiText(item.explanation, 112, { dropHeading: true }),
-        isDirectCorrection: true,
+        isDirectCorrection: false,
       })),
     [feedback?.corrections]
   );
@@ -156,9 +156,9 @@ function useImprovements(feedback, showAll) {
         .filter(isValidImprovementAnnotation)
         .map((a) => ({
           original: compactUiText(a.originalText, 88),
-          correction: compactUiText(a.suggestion, 88),
+          correction: compactUiText(a.replacementText || a.suggestion, 88),
           explanation: compactUiText(a.explanation, 112, { dropHeading: true }),
-          isDirectCorrection: a.severity === 'error',
+          isDirectCorrection: Boolean(a.replacementText),
         })),
     [feedback?.annotations]
   );
@@ -700,7 +700,7 @@ function PrioritiesCard({ priorities, expandedItems, onToggleExpand, onShowInEss
           <Target className="h-3.5 w-3.5" />
         </span>
         <span className="text-xs font-extrabold uppercase tracking-wider text-slate-950 dark:text-white">
-          Top 3 priorities
+          Main priorities
         </span>
       </div>
       <div className="space-y-3">
@@ -729,13 +729,11 @@ function ImprovementRow({ item }) {
   return (
     <div className="pt-3 first:pt-0 space-y-1.5">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-semibold text-rose-600 dark:text-rose-400 line-through decoration-rose-400 decoration-2">
-          {item.original}
-        </span>
+        <span className="font-semibold text-slate-700 dark:text-slate-300">{item.original}</span>
         <ArrowRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
         <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
           <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-500/30">
-            {item.isDirectCorrection ? 'Better' : 'Try this'}
+            {item.isDirectCorrection ? 'Correction' : 'Consider'}
           </span>
           {item.correction}
         </span>
@@ -764,7 +762,7 @@ function ImprovementsCard({ improvements, visibleImprovements, showAll, onToggle
           <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#efedff] text-[#5661e9] border border-[#d2d7f8] dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/40">
             <Lightbulb className="h-3.5 w-3.5" />
           </span>
-          Corrections & improvements
+          Feedback on your wording
         </div>
         <span className="rounded-full bg-white dark:bg-white/10 px-2.5 py-0.5 text-[10px] font-black text-slate-700 dark:text-slate-300 border border-[#dce0f5] dark:border-white/10">
           {countLabel}

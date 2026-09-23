@@ -132,6 +132,7 @@ describe('evaluationUtils', () => {
             originalText: 'transport reduce',
             type: 'grammar',
             suggestion: 'transport reduces',
+            replacementText: 'transport reduces',
             explanation: 'A singular subject requires a singular verb.',
             severity: 'error',
           },
@@ -196,7 +197,46 @@ describe('evaluationUtils', () => {
         explanation: 'A singular subject requires a singular verb.',
       },
     ]);
+    expect(result.annotations[0].replacementText).toBe('transport reduces');
   });
+
+  it.each(['Task 1', 'Task 2'] as const)(
+    'keeps advice separate from paste-ready corrections for %s',
+    (taskType) => {
+      const source = 'The figure show a change. The figure show a change.';
+      const result = normalizeWritingEvaluation(
+        {
+          criteriaScores: {
+            [taskType === 'Task 1' ? 'TaskAchievement' : 'TaskResponse']: 6,
+            CoherenceAndCohesion: 6,
+            LexicalResource: 6,
+            GrammaticalRangeAndAccuracy: 6,
+          },
+          annotations: [
+            {
+              originalText: 'figure show',
+              type: 'grammar',
+              severity: 'error',
+              suggestion: 'Use subject–verb agreement.',
+              replacementText: 'figure shows',
+              explanation: 'Singular subject takes a singular verb.',
+            },
+          ],
+          corrections: [
+            {
+              original: 'figure show',
+              correction: 'Use subject–verb agreement.',
+              explanation: 'Advice.',
+            },
+          ],
+        },
+        taskType,
+        source
+      );
+      expect(result.annotations[0].replacementText).toBe('');
+      expect(result.corrections).toEqual([]);
+    }
+  );
 
   it('preserves Task 1 visual evidence and applies the official Band 3 mismatch boundary', () => {
     const result = normalizeWritingEvaluation(

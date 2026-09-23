@@ -23,6 +23,7 @@ describe('AnnotatedText focus', () => {
       originalText: 'transport reduce',
       type: 'grammar',
       suggestion: 'transport reduces',
+      replacementText: 'transport reduces',
       explanation: 'A singular subject requires a singular verb.',
       severity: 'error',
     };
@@ -37,10 +38,32 @@ describe('AnnotatedText focus', () => {
 
     expect(screen.getByText('Correction')).toBeInTheDocument();
     expect(screen.getByText('transport reduces')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply Correction' })).toBeInTheDocument();
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'center',
     });
+  });
+
+  it('shows advice without an apply action when no replacement phrase was verified', () => {
+    render(
+      <AnnotatedText
+        text="Students clearly outnumber staff."
+        annotations={[
+          {
+            originalText: 'Students clearly outnumber staff',
+            type: 'clarity',
+            suggestion: 'Compare only categories defined in the chart.',
+            explanation: 'Check the group labels.',
+            severity: 'suggestion',
+          },
+        ]}
+        focusAnnotation={{ originalText: 'Students clearly outnumber staff', requestId: 2 }}
+        onApplyCorrection={vi.fn()}
+      />
+    );
+    expect(screen.getByText('Writing advice')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Apply Correction' })).not.toBeInTheDocument();
   });
 
   it('groups vocabulary suggestions with word and linking patterns in the annotation panel', () => {
@@ -89,7 +112,7 @@ describe('AnnotatedText focus', () => {
       />
     );
 
-    expect(screen.getByText('Band 8 vocabulary & cohesion')).toBeInTheDocument();
+    expect(screen.getByText('Vocabulary & cohesion ideas')).toBeInTheDocument();
     expect(screen.getByText('Vocabulary ideas')).toBeInTheDocument();
     expect(screen.getByText('essential')).toBeInTheDocument();
     expect(screen.getByText('a central factor')).toBeInTheDocument();
@@ -115,7 +138,7 @@ describe('AnnotatedText focus', () => {
       word: 'essential',
       original: 'important',
       context: 'Shows significance without exaggeration.',
-      example: 'Rural jobs are essential.',
+      example: '',
     });
     fireEvent.click(screen.getByText('View sentence'));
     expect(screen.getByText('Previous idea:')).toBeInTheDocument();

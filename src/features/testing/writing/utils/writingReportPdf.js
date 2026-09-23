@@ -303,7 +303,7 @@ export const createWritingReportPdf = ({ feedbacks, _drafts = {}, generatedAt = 
         y += 4;
       }
 
-      // Key Sentence Corrections & Upgrades
+      // Feedback on wording may include optional advice, especially in saved reports.
       const sourceCorrections = Array.isArray(feedback.corrections)
         ? feedback.corrections
         : Array.isArray(feedback.improvements)
@@ -322,7 +322,7 @@ export const createWritingReportPdf = ({ feedbacks, _drafts = {}, generatedAt = 
           y = 20;
         }
         setText(doc, COLORS.brand, 10, 'bold');
-        doc.text('Key Sentence Corrections', 14, y);
+        doc.text('Feedback on Wording', 14, y);
         y += 6;
 
         corrections.slice(0, 5).forEach((item) => {
@@ -346,13 +346,13 @@ export const createWritingReportPdf = ({ feedbacks, _drafts = {}, generatedAt = 
           setText(doc, COLORS.ink, 8);
           doc.text(`"${orig}"`, 40, y + 7);
 
-          // Revised Badge
+          // Suggested wording is not necessarily a definite correction.
           doc.setFillColor(236, 253, 245);
           doc.setDrawColor(167, 243, 208);
           doc.setLineWidth(0.2);
           doc.roundedRect(18, y + 9.5, 18, 4.5, 1, 1, 'FD');
           setText(doc, [5, 150, 105], 6, 'bold');
-          doc.text('REVISED', 27, y + 12.7, { align: 'center' });
+          doc.text('SUGGESTED', 27, y + 12.7, { align: 'center' });
           setText(doc, COLORS.brandDark, 8, 'bold');
           doc.text(`"${corr}"`, 40, y + 13);
 

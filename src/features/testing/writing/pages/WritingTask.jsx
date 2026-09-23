@@ -418,8 +418,9 @@ function AnnotatedReviewPane({
   );
   const applyCorrection = useCallback(
     (annotation) => {
-      const source = feedback.originalSource || writing;
-      setWriting(source.replace(annotation.originalText, annotation.suggestion));
+      const source = writing || feedback.originalSource;
+      if (!annotation.replacementText || !source?.includes(annotation.originalText)) return;
+      setWriting(source.replace(annotation.originalText, annotation.replacementText));
     },
     [feedback, writing, setWriting]
   );

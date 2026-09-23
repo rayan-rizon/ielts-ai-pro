@@ -1027,6 +1027,33 @@
       filter: blur(0px);
     }
   }
+
+  /* Writing test annotation squiggly underlines (smooth SVG sine waves) */
+  .underline-wave-error {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 3' width='6' height='3'%3E%3Cpath d='M0 2.2 Q 1.5 0.5 3 2.2 T 6 2.2' fill='none' stroke='%23e11d48' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-position: left bottom 1px;
+    background-size: 6px 3px;
+    padding-bottom: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .dark .underline-wave-error {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 3' width='6' height='3'%3E%3Cpath d='M0 2.2 Q 1.5 0.5 3 2.2 T 6 2.2' fill='none' stroke='%23fb7185' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  .underline-wave-warning {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 3' width='6' height='3'%3E%3Cpath d='M0 2.2 Q 1.5 0.5 3 2.2 T 6 2.2' fill='none' stroke='%23d97706' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-position: left bottom 1px;
+    background-size: 6px 3px;
+    padding-bottom: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .dark .underline-wave-warning {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 3' width='6' height='3'%3E%3Cpath d='M0 2.2 Q 1.5 0.5 3 2.2 T 6 2.2' fill='none' stroke='%23fbbf24' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
 }
 
 /* Sonner Toast Readability Overrides */

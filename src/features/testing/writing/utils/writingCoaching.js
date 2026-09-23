@@ -20,7 +20,8 @@ const LINKERS = {
   Example: ['for example', 'for instance', 'such as'],
   Sequence: ['firstly', 'first', 'secondly', 'next', 'then', 'subsequently', 'finally'],
   Clarification: ['specifically', 'in particular', 'in other words', 'that is'],
-  Overview: ['overall', 'in general', 'in conclusion', 'to sum up'],
+  Overview: ['overall', 'in general'],
+  Conclusion: ['in conclusion', 'to sum up'],
 };
 
 export const LINKING_RELATIONS = {
@@ -32,6 +33,7 @@ export const LINKING_RELATIONS = {
   Sequence: 'Shows the order.',
   Clarification: 'Explains more clearly.',
   Overview: 'Summarizes the main idea.',
+  Conclusion: 'Signals a closing point.',
 };
 
 function splitSentences(source) {
@@ -116,11 +118,13 @@ export function analyzeWriting(text, prompt = '') {
           );
           const sentence = sentenceSpans[sentenceIndex];
           const previous = sentenceSpans[sentenceIndex - 1];
+          const startsSentence =
+            sentence && source.slice(sentence.start, match.index).trim() === '';
           return {
             phrase,
             sentence: sentence?.text || '',
             previousSentence:
-              previous && sentence && previous.paragraph === sentence.paragraph
+              startsSentence && previous && sentence && previous.paragraph === sentence.paragraph
                 ? previous.text
                 : '',
           };
@@ -150,39 +154,6 @@ export function analyzeWriting(text, prompt = '') {
     paragraphCount: paragraphs.length,
     paragraphOpenings,
   };
-}
-
-/** Correct known meaning/fit issues in legacy generated suggestions before display. */
-export function clarifyVocabularySuggestion(enhancement) {
-  const original = String(enhancement?.original || '');
-  const alternatives = (Array.isArray(enhancement?.alternatives) ? enhancement.alternatives : [])
-    .filter(Boolean)
-    .slice(0, 2);
-  const normalizedOriginal = original.toLowerCase().replace(/\s+/g, ' ').trim();
-
-  if (
-    normalizedOriginal === 'forced upward' &&
-    alternatives.some((item) => /^is lifted over the mountain$/i.test(item.trim()))
-  ) {
-    return {
-      original,
-      alternatives: ['driven upwards'],
-      context: 'The mountain still forces the air upward.',
-    };
-  }
-
-  if (
-    normalizedOriginal === 'little to no rainfall' &&
-    alternatives.some((item) => /^minimal precipitation$/i.test(item.trim()))
-  ) {
-    return {
-      original,
-      alternatives: ['negligible rainfall'],
-      context: 'Means almost no rain. Use only if the diagram agrees.',
-    };
-  }
-
-  return { ...enhancement, original, alternatives };
 }
 
 export function sourceForFeedback(feedback, fallback = '') {

@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  analyzeWriting,
-  clarifyVocabularySuggestion,
-  plainWritingText,
-} from '@/features/testing/writing/utils/writingCoaching';
+import { analyzeWriting, plainWritingText } from '@/features/testing/writing/utils/writingCoaching';
 
 describe('Writing coaching text and pattern analysis', () => {
   it('keeps paragraph breaks while removing editor markup', () => {
@@ -34,7 +30,7 @@ describe('Writing coaching text and pattern analysis', () => {
       'Rural jobs support families. By contrast, rural towns lose workers.\n\nIn conclusion, planning matters. Specifically, it should protect services.'
     );
     const contrast = result.linking.find((item) => item.category === 'Contrast');
-    const summary = result.linking.find((item) => item.category === 'Overview');
+    const conclusion = result.linking.find((item) => item.category === 'Conclusion');
     const clarification = result.linking.find((item) => item.category === 'Clarification');
 
     expect(contrast.matches[0]).toEqual({
@@ -42,9 +38,27 @@ describe('Writing coaching text and pattern analysis', () => {
       sentence: 'By contrast, rural towns lose workers.',
       previousSentence: 'Rural jobs support families.',
     });
-    expect(summary.count).toBe(1);
+    expect(conclusion.count).toBe(1);
     expect(clarification.count).toBe(1);
     expect(result.linking.some((item) => item.category === 'Sequence')).toBe(false);
+  });
+
+  it('keeps within-sentence contrasts separate from the preceding sentence', () => {
+    const result = analyzeWriting('Formal lessons matter. I agree, although children need play.');
+    expect(result.linking.find((item) => item.category === 'Contrast').matches[0]).toMatchObject({
+      phrase: 'although',
+      previousSentence: '',
+    });
+  });
+
+  it('reports repeated chart wording as a count without diagnosing it', () => {
+    const result = analyzeWriting(
+      'Rainfall rose. Rainfall peaked. Rainfall then fell.',
+      'Describe the rainfall chart.'
+    );
+    expect(result.repeated).toContainEqual(
+      expect.objectContaining({ word: 'rainfall', count: 3, inPrompt: true })
+    );
   });
 
   it('keeps hyphenated task terms together and reports paragraph openings', () => {
@@ -54,29 +68,5 @@ describe('Writing coaching text and pattern analysis', () => {
     expect(result.repeated.some((item) => item.word === 'time')).toBe(false);
     expect(result.paragraphCount).toBe(2);
     expect(result.paragraphOpenings[1]).toMatch(/^However/);
-  });
-
-  it('corrects two legacy vocabulary suggestions whose wording changes the nuance', () => {
-    expect(
-      clarifyVocabularySuggestion({
-        original: 'forced upward',
-        alternatives: ['is lifted over the mountain'],
-        context: 'A concise process description.',
-      })
-    ).toMatchObject({
-      alternatives: ['driven upwards'],
-      context: 'The mountain still forces the air upward.',
-    });
-
-    expect(
-      clarifyVocabularySuggestion({
-        original: 'little to no rainfall',
-        alternatives: ['minimal precipitation'],
-        context: 'A precise formal phrase.',
-      })
-    ).toMatchObject({
-      alternatives: ['negligible rainfall'],
-      context: expect.stringContaining('almost no rain'),
-    });
   });
 });

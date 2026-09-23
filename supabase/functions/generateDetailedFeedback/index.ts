@@ -344,13 +344,21 @@ serve(async (req: Request) => {
                 enum: ['grammar', 'spelling', 'style', 'vocabulary', 'clarity', 'positive'],
               },
               suggestion: { type: 'STRING' },
+              replacementText: { type: 'STRING' },
               explanation: { type: 'STRING' },
               severity: {
                 type: 'STRING',
                 enum: ['error', 'warning', 'suggestion', 'positive'],
               },
             },
-            required: ['originalText', 'type', 'suggestion', 'explanation', 'severity'],
+            required: [
+              'originalText',
+              'type',
+              'suggestion',
+              'replacementText',
+              'explanation',
+              'severity',
+            ],
           },
         },
         strengths: { type: 'ARRAY', items: { type: 'STRING' } },
@@ -460,9 +468,11 @@ SCORING
 COMPACT FEEDBACK CONTRACT
 - summary: 1 direct sentence, maximum 18 words, stating the clearest success and main limiter.
 - strengths: 1–3 items, maximum 14 words each. Cite an exact phrase or observable structural feature. No generic praise.
-- priorities: exactly the 3 highest band-gain issues, ordered by impact. issue is maximum 12 words; action is maximum 14 words and must be concrete. Use only the allowed criterion labels.
+- priorities: 0–3 genuine band-gain issues, ordered by impact. Do not fill a quota of three for a strong answer. A repeated question term or an accurate chart label is not by itself a lexical weakness. issue is maximum 12 words; action is maximum 14 words and must be concrete. Use only the allowed criterion labels.
 - priorities evidenceText: only when a priority is supported by an annotation, include that annotation's originalText exactly. Otherwise omit evidenceText; never invent an anchor.
-- annotations: 0–10 high-value highlights. originalText must be an exact, unique 1–7 word substring. suggestion is maximum 12 words. explanation is maximum 14 words and must state why the change matters for clarity, accuracy, or the relevant band criterion. Use severity='error' only for genuine grammar, spelling, word-form, tense, agreement, missing-element, or factual-reporting errors. Style preferences are suggestions, never errors. Do not repeat an issue.
+- annotations: 0–10 high-value highlights. originalText must be an exact, unique 1–7 word substring. suggestion is brief advice, not text to paste into the answer. replacementText is an exact replacement phrase only for a definite grammar or spelling error; otherwise return an empty string. Never put an instruction in replacementText. explanation is maximum 14 words and must state why the change matters for clarity, accuracy, or the relevant band criterion. Use severity='error' only for genuine grammar, spelling, word-form, tense, agreement, missing-element, or factual-reporting errors. Style preferences are suggestions, never errors. Do not repeat an issue.
+- For every claimed error, re-read the exact candidate sentence and relevant task evidence. Do not treat a stylistic preference as an error. For Task 1, verify chart claims against the visible visual, including category labels, units, directions, totals, and comparisons. If any visual detail is unclear, omit that claim instead of guessing. For Task 2, distinguish the candidate's argument from a verifiable factual claim; do not mark a plausible opinion as factually wrong.
+- Before criticizing a comparison, check whether it remains true using only the categories explicitly identified in the task. Do not infer that a true statement grouped an ambiguous category. Keep accurate but less precise wording as optional advice, not a factual correction.
 - vocabularyEnhancements: 0–4 precise, natural options that could strengthen Band 8-level lexical control in this exact answer. original must be an exact phrase from the response. Give two alternatives only when both preserve the intended meaning and fit the surrounding grammar; otherwise return one. context briefly explains the meaning or usage distinction. Do not reward difficult words for their own sake, force exotic synonyms, or claim that a word alone earns Band 8.
 - Do not output separate weaknesses, suggestions, corrections, or overallBand. The server derives correction rows from grounded error annotations.
 - Output JSON only and follow the response schema. No markdown or bold markers.
@@ -734,7 +744,7 @@ REQUIRED JSON SHAPE (all keys required):
   "criteriaScores": {"${taskCriterionKey}": number, "CoherenceAndCohesion": number, "LexicalResource": number, "GrammaticalRangeAndAccuracy": number},
   "bandSecurity": {"${taskCriterionKey}": "secure"|"borderline", "CoherenceAndCohesion": "secure"|"borderline", "LexicalResource": "secure"|"borderline", "GrammaticalRangeAndAccuracy": "secure"|"borderline"},
   "summary": string,
-  "annotations": [{"originalText": string, "type": "grammar"|"spelling"|"style"|"vocabulary"|"clarity"|"positive", "suggestion": string, "explanation": string, "severity": "error"|"warning"|"suggestion"|"positive"}],
+  "annotations": [{"originalText": string, "type": "grammar"|"spelling"|"style"|"vocabulary"|"clarity"|"positive", "suggestion": string, "replacementText": string, "explanation": string, "severity": "error"|"warning"|"suggestion"|"positive"}],
   "strengths": [string],
   "priorities": [{"criterion": "${taskCriterionLabel}"|"Coherence & Cohesion"|"Lexical Resource"|"Grammar", "issue": string, "action": string, "evidenceText": string}],
   "vocabularyEnhancements": [{"original": string, "alternatives": [string], "context": string}]${

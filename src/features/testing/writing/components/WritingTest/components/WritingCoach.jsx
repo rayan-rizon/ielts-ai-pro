@@ -7,6 +7,10 @@ import {
   plainWritingText,
   sourceForFeedback,
 } from '@/features/testing/writing/utils/writingCoaching';
+import {
+  guardTask1Transformation,
+  sentences as splitCoachSentences,
+} from '../../../../../../../supabase/functions/_shared/writingCoachValidation.ts';
 
 const buttonClass =
   'rounded-lg border border-[#d5d5ea] bg-white px-3 py-2 text-xs font-bold text-slate-800 hover:border-[#5a63df] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5a63df] dark:border-white/15 dark:bg-[#191820] dark:text-slate-100';
@@ -52,7 +56,7 @@ function highlightChanges(source, revision) {
 
 function conciseLimitation(note) {
   if (/task (?:1 )?visuals?.*(?:not checked|not rechecked)/i.test(note))
-    return 'Task 1 visuals were not rechecked. Confirm details with your feedback.';
+    return 'The visual was not rechecked. Check factual details against the original visual.';
   return note;
 }
 
@@ -144,6 +148,7 @@ function useCoachingRecord(sessionId, taskType, feedback, originalHtml) {
 
 export function BandComparison({
   transformation,
+  taskType,
   original,
   generate,
   busy,
@@ -153,15 +158,19 @@ export function BandComparison({
   disabledReason,
 }) {
   const [showFull, setShowFull] = useState(false);
+  const isVisualTask = taskType === 'Task 1';
+  const exampleTitle = isVisualTask ? 'Language ideas for Task 1' : 'Band 8.0 example';
   if (!transformation)
     return (
       <section className={`${PANEL} mx-auto max-w-2xl space-y-3 p-5`}>
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-[#5a63df]" />
-          <h2 className="text-base font-bold">Band 8.0 example</h2>
+          <h2 className="text-base font-bold">{exampleTitle}</h2>
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Compare your sentences with an AI example aiming for Band 8.0 features.
+          {isVisualTask
+            ? 'Review language ideas. Data-bearing statements are retained when the visual is not rechecked.'
+            : 'Compare your sentences with an AI example aiming for Band 8.0 features.'}
         </p>
         <p className="text-xs text-slate-500">
           This is a learning example, not an examiner-certified score. Each saved answer can request
@@ -169,7 +178,7 @@ export function BandComparison({
         </p>
         {status === 'failed' && (
           <p className="text-xs text-amber-700 dark:text-amber-300">
-            This example could not be prepared. Open the Editor tab to revise your answer.
+            The example service could not prepare this answer. Your writing and feedback are saved.
           </p>
         )}
         {error && (
@@ -196,33 +205,51 @@ export function BandComparison({
           ) : status === 'generating' ? (
             'Preparing example…'
           ) : status === 'failed' ? (
-            'Retry Band 8.0 example'
+            isVisualTask ? (
+              'Retry language ideas'
+            ) : (
+              'Retry Band 8.0 example'
+            )
+          ) : isVisualTask ? (
+            'Show language ideas'
           ) : (
             'Show Band 8.0 example'
           )}
         </button>
       </section>
     );
-  const sentences = transformation.sourceSentences || [];
+  const sentences = transformation.sourceSentences || splitCoachSentences(original);
+  const safeTransformation =
+    taskType === 'Task 1' ? guardTask1Transformation(transformation, sentences) : transformation;
   return (
     <section className="mx-auto max-w-6xl space-y-3">
       <div className={`${PANEL} p-4`}>
-        <h2 className="text-base font-bold">Your answer and Band 8.0 example</h2>
+        <h2 className="text-base font-bold">
+          {isVisualTask ? 'Your answer and language ideas' : 'Your answer and Band 8.0 example'}
+        </h2>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-          Compare your sentence with the Band 8.0 example. Each change has a reason.
+          {isVisualTask
+            ? 'Compare language choices. Check every data claim against the visual before using it.'
+            : 'Compare your sentence with the Band 8.0 example. Each change has a reason.'}
         </p>
-        {transformation.limitations?.length > 0 && (
+        {isVisualTask && (
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            {transformation.limitations.map(conciseLimitation).join(' ')}
+            The visual was not available for this language example. Check factual details against
+            it.
+          </p>
+        )}
+        {!isVisualTask && safeTransformation.limitations?.length > 0 && (
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            {safeTransformation.limitations.map(conciseLimitation).join(' ')}
           </p>
         )}
       </div>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className={`${WELL} hidden px-4 py-2 text-xs font-bold md:block`}>Your answer</div>
         <div className={`${WELL} hidden px-4 py-2 text-xs font-bold md:block`}>
-          Band 8.0 example
+          {isVisualTask ? 'Language idea' : 'Band 8.0 example'}
         </div>
-        {transformation.segments.map((segment, index) => {
+        {safeTransformation.segments.map((segment, index) => {
           const sourceSentence =
             segment.sourceSentenceIds
               .map((id) => sentences[id - 1]?.source)
@@ -231,7 +258,11 @@ export function BandComparison({
           const highlights = highlightChanges(sourceSentence, segment.revisedText);
           const tag =
             segment.changeTags?.join(' · ') ||
-            (sourceSentence === segment.revisedText ? 'Already effective' : 'Suggested change');
+            (segment.shortReason?.includes('visual was not rechecked')
+              ? 'Visual detail unverified'
+              : sourceSentence === segment.revisedText
+                ? 'Already effective'
+                : 'Suggested change');
           return (
             <React.Fragment key={index}>
               <div className={`${PANEL} min-w-0 p-4 md:rounded-r-none`}>
@@ -241,7 +272,7 @@ export function BandComparison({
                 </p>
               </div>
               <div className={`${PANEL} min-w-0 p-4 md:rounded-l-none`}>
-                <p className={MICRO}>Band 8.0 example</p>
+                <p className={MICRO}>{isVisualTask ? 'Language idea' : 'Band 8.0 example'}</p>
                 <p className="mt-2 whitespace-pre-wrap break-words font-serif text-sm leading-6">
                   {highlights.example}
                 </p>
@@ -261,12 +292,18 @@ export function BandComparison({
           aria-expanded={showFull}
           onClick={() => setShowFull((value) => !value)}
         >
-          {showFull ? 'Hide complete Band 8.0 example' : 'Read complete Band 8.0 example'}
+          {showFull
+            ? isVisualTask
+              ? 'Hide full language draft'
+              : 'Hide complete Band 8.0 example'
+            : isVisualTask
+              ? 'Read full language draft'
+              : 'Read complete Band 8.0 example'}
         </button>
         {showFull && (
           <div className="mt-3 space-y-3 font-serif text-sm leading-7">
             {Object.entries(
-              transformation.segments.reduce((groups, segment) => {
+              safeTransformation.segments.reduce((groups, segment) => {
                 const paragraph = sentences[segment.sourceSentenceIds[0] - 1]?.paragraph ?? 0;
                 (groups[paragraph] ||= []).push(segment.revisedText);
                 return groups;
@@ -277,11 +314,11 @@ export function BandComparison({
           </div>
         )}
       </div>
-      {transformation.languageNotes?.length > 0 && (
+      {safeTransformation.languageNotes?.length > 0 && (
         <div className={`${PANEL} p-4`}>
           <h3 className="text-sm font-bold">Language notes</h3>
           <ul className="mt-2 list-inside list-disc space-y-1 text-xs">
-            {transformation.languageNotes.map((note, i) => (
+            {safeTransformation.languageNotes.map((note, i) => (
               <li key={i}>{note}</li>
             ))}
           </ul>
@@ -547,6 +584,7 @@ export function WritingCoach({ session, taskType, feedback, originalHtml }) {
         <>
           <BandComparison
             transformation={record?.transformation}
+            taskType={taskType}
             original={original}
             generate={generate}
             busy={busy}

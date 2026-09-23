@@ -31,7 +31,9 @@ describe('Writing practice coaching interface', () => {
       screen.getByText('Compare your sentence with the Band 8.0 example. Each change has a reason.')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Task 1 visuals were not rechecked. Confirm details with your feedback.')
+      screen.getByText(
+        'The visual was not rechecked. Check factual details against the original visual.'
+      )
     ).toBeInTheDocument();
     expect(screen.queryByText(/AI-generated example is for practice/)).not.toBeInTheDocument();
     expect(
@@ -71,5 +73,18 @@ describe('Writing practice coaching interface', () => {
     expect(screen.getByRole('status')).toHaveTextContent('temporarily unavailable');
     expect(screen.getByRole('button', { name: 'Show Band 8.0 example' })).toBeDisabled();
     expect(generate).not.toHaveBeenCalled();
+  });
+
+  it('does not blame the student when example generation fails', () => {
+    render(
+      <BandComparison
+        taskType="Task 1"
+        original="The chart shows three years."
+        status="failed"
+        generate={vi.fn()}
+      />
+    );
+    expect(screen.getByText(/example service could not prepare this answer/i)).toBeInTheDocument();
+    expect(screen.queryByText(/revise your answer/i)).not.toBeInTheDocument();
   });
 });

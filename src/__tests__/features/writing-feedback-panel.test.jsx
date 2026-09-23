@@ -80,7 +80,7 @@ describe('Writing feedback panel', () => {
     expect(screen.getByText(/Priority · Grammar/)).toBeInTheDocument();
     expect(screen.getAllByText('Task Response')).toHaveLength(2);
     expect(screen.getByText('Key strengths')).toBeInTheDocument();
-    expect(screen.getByText('Top 3 priorities')).toBeInTheDocument();
+    expect(screen.getByText('Main priorities')).toBeInTheDocument();
     expect(screen.getByText('Agreement errors recur in key sentences.')).toBeInTheDocument();
     expect(screen.queryByText('Areas to Improve')).not.toBeInTheDocument();
     expect(screen.queryByText('Tips for Next Time')).not.toBeInTheDocument();
@@ -162,8 +162,8 @@ describe('Writing feedback panel', () => {
 
     render(<FeedbackPanel feedback={suggestionOnlyFeedback} />);
 
-    expect(screen.getByText('Corrections & improvements')).toBeInTheDocument();
-    expect(screen.getByText('Try this')).toBeInTheDocument();
+    expect(screen.getByText('Feedback on your wording')).toBeInTheDocument();
+    expect(screen.getByText('Consider')).toBeInTheDocument();
     expect(
       screen.getByText('Use a more precise transport term where the context allows.')
     ).toBeInTheDocument();
@@ -172,7 +172,7 @@ describe('Writing feedback panel', () => {
   it('keeps the improvements section visible when no sentence-level change is needed', () => {
     render(<FeedbackPanel feedback={{ ...feedback, corrections: [], annotations: [] }} />);
 
-    expect(screen.getByText('Corrections & improvements')).toBeInTheDocument();
+    expect(screen.getByText('Feedback on your wording')).toBeInTheDocument();
     expect(screen.getByText(/No sentence-level change was needed/)).toBeInTheDocument();
   });
 
