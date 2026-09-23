@@ -42,6 +42,10 @@ describe('admin objective test limits', () => {
     const freeCard = freeHeading.closest('.overflow-hidden');
     expect(freeCard).not.toBeNull();
     const free = within(freeCard);
+    expect(screen.queryByText('General API')).toBeNull();
+    expect(screen.queryByText('Burst/min')).toBeNull();
+    expect(free.getByText('Reading & Listening test starts')).toBeTruthy();
+    expect(free.getByText(/Paired tests and resumed tests do not/)).toBeTruthy();
     const readingDaily = free.getAllByLabelText('Daily test starts')[0];
     expect(readingDaily.disabled).toBe(true);
     fireEvent.click(free.getAllByLabelText('Daily unlimited')[0]);
@@ -51,12 +55,18 @@ describe('admin objective test limits', () => {
       expect(mocks.upsert).toHaveBeenCalledWith(
         'free',
         'ALL',
-        expect.objectContaining({ reading_daily_limit: 2, reading_monthly_limit: -1 })
+        expect.objectContaining({
+          reading_daily_limit: 2,
+          reading_monthly_limit: -1,
+          daily_limit: 0,
+          monthly_limit: 3,
+          burst_limit: 3,
+        })
       )
     );
 
     const proCard = screen.getByText('pro tier').closest('.overflow-hidden');
-    expect(within(proCard).getAllByText('Unlimited solo test starts')).toHaveLength(2);
+    expect(within(proCard).getAllByText('Unlimited test starts')).toHaveLength(2);
     expect(within(proCard).queryByLabelText('Daily test starts')).toBeNull();
   });
 });
