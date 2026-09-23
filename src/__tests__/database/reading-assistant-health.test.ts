@@ -19,7 +19,7 @@ const fallbackHealthMigration = readFileSync(
 const lunaHealthMigration = readFileSync(
   resolve(
     process.cwd(),
-    'supabase/migrations/20260923150515_switch_luna_model_health_telemetry.sql'
+    'supabase/migrations/20260923104430_switch_luna_model_health_telemetry.sql'
   ),
   'utf8'
 );
