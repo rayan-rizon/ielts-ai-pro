@@ -19,14 +19,14 @@
 
 ## 🛠️ Technology Stack
 
-| Layer                         | Technologies                                                                                                                                             |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Frontend**                  | React 18, Vite, Tailwind CSS, Framer Motion, Radix UI Primitives, Lucide Icons                                                                           |
-| **Backend / DB**              | Supabase (PostgreSQL with RLS, Auth, pgvector), Deno Edge Functions                                                                                      |
-| **AI Models**                 | DeepSeek V4 Flash, OpenAI GPT-5.6 Luna, Google Gemini 2.5 Flash / Lite, Cloudflare Workers AI Whisper, Azure Speech Assessment, Google Cloud Neural2 TTS |
-| **Storage & CDN**             | Cloudflare R2 Object Storage (`https://media.ieltsai.pro`)                                                                                               |
-| **Payments**                  | Stripe Subscriptions + Manual Regional Payment Workflows (bKash/Nagad)                                                                                   |
-| **Analytics & Observability** | PostHog Product Analytics, Sentry Error Monitoring                                                                                                       |
+| Layer                         | Technologies                                                                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**                  | React 18, Vite, Tailwind CSS, Framer Motion, Radix UI Primitives, Lucide Icons                                                                        |
+| **Backend / DB**              | Supabase (PostgreSQL with RLS, Auth, pgvector), Deno Edge Functions                                                                                   |
+| **AI Models**                 | DeepSeek V4 Flash, OpenAI GPT-6 Luna, Google Gemini 2.5 Flash / Lite, Cloudflare Workers AI Whisper, Azure Speech Assessment, Google Cloud TTS Studio |
+| **Storage & CDN**             | Cloudflare R2 Object Storage (`https://media.ieltsai.pro`)                                                                                            |
+| **Payments**                  | Stripe Subscriptions + Manual Regional Payment Workflows (bKash/Nagad)                                                                                |
+| **Analytics & Observability** | PostHog Product Analytics, Sentry Error Monitoring                                                                                                    |
 
 ---
 

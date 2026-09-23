@@ -78,13 +78,13 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingSource:
       'DeepSeek direct API peak list price, verified 2026-08-27. Off-peak (outside 01:00-04:00 and 06:00-10:00 UTC, Mon-Fri) is half these rates. This route is ~7x the OpenRouter price for the same model family.',
   },
-  'openai/gpt-5.6-luna': {
-    id: 'openai/gpt-5.6-luna',
+  'openai/gpt-6-luna': {
+    id: 'openai/gpt-6-luna',
     vendor: 'OpenAI',
     access: 'openrouter',
-    pricing: { inputPerMillion: 0.2, cachedInputPerMillion: 0.02, outputPerMillion: 1.2 },
+    pricing: { inputPerMillion: 0.1, cachedInputPerMillion: 0.01, outputPerMillion: 0.5 },
     pricingSource:
-      'OpenRouter catalog base price, verified 2026-08-27. One OpenAI endpoint serves it at half these rates; billed cost from usage.cost wins when returned.',
+      'OpenRouter standard-rate catalog price, verified 2026-09-23. Cache read is $0.01/M; prompts above 272K tokens use a higher rate. Billed usage.cost wins when returned.',
   },
   'openai/gpt-oss-120b': {
     id: 'openai/gpt-oss-120b',
@@ -146,21 +146,25 @@ export const MODELS: Record<string, ModelEntry> = {
 // on one source of truth.
 export const READING_ASSISTANT_PRIMARY_MODEL = 'openai/gpt-oss-120b';
 export const READING_ASSISTANT_FAST_MODEL = 'openai/gpt-oss-20b';
-export const READING_ASSISTANT_LUNA_FALLBACK_MODEL = 'openai/gpt-5.6-luna';
+export const READING_ASSISTANT_LUNA_FALLBACK_MODEL = 'openai/gpt-6-luna';
 export const READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL = 'deepseek/deepseek-v4-flash-0731';
 export const READING_ASSISTANT_GLM_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 // Backwards-compatible alias for callers that only need the first fallback.
 export const READING_ASSISTANT_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
 export const AI_COACH_PRIMARY_MODEL = 'openai/gpt-oss-120b';
-export const AI_COACH_FALLBACK_MODEL = 'openai/gpt-5.6-luna';
+export const AI_COACH_FALLBACK_MODEL = 'openai/gpt-6-luna';
 
 export function readingAssistantPrimaryModel(action: string) {
   return action === 'dictionary' || action === 'simplify'
     ? READING_ASSISTANT_FAST_MODEL
     : READING_ASSISTANT_PRIMARY_MODEL;
 }
-export const WRITING_PRIMARY_MODEL = 'openai/gpt-5.6-luna';
+export const WRITING_PRIMARY_MODEL = 'openai/gpt-6-luna';
 export const WRITING_DIRECT_GEMINI_MODEL = 'gemini-2.5-flash';
+export const SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL = 'openai/gpt-6-luna';
+export const SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL = 'gemini-2.5-flash';
+export const SPEAKING_DETAILED_FEEDBACK_MAX_OUTPUT_TOKENS = 6144;
+export const SPEAKING_DETAILED_FEEDBACK_TIMEOUT_MS = 25000;
 
 // --- Routes -----------------------------------------------------------------
 
@@ -260,14 +264,22 @@ export const AI_ROUTES: AiRoute[] = [
     id: 'speaking-detailed-feedback',
     surface: 'Speaking: detailed deep-dive feedback',
     file: 'supabase/functions/generateDetailedSpeakingFeedback/index.ts',
-    maxOutputTokens: 6144,
+    maxOutputTokens: SPEAKING_DETAILED_FEEDBACK_MAX_OUTPUT_TOKENS,
+    timeoutMs: SPEAKING_DETAILED_FEEDBACK_TIMEOUT_MS,
     steps: [
       {
-        model: 'gemini-2.5-flash',
+        model: SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL,
         role: 'primary',
-        when: 'Primary provider with one bounded retry for transient failures.',
+        when: 'OpenRouter primary; no temperature, reasoning disabled, and validate the grounded JSON array.',
+      },
+      {
+        model: SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'Direct Google Gemini when Luna fails, returns invalid JSON/schema, or yields no transcript-grounded entries.',
       },
     ],
+    notes:
+      'Luna request timeout is 25s; Gemini retries one transient provider failure with 15s per attempt. Both providers share the same output and grounding validation.',
   },
   {
     id: 'skill-lab-teacher',
@@ -310,7 +322,7 @@ export const AI_ROUTES: AiRoute[] = [
       {
         model: READING_ASSISTANT_LUNA_FALLBACK_MODEL,
         role: 'fallback',
-        when: 'GPT OSS is unavailable or invalid; use the previously validated Luna route.',
+        when: 'GPT OSS is unavailable or invalid; use the Luna fallback route.',
       },
       {
         model: READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL,

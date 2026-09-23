@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { requestOpenRouterWritingFeedback } from '../../../supabase/functions/_shared/writingProvider';
 
-const model = 'openai/gpt-5.6-luna';
+const model = 'openai/gpt-6-luna';
 const request = {
   model,
   apiKey: 'openrouter-test-key',
@@ -48,6 +48,7 @@ describe('Writing OpenRouter provider contract', () => {
       seed: 17,
       max_tokens: 4096,
       provider: { sort: 'throughput', require_parameters: true },
+      usage: { include: true },
     });
     expect(body).not.toHaveProperty('temperature');
     expect(body).not.toHaveProperty('top_p');

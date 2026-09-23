@@ -707,7 +707,7 @@ Register and tone:
       );
     }
 
-    // Primary: GPT-5.6 Luna via OpenRouter (vision-capable, fast). Falls back
+    // Primary: GPT-6 Luna via OpenRouter (vision-capable, fast). Falls back
     // directly to Google's Gemini 2.5 Flash on provider or validation failure.
     const schemaText = `
 REQUIRED JSON SHAPE (all keys required):

@@ -19,9 +19,124 @@ import {
   FEEDBACK_EVALUATOR_VERSION,
   normalizeDetailedSpeakingEvaluation,
 } from '../_shared/evaluationUtils.ts';
-import { estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
+import {
+  SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL,
+  SPEAKING_DETAILED_FEEDBACK_MAX_OUTPUT_TOKENS,
+  SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL,
+  SPEAKING_DETAILED_FEEDBACK_TIMEOUT_MS,
+} from '../_shared/aiModelRegistry.ts';
+import {
+  requestGeminiJson,
+  requestOpenRouterLunaJson,
+  TextAiProviderError,
+  type TextAiResult,
+  type TextAiUsage,
+} from '../_shared/textAiProvider.ts';
 
 declare const Deno: any;
+
+function emptyProviderUsage(): TextAiUsage {
+  return {
+    promptTokens: 0,
+    cachedPromptTokens: 0,
+    outputTokens: 0,
+    tokensUsed: 0,
+    estimatedProviderCostUsd: 0,
+  };
+}
+
+function addProviderUsage(left: TextAiUsage, right: TextAiUsage): TextAiUsage {
+  return {
+    promptTokens: left.promptTokens + right.promptTokens,
+    cachedPromptTokens: left.cachedPromptTokens + right.cachedPromptTokens,
+    outputTokens: left.outputTokens + right.outputTokens,
+    tokensUsed: left.tokensUsed + right.tokensUsed,
+    estimatedProviderCostUsd: left.estimatedProviderCostUsd + right.estimatedProviderCostUsd,
+  };
+}
+
+function usageFromProviderError(error: unknown): TextAiUsage {
+  return error instanceof TextAiProviderError
+    ? error.usage || emptyProviderUsage()
+    : emptyProviderUsage();
+}
+
+function isDetailedSpeakingResponse(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.every((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
+      const part = Number((item as Record<string, unknown>).part);
+      const errors = (item as Record<string, unknown>).grammaticalErrors;
+      return (
+        Number.isInteger(part) &&
+        [1, 2, 3].includes(part) &&
+        ['question', 'candidateAnswer', 'topicDrift', 'suggestedAnswer', 'feedback'].every(
+          (key) => typeof (item as Record<string, unknown>)[key] === 'string'
+        ) &&
+        Array.isArray(errors) &&
+        errors.every(
+          (error) =>
+            !!error &&
+            typeof error === 'object' &&
+            typeof (error as Record<string, unknown>).incorrect === 'string' &&
+            typeof (error as Record<string, unknown>).correct === 'string' &&
+            typeof (error as Record<string, unknown>).explanation === 'string'
+        )
+      );
+    })
+  );
+}
+
+function normalizeProviderResponse(result: TextAiResult, candidateSource: Record<string, string>) {
+  try {
+    const normalized = normalizeDetailedSpeakingEvaluation(result.parsed, candidateSource);
+    // The normalizer drops candidate excerpts that are not verbatim transcript
+    // evidence. Fall back if the provider returned no grounded feedback.
+    if (normalized.length === 0 && Object.values(candidateSource).some((text) => text.trim())) {
+      throw new Error('No candidate excerpts were grounded in the transcript');
+    }
+    return normalized;
+  } catch {
+    throw new TextAiProviderError('Detailed speaking response failed transcript validation', {
+      provider: result.provider,
+      code: 'invalid_schema',
+      usage: result.usage,
+    });
+  }
+}
+
+function providerFailureReason(error: unknown): string {
+  if (!(error instanceof TextAiProviderError)) return 'openrouter_luna_provider_failure';
+  const provider = error.provider.replace(/-/g, '_');
+  return `${provider}_${error.code}${error.status ? `_http_${error.status}` : ''}`;
+}
+
+function isTransientProviderFailure(error: unknown): boolean {
+  return (
+    error instanceof TextAiProviderError &&
+    (error.code === 'timeout' ||
+      error.code === 'provider_failure' ||
+      [429, 500, 502, 503, 504].includes(error.status || 0))
+  );
+}
+
+async function requestGeminiWithRetry(
+  request: Parameters<typeof requestGeminiJson>[0]
+): Promise<TextAiResult> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await requestGeminiJson(request);
+    } catch (error) {
+      if (attempt === 1 || !isTransientProviderFailure(error)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+    }
+  }
+  throw new TextAiProviderError('Gemini fallback failed after retry', {
+    provider: 'gemini',
+    code: 'provider_failure',
+  });
+}
 
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
@@ -36,6 +151,13 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
   let quotaReservationId: string | undefined;
+  let rejectedProviderUsage = emptyProviderUsage();
+  let deliveredProviderUsage = emptyProviderUsage();
+  let deliveredProviderResult: TextAiResult | null = null;
+  let fallbackUsed = false;
+  let fallbackReason: string | null = null;
+  let fallbackProviderStatus: number | null = null;
+  let providerLatencyMs = 0;
 
   try {
     // Authenticate user
@@ -177,10 +299,8 @@ serve(async (req: Request) => {
       );
     }
 
+    const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
-    }
 
     const transcriptEvidence = buildSpeakingTranscript(allPartsConversation, partContexts);
     const fullTranscript = transcriptEvidence.transcript;
@@ -296,100 +416,113 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
       },
     };
 
-    const requestBody = {
-      contents: [{ parts: [{ text: promptText }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 6144,
-        responseMimeType: 'application/json',
-        responseSchema: detailedResponseSchema,
-        thinkingConfig: { thinkingBudget: 0 },
-      },
+    const providerRequest = {
+      prompt: promptText,
+      maxOutputTokens: SPEAKING_DETAILED_FEEDBACK_MAX_OUTPUT_TOKENS,
+      timeoutMs: SPEAKING_DETAILED_FEEDBACK_TIMEOUT_MS,
+      responseSchema: detailedResponseSchema,
+      validateJson: isDetailedSpeakingResponse,
     };
-    let evalResponse: Response | undefined;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15_000);
-        try {
-          evalResponse = await fetch(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
-              body: JSON.stringify(requestBody),
-              signal: controller.signal,
-            }
-          );
-        } finally {
-          clearTimeout(timeout);
-        }
-        if (evalResponse.ok || ![429, 500, 502, 503, 504].includes(evalResponse.status)) break;
-      } catch (error) {
-        if (attempt === 1) throw error;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
-    }
+    const providerStartedAt = Date.now();
+    let providerResult: TextAiResult | null = null;
+    let detailedQuestions: ReturnType<typeof normalizeDetailedSpeakingEvaluation> = [];
 
-    if (!evalResponse?.ok) {
-      const errorText = evalResponse ? await evalResponse.text() : 'No response';
-      throw new Error(`Gemini API error: ${evalResponse?.status ?? 'network'} - ${errorText}`);
-    }
-
-    const evalData = await evalResponse.json();
-    const evalText = evalData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const tokensUsed = evalData.usageMetadata?.totalTokenCount || 0;
-    const promptTokens = evalData.usageMetadata?.promptTokenCount || 0;
-    const outputTokens = evalData.usageMetadata?.candidatesTokenCount || 0;
-    console.log(`[Detailed Eval] Gemini length: ${evalText.length} chars, tokens: ${tokensUsed}`);
-
-    let detailedAnalysis;
     try {
-      // Extract a fenced or bare JSON array even when Gemini prepends a short
-      // conversational sentence before the response.
-      let cleanText = evalText.trim();
-      const fencedJson = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-      if (fencedJson?.[1]) cleanText = fencedJson[1];
-      const arrayJson = cleanText.match(/\[[\s\S]*\]/);
-      if (arrayJson?.[0]) cleanText = arrayJson[0];
-      const detailedQuestions = normalizeDetailedSpeakingEvaluation(
-        JSON.parse(cleanText.trim()),
+      if (!openRouterApiKey) {
+        throw new TextAiProviderError('OpenRouter API key is not configured', {
+          provider: 'openrouter-luna',
+          code: 'provider_not_configured',
+        });
+      }
+      providerResult = await requestOpenRouterLunaJson({
+        ...providerRequest,
+        apiKey: openRouterApiKey,
+        // This prompt's public response contract is a JSON array, so do not
+        // force OpenRouter's object-only response format.
+        jsonMode: false,
+      });
+      detailedQuestions = normalizeProviderResponse(
+        providerResult,
         transcriptEvidence.candidateSource
       );
-      detailedAnalysis = {
-        questions: detailedQuestions,
-        evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
-        generatedAt: new Date().toISOString(),
-        model: 'gemini-2.5-flash',
-        speakingSessionId,
-      };
-    } catch (parseError) {
-      console.error('Failed to parse detailed analysis from Gemini:', parseError);
-      console.error('Detailed speaking response could not be parsed', {
-        responseLength: evalText?.length || 0,
-      });
-      throw new Error('Failed to parse AI response into JSON');
+    } catch (primaryError) {
+      providerLatencyMs = Date.now() - providerStartedAt;
+      rejectedProviderUsage = addProviderUsage(
+        rejectedProviderUsage,
+        usageFromProviderError(primaryError)
+      );
+      fallbackReason = providerFailureReason(primaryError);
+      fallbackProviderStatus =
+        primaryError instanceof TextAiProviderError ? primaryError.status : null;
+
+      if (!geminiApiKey) {
+        throw new TextAiProviderError('Gemini fallback API key is not configured', {
+          provider: 'gemini',
+          code: 'provider_not_configured',
+        });
+      }
+
+      fallbackUsed = true;
+      try {
+        providerResult = await requestGeminiWithRetry({
+          ...providerRequest,
+          apiKey: geminiApiKey,
+          geminiModel: SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL,
+          timeoutMs: 15_000,
+          temperature: 0.2,
+        });
+        detailedQuestions = normalizeProviderResponse(
+          providerResult,
+          transcriptEvidence.candidateSource
+        );
+      } catch (fallbackError) {
+        providerLatencyMs = Date.now() - providerStartedAt;
+        rejectedProviderUsage = addProviderUsage(
+          rejectedProviderUsage,
+          usageFromProviderError(fallbackError)
+        );
+        throw fallbackError;
+      }
     }
 
+    if (!providerResult) {
+      throw new TextAiProviderError('No Speaking feedback provider returned a result', {
+        provider: 'none',
+        code: 'provider_failure',
+      });
+    }
+    deliveredProviderResult = providerResult;
+    deliveredProviderUsage = providerResult.usage;
+    providerLatencyMs = Date.now() - providerStartedAt;
+    const totalProviderUsage = addProviderUsage(deliveredProviderUsage, rejectedProviderUsage);
+    const detailedAnalysis = {
+      questions: detailedQuestions,
+      evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
+      generatedAt: new Date().toISOString(),
+      model: providerResult.model,
+      speakingSessionId,
+    };
     const responsePayload = { success: true, detailedAnalysis };
 
-    // Log successful usage
-    await finalizeApiUsage(supabase, quotaReservationId, tokensUsed, false, {
+    // Attribute delivered work to its provider and include any billed Luna
+    // attempt that had to be discarded before Gemini returned a valid report.
+    await finalizeApiUsage(supabase, quotaReservationId, totalProviderUsage.tokensUsed, false, {
       testId,
       speakingSessionId,
       partsAnalyzed: [1, 2, 3].filter((p) => !!allPartsConversation[p]).length,
-      model: 'gemini-2.5-flash',
-      // This route is single-provider, so `provider` has to be stated
-      // explicitly or every deep dive lands in the unattributed bucket.
-      provider: 'gemini',
-      fallbackUsed: false,
-      promptTokens,
-      outputTokens,
-      estimatedProviderCostUsd: estimateTokenCostUsd('gemini-2.5-flash', {
-        promptTokens,
-        cachedPromptTokens: 0,
-        outputTokens,
-      }),
+      primaryModel: SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL,
+      model: providerResult.model,
+      provider: providerResult.provider,
+      fallbackUsed,
+      fallbackReason,
+      providerStatus: fallbackUsed ? fallbackProviderStatus : null,
+      providerFailureReason: fallbackUsed ? fallbackReason : null,
+      providerLatencyMs,
+      promptTokens: totalProviderUsage.promptTokens,
+      cachedPromptTokens: totalProviderUsage.cachedPromptTokens,
+      outputTokens: totalProviderUsage.outputTokens,
+      estimatedProviderCostUsd: totalProviderUsage.estimatedProviderCostUsd,
+      wastedProviderCostUsd: rejectedProviderUsage.estimatedProviderCostUsd,
       response: responsePayload,
     });
     quotaReservationId = undefined;
@@ -400,12 +533,39 @@ Return an empty grammaticalErrors array [] if no errors are found. Return the st
   } catch (error: any) {
     console.error('Error in generateDetailedSpeakingFeedback:', error);
     if (quotaReservationId) {
+      const failedProviderUsage = addProviderUsage(deliveredProviderUsage, rejectedProviderUsage);
       await finalizeApiUsage(
         supabase,
         quotaReservationId,
-        0,
+        failedProviderUsage.tokensUsed,
         false,
-        { failureReason: error?.message || 'Internal server error' },
+        {
+          primaryModel: SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL,
+          model:
+            deliveredProviderResult?.model ||
+            (fallbackUsed
+              ? SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL
+              : SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL),
+          provider:
+            deliveredProviderResult?.provider || (fallbackUsed ? 'gemini' : 'openrouter-luna'),
+          fallbackUsed,
+          fallbackReason,
+          providerStatus:
+            error instanceof TextAiProviderError
+              ? error.status
+              : fallbackUsed
+                ? fallbackProviderStatus
+                : null,
+          providerFailureReason:
+            error instanceof TextAiProviderError ? providerFailureReason(error) : null,
+          providerLatencyMs,
+          promptTokens: failedProviderUsage.promptTokens,
+          cachedPromptTokens: failedProviderUsage.cachedPromptTokens,
+          outputTokens: failedProviderUsage.outputTokens,
+          estimatedProviderCostUsd: failedProviderUsage.estimatedProviderCostUsd,
+          wastedProviderCostUsd: rejectedProviderUsage.estimatedProviderCostUsd,
+          failureReason: error?.message || 'Internal server error',
+        },
         'failed'
       );
     }

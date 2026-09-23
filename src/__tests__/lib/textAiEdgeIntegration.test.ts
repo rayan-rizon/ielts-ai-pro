@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   AI_ROUTES,
+  SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL,
+  SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL,
   WRITING_DIRECT_GEMINI_MODEL,
 } from '../../../supabase/functions/_shared/aiModelRegistry';
 
@@ -27,6 +29,23 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(source).toContain('estimatedProviderCostUsd');
   });
 
+  it('uses GPT-6 Luna first and direct Google Gemini as Speaking deep-dive fallback', () => {
+    const speaking = readFunction('generateDetailedSpeakingFeedback');
+    const steps = AI_ROUTES.find((route) => route.id === 'speaking-detailed-feedback')?.steps;
+
+    expect(steps?.map((step) => [step.role, step.model])).toEqual([
+      ['primary', SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL],
+      ['fallback', SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL],
+    ]);
+    expect(speaking).toContain("Deno.env.get('OPENROUTER_API_KEY')");
+    expect(speaking).toContain("Deno.env.get('GEMINI_API_KEY')");
+    expect(speaking).toContain('requestOpenRouterLunaJson');
+    expect(speaking).toContain('requestGeminiWithRetry');
+    expect(speaking).toContain('jsonMode: false');
+    expect(speaking).toContain('normalizeProviderResponse');
+    expect(speaking).toContain('wastedProviderCostUsd');
+  });
+
   it('uses direct Google Gemini for Writing fallback and DeepSeek fallback for Speaking', () => {
     const writing = readFunction('generateDetailedFeedback');
     const speaking = readFunction('evaluateSpeakingTest');
@@ -40,7 +59,7 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
     expect(writing).toContain("rateLimitType: 'provider'");
     const writingSteps = AI_ROUTES.find((route) => route.id === 'writing-detailed-feedback')?.steps;
     expect(writingSteps?.map((step) => [step.role, step.model])).toEqual([
-      ['primary', 'openai/gpt-5.6-luna'],
+      ['primary', 'openai/gpt-6-luna'],
       ['fallback', WRITING_DIRECT_GEMINI_MODEL],
       ['repair', WRITING_DIRECT_GEMINI_MODEL],
     ]);

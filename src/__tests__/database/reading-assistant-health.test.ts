@@ -16,6 +16,13 @@ const fallbackHealthMigration = readFileSync(
   ),
   'utf8'
 );
+const lunaHealthMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20260923150515_switch_luna_model_health_telemetry.sql'
+  ),
+  'utf8'
+);
 const functionSource = readFileSync(
   resolve(process.cwd(), 'supabase/functions/reading-assistant/index.ts'),
   'utf8'
@@ -42,6 +49,22 @@ describe('Reading assistant operational telemetry', () => {
     expect(fallbackHealthMigration).toContain("'glmCalls', v_glm");
     expect(fallbackHealthMigration).toContain(
       'GPT OSS 120B -> GPT-5.6 Luna -> DeepSeek V4 Flash -> Gemini 2.5 Flash -> GLM 5.3 Flash'
+    );
+  });
+
+  it('combines historical GPT-5.6 Luna and active GPT-6 Luna calls in health telemetry', () => {
+    expect(lunaHealthMigration).toContain("'openai/gpt-5.6-luna', 'openai/gpt-6-luna'");
+    expect(lunaHealthMigration).toContain(
+      'GPT OSS 120B -> GPT-6 Luna -> DeepSeek V4 Flash -> GLM 5.3 Flash'
+    );
+    expect(lunaHealthMigration).toContain(
+      "replace(service->>'provider', 'GPT-5.6 Luna', 'GPT-6 Luna')"
+    );
+    expect(lunaHealthMigration).toContain(
+      'REVOKE ALL ON FUNCTION public.get_platform_health(integer) FROM PUBLIC, anon, authenticated'
+    );
+    expect(lunaHealthMigration).toContain(
+      'GRANT EXECUTE ON FUNCTION public.get_platform_health(integer) TO authenticated'
     );
   });
 

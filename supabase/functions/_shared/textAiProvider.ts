@@ -2,8 +2,8 @@ import { estimateTokenCostUsd } from './aiModelRegistry.ts';
 
 export const DEEPSEEK_TEXT_MODEL = 'deepseek-v4-flash';
 export const OPENROUTER_DEEPSEEK_MODEL = 'deepseek/deepseek-v4-flash-0731';
-export const OPENROUTER_LUNA_MODEL = 'openai/gpt-5.6-luna';
-export const VERCEL_GATEWAY_LUNA_MODEL = 'openai/gpt-5.6-luna';
+export const OPENROUTER_LUNA_MODEL = 'openai/gpt-6-luna';
+export const VERCEL_GATEWAY_LUNA_MODEL = 'openai/gpt-6-luna';
 export const GEMINI_TEXT_FALLBACK_MODEL = 'gemini-2.5-flash-lite';
 export const GEMINI_SCORING_MODEL = 'gemini-2.5-flash';
 
@@ -126,6 +126,16 @@ export function parseJsonText(value: unknown) {
   try {
     return JSON.parse(stripped);
   } catch {
+    const arrayStart = stripped.indexOf('[');
+    const arrayEnd = stripped.lastIndexOf(']');
+    const objectStart = stripped.indexOf('{');
+    if (arrayStart >= 0 && arrayEnd > arrayStart && (objectStart < 0 || arrayStart < objectStart)) {
+      try {
+        return JSON.parse(stripped.slice(arrayStart, arrayEnd + 1));
+      } catch {
+        // Try an object next; malformed array text stays rejected below.
+      }
+    }
     const jsonMatch = stripped.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
@@ -360,7 +370,9 @@ export async function requestOpenRouterDeepSeekJson(
   }
 }
 
-export async function requestOpenRouterLunaJson(request: ProviderRequest): Promise<TextAiResult> {
+export async function requestOpenRouterLunaJson(
+  request: ProviderRequest & { jsonMode?: boolean }
+): Promise<TextAiResult> {
   const fetchImpl = request.fetchImpl || fetch;
   try {
     const response = await fetchWithTimeout(
@@ -376,7 +388,7 @@ export async function requestOpenRouterLunaJson(request: ProviderRequest): Promi
         body: JSON.stringify({
           model: OPENROUTER_LUNA_MODEL,
           messages: chatMessages(request),
-          response_format: { type: 'json_object' },
+          ...(request.jsonMode === false ? {} : { response_format: { type: 'json_object' } }),
           reasoning: { effort: 'none', exclude: true },
           provider: { sort: 'latency', require_parameters: true },
           max_tokens: request.maxOutputTokens,

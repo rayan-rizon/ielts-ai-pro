@@ -6,6 +6,7 @@ import {
   OPENROUTER_DEEPSEEK_MODEL,
   OPENROUTER_LUNA_MODEL,
   VERCEL_GATEWAY_LUNA_MODEL,
+  parseJsonText,
   requestJsonWithGeminiFallback,
   requestGeminiJson,
   requestOpenRouterLunaJson,
@@ -103,6 +104,35 @@ describe('text AI provider routing', () => {
       parsed: { fluency: 7 },
       usage: { estimatedProviderCostUsd: 0.0004 },
     });
+  });
+
+  it('accepts a top-level JSON array from Luna without OpenRouter object-only mode', async () => {
+    const report = [{ part: 1, candidateAnswer: 'I cycle most days.' }];
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({
+        model: OPENROUTER_LUNA_MODEL,
+        choices: [{ message: { content: `Here is the report:\n${JSON.stringify(report)}` } }],
+        usage: { prompt_tokens: 800, completion_tokens: 120, total_tokens: 920, cost: 0.0003 },
+      })
+    );
+
+    const result = await requestOpenRouterLunaJson({
+      prompt: 'Return the Speaking report as a JSON array.',
+      apiKey: 'openrouter-test-key',
+      maxOutputTokens: 6144,
+      jsonMode: false,
+      validateJson: Array.isArray,
+      fetchImpl,
+    });
+
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body).not.toHaveProperty('response_format');
+    expect(result.parsed).toEqual(report);
+    expect(result.usage.estimatedProviderCostUsd).toBe(0.0003);
+  });
+
+  it('extracts a wrapped top-level JSON array while preserving the Speaking output contract', () => {
+    expect(parseJsonText('Report follows:\n```json\n[{"part":1}]\n```')).toEqual([{ part: 1 }]);
   });
 
   it('uses OpenRouter DeepSeek V4 Flash 0731 first with reasoning disabled and no exposed reasoning text', async () => {

@@ -245,7 +245,7 @@ describe('PlatformHealthDashboard operations console', () => {
           key: 'personalized_ai_coach',
           label: 'Personalized AI Coach',
           category: 'ai',
-          provider: 'OpenRouter GPT-OSS 120B -> GPT-5.6 Luna',
+          provider: 'OpenRouter GPT-OSS 120B -> GPT-6 Luna',
           status: 'attention',
           source: 'ai_coach_private operations and budget ledger',
           impact: 'Daily coach spend has crossed the $2.40 warning threshold.',

@@ -153,6 +153,7 @@ export async function requestOpenRouterWritingFeedback({
         seed,
         max_tokens: 4096,
         provider: { sort: 'throughput', require_parameters: true },
+        usage: { include: true },
         stream: false,
       }),
       signal: controller.signal,
