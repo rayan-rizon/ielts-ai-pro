@@ -53,7 +53,6 @@ import {
   Highlighter,
   FileText,
   AlertTriangle,
-  Home,
   Brain,
   Lightbulb,
   XCircle,
@@ -931,9 +930,15 @@ function ReadingTestContent() {
                 </Link>
               </Button>
               <Button asChild data-oid="nrr4bfg">
-                <Link to={createPageUrl('Dashboard')} data-oid="w976uoh">
-                  <Home className="w-4 h-4 mr-2" data-oid="g7s23ma" />
-                  Dashboard
+                <Link
+                  to={
+                    error.includes('free reading test limit')
+                      ? '/pricing'
+                      : createPageUrl('Dashboard')
+                  }
+                  data-oid="w976uoh"
+                >
+                  {error.includes('free reading test limit') ? 'See unlimited plans' : 'Dashboard'}
                 </Link>
               </Button>
             </div>

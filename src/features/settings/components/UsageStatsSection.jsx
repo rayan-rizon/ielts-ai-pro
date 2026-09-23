@@ -195,6 +195,38 @@ export default function UsageStatsSection() {
             </div>
 
             <div className={cn(PANEL, 'p-4 sm:p-5 lg:col-span-2')}>
+              <PanelTitle label="Reading & Listening starts" accent />
+              <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
+                Practice and Exam starts count when you begin. Resuming does not use another start.
+              </p>
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {[
+                  { key: 'reading', label: 'Reading', icon: FileText },
+                  { key: 'listening', label: 'Listening', icon: Headphones },
+                ].map(({ key, label, icon: Icon }) => {
+                  const quota = stats.testStarts?.[key];
+                  return (
+                    <div key={key} className={cn(TILE, 'flex items-center gap-3 p-3.5')}>
+                      <Icon className="h-4 w-4 shrink-0 text-[#5a63df]" />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
+                          {label}
+                        </h4>
+                        <p className={cn(MICRO, MUTED, 'mt-0.5 normal-case tracking-normal')}>
+                          {quota?.monthly_limit === -1
+                            ? 'Unlimited this month'
+                            : `${quota?.monthly_used ?? 0} / ${quota?.monthly_limit ?? 0} this month`}
+                          {quota?.daily_limit !== -1 &&
+                            ` · ${quota?.daily_used ?? 0} / ${quota?.daily_limit ?? 0} today`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={cn(PANEL, 'p-4 sm:p-5 lg:col-span-2')}>
               <div className="flex items-center justify-between">
                 <PanelTitle label="Practice tests" accent />
                 <Pill tone="neutral">{totalTests} total</Pill>

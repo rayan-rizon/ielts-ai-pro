@@ -13,6 +13,8 @@ import {
   Shield,
   Pen,
   Mic,
+  BookOpen,
+  Headphones,
   Globe,
   Plus,
 } from 'lucide-react';
@@ -46,6 +48,10 @@ const QUOTA_FIELDS = [
   'writing_monthly_limit',
   'speaking_daily_limit',
   'speaking_monthly_limit',
+  'reading_daily_limit',
+  'reading_monthly_limit',
+  'listening_daily_limit',
+  'listening_monthly_limit',
 ];
 
 const DEFAULT_QUOTAS = {
@@ -56,6 +62,10 @@ const DEFAULT_QUOTAS = {
   writing_monthly_limit: 5,
   speaking_daily_limit: 5,
   speaking_monthly_limit: 5,
+  reading_daily_limit: -1,
+  reading_monthly_limit: -1,
+  listening_daily_limit: -1,
+  listening_monthly_limit: -1,
 };
 
 const limitKey = (tier, currency) => `${tier}_${currency || 'ALL'}`;
@@ -101,6 +111,34 @@ const LimitInput = ({ label, value, onChange }) => (
   </div>
 );
 
+const TestStartLimitInput = ({ label, value, onChange }) => (
+  <div className="space-y-1 min-w-0">
+    <label className={cn(MICRO, 'flex items-center gap-1.5 text-stone-500 dark:text-stone-400')}>
+      <input
+        type="checkbox"
+        checked={value === -1}
+        onChange={(event) => onChange(event.target.checked ? -1 : 0)}
+        className="accent-[#5a63df]"
+      />
+      {label} unlimited
+    </label>
+    <Input
+      type="number"
+      min="0"
+      step="1"
+      aria-label={`${label} test starts`}
+      value={value === -1 ? '' : value}
+      placeholder="Unlimited"
+      disabled={value === -1}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(
+        NUM,
+        'h-7 w-full min-w-0 rounded-md border-stone-300 bg-white px-2 text-xs font-bold dark:border-white/15 dark:bg-[#131315]'
+      )}
+    />
+  </div>
+);
+
 const TierHeader = ({
   tierName,
   tierIcon: TierIcon,
@@ -121,7 +159,7 @@ const TierHeader = ({
             {tierName} tier
           </h4>
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
-            API & evaluation quotas
+            API, evaluation & test start quotas
           </p>
         </div>
       </div>
@@ -174,6 +212,7 @@ const TierHeader = ({
 );
 
 const TierBody = ({
+  tierName,
   selectedCur,
   edited,
   activeLimitData,
@@ -182,7 +221,10 @@ const TierBody = ({
   onValueChange,
   onSave,
 }) => {
-  const getVal = (field) => edited[field] ?? activeLimitData[field] ?? 0;
+  const getVal = (field) =>
+    edited[field] ??
+    activeLimitData[field] ??
+    (field.startsWith('reading_') || field.startsWith('listening_') ? -1 : 0);
 
   return (
     <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
@@ -261,6 +303,41 @@ const TierBody = ({
             </div>
           </div>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {[
+            { name: 'Reading', icon: BookOpen, key: 'reading' },
+            { name: 'Listening', icon: Headphones, key: 'listening' },
+          ].map(({ name, icon: Icon, key }) => (
+            <div
+              key={key}
+              className="space-y-1.5 rounded-md border border-stone-200/70 bg-stone-50/70 p-2.5 dark:border-white/6 dark:bg-white/2"
+            >
+              <div
+                className={cn(MICRO, 'flex items-center gap-1 text-stone-500 dark:text-stone-400')}
+              >
+                <Icon className="h-2.5 w-2.5" /> {name}
+              </div>
+              {tierName === 'free' ? (
+                <div className="grid grid-cols-2 gap-1.5">
+                  <TestStartLimitInput
+                    label="Daily"
+                    value={getVal(`${key}_daily_limit`) ?? -1}
+                    onChange={(v) => onValueChange(`${key}_daily_limit`, v)}
+                  />
+                  <TestStartLimitInput
+                    label="Monthly"
+                    value={getVal(`${key}_monthly_limit`) ?? -1}
+                    onChange={(v) => onValueChange(`${key}_monthly_limit`, v)}
+                  />
+                </div>
+              ) : (
+                <p className="text-xs font-semibold text-stone-700 dark:text-stone-200">
+                  Unlimited solo test starts
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="pt-3 border-t border-stone-100 dark:border-white/6 flex justify-between items-center mt-2">
@@ -314,6 +391,7 @@ const TierCard = ({
         hasChanges={(cur) => hasChanges(tierName, cur)}
       />
       <TierBody
+        tierName={tierName}
         selectedCur={selectedCur}
         edited={edited}
         activeLimitData={activeLimitData}
@@ -376,9 +454,10 @@ const TierRateLimitsSettings = () => {
 
   const handleValueChange = (tier, currency, field, value) => {
     const key = limitKey(tier, currency);
+    const numericValue = value === -1 ? -1 : Math.max(0, parseInt(value, 10) || 0);
     setEditedValues((prev) => ({
       ...prev,
-      [key]: { ...(prev[key] || {}), [field]: parseInt(value) || 0 },
+      [key]: { ...(prev[key] || {}), [field]: numericValue },
     }));
   };
 
@@ -391,6 +470,7 @@ const TierRateLimitsSettings = () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['tier-rate-limits'] }),
         queryClient.invalidateQueries({ queryKey: ['subscription', 'pricingConfig'] }),
+        queryClient.invalidateQueries({ queryKey: ['objective-test-quotas'] }),
       ]);
       toast.success(`${tier.charAt(0).toUpperCase() + tier.slice(1)} (${currency}) limits updated`);
       fetchTierLimits();
@@ -450,7 +530,7 @@ const TierRateLimitsSettings = () => {
         <div>
           <h3 className="text-sm font-extrabold text-stone-900 dark:text-stone-50 flex items-center gap-2">
             <Gauge className="w-4 h-4 text-stone-500 dark:text-stone-400" />
-            AI Rate Limits
+            Usage Limits
           </h3>
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
             Global defaults and currency-specific overrides

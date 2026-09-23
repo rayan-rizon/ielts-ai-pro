@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { Passage, Question, User } from '@/entities';
+import { queryClient } from '@/lib/queryClient';
 import {
   objectiveRequest,
   serverScoringEnabled,
@@ -61,12 +62,37 @@ interface InitializeTestResult {
 }
 
 interface CreateSessionParams {
-  userId: string;
   passageId: string;
   type: 'reading' | 'listening';
   testMode?: 'practice' | 'exam';
   durationSeconds?: number;
   learningPathActivityId?: string | null;
+  audioDurations?: number[];
+  requestId?: string;
+}
+
+export class ObjectiveTestQuotaError extends Error {
+  quota: Record<string, number | string>;
+
+  constructor(quota: Record<string, number | string>) {
+    super('Test start limit reached');
+    this.name = 'ObjectiveTestQuotaError';
+    this.quota = quota;
+  }
+}
+
+export function getObjectiveStartErrorMessage(error: unknown, type: 'reading' | 'listening') {
+  if (error instanceof ObjectiveTestQuotaError) {
+    const q = error.quota;
+    const monthlyReached =
+      Number(q.monthly_limit) >= 0 && Number(q.monthly_used) >= Number(q.monthly_limit);
+    const reset = new Date(String(monthlyReached ? q.monthly_reset_at : q.daily_reset_at));
+    const when = Number.isNaN(reset.getTime())
+      ? 'when your limit resets'
+      : reset.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    return `You've reached your free ${type} test limit. You can start another test ${when}, or upgrade for unlimited tests.`;
+  }
+  return `Failed to start the ${type} test. Please try again.`;
 }
 
 const DATABASE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -324,34 +350,38 @@ export async function initializeTest({
  * Create a new test session
  */
 export async function createTestSession({
-  userId,
   passageId,
   type,
   testMode = 'practice',
   durationSeconds = 60 * 60,
   learningPathActivityId = null,
+  audioDurations = [],
+  requestId = crypto.randomUUID(),
 }: CreateSessionParams): Promise<TestSession> {
-  const durationMinutes = Math.ceil(durationSeconds / 60);
-  const { data, error } = await supabase
-    .from('test_sessions')
-    .insert({
-      user_id: userId,
-      test_type: type,
-      test_mode: testMode === 'exam' ? 'mock' : 'practice',
-      is_completed: false,
-      duration_minutes: durationMinutes,
-      passage_id: passageId,
-      learning_path_activity_id: learningPathActivityId,
-      content_data: {
-        passage_id: passageId,
-        test_mode: testMode,
-        duration_seconds: durationSeconds,
-      },
-    })
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc('start_objective_test', {
+    p_passage_id: passageId,
+    p_test_type: type,
+    p_test_mode: testMode,
+    p_duration_seconds: durationSeconds,
+    p_learning_path_activity_id: learningPathActivityId,
+    p_audio_durations: audioDurations,
+    p_request_id: requestId,
+  });
 
   if (error) throw error;
-  if (serverScoringEnabled()) await objectiveRequest('load', { sessionId: data.id });
-  return data as TestSession;
+  if (data?.error === 'quota_exceeded') {
+    throw new ObjectiveTestQuotaError(data.quota || {});
+  }
+  if (!data?.session?.id) throw new Error('Test start did not return a session');
+  queryClient.invalidateQueries({ queryKey: ['objective-test-quotas'] });
+  // The session and quota are already committed. A temporary scoring load failure
+  // must not make a retry consume another start; the session route can load it.
+  if (serverScoringEnabled()) {
+    try {
+      await objectiveRequest('load', { sessionId: data.session.id });
+    } catch (loadError) {
+      console.warn('Objective test created; scoring will load from the session route', loadError);
+    }
+  }
+  return data.session as TestSession;
 }
