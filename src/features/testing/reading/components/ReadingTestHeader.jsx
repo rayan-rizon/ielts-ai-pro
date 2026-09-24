@@ -19,6 +19,7 @@ import { getQuestionCount } from '@/lib/utils';
 import { useReadingTestTimer } from './ReadingTest/context/ReadingTestContext';
 import PacingIndicator from './ReadingTest/components/PacingIndicator';
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
+import TestIssueReportDialog from '@/features/testing/shared/components/TestIssueReportDialog';
 import ActiveGateHeader from '@/features/testing/paired/components/ActiveGateHeader';
 import {
   TEST_HEADER_AUTOSAVE,
@@ -403,6 +404,13 @@ const ReadingTestHeader = ({
                   {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
               </div>
+              <TestIssueReportDialog
+                testType="reading"
+                testId={testData?.id || testData?.test_id}
+                testTitle={testData?.title}
+                sectionLabel={`Passage ${currentPassageIndex + 1}`}
+                testMode={testMode}
+              />
               <div className={TEST_HEADER_TOOL_GROUP} data-oid="zjhsbll">
                 {/* Answer Toggle */}
                 {testMode !== 'exam' ? (

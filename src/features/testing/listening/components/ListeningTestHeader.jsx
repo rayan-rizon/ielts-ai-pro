@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 // Isolated Clock Component imported
 import ListeningTestClock from './ListeningTest/components/ListeningTestClock';
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
+import TestIssueReportDialog from '@/features/testing/shared/components/TestIssueReportDialog';
 import ActiveGateHeader from '@/features/testing/paired/components/ActiveGateHeader';
 import {
   TEST_HEADER_AUTOSAVE,
@@ -254,6 +255,13 @@ const ListeningTestHeader = ({
                   {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
               </div>
+              <TestIssueReportDialog
+                testType="listening"
+                testId={testData?.id || testData?.test_id}
+                testTitle={testData?.title}
+                sectionLabel={`Part ${activePart + 1}`}
+                testMode={testMode}
+              />
 
               <div className={TEST_HEADER_TOOL_GROUP} data-oid="hu9uhtj">
                 <Button

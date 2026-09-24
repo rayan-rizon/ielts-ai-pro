@@ -13,6 +13,7 @@ import {
   Gift,
   Target,
   Lightbulb,
+  Flag,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { createPageUrl } from '@/utils';
@@ -35,6 +36,7 @@ const AIUsageManagement = lazy(() => import('@/components/admin/AIUsageManagemen
 const ReferralManagement = lazy(() => import('@/components/admin/ReferralManagement'));
 const MarketingHub = lazy(() => import('@/components/admin/marketing/MarketingHub'));
 const FeatureRequestManagement = lazy(() => import('@/components/admin/FeatureRequestManagement'));
+const TestIssueReports = lazy(() => import('@/components/admin/TestIssueReports'));
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -43,6 +45,7 @@ const TABS = [
   { id: 'resources', label: 'Resources', icon: Library },
   { id: 'ai-usage', label: 'AI Usage', icon: Cpu },
   { id: 'feature-requests', label: 'Feature Requests', icon: Lightbulb },
+  { id: 'test-reports', label: 'Test Reports', icon: Flag },
   { id: 'promo', label: 'Promos', icon: Tag },
   { id: 'referrals', label: 'Referrals', icon: Gift },
   { id: 'marketing', label: 'Marketing', icon: Target },
@@ -302,6 +305,8 @@ export default function AdminPanel() {
         return <AIUsageManagement data-oid="_ai6za2" />;
       case 'feature-requests':
         return <FeatureRequestManagement />;
+      case 'test-reports':
+        return <TestIssueReports />;
       case 'referrals':
         return <ReferralManagement data-oid="zxyjtkd" />;
       case 'marketing':

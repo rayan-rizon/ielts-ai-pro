@@ -23,6 +23,7 @@ import {
   Target,
   Lightbulb,
   MessageCircleMore,
+  Flag,
 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { ReiconChart } from '@/components/icons/ReiconChart';
@@ -77,6 +78,11 @@ export const adminNavigationItems = [
     title: 'Test Management',
     url: createPageUrl('AdminPanel') + '?tab=tests',
     icon: ClipboardList,
+  },
+  {
+    title: 'Test Reports',
+    url: createPageUrl('AdminPanel') + '?tab=test-reports',
+    icon: Flag,
   },
   { title: 'Resources', url: createPageUrl('AdminPanel') + '?tab=resources', icon: Library },
   { title: 'User Management', url: createPageUrl('AdminPanel') + '?tab=users', icon: Users },

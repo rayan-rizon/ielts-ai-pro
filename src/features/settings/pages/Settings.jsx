@@ -29,6 +29,7 @@ import {
   Lightbulb,
   ArrowRight,
   Lock,
+  LifeBuoy,
 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -57,6 +58,7 @@ import PrivacySection from '../components/Sections/PrivacySection';
 import UsageStatsSection from '@/features/settings/components/UsageStatsSection';
 import ReferralSection from '@/features/settings/components/ReferralSection';
 import EmailPreferencesSection from '../components/Sections/EmailPreferencesSection';
+import SupportSection from '../components/Sections/SupportSection';
 
 const loadUserService = () => import('@/features/auth/services/User').then((module) => module.User);
 const loadSupabaseClient = () => import('@/lib/supabase').then((module) => module.supabase);
@@ -79,6 +81,7 @@ const navItems = [
   { id: 'account', label: 'Security', icon: Lock },
   { id: 'preferences', label: 'Email', icon: Mail },
   { id: 'privacy', label: 'Privacy', icon: Shield },
+  { id: 'support', label: 'Help & support', icon: LifeBuoy },
 ];
 
 export default function Settings() {
@@ -521,6 +524,8 @@ export default function Settings() {
                 {activeTab === 'preferences' && <EmailPreferencesSection />}
 
                 {activeTab === 'privacy' && <PrivacySection />}
+
+                {activeTab === 'support' && <SupportSection />}
               </m.div>
             </AnimatePresence>
           </div>
