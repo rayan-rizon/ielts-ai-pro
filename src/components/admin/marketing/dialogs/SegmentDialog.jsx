@@ -43,6 +43,8 @@ const SIGNUP_CHANNELS = [
   'paid_search',
   'organic_search',
   'organic_social',
+  'ai_referral',
+  'social',
   'referral',
   'email',
   'direct',

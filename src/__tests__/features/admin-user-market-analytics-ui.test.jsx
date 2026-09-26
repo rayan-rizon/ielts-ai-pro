@@ -108,7 +108,7 @@ describe('admin user market analytics UI', () => {
     expect(screen.getByText('Unknown country')).toBeInTheDocument();
     expect(screen.getByText(/88.2% covered/i)).toBeInTheDocument();
     expect(screen.getByText('Acquisition quality')).toBeInTheDocument();
-    expect(screen.getByText('Paid search (Google ads)')).toBeInTheDocument();
+    expect(screen.getByText('Paid search')).toBeInTheDocument();
     expect(screen.getByText('Largest observed market')).toBeInTheDocument();
     expect(screen.getByText(/markets with at least 5 signups/i)).toBeInTheDocument();
     expect(screen.getByText(/2 remain unknown/i)).toBeInTheDocument();

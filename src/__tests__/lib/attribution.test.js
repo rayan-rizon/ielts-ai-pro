@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { signupAttributionScript } from '../../../shared/signupAttributionCapture.js';
 import {
   classifyChannel,
   getMissingSignupProfileFields,
@@ -16,6 +15,7 @@ const STORAGE_KEY = 'attribution_first_touch';
 describe('signup attribution', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    delete window.__signupAttribution;
   });
 
   it('treats same-origin navigation to signup as direct, not a referral', () => {
@@ -37,7 +37,7 @@ describe('signup attribution', () => {
 
     expect(getStoredAttribution()).toBeNull();
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(getSignupAttribution()).toEqual({ signup_channel: 'direct' });
+    expect(getSignupAttribution()).toMatchObject({ signup_channel: 'direct' });
   });
 
   it('keeps external referrers classified as referrals', () => {
@@ -64,7 +64,7 @@ describe('signup attribution', () => {
     expect(classifyChannel({ referrer: 'https://accounts.google.com/' })).toBe('direct');
     expect(getStoredAttribution()).toBeNull();
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(getSignupAttribution()).toEqual({ signup_channel: 'direct' });
+    expect(getSignupAttribution()).toMatchObject({ signup_channel: 'direct' });
   });
 
   it('discards localized Google authentication hosts but preserves Google Search', () => {
@@ -75,10 +75,7 @@ describe('signup attribution', () => {
   });
 
   it('does not capture Google authentication as first touch before React starts', () => {
-    const indexHtml = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
-    const captureBlock = indexHtml.match(
-      /var captureAttribution = function \(\) \{[\s\S]*?\n\s{8}captureAttribution\(\);/
-    )?.[0];
+    const captureBlock = signupAttributionScript;
     const originalReferrer = Object.getOwnPropertyDescriptor(document, 'referrer');
 
     expect(captureBlock).toBeTruthy();
@@ -89,7 +86,7 @@ describe('signup attribution', () => {
 
     try {
       Function(captureBlock)();
-      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+      expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY)).referrer).toBeNull();
     } finally {
       if (originalReferrer) {
         Object.defineProperty(document, 'referrer', originalReferrer);
@@ -115,15 +112,17 @@ describe('signup attribution', () => {
       signup_utm_source: 'facebook',
       signup_fbclid: 'click-123',
     };
-    expect(getMissingSignupProfileFields({ signup_channel: 'direct' }, paid)).toEqual(paid);
+    const created_at = new Date().toISOString();
+    expect(
+      getMissingSignupProfileFields({ signup_channel: 'direct', created_at }, paid, {
+        capturedAt: created_at,
+      })
+    ).toMatchObject(paid);
     expect(getMissingSignupProfileFields({ signup_channel: 'organic_search' }, paid)).toEqual({});
   });
 
   it('removes auth credentials from a captured confirmation landing page', () => {
-    const indexHtml = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
-    const captureBlock = indexHtml.match(
-      /var captureAttribution = function \(\) \{[\s\S]*?\n\s{8}captureAttribution\(\);/
-    )?.[0];
+    const captureBlock = signupAttributionScript;
     const originalReferrer = Object.getOwnPropertyDescriptor(document, 'referrer');
     const originalPath = `${window.location.pathname}${window.location.search}`;
 
@@ -140,9 +139,7 @@ describe('signup attribution', () => {
     try {
       Function(captureBlock)();
       const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
-      expect(stored.landing_page).toBe(
-        '/auth/confirm?type=signup&utm_source=newsletter&utm_medium=email'
-      );
+      expect(stored.landing_page).toBe('/auth/confirm?utm_source=newsletter&utm_medium=email');
       expect(JSON.stringify(stored)).not.toContain('one-time-secret');
     } finally {
       window.history.replaceState({}, '', originalPath);

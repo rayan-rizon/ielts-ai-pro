@@ -2,8 +2,19 @@ const STORAGE_KEY = 'attribution_first_touch';
 
 const isBrowser = () => typeof window !== 'undefined';
 
-const SOCIAL_HOSTS = ['facebook.com', 'instagram.com', 'l.facebook.com', 'lm.facebook.com'];
-const SEARCH_HOSTS = ['google.', 'bing.com', 'yahoo.com', 'duckduckgo.com'];
+const SOCIAL_HOSTS = [
+  'facebook.com',
+  'instagram.com',
+  'threads.net',
+  'threads.com',
+  'tiktok.com',
+  'linkedin.com',
+  'twitter.com',
+  'x.com',
+  'reddit.com',
+  'youtube.com',
+  'pinterest.com',
+];
 const GOOGLE_AUTHENTICATION_HOST = /^accounts\.google\.[a-z.]+$/i;
 const SENSITIVE_LANDING_PARAMS = [
   'token_hash',
@@ -12,15 +23,71 @@ const SENSITIVE_LANDING_PARAMS = [
   'refresh_token',
   'error_description',
 ];
-
-const hostIncludes = (referrer, list) => {
-  if (!referrer) return false;
+const AI_PROVIDERS = [
+  ['ChatGPT', ['chatgpt.com', 'chat.openai.com'], ['chatgpt', 'openai']],
+  ['Claude', ['claude.ai'], ['claude', 'anthropic']],
+  ['Gemini', ['gemini.google.com'], ['gemini']],
+  ['Perplexity', ['perplexity.ai'], ['perplexity']],
+  ['Copilot', ['copilot.microsoft.com'], ['copilot', 'microsoft-copilot']],
+  ['Grok', ['grok.com'], ['grok']],
+  ['DeepSeek', ['chat.deepseek.com'], ['deepseek']],
+  ['Qwen', ['qwen.ai', 'chat.qwenlm.ai'], ['qwen']],
+  ['Kimi', ['kimi.com', 'kimi.ai'], ['kimi']],
+  ['Mistral', ['chat.mistral.ai'], ['mistral', 'le-chat']],
+  ['Meta AI', ['meta.ai'], ['meta-ai']],
+  ['Poe', ['poe.com'], ['poe']],
+  ['You.com', ['you.com'], ['you.com']],
+  ['Phind', ['phind.com'], ['phind']],
+  ['Duck.ai', ['duck.ai'], ['duck.ai']],
+];
+const hostname = (value) => {
   try {
-    const host = new URL(referrer).hostname;
-    return list.some((needle) => host.includes(needle));
+    return new URL(value).hostname.toLowerCase();
   } catch {
-    return false;
+    return '';
   }
+};
+const matchesHost = (host, domain) => host === domain || host.endsWith(`.${domain}`);
+const hostMatches = (value, domains) =>
+  domains.some((domain) => matchesHost(hostname(value), domain));
+const sourceKey = (value) => (value || '').trim().toLowerCase().replace(/\s+/g, '-');
+export const getAIProvider = (attribution = {}) => {
+  const source = sourceKey(attribution.utm_source);
+  const host = hostname(attribution.referrer);
+  for (const [name, domains, aliases] of AI_PROVIDERS) {
+    if (
+      aliases.includes(source) ||
+      domains.some((domain) => source === domain || matchesHost(host, domain))
+    )
+      return name;
+  }
+  try {
+    const url = new URL(attribution.referrer);
+    if (matchesHost(host, 'bing.com') && /^\/(chat|copilot)(\/|$)/.test(url.pathname))
+      return 'Copilot';
+    if (matchesHost(host, 'x.com') && /^\/i\/grok(\/|$)/.test(url.pathname)) return 'Grok';
+    if (host === 'huggingface.co' && /^\/chat(\/|$)/.test(url.pathname)) return 'HuggingChat';
+  } catch {
+    /* source alone can still identify an AI tool */
+  }
+  return null;
+};
+const isSearchReferrer = (referrer) => {
+  const host = hostname(referrer);
+  return (
+    /^(www\.)?google\.(com|[a-z]{2}|com\.[a-z]{2}|co\.[a-z]{2})$/.test(host) ||
+    host === 'com.google.android.googlequicksearchbox' ||
+    [
+      'bing.com',
+      'search.yahoo.com',
+      'duckduckgo.com',
+      'search.brave.com',
+      'baidu.com',
+      'yandex.com',
+      'yandex.ru',
+      'ecosia.org',
+    ].some((domain) => matchesHost(host, domain))
+  );
 };
 
 export const sanitizeSignupLandingPage = (landingPage) => {
@@ -43,11 +110,17 @@ export const sanitizeSignupLandingPage = (landingPage) => {
  */
 export const isInternalReferrer = (
   referrer,
-  origin = isBrowser() ? window.location.origin : ''
+  origin = isBrowser() ? window.location.origin : 'https://www.ieltsai.pro'
 ) => {
   if (!referrer || !origin) return false;
   try {
-    return new URL(referrer).origin === new URL(origin).origin;
+    const from = new URL(referrer);
+    const to = new URL(origin);
+    return (
+      from.origin === to.origin ||
+      (['ieltsai.pro', 'www.ieltsai.pro'].includes(from.hostname) &&
+        ['ieltsai.pro', 'www.ieltsai.pro'].includes(to.hostname))
+    );
   } catch {
     return false;
   }
@@ -89,13 +162,23 @@ export const hasSignupAttributionSignal = (attribution) => {
  * by evidence. The Auth hook can win the race with the browser profile insert;
  * this patch makes the later profile read finish that synchronization.
  */
-export const getMissingSignupProfileFields = (profile, browserAttribution) => {
-  const patch = {};
-  if (!hasSignupAttributionSignal(profile) && hasSignupAttributionSignal(browserAttribution)) {
-    Object.assign(patch, browserAttribution);
-  }
-
-  return patch;
+export const getMissingSignupProfileFields = (profile, browserAttribution, options = {}) => {
+  const now = options.now ?? Date.now();
+  const created = Date.parse(profile.created_at);
+  const captured = Date.parse(options.capturedAt ?? getStoredAttribution()?.captured_at);
+  // Only finish an in-flight signup. Never turn a returning visit into signup evidence.
+  if (
+    profile.signup_attribution_recorded_at ||
+    hasSignupAttributionSignal(profile) ||
+    !Number.isFinite(created) ||
+    !Number.isFinite(captured) ||
+    now - created > 10 * 60 * 1000 ||
+    created > now + 5000 ||
+    captured > created + 5000 ||
+    now - captured > 30 * 86400000
+  )
+    return {};
+  return { ...browserAttribution, signup_attribution_recorded_at: new Date(now).toISOString() };
 };
 
 const withoutNonAcquisitionReferrer = (attribution) => {
@@ -129,22 +212,36 @@ const withoutNonAcquisitionReferrer = (attribution) => {
 
 /**
  * Read the first-touch attribution snapshot captured in index.html before the
- * SPA router strips query params. Returns null if this browser has never
- * landed with any recognizable acquisition signal (utm_*, click id, referrer).
+ * SPA router strips query params. A version-2 snapshot also records no-signal
+ * landings so a later visit cannot replace the first touch.
  */
 export const getStoredAttribution = () => {
   if (!isBrowser()) return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    let raw;
+    try {
+      raw = window.localStorage.getItem(STORAGE_KEY);
+    } catch {
+      /* blocked storage */
+    }
+    if (!raw && window.__signupAttribution) raw = JSON.stringify(window.__signupAttribution);
     const attribution = raw ? JSON.parse(raw) : null;
     const sanitized = withoutNonAcquisitionReferrer(attribution);
 
     // Remove bad legacy snapshots so a future genuine external first touch can
     // be captured rather than being blocked by navigation or authentication.
     if (attribution && !sanitized) {
-      window.localStorage.removeItem(STORAGE_KEY);
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* blocked storage */
+      }
     } else if (sanitized && JSON.stringify(sanitized) !== raw) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+      } catch {
+        /* blocked storage */
+      }
     }
 
     return sanitized;
@@ -153,45 +250,71 @@ export const getStoredAttribution = () => {
   }
 };
 
-/**
- * Bucket a raw attribution snapshot into one channel for reporting.
- *
- * Order matters: a Meta/Google click id is the strongest signal (it means an
- * ad was actually clicked) and is checked before falling back to UTM medium
- * or bare referrer parsing, which are easier to spoof or omit.
- */
+/** Classify evidence, without treating social click IDs as proof of paid ads. */
 export const classifyChannel = (attribution) => {
-  const sanitized = withoutNonAcquisitionReferrer(attribution);
-  if (!sanitized) return 'direct';
-
-  const { fbclid, gclid, utm_source: source, utm_medium: medium, referrer } = sanitized;
-  const src = (source || '').toLowerCase();
-  const med = (medium || '').toLowerCase();
-
-  if (
-    fbclid ||
-    (['facebook', 'fb', 'meta', 'instagram', 'ig'].includes(src) && !med) ||
-    (['facebook', 'fb', 'meta', 'instagram', 'ig'].includes(src) &&
-      ['cpc', 'paid', 'ad', 'ads'].includes(med))
-  ) {
-    return 'paid_social';
-  }
-
-  if (gclid || (src === 'google' && ['cpc', 'paid', 'ad', 'ads'].includes(med))) {
+  const value = withoutNonAcquisitionReferrer(attribution);
+  if (!value) return 'direct';
+  const { fbclid, gclid, referrer } = value;
+  const src = sourceKey(value.utm_source);
+  const med = sourceKey(value.utm_medium).replace(/-/g, '_');
+  const social =
+    [
+      'facebook',
+      'fb',
+      'meta',
+      'instagram',
+      'ig',
+      'threads',
+      'th',
+      'tiktok',
+      'linkedin',
+      'twitter',
+      'x',
+      'reddit',
+      'pinterest',
+    ].includes(src) || SOCIAL_HOSTS.some((host) => src === host);
+  const search = ['google', 'bing', 'yahoo', 'duckduckgo', 'baidu', 'yandex', 'ecosia'].includes(
+    src
+  );
+  const paid = [
+    'cpc',
+    'ppc',
+    'paid',
+    'ad',
+    'ads',
+    'paid_social',
+    'paidsocial',
+    'paid_search',
+    'paidsearch',
+    'cpm',
+  ].includes(med);
+  // Explicit campaign tags outrank a possibly incidental redirect referrer.
+  if (med === 'email' || med === 'newsletter') return 'email';
+  if (paid && (social || med === 'paid_social' || med === 'paidsocial')) return 'paid_social';
+  if (gclid || (paid && (search || med === 'paid_search' || med === 'paidsearch')))
     return 'paid_search';
-  }
-
-  if (med === 'email') return 'email';
-  if (med === 'referral' || (source && !medium)) return 'referral';
-
-  if (!source && !medium) {
-    if (hostIncludes(referrer, SEARCH_HOSTS)) return 'organic_search';
-    if (hostIncludes(referrer, SOCIAL_HOSTS)) return 'organic_social';
-    if (referrer) return 'referral';
-    return 'direct';
-  }
-
-  return 'other';
+  if (paid && (fbclid || hostMatches(referrer, SOCIAL_HOSTS))) return 'paid_social';
+  if (getAIProvider(value) || ['ai', 'llm', 'ai_referral', 'ai_assistant'].includes(med))
+    return 'ai_referral';
+  if (med === 'referral') return 'referral';
+  if (social && ['organic', 'social', 'organic_social', 'social_network'].includes(med))
+    return 'organic_social';
+  if (search && med === 'organic') return 'organic_search';
+  if (social || fbclid) return 'social';
+  if (src || med) return med ? 'other' : 'referral';
+  if (
+    hostMatches(referrer, [
+      'mail.google.com',
+      'outlook.live.com',
+      'outlook.office.com',
+      'mail.yahoo.com',
+    ]) ||
+    hostname(referrer) === 'com.google.android.gm'
+  )
+    return 'email';
+  if (isSearchReferrer(referrer)) return 'organic_search';
+  if (hostMatches(referrer, SOCIAL_HOSTS)) return 'social';
+  return referrer ? 'referral' : 'direct';
 };
 
 /**
@@ -201,12 +324,13 @@ export const classifyChannel = (attribution) => {
 export const getSignupAttribution = () => {
   const attribution = getStoredAttribution();
   if (!attribution) {
-    return { signup_channel: 'direct' };
+    return { signup_channel: 'direct', signup_attribution_recorded_at: new Date().toISOString() };
   }
 
   return {
     signup_channel: classifyChannel(attribution),
-    signup_utm_source: attribution.utm_source || null,
+    signup_attribution_recorded_at: new Date().toISOString(),
+    signup_utm_source: attribution.utm_source || getAIProvider(attribution) || null,
     signup_utm_medium: attribution.utm_medium || null,
     signup_utm_campaign: attribution.utm_campaign || null,
     signup_utm_content: attribution.utm_content || null,

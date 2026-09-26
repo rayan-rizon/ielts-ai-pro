@@ -1031,8 +1031,8 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
             Signups by channel · last {displayDays}d
           </h3>
           <InfoTip>
-            First-touch channel captured from UTM params, Google/Meta click ids, and referrer at
-            landing. "Unknown" is signups from before this was tracked.
+            First-touch channel from campaign tags and landing referrers, including AI tools. Social
+            clicks without paid evidence stay unverified. Missing signals are not guessed.
           </InfoTip>
         </div>
         <div className="space-y-1">

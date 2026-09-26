@@ -130,78 +130,7 @@
 
         captureClickId();
 
-        // First-touch marketing attribution (which channel a signup came
-        // from: paid search, paid social, organic, referral, direct).
-        // Captured here for the same reason as _fbc above: the SPA router
-        // strips ?utm_*=... from the URL before any React code can read it,
-        // so by the time a signup happens the source is already gone unless
-        // it is persisted on first paint. Written once per browser — later
-        // visits (e.g. a returning user clicking a direct bookmark) must not
-        // overwrite the touch that actually brought them in.
-        var captureAttribution = function () {
-          try {
-            if (window.localStorage.getItem('attribution_first_touch')) return;
-
-            var params = new URLSearchParams(window.location.search);
-            var fbclidMatch = window.location.search.match(/[?&]fbclid=([^&#]+)/);
-            var referrer = document.referrer || null;
-            // Moving from another IELTS AI Pro page to /signup is not a
-            // referral. A return from Google's account chooser is also an
-            // authentication step, not a Google Search visit. Do not persist
-            // either as first-touch attribution because it would block a later
-            // genuine external source from being saved.
-            if (referrer) {
-              try {
-                var referrerUrl = new URL(referrer);
-                if (
-                  referrerUrl.origin === window.location.origin ||
-                  /^accounts\.google\.[a-z.]+$/i.test(referrerUrl.hostname)
-                ) {
-                  referrer = null;
-                }
-              } catch (e) {
-                referrer = null;
-              }
-            }
-            // Confirmation links contain one-time auth credentials. They are
-            // routing data, never marketing data, and must not enter profiles.
-            var landingUrl = new URL(window.location.href);
-            [
-              'token_hash',
-              'code',
-              'access_token',
-              'refresh_token',
-              'error_description',
-            ].forEach(function (key) {
-              landingUrl.searchParams.delete(key);
-            });
-            var safeSearch = landingUrl.searchParams.toString();
-
-            var attribution = {
-              utm_source: params.get('utm_source') || null,
-              utm_medium: params.get('utm_medium') || null,
-              utm_campaign: params.get('utm_campaign') || null,
-              utm_content: params.get('utm_content') || null,
-              utm_term: params.get('utm_term') || null,
-              gclid: params.get('gclid') || null,
-              fbclid: fbclidMatch ? decodeURIComponent(fbclidMatch[1]) : null,
-              referrer: referrer,
-              landing_page: landingUrl.pathname + (safeSearch ? '?' + safeSearch : ''),
-              captured_at: new Date().toISOString(),
-            };
-
-            var hasSignal = Object.keys(attribution).some(function (key) {
-              return key !== 'landing_page' && key !== 'captured_at' && attribution[key];
-            });
-            if (!hasSignal) return;
-
-            window.localStorage.setItem('attribution_first_touch', JSON.stringify(attribution));
-          } catch (e) {
-            /* attribution is best-effort and must never break the page */
-          }
-        };
-
-        captureAttribution();
+        /* SIGNUP_ATTRIBUTION_CAPTURE */
 
         // Offer code carried by an ad or email link (?promo=FIRST30).
         //

@@ -1,4 +1,13 @@
-import { CircleHelp, Compass, Link2, Mail, MousePointer2, Search, Share2 } from 'lucide-react';
+import {
+  CircleHelp,
+  Compass,
+  Link2,
+  Mail,
+  MousePointer2,
+  Search,
+  Share2,
+  Sparkles,
+} from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Tip } from '../ui/primitives';
 
@@ -9,18 +18,32 @@ import { Tip } from '../ui/primitives';
  */
 export const SIGNUP_CHANNELS = {
   paid_search: {
-    label: 'Paid search (Google ads)',
+    label: 'Paid search',
     short: 'Paid search',
     icon: MousePointer2,
     tone: 'text-[#4285f4] bg-[#4285f4]/10',
     bar: 'bg-[#4285F4]',
   },
   paid_social: {
-    label: 'Paid social (Meta ads)',
+    label: 'Paid social',
     short: 'Paid social',
     icon: MousePointer2,
     tone: 'text-[#1877f2] bg-[#1877f2]/10',
     bar: 'bg-[#1877F2]',
+  },
+  ai_referral: {
+    label: 'AI referral',
+    short: 'AI referral',
+    icon: Sparkles,
+    tone: 'text-[#5a63df] bg-[#5a63df]/10',
+    bar: 'bg-[#5a63df]',
+  },
+  social: {
+    label: 'Social · paid status unknown',
+    short: 'Social',
+    icon: Share2,
+    tone: 'text-stone-500 bg-stone-100 dark:text-stone-400 dark:bg-white/[0.06]',
+    bar: 'bg-stone-400',
   },
   organic_search: {
     label: 'Organic search',
@@ -77,6 +100,8 @@ export const SIGNUP_CHANNELS = {
 export const SIGNUP_CHANNEL_KEYS = [
   'paid_search',
   'paid_social',
+  'ai_referral',
+  'social',
   'organic_search',
   'organic_social',
   'referral',

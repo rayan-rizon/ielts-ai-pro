@@ -1,3 +1,4 @@
+import { signupAttributionScript } from '../shared/signupAttributionCapture.js';
 import sanitizeHtml from 'sanitize-html';
 import process from 'node:process';
 import { BLOG_CSS_VERSION } from './blog-css.js';
@@ -528,6 +529,7 @@ function layout({
   return `<!doctype html>
 <html lang="en"><head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <script>${signupAttributionScript}</script>
   <script>
     (function () {
       var GTM_ID = 'GTM-TR6XQ2R3';

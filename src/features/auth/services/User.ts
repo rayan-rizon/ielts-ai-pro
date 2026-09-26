@@ -31,8 +31,10 @@ export const User = {
       .from('users')
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq('id', profile.id)
+      .is('signup_attribution_recorded_at', null)
+      .or('signup_channel.is.null,signup_channel.in.(direct,unknown)')
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.warn('[User.me] Failed to synchronize signup context:', error.message);
@@ -151,21 +153,21 @@ export const User = {
       .maybeSingle();
 
     if (profileByEmail) {
-      const signupContext = getMissingSignupProfileFields(profileByEmail, getSignupAttribution());
       // Update the auth_id to link with current session
       const { data: updatedProfile, error: updateError } = await supabase
 
         .from('users')
-        .update({ auth_id: user.id, ...signupContext, updated_at: new Date().toISOString() })
+        .update({ auth_id: user.id, updated_at: new Date().toISOString() })
         .eq('id', profileByEmail.id)
         .select()
         .single();
 
       if (updatedProfile) {
         console.log('[User.me] Linked auth_id to existing profile');
+        const syncedProfile = await this.syncSignupContext(updatedProfile);
         return {
           ...user,
-          ...updatedProfile,
+          ...syncedProfile,
           email: user.email!,
         } as UserProfile;
       }

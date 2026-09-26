@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import process from 'node:process';
+import { signupAttributionScript } from '../../../shared/signupAttributionCapture.js';
 import blogHandler from '../../../api/blog.js';
 import cssHandler, { BLOG_CSS, BLOG_CSS_VERSION } from '../../../api/blog-css.js';
 import { getBlogCoverAlt } from '../../features/learning/utils/blogCoverMeta.js';
@@ -59,6 +60,7 @@ describe('server-rendered IELTS blog', () => {
     await blogHandler({ query: {} }, response);
 
     expect(response.statusCode).toBe(200);
+    expect(response.body).toContain(`<script>${signupAttributionScript}</script>`);
     expect(response.headers['Content-Type']).toContain('text/html');
     expect(response.body).toContain('<title>IELTS Preparation Tips &amp; Expert Guides');
     expect(response.body).toContain('/blog/ielts-reading-paraphrase-traps');
@@ -268,6 +270,7 @@ describe('server-rendered IELTS blog', () => {
     await blogHandler({ query: { category: 'Writing', q: 'task response' } }, response);
 
     expect(response.statusCode).toBe(200);
+    expect(response.body).toContain(`<script>${signupAttributionScript}</script>`);
     expect(response.body).toContain('/blog/ielts-writing-guide');
     expect(response.body).toContain('class="card-visual-icon"');
     expect(response.body).not.toContain(
