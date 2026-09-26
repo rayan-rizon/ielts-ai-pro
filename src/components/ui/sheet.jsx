@@ -46,28 +46,32 @@ const sheetVariants = cva(
   }
 );
 
-const SheetContent = React.forwardRef(({ side = 'right', className, children, ...props }, ref) => (
-  <SheetPortal data-oid="wh.5-c8">
-    <SheetOverlay data-oid="_hgqkrw" />
-    <SheetPrimitive.Content
-      ref={ref}
-      className={cn(sheetVariants({ side }), className)}
-      {...props}
-      data-oid="xaob1uk"
-    >
-      <SheetPrimitive.Close
-        className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
-        data-oid="ihsc-sr"
+const SheetContent = React.forwardRef(
+  ({ side = 'right', className, children, hideClose = false, ...props }, ref) => (
+    <SheetPortal data-oid="wh.5-c8">
+      <SheetOverlay data-oid="_hgqkrw" />
+      <SheetPrimitive.Content
+        ref={ref}
+        className={cn(sheetVariants({ side }), className)}
+        {...props}
+        data-oid="xaob1uk"
       >
-        <X className="h-4 w-4" data-oid="4t35tws" />
-        <span className="sr-only" data-oid="e3i2cjg">
-          Close
-        </span>
-      </SheetPrimitive.Close>
-      {children}
-    </SheetPrimitive.Content>
-  </SheetPortal>
-));
+        {!hideClose && (
+          <SheetPrimitive.Close
+            className="absolute right-3.5 top-3.5 z-50 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200/80 bg-white/95 text-stone-500 shadow-2xs backdrop-blur-xs transition-all duration-150 ease-smooth-out hover:bg-stone-100 hover:text-stone-900 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:pointer-events-none dark:border-white/10 dark:bg-[#1b1b1e]/95 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
+            data-oid="ihsc-sr"
+          >
+            <X className="h-4 w-4" data-oid="4t35tws" />
+            <span className="sr-only" data-oid="e3i2cjg">
+              Close
+            </span>
+          </SheetPrimitive.Close>
+        )}
+        {children}
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  )
+);
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({ className, ...props }) => (

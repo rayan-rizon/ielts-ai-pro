@@ -1411,7 +1411,7 @@ async function reconcile(dryRun = false) {
     admin
       .from('test_sessions')
       .select(
-        'id,user_id,passage_id,test_type,module,test_mode,score,band_score,is_completed,user_responses,content_data,created_at,updated_at,completed_at'
+        'id,user_id,passage_id,test_type,module,test_mode,score,band_score,is_completed,user_responses,type_stats:content_data->typeStats,question_type_accuracy:content_data->question_type_accuracy,scheduled_break_until:content_data->scheduled_break_until,total_questions:content_data->total_questions,question_count:content_data->question_count,created_at,updated_at,completed_at'
       )
       .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
       .limit(5000),
@@ -1446,7 +1446,7 @@ async function reconcile(dryRun = false) {
     admin.from('marketing_experiments').select('*').eq('status', 'running'),
     admin
       .from('learning_paths')
-      .select('id,user_id,path_data,created_at')
+      .select('id,user_id,goal_snapshot:path_data->goal_snapshot,created_at')
       .order('created_at', { ascending: false })
       .limit(2000),
     admin
@@ -1500,10 +1500,28 @@ async function reconcile(dryRun = false) {
   const userById = new Map((users || []).map((user: Json) => [user.id, user]));
   const pathByUser = new Map<string, Json>();
   for (const path of learningPaths || [])
-    if (!pathByUser.has(path.user_id)) pathByUser.set(path.user_id, path);
+    if (!pathByUser.has(path.user_id))
+      pathByUser.set(path.user_id, {
+        ...path,
+        path_data: { goal_snapshot: path.goal_snapshot },
+      });
   const sessionsByUser = new Map<string, Json[]>();
-  for (const session of sessions || [])
-    sessionsByUser.set(session.user_id, [...(sessionsByUser.get(session.user_id) || []), session]);
+  for (const session of sessions || []) {
+    const compactSession = {
+      ...session,
+      content_data: {
+        typeStats: session.type_stats,
+        question_type_accuracy: session.question_type_accuracy,
+        scheduled_break_until: session.scheduled_break_until,
+        total_questions: session.total_questions,
+        question_count: session.question_count,
+      },
+    };
+    sessionsByUser.set(session.user_id, [
+      ...(sessionsByUser.get(session.user_id) || []),
+      compactSession,
+    ]);
+  }
   const prefByUser = new Map((preferences || []).map((p: Json) => [p.user_id, p]));
   const usageByUser = new Map<string, Json[]>();
   for (const entry of aiUsage || [])

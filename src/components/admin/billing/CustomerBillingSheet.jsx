@@ -13,9 +13,16 @@ import {
   RefreshCcw,
   ShieldCheck,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/cn';
 import { BillingService } from '@/features/admin/services/BillingService';
 import {
@@ -615,43 +622,63 @@ export default function CustomerBillingSheet({ userId, open, onOpenChange, onCha
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
+        hideClose
+        onOpenAutoFocus={(e) => e.preventDefault()}
         className="w-full overflow-y-auto border-stone-200 bg-stone-50 p-0 dark:border-white/10 dark:bg-[#0f0f11] sm:max-w-2xl"
       >
         {/* Sticky Sheet Header */}
-        <div className="sticky top-0 z-10 border-b border-stone-200/80 bg-stone-50 px-4 py-3 pr-12 dark:border-white/[0.07] dark:bg-[#0f0f11]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-200/80 bg-white font-extrabold text-stone-700 shadow-2xs dark:border-white/10 dark:bg-white/5 dark:text-stone-200">
-              {(profile?.user?.fullName || profile?.user?.email || 'U').charAt(0).toUpperCase()}
+        <div className="sticky top-0 z-20 border-b border-stone-200/80 bg-stone-50/95 px-3.5 py-3 backdrop-blur-xs dark:border-white/[0.07] dark:bg-[#0f0f11]/95 sm:px-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-200/80 bg-white font-extrabold text-stone-700 shadow-2xs dark:border-white/10 dark:bg-white/5 dark:text-stone-200">
+                {(profile?.user?.fullName || profile?.user?.email || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <SheetTitle className={cn(TITLE, 'truncate text-sm')}>
+                    {profile?.user?.fullName || profile?.user?.email || 'Customer'}
+                  </SheetTitle>
+                  {subscription.tier && (
+                    <Pill tone={isPaid ? 'ok' : 'neutral'} className="shrink-0 text-[9px]">
+                      {subscription.tier}
+                    </Pill>
+                  )}
+                </div>
+                <SheetDescription className="sr-only">
+                  Customer billing, refunds and AI usage details
+                </SheetDescription>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500 dark:text-stone-400">
+                  <span className="truncate max-w-[170px] sm:max-w-[260px]">
+                    {profile?.user?.email || 'No email on file'}
+                  </span>
+                  {profile?.user?.email && (
+                    <CopyButton value={profile.user.email} label="Copy email" />
+                  )}
+                  {userId && (
+                    <>
+                      <span className="text-stone-300 dark:text-stone-600">·</span>
+                      <span className={cn(NUM, 'text-[10px] text-stone-400 dark:text-stone-500')}>
+                        ID: {userId.slice(0, 8)}…
+                      </span>
+                      <CopyButton value={userId} label="Copy User ID" />
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <SheetTitle className={cn(TITLE, 'text-sm')}>
-                  {profile?.user?.fullName || profile?.user?.email || 'Customer'}
-                </SheetTitle>
-                {subscription.tier && (
-                  <Pill tone={isPaid ? 'ok' : 'neutral'} className="text-[9px]">
-                    {subscription.tier}
-                  </Pill>
-                )}
-              </div>
-              <SheetDescription className="sr-only">
-                Customer billing, refunds and AI usage details
-              </SheetDescription>
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500 dark:text-stone-400">
-                <span className="truncate">{profile?.user?.email || 'No email on file'}</span>
-                {profile?.user?.email && (
-                  <CopyButton value={profile.user.email} label="Copy email" />
-                )}
-                {userId && (
-                  <>
-                    <span className="text-stone-300 dark:text-stone-600">·</span>
-                    <span className={cn(NUM, 'text-[10px] text-stone-400 dark:text-stone-500')}>
-                      ID: {userId.slice(0, 8)}…
-                    </span>
-                    <CopyButton value={userId} label="Copy User ID" />
-                  </>
-                )}
-              </div>
+
+            {/* Header Close Button */}
+            <div className="flex shrink-0 items-center">
+              <SheetClose asChild>
+                <button
+                  type="button"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200/80 bg-white text-stone-500 shadow-2xs transition-all duration-150 ease-smooth-out hover:bg-stone-100 hover:text-stone-900 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
+                  aria-label="Close review"
+                  title="Close (Esc)"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </SheetClose>
             </div>
           </div>
         </div>
@@ -800,6 +827,16 @@ export default function CustomerBillingSheet({ userId, open, onOpenChange, onCha
               </div>
             </>
           )}
+
+          {/* Mobile bottom dismiss action */}
+          <div className="pt-2 pb-6 sm:hidden">
+            <SheetClose asChild>
+              <AdminButton variant="outline" className="w-full h-9 text-xs">
+                <X className="h-3.5 w-3.5 mr-1.5" />
+                Close review
+              </AdminButton>
+            </SheetClose>
+          </div>
         </div>
 
         <RefundDialog

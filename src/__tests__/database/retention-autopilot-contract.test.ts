@@ -105,6 +105,32 @@ describe('Personalized retention autopilot contracts', () => {
     expect(worker).not.toMatch(/18\/20|unlock your.*band/i);
   });
 
+  it('reads only the JSON fields needed for retention decisions', () => {
+    const reconcile = worker.slice(worker.indexOf('async function reconcile('));
+    const sessionRead = reconcile.match(
+      /\.from\('test_sessions'\)\s*\.select\(\s*'([^']+)'\s*\)\s*\.gte\('created_at'/
+    )?.[1];
+    const pathRead = reconcile.match(/\.from\('learning_paths'\)\s*\.select\('([^']+)'\)/)?.[1];
+
+    expect(sessionRead).toBeDefined();
+    expect(pathRead).toBeDefined();
+    expect(sessionRead?.split(',')).toEqual(
+      expect.arrayContaining([
+        'user_responses',
+        'type_stats:content_data->typeStats',
+        'question_type_accuracy:content_data->question_type_accuracy',
+        'scheduled_break_until:content_data->scheduled_break_until',
+        'total_questions:content_data->total_questions',
+        'question_count:content_data->question_count',
+      ])
+    );
+    expect(sessionRead?.split(',')).not.toContain('content_data');
+    expect(pathRead?.split(',')).toContain('goal_snapshot:path_data->goal_snapshot');
+    expect(pathRead?.split(',')).not.toContain('path_data');
+    expect(worker).toContain('typeStats: session.type_stats');
+    expect(worker).toContain('path_data: { goal_snapshot: path.goal_snapshot }');
+  });
+
   it('uses only confirmed exam dates for countdown interventions', () => {
     expect(worker).toContain("user.test_date_source !== 'confirmed'");
     expect(migration).toContain("test_date_source IN ('unknown', 'estimated', 'confirmed')");
