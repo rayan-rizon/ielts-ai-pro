@@ -35,7 +35,9 @@ describe('dynamic public sitemap', () => {
     const sitemap = renderSitemap([
       {
         slug: 'ielts-reading-paraphrase-traps',
-        updated_at: '2026-07-25T09:30:00Z',
+        published_at: '2026-07-18T09:30:00Z',
+        updated_at: '2026-09-27T09:30:00Z',
+        content_updated_at: '2026-07-25T09:30:00Z',
       },
     ]);
 
@@ -47,6 +49,33 @@ describe('dynamic public sitemap', () => {
       '<loc>https://www.ieltsai.pro/blog/ielts-reading-paraphrase-traps</loc>'
     );
     expect(sitemap).toContain('<lastmod>2026-07-25</lastmod>');
+  });
+
+  it('ignores view-count activity when no editorial update date is known', () => {
+    const sitemap = renderSitemap([
+      {
+        slug: 'viewed-guide',
+        published_at: '2026-07-18T09:30:00Z',
+        updated_at: '2026-09-27T09:30:00Z',
+      },
+    ]);
+
+    expect(sitemap).toContain('<loc>https://www.ieltsai.pro/blog/viewed-guide</loc>');
+    expect(sitemap).toContain('<lastmod>2026-07-18</lastmod>');
+  });
+
+  it('refreshes the blog index lastmod when a published article changes', () => {
+    const sitemap = renderSitemap([
+      {
+        slug: 'revised-guide',
+        published_at: '2026-07-18T09:30:00Z',
+        content_updated_at: '2026-09-27T03:16:38Z',
+      },
+    ]);
+
+    expect(sitemap).toMatch(
+      /<loc>https:\/\/www\.ieltsai\.pro\/blog<\/loc>\s*<lastmod>2026-09-27<\/lastmod>/
+    );
   });
 
   it('serves XML from the published-post query', async () => {

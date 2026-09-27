@@ -38,6 +38,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { SidebarPracticeCard } from '@/features/learning/components/SidebarPracticeCard';
 import { getBlogSeoMeta } from '@/features/learning/utils/blogSeo';
+import { getBlogModifiedAt, getVisibleBlogUpdatedAt } from '@/features/learning/utils/blogDates';
 
 const PRACTICE_LINKS = {
   Writing: '/ielts-writing-checker',
@@ -161,7 +162,7 @@ function BlogPostLoadingSkeleton() {
   );
 }
 
-function BlogPostHero({ post, publishedDate }) {
+function BlogPostHero({ post, publishedDate, updatedDate }) {
   return (
     <section className="relative overflow-hidden border-b border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b/srgb from-white via-[#faf9ff] to-white dark:from-[#090b13] dark:via-[#0e111c] dark:to-[#090b13]">
       <div className="relative mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
@@ -210,6 +211,11 @@ function BlogPostHero({ post, publishedDate }) {
               <span className="inline-flex items-center gap-1.5 font-sans">
                 <CalendarDays className="h-3.5 w-3.5 text-slate-400" /> {formatDate(publishedDate)}
               </span>
+              {updatedDate && (
+                <time className="inline-flex items-center gap-1.5 font-sans" dateTime={updatedDate}>
+                  Updated {formatDate(updatedDate)}
+                </time>
+              )}
               <span className="inline-flex items-center gap-1.5">
                 <Clock3 className="h-3.5 w-3.5 text-slate-400" /> {post.reading_minutes || 6} min
                 read
@@ -277,7 +283,7 @@ function BlogPostArticleBody({ post, preparedContent, practicePath }) {
             About this guide
           </p>
           <h2 className="mt-0.5 text-sm font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
-            Reviewed by the IELTS Ai Pro editorial team
+            Published by IELTS Ai Pro
           </h2>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
             Built around practical IELTS preparation and linked to focused activities inside the
@@ -611,6 +617,7 @@ const BlogPost = () => {
   const practiceLabel =
     PRACTICE_LABELS[post?.category] || `Start ${post?.category || 'IELTS'} practice`;
   const publishedDate = post?.published_at || post?.created_at;
+  const updatedDate = getVisibleBlogUpdatedAt(post);
   const canonicalUrl = `https://www.ieltsai.pro/blog/${slug}`;
   const socialImageUrl = absoluteImageUrl(post?.thumbnail_url);
 
@@ -655,7 +662,7 @@ const BlogPost = () => {
           description,
           image: socialImageUrl,
           datePublished: publishedDate,
-          dateModified: post.updated_at || publishedDate,
+          dateModified: getBlogModifiedAt(post),
           author: { '@type': 'Organization', name: 'IELTS Ai Pro' },
           publisher: { '@type': 'Organization', name: 'IELTS Ai Pro' },
           mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
@@ -666,7 +673,7 @@ const BlogPost = () => {
         <PublicNavbar />
 
         <main className="pt-16">
-          <BlogPostHero post={post} publishedDate={publishedDate} />
+          <BlogPostHero post={post} publishedDate={publishedDate} updatedDate={updatedDate} />
 
           <section className="mx-auto grid max-w-7xl grid-cols-1 items-start gap-6 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:py-10">
             <div className="min-w-0">

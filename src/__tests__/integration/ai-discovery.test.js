@@ -66,6 +66,41 @@ describe('AI and feed discovery routes', () => {
     expect(feed).toContain('<category>Speaking</category>');
   });
 
+  it('uses the latest editorial change for RSS build date, ignoring view activity', () => {
+    const feed = renderFeed([
+      { ...article, updated_at: '2026-09-27T09:00:00Z' },
+      {
+        ...article,
+        slug: 'revised-guide',
+        published_at: '2026-07-26T08:00:00Z',
+        content_updated_at: '2026-08-04T09:00:00Z',
+      },
+    ]);
+
+    expect(feed).toContain('<lastBuildDate>Tue, 04 Aug 2026 09:00:00 GMT</lastBuildDate>');
+  });
+
+  it('includes published articles beyond the first feed query page', async () => {
+    const firstPage = Array.from({ length: 500 }, (_, index) => ({
+      ...article,
+      slug: `guide-${index}`,
+    }));
+    const lastArticle = { ...article, slug: 'newest-guide' };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => firstPage })
+      .mockResolvedValueOnce({ ok: true, json: async () => [lastArticle] });
+    vi.stubGlobal('fetch', fetchMock);
+    const response = createResponse();
+
+    await feedHandler({ method: 'GET' }, response);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain('/blog/newest-guide');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(new URL(fetchMock.mock.calls[1][0]).searchParams.get('offset')).toBe('500');
+  });
+
   it.each([
     ['llms.txt', llmsHandler, 'text/plain', '/blog/ielts-speaking-part-2-structure'],
     ['RSS feed', feedHandler, 'application/rss+xml', '<rss version="2.0"'],

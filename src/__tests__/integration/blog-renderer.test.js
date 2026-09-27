@@ -328,7 +328,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain('href="/ielts-writing-checker">Writing checker</a>');
     expect(BLOG_CSS).toContain('.article-photo img{height:auto;border-radius:22px}');
     expect(response.body).toContain('Plan · Practise · Review · Succeed');
-    expect(response.body).toContain('Reviewed by the IELTS Ai Pro editorial team');
+    expect(response.body).toContain('Published by IELTS Ai Pro');
     expect(response.body).toContain('data-tone="reading"');
     expect(response.body).toContain('<span>Reading</span></span><h1>IELTS Reading Strategy</h1>');
     expect(response.body).toContain('class="site-footer"');
@@ -344,6 +344,36 @@ describe('server-rendered IELTS blog', () => {
     expect(BLOG_CSS).toContain('html.dark .article table');
     expect(response.body).not.toContain('Turn the strategy into a score');
     expect(response.body).toContain('<title>IELTS Reading Strategy | IELTS Ai Pro</title>');
+  });
+
+  it('shows a later article update date beside the published date', async () => {
+    const revisedArticle = { ...article, content_updated_at: '2026-08-04T09:00:00Z' };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => [revisedArticle] })
+    );
+    const response = createResponse();
+
+    await blogHandler({ query: { slug: article.slug } }, response);
+
+    expect(response.body).toContain('datetime="2026-07-18T08:00:00Z"');
+    expect(response.body).toContain(
+      '<time class="article-meta-item" datetime="2026-08-04T09:00:00Z">Updated August 4, 2026</time>'
+    );
+  });
+
+  it('does not treat a view-count update as an editorial revision', async () => {
+    const viewedArticle = { ...article, updated_at: '2026-09-27T09:00:00Z' };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => [viewedArticle] })
+    );
+    const response = createResponse();
+
+    await blogHandler({ query: { slug: article.slug } }, response);
+
+    expect(response.body).not.toContain('>Updated ');
+    expect(response.body).toContain('"dateModified":"2026-07-18T08:00:00Z"');
   });
 
   it('applies query-aligned SEO metadata to priority articles without changing their slug', async () => {
@@ -382,7 +412,7 @@ describe('server-rendered IELTS blog', () => {
     );
   });
 
-  it('keeps the article title distinct from its H1 and repairs audited legacy citations', async () => {
+  it('preserves the full article title and repairs audited legacy citations', async () => {
     const legacyCitationArticle = {
       ...article,
       title: 'IELTS Writing Task 2 Tips for a Reliable Band 7+ Score',
@@ -399,8 +429,8 @@ describe('server-rendered IELTS blog', () => {
 
     const title = response.body.match(/<title>(.*?)<\/title>/)?.[1];
     const h1 = response.body.match(/<h1>(.*?)<\/h1>/)?.[1];
-    expect(title).not.toBe(h1);
-    expect(title).toContain('IELTS Ai Pro');
+    expect(title).toBe(h1);
+    expect(title).not.toContain('…');
     expect(response.body).toContain(
       'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing'
     );
@@ -417,7 +447,7 @@ describe('server-rendered IELTS blog', () => {
     }
   });
 
-  it('keeps long article titles within the audit threshold', async () => {
+  it('preserves the distinguishing words in long article titles', async () => {
     const longTitleArticle = {
       ...article,
       title: 'IELTS Reading Multiple Choice: A Complete Evidence-Based Practice Guide',
@@ -433,8 +463,8 @@ describe('server-rendered IELTS blog', () => {
 
     expect(response.statusCode).toBe(200);
     const title = response.body.match(/<title>(.*?)<\/title>/)?.[1] || '';
-    expect(title).toContain('IELTS Ai Pro');
-    expect(title).not.toBe(longTitleArticle.title);
+    expect(title).toBe(longTitleArticle.title);
+    expect(title).not.toContain('…');
   });
 
   it('keeps title tags unique when articles share their opening words', async () => {

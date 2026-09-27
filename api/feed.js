@@ -1,4 +1,5 @@
 import process from 'node:process';
+import { getBlogModifiedAt } from '../src/features/learning/utils/blogDates.js';
 
 const SITE_URL = 'https://www.ieltsai.pro';
 
@@ -20,9 +21,12 @@ function renderFeed(posts = []) {
   const validPosts = posts.filter(
     (post) => typeof post.slug === 'string' && post.slug.trim() && post.title
   );
+  const latestArticleTime = validPosts.reduce((latest, post) => {
+    const modifiedTime = Date.parse(getBlogModifiedAt(post));
+    return Number.isFinite(modifiedTime) ? Math.max(latest, modifiedTime) : latest;
+  }, 0);
   const lastBuildDate =
-    rssDate(validPosts[0]?.updated_at || validPosts[0]?.published_at) ||
-    'Sun, 26 Jul 2026 00:00:00 GMT';
+    (latestArticleTime && rssDate(latestArticleTime)) || 'Sun, 26 Jul 2026 00:00:00 GMT';
   const items = validPosts
     .map((post) => {
       const url = `${SITE_URL}/blog/${encodeURIComponent(post.slug.trim())}`;
@@ -64,18 +68,26 @@ function getSupabaseCredentials() {
 
 async function fetchPublishedPosts() {
   const { supabaseUrl, anonKey } = getSupabaseCredentials();
-  const params = new URLSearchParams({
-    select: 'title,description,meta_description,slug,category,published_at,created_at,updated_at',
-    content_type: 'eq.blog',
-    is_published: 'eq.true',
-    order: 'published_at.desc.nullslast,created_at.desc',
-    limit: '50',
-  });
-  const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
-    headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-  });
-  if (!response.ok) throw new Error(`Supabase returned ${response.status}`);
-  return response.json();
+  const pageSize = 500;
+  const posts = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const params = new URLSearchParams({
+      select:
+        'title,description,meta_description,slug,category,published_at,created_at,content_updated_at',
+      content_type: 'eq.blog',
+      is_published: 'eq.true',
+      order: 'published_at.desc.nullslast,created_at.desc',
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+    const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+    });
+    if (!response.ok) throw new Error(`Supabase returned ${response.status}`);
+    const page = await response.json();
+    posts.push(...page);
+    if (page.length < pageSize) return posts;
+  }
 }
 
 export default async function handler(request, response) {
