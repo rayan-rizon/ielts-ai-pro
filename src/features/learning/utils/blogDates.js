@@ -6,13 +6,10 @@ export function getBlogModifiedAt(post = {}) {
   const publishedTime = Date.parse(publishedAt);
   const contentTime = Date.parse(contentUpdatedAt);
 
-  if (
-    Number.isFinite(contentTime) &&
-    (!Number.isFinite(publishedTime) || contentTime > publishedTime)
-  ) {
-    return contentUpdatedAt;
-  }
-  return publishedAt;
+  if (!Number.isFinite(contentTime)) return publishedAt;
+  if (!Number.isFinite(publishedTime)) return contentUpdatedAt;
+  if (contentTime <= publishedTime) return publishedAt;
+  return contentUpdatedAt;
 }
 
 export function getVisibleBlogUpdatedAt(post = {}) {
