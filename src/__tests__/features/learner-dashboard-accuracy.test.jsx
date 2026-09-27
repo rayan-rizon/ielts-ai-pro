@@ -166,5 +166,19 @@ describe('Learner dashboard accuracy', () => {
     expect(screen.getByText('Short answer')).toBeInTheDocument();
     expect(screen.getByText('Learning path')).toBeInTheDocument();
     expect(screen.getByText('Update goals')).toBeInTheDocument();
+    const askCoach = screen.getByRole('link', { name: 'Ask coach' });
+    expect(askCoach).toHaveAttribute('href', '/ai-coach');
+    expect(askCoach.querySelectorAll('img')[1]).toHaveAttribute(
+      'src',
+      '/assets/ai-coach/ava-base-small.webp'
+    );
+    expect(askCoach.querySelector('.ask-ai-coach-avatar__hand')).toHaveAttribute(
+      'src',
+      '/assets/ai-coach/ava-arm-small.webp'
+    );
+    expect(askCoach.querySelector('.ask-ai-coach-avatar__blink')).toHaveAttribute(
+      'src',
+      '/assets/ai-coach/ava-blink-small.webp'
+    );
   });
 });

@@ -9,6 +9,7 @@ import {
   estimateCoachInputTokens,
   groundedCoachSystemPrompt,
   isCoachLanguage,
+  normalizeCoachFollowUps,
   safeCoachFallbackReply,
   validateCoachReply,
   validateCoachSendBody,
@@ -310,7 +311,9 @@ async function handleHistory(admin: any, authId: string, body: any) {
   const before = body.before ? new Date(body.before).toISOString() : new Date().toISOString();
   const { data, error } = await admin
     .from('ai_coach_messages')
-    .select('id,role,content,response_language,evidence_refs,exercise,actions,created_at')
+    .select(
+      'id,role,content,response_language,evidence_refs,exercise,actions,follow_ups,created_at'
+    )
     .eq('conversation_id', conversation.id)
     .eq('user_id', profile.id)
     .lt('created_at', before)
@@ -594,7 +597,7 @@ Deno.serve(async (req: Request) => {
     }
     const { data: history } = await admin
       .from('ai_coach_messages')
-      .select('role,content')
+      .select('role,content,follow_ups')
       .eq('conversation_id', reservation.conversationId)
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
@@ -608,7 +611,13 @@ Deno.serve(async (req: Request) => {
       evidenceConfidence: context.evidenceConfidence,
       source: context.source,
       eligibleActions: context.eligibleActions,
-      recentConversation: (history || []).reverse(),
+      recentConversation: [...(history || [])].reverse().map(({ role, content }: any) => ({
+        role,
+        content,
+      })),
+      recentSuggestedQuestions: (history || [])
+        .flatMap((item: any) => item.follow_ups || [])
+        .slice(0, 9),
     };
     let prompt = JSON.stringify(promptData);
     const inputTokens = () => estimateCoachInputTokens(`${systemPrompt}\n${prompt}`);
@@ -639,6 +648,14 @@ Deno.serve(async (req: Request) => {
     const personalQuestion = asksForPersonalEvidence(input.message);
     const requiresEvidence = personalQuestion && evidenceIds.size > 0;
     const validate = (value: any) => {
+      if (value && typeof value === 'object')
+        value.followUps = normalizeCoachFollowUps(value.followUps, [
+          input.message,
+          ...(history || [])
+            .filter((item: any) => item.role === 'user')
+            .map((item: any) => item.content),
+          ...(history || []).flatMap((item: any) => item.follow_ups || []),
+        ]);
       if (!validateCoachReply(value, evidenceIds) || value.responseLanguage !== language)
         return false;
       if (

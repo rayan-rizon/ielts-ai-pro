@@ -37,7 +37,31 @@ export function safeCoachFallbackReply(language: CoachLanguage) {
     evidenceRefs: [],
     exercise: null,
     actions: [],
+    followUps: [],
   };
+}
+
+export function normalizeCoachFollowUps(value: unknown, recentQuestions: string[] = []): string[] {
+  if (!Array.isArray(value)) return [];
+  const normalize = (text: string) => text.normalize('NFKC').trim().toLocaleLowerCase();
+  const seen = new Set(recentQuestions.map(normalize));
+  const questions: string[] = [];
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const question = item.normalize('NFKC').trim().replace(/\s+/gu, ' ');
+    const key = normalize(question);
+    if (
+      !question ||
+      question.length > 140 ||
+      seen.has(key) ||
+      /^(?:would you like|do you want|would you prefer|shall we|let's)\b/iu.test(question)
+    )
+      continue;
+    seen.add(key);
+    questions.push(question);
+    if (questions.length === 3) break;
+  }
+  return questions;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -272,6 +296,16 @@ export function validateCoachReply(value: any, evidenceIds: Set<string>): boolea
   if ((mentionsScoreNumber && predictsOutcome) || inventsDeadline || exposesEvidenceMetadata)
     return false;
   if (!isCoachLanguage(value.responseLanguage)) return false;
+  if (
+    value.followUps !== undefined &&
+    (!Array.isArray(value.followUps) ||
+      value.followUps.length > 4 ||
+      value.followUps.some(
+        (question: unknown) =>
+          typeof question !== 'string' || !question.trim() || question.length > 140
+      ))
+  )
+    return false;
   if (!['supported', 'insufficient', 'general'].includes(value.groundingStatus)) return false;
   if (!Array.isArray(value.evidenceRefs) || value.evidenceRefs.length > 6) return false;
   if (
@@ -330,8 +364,9 @@ Put evidence IDs only in evidenceRefs. Never place evidence IDs, citation JSON, 
 If evidence is missing or uncertain, say so plainly and suggest the smallest useful next step.
 Clearly distinguish measured results, early signals, and general IELTS guidance.
 If LANGUAGE DECISION says ambiguous, ask one brief question to confirm the explanation language.
+Include 2-3 concise followUps that the student can send directly to you. Write in the student's voice, such as "Can you show me...?" or "How can I...?" Never ask the student "Would you like...?" or "Do you want...?". Base each question on a specific detail in your answer or the student's latest question. Vary them across turns; do not repeat a recent student question or use a fixed list. Use the response language, except IELTS practice text stays in English. If the answer asks the student to provide missing work or clarify something, suggest questions that help them supply it. Never imply an unverified personal score, mistake, or result.
 Only propose actions from ELIGIBLE ACTIONS. Do not claim that chat practice changes official scores.
 Set groundingStatus to "supported" for a personal answer backed by evidence, "insufficient" when personal evidence is missing, or "general" for general teaching.
 For a multiple-choice exercise, include 2-5 English options, zero-based answerIndex, and a short explanation in the response language. For short_answer, use an empty options array and omit answerIndex.
-JSON shape: {"answer":"...","responseLanguage":"${language}","groundingStatus":"supported|insufficient|general","evidenceRefs":[{"id":"evidence-id","claim":"supported claim"}],"exercise":null|{"prompt":"English practice prompt","kind":"short_answer|multiple_choice","options":[],"answerIndex":0,"explanation":"..."},"actions":[{"type":"navigate|save_vocabulary|reschedule_activity","label":"...","payload":{}}]}.`;
+JSON shape: {"answer":"...","responseLanguage":"${language}","groundingStatus":"supported|insufficient|general","evidenceRefs":[{"id":"evidence-id","claim":"supported claim"}],"exercise":null|{"prompt":"English practice prompt","kind":"short_answer|multiple_choice","options":[],"answerIndex":0,"explanation":"..."},"actions":[{"type":"navigate|save_vocabulary|reschedule_activity","label":"...","payload":{}}],"followUps":["Specific next question?","Another useful next question?"]}.`;
 }

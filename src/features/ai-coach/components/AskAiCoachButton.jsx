@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import { MessageCircleMore } from 'lucide-react';
 import { AI_COACH_ENABLED, saveCoachDraft } from '../config';
 import { cn } from '@/lib/cn';
+import WavingCoachArtwork from './WavingCoachArtwork';
 
 export default function AskAiCoachButton({
   draft,
   sourceReference = null,
   className,
   compact = false,
+  showAvatar = false,
 }) {
   if (!AI_COACH_ENABLED) return null;
   return (
@@ -19,7 +21,13 @@ export default function AskAiCoachButton({
         className
       )}
     >
-      <MessageCircleMore className="h-4 w-4" />
+      {showAvatar ? (
+        <span className="ask-ai-coach-avatar h-7 w-7 shrink-0" aria-hidden="true">
+          <WavingCoachArtwork className="h-full w-full overflow-visible" />
+        </span>
+      ) : (
+        <MessageCircleMore className="h-4 w-4" />
+      )}
       {compact ? 'Ask coach' : 'Ask AI Coach'}
     </Link>
   );

@@ -147,8 +147,9 @@ const NextUpPanel = React.memo(({ recommended, stats, weakestSkill, aiFocus, use
             </Link>
             <AskAiCoachButton
               compact
+              showAvatar
               draft="What should I practise next, based on my completed results?"
-              className="min-h-6 px-2 py-1 text-[10px]"
+              className="min-h-8 px-2 py-1 text-[10px]"
             />
           </span>
         </PanelFootnote>

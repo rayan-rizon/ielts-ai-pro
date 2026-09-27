@@ -7,6 +7,7 @@ import {
   detectCoachLanguage,
   estimateCoachInputTokens,
   groundedCoachSystemPrompt,
+  normalizeCoachFollowUps,
   safeCoachFallbackReply,
   validateCoachReply,
   validateCoachSendBody,
@@ -107,6 +108,41 @@ describe('personalized AI Coach language selection', () => {
 });
 
 describe('personalized AI Coach request and reply validation', () => {
+  it('keeps three unique model questions and drops recent learner questions', () => {
+    expect(
+      normalizeCoachFollowUps(
+        [
+          'How can I improve my introduction?',
+          'How can I improve my introduction?',
+          'Would you like a template for the introduction?',
+          'Can we practise a stronger opening?',
+          'What makes this example clearer?',
+          'Could you review my revised introduction?',
+        ],
+        ['How can I improve my introduction?']
+      )
+    ).toEqual([
+      'Can we practise a stronger opening?',
+      'What makes this example clearer?',
+      'Could you review my revised introduction?',
+    ]);
+  });
+
+  it('rejects oversized or malformed follow-up payloads', () => {
+    const reply = {
+      answer: 'Use one clear idea in each body paragraph.',
+      responseLanguage: 'en',
+      groundingStatus: 'general',
+      evidenceRefs: [],
+      exercise: null,
+      actions: [],
+      followUps: ['Can you show a body paragraph example?'],
+    };
+    expect(validateCoachReply(reply, new Set())).toBe(true);
+    expect(validateCoachReply({ ...reply, followUps: [4] }, new Set())).toBe(false);
+    expect(validateCoachReply({ ...reply, followUps: ['x'.repeat(141)] }, new Set())).toBe(false);
+  });
+
   it('allows fuller replies within the registered cost-bounded output limit', () => {
     const route = AI_ROUTES.find((item) => item.id === 'personalized-ai-coach');
     expect(AI_COACH_MAX_OUTPUT_TOKENS).toBe(1800);

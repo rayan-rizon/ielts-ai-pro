@@ -6,8 +6,18 @@ const migration = readFileSync(
   resolve(process.cwd(), 'supabase/migrations/20260922014842_ai_coach.sql'),
   'utf8'
 ).toLowerCase();
+const followUpMigration = readFileSync(
+  resolve(process.cwd(), 'supabase/migrations/20260927021243_ai_coach_contextual_follow_ups.sql'),
+  'utf8'
+).toLowerCase();
 
 describe('personalized AI Coach database contract', () => {
+  it('stores each generated follow-up with its assistant reply', () => {
+    expect(followUpMigration).toContain('add column follow_ups jsonb not null');
+    expect(followUpMigration).toContain("coalesce(p_response->'followups','[]'::jsonb)");
+    expect(followUpMigration).toContain('jsonb_array_length(follow_ups) <= 3');
+  });
+
   it('ships disabled with the requested quota and budget limits', () => {
     expect(migration).toContain('enabled boolean not null default false');
     expect(migration).toContain('daily_budget_usd numeric not null default 3');

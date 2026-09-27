@@ -10,26 +10,30 @@ import {
   Compass,
   FileText,
   Loader2,
+  MessageCircle,
+  Mic2,
   PenLine,
   Plus,
+  Search,
   Send,
   ShieldCheck,
   Sparkles,
+  Headphones,
   Trash2,
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
-import {
-  MICRO,
-  NUM,
-  PANEL,
-  PanelTitle,
-  Pill,
-  TILE,
-} from '@/features/dashboard/components/primitives';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { MICRO, NUM, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 import { AI_COACH_ENABLED, isRtlLanguage, takeCoachDraft } from '../config';
 import { EvidenceRefs } from '../components/EvidenceRefs.jsx';
+import WavingCoachArtwork from '../components/WavingCoachArtwork.jsx';
+import {
+  coachFollowUps,
+  coachTopic,
+  groupCoachConversations,
+} from '../utils/coachConversationUi.js';
 import {
   bootstrapCoach,
   checkCoachExercise,
@@ -84,6 +88,24 @@ const QUICK_SUGGESTIONS = [
   'Create a short study plan',
 ];
 
+const CONVERSATION_TOPICS = {
+  writing: { icon: PenLine, description: 'Continue your writing practice' },
+  speaking: { icon: Mic2, description: 'Continue your speaking practice' },
+  reading: { icon: BookOpenCheck, description: 'Continue your reading practice' },
+  listening: { icon: Headphones, description: 'Continue your listening practice' },
+  plan: { icon: Compass, description: 'Continue your study plan' },
+  general: { icon: MessageCircle, description: 'Continue this conversation' },
+};
+
+const conversationTime = (value, today = false) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(
+    undefined,
+    today ? { hour: 'numeric', minute: '2-digit' } : { month: 'short', day: 'numeric' }
+  ).format(date);
+};
+
 const FOCUS_RING =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#100f15]';
 
@@ -118,7 +140,7 @@ const sortCoachMessages = (items = []) =>
     return String(a.id || '').localeCompare(String(b.id || ''));
   });
 
-function CoachAvatar({ size = 'md', className, decorative = false }) {
+function CoachAvatar({ size = 'md', className, decorative = false, waving = false }) {
   const sizes = {
     sm: 'h-8 w-8',
     md: 'h-12 w-12',
@@ -136,15 +158,19 @@ function CoachAvatar({ size = 'md', className, decorative = false }) {
       aria-label={decorative ? undefined : 'IELTS AI Coach avatar'}
       aria-hidden={decorative ? true : undefined}
     >
-      <img
-        src="/assets/ai-coach/ava.webp"
-        alt=""
-        width="800"
-        height="800"
-        decoding="async"
-        className="h-full w-full object-cover"
-        draggable="false"
-      />
+      {waving ? (
+        <WavingCoachArtwork hero />
+      ) : (
+        <img
+          src="/assets/ai-coach/ava.webp"
+          alt=""
+          width="800"
+          height="800"
+          decoding="async"
+          className="h-full w-full object-cover"
+          draggable="false"
+        />
+      )}
     </span>
   );
 }
@@ -168,22 +194,21 @@ function CoachLoadingSkeleton() {
       aria-label="Loading Ava coach"
     >
       <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
-        <aside
-          className={cn(
-            PANEL,
-            'order-3 col-span-12 flex min-h-[72vh] flex-col p-3 lg:min-h-[calc(100dvh-2.5rem)]'
-          )}
-        >
-          <div className="flex items-center justify-between">
+        <aside className={cn(PANEL, 'order-3 col-span-12 flex min-h-[72vh] flex-col p-3')}>
+          <div className="h-11 w-full animate-pulse rounded-xl bg-[#5a63df]/20" />
+          <div className="mt-5 flex items-center justify-between">
             <div className="h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
             <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-200 dark:bg-white/10" />
           </div>
           <div className="mt-4 space-y-2">
             {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="h-9 animate-pulse rounded-lg bg-slate-100 dark:bg-white/[0.06]"
-              />
+              <div key={item} className="flex h-16 items-center gap-2.5 rounded-xl p-2">
+                <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-4/5 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
+                  <div className="h-2.5 w-3/5 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
+                </div>
+              </div>
             ))}
           </div>
           <div className={cn(TILE, 'mt-auto h-24 animate-pulse')} />
@@ -191,7 +216,7 @@ function CoachLoadingSkeleton() {
         <section
           className={cn(
             PANEL,
-            'relative order-2 col-span-12 flex min-h-[72vh] flex-col overflow-hidden lg:min-h-[calc(100dvh-2.5rem)]'
+            'relative order-2 col-span-12 flex h-[calc(100dvh-1.5rem)] min-h-[36rem] flex-col overflow-hidden'
           )}
         >
           <div className="flex items-center justify-between border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
@@ -294,7 +319,12 @@ function AvaWelcome({ available, onSelect }) {
           );
         })}
         <div className="ava-welcome__portrait">
-          <CoachAvatar size="hero" decorative />
+          <CoachAvatar size="hero" decorative waving />
+          <span className="ava-welcome__wave-mark" aria-hidden="true">
+            <svg viewBox="0 0 28 28" fill="none">
+              <path d="M5 19c4-2 6-5 7-9M13 22c5-3 8-7 9-13" />
+            </svg>
+          </span>
           <span className="ava-spark ava-spark--one" aria-hidden="true">
             ✦
           </span>
@@ -334,17 +364,29 @@ function ActionButton({ action, onSelect, busy }) {
 
 function inlineCoachText(text) {
   return String(text)
-    .split(/(\*\*[^*]+\*\*)/g)
+    .split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
     .filter(Boolean)
-    .map((part, index) =>
-      part.startsWith('**') && part.endsWith('**') ? (
-        <strong key={`${part}-${index}`} className="font-extrabold text-slate-900 dark:text-white">
-          {part.slice(2, -2)}
-        </strong>
-      ) : (
-        <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>
-      )
-    );
+    .map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**'))
+        return (
+          <strong key={`${part}-${index}`} className="font-semibold text-slate-900 dark:text-white">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      if (part.startsWith('*') && part.endsWith('*')) {
+        const value = part.slice(1, -1);
+        return value.endsWith(':') ? (
+          <strong key={`${part}-${index}`} className="font-semibold text-slate-900 dark:text-white">
+            {value}
+          </strong>
+        ) : (
+          <em key={`${part}-${index}`} className="font-medium">
+            {value}
+          </em>
+        );
+      }
+      return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+    });
 }
 
 function CoachAnswer({ content }) {
@@ -360,14 +402,24 @@ function CoachAnswer({ content }) {
     list = null;
   };
 
-  clean.split(/\r?\n/).forEach((rawLine) => {
+  const lines = clean.split(/\r?\n/);
+  lines.forEach((rawLine, index) => {
     const line = rawLine.trim();
     if (!line) {
+      const nextLine =
+        lines
+          .slice(index + 1)
+          .find((candidate) => candidate.trim())
+          ?.trim() || '';
+      const nextIsSameList =
+        (list?.type === 'ol' && /^(?:\d+[.)]|\d\uFE0F?\u20E3)\s+/u.test(nextLine)) ||
+        (list?.type === 'ul' && /^[-•]\s+/u.test(nextLine));
+      if (nextIsSameList) return;
       finishList();
       return;
     }
     const bullet = line.match(/^[-•]\s+(.+)/u);
-    const numbered = line.match(/^\d+[.)]\s+(.+)/u);
+    const numbered = line.match(/^(?:\d+[.)]|\d\uFE0F?\u20E3)\s+(.+)/u);
     if (bullet || numbered) {
       const type = numbered ? 'ol' : 'ul';
       if (list?.type !== type) {
@@ -378,13 +430,25 @@ function CoachAnswer({ content }) {
       return;
     }
     finishList();
-    blocks.push({ type: 'p', text: line });
+    const heading = line.match(/^(?:#{1,3}\s+(.+)|\*\*([^*]+)\*\*)$/u);
+    blocks.push(
+      heading ? { type: 'heading', text: heading[1] || heading[2] } : { type: 'p', text: line }
+    );
   });
   finishList();
 
   return (
     <div className="coach-answer space-y-2.5">
       {blocks.map((block, index) => {
+        if (block.type === 'heading')
+          return (
+            <h3
+              key={`${block.text}-${index}`}
+              className="pt-1 text-sm font-bold text-slate-900 dark:text-white"
+            >
+              {inlineCoachText(block.text)}
+            </h3>
+          );
         if (block.type === 'p')
           return <p key={`${block.text}-${index}`}>{inlineCoachText(block.text)}</p>;
         const List = block.type;
@@ -476,43 +540,107 @@ function CoachExercise({ exercise, messageId, responseLanguage }) {
   );
 }
 
-function CoachMessage({ message, onAction, actionBusy }) {
+function LearnerAvatar({ user }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const avatarUrl = user?.avatar_url || user?.user_metadata?.avatar_url;
+  const name = user?.full_name || user?.user_metadata?.full_name || user?.username || 'You';
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+
+  return (
+    <span
+      aria-hidden="true"
+      className="mt-5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full border border-[#dcdcff] bg-[#eeeeff] text-xs font-extrabold text-[#4a52c9] dark:border-[#777deb]/30 dark:bg-[#5a63df]/20 dark:text-[#c3c7ff]"
+    >
+      {avatarUrl && !imageFailed ? (
+        <img
+          src={avatarUrl}
+          alt=""
+          width="32"
+          height="32"
+          loading="lazy"
+          decoding="async"
+          onError={() => setImageFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        initials
+      )}
+    </span>
+  );
+}
+
+function CoachMessage({ message, onAction, actionBusy, user }) {
   const assistant = message.role === 'assistant';
   const rtl = assistant && isRtlLanguage(message.responseLanguage || message.response_language);
   const refs = message.evidenceRefs || message.evidence_refs || [];
+  const sentAt = message.created_at || message.createdAt;
   return (
-    <article className={cn('flex gap-2.5', assistant ? 'justify-start' : 'justify-end')}>
-      {assistant ? <CoachAvatar size="sm" className="mt-1" decorative /> : null}
+    <article
+      className={cn('flex items-start gap-2.5', assistant ? 'justify-start' : 'justify-end')}
+    >
+      {assistant ? <CoachAvatar size="sm" className="mt-5" decorative /> : null}
       <div
         className={cn(
-          'ai-coach-message max-w-[min(94%,68rem)] rounded-xl border px-3.5 py-3 text-sm leading-6',
-          assistant
-            ? 'border-[#e4e2f0] bg-white text-slate-700 dark:border-white/[0.07] dark:bg-[#151419] dark:text-slate-200'
-            : 'border-[#5a63df] bg-[#5a63df] text-white'
+          'flex min-w-0 max-w-[min(88%,48rem)] flex-col gap-1',
+          !assistant && 'items-end'
         )}
-        dir={rtl ? 'rtl' : 'ltr'}
       >
-        {assistant ? (
-          <CoachAnswer content={message.content} />
-        ) : (
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        )}
-        {assistant && message.exercise ? (
-          <CoachExercise
-            exercise={message.exercise}
-            messageId={message.id}
-            responseLanguage={message.responseLanguage || message.response_language}
-          />
-        ) : null}
-        {assistant ? <EvidenceRefs refs={refs} /> : null}
-        {assistant && message.actions?.length ? (
-          <div className="mt-3 space-y-1.5" dir="ltr">
-            {message.actions.map((action) => (
-              <ActionButton key={action.id} action={action} onSelect={onAction} busy={actionBusy} />
-            ))}
-          </div>
+        <span className={cn(MICRO, 'px-1 text-slate-400 dark:text-slate-500')}>
+          {assistant ? 'Ava' : 'You'}
+        </span>
+        <div
+          className={cn(
+            'ai-coach-message w-fit max-w-full rounded-2xl border px-4 py-3 text-sm leading-6',
+            assistant
+              ? 'border-[#e4e2f0] bg-[#f7f7fc] text-slate-700 dark:border-white/[0.09] dark:bg-white/[0.05] dark:text-slate-200'
+              : 'border-[#dcdcff] bg-[#eeeeff] text-[#252b67] dark:border-[#777deb]/30 dark:bg-[#5a63df]/20 dark:text-[#e3e5ff]'
+          )}
+          dir={rtl ? 'rtl' : 'auto'}
+        >
+          {assistant ? (
+            <CoachAnswer content={message.content} />
+          ) : (
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          )}
+          {assistant && message.exercise ? (
+            <CoachExercise
+              exercise={message.exercise}
+              messageId={message.id}
+              responseLanguage={message.responseLanguage || message.response_language}
+            />
+          ) : null}
+          {assistant ? <EvidenceRefs refs={refs} /> : null}
+          {assistant && message.actions?.length ? (
+            <div className="mt-3 space-y-1.5" dir="ltr">
+              {message.actions.map((action) => (
+                <ActionButton
+                  key={action.id}
+                  action={action}
+                  onSelect={onAction}
+                  busy={actionBusy}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+        {sentAt ? (
+          <time className={cn(NUM, 'px-1 text-[10px] text-slate-400')} dateTime={sentAt}>
+            {conversationTime(sentAt, true)}
+          </time>
         ) : null}
       </div>
+      {!assistant ? (
+        <LearnerAvatar
+          key={user?.avatar_url || user?.user_metadata?.avatar_url || 'initials'}
+          user={user}
+        />
+      ) : null}
     </article>
   );
 }
@@ -561,6 +689,7 @@ function ActionConfirmation({ action, onCancel, onConfirm, busy }) {
 
 export default function AiCoach() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const reduceMotion = useReducedMotion();
   const [state, setState] = useState({
     loading: true,
@@ -578,7 +707,11 @@ export default function AiCoach() {
   const [actionBusy, setActionBusy] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [switchingConversation, setSwitchingConversation] = useState(false);
-  const endRef = useRef(null);
+  const [historySearch, setHistorySearch] = useState('');
+  const [showHistorySearch, setShowHistorySearch] = useState(false);
+  const chatScrollRef = useRef(null);
+  const chatPanelRef = useRef(null);
+  const historyPanelRef = useRef(null);
   const recoveryRef = useRef(null);
   const composerRef = useRef(null);
   const conversationCacheRef = useRef(new Map());
@@ -620,11 +753,23 @@ export default function AiCoach() {
   }, []);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages, sending]);
+    const scrollToLatest = () => {
+      if (chatScrollRef.current)
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    };
+    const frame = requestAnimationFrame(scrollToLatest);
+    const timer = window.setTimeout(scrollToLatest, 300);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [messages, sending, switchingConversation]);
 
   const selectConversation = async (id) => {
     if (!id || id === conversationId) return;
+    if (window.matchMedia?.('(max-width: 899px)').matches) {
+      requestAnimationFrame(() => chatPanelRef.current?.scrollIntoView({ behavior: 'smooth' }));
+    }
     const requestId = ++historyRequestRef.current;
     setConversationId(id);
     const cached = conversationCacheRef.current.get(id);
@@ -672,17 +817,20 @@ export default function AiCoach() {
     }
   };
 
-  const submit = async (event) => {
-    event?.preventDefault();
-    const text = draft.trim();
-    if (!text || sending || !state.status?.enabled) return;
+  const sendMessage = async (messageText) => {
+    const text = messageText.trim();
+    if (!text || sending || switchingConversation || !canSend) return;
     setDraft('');
     setSending(true);
     conversationCacheRef.current.delete(conversationId);
     const recovery = recoveryRef.current?.text === text ? recoveryRef.current : null;
     const requestId = recovery?.requestId || crypto.randomUUID();
     const optimisticId = `local-${requestId}`;
-    setMessages((current) => [...current, { id: optimisticId, role: 'user', content: text }]);
+    const sentAt = new Date().toISOString();
+    setMessages((current) => [
+      ...current,
+      { id: optimisticId, role: 'user', content: text, createdAt: sentAt },
+    ]);
     try {
       const result = await sendCoachMessage({
         requestId,
@@ -703,6 +851,8 @@ export default function AiCoach() {
         evidenceRefs: result.evidenceRefs,
         exercise: result.exercise,
         actions: result.actions || [],
+        followUps: result.followUps || [],
+        createdAt: new Date().toISOString(),
       };
       setMessages((current) => {
         const nextMessages = [...current, assistantMessage];
@@ -738,6 +888,11 @@ export default function AiCoach() {
     } finally {
       setSending(false);
     }
+  };
+
+  const submit = (event) => {
+    event?.preventDefault();
+    sendMessage(draft);
   };
 
   const executeAction = async (action) => {
@@ -797,6 +952,11 @@ export default function AiCoach() {
       : null;
   const canSend =
     state.status?.enabled && state.status?.budgetAvailable !== false && Number(remaining) > 0;
+  const followUps = coachFollowUps(messages);
+  const matchingConversations = state.conversations.filter((item) =>
+    (item.title || '').toLocaleLowerCase().includes(historySearch.trim().toLocaleLowerCase())
+  );
+  const conversationGroups = groupCoachConversations(matchingConversations);
   const viewMotion = reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.2, 0, 0, 1] };
   const prepareDraft = (message) => {
     setDraft(message);
@@ -809,69 +969,140 @@ export default function AiCoach() {
     <main className="ai-coach-canvas min-h-full p-3 text-slate-900 dark:text-white md:p-5">
       <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
         <aside
-          className={cn(
-            PANEL,
-            'order-3 col-span-12 flex h-full flex-col p-3 lg:min-h-[calc(100dvh-2.5rem)]'
-          )}
+          ref={historyPanelRef}
+          className={cn(PANEL, 'order-3 col-span-12 flex h-full min-w-0 flex-col p-3')}
         >
-          <div className="flex items-center justify-between">
-            <PanelTitle label="Saved conversations" />
+          <button
+            type="button"
+            onClick={() => {
+              historyRequestRef.current += 1;
+              setConversationId(null);
+              setMessages([]);
+              setNextBefore(null);
+              setSwitchingConversation(false);
+              if (window.matchMedia?.('(max-width: 899px)').matches) {
+                requestAnimationFrame(() =>
+                  chatPanelRef.current?.scrollIntoView({ behavior: 'smooth' })
+                );
+              }
+              requestAnimationFrame(() => composerRef.current?.focus());
+            }}
+            className={cn(
+              FOCUS_RING,
+              'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5a63df] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#4d56d4] active:scale-[0.99]'
+            )}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            New conversation
+          </button>
+          <div className="mt-5 flex items-center justify-between gap-2 px-1">
+            <h2 className="text-sm font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+              Saved conversations
+            </h2>
             <button
               type="button"
               onClick={() => {
-                historyRequestRef.current += 1;
-                setConversationId(null);
-                setMessages([]);
-                setNextBefore(null);
-                setSwitchingConversation(false);
+                setShowHistorySearch((current) => !current);
+                setHistorySearch('');
               }}
+              aria-label={showHistorySearch ? 'Close conversation search' : 'Search conversations'}
+              aria-expanded={showHistorySearch}
               className={cn(
                 FOCUS_RING,
-                'grid h-8 w-8 place-items-center rounded-lg border border-[#e4e2f0] text-[#5a63df] dark:border-white/10'
+                'grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/[0.07]'
               )}
-              aria-label="New conversation"
             >
-              <Plus className="h-4 w-4" />
+              {showHistorySearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
             </button>
           </div>
-          <div className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto">
-            {state.conversations.length ? (
-              state.conversations.map((item) => (
-                <div
-                  key={item.id}
-                  className={cn(
-                    'group flex items-center rounded-lg',
-                    conversationId === item.id
-                      ? 'bg-[#5a63df]/10'
-                      : 'hover:bg-slate-50 dark:hover:bg-white/5'
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => selectConversation(item.id)}
-                    className={cn(
-                      FOCUS_RING,
-                      'min-w-0 flex-1 truncate rounded-lg px-2.5 py-2 text-left text-xs font-semibold'
-                    )}
-                  >
-                    {item.title}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeConversation(item.id)}
-                    className={cn(
-                      FOCUS_RING,
-                      'mr-1 grid h-7 w-7 place-items-center rounded-md text-slate-400 opacity-0 hover:text-rose-500 group-hover:opacity-100 focus:opacity-100'
-                    )}
-                    aria-label={`Delete ${item.title}`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+          {showHistorySearch ? (
+            <input
+              type="search"
+              autoFocus
+              value={historySearch}
+              onChange={(event) => setHistorySearch(event.target.value)}
+              placeholder="Search recent chats"
+              aria-label="Search recent conversations"
+              className={cn(
+                FOCUS_RING,
+                'mt-2 h-9 w-full rounded-lg border border-[#e4e2f0] bg-white px-3 text-xs outline-none placeholder:text-slate-400 dark:border-white/10 dark:bg-white/[0.04]'
+              )}
+            />
+          ) : null}
+          <div className="mt-2 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+            {conversationGroups.length ? (
+              conversationGroups.map((group) => (
+                <div key={group.label}>
+                  <h3 className={cn(MICRO, 'mb-2 px-2 text-slate-400 dark:text-slate-500')}>
+                    {group.label}
+                  </h3>
+                  <div className="space-y-1">
+                    {group.items.map((item) => {
+                      const topic = CONVERSATION_TOPICS[coachTopic(item.title)];
+                      const Icon = topic.icon;
+                      return (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            'group flex min-w-0 items-start gap-1 rounded-xl border transition-colors',
+                            conversationId === item.id
+                              ? 'border-[#5a63df]/20 bg-[#5a63df]/[0.07] dark:bg-[#5a63df]/[0.14]'
+                              : 'border-transparent hover:border-[#e4e2f0] hover:bg-[#f7f6fc] dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
+                          )}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => selectConversation(item.id)}
+                            aria-label={`Open ${item.title || 'untitled conversation'}`}
+                            aria-current={conversationId === item.id ? 'page' : undefined}
+                            className={cn(
+                              FOCUS_RING,
+                              'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl px-2.5 py-3 text-left'
+                            )}
+                          >
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/10 dark:bg-white/[0.06]">
+                              <Icon className="h-4 w-4" aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span
+                                className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100"
+                                title={item.title}
+                              >
+                                {item.title || 'Untitled conversation'}
+                              </span>
+                              <span className="mt-1 block truncate text-[11px] text-slate-500 dark:text-slate-400">
+                                {topic.description}
+                              </span>
+                            </span>
+                            <time
+                              className={cn(NUM, 'shrink-0 text-[10px] text-slate-400')}
+                              dateTime={item.last_message_at}
+                            >
+                              {conversationTime(item.last_message_at, group.label === 'Today')}
+                            </time>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeConversation(item.id)}
+                            className={cn(
+                              FOCUS_RING,
+                              'mr-1 mt-3 grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 opacity-0 hover:text-rose-500 group-hover:opacity-100 focus:opacity-100'
+                            )}
+                            aria-label={`Delete ${item.title || 'conversation'}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ))
             ) : (
               <p className="px-2 py-4 text-xs text-slate-500">
-                Your saved conversations will appear here.
+                {historySearch
+                  ? 'No recent conversations match your search.'
+                  : 'Your saved conversations will appear here.'}
               </p>
             )}
           </div>
@@ -888,9 +1119,10 @@ export default function AiCoach() {
         </aside>
 
         <section
+          ref={chatPanelRef}
           className={cn(
             PANEL,
-            'relative order-2 col-span-12 flex h-full min-h-[72vh] flex-col overflow-hidden lg:min-h-[calc(100dvh-2.5rem)]'
+            'relative order-2 col-span-12 flex h-[calc(100dvh-1.5rem)] min-h-[36rem] flex-col overflow-hidden'
           )}
         >
           <div className="ava-coach-bar flex flex-wrap items-center justify-between gap-3 border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
@@ -925,6 +1157,17 @@ export default function AiCoach() {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => historyPanelRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className={cn(
+                  FOCUS_RING,
+                  'inline-flex items-center gap-1.5 rounded-lg border border-[#e4e2f0] px-2.5 py-1.5 text-[11px] font-bold text-[#4a52c9] min-[900px]:hidden dark:border-white/10 dark:text-[#c3c7ff]'
+                )}
+              >
+                <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                Chats
+              </button>
               {state.status?.enabled ? (
                 <>
                   {remaining === 0 ? (
@@ -948,8 +1191,9 @@ export default function AiCoach() {
             </div>
           </div>
           <div
+            ref={chatScrollRef}
             className={cn(
-              'relative flex-1 space-y-4 overflow-y-auto p-3 [content-visibility:auto] sm:p-5',
+              'relative flex-1 space-y-4 overflow-y-auto p-3 sm:p-5',
               switchingConversation && 'ai-coach-conversation-switching'
             )}
           >
@@ -1015,8 +1259,43 @@ export default function AiCoach() {
                       message={message}
                       onAction={executeAction}
                       actionBusy={actionBusy}
+                      user={user}
                     />
                   ))}
+                  {followUps.length ? (
+                    <div
+                      className="ai-coach-follow-ups pl-10"
+                      role="group"
+                      aria-label="Suggested follow-up questions"
+                    >
+                      <p
+                        className={cn(
+                          MICRO,
+                          'mb-2 flex items-center gap-1.5 text-[#5a63df] dark:text-[#b9bdff]'
+                        )}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                        Keep going
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {followUps.map((question) => (
+                          <button
+                            key={question}
+                            type="button"
+                            dir="auto"
+                            onClick={() => sendMessage(question)}
+                            disabled={!canSend || sending || switchingConversation}
+                            className={cn(
+                              FOCUS_RING,
+                              'rounded-full border border-[#dedcec] bg-white px-3 py-2 text-left text-xs font-semibold text-[#4b5681] transition-colors hover:border-[#5a63df]/45 hover:bg-[#f3f2ff] hover:text-[#4049bb] disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]'
+                            )}
+                          >
+                            {question}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1032,7 +1311,6 @@ export default function AiCoach() {
                 Checking your learning evidence…
               </div>
             ) : null}
-            <div ref={endRef} />
           </div>
           <form
             onSubmit={submit}
@@ -1117,7 +1395,7 @@ export default function AiCoach() {
                 <span className={cn(NUM, 'shrink-0')}>{draft.length}/2000</span>
               </div>
             </div>
-            {state.status?.enabled ? (
+            {state.status?.enabled && messages.length === 0 ? (
               <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5 px-1">
                 <span className="mr-1 text-[10px] font-bold text-slate-400">Try these:</span>
                 {QUICK_SUGGESTIONS.map((suggestion) => (
