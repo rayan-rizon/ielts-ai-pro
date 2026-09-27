@@ -5,8 +5,27 @@ import { Globe, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { NUM, MICRO, PANEL, FADE_UP } from '@/components/admin/ui/primitives';
 import CountryAutocomplete from './CountryAutocomplete';
+import { describeCharges, EXAM_PASS_DISCOUNT } from '@/lib/pricingUtils';
 
 const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block');
+
+/** Exactly what learners pay for this row — the pricing page and Stripe use the same math. */
+function ChargePreview({ price, currency, symbol }) {
+  const charges = describeCharges(price, currency, symbol);
+  if (!charges) return null;
+  if (!charges.chargeable) {
+    return (
+      <p className={cn(MICRO, 'text-[rgb(var(--signal-fault))]')}>
+        Cards cannot be charged in {currency}. Learners here will see an error at checkout.
+      </p>
+    );
+  }
+  return (
+    <p className={cn(MICRO, NUM, 'text-stone-500 dark:text-stone-400')}>
+      Charged: {charges.monthly} monthly · {charges.pass} once for the 3-Month Pass
+    </p>
+  );
+}
 
 export default function PricingTierCard({
   tierId,
@@ -93,11 +112,15 @@ export default function PricingTierCard({
               Auto discount: {Math.round((1 - price / originalPrice) * 100)}% off
             </p>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 mt-0.5')}>
-              Quarterly rate: {Math.round((1 - (price * 0.85) / originalPrice) * 100)}% off total
+              3-Month Pass rate:{' '}
+              {Math.round((1 - (price * (1 - EXAM_PASS_DISCOUNT)) / originalPrice) * 100)}% off
+              total
             </p>
           </div>
         </div>
       )}
+
+      <ChargePreview price={price} currency="USD" symbol="$" />
 
       <div className={cn(MICRO, 'flex items-center gap-1.5 text-stone-500 dark:text-stone-400')}>
         <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
@@ -130,63 +153,72 @@ export default function PricingTierCard({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -4 }}
                 transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2 bg-stone-50 dark:bg-white/2 p-2 rounded-md border border-stone-200/70 dark:border-white/6 transition-all duration-150 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20"
+                className="space-y-1.5 bg-stone-50 dark:bg-white/2 p-2 rounded-md border border-stone-200/70 dark:border-white/6 transition-all duration-150 ease-smooth-out hover:border-stone-300 dark:hover:border-white/20"
               >
-                <CountryAutocomplete
-                  value={region.country}
-                  disabled={saving}
-                  onChange={(country) =>
-                    onRegionalUpdate({
-                      tier: tierId,
-                      action: 'update',
-                      index: idx,
-                      field: {
-                        country: country.code,
-                        currency: country.currency,
-                        symbol: country.symbol,
-                      },
-                    })
-                  }
-                />
-                <div className="relative flex-1 min-w-[110px]">
-                  <span
-                    className={cn(
-                      NUM,
-                      'absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-500 select-none'
-                    )}
-                  >
-                    {region.symbol || '$'}
-                  </span>
-                  <Input
-                    type="number"
-                    placeholder="Price"
-                    value={region.price || ''}
-                    onChange={(e) =>
+                <div className="flex flex-col min-[450px]:flex-row items-stretch min-[450px]:items-center gap-2">
+                  <CountryAutocomplete
+                    value={region.country}
+                    disabled={saving}
+                    onChange={(country) =>
                       onRegionalUpdate({
                         tier: tierId,
                         action: 'update',
                         index: idx,
-                        field: 'price',
-                        value: parseFloat(e.target.value),
+                        field: {
+                          country: country.code,
+                          currency: country.currency,
+                          symbol: country.symbol,
+                        },
                       })
                     }
-                    className="h-8 pl-6 pr-12 text-xs font-mono font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315]"
                   />
-                  <span
-                    className={cn(
-                      MICRO,
-                      'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 px-1 py-0.5 rounded pointer-events-none'
-                    )}
+                  <div className="relative flex-1 min-w-[110px]">
+                    <span
+                      className={cn(
+                        NUM,
+                        'absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-stone-500 select-none'
+                      )}
+                    >
+                      {region.symbol || '$'}
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="Price"
+                      value={region.price || ''}
+                      onChange={(e) =>
+                        onRegionalUpdate({
+                          tier: tierId,
+                          action: 'update',
+                          index: idx,
+                          field: 'price',
+                          value: parseFloat(e.target.value),
+                        })
+                      }
+                      className="h-8 pl-6 pr-12 text-xs font-mono font-bold rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315]"
+                    />
+                    <span
+                      className={cn(
+                        MICRO,
+                        'absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-white/6 px-1 py-0.5 rounded pointer-events-none'
+                      )}
+                    >
+                      {region.currency || 'USD'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onRegionalUpdate({ tier: tierId, action: 'remove', index: idx })}
+                    className="h-8 w-8 grid place-items-center shrink-0 rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all duration-150 ease-smooth-out active:scale-90"
                   >
-                    {region.currency || 'USD'}
-                  </span>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => onRegionalUpdate({ tier: tierId, action: 'remove', index: idx })}
-                  className="h-8 w-8 grid place-items-center shrink-0 rounded-md text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)] transition-all duration-150 ease-smooth-out active:scale-90"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                {region.country && (
+                  <ChargePreview
+                    price={region.price}
+                    currency={region.currency}
+                    symbol={region.symbol}
+                  />
+                )}
               </m.div>
             ))}
           </AnimatePresence>

@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
 import { isVisibleIeltsCheckout, stripeObjectId } from './visibility.ts';
 import { getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
+import { fromStripeAmount } from '../_shared/planPricing.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -52,7 +53,7 @@ const paymentFromCheckout = (session: Stripe.Checkout.Session) => ({
   auth_id: null,
   tier: session.metadata?.tier || 'subscription',
   interval: session.metadata?.interval || 'monthly',
-  amount: (session.amount_total || 0) / 100,
+  amount: fromStripeAmount(session.amount_total, session.currency || 'usd'),
   currency: (session.currency || 'usd').toUpperCase(),
   payment_method: 'stripe',
   transaction_id: session.id,
@@ -76,7 +77,7 @@ const paymentFromInvoice = (invoice: Stripe.Invoice) => {
     auth_id: null,
     tier: invoice.subscription_details?.metadata?.tier || 'subscription',
     interval: paymentInterval(recurring?.interval, recurring?.interval_count),
-    amount: (invoice.amount_paid || 0) / 100,
+    amount: fromStripeAmount(invoice.amount_paid, invoice.currency || 'usd'),
     currency: (invoice.currency || 'usd').toUpperCase(),
     payment_method: 'stripe',
     transaction_id: invoice.id,

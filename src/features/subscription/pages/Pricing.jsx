@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
-import { getPlanPriceAndMeta, calculatePrice } from '@/lib/pricingUtils';
+import { getPlanPriceAndMeta, calculatePrice, formatBillingNote } from '@/lib/pricingUtils';
+import { describeExamCoverage, getExamPlanContext } from '@/lib/examPlan';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
@@ -76,6 +77,8 @@ const createStripeCheckout = async ({
   planTier,
   interval,
   currency,
+  country,
+  expectedAmount,
   attribution,
 }) => {
   const { campaignId, deliveryId } = getAttributionPayload(attribution);
@@ -91,6 +94,10 @@ const createStripeCheckout = async ({
       tier: planTier,
       interval,
       currency: currency.toLowerCase(),
+      // The server prices from this country's admin row and refuses to charge
+      // anything other than the amount the card showed.
+      country: country || null,
+      expected_amount: expectedAmount,
       marketing_campaign_id: campaignId,
       marketing_delivery_id: deliveryId,
       // Carries the GA4 session into Stripe so the webhook can report the
@@ -121,7 +128,9 @@ const createStripeCheckout = async ({
       outage.status = response.status;
       throw outage;
     }
-    throw new Error(data?.error || 'Failed to create checkout session');
+    const failure = new Error(data?.error || 'Failed to create checkout session');
+    failure.code = data?.code;
+    throw failure;
   }
   if (!validateCheckoutResponse(data)) {
     throw new Error('No checkout URL returned');
@@ -287,7 +296,12 @@ function PricingPlansGrid({
       className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto pt-2 sm:pt-4 mb-16 items-stretch"
     >
       {plans.map((plan) => {
-        const displayPrice = calculatePrice(plan.basePrice, billingInterval, promoDiscount);
+        const displayPrice = calculatePrice(
+          plan.basePrice,
+          billingInterval,
+          promoDiscount,
+          plan.currency
+        );
         const isActive = user
           ? (user.subscription_tier || 'free') === plan.tier
           : selectedPlan === plan.tier;
@@ -297,6 +311,7 @@ function PricingPlansGrid({
             key={plan.tier}
             plan={plan}
             displayPrice={displayPrice}
+            priceNote={formatBillingNote(plan, billingInterval, promoDiscount)}
             isActive={isActive}
             isSubscribed={isSubscribed}
             isLoading={isLoading}
@@ -312,7 +327,8 @@ function PricingPlansGrid({
 export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [promoDiscount, setPromoDiscount] = useState(null);
-  const [billingInterval, setBillingInterval] = useState('monthly');
+  // null until the learner picks one; until then the exam date decides.
+  const [chosenInterval, setChosenInterval] = useState(null);
   const [showManualPayment, setShowManualPayment] = useState(false);
   const [showFreePlanDialog, setShowFreePlanDialog] = useState(false);
   const [manualPaymentData, setManualPaymentData] = useState(null);
@@ -321,13 +337,25 @@ export default function Pricing() {
     user,
     plans,
     detectedCountry,
+    pricingCountry,
     isLoading: isPricingLoading,
     refetchUser,
+    refetchPricing,
   } = usePricing(DEFAULT_PRICING_PLANS, {
     disableBangladeshLocalization: !MANUAL_BD_PAYMENT_ENABLED,
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const examPlan = useMemo(
+    () => getExamPlanContext(user?.test_date, new Date(), user?.test_date_source),
+    [user?.test_date, user?.test_date_source]
+  );
+  // Derived, not set in an effect, so the page never paints monthly and then
+  // counts the prices over to the pass.
+  const billingInterval = chosenInterval || examPlan?.recommendedInterval || 'monthly';
+  const setBillingInterval = setChosenInterval;
+  const coverageNote = describeExamCoverage(billingInterval, examPlan);
 
   const isBD = isBangladeshUser(detectedCountry);
   const useManualBdPayment = isBD && MANUAL_BD_PAYMENT_ENABLED;
@@ -486,7 +514,7 @@ export default function Pricing() {
     setShowManualPayment(true);
   };
 
-  const startStripeCheckoutSession = async (planTier, selectedPlanData) => {
+  const startStripeCheckoutSession = async (planTier, selectedPlanData, chargeAmount) => {
     setIsLoading(true);
     try {
       const { supabase } = await import('@/lib/supabase');
@@ -506,6 +534,8 @@ export default function Pricing() {
         planTier,
         interval: billingInterval,
         currency: planCurrency,
+        country: pricingCountry,
+        expectedAmount: chargeAmount,
         attribution: marketingAttribution,
       });
 
@@ -543,6 +573,19 @@ export default function Pricing() {
 
       window.location.href = checkout.url;
     } catch (error) {
+      if (error?.code === 'offer_unavailable') {
+        setPromoDiscount(null);
+        const { toast } = await import('sonner');
+        toast.info(error.message, { duration: 8000 });
+        return;
+      }
+      if (error?.code === 'price_changed') {
+        // Show the current prices; the learner was not charged.
+        await refetchPricing();
+        const { toast } = await import('sonner');
+        toast.info(error.message, { duration: 8000 });
+        return;
+      }
       handleCheckoutFailure(error, planTier, billingInterval);
       MarketingDelivery.recordSubscriptionFunnel('checkout_failed', {
         planTier,
@@ -618,7 +661,7 @@ export default function Pricing() {
       return;
     }
 
-    await startStripeCheckoutSession(planTier, meta.plan);
+    await startStripeCheckoutSession(planTier, meta.plan, meta.chargeAmount);
   };
 
   return (
@@ -653,8 +696,8 @@ export default function Pricing() {
         </DialogContent>
       </Dialog>
       <DocumentHead
-        title="IELTS Preparation Pricing Plans - Free to Premium | IELTS Ai Pro"
-        description="Affordable, flexible IELTS prep plans starting at $9.99/month. Get unlimited mock tests, AI feedback, adaptive learning. Try free or upgrade to Premium for complete coaching."
+        title="Invest in Your Target Band Score – IELTS Plans | IELTS Ai Pro"
+        description="IELTS prep plans from $9.99 a month, or a one-time 3-Month Exam Pass. Instant AI band scores for Writing and Speaking, full mock tests and a study plan built around your exam date."
         canonicalUrl="https://www.ieltsai.pro/pricing"
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
@@ -676,6 +719,7 @@ export default function Pricing() {
             setBillingInterval={setBillingInterval}
             promoDiscount={promoDiscount}
             onPromoApplied={handlePromoApplied}
+            coverageNote={coverageNote}
           />
 
           <PricingPlansGrid

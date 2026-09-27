@@ -22,11 +22,10 @@ export const STRIPE_PRODUCTS = {
  * IMPORTANT: Update these after creating prices in Stripe Dashboard:
  * https://dashboard.stripe.com/test/products
  *
- * Create recurring prices for each product:
- * - Pro Monthly: $9.99/month
- * - Pro Quarterly: $24.99/quarter (15% off)
- * - Premium Monthly: $15.99/month
- * - Premium Quarterly: $40.99/quarter (15% off)
+ * Only the monthly prices are used as a fallback. The `quarterly` interval is
+ * the one-time 3-Month Exam Pass, which create-checkout-session always prices
+ * inline (Stripe payment mode) — a recurring quarterly price cannot be charged
+ * once, so the IDs below are legacy.
  */
 export const STRIPE_PRICES = {
   pro: {

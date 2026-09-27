@@ -28,6 +28,14 @@ import {
   validateCsrfProtection,
   RATE_LIMITS,
 } from '../_shared/security.ts';
+import {
+  computePlanCharge,
+  fromStripeAmount,
+  resolvePriceBook,
+  toStripeAmount,
+  UNCHARGEABLE_CURRENCIES,
+  type PriceBook,
+} from '../_shared/planPricing.ts';
 
 // =============================================================================
 // Configuration
@@ -64,12 +72,13 @@ const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 // just paid to a host that times out.
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro';
 
-// SECURITY: Whitelist of accepted currencies (prevents injection of invalid currencies)
-const ALLOWED_CURRENCIES = new Set(['usd', 'bdt']);
-
 // Valid tiers and intervals (prevent injection)
 const VALID_TIERS = new Set(['pro', 'premium']);
 const VALID_INTERVALS = new Set(['monthly', 'quarterly']);
+
+// `quarterly` is the 3-Month Exam Pass: one charge for three months, no
+// auto-renewal (Stripe payment mode). Its price, like every price, comes from
+// _shared/planPricing.ts, which the pricing page uses too.
 
 // =============================================================================
 // Stripe API Helper
@@ -117,44 +126,37 @@ async function stripeRequest(endpoint: string, method: string, body?: Record<str
 // Admin Pricing
 // =============================================================================
 
-async function getAdminPricing(
+/**
+ * The admin price book for the country the pricing page priced the learner in.
+ *
+ * The page sends the country it used; the currency always comes from the
+ * admin's row for that country, never from the request, so a learner cannot
+ * pick a cheaper currency. Older cached pages sent only a currency: those map
+ * to the single regional row using it, else the global price.
+ */
+async function loadPriceBook(
   supabase: ReturnType<typeof createClient>,
   tier: string,
-  currency: string
-): Promise<{ price: number; originalPrice: number } | null> {
+  country: string | null,
+  legacyCurrency: string | null
+): Promise<PriceBook | null> {
   try {
     const { data, error } = await supabase
       .from('system_settings')
       .select('value')
       .eq('key', 'pricing_tiers')
       .single();
-
     if (error || !data?.value) return null;
 
-    const pricingTiers = data.value as Record<
-      string,
-      {
-        price: number;
-        originalPrice: number;
-        currency?: string;
-        regional?: Array<{ currency?: string; price?: number }>;
-      }
-    >;
-    const tierPricing = pricingTiers[tier];
-    if (!tierPricing) return null;
-
-    const regionalPrice = tierPricing.regional?.find(
-      (regional) => regional?.currency?.trim().toLowerCase() === currency
-    );
-    const configuredPrice = regionalPrice?.price ?? tierPricing.price;
-
-    if (Number(configuredPrice) > 0) {
-      return {
-        price: Number(configuredPrice),
-        originalPrice: Number(tierPricing.originalPrice) || 0,
-      };
+    const pricingTiers = data.value as Record<string, any>;
+    let pricedCountry = country;
+    if (!pricedCountry && legacyCurrency) {
+      const rows = (pricingTiers[tier]?.regional || []).filter(
+        (row: any) => String(row?.currency || '').toLowerCase() === legacyCurrency
+      );
+      if (rows.length === 1) pricedCountry = rows[0].country;
     }
-    return null;
+    return resolvePriceBook(pricingTiers, tier, pricedCountry);
   } catch {
     return null;
   }
@@ -230,6 +232,8 @@ Deno.serve(async (req: Request) => {
       tier,
       interval,
       currency,
+      country,
+      expected_amount,
       marketing_campaign_id,
       marketing_delivery_id,
       ga_client_id,
@@ -267,11 +271,16 @@ Deno.serve(async (req: Request) => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     let marketingAttribution: { campaignId: string; deliveryId: string } | null = null;
 
-    // SECURITY: Validate currency against whitelist
-    const validatedCurrency =
-      typeof currency === 'string' && ALLOWED_CURRENCIES.has(currency.toLowerCase())
-        ? currency.toLowerCase()
-        : 'usd';
+    // Only shape-checked here; the price book decides what they mean.
+    const requestedCountry =
+      typeof country === 'string' && /^[A-Za-z]{2}$/.test(country.trim())
+        ? country.trim().toUpperCase()
+        : null;
+    const legacyCurrency =
+      typeof currency === 'string' && /^[A-Za-z]{3}$/.test(currency.trim())
+        ? currency.trim().toLowerCase()
+        : null;
+    const expectedAmount = Number(expected_amount);
 
     // =====================================================================
     // User Data & Subscription Check
@@ -279,7 +288,7 @@ Deno.serve(async (req: Request) => {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select(
-        'id, email, full_name, stripe_customer_id, stripe_subscription_id, subscription_tier, promo_discount'
+        'id, email, full_name, role, stripe_customer_id, stripe_subscription_id, subscription_tier, subscription_end_date, promo_discount'
       )
       .eq('auth_id', user.id)
       .single();
@@ -326,6 +335,29 @@ Deno.serve(async (req: Request) => {
       console.warn(`[Checkout] User ${user.id} already has active subscription: ${existingSubId}`);
       return errorResponse(
         'You already have an active subscription. Please cancel it first or manage it from your account settings.',
+        409,
+        corsHeaders
+      );
+    }
+
+    // Paid access that is not a Stripe subscription — an Exam Pass or a bKash
+    // payment — cannot be managed in the portal. A second purchase would
+    // restart the clock from today and throw away the days already paid for.
+    const hasPaidTier = ['pro', 'premium'].includes(userData.subscription_tier);
+    const accessEndsAt = userData.subscription_end_date
+      ? new Date(userData.subscription_end_date)
+      : null;
+    if (
+      !existingSubId &&
+      userData.role !== 'admin' &&
+      hasPaidTier &&
+      (!accessEndsAt || accessEndsAt > new Date())
+    ) {
+      const until = accessEndsAt
+        ? ` until ${accessEndsAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`
+        : '';
+      return errorResponse(
+        `You already have ${userData.subscription_tier} access${until}. You can buy a new plan once it ends.`,
         409,
         corsHeaders
       );
@@ -422,19 +454,61 @@ Deno.serve(async (req: Request) => {
     // =====================================================================
     // Pricing Calculation (server-side only)
     // =====================================================================
-    const adminPricing = await getAdminPricing(supabase, tier, validatedCurrency);
+    const priceBook = await loadPriceBook(supabase, tier, requestedCountry, legacyCurrency);
+    const validatedCurrency = (priceBook?.currency || 'USD').toLowerCase();
 
-    let finalPriceInCents: number | null = null;
+    if (priceBook && UNCHARGEABLE_CURRENCIES.has(priceBook.currency)) {
+      console.error(`[Checkout] Regional price uses unchargeable currency ${priceBook.currency}`);
+      return errorResponse(
+        'Card payment is not available for this region yet. Please contact support.',
+        400,
+        corsHeaders,
+        { code: 'currency_unavailable' }
+      );
+    }
 
-    if (adminPricing) {
-      const basePrice = adminPricing.price;
-      if (interval === 'quarterly') {
-        // 15% off, billed for 3 months
-        finalPriceInCents = Math.round(basePrice * 0.85 * 3 * 100);
-      } else {
-        finalPriceInCents = Math.round(basePrice * 100);
+    const charge = priceBook
+      ? computePlanCharge(priceBook.price, interval, priceBook.currency, validatedDiscount)
+      : null;
+
+    // The page shows a price; Stripe must charge exactly that price. If the
+    // admin changed pricing after the page loaded (it caches for 30 minutes),
+    // stop and have the learner refresh rather than charge a surprise amount.
+    if (charge && Number.isFinite(expectedAmount) && expected_amount != null) {
+      const shownMinor = toStripeAmount(expectedAmount, priceBook!.currency);
+      if (shownMinor !== toStripeAmount(charge.amount, priceBook!.currency)) {
+        console.warn(
+          `[Checkout] Price changed for ${user.id}: shown ${expectedAmount}, now ${charge.amount} ${priceBook!.currency}`
+        );
+        // The page applied an offer the server no longer honours (expired or
+        // reassigned). Say so, so the page can drop it instead of looping.
+        if (userPromoDiscount?.code && !validatedDiscount) {
+          return errorResponse(
+            'Your offer is no longer valid. The page now shows the full price.',
+            409,
+            corsHeaders,
+            { code: 'offer_unavailable' }
+          );
+        }
+        return errorResponse(
+          'Prices were just updated. Please refresh the page to see the current price.',
+          409,
+          corsHeaders,
+          { code: 'price_changed' }
+        );
       }
     }
+
+    // The line item carries the price before any promo; a promo is a
+    // one-time coupon for exactly the difference, so the first charge equals
+    // `charge.amount` to the minor unit and renewals return to the list price.
+    const finalPriceInCents: number | null = charge
+      ? toStripeAmount(charge.listAmount, priceBook!.currency)
+      : null;
+    const promoAmountOff =
+      charge && validatedDiscount
+        ? finalPriceInCents! - toStripeAmount(charge.amount, priceBook!.currency)
+        : 0;
 
     // =====================================================================
     // SECURITY: Idempotent Stripe Coupon Creation
@@ -442,80 +516,71 @@ Deno.serve(async (req: Request) => {
     // Duration: 'once' (applies to first payment only)
     // =====================================================================
     let stripeCouponId: string | null = null;
-    if (validatedDiscount && finalPriceInCents && finalPriceInCents > 0) {
+    if (validatedDiscount && finalPriceInCents && promoAmountOff > 0) {
       try {
-        // Generate deterministic coupon ID from promo code + discount params
-        // This ensures the same promo code always maps to the same Stripe coupon
+        // Deterministic: the same code, currency and amount always map to the
+        // same Stripe coupon, so retries never accumulate orphans.
         const couponIdBase =
-          `promo_${validatedDiscount.code}_${validatedDiscount.discount_type}_${validatedDiscount.discount_value}`
+          `promo_${validatedDiscount.code}_${validatedCurrency}_${promoAmountOff}`
             .toLowerCase()
             .replace(/[^a-z0-9_]/g, '_');
 
-        // Try to retrieve existing coupon first
         const existingCoupon = await stripeRequest(`/coupons/${couponIdBase}`, 'GET');
 
         if (existingCoupon && !existingCoupon.error) {
-          // Coupon already exists — reuse it
           stripeCouponId = existingCoupon.id;
           console.log(`[Checkout] Reusing existing Stripe coupon: ${stripeCouponId}`);
         } else {
-          // Create new coupon with deterministic ID
-          const couponBody: Record<string, unknown> = {
+          // A fixed amount off, never a percentage coupon. Stripe rounds percentages itself,
+          // which would charge ৳489.30 where the card said ৳489.
+          const couponResult = await stripeRequest('/coupons', 'POST', {
             id: couponIdBase,
             duration: 'once', // SECURITY: Only apply to first payment, not forever
             name: `PROMO-${validatedDiscount.code}`,
-          };
-
-          if (validatedDiscount.discount_type === 'percentage') {
-            couponBody.percent_off = String(validatedDiscount.discount_value);
-          } else {
-            // fixed discount — amount_off is in cents
-            couponBody.amount_off = String(Math.round(validatedDiscount.discount_value * 100));
-            couponBody.currency = validatedCurrency;
-          }
-
-          const couponResult = await stripeRequest('/coupons', 'POST', couponBody);
+            amount_off: String(promoAmountOff),
+            currency: validatedCurrency,
+          });
 
           if (couponResult.error) {
             console.error('[Checkout] Failed to create Stripe coupon:', couponResult.error);
-            // Continue without discount — safe fallback
-          } else {
-            stripeCouponId = couponResult.id;
-            console.log(`[Checkout] Created Stripe coupon: ${stripeCouponId}`);
+            // Charging without the promo would not match the page.
+            return errorResponse(
+              'We could not apply your offer. Please try again.',
+              502,
+              corsHeaders
+            );
           }
+          stripeCouponId = couponResult.id;
+          console.log(`[Checkout] Created Stripe coupon: ${stripeCouponId}`);
         }
       } catch (couponErr) {
         console.error('[Checkout] Error creating coupon:', couponErr);
-        // Continue without discount — safe fallback
+        return errorResponse('We could not apply your offer. Please try again.', 502, corsHeaders);
       }
     }
 
     // =====================================================================
     // Build Line Items
     // =====================================================================
+    const isExamPass = interval === 'quarterly';
     let lineItems: Record<string, unknown>[];
 
     if (finalPriceInCents && finalPriceInCents > 0) {
       const productId = PRODUCT_IDS[tier];
-      const intervalCount = interval === 'quarterly' ? 3 : 1;
+      const priceData: Record<string, unknown> = {
+        currency: validatedCurrency,
+        product: productId,
+        unit_amount: finalPriceInCents,
+      };
+      if (!isExamPass) {
+        priceData.recurring = { interval: 'month', interval_count: 1 };
+      }
 
-      lineItems = [
-        {
-          price_data: {
-            currency: validatedCurrency,
-            product: productId,
-            unit_amount: finalPriceInCents,
-            recurring: {
-              interval: 'month',
-              interval_count: intervalCount,
-            },
-          },
-          quantity: 1,
-        },
-      ];
+      lineItems = [{ price_data: priceData, quantity: 1 }];
     } else {
-      // Fallback to fixed price IDs
-      const priceId = PRICE_IDS[tier]?.[interval];
+      // Fallback to fixed price IDs. Those are recurring prices, which Stripe
+      // refuses in payment mode, so the one-time pass needs admin pricing.
+      const priceId = isExamPass ? '' : PRICE_IDS[tier]?.[interval];
       if (!priceId) {
         return errorResponse('Price not configured. Please contact support.', 500, corsHeaders);
       }
@@ -533,7 +598,7 @@ Deno.serve(async (req: Request) => {
     // =====================================================================
     const checkoutBody: Record<string, unknown> = {
       customer: customerId,
-      mode: 'subscription',
+      mode: isExamPass ? 'payment' : 'subscription',
       success_url: `${FRONTEND_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${FRONTEND_URL}/pricing`,
     };
@@ -589,14 +654,17 @@ Deno.serve(async (req: Request) => {
     // every future renewal to the session that happened to start it.
     if (gaClientId) checkoutBody['metadata[ga_client_id]'] = gaClientId;
     if (gaSessionId) checkoutBody['metadata[ga_session_id]'] = gaSessionId;
-    checkoutBody['subscription_data[metadata][supabase_user_id]'] = userData.id;
-    checkoutBody['subscription_data[metadata][supabase_auth_id]'] = user.id;
-    checkoutBody['subscription_data[metadata][tier]'] = tier;
-    checkoutBody['subscription_data[metadata][interval]'] = interval;
+    // Payment mode has no subscription to carry metadata, and Stripe rejects
+    // subscription_data there; the payment intent carries it for refunds.
+    const durableMetadataKey = isExamPass ? 'payment_intent_data' : 'subscription_data';
+    checkoutBody[`${durableMetadataKey}[metadata][supabase_user_id]`] = userData.id;
+    checkoutBody[`${durableMetadataKey}[metadata][supabase_auth_id]`] = user.id;
+    checkoutBody[`${durableMetadataKey}[metadata][tier]`] = tier;
+    checkoutBody[`${durableMetadataKey}[metadata][interval]`] = interval;
     if (marketingAttribution) {
-      checkoutBody['subscription_data[metadata][marketing_campaign_id]'] =
+      checkoutBody[`${durableMetadataKey}[metadata][marketing_campaign_id]`] =
         marketingAttribution.campaignId;
-      checkoutBody['subscription_data[metadata][marketing_delivery_id]'] =
+      checkoutBody[`${durableMetadataKey}[metadata][marketing_delivery_id]`] =
         marketingAttribution.deliveryId;
     }
 
@@ -616,6 +684,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const amountInMinorUnits = Number(sessionData.amount_total ?? finalPriceInCents);
+    const chargedCurrency = String(sessionData.currency || validatedCurrency).toUpperCase();
+    const chargedAmount = fromStripeAmount(amountInMinorUnits, chargedCurrency);
     if (!sessionData.url || !sessionData.id || !Number.isFinite(amountInMinorUnits)) {
       console.error('[Checkout] Stripe returned an incomplete checkout session');
       return errorResponse('Failed to initialize payment. Please try again.', 500, corsHeaders);
@@ -630,8 +700,9 @@ Deno.serve(async (req: Request) => {
         billing_interval: interval,
         status: 'initiated',
         metadata: {
-          currency: String(sessionData.currency || validatedCurrency).toUpperCase(),
-          amount: amountInMinorUnits / 100,
+          currency: chargedCurrency,
+          amount: chargedAmount,
+          priced_country: priceBook?.country || null,
         },
         updated_at: new Date().toISOString(),
       },
@@ -645,8 +716,8 @@ Deno.serve(async (req: Request) => {
       {
         url: sessionData.url,
         session_id: sessionData.id,
-        amount: amountInMinorUnits / 100,
-        currency: String(sessionData.currency || validatedCurrency).toUpperCase(),
+        amount: chargedAmount,
+        currency: chargedCurrency,
       },
       corsHeaders
     );

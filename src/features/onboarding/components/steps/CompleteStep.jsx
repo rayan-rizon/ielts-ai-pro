@@ -134,8 +134,10 @@ function useOnboardingPlanPricing() {
       }
       const symbol = plan.currencySymbol || '$';
       pricing[tier] = {
-        price: `${symbol}${calculatePrice(plan.basePrice, 'monthly')}`,
-        oldPrice: plan.oldPrice ? `${symbol}${calculatePrice(plan.oldPrice, 'monthly')}` : null,
+        price: `${symbol}${calculatePrice(plan.basePrice, 'monthly', null, plan.currency)}`,
+        oldPrice: plan.oldPrice
+          ? `${symbol}${calculatePrice(plan.oldPrice, 'monthly', null, plan.currency)}`
+          : null,
         dailyPrice: `${symbol}${formatDailyRate(plan.basePrice)}/day`,
       };
     });

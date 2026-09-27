@@ -292,7 +292,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                       {data?.planName || (data?.tier ? data.tier.toUpperCase() : 'Pro')}
                     </span>
                     <Pill tone="accent" className="text-[8px] py-0 px-1.5">
-                      {data?.interval === 'quarterly' ? 'Quarterly' : 'Monthly'}
+                      {data?.interval === 'quarterly' ? '3-Month Pass' : 'Monthly'}
                     </Pill>
                   </div>
                 </div>

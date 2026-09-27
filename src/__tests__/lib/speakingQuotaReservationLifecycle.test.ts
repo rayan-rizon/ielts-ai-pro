@@ -39,8 +39,11 @@ describe('speaking quota reservation lifecycle', () => {
 
       expect(source).toContain('finalizeApiUsage,');
       expect(source).toContain('quotaReservationId = quotaReservation.reservationId');
-      expect(source).toMatch(/await finalizeApiUsage\(supabase, quotaReservationId, tokensUsed/);
-      expect(source).toContain("{ failureReason: error?.message || 'Internal server error' }");
+      // Speaking deep dives finalize with the summed usage of every provider attempt.
+      expect(source).toMatch(
+        /await finalizeApiUsage\(supabase, quotaReservationId, (?:totalProviderUsage\.)?tokensUsed/
+      );
+      expect(source).toMatch(/failureReason: error\?\.message \|\| 'Internal server error'/);
       expect(source).toContain("'failed'");
     }
   );

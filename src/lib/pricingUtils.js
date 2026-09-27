@@ -1,3 +1,15 @@
+// Every price is decided in supabase/functions/_shared/planPricing.ts, which
+// create-checkout-session also imports, so the card and the Stripe charge
+// cannot drift apart. These wrappers keep the page's existing call signatures.
+import {
+  chargesWholeUnits,
+  computePlanCharge,
+  EXAM_PASS_DISCOUNT,
+  EXAM_PASS_MONTHS,
+  resolvePriceBook,
+  UNCHARGEABLE_CURRENCIES,
+} from '../../supabase/functions/_shared/planPricing.ts';
+
 export const countryCurrencyMap = {
   // North America
   US: { currency: 'USD', symbol: '$', rate: 1 },
@@ -109,32 +121,21 @@ export const getCurrencySymbol = (currency) => {
   return symbols[currency] || currency || '$';
 };
 
-const calculateDiscountedCheckoutAmount = (basePrice, interval, discount) => {
+export { EXAM_PASS_DISCOUNT, EXAM_PASS_MONTHS };
+export const EXAM_PASS_DISCOUNT_PERCENT = Math.round(EXAM_PASS_DISCOUNT * 100);
+
+const formatAmount = (amount, currency, basePrice) =>
+  chargesWholeUnits(currency || 'USD', basePrice)
+    ? Number(amount).toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : Number(amount).toFixed(2).replace(/\.00$/, '');
+
+/** Per-month figure for a card, e.g. "7.49" or "524". */
+export const calculatePrice = (basePrice, interval, discount, currency) => {
   if (basePrice === null || basePrice === undefined) return null;
-  if (basePrice === 0) return 0;
-  const months = interval === 'quarterly' ? 3 : 1;
-  let price = basePrice * months;
-  if (interval === 'quarterly') {
-    price = price * 0.85; // 15% OFF across the quarterly charge
-  }
-  if (discount) {
-    if (discount.discount_type === 'percentage') {
-      price = price * (1 - discount.discount_value / 100);
-    } else {
-      price = Math.max(0, price - discount.discount_value);
-    }
-  }
-  return Number(price.toFixed(2));
-};
-
-export const calculatePrice = (basePrice, interval, discount) => {
-  const chargedAmount = calculateDiscountedCheckoutAmount(basePrice, interval, discount);
-  if (chargedAmount === null) return null;
-
-  const months = interval === 'quarterly' ? 3 : 1;
-  return Number(chargedAmount / months)
-    .toFixed(2)
-    .replace(/\.00$/, '');
+  const charge = computePlanCharge(Number(basePrice), interval, currency || 'USD', discount);
+  return chargesWholeUnits(currency || 'USD', basePrice)
+    ? String(charge.perMonth)
+    : Number(charge.perMonth).toFixed(2).replace(/\.00$/, '');
 };
 
 /**
@@ -144,8 +145,40 @@ export const calculatePrice = (basePrice, interval, discount) => {
  * while payment providers collect all three months in one transaction. Event
  * value must always describe the latter so ad reporting and revenue agree.
  */
-export const calculateCheckoutAmount = (basePrice, interval, discount) => {
-  return calculateDiscountedCheckoutAmount(basePrice, interval, discount);
+export const calculateCheckoutAmount = (basePrice, interval, discount, currency) => {
+  if (basePrice === null || basePrice === undefined) return null;
+  return computePlanCharge(Number(basePrice), interval, currency || 'USD', discount).amount;
+};
+
+/** The single charge behind the pass's per-month card price, e.g. "$22.48 paid once for 3 months". */
+export const formatExamPassCharge = (plan, discount) => {
+  if (!plan?.basePrice) return null;
+  const amount = calculateCheckoutAmount(plan.basePrice, 'quarterly', discount, plan.currency);
+  const shown = formatAmount(amount, plan.currency, plan.basePrice);
+  return `${plan.currencySymbol || '$'}${shown} paid once for ${EXAM_PASS_MONTHS} months`;
+};
+
+/**
+ * What a price row really charges, for the admin editor: the same numbers the
+ * pricing page shows and Stripe collects, rounding included.
+ */
+export const describeCharges = (price, currency, symbol) => {
+  if (!(Number(price) > 0)) return null;
+  const code = String(currency || 'USD').toUpperCase();
+  const sign = symbol || getCurrencySymbol(code);
+  const show = (interval) =>
+    `${sign}${formatAmount(calculateCheckoutAmount(price, interval, null, code), code, price)}`;
+  return {
+    monthly: show('monthly'),
+    pass: show('quarterly'),
+    chargeable: !UNCHARGEABLE_CURRENCIES.has(code),
+  };
+};
+
+/** The line under a paid card's price; null for the Free plan. */
+export const formatBillingNote = (plan, interval, discount) => {
+  if (!plan?.basePrice) return null;
+  return interval === 'quarterly' ? formatExamPassCharge(plan, discount) : 'Paid month to month';
 };
 
 export const getPlanPriceAndMeta = ({
@@ -157,9 +190,9 @@ export const getPlanPriceAndMeta = ({
 }) => {
   const plan = Array.isArray(plans) ? plans.find((entry) => entry.tier === planTier) : undefined;
   const basePrice = plan ? plan.basePrice : 0;
-  const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount);
-  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, promoDiscount);
   const currency = plan?.currency || 'USD';
+  const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount, currency);
+  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, promoDiscount, currency);
   const tier = currentTier || 'free';
   return { plan, displayPrice, chargeAmount, currency, tier };
 };
@@ -215,67 +248,23 @@ export const getUserCurrencyInfo = (countryCode) => {
   return countryCurrencyMap[code] || { currency: 'USD', symbol: '$', rate: 1 };
 };
 
+/**
+ * The price a country sees for a tier. Uses the same resolver as
+ * create-checkout-session: a regional row applies to exactly one country, and
+ * a row without a valid price falls back to the global price.
+ */
 export const getPriceData = (planTier, defaultPrice, defaultOldPrice, settings, userCountry) => {
-  let basePrice = defaultPrice;
-  let baseOldPrice = defaultOldPrice;
-  let baseCurrency = 'USD';
-  let baseSymbol = '$';
-
-  // 1. Initialize base values from Admin settings if available
-  const tierSettings = settings?.pricing_tiers?.[planTier];
-  if (tierSettings) {
-    basePrice = tierSettings.price || defaultPrice;
-    baseOldPrice = tierSettings.originalPrice || defaultOldPrice;
-    baseCurrency = tierSettings.currency || 'USD';
-    baseSymbol = getCurrencySymbol(baseCurrency);
+  const book = resolvePriceBook(settings?.pricing_tiers, planTier, userCountry, {
+    price: defaultPrice,
+    originalPrice: defaultOldPrice,
+  });
+  if (!book) {
+    return { price: defaultPrice, oldPrice: defaultOldPrice, currency: 'USD', symbol: '$' };
   }
-
-  let price = basePrice;
-  let oldPrice = baseOldPrice;
-  let currency = baseCurrency;
-  let symbol = baseSymbol;
-
-  // 2. Handle the actual supported regional price books.
-  //
-  // Checkout supports the global USD book and the Bangladesh BDT book. Do not
-  // show an automatically converted currency for another country: Stripe would
-  // still collect USD, which creates a misleading price and invalid Meta ROAS
-  // data. New currencies must be configured as an admin regional override and
-  // added to the checkout provider together.
-  if (userCountry) {
-    const countryIdentifier = userCountry.trim().toUpperCase();
-
-    // Check for manual regional override from admin panel
-    let regionalOverride = null;
-    if (tierSettings?.regional && Array.isArray(tierSettings.regional)) {
-      regionalOverride = tierSettings.regional.find((r) => {
-        if (!r || !r.country) return false;
-        return r.country.trim().toUpperCase() === countryIdentifier;
-      });
-    }
-
-    if (regionalOverride) {
-      // Priority 1: Manual Admin Override
-      price = Number(regionalOverride.price);
-      currency = regionalOverride.currency;
-      symbol = regionalOverride.symbol || getCurrencySymbol(currency);
-      if (baseOldPrice && basePrice) {
-        oldPrice = Math.round((baseOldPrice / basePrice) * price);
-      }
-    } else {
-      // Global price book (USD unless the global admin setting changes).
-      price = basePrice;
-      oldPrice = baseOldPrice;
-      currency = baseCurrency;
-      symbol = baseSymbol;
-    }
-  } else {
-    // Fallback: Already USD or same as base
-    price = basePrice;
-    oldPrice = baseOldPrice;
-    currency = baseCurrency;
-    symbol = baseSymbol;
-  }
-
-  return { price, oldPrice, currency, symbol };
+  return {
+    price: book.price,
+    oldPrice: book.originalPrice,
+    currency: book.currency,
+    symbol: book.symbol || getCurrencySymbol(book.currency),
+  };
 };

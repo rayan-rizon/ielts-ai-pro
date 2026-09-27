@@ -191,7 +191,7 @@ export default function SubscriptionSection({
             <p className="mt-0.5 text-xs font-medium leading-relaxed text-amber-800/80 dark:text-amber-300/80">
               {hasStripeSubscription
                 ? 'Your recurring subscription is managed through Stripe. You can cancel here or manage payment details in Stripe.'
-                : 'This access is not a Stripe subscription. To end or change it, contact support. Selecting Free does not end paid access or issue a refund.'}
+                : 'This plan was a one-time payment and does not renew. Access ends on the date above. To change it or ask about a refund, contact support.'}
             </p>
           </div>
         </div>

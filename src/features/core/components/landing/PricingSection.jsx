@@ -1,15 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { calculatePrice } from '@/lib/pricingUtils';
+import {
+  calculatePrice,
+  EXAM_PASS_DISCOUNT_PERCENT,
+  EXAM_PASS_MONTHS,
+  formatBillingNote,
+} from '@/lib/pricingUtils';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import {
   configurePricingPlans,
   loadPricingConfiguration,
 } from '@/features/subscription/hooks/usePricing';
 import { PANEL } from '@/features/dashboard/components/primitives';
+import { SwapLine } from '@/features/subscription/components/pricingMotion';
 import PricingCard from '@/features/subscription/components/PricingCard';
 import { SectionHeading, SoftSection } from './LandingSection';
+
+// transitions.dev tabs sliding: 250ms smooth-out, no overshoot.
+const TOGGLE_SLIDE = { duration: 0.25, ease: [0.22, 1, 0.36, 1] };
 
 const LANDING_BUTTON_TEXT = {
   free: 'Start Practice Free',
@@ -110,7 +119,7 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={viewport}
       transition={{ duration: 0.5 }}
-      className="mb-8 flex justify-center"
+      className="mb-8 flex flex-col items-center"
     >
       <div className="relative inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
         <button
@@ -127,7 +136,7 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
             <m.span
               layoutId="activeLandingBillingTab"
               className="absolute inset-0 z-[-1] rounded-full bg-[#5a63df]"
-              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+              transition={TOGGLE_SLIDE}
             />
           )}
           Monthly
@@ -146,10 +155,10 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
             <m.span
               layoutId="activeLandingBillingTab"
               className="absolute inset-0 z-[-1] rounded-full bg-[#5a63df]"
-              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+              transition={TOGGLE_SLIDE}
             />
           )}
-          <span>Quarterly</span>
+          <span>{EXAM_PASS_MONTHS}-Month Pass</span>
           <span
             className={cn(
               'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors duration-200',
@@ -158,9 +167,19 @@ function BillingCycleToggle({ billingCycle, setBillingCycle, viewport }) {
                 : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]'
             )}
           >
-            Save 15%
+            Save {EXAM_PASS_DISCOUNT_PERCENT}%
           </span>
         </button>
+      </div>
+      <div className="w-full max-w-md pt-2">
+        <SwapLine
+          align="center"
+          className="text-xs font-semibold text-slate-500 dark:text-slate-400"
+        >
+          {billingCycle === 'quarterly'
+            ? `One payment for ${EXAM_PASS_MONTHS} months · no auto-renewal`
+            : 'Pay month to month'}
+        </SwapLine>
       </div>
     </m.div>
   );
@@ -205,7 +224,8 @@ export default function PricingSection({ handlePrimaryCta, viewport }) {
                 <PricingCard
                   key={plan.tier}
                   plan={plan}
-                  displayPrice={calculatePrice(plan.basePrice, billingCycle, null)}
+                  displayPrice={calculatePrice(plan.basePrice, billingCycle, null, plan.currency)}
+                  priceNote={formatBillingNote(plan, billingCycle, null)}
                   isActive={false}
                   isSubscribed={false}
                   isLoading={false}

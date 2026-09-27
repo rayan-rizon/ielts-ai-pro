@@ -77,7 +77,11 @@ export function usePricing(defaultPlans, options = {}) {
   });
 
   // Fetch pricing configuration and location
-  const { data: pricingConfig, isLoading: isPricingLoading } = useQuery({
+  const {
+    data: pricingConfig,
+    isLoading: isPricingLoading,
+    refetch: refetchPricing,
+  } = useQuery({
     queryKey: [
       'subscription',
       'pricingConfig',
@@ -98,6 +102,7 @@ export function usePricing(defaultPlans, options = {}) {
     plans,
     detectedCountry: pricingConfig?.userCountry,
     pricingCountry: pricingConfig?.pricingCountry,
+    refetchPricing,
     isLoading: isPricingLoading,
     pricingConfig,
   };

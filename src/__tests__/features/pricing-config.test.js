@@ -3,7 +3,15 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { configurePricingPlans } from '@/features/subscription/hooks/usePricing';
-import { calculateCheckoutAmount, getPlanPriceAndMeta, getPriceData } from '@/lib/pricingUtils';
+import {
+  calculateCheckoutAmount,
+  calculatePrice,
+  EXAM_PASS_DISCOUNT,
+  formatBillingNote,
+  formatExamPassCharge,
+  getPlanPriceAndMeta,
+  getPriceData,
+} from '@/lib/pricingUtils';
 import { getWritingPartCapacity, getWritingQuotaUsage } from '@/lib/tierLimitsUtils';
 
 const adminLimitsSource = readFileSync(
@@ -148,15 +156,66 @@ describe('pricing plan configuration', () => {
     });
   });
 
-  it('reports the amount charged rather than the monthly display rate for quarterly checkout', () => {
-    expect(calculateCheckoutAmount(9.99, 'quarterly')).toBe(25.47);
-    expect(calculateCheckoutAmount(999, 'quarterly')).toBe(2547.45);
+  it('reports the amount charged rather than the monthly display rate for the Exam Pass', () => {
+    expect(calculateCheckoutAmount(9.99, 'quarterly')).toBe(22.48);
+    // A round admin price is charged in round amounts, in any currency.
+    expect(calculateCheckoutAmount(999, 'quarterly')).toBe(2248);
     expect(
       calculateCheckoutAmount(9.99, 'quarterly', {
         discount_type: 'fixed',
         discount_value: 5,
       })
-    ).toBe(20.47);
+    ).toBe(17.48);
+    expect(calculatePrice(9.99, 'quarterly')).toBe('7.49');
+  });
+
+  it('charges and shows taka in whole units', () => {
+    expect(calculateCheckoutAmount(699, 'quarterly', null, 'BDT')).toBe(1573);
+    expect(calculateCheckoutAmount(999, 'quarterly', null, 'BDT')).toBe(2248);
+    expect(calculatePrice(699, 'quarterly', null, 'BDT')).toBe('524');
+    expect(calculatePrice(999, 'quarterly', null, 'BDT')).toBe('749');
+    expect(calculatePrice(699, 'monthly', null, 'BDT')).toBe('699');
+    // A 30% code on ৳699 is ৳489.30; bKash is asked for ৳489.
+    const code = { discount_type: 'percentage', discount_value: 30 };
+    expect(calculateCheckoutAmount(699, 'monthly', code, 'BDT')).toBe(489);
+    // Other currencies keep cents.
+    expect(calculateCheckoutAmount(9.99, 'quarterly', null, 'USD')).toBe(22.48);
+  });
+
+  it('bills the plan currency chosen for the card', () => {
+    const plans = [{ tier: 'pro', basePrice: 699, currency: 'BDT' }];
+    expect(
+      getPlanPriceAndMeta({ plans, planTier: 'pro', billingInterval: 'quarterly' })
+    ).toMatchObject({ displayPrice: '524', chargeAmount: 1573, currency: 'BDT' });
+  });
+
+  it('states the single Exam Pass charge next to the monthly rate', () => {
+    expect(formatExamPassCharge({ basePrice: 9.99, currencySymbol: '$' })).toBe(
+      '$22.48 paid once for 3 months'
+    );
+    expect(formatExamPassCharge({ basePrice: 699, currencySymbol: '৳', currency: 'BDT' })).toBe(
+      '৳1,573 paid once for 3 months'
+    );
+    expect(formatExamPassCharge({ basePrice: 0 })).toBeNull();
+  });
+
+  it('gives every paid card a billing line in both plan lengths, and Free none', () => {
+    const pro = { basePrice: 9.99, currencySymbol: '$' };
+    expect(formatBillingNote(pro, 'monthly')).toBe('Paid month to month');
+    expect(formatBillingNote(pro, 'quarterly')).toBe('$22.48 paid once for 3 months');
+    expect(formatBillingNote({ basePrice: 0 }, 'quarterly')).toBeNull();
+  });
+
+  it('charges the card the same Exam Pass discount the cards advertise, once', () => {
+    const checkout = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/create-checkout-session/index.ts'),
+      'utf8'
+    );
+    // One module decides the price for both; neither keeps its own copy.
+    expect(checkout).toMatch(/computePlanCharge\(priceBook\.price, interval, priceBook\.currency/);
+    expect(checkout).toMatch(/mode: isExamPass \? 'payment' : 'subscription'/);
+    expect(checkout).not.toMatch(/0\.85|EXAM_PASS_DISCOUNT = /);
+    expect(EXAM_PASS_DISCOUNT).toBe(0.25);
   });
 
   it('keeps plan-selection tracking safe while prices are still loading', () => {

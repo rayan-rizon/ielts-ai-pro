@@ -124,7 +124,15 @@ describe('cost telemetry is actually written', () => {
     '%s records estimatedProviderCostUsd from the registry rate',
     (name) => {
       const source = readFunction(name);
-      expect(source).toContain('estimateTokenCostUsd');
+      // Speaking deep dives price their calls inside the shared text provider
+      // (since 1c5ca489), which returns the estimate on each result's usage.
+      const pricing = source.includes('../_shared/textAiProvider.ts')
+        ? readFileSync(
+            resolve(process.cwd(), 'supabase/functions/_shared/textAiProvider.ts'),
+            'utf8'
+          )
+        : source;
+      expect(pricing).toContain('estimateTokenCostUsd');
       expect(source).toContain('estimatedProviderCostUsd');
       expect(source).toContain('promptTokens');
       expect(source).toContain('outputTokens');

@@ -19,6 +19,7 @@ import Stripe from 'npm:stripe@^14.14.0';
 import { sendEmail } from '../_shared/resend.ts';
 import { getEmailTemplate } from '../_shared/templates.ts';
 import { sendGa4Purchase } from '../_shared/ga4.ts';
+import { fromStripeAmount } from '../_shared/planPricing.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2023-10-16',
@@ -54,8 +55,14 @@ async function recordMarketingPurchase(session: Stripe.Checkout.Session, userId:
   const campaignId = session.metadata?.marketing_campaign_id;
   const deliveryId = session.metadata?.marketing_delivery_id;
   const promoCode = session.metadata?.promo_code || null;
-  const grossAmount = (session.amount_subtotal || session.amount_total || 0) / 100;
-  const discountAmount = (session.total_details?.amount_discount || 0) / 100;
+  const grossAmount = fromStripeAmount(
+    session.amount_subtotal || session.amount_total,
+    session.currency || 'usd'
+  );
+  const discountAmount = fromStripeAmount(
+    session.total_details?.amount_discount,
+    session.currency || 'usd'
+  );
   if (!campaignId || !deliveryId) return;
 
   const { error: billingError } = await supabase
@@ -80,7 +87,7 @@ async function recordMarketingPurchase(session: Stripe.Checkout.Session, userId:
     dedupe_key: `${session.id}:purchased`,
     metadata: {
       transaction_id: session.id,
-      amount: (session.amount_total || 0) / 100,
+      amount: fromStripeAmount(session.amount_total, session.currency || 'usd'),
       gross_amount: grossAmount,
       discount_amount: discountAmount,
       currency: (session.currency || 'usd').toUpperCase(),
@@ -295,7 +302,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
     p_user_id: userId,
     p_tier: tier,
     p_interval: interval || 'monthly',
-    p_amount: (session.amount_total || 0) / 100,
+    p_amount: fromStripeAmount(session.amount_total, session.currency || 'usd'),
     p_currency: (session.currency || 'usd').toUpperCase(),
     p_transaction_id: session.id,
     p_subscription_id:
@@ -310,6 +317,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
       promo_code: session.metadata?.promo_code || null,
     },
+    // The 3-Month Exam Pass is a one-time payment: it ends on its own date.
+    p_cancel_at_period_end: session.mode === 'payment',
   });
 
   if (requireClaimedStripeEvent(data, error, 'checkout.session.completed')) {
@@ -348,7 +357,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
           : (session.subscription as any)?.id || null,
       tier,
       interval: interval || 'monthly',
-      amount: (session.amount_total || 0) / 100,
+      amount: fromStripeAmount(session.amount_total, session.currency || 'usd'),
       currency: (session.currency || 'usd').toUpperCase(),
       marketing_campaign_id: session.metadata?.marketing_campaign_id || null,
       marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
@@ -369,7 +378,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       clientId: session.metadata?.ga_client_id,
       sessionId: session.metadata?.ga_session_id,
       transactionId: session.id,
-      value: (session.amount_total || 0) / 100,
+      value: fromStripeAmount(session.amount_total, session.currency || 'usd'),
       currency: (session.currency || 'usd').toUpperCase(),
       tier,
       interval: interval || 'monthly',
@@ -384,7 +393,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
  */
 async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
   const customerId = invoice.customer as string;
-  const subscriptionId = invoice.subscription as string;
+  const subscriptionId = invoiceSubscriptionId(invoice);
+
+  // An invoice with no subscription is not a renewal — e.g. an invoice issued
+  // for a one-time Exam Pass. Treating it as one would extend the pass.
+  if (!subscriptionId) {
+    console.log(`[Webhook] Skipping invoice.paid ${invoice.id}: no subscription`);
+    return;
+  }
 
   // Skip if this is the first invoice (already handled by checkout.session.completed)
   if (invoice.billing_reason === 'subscription_create') {
@@ -435,7 +451,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     p_user_id: userData.id,
     p_tier: tier,
     p_interval: interval,
-    p_amount: (invoice.amount_paid || 0) / 100,
+    p_amount: fromStripeAmount(invoice.amount_paid, invoice.currency || 'usd'),
     p_currency: (invoice.currency || 'usd').toUpperCase(),
     p_transaction_id: invoice.id,
     p_subscription_id: subscriptionId,
@@ -464,7 +480,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     subscription_id: subscriptionId,
     tier,
     interval,
-    amount: (invoice.amount_paid || 0) / 100,
+    amount: fromStripeAmount(invoice.amount_paid, invoice.currency || 'usd'),
     currency: (invoice.currency || 'usd').toUpperCase(),
   });
 
@@ -517,9 +533,16 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, even
   const tier = retainsBillingAccess ? resolveSubscriptionTier(subscription, priceId) : 'free';
   const interval = PRICE_TO_INTERVAL[priceId] || subscription.metadata?.interval || 'monthly';
 
-  const endDate = subscription.current_period_end
-    ? new Date(subscription.current_period_end * 1000)
-    : new Date();
+  // Stripe API versions from 2025-03-31 moved current_period_end off the
+  // subscription onto its items, and webhook payloads follow the endpoint's
+  // version, not this SDK's. Falling back to "now" ended paid access the moment
+  // a learner turned off auto-renew. With no period end at all, keep the
+  // stored end date (the RPC coalesces null).
+  const periodEnd =
+    subscription.current_period_end ??
+    (subscription.items?.data?.[0] as { current_period_end?: number } | undefined)
+      ?.current_period_end;
+  const endDate = periodEnd ? new Date(periodEnd * 1000) : null;
 
   console.log(
     `[Webhook] Subscription ${subscription.id} updated: status=${subscription.status}, tier=${tier}`
@@ -537,7 +560,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, even
     p_currency: 'USD',
     p_transaction_id: subscription.id,
     p_subscription_id: retainsBillingAccess ? subscription.id : null,
-    p_end_date: endDate.toISOString(),
+    p_end_date: endDate ? endDate.toISOString() : null,
     p_metadata: { subscription_status: subscription.status },
     p_cancel_at_period_end: subscription.cancel_at_period_end || false,
   });
@@ -680,7 +703,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
   await recordServerConversion(userData.id, 'subscription_payment_failed_server', {
     event_id: eventId,
     invoice_id: invoice.id,
-    amount_due: (invoice.amount_due || 0) / 100,
+    amount_due: fromStripeAmount(invoice.amount_due, invoice.currency || 'usd'),
     currency: (invoice.currency || 'usd').toUpperCase(),
     attempt_count: attemptCount,
   });
@@ -698,26 +721,23 @@ async function handlePaymentFailed(invoice: Stripe.Invoice, eventId: string) {
 // claim a stripe_events row: platform health reads that table as "payment
 // events that should have produced a payment row".
 
-const ZERO_DECIMAL_CURRENCIES = new Set([
-  'BIF',
-  'CLP',
-  'DJF',
-  'GNF',
-  'JPY',
-  'KMF',
-  'KRW',
-  'MGA',
-  'PYG',
-  'RWF',
-  'UGX',
-  'VND',
-  'VUV',
-  'XAF',
-  'XOF',
-  'XPF',
-]);
+// Minor-unit rules (zero- and three-decimal currencies) live in _shared/planPricing.ts.
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * The subscription an invoice bills. Webhook payloads use the endpoint's API
+ * version (2025-08-27.basil), which moved it from `invoice.subscription` to
+ * `invoice.parent.subscription_details.subscription`; objects fetched through
+ * this SDK (pinned to 2023-10-16) still carry the old field. Reading only the
+ * old one treated every renewal as subscription-less and defaulted it to Pro.
+ */
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const legacy = (invoice as { subscription?: unknown }).subscription;
+  const parent = (invoice as { parent?: { subscription_details?: { subscription?: unknown } } })
+    .parent;
+  return stripeObjectId(legacy) || stripeObjectId(parent?.subscription_details?.subscription);
+}
 
 function stripeObjectId(value: unknown): string | null {
   if (!value) return null;
@@ -727,8 +747,7 @@ function stripeObjectId(value: unknown): string | null {
 }
 
 function majorUnits(amount: number | null | undefined, currency: string | null | undefined) {
-  const code = String(currency || 'usd').toUpperCase();
-  return ZERO_DECIMAL_CURRENCIES.has(code) ? Number(amount || 0) : Number(amount || 0) / 100;
+  return fromStripeAmount(amount, String(currency || 'usd'));
 }
 
 /**
@@ -746,7 +765,7 @@ async function resolvePaymentTransactionId(charge: Stripe.Charge): Promise<strin
     if (renewal) return invoiceId;
 
     const invoice = await stripe.invoices.retrieve(invoiceId);
-    const subscriptionId = stripeObjectId(invoice.subscription);
+    const subscriptionId = invoiceSubscriptionId(invoice);
     // Only the subscription's first invoice belongs to its Checkout Session.
     if (invoice.billing_reason === 'subscription_create' && subscriptionId) {
       const sessions = await stripe.checkout.sessions.list({

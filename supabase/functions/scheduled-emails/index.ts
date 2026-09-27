@@ -136,7 +136,9 @@ serve(async (req) => {
     const { data: renewals, error: renewalsError } = await retryTransientDatabaseOperation(() =>
       supabase
         .from('users')
-        .select('id, email, full_name, subscription_end_date')
+        .select(
+          'id, email, full_name, subscription_end_date, stripe_subscription_id, cancel_at_period_end'
+        )
         .neq('subscription_tier', 'free')
         .gte('subscription_end_date', `${dates.renewalTarget}T00:00:00Z`)
         .lte('subscription_end_date', `${dates.renewalTarget}T23:59:59Z`)
@@ -147,9 +149,14 @@ serve(async (req) => {
     if (renewals && renewals.length > 0) {
       for (const user of renewals) {
         if (!user.email) continue;
+        // A subscription that renews automatically needs no reminder; only
+        // plans that are about to end without a charge get one.
+        const renews = Boolean(user.stripe_subscription_id) && !user.cancel_at_period_end;
+        if (renews) continue;
         const template = getEmailTemplate('renewal_reminder', {
           full_name: user.full_name,
           subscription_end_date: user.subscription_end_date,
+          renews: false,
         });
         captureDispatch(
           await sendEmail({

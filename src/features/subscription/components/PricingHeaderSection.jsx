@@ -1,34 +1,37 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { Pill } from '@/features/dashboard/components/primitives';
 import PromoCodeRedemption from '@/components/PromoCodeRedemption';
+import { EXAM_PASS_DISCOUNT_PERCENT, EXAM_PASS_MONTHS } from '@/lib/pricingUtils';
+import { SwapLine } from './pricingMotion';
+
+// transitions.dev tabs sliding: 250ms smooth-out, no overshoot.
+const TOGGLE_SLIDE = { duration: 0.25, ease: [0.22, 1, 0.36, 1] };
 
 export default function PricingHeaderSection({
   billingInterval,
   setBillingInterval,
   promoDiscount,
   onPromoApplied,
+  coverageNote,
 }) {
   return (
     <m.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mb-6 space-y-3 text-center"
+      // Clears the floating sidebar button on phones now the badge no longer does.
+      className="mb-6 space-y-3 pt-10 text-center sm:pt-0"
     >
-      <div className="flex flex-col items-center gap-2">
-        <Pill tone="accent">Flexible plans for every candidate</Pill>
-      </div>
       <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
-        Invest in your target band score
+        Your dream starts with{' '}
+        <span className="text-[#5a63df] dark:text-[#a9afff]">the right band score</span>
       </h1>
-      <p className="mx-auto max-w-xl px-2 text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400 sm:text-base">
-        Choose the ideal preparation plan to accelerate your IELTS learning path with unlimited
-        practice, instant AI scoring, and personalized diagnostics.
+      <p className="mx-auto max-w-md text-balance px-2 text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400 sm:text-base">
+        Instant AI band scores and a study plan built around your exam date.
       </p>
 
-      <div className="mt-5 flex flex-col items-center gap-4">
+      <div className="mt-5 flex flex-col items-center gap-3">
         <div className="relative inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
           <button
             type="button"
@@ -44,7 +47,7 @@ export default function PricingHeaderSection({
               <m.span
                 layoutId="activeBillingTabPricing"
                 className="absolute inset-0 z-[-1] rounded-full bg-[#5a63df]"
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                transition={TOGGLE_SLIDE}
               />
             )}
             Monthly
@@ -63,10 +66,10 @@ export default function PricingHeaderSection({
               <m.span
                 layoutId="activeBillingTabPricing"
                 className="absolute inset-0 z-[-1] rounded-full bg-[#5a63df]"
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                transition={TOGGLE_SLIDE}
               />
             )}
-            <span>Quarterly</span>
+            <span>{EXAM_PASS_MONTHS}-Month Pass</span>
             <span
               className={cn(
                 'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors duration-200',
@@ -75,12 +78,29 @@ export default function PricingHeaderSection({
                   : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]'
               )}
             >
-              Save 15%
+              Save {EXAM_PASS_DISCOUNT_PERCENT}%
             </span>
           </button>
         </div>
 
-        <div className="flex flex-col items-center gap-1.5 pt-0.5">
+        {/* One line, fixed height: the exam date if there is one, else how billing works. */}
+        <div className="-mt-1 w-full max-w-md text-xs font-semibold">
+          <SwapLine
+            align="center"
+            className={
+              coverageNote
+                ? 'text-[#5a63df] dark:text-[#a9afff]'
+                : 'text-slate-500 dark:text-slate-400'
+            }
+          >
+            {coverageNote ||
+              (billingInterval === 'quarterly'
+                ? `One payment for ${EXAM_PASS_MONTHS} months · no auto-renewal`
+                : 'Pay month to month')}
+          </SwapLine>
+        </div>
+
+        <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2">
             <div className="h-px w-8 bg-[#e4e2f0] dark:bg-white/10" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">

@@ -462,6 +462,30 @@ Compare the plans: ${baseUrl}/pricing`;
             day: 'numeric',
           })
         : 'next week';
+
+      // An Exam Pass, a bKash payment or a cancelled subscription is not going
+      // to be charged again. Telling those learners "no action needed" means
+      // their access quietly lapses a week before they expect it to.
+      if (data?.renews === false) {
+        subject = 'Your IELTS Ai Pro access ends in 7 days';
+        preheader = `Your plan ends on ${renewDate} and will not renew.`;
+        html = `
+${eyebrow('Heads-up')}
+${heading('Your access ends soon')}
+${paragraph(`Hi ${name}, your ${BRAND_NAME} plan ends on ${strong(renewDate)}. It was a one-time payment, so nothing will be charged and it will not renew.`)}
+${notice('info', 'Your progress stays', 'After that date your account moves to the Free plan. Your practice history, scores and study plan are kept.')}
+${paragraph('Still preparing for your exam? You can pick a new plan at any time from the pricing page.')}
+${button(`${baseUrl}/pricing`, 'See plans', '#3f3f46')}`;
+        text = `Your access ends soon
+
+Hi ${data?.full_name || 'there'}, your ${BRAND_NAME} plan ends on ${renewDate}. It was a one-time payment, so nothing will be charged and it will not renew.
+
+After that date your account moves to the Free plan. Your practice history, scores and study plan are kept.
+
+Still preparing for your exam? Pick a new plan any time: ${baseUrl}/pricing`;
+        break;
+      }
+
       subject = 'Your subscription renews in 7 days';
       preheader = `Automatic renewal on ${renewDate}. No action needed.`;
       html = `

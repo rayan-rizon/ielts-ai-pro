@@ -1,9 +1,10 @@
 import React from 'react';
-import { m, AnimatePresence } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight, Check, Crown, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { NUM, PANEL, Pill } from '@/features/dashboard/components/primitives';
+import { Crossfade, SwapLine } from './pricingMotion';
 
 function PricingFeature({ label, unavailable }) {
   const isUnavailable = unavailable || label.startsWith('0 ');
@@ -58,7 +59,7 @@ function CardHeaderBadge({ isPro, isPremium }) {
   return null;
 }
 
-function PriceDisplay({ plan, displayPrice, isPricingLoading }) {
+function PriceDisplay({ plan, displayPrice, priceNote, isPricingLoading }) {
   const symbol = plan.currencySymbol || '$';
   const discountPercent = plan.oldPrice
     ? Math.round((1 - Number(displayPrice) / plan.oldPrice) * 100)
@@ -71,27 +72,25 @@ function PriceDisplay({ plan, displayPrice, isPricingLoading }) {
           <Skeleton className="h-10 w-32" />
         ) : (
           <>
-            <AnimatePresence mode="wait">
-              <m.span
-                key={displayPrice}
-                initial={{ y: 4, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -4, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className={cn(
-                  NUM,
-                  'text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl'
-                )}
-              >
-                {symbol}
-                {displayPrice}
-              </m.span>
-            </AnimatePresence>
+            <Crossfade
+              className={cn(
+                NUM,
+                'text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl'
+              )}
+            >
+              {`${symbol}${displayPrice}`}
+            </Crossfade>
             <span className="text-[13px] font-semibold text-slate-500 dark:text-slate-400">
               / month
             </span>
           </>
         )}
+      </div>
+
+      <div className="pt-1">
+        <SwapLine className={cn(NUM, 'text-xs font-semibold text-slate-500 dark:text-slate-400')}>
+          {isPricingLoading ? null : priceNote}
+        </SwapLine>
       </div>
 
       {plan.oldPrice && (
@@ -172,6 +171,7 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
 export default function PricingCard({
   plan,
   displayPrice,
+  priceNote,
   isActive,
   isSubscribed,
   isLoading,
@@ -210,6 +210,7 @@ export default function PricingCard({
           <PriceDisplay
             plan={plan}
             displayPrice={displayPrice}
+            priceNote={priceNote}
             isPricingLoading={isPricingLoading}
           />
 

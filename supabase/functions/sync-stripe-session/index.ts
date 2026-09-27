@@ -8,6 +8,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
 import { getCorsHeaders, handleCorsPrelight, errorResponse } from '../_shared/security.ts';
+import { fromStripeAmount } from '../_shared/planPricing.ts';
 
 declare const Deno: any;
 
@@ -117,7 +118,7 @@ Deno.serve(async (req: Request) => {
       p_user_id: userId,
       p_tier: tier,
       p_interval: interval,
-      p_amount: (session.amount_total || 0) / 100,
+      p_amount: fromStripeAmount(session.amount_total, session.currency || 'usd'),
       p_currency: (session.currency || 'usd').toUpperCase(),
       p_transaction_id: session.id,
       p_subscription_id:
@@ -132,6 +133,8 @@ Deno.serve(async (req: Request) => {
         marketing_delivery_id: marketingDeliveryId,
         promo_code: session.metadata?.promo_code || null,
       },
+      // Same rule as the webhook: a one-time Exam Pass never renews.
+      p_cancel_at_period_end: session.mode === 'payment',
     });
 
     if (error) {
@@ -157,8 +160,14 @@ Deno.serve(async (req: Request) => {
           marketing_campaign_id: marketingCampaignId,
           marketing_delivery_id: marketingDeliveryId,
           promo_code: session.metadata?.promo_code || null,
-          gross_amount: (session.amount_subtotal || session.amount_total || 0) / 100,
-          discount_amount: (session.total_details?.amount_discount || 0) / 100,
+          gross_amount: fromStripeAmount(
+            session.amount_subtotal || session.amount_total,
+            session.currency || 'usd'
+          ),
+          discount_amount: fromStripeAmount(
+            session.total_details?.amount_discount,
+            session.currency || 'usd'
+          ),
         })
         .eq('transaction_id', session.id);
       const { error: marketingEventError } = await serviceClient.from('marketing_events').insert({
@@ -170,7 +179,7 @@ Deno.serve(async (req: Request) => {
         dedupe_key: `${session.id}:purchased`,
         metadata: {
           transaction_id: session.id,
-          amount: (session.amount_total || 0) / 100,
+          amount: fromStripeAmount(session.amount_total, session.currency || 'usd'),
           currency: (session.currency || 'usd').toUpperCase(),
           source: 'sync',
         },
