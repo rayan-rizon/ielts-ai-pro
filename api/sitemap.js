@@ -1,4 +1,5 @@
 import process from 'node:process';
+import { getBlogModifiedAt } from '../src/features/learning/utils/blogDates.js';
 
 const SITE_URL = 'https://www.ieltsai.pro';
 const CORE_ROUTES = [
@@ -67,20 +68,26 @@ function renderUrl({ path, lastmod, changefreq, priority }) {
 }
 
 function renderSitemap(posts = []) {
+  const latestBlogTime = posts.reduce((latest, post) => {
+    const modifiedTime = Date.parse(getBlogModifiedAt(post));
+    return Number.isFinite(modifiedTime) ? Math.max(latest, modifiedTime) : latest;
+  }, 0);
+  const coreRoutes = CORE_ROUTES.map((route) =>
+    route.path === '/blog' && latestBlogTime
+      ? { ...route, lastmod: normalizeDate(latestBlogTime, route.lastmod) }
+      : route
+  );
   const articleRoutes = posts
     .filter(({ slug }) => typeof slug === 'string' && slug.trim())
     .map((post) => ({
       path: `/blog/${encodeURIComponent(post.slug.trim())}`,
-      lastmod: normalizeDate(
-        post.updated_at || post.published_at || post.created_at,
-        CORE_ROUTES[5].lastmod
-      ),
+      lastmod: normalizeDate(getBlogModifiedAt(post), CORE_ROUTES[5].lastmod),
       changefreq: 'monthly',
       priority: '0.7',
     }));
 
   const uniqueRoutes = new Map(
-    [...CORE_ROUTES, ...articleRoutes].map((route) => [route.path, route])
+    [...coreRoutes, ...articleRoutes].map((route) => [route.path, route])
   );
 
   return [
@@ -105,7 +112,7 @@ async function fetchPublishedPosts() {
   const posts = [];
   for (let offset = 0; ; offset += pageSize) {
     const params = new URLSearchParams({
-      select: 'slug,published_at,created_at,updated_at',
+      select: 'slug,published_at,created_at,content_updated_at',
       content_type: 'eq.blog',
       is_published: 'eq.true',
       order: 'published_at.desc.nullslast,created_at.desc',

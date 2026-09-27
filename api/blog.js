@@ -9,6 +9,10 @@ import {
   getBlogLibraryHeading,
 } from '../src/features/learning/utils/blogPresentation.js';
 import { getBlogSeoMeta } from '../src/features/learning/utils/blogSeo.js';
+import {
+  getBlogModifiedAt,
+  getVisibleBlogUpdatedAt,
+} from '../src/features/learning/utils/blogDates.js';
 
 const SITE_URL = 'https://www.ieltsai.pro';
 const DEFAULT_IMAGE = `${SITE_URL}/og.webp`;
@@ -24,7 +28,7 @@ const ARTICLE_FIELDS = [
   'reading_minutes',
   'published_at',
   'created_at',
-  'updated_at',
+  'content_updated_at',
   'thumbnail_url',
   'featured',
   'view_count',
@@ -437,22 +441,12 @@ function coverAlt(post) {
   );
 }
 
-/*
- * Google truncates the SERP title by rendered width, not character count, so the
- * old 65-character guard still let branded titles overflow (a Seobility crawl
- * measured several at 584-610px against a 580px limit). These widths approximate
- * Arial 20px - the desktop SERP font - closely enough to decide whether the
- * " | IELTS Ai Pro" suffix still fits.
- */
-// 580px is the real limit; the estimate below runs 5-15px light against measured
-// widths, so the budget absorbs that bias rather than shipping titles at the edge.
+// Keep the complete article title in HTML. Search engines control display
+// truncation; inserting a literal ellipsis hid the words that distinguished
+// several indexed guides from one another.
 const SERP_TITLE_MAX_PIXELS = 560;
 const NARROW_TITLE_CHARS = new Set([...` .,:;!|'"()[]{}ijltfrI-`]);
 const WIDE_TITLE_CHARS = new Set([...'mwMW@%']);
-// The brand suffix needs to leave enough room for the distinctive terms in an
-// article title. The former "IELTS Guide" segment was redundant and caused
-// separate articles with the same opening words to collapse into one title.
-const ARTICLE_TITLE_SUFFIX = ' | IELTS Ai Pro';
 const OFFICIAL_WRITING_FORMAT_URL =
   'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing';
 
@@ -491,23 +485,6 @@ function estimateTitleWidth(value) {
     else width += 10.2;
   }
   return width;
-}
-
-function trimTitleToWidth(value, maxWidth) {
-  if (estimateTitleWidth(value) <= maxWidth) return value;
-  const words = String(value).trim().split(/\s+/);
-  let trimmed = '';
-  for (const word of words) {
-    const candidate = trimmed ? `${trimmed} ${word}` : word;
-    if (estimateTitleWidth(`${candidate}…`) > maxWidth) break;
-    trimmed = candidate;
-  }
-  return trimmed ? `${trimmed}…` : String(value).slice(0, 36).trimEnd() + '…';
-}
-
-function articleSearchTitle(title) {
-  const suffixWidth = estimateTitleWidth(ARTICLE_TITLE_SUFFIX);
-  return `${trimTitleToWidth(title, SERP_TITLE_MAX_PIXELS - suffixWidth)}${ARTICLE_TITLE_SUFFIX}`;
 }
 
 function layout({
@@ -947,6 +924,8 @@ function renderArticle(post, allPosts = []) {
   const seoMeta = getBlogSeoMeta(post);
   const description = seoMeta.description;
   const publishedAt = post.published_at || post.created_at;
+  const modifiedAt = getBlogModifiedAt(post);
+  const updatedAt = getVisibleBlogUpdatedAt(post);
   const prepared = prepareArticle(repairKnownContentLinks(post.content));
   const tags = (post.seo_tags || [])
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
@@ -977,7 +956,7 @@ function renderArticle(post, allPosts = []) {
     headline: post.title,
     description,
     datePublished: publishedAt,
-    dateModified: post.updated_at || publishedAt,
+    dateModified: modifiedAt,
     author: {
       '@type': 'Organization',
       '@id': `${SITE_URL}/#organization`,
@@ -1021,9 +1000,9 @@ function renderArticle(post, allPosts = []) {
     ],
   };
   return layout({
-    // A page title must add useful context rather than repeat the visible H1.
-    // The width guard preserves the most important leading query terms.
-    title: articleSearchTitle(seoMeta.title),
+    // Keep the search-aligned title complete; layout() adds the publisher name
+    // only when it fits without hiding distinguishing words.
+    title: seoMeta.title,
     description,
     keywords,
     canonical,
@@ -1031,8 +1010,8 @@ function renderArticle(post, allPosts = []) {
     structuredData: [articleSchema, breadcrumbSchema],
     image: socialImageUrl,
     body: `<main id="main">
-      <section class="article-hero"><div class="shell"><div class="article-breadcrumbs"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span class="truncate-title">${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div>${categoryChip(post.category)}<h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="article-meta"><a class="article-meta-item article-author" href="/about"><span class="article-author-icon">${iconSvg('user')}</span>IELTS Ai Pro team</a><span class="article-meta-divider" aria-hidden="true"></span><time class="article-meta-item" datetime="${escapeHtml(publishedAt)}">${iconSvg('calendar')} ${escapeHtml(formatDate(publishedAt))}</time><span class="article-meta-divider" aria-hidden="true"></span><span class="article-meta-item">${iconSvg('clock')} ${Number(post.reading_minutes) || 6} min read</span><span class="article-meta-divider" aria-hidden="true"></span><span class="article-meta-item" title="${Number(post.view_count) || 0} reads">${iconSvg('eye')} ${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="article-photo-note">Plan · Practise · Review · Succeed</span></div></div></div></section>
-      <div class="shell article-layout"><div>${tableOfContents(toc, { mobile: true })}<article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="editorial-card"><div class="editorial-icon">✦</div><div class="editorial-copy"><span class="eyebrow">About this guide</span><h2>Reviewed by the IELTS Ai Pro editorial team</h2><p>Built around practical IELTS preparation and linked to focused activities inside the application.</p></div><a class="button" href="${practicePath(post.category)}">Practise now →</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${tableOfContents(toc)}<div class="side-card"><div style="display:flex;align-items:center;gap:8px"><span style="color:#5a63df">${iconSvg('share-2')}</span><h2 style="margin:0;font-size:13px;font-weight:800">Share this article</h2></div><div style="margin-top:12px;display:flex;gap:8px"><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" class="share-btn share-btn-fb">${iconSvg('facebook')}</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn" class="share-btn share-btn-in">${iconSvg('linkedin')}</a><button type="button" data-share-btn data-url="${encodeURIComponent(canonical)}" aria-label="Share using device" class="share-btn share-btn-native">${iconSvg('share-2')}</button><button type="button" data-copy-btn data-url="${encodeURIComponent(canonical)}" aria-label="Copy article link" class="share-btn share-btn-copy">${iconSvg('copy')}</button></div></div>${practiceCard(practicePath(post.category), practiceLabel(post.category))}<a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
+      <section class="article-hero"><div class="shell"><div class="article-breadcrumbs"><a href="/blog">Blog library</a><span>/</span><span>${escapeHtml(post.category || 'Guide')}</span><span>/</span><span class="truncate-title">${escapeHtml(post.title)}</span></div><div class="article-hero-grid"><div>${categoryChip(post.category)}<h1>${escapeHtml(post.title)}</h1><p class="intro">${escapeHtml(post.description)}</p><div class="article-meta"><a class="article-meta-item article-author" href="/about"><span class="article-author-icon">${iconSvg('user')}</span>IELTS Ai Pro team</a><span class="article-meta-divider" aria-hidden="true"></span><time class="article-meta-item" datetime="${escapeHtml(publishedAt)}">${iconSvg('calendar')} ${escapeHtml(formatDate(publishedAt))}</time>${updatedAt ? `<span class="article-meta-divider" aria-hidden="true"></span><time class="article-meta-item" datetime="${escapeHtml(updatedAt)}">Updated ${escapeHtml(formatDate(updatedAt))}</time>` : ''}<span class="article-meta-divider" aria-hidden="true"></span><span class="article-meta-item">${iconSvg('clock')} ${Number(post.reading_minutes) || 6} min read</span><span class="article-meta-divider" aria-hidden="true"></span><span class="article-meta-item" title="${Number(post.view_count) || 0} reads">${iconSvg('eye')} ${formatReadCount(post.view_count)}</span></div></div><div class="article-photo"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(coverAlt(post))}" width="1200" height="675" decoding="async" fetchpriority="high"><span class="article-photo-note">Plan · Practise · Review · Succeed</span></div></div></div></section>
+      <div class="shell article-layout"><div>${tableOfContents(toc, { mobile: true })}<article class="article-card article">${prepared.html}<div class="tags">${tags}</div><aside class="editorial-card"><div class="editorial-icon">✦</div><div class="editorial-copy"><span class="eyebrow">About this guide</span><h2>Published by IELTS Ai Pro</h2><p>Built around practical IELTS preparation and linked to focused activities inside the application.</p></div><a class="button" href="${practicePath(post.category)}">Practise now →</a></aside></article>${related ? `<h2 class="section-title" style="margin-top:26px">Related articles</h2><div class="cards">${related}</div>` : ''}</div><aside class="sidebar">${tableOfContents(toc)}<div class="side-card"><div style="display:flex;align-items:center;gap:8px"><span style="color:#5a63df">${iconSvg('share-2')}</span><h2 style="margin:0;font-size:13px;font-weight:800">Share this article</h2></div><div style="margin-top:12px;display:flex;gap:8px"><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook" class="share-btn share-btn-fb">${iconSvg('facebook')}</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn" class="share-btn share-btn-in">${iconSvg('linkedin')}</a><button type="button" data-share-btn data-url="${encodeURIComponent(canonical)}" aria-label="Share using device" class="share-btn share-btn-native">${iconSvg('share-2')}</button><button type="button" data-copy-btn data-url="${encodeURIComponent(canonical)}" aria-label="Copy article link" class="share-btn share-btn-copy">${iconSvg('copy')}</button></div></div>${practiceCard(practicePath(post.category), practiceLabel(post.category))}<a class="login" style="display:block;text-align:center" href="/blog">← All IELTS articles</a></aside></div>
     </main>`,
   });
 }
