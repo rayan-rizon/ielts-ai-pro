@@ -136,16 +136,16 @@ const InitialWelcomeScreen = ({
           <div className="mt-3 grid w-full max-w-lg grid-cols-2 gap-2" aria-label="Speaking mode">
             {[
               {
-                id: 'exam',
-                label: 'Exam',
-                detail: '14 min · no coaching',
-                icon: ShieldCheck,
-              },
-              {
                 id: 'practice',
                 label: 'Practice',
-                detail: '8 active min · coaching',
+                detail: '10 min · live AI coach',
                 icon: MessageSquareText,
+              },
+              {
+                id: 'exam',
+                label: 'Exam',
+                detail: '14 min · real test, no coaching',
+                icon: ShieldCheck,
               },
             ].map((mode) => {
               const Icon = mode.icon;

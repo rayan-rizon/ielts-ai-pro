@@ -755,6 +755,11 @@ async function handleTurn(params: {
     // missed it. There is no written card. When the AI coach is off or fails,
     // the scripted tip is spoken instead. Meta requests and a Part 2 long turn
     // in progress keep the examiner script alone.
+    // An unrelated request in practice gets the coach's voice, not the
+    // examiner's "I can only help" line.
+    if (state.mode === 'practice' && resolved.action === 'redirect_ielts_only') {
+      examinerText = `Let's keep this to your IELTS speaking practice. Here's the question again: ${question.text}`;
+    }
     let coachReply: PracticeCoachResult | null = null;
     // Health telemetry: 'ai' replied; 'fallback' means the coach was on but
     // failed, so the scripted tip played; 'scripted' means the coach is off.
@@ -774,7 +779,7 @@ async function handleTurn(params: {
             ? 'scripted'
             : 'none';
       // Always framed in practice, even without a tip: the bridge into the
-      // next (or last) question and the closing line at the end of a part.
+      // next question and the closing line at the end of a part.
       examinerText = composePracticeSpokenReply({
         coachSpoken,
         action: resolved.action,
@@ -782,7 +787,6 @@ async function handleTurn(params: {
         examinerText,
         questionIndex: nextQuestionIndex,
         partNumber: state.current_part,
-        isLastQuestion: nextQuestionIndex >= questions.length - 1,
       });
     }
     const projectedState = {

@@ -120,7 +120,7 @@ describe('practice coach spoken reply', () => {
     ).toContain('end of Part 2');
   });
 
-  it('announces the last question and closes the part', () => {
+  it('asks the last question like any other, then closes the part', () => {
     expect(
       composePracticeSpokenReply({
         coachSpoken: 'Nice.',
@@ -128,9 +128,8 @@ describe('practice coach spoken reply', () => {
         nextQuestion: 'Do you like fruit?',
         questionIndex: 3,
         partNumber: 1,
-        isLastQuestion: true,
       })
-    ).toBe("Nice. And here's your last question for Part 1. Do you like fruit?");
+    ).not.toContain('last question');
     expect(
       composePracticeSpokenReply({
         coachSpoken: '',
@@ -157,6 +156,9 @@ describe('practice coach spoken reply', () => {
     // An answer that missed the question is still coached, then asked again.
     expect(shouldSpeakPracticeCoach('clarify_once', 'off_topic')).toBe(true);
     expect(shouldSpeakPracticeCoach('clarify_once', 'meta_microphone')).toBe(false);
+    // An irrelevant request is never coached as if it were an answer.
+    expect(shouldSpeakPracticeCoach('advance', 'unrelated')).toBe(false);
+    expect(shouldSpeakPracticeCoach('advance', 'prompt_injection')).toBe(false);
     expect(
       composePracticeSpokenReply({
         coachSpoken: 'You said I am enjoy it; say I enjoy it.',

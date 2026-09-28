@@ -10,7 +10,7 @@ export default function useSpeakingTestState() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [testTitle, setTestTitle] = useState('');
-  const [speakingMode, setSpeakingMode] = useState('exam');
+  const [speakingMode, setSpeakingMode] = useState('practice');
   const [speakingV2State, setSpeakingV2State] = useState(null);
 
   // The examiner voice follows the mode: practice may use the practice voice,

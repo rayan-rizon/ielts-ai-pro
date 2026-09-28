@@ -172,14 +172,10 @@ export function composePracticeSpokenReply(params: {
   examinerText?: string;
   questionIndex: number;
   partNumber: number;
-  /** The next question is the last one in this part. */
-  isLastQuestion?: boolean;
 }) {
   const coach = String(params.coachSpoken || '').trim();
   if (params.action === 'advance' && params.nextQuestion) {
-    const bridge = params.isLastQuestion
-      ? `And here's your last question for Part ${params.partNumber}.`
-      : NEXT_QUESTION_BRIDGES[params.questionIndex % NEXT_QUESTION_BRIDGES.length];
+    const bridge = NEXT_QUESTION_BRIDGES[params.questionIndex % NEXT_QUESTION_BRIDGES.length];
     return `${coach} ${bridge} ${params.nextQuestion.trim()}`.trim();
   }
   if (params.action === 'complete_part') {
@@ -193,6 +189,15 @@ export function composePracticeSpokenReply(params: {
 }
 
 const COACHABLE_RETRY_CLASSIFICATIONS = new Set(['relevant', 'partial', 'off_topic']);
+// Not an answer to coach: a general-assistant request, an attempt to change
+// the rules, another language, or a question about the task itself.
+const NEVER_COACHED_CLASSIFICATIONS = new Set([
+  'unrelated',
+  'prompt_injection',
+  'non_english',
+  'meta_ielts',
+  'meta_microphone',
+]);
 
 /**
  * The coach responds to every real answer, including one that missed the
@@ -200,6 +205,7 @@ const COACHABLE_RETRY_CLASSIFICATIONS = new Set(['relevant', 'partial', 'off_top
  * and a Part 2 long turn still in progress keep the examiner script alone.
  */
 export function shouldSpeakPracticeCoach(action: string, classification?: string) {
+  if (NEVER_COACHED_CLASSIFICATIONS.has(String(classification))) return false;
   if (action === 'advance' || action === 'complete_part') return true;
   return action === 'clarify_once' && COACHABLE_RETRY_CLASSIFICATIONS.has(String(classification));
 }
