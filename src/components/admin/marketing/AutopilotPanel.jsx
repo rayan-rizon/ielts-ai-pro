@@ -331,17 +331,11 @@ function getPrepareButtonConfig(actionsEnabled, recommendationsCount) {
   };
 }
 
-function isMonitorDelayed(monitor) {
-  if (!monitor?.created_at) return false;
-  return Date.now() - new Date(monitor.created_at).getTime() > 30 * 60000;
-}
-
-function resolveMonitorLabel(monitor, monitorError, delayed) {
+function resolveMonitorLabel(monitor, monitorError) {
   if (monitorError) return 'Check failed';
-  if (delayed) return 'Check delayed';
-  if (monitor?.model_metadata?.source === 'scheduled') return 'Monitoring';
+  if (monitor?.model_metadata?.source === 'scheduled') return 'Last scheduled check';
   if (monitor) return 'Checked manually';
-  return 'Awaiting first check';
+  return 'Awaiting manual check';
 }
 
 function resolveMonitorTone(needsAttention, monitor) {
@@ -351,13 +345,11 @@ function resolveMonitorTone(needsAttention, monitor) {
 }
 
 function getMonitorStatus(monitor, setupPending) {
-  const delayed = isMonitorDelayed(monitor);
   const monitorError = monitor?.model_metadata?.error;
-  const rawLabel = resolveMonitorLabel(monitor, monitorError, delayed);
-  const needsAttention = Boolean(setupPending || monitorError || delayed);
+  const rawLabel = resolveMonitorLabel(monitor, monitorError);
+  const needsAttention = Boolean(setupPending || monitorError);
 
   return {
-    delayed,
     monitorError,
     label: setupPending ? 'Review mode' : rawLabel,
     tone: resolveMonitorTone(needsAttention, monitor),
@@ -416,19 +408,13 @@ function getAutopilotWarnings(prepared, monitor) {
   return [];
 }
 
-function useCopilotPolling(refresh, isLocked, generation) {
+function useCopilotInitialLoad(refresh, generation) {
   useEffect(() => {
     refresh();
-    const timer = setInterval(() => {
-      if (!document.hidden && !isLocked()) {
-        refresh();
-      }
-    }, 30000);
     return () => {
-      clearInterval(timer);
       generation.current += 1;
     };
-  }, [refresh, isLocked, generation]);
+  }, [refresh, generation]);
 }
 
 const isPolicyOrRecommendation = (kind) => kind === 'policy' || kind === 'recommendation';
@@ -436,8 +422,6 @@ const isPolicyOrRecommendation = (kind) => kind === 'policy' || kind === 'recomm
 function useCopilotActions({ refresh, onRefresh, setPrepared }) {
   const [busy, setBusy] = useState('');
   const lock = useRef(false);
-
-  const isLocked = useCallback(() => lock.current, []);
 
   const act = useCallback(
     async (key, action, kind) => {
@@ -462,7 +446,7 @@ function useCopilotActions({ refresh, onRefresh, setPrepared }) {
     [refresh, onRefresh, setPrepared]
   );
 
-  return { busy, isLocked, act };
+  return { busy, act };
 }
 
 function useAutopilotWorkspace({ autopilot, onRefresh }) {
@@ -471,13 +455,13 @@ function useAutopilotWorkspace({ autopilot, onRefresh }) {
   const [prepared, setPrepared] = useState(null);
   const actionQueueRef = useRef(null);
 
-  const { busy, isLocked, act } = useCopilotActions({
+  const { busy, act } = useCopilotActions({
     refresh,
     onRefresh,
     setPrepared,
   });
 
-  useCopilotPolling(refresh, isLocked, generation);
+  useCopilotInitialLoad(refresh, generation);
 
   const policies = autopilot?.policies || [];
   const monitor = state?.monitor;
@@ -532,11 +516,11 @@ function AutopilotStatsBar({
         sub="Evidence-led suggestions"
       />
       <StatCell
-        label="Automations on"
+        label="Policies on"
         value={`${enabledPolicies}/${totalPolicies}`}
-        sub="Preparing messages for review"
+        sub="Run with Prepare actions"
       />
-      <StatCell label="Monitoring" sub={dateLabel(monitorCreatedAt)}>
+      <StatCell label="Last check" sub={dateLabel(monitorCreatedAt)}>
         <span className="flex">
           <Pill tone={monitorInfo.tone}>{monitorInfo.label}</Pill>
         </span>

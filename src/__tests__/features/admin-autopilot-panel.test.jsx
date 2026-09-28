@@ -57,6 +57,21 @@ describe('Copilot action workspace', () => {
     expect(MarketingService.prepareCopilotActions).not.toHaveBeenCalled();
     expect(MarketingService.approveIntervention).not.toHaveBeenCalled();
   });
+  it('treats an old scheduled check as history and refreshes the queue without preparing', async () => {
+    MarketingService.getCopilotState.mockResolvedValue({
+      ...state,
+      monitor: {
+        created_at: '2026-01-01T00:00:00Z',
+        model_metadata: { source: 'scheduled' },
+      },
+    });
+    setup();
+    expect(await screen.findByText('Last scheduled check')).toBeInTheDocument();
+    expect(screen.queryByText('Check delayed')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh Copilot' }));
+    await waitFor(() => expect(MarketingService.getCopilotState).toHaveBeenCalledTimes(2));
+    expect(MarketingService.prepareCopilotActions).not.toHaveBeenCalled();
+  });
   it('prepares actions without implicitly approving them', async () => {
     MarketingService.prepareCopilotActions.mockResolvedValue({ created: 2, drafted: 2 });
     setup();
