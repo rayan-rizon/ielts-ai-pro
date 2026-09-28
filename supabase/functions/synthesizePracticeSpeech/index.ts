@@ -14,6 +14,7 @@ import {
 import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
+  isPracticeTtsCacheable,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
   normalizePracticeTtsText,
@@ -81,14 +82,16 @@ async function lookupCache(
 ) {
   const startedAt = performance.now();
   const cacheKey = await computePracticeTtsCacheKey(selection, text);
+  const cacheable = isPracticeTtsCacheable(text);
   let cacheHit = false;
+  if (!cacheable) return { ...selection, cacheKey, cacheHit, cacheable, ms: 0 };
   try {
     // A slow cache is treated as a miss: synthesis is faster than waiting.
     cacheHit = await r2.exists(cacheKey, 900);
   } catch (error: any) {
     console.warn('[PracticeTTS] R2 lookup failed:', error?.message);
   }
-  return { ...selection, cacheKey, cacheHit, ms: performance.now() - startedAt };
+  return { ...selection, cacheKey, cacheHit, cacheable, ms: performance.now() - startedAt };
 }
 
 function serverTiming(timings: Record<string, number>) {
@@ -108,6 +111,7 @@ async function streamGeminiSpeech(params: {
   text: string;
   selection: PracticeTtsSelection;
   cacheKey: string;
+  cacheable: boolean;
   r2: ReturnType<typeof createR2Objects>;
   supabase: any;
   reservationId: string | undefined;
@@ -147,7 +151,7 @@ async function streamGeminiSpeech(params: {
   let cancelled = false;
   const finish = async (outcome: 'completed' | 'interrupted' | 'failed', errorMessage?: string) => {
     const total = collected.reduce((sum, chunk) => sum + chunk.byteLength, 0);
-    if (outcome === 'completed' && total > 0) {
+    if (outcome === 'completed' && total > 0 && params.cacheable) {
       const pcm = new Uint8Array(total);
       let offset = 0;
       for (const chunk of collected) {
@@ -326,7 +330,7 @@ serve(async (req: Request) => {
       early && early.model === selection.model && early.voice === selection.voice
         ? early
         : await lookupCache(r2, selection, text);
-    const { cacheKey, cacheHit } = lookup;
+    const { cacheKey, cacheHit, cacheable } = lookup;
     const publicUrl = r2.publicUrl(cacheKey);
     timings.cache = lookup.ms;
 
@@ -365,6 +369,7 @@ serve(async (req: Request) => {
         text,
         selection,
         cacheKey,
+        cacheable,
         r2,
         supabase,
         reservationId,
@@ -404,11 +409,14 @@ serve(async (req: Request) => {
     }
     const audioBytes = audio.bytes;
 
-    // 3. Store in the background; the learner hears the inline copy now.
-    const upload = r2
-      .put(cacheKey, audioBytes, { contentType: audio.contentType, cacheControl: CACHE_CONTROL })
-      .catch((error: any) => console.warn('[PracticeTTS] R2 upload failed:', error?.message));
-    if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime?.waitUntil) EdgeRuntime.waitUntil(upload);
+    // 3. Store shared lines in the background; the learner hears the inline copy now.
+    if (cacheable) {
+      const upload = r2
+        .put(cacheKey, audioBytes, { contentType: audio.contentType, cacheControl: CACHE_CONTROL })
+        .catch((error: any) => console.warn('[PracticeTTS] R2 upload failed:', error?.message));
+      if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime?.waitUntil)
+        EdgeRuntime.waitUntil(upload);
+    }
 
     timings.total = performance.now() - startedAt;
     await finalizeApiUsage(supabase, quotaReservationId, 0, false, {

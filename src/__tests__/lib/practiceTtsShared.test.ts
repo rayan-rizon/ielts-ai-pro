@@ -122,3 +122,17 @@ describe('practice TTS request and cache', () => {
     expect(toPlayableAudio('audio/pcm;rate=24000', new Uint8Array(10))).toBeNull();
   });
 });
+
+describe('practice TTS cache policy', () => {
+  it('caches shared short lines and skips unique coach replies', async () => {
+    const { isPracticeTtsCacheable } =
+      await import('../../../supabase/functions/_shared/practiceTts.ts');
+    expect(
+      isPracticeTtsCacheable(
+        "Hi! Let's practise Part 1 together. Just answer naturally, and I'll help you say it better as we go. Here's your first question."
+      )
+    ).toBe(true);
+    expect(isPracticeTtsCacheable('When do you usually eat bread?')).toBe(true);
+    expect(isPracticeTtsCacheable('x'.repeat(260))).toBe(false);
+  });
+});

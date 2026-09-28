@@ -13,6 +13,17 @@ export const OPENROUTER_SPEECH_URL = 'https://openrouter.ai/api/v1/audio/speech'
 export const PRACTICE_TTS_CACHE_VERSION = 'v1';
 export const PRACTICE_TTS_CACHE_PREFIX = `tts-cache/practice/${PRACTICE_TTS_CACHE_VERSION}`;
 export const PRACTICE_TTS_MAX_CHARACTERS = 1500;
+/**
+ * Only short, shared lines are worth caching: the greeting, bank questions,
+ * part intros and retry prompts (all under ~160 characters). A coach reply is
+ * unique to one learner's answer, so looking it up in R2 only delays the voice
+ * and storing it only fills the bucket.
+ */
+export const PRACTICE_TTS_CACHEABLE_MAX_CHARACTERS = 200;
+
+export function isPracticeTtsCacheable(text: string) {
+  return text.length <= PRACTICE_TTS_CACHEABLE_MAX_CHARACTERS;
+}
 /** Real audio of even a one-word reply is larger than this. */
 export const PRACTICE_TTS_MIN_AUDIO_BYTES = 512;
 
