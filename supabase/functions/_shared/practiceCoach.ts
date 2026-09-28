@@ -172,14 +172,22 @@ export function composePracticeSpokenReply(params: {
   examinerText?: string;
   questionIndex: number;
   partNumber: number;
+  /** The next question is the last one in this part. */
+  isLastQuestion?: boolean;
 }) {
-  const coach = params.coachSpoken.trim();
+  const coach = String(params.coachSpoken || '').trim();
   if (params.action === 'advance' && params.nextQuestion) {
-    const bridge = NEXT_QUESTION_BRIDGES[params.questionIndex % NEXT_QUESTION_BRIDGES.length];
+    const bridge = params.isLastQuestion
+      ? `And here's your last question for Part ${params.partNumber}.`
+      : NEXT_QUESTION_BRIDGES[params.questionIndex % NEXT_QUESTION_BRIDGES.length];
     return `${coach} ${bridge} ${params.nextQuestion.trim()}`.trim();
   }
   if (params.action === 'complete_part') {
-    return `${coach} That's the end of Part ${params.partNumber}. Well done.`.trim();
+    const closing =
+      params.partNumber >= 3
+        ? "That's the end of your speaking practice. Well done, you've worked through all three parts."
+        : `That's the end of Part ${params.partNumber}. Well done. When you're ready, we'll move on to Part ${params.partNumber + 1}.`;
+    return `${coach} ${closing}`.trim();
   }
   return `${coach} ${params.examinerText || ''}`.trim();
 }

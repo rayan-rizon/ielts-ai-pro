@@ -120,6 +120,35 @@ describe('practice coach spoken reply', () => {
     ).toContain('end of Part 2');
   });
 
+  it('announces the last question and closes the part', () => {
+    expect(
+      composePracticeSpokenReply({
+        coachSpoken: 'Nice.',
+        action: 'advance',
+        nextQuestion: 'Do you like fruit?',
+        questionIndex: 3,
+        partNumber: 1,
+        isLastQuestion: true,
+      })
+    ).toBe("Nice. And here's your last question for Part 1. Do you like fruit?");
+    expect(
+      composePracticeSpokenReply({
+        coachSpoken: '',
+        action: 'complete_part',
+        questionIndex: 3,
+        partNumber: 1,
+      })
+    ).toBe("That's the end of Part 1. Well done. When you're ready, we'll move on to Part 2.");
+    expect(
+      composePracticeSpokenReply({
+        coachSpoken: 'Good.',
+        action: 'complete_part',
+        questionIndex: 3,
+        partNumber: 3,
+      })
+    ).toContain('end of your speaking practice');
+  });
+
   it('only coaches real answers', () => {
     expect(shouldSpeakPracticeCoach('advance')).toBe(true);
     expect(shouldSpeakPracticeCoach('complete_part')).toBe(true);

@@ -361,7 +361,7 @@ export default function useSpeakingTestInitialization({
       const greeting = `Hello! Welcome to the IELTS Speaking Test. I'm your AI examiner, and I'll be conducting Part ${firstPart.partNumber} today. The topic is: "${firstPart.title}". Let's begin the examination.`;
       // The part title ("Introduction & Interview") reads badly aloud, so the
       // practice opening leaves it out.
-      const practiceGreeting = `Hi! Let's practise Part ${firstPart.partNumber} together. Just answer naturally, and I'll help you say it better as we go.`;
+      const practiceGreeting = `Hi! Let's practise Part ${firstPart.partNumber} together. Just answer naturally, and I'll help you say it better as we go. Here's your first question.`;
 
       setIsLoading(false);
       pendingGreetingRef.current = {

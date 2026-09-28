@@ -167,18 +167,21 @@ export async function playInitialGreeting({
     currentPart: allParts[partNumber],
   });
 
-  const firstQuestion = initialConversation[1]?.text;
-  // The announcement is part of the test opening, not transcript-only copy.
+  const questionEntry = initialConversation[initialConversation.length - 1];
+  const firstQuestion = questionEntry?.text;
+  // The greeting plays first and the first question appears only when it is
+  // asked, so the learner never sees a question the examiner has not reached.
   // Both utterances were prefetched during initialization, so these sequential
   // playback calls reuse the same cached promises instead of making duplicate
   // synthesis requests.
-  setConversation(initialConversation);
+  setConversation(greeting ? initialConversation.slice(0, -1) : initialConversation);
   setCurrentQuestionIndex(0);
   setTestStarted(true);
   pendingGreetingRef.current = null;
 
   if (greeting) {
     await Promise.resolve(speakText(greeting)).catch(() => {});
+    if (questionEntry) setConversation((prev) => [...prev, questionEntry]);
   }
   if (firstQuestion) {
     firstQuestionInsertedRef.current = true;

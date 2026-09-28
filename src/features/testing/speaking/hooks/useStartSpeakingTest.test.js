@@ -67,4 +67,31 @@ describe('playInitialGreeting', () => {
     });
     expect(speakText).toHaveBeenNthCalledWith(1, "Hi! Let's practise Part 1 together.");
   });
+
+  it('shows the first question only after the greeting has finished', async () => {
+    let conversation = [];
+    let finishGreeting;
+    const speakText = vi.fn((text) =>
+      text === 'Welcome.' ? new Promise((resolve) => (finishGreeting = resolve)) : Promise.resolve()
+    );
+    const setConversation = vi.fn((valueOrUpdater) => {
+      conversation =
+        typeof valueOrUpdater === 'function' ? valueOrUpdater(conversation) : valueOrUpdater;
+    });
+    const playback = playInitialGreeting({
+      allParts: { 1: { questions: 'Do you work or study?' } },
+      firstQuestionInsertedRef: { current: false },
+      pendingGreetingRef: { current: { greeting: 'Welcome.', partNumber: 1 } },
+      setConversation,
+      setCurrentQuestionIndex: vi.fn(),
+      setTestStarted: vi.fn(),
+      speakText,
+    });
+    await Promise.resolve();
+    expect(conversation).toEqual([{ speaker: 'ai', text: 'Welcome.' }]);
+
+    finishGreeting();
+    await playback;
+    expect(conversation.map((entry) => entry.text)).toEqual(['Welcome.', 'Do you work or study?']);
+  });
 });

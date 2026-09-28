@@ -773,16 +773,17 @@ async function handleTurn(params: {
           : coachSpoken
             ? 'scripted'
             : 'none';
-      if (coachSpoken) {
-        examinerText = composePracticeSpokenReply({
-          coachSpoken,
-          action: resolved.action,
-          nextQuestion,
-          examinerText,
-          questionIndex: nextQuestionIndex,
-          partNumber: state.current_part,
-        });
-      }
+      // Always framed in practice, even without a tip: the bridge into the
+      // next (or last) question and the closing line at the end of a part.
+      examinerText = composePracticeSpokenReply({
+        coachSpoken,
+        action: resolved.action,
+        nextQuestion,
+        examinerText,
+        questionIndex: nextQuestionIndex,
+        partNumber: state.current_part,
+        isLastQuestion: nextQuestionIndex >= questions.length - 1,
+      });
     }
     const projectedState = {
       ...publicState(state, questions.length),
