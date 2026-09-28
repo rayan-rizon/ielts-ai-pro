@@ -212,3 +212,23 @@ describe('useSpeechSynthesis hook', () => {
     streamPlayer.current = null;
   });
 });
+
+describe('browser fallback voice', () => {
+  it('picks a female British voice, never Daniel', async () => {
+    const { findBestVoice } = await import('@/features/testing/speaking/hooks/useSpeechSynthesis');
+    const voices = [
+      { name: 'Daniel', lang: 'en-GB' },
+      { name: 'Google UK English Male', lang: 'en-GB' },
+      { name: 'Google UK English Female', lang: 'en-GB' },
+      { name: 'Samantha', lang: 'en-US' },
+    ];
+    expect(findBestVoice(voices).name).toBe('Google UK English Female');
+    expect(findBestVoice([voices[0], voices[3]]).name).toBe('Samantha');
+    expect(
+      findBestVoice([
+        { name: 'Daniel', lang: 'en-GB' },
+        { name: 'Unknown', lang: 'en-GB' },
+      ]).name
+    ).toBe('Unknown');
+  });
+});

@@ -41,38 +41,77 @@ function hasSpeechSynthesis() {
 }
 
 // ── Web Speech API voice matching ─────────────────────────────────────────────
+// The examiner and the practice coach are female voices (Neural2-C, Gemini
+// Sulafat), so the last-resort browser voice must be female too. System voice
+// lists rarely expose gender, so it is inferred from well-known voice names.
 const HIGH_QUALITY_VOICE_KEYWORDS = ['Natural', 'Premium', 'Enhanced', 'Neural'];
-const POPULAR_VOICE_NAMES = ['Daniel', 'Serena', 'Martha', 'George'];
+const FEMALE_VOICE_NAMES = [
+  'Female',
+  'Serena',
+  'Martha',
+  'Kate',
+  'Stephanie',
+  'Libby',
+  'Sonia',
+  'Hazel',
+  'Susan',
+  'Maisie',
+  'Mia',
+  'Samantha',
+  'Karen',
+  'Moira',
+  'Tessa',
+  'Fiona',
+  'Victoria',
+  'Allison',
+  'Ava',
+  'Zira',
+  'Aria',
+  'Jenny',
+  'Emma',
+];
+const MALE_VOICE_NAMES = [
+  'Male',
+  'Daniel',
+  'George',
+  'Arthur',
+  'Oliver',
+  'Ryan',
+  'Thomas',
+  'Alfie',
+  'Elliot',
+  'Noah',
+  'Rishi',
+  'Fred',
+  'Alex',
+  'Aaron',
+  'Guy',
+  'David',
+  'Mark',
+  'Christopher',
+  'Eric',
+];
 
 function hasMatchingKeyword(name, keywords) {
   return keywords.some((keyword) => name.includes(keyword));
 }
 
-function isHighQualityEnGb(voice) {
-  if (!voice.lang.startsWith('en-GB')) return false;
-  return hasMatchingKeyword(voice.name, HIGH_QUALITY_VOICE_KEYWORDS);
-}
+const isFemale = (voice) => hasMatchingKeyword(voice.name, FEMALE_VOICE_NAMES);
+const isMale = (voice) => hasMatchingKeyword(voice.name, MALE_VOICE_NAMES);
+const isEnGb = (voice) => voice.lang.startsWith('en-GB');
+const isEnglish = (voice) => voice.lang.startsWith('en');
 
-function isPopularEnGb(voice) {
-  if (!voice.lang.startsWith('en-GB')) return false;
-  return hasMatchingKeyword(voice.name, POPULAR_VOICE_NAMES);
-}
+const VOICE_FINDERS = [
+  (voice) =>
+    isEnGb(voice) && isFemale(voice) && hasMatchingKeyword(voice.name, HIGH_QUALITY_VOICE_KEYWORDS),
+  (voice) => isEnGb(voice) && isFemale(voice),
+  (voice) => isEnglish(voice) && isFemale(voice),
+  (voice) => isEnGb(voice) && !isMale(voice),
+  (voice) => isEnglish(voice) && !isMale(voice),
+  isEnglish,
+];
 
-function isEnGb(voice) {
-  return voice.lang.startsWith('en-GB');
-}
-
-function isEnUs(voice) {
-  return voice.lang.startsWith('en-US');
-}
-
-function isAnyEnglish(voice) {
-  return voice.lang.startsWith('en');
-}
-
-const VOICE_FINDERS = [isHighQualityEnGb, isPopularEnGb, isEnGb, isEnUs, isAnyEnglish];
-
-function findBestVoice(voices) {
+export function findBestVoice(voices) {
   for (const finder of VOICE_FINDERS) {
     const match = voices.find(finder);
     if (match) return match;
