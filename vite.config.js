@@ -4,8 +4,34 @@ import { signupAttributionScript } from './shared/signupAttributionCapture.js';
 import path from 'path';
 import viteCompression from 'vite-plugin-compression';
 
-const { VITE_SUPABASE_URL } = loadEnv('development', '.', '');
+const { VITE_SUPABASE_URL, LOCAL_EDGE_FUNCTIONS_URL, LOCAL_EDGE_FUNCTIONS } = loadEnv(
+  'development',
+  '.',
+  ''
+);
 const SUPABASE_PROXY_TARGET = VITE_SUPABASE_URL?.replace(/\/$/, '');
+
+// Development only: send the listed functions to `npm run edge:local` so a
+// change can be tried before it is deployed. Every other function keeps going
+// to the hosted project. Unset LOCAL_EDGE_FUNCTIONS_URL to turn it off.
+const LOCAL_EDGE_TARGET = LOCAL_EDGE_FUNCTIONS_URL?.replace(/\/$/, '');
+const LOCAL_EDGE_NAMES = LOCAL_EDGE_TARGET
+  ? (LOCAL_EDGE_FUNCTIONS || 'processSpeakingSessionV2,synthesizePracticeSpeech')
+      .split(',')
+      .map((name) => name.trim())
+      .filter(Boolean)
+  : [];
+const localEdgeProxy = Object.fromEntries(
+  LOCAL_EDGE_NAMES.map((name) => [
+    `/__supabase/functions/${name}`,
+    {
+      target: LOCAL_EDGE_TARGET,
+      changeOrigin: true,
+      headers: { origin: 'https://ieltsai.pro' },
+      rewrite: (requestPath) => requestPath.replace(/^\/__supabase\/functions/, '/functions/v1'),
+    },
+  ])
+);
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -41,6 +67,8 @@ export default defineConfig({
     ...(SUPABASE_PROXY_TARGET
       ? {
           proxy: {
+            // More specific local routes first; Vite matches in key order.
+            ...localEdgeProxy,
             '/__supabase/functions': {
               target: SUPABASE_PROXY_TARGET,
               changeOrigin: true,

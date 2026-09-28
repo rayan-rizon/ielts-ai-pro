@@ -176,6 +176,31 @@ export async function callEdgeFunction(functionName, payload = {}, options = {})
 }
 
 /**
+ * POST JSON to an authenticated Edge Function and return the raw Response, so
+ * the caller can read a streamed body (for example progressive speech audio)
+ * as it arrives. The caller checks `response.ok` and the Content-Type.
+ */
+export async function callEdgeFunctionStream(functionName, payload = {}, options = {}) {
+  const client = await getSupabaseClient();
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError) throw new Error(`Authentication error: ${sessionError.message}`);
+  if (!sessionData?.session?.access_token) {
+    throw new Error('No valid session found. Please log in.');
+  }
+  return fetch(`${SUPABASE_FUNCTIONS_URL}/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionData.session.access_token}`,
+      ...(SUPABASE_ANON_KEY ? { apikey: SUPABASE_ANON_KEY } : {}),
+      ...getCsrfHeaders(),
+    },
+    body: JSON.stringify(payload),
+    signal: options.signal,
+  });
+}
+
+/**
  * Send binary form data to an authenticated Edge Function. The browser owns
  * the multipart boundary, so this deliberately does not set Content-Type.
  */

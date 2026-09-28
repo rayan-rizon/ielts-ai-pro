@@ -46,4 +46,25 @@ describe('playInitialGreeting', () => {
     expect(firstQuestionInsertedRef.current).toBe(true);
     expect(requestAutoStart).toHaveBeenCalledOnce();
   });
+
+  it('opens practice mode as a coach, not as the examiner', async () => {
+    const speakText = vi.fn().mockResolvedValue(undefined);
+    await playInitialGreeting({
+      allParts: { 1: { questions: 'Do you work or study?' } },
+      firstQuestionInsertedRef: { current: false },
+      pendingGreetingRef: {
+        current: {
+          greeting: "I'm your AI examiner.",
+          practiceGreeting: "Hi! Let's practise Part 1 together.",
+          partNumber: 1,
+        },
+      },
+      setConversation: vi.fn(),
+      setCurrentQuestionIndex: vi.fn(),
+      setTestStarted: vi.fn(),
+      speakingMode: 'practice',
+      speakText,
+    });
+    expect(speakText).toHaveBeenNthCalledWith(1, "Hi! Let's practise Part 1 together.");
+  });
 });

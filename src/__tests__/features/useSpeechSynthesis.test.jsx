@@ -16,8 +16,29 @@ const mockAudioElement = {
   setAttribute: vi.fn(),
 };
 
+const { streamPlayer } = vi.hoisted(() => ({ streamPlayer: { current: null } }));
+
+vi.mock('@/features/testing/speaking/utils/pcmStreamPlayer', () => ({
+  getActivePcmPlayer: vi.fn(() => streamPlayer.current),
+  playPcmStream: vi.fn((options) => {
+    let resolveDone;
+    const player = {
+      done: new Promise((resolve) => {
+        resolveDone = resolve;
+      }),
+      stop: vi.fn(),
+      finish: vi.fn(() => resolveDone()),
+      options,
+    };
+    options.onPlaybackActive?.();
+    streamPlayer.current = player;
+    return player;
+  }),
+}));
+
 vi.mock('@/features/testing/speaking/utils/speechPlayback', () => ({
   getPlaybackAudio: vi.fn(() => mockAudioElement),
+  getPlaybackAudioContext: vi.fn(() => ({ state: 'running' })),
   isSpeechPlaybackUnlocked: vi.fn(() => true),
   onSpeechPlaybackUnlocked: vi.fn((cb) => cb()),
   releasePlaybackAudio: vi.fn(),
@@ -139,5 +160,55 @@ describe('useSpeechSynthesis hook', () => {
 
     expect(result.current.isSpeaking).toBe(false);
     expect(result.current.activeSpeechText).toBe('');
+  });
+
+  it('settles the pending speech when the learner barges in, so the next step runs', async () => {
+    const { result } = renderHook(() => useSpeechSynthesis());
+    let completion;
+    await act(async () => {
+      completion = result.current.speakText('You said there is many people.');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.isPlaybackActive).toBe(true);
+
+    let settled = false;
+    await act(async () => {
+      result.current.interruptCurrentAudio();
+      await completion;
+      settled = true;
+    });
+
+    expect(settled).toBe(true);
+    expect(result.current.isSpeaking).toBe(false);
+    expect(result.current.isPlaybackActive).toBe(false);
+  });
+
+  it('plays a streamed practice reply and lets the learner interrupt it', async () => {
+    const pcm = await import('@/features/testing/speaking/utils/pcmStreamPlayer');
+    requestSpeakingTts.mockResolvedValueOnce({
+      data: { success: true, stream: new ReadableStream(), sampleRate: 24000 },
+      error: null,
+    });
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    let completion;
+    await act(async () => {
+      completion = result.current.speakText('Nice answer. Next question.');
+      await vi.waitFor(() => expect(pcm.playPcmStream).toHaveBeenCalledTimes(1));
+    });
+    expect(pcm.playPcmStream.mock.calls[0][0]).toMatchObject({
+      sampleRate: 24000,
+      text: 'Nice answer. Next question.',
+    });
+    expect(result.current.isPlaybackActive).toBe(true);
+
+    await act(async () => {
+      result.current.interruptCurrentAudio();
+      await completion;
+    });
+    expect(streamPlayer.current.finish).toHaveBeenCalled();
+    expect(result.current.isSpeaking).toBe(false);
+    streamPlayer.current = null;
   });
 });

@@ -87,7 +87,6 @@ export default function useSpeakingRecordingProcessor({
   setProcessingStatus,
   setShowUpgradeDialog,
   setSpeakingV2State,
-  speakingMode,
   speakingV2State,
   speakAiMessageFromLoadingState,
   speakText,
@@ -98,6 +97,10 @@ export default function useSpeakingRecordingProcessor({
 }) {
   const pronunciationAttemptedPartsRef = useRef(new Set());
   const processingRequestIdRef = useRef(0);
+  // Consecutive answers that were not heard (silence, noise, transcription
+  // failure). Hands-free stops re-opening the mic after a few in a row, so a
+  // learner who stepped away does not trigger an endless retry loop.
+  const unheardStreakRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -110,6 +113,17 @@ export default function useSpeakingRecordingProcessor({
       const requestId = ++processingRequestIdRef.current;
       const isCurrentRequest = () =>
         processingRequestIdRef.current === requestId && isMountedRef?.current !== false;
+      const restartAfterTurn = (unheard) => {
+        unheardStreakRef.current = unheard ? unheardStreakRef.current + 1 : 0;
+        if (unheardStreakRef.current >= MAX_UNHEARD_AUTO_RESTARTS) {
+          toast.info("We couldn't hear an answer", {
+            description: 'Press Start now when you are ready to answer.',
+            duration: 5000,
+          });
+          return;
+        }
+        requestAutoStart?.();
+      };
       if (metadata.error === 'too_short') {
         toast.warning('Recording too short', {
           description: 'Please speak for at least a few seconds.',
@@ -120,7 +134,7 @@ export default function useSpeakingRecordingProcessor({
 
       if (!audioBlob || audioBlob.size < MIN_USABLE_AUDIO_BYTES) {
         setConversation(replacePendingWithAudioRecovery);
-        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => requestAutoStart?.());
+        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => restartAfterTurn(true));
         return;
       }
 
@@ -129,7 +143,7 @@ export default function useSpeakingRecordingProcessor({
       // answer. The Edge Function enforces the same rule as a backstop.
       if (isSilentSpeechMetadata(metadata)) {
         setConversation(replacePendingWithAudioRecovery);
-        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => requestAutoStart?.());
+        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => restartAfterTurn(true));
         return;
       }
 
@@ -202,18 +216,6 @@ export default function useSpeakingRecordingProcessor({
         }
 
         setConversation((prev) => replaceLoadingUserTranscript(prev, response.userTranscript));
-        if (response.coaching?.message && speakingMode === 'practice') {
-          setConversation((prev) => [
-            ...prev,
-            {
-              speaker: 'coach',
-              text: response.coaching.message,
-              code: response.coaching.code,
-              evidenceQuote: response.coaching.evidenceQuote,
-              partNumber: currentPartNumber,
-            },
-          ]);
-        }
         if (response.state) setSpeakingV2State?.(response.state);
         await handleSpeakingResponse(response, {
           acousticMetricsRef,
@@ -222,7 +224,10 @@ export default function useSpeakingRecordingProcessor({
           currentPartNumber,
           pendingTimersRef,
           questionIndexRef,
-          requestAutoStart,
+          requestAutoStart: () =>
+            restartAfterTurn(
+              Boolean(response.transcriptStatus) && response.transcriptStatus !== 'ready'
+            ),
           saveSessionProgress,
           session,
           setAllPartsAcousticMetrics,
@@ -262,7 +267,7 @@ export default function useSpeakingRecordingProcessor({
           speakAiMessageFromLoadingState,
           setShowUpgradeDialog,
         });
-        if (shouldRestart) requestAutoStart?.();
+        if (shouldRestart) restartAfterTurn(true);
       } finally {
         if (isCurrentRequest()) {
           setIsProcessing(false);
@@ -290,7 +295,6 @@ export default function useSpeakingRecordingProcessor({
       setProcessingStatus,
       setShowUpgradeDialog,
       setSpeakingV2State,
-      speakingMode,
       speakingV2State,
       speakAiMessageFromLoadingState,
       speakText,
@@ -461,6 +465,8 @@ function replaceLoadingUserTranscript(conversation, transcript) {
 
   return updated;
 }
+
+const MAX_UNHEARD_AUTO_RESTARTS = 2;
 
 async function handleSpeakingResponse(response, context) {
   if (!response) {

@@ -22,10 +22,18 @@ import {
 import {
   buildSpeakingExaminerText,
   decideSpeakingTurn,
+  getDeterministicSpeakingDecision,
   resolveSpeakingAction,
   SPEAKING_COACHING_TEXT,
   type SpeakingMode,
 } from '../_shared/speakingTurnDecision.ts';
+import {
+  composePracticeSpokenReply,
+  generatePracticeCoachReply,
+  type PracticeCoachResult,
+  shouldSpeakPracticeCoach,
+} from '../_shared/practiceCoach.ts';
+import { isPracticeTtsAllowed, parsePracticeTtsRollout } from '../_shared/practiceTts.ts';
 import { buildSpeakingV2ControlResponse } from '../_shared/speakingV2ControlResponse.ts';
 import {
   isSpeakingSessionExpired,
@@ -443,10 +451,20 @@ async function transcribeAudio(params: {
 
     if (!transcript) {
       const browserRecovery = createBrowserTranscriptRecovery(params.browserHint);
-      if (!browserRecovery) throw providerError;
-      transcript = browserRecovery.transcript;
-      provider = browserRecovery.provider;
-      model = browserRecovery.model;
+      if (!browserRecovery) {
+        // Silence or noise is not a provider outage. Report the answer as
+        // unheard so the turn fails cleanly ("I didn't catch that", 200)
+        // instead of a 500 that hands-free mode keeps retrying.
+        if (/no intelligible speech/i.test(String((providerError as any)?.message || ''))) {
+          transcript = '(Inaudible)';
+        } else {
+          throw providerError;
+        }
+      } else {
+        transcript = browserRecovery.transcript;
+        provider = browserRecovery.provider;
+        model = browserRecovery.model;
+      }
     }
   }
   if (isFailedTranscript(transcript) && canRecoverFromBrowserTranscript(params.browserHint)) {
@@ -502,6 +520,18 @@ function queuePronunciationEvidence(params: {
     .catch((error) => console.warn('Speaking V2 pronunciation evidence failed', error?.message));
   if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime?.waitUntil) EdgeRuntime.waitUntil(job);
   else void job;
+}
+
+/**
+ * The spoken AI coach is behind PRACTICE_COACH_ROLLOUT (off | admin | all,
+ * default off). Off speaks the scripted coaching line instead.
+ */
+async function isPracticeCoachEnabled(supabase: any, authId: string) {
+  const rollout = parsePracticeTtsRollout(Deno.env.get('PRACTICE_COACH_ROLLOUT'));
+  if (rollout === 'off' || !Deno.env.get('OPENROUTER_API_KEY')) return false;
+  if (rollout === 'all') return true;
+  const { data } = await supabase.from('users').select('role').eq('auth_id', authId).maybeSingle();
+  return isPracticeTtsAllowed(rollout, data?.role === 'admin');
 }
 
 async function handleTurn(params: {
@@ -667,6 +697,25 @@ async function handleTurn(params: {
       );
     }
 
+    // The coach reply runs alongside the turn decision so the learner waits
+    // for the slower of the two, not both. Meta requests ("can you repeat")
+    // never reach the coach.
+    const coachEnabled =
+      state.mode === 'practice' && (await isPracticeCoachEnabled(params.supabase, params.authId));
+    let coachError = '';
+    const coachPromise: Promise<PracticeCoachResult | null> =
+      coachEnabled && !getDeterministicSpeakingDecision(transcription.transcript)
+        ? generatePracticeCoachReply({
+            apiKey: Deno.env.get('OPENROUTER_API_KEY') || '',
+            partNumber: state.current_part,
+            question: question.text,
+            transcript: transcription.transcript,
+          }).catch((error: any) => {
+            console.warn('[PracticeCoach] Falling back to the scripted line:', error?.message);
+            coachError = String(error?.message || error || 'Practice coach failed').slice(0, 240);
+            return null;
+          })
+        : Promise.resolve(null);
     const decision = await decideSpeakingTurn({
       transcript: transcription.transcript,
       question: question.text,
@@ -694,21 +743,47 @@ async function handleTurn(params: {
         ? 'ready_for_evaluation'
         : 'part_complete'
       : 'active';
-    const examinerText = buildSpeakingExaminerText({
+    let examinerText = buildSpeakingExaminerText({
       action: resolved.action,
       question: question.text,
       nextQuestion,
       partNumber: state.current_part,
       classification: decision.classification,
     });
-    const coaching =
-      state.mode === 'practice' && decision.coachingCode
-        ? {
-            code: decision.coachingCode,
-            message: SPEAKING_COACHING_TEXT[decision.coachingCode],
-            evidenceQuote: decision.evidenceQuote,
-          }
-        : undefined;
+    // Practice mode: the coach speaks (react, correct, suggest), then the
+    // bank's next question, or the examiner asking again when the answer
+    // missed it. There is no written card. When the AI coach is off or fails,
+    // the scripted tip is spoken instead. Meta requests and a Part 2 long turn
+    // in progress keep the examiner script alone.
+    let coachReply: PracticeCoachResult | null = null;
+    // Health telemetry: 'ai' replied; 'fallback' means the coach was on but
+    // failed, so the scripted tip played; 'scripted' means the coach is off.
+    let coachSource: 'ai' | 'fallback' | 'scripted' | 'none' = 'none';
+    if (
+      state.mode === 'practice' &&
+      shouldSpeakPracticeCoach(resolved.action, decision.classification)
+    ) {
+      coachReply = coachEnabled ? await coachPromise : null;
+      const scripted = decision.coachingCode ? SPEAKING_COACHING_TEXT[decision.coachingCode] : '';
+      const coachSpoken = coachReply?.spoken || scripted || '';
+      coachSource = coachReply
+        ? 'ai'
+        : coachEnabled
+          ? 'fallback'
+          : coachSpoken
+            ? 'scripted'
+            : 'none';
+      if (coachSpoken) {
+        examinerText = composePracticeSpokenReply({
+          coachSpoken,
+          action: resolved.action,
+          nextQuestion,
+          examinerText,
+          questionIndex: nextQuestionIndex,
+          partNumber: state.current_part,
+        });
+      }
+    }
     const projectedState = {
       ...publicState(state, questions.length),
       revision: state.revision + 1,
@@ -724,7 +799,6 @@ async function handleTurn(params: {
       examinerText,
       examinerResponse: examinerText,
       userTranscript: transcription.transcript,
-      coaching,
       nextQuestionIndex,
       isPartComplete: completesPart,
       state: projectedState,
@@ -750,11 +824,28 @@ async function handleTurn(params: {
             transcriptionProvider: transcription.provider,
             transcriptionModel: transcription.model,
             semantic: decision.provider,
+            ...(state.mode === 'practice'
+              ? {
+                  coach: coachReply
+                    ? {
+                        source: 'ai',
+                        model: coachReply.model,
+                        estimatedProviderCostUsd: coachReply.estimatedProviderCostUsd,
+                      }
+                    : {
+                        source: coachSource,
+                        ...(coachSource === 'fallback'
+                          ? { error: coachError || 'No usable coach reply' }
+                          : {}),
+                      },
+                }
+              : {}),
           },
           latency: {
             uploadMs: uploadLatencyMs,
             transcriptionMs: transcription.latencyMs,
             semanticDecisionMs: decision.latencyMs,
+            ...(coachReply ? { coachMs: coachReply.latencyMs } : {}),
           },
           state: {
             part: state.current_part,

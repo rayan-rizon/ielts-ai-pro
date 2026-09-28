@@ -29,6 +29,8 @@
     "compare:text-ai": "node --experimental-strip-types scripts/compare-text-ai-providers.mjs",
     "ai:models": "node --experimental-strip-types scripts/ai-models.mjs",
     "ai:bench": "node --experimental-strip-types scripts/bench-ai-model.mjs",
+    "edge:local": "deno run --node-modules-dir=none --config supabase/functions/deno.json --import-map=scripts/local-edge/import_map.json --allow-net --allow-env --allow-read --env-file=.env --env-file=supabase/functions/.env scripts/local-edge/server.ts",
+    "tts:bench": "deno run --node-modules-dir=none --config supabase/functions/deno.json --allow-net --allow-env --allow-read --allow-write --env-file=supabase/functions/.env scripts/bench-practice-tts.ts",
     "prepare": "if [ -d .git ]; then husky; fi",
     "data:universities": "node scripts/check-university-data.mjs"
   },

@@ -19,6 +19,7 @@ const SILENT_WAV =
   'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
 
 let playbackAudio = null;
+let playbackContext = null;
 let unlocked = false;
 const unlockListeners = new Set();
 
@@ -49,6 +50,24 @@ export function getPlaybackAudio() {
   playbackAudio.playsInline = true;
   playbackAudio.setAttribute('playsinline', '');
   return playbackAudio;
+}
+
+/**
+ * Web Audio context for streamed speech (PCM played as it arrives). Like the
+ * element above, it only starts inside a gesture, so it is created and resumed
+ * in unlockSpeechPlayback and reused afterwards.
+ */
+export function getPlaybackAudioContext() {
+  if (playbackContext && playbackContext.state !== 'closed') return playbackContext;
+  if (typeof window === 'undefined') return null;
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) return null;
+  try {
+    playbackContext = new AudioContextCtor();
+  } catch {
+    playbackContext = null;
+  }
+  return playbackContext;
 }
 
 export function isSpeechPlaybackUnlocked() {
@@ -85,6 +104,9 @@ export function unlockSpeechPlayback() {
   }
 
   primeSpeechSynthesis();
+
+  const context = getPlaybackAudioContext();
+  if (context?.state === 'suspended') context.resume().catch(() => {});
 
   const waiting = Array.from(unlockListeners);
   unlockListeners.clear();
@@ -129,6 +151,7 @@ export function releasePlaybackAudio() {
 /** Test seam — resets module state between specs. */
 export function resetSpeechPlaybackForTests() {
   playbackAudio = null;
+  playbackContext = null;
   unlocked = false;
   unlockListeners.clear();
 }

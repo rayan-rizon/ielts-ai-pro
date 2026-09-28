@@ -179,6 +179,14 @@ const METRIC_LABEL = {
   failedRequests: 'Coach failures',
   featureEnabled: 'Release gate',
   resetsAt: 'Budget reset',
+  turns: 'Turns',
+  unheardTurns: 'Not heard',
+  coachFallbacks: 'Coach fallbacks',
+  coachFallbackRate: 'Coach fallback rate',
+  practiceVoiceLines: 'Coach voice lines',
+  practiceVoiceErrors: 'Voice fallbacks',
+  interruptedLines: 'Interrupted by learner',
+  p50FirstAudioMs: 'Voice start p50',
 };
 
 const ALARM_KEYS = new Set([
@@ -195,6 +203,7 @@ const ALARM_KEYS = new Set([
   'stuckEvaluations',
   'failedDispatches',
   'lastRunFailed',
+  'practiceVoiceErrors',
   // `upstreamFailures` is deliberately not an alarm. It counts provider calls
   // that failed *and then recovered* — the fallback chain doing its job. The
   // alarm belongs on `errors`, which counts failures the learner actually felt.
@@ -209,6 +218,7 @@ const PERCENT_METRICS = new Set([
   'dispatchFailureRate',
   'connectionUtilization',
   'budgetUtilization',
+  'coachFallbackRate',
 ]);
 const HOUR_METRICS = new Set(['oldestPendingHours', 'oldestOrphanHours', 'oldestActionableHours']);
 
@@ -219,6 +229,7 @@ const formatMinutes = (value) => {
 
 const METRIC_FORMATTERS = {
   p95LatencyMs: (value) => `${(Number(value) / 1000).toFixed(1)}s`,
+  p50FirstAudioMs: (value) => (Number(value) > 0 ? `${(Number(value) / 1000).toFixed(1)}s` : '—'),
   lastRunAgeHours: (value) => `${value}h ago`,
   oldestStuckMinutes: formatMinutes,
   estimatedCostUsd: (value) => `$${Number(value).toFixed(6)}`,
@@ -257,6 +268,7 @@ const HEADLINE_KEY = {
   ai_quota_reservations: 'stuck',
   personalized_ai_coach: 'budgetUtilization',
   speech_synthesis: 'errorRate',
+  speaking_sessions: 'errorRate',
   payments_stripe: 'eventFailureRate',
   payments_manual: 'pending',
   database: 'connectionUtilization',
@@ -453,6 +465,9 @@ const REPAIRS = {
   },
   pronunciation_assessment: {
     how: 'Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION in the Supabase edge function secrets, then redeploy processSpeakingSession. Until then speaking tests silently return without a pronunciation score.',
+  },
+  speaking_sessions: {
+    how: 'Open the speaking incidents first. “Speaking turn failed” is a system error the learner felt: check the processSpeakingSessionV2 logs for that reason. “Practice coach fell back” means the learner heard the scripted tip instead of the AI reply: check OPENROUTER_API_KEY and the practice-coach models in the AI registry. “Practice coach voice failed” means the standard examiner voice played: check GEMINI_API_KEY and the synthesizePracticeSpeech logs. “Not heard” counts silent or unclear answers and only matters when it is the majority. PRACTICE_COACH_ROLLOUT and PRACTICE_TTS_ROLLOUT (off, admin or all) switch the coach and its voice without a deploy.',
   },
   speech_synthesis: {
     how: 'Inspect the TTS incident message first. Authentication errors require the Google TTS key to be corrected; transient provider failures already fall back to browser speech and should be monitored for recurrence.',

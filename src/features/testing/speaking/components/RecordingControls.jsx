@@ -55,10 +55,19 @@ const RecordingControls = React.memo(function RecordingControls({
   onStopListening,
   onAutoSubmitPausedChange,
   onStartTest,
+  onInterruptSpeech,
 }) {
   const prefersReducedMotion = useReducedMotion();
+  // Practice mode: while the coach talks, the main button interrupts it and
+  // starts the answer (the same thing speaking over the coach does).
+  const canInterrupt =
+    Boolean(onInterruptSpeech) &&
+    !isProcessing &&
+    !isListening &&
+    (isSpeaking || isTTSLoading || isPlaybackActive);
   const isUnavailable =
-    isProcessing || isSpeaking || isTTSLoading || isPlaybackActive || timerExpiredRef?.current;
+    !canInterrupt &&
+    (isProcessing || isSpeaking || isTTSLoading || isPlaybackActive || timerExpiredRef?.current);
 
   return (
     <div className="flex w-full flex-col items-center gap-2">
@@ -90,6 +99,11 @@ const RecordingControls = React.memo(function RecordingControls({
           {!isListening && (
             <div className="flex min-h-5 items-center justify-center">
               <ExaminerStatus isProcessing={isProcessing} processingStatus={processingStatus} />
+              {canInterrupt && (
+                <p className={cn(MICRO, MUTED, 'tracking-[0.14em]')}>
+                  Start talking any time to interrupt
+                </p>
+              )}
               {!isProcessing && !isTTSLoading && !isSpeaking && !isPlaybackActive && (
                 <p className={cn(MICRO, MUTED, 'tracking-[0.14em]')}>
                   {handsFreeEnabled ? 'Microphone ready' : 'Ready for your answer'}
@@ -144,10 +158,22 @@ const RecordingControls = React.memo(function RecordingControls({
 
             <motion.button
               type="button"
-              onClick={isListening ? () => onStopListening('manual') : onStartListening}
+              onClick={
+                canInterrupt
+                  ? onInterruptSpeech
+                  : isListening
+                    ? () => onStopListening('manual')
+                    : onStartListening
+              }
               disabled={isUnavailable}
               whileTap={!isUnavailable && !prefersReducedMotion ? { scale: 0.97 } : undefined}
-              aria-label={isListening ? 'Finish and send answer' : 'Start recording answer'}
+              aria-label={
+                canInterrupt
+                  ? 'Interrupt the coach and answer now'
+                  : isListening
+                    ? 'Finish and send answer'
+                    : 'Start recording answer'
+              }
               className={`group relative flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-extrabold transition-[background-color,border-color,color,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 ${
                 isUnavailable
                   ? 'cursor-not-allowed border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 opacity-60 dark:border-white/[0.07] dark:bg-white/4 dark:text-slate-400'
@@ -158,6 +184,11 @@ const RecordingControls = React.memo(function RecordingControls({
             >
               {isProcessing ? (
                 <Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden="true" />
+              ) : canInterrupt ? (
+                <>
+                  <Mic className="h-4 w-4" aria-hidden="true" />
+                  Interrupt &amp; answer
+                </>
               ) : isListening ? (
                 <>
                   <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />

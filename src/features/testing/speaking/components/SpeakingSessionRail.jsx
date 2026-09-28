@@ -161,7 +161,13 @@ function SessionReadiness({ testStarted, isPart2Prep, currentPartNumber }) {
 
 // ─── Mobile compact progress strip ──────────────────────────────────────────
 
-function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, onHandsFreeChange }) {
+function MobileProgressStrip({
+  allParts,
+  currentPartNumber,
+  handsFreeEnabled,
+  onHandsFreeChange,
+  showHandsFreeToggle,
+}) {
   const partNumbers = Object.keys(allParts)
     .map(Number)
     .sort((a, b) => a - b);
@@ -223,36 +229,40 @@ function MobileProgressStrip({ allParts, currentPartNumber, handsFreeEnabled, on
         })}
       </ol>
 
-      {/* Divider */}
-      <span className="mx-1 h-6 w-px bg-[#e4e2f0] dark:bg-white/[0.07]" aria-hidden="true" />
+      {showHandsFreeToggle && (
+        <>
+          {/* Divider */}
+          <span className="mx-1 h-6 w-px bg-[#e4e2f0] dark:bg-white/[0.07]" aria-hidden="true" />
 
-      {/* Hands-free mini toggle with tooltip */}
-      <TooltipProvider delayDuration={200}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex shrink-0 cursor-default items-center gap-1.5">
-              <div className="hidden flex-col items-end gap-0.5 min-[520px]:flex">
-                <span className="text-[8px] font-extrabold leading-none text-slate-700 dark:text-slate-200">
-                  Hands-free answers
-                </span>
-                <span className="text-[8px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-300">
-                  {handsFreeEnabled ? 'Auto' : 'Manual'}
-                </span>
-              </div>
-              <AudioWaveform className="h-3.5 w-3.5 text-rose-500/70" aria-hidden="true" />
-              <Switch
-                checked={handsFreeEnabled}
-                onCheckedChange={onHandsFreeChange}
-                aria-label="Toggle hands-free answers"
-                className="h-6 w-10 origin-center"
-              />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="max-w-[180px] text-center">
-            <p>{handsFreeEnabled ? 'Hands-free: Auto' : 'Hands-free: Manual'}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+          {/* Hands-free mini toggle with tooltip */}
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex shrink-0 cursor-default items-center gap-1.5">
+                  <div className="hidden flex-col items-end gap-0.5 min-[520px]:flex">
+                    <span className="text-[8px] font-extrabold leading-none text-slate-700 dark:text-slate-200">
+                      Hands-free answers
+                    </span>
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-300">
+                      {handsFreeEnabled ? 'Auto' : 'Manual'}
+                    </span>
+                  </div>
+                  <AudioWaveform className="h-3.5 w-3.5 text-rose-500/70" aria-hidden="true" />
+                  <Switch
+                    checked={handsFreeEnabled}
+                    onCheckedChange={onHandsFreeChange}
+                    aria-label="Toggle hands-free answers"
+                    className="h-6 w-10 origin-center"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[180px] text-center">
+                <p>{handsFreeEnabled ? 'Hands-free: Auto' : 'Hands-free: Manual'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </>
+      )}
     </div>
   );
 }
@@ -282,6 +292,7 @@ export default function SpeakingSessionRail({
           currentPartNumber={currentPartNumber}
           handsFreeEnabled={handsFreeEnabled}
           onHandsFreeChange={onHandsFreeChange}
+          showHandsFreeToggle={speakingMode !== 'practice'}
         />
       </aside>
 
@@ -299,7 +310,7 @@ export default function SpeakingSessionRail({
             <p className={cn(MUTED, 'mt-1 text-[10px]')}>
               {speakingMode === 'exam'
                 ? 'Transcript and coaching stay hidden until your report.'
-                : 'Your transcript and one concise coaching note appear after each answer.'}
+                : 'Your coach replies out loud after each answer and helps you say it better. Answers are hands-free; use Pause for a break.'}
             </p>
           </section>
         )}
@@ -309,7 +320,9 @@ export default function SpeakingSessionRail({
           isPart2Prep={isPart2Prep}
           currentPartNumber={currentPartNumber}
         />
-        <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} />
+        {speakingMode !== 'practice' && (
+          <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} />
+        )}
       </aside>
     </>
   );

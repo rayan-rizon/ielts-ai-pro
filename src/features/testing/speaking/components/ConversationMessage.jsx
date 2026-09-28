@@ -1,18 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  AudioLines,
-  CheckCircle2,
-  CornerDownRight,
-  Pause,
-  Quote,
-  Radio,
-  Sparkles,
-} from 'lucide-react';
+import { AudioLines, CheckCircle2, Pause, Radio, Sparkles } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
-
-import { getPracticeCoachContent } from '../utils/practiceCoachContent';
 
 function cleanMessageText(text = '') {
   return String(text)
@@ -21,7 +11,7 @@ function cleanMessageText(text = '') {
 }
 
 function MessageAvatar({ entry, authUser }) {
-  if (entry.speaker === 'ai' || entry.speaker === 'coach') {
+  if (entry.speaker === 'ai') {
     return null;
   }
 
@@ -45,9 +35,6 @@ function MessageAvatar({ entry, authUser }) {
 }
 
 function getBubbleClass(entry) {
-  if (entry.speaker === 'coach') {
-    return 'rounded-2xl rounded-tl-sm border border-[#5a63df]/20 bg-[#5a63df]/6 text-left font-medium text-slate-800 dark:border-[#8c92ff]/20 dark:bg-[#5a63df]/10 dark:text-slate-100';
-  }
   // Examiner live / speaking — light rose blush
   if (entry.speaker !== 'user') {
     if (entry.isExaminerLive) {
@@ -71,8 +58,13 @@ function getBubbleClass(entry) {
   return 'rounded-xl rounded-tr-sm border border-rose-100/80 bg-linear-to-br/srgb from-rose-50 via-pink-50 to-red-50/80 text-left font-medium text-rose-950 dark:border-rose-500/20 dark:from-[#191416] dark:via-[#151315] dark:to-[#191416] dark:text-rose-100';
 }
 
-function LoadingText({ speaker }) {
-  const label = speaker === 'ai' ? 'Examiner responding' : 'Preparing transcript';
+function LoadingText({ speaker, isPractice }) {
+  const label =
+    speaker === 'ai'
+      ? isPractice
+        ? 'Coach responding'
+        : 'Examiner responding'
+      : 'Preparing transcript';
 
   return (
     <div className="flex items-center gap-3">
@@ -173,74 +165,7 @@ function FinalTranscript({ entry }) {
   );
 }
 
-function PracticeCoachCard({ entry }) {
-  const prefersReducedMotion = useReducedMotion();
-  const coach = getPracticeCoachContent(entry);
-
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.28, ease: [0.2, 0, 0, 1] }}
-      className="relative overflow-hidden px-3.5 py-3 sm:px-4"
-      aria-label={`Practice coach: ${coach.title}`}
-    >
-      <motion.span
-        aria-hidden="true"
-        animate={prefersReducedMotion ? { opacity: 0.65 } : { opacity: [0.45, 0.9, 0.45] }}
-        transition={{ duration: 2.4, ease: 'easeInOut', repeat: Infinity }}
-        className="absolute inset-y-0 left-0 w-px bg-[#5a63df] dark:bg-[#9aa0ff]"
-      />
-
-      <div className="flex items-start gap-2.5 pl-1">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/15 bg-[#5a63df]/8 text-[#5a63df] dark:border-[#9aa0ff]/20 dark:bg-[#5a63df]/15 dark:text-[#afb5ff]">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1 space-y-2">
-          <div>
-            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>
-              One focused adjustment
-            </p>
-            <h3 className="mt-0.5 text-sm font-bold leading-snug text-slate-900 dark:text-white">
-              {coach.title}
-            </h3>
-          </div>
-
-          {coach.evidenceQuote && (
-            <div className="flex gap-1.5 border-l border-[#5a63df]/20 pl-2.5 text-xs leading-snug text-slate-600 dark:text-slate-300">
-              <Quote
-                className="mt-0.5 h-3 w-3 shrink-0 text-[#5a63df]/70 dark:text-[#afb5ff]/70"
-                aria-hidden="true"
-              />
-              <p>“{coach.evidenceQuote}”</p>
-            </div>
-          )}
-
-          <p className="text-sm leading-snug text-slate-700 dark:text-slate-200">
-            {coach.explanation}
-          </p>
-
-          <div className="rounded-lg border border-[#5a63df]/14 bg-[#5a63df]/5 px-2.5 py-2 dark:border-[#9aa0ff]/18 dark:bg-[#5a63df]/10">
-            <p className={cn(MICRO, 'text-[#5a63df] dark:text-[#afb5ff]')}>Try this next</p>
-            <p className="mt-0.5 text-sm font-semibold leading-snug text-slate-800 dark:text-slate-100">
-              {coach.nextStep}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-            <CornerDownRight
-              className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#afb5ff]"
-              aria-hidden="true"
-            />
-            <span>{coach.pattern}</span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function ExaminerLiveTranscript({ entry }) {
+function ExaminerLiveTranscript({ entry, isPractice }) {
   const cleanText = useMemo(() => cleanMessageText(entry.text), [entry.text]);
   const words = useMemo(() => cleanText.split(/\s+/).filter(Boolean), [cleanText]);
   const isPreparing = entry.isExaminerPreparing && !entry.isExaminerSpeaking;
@@ -286,12 +211,20 @@ function ExaminerLiveTranscript({ entry }) {
           ) : (
             <Radio className="h-3.5 w-3.5 motion-safe:animate-pulse" aria-hidden="true" />
           )}
-          {entry.isExaminerSpeaking ? 'British examiner · live' : 'Preparing examiner audio'}
+          {entry.isExaminerSpeaking
+            ? isPractice
+              ? 'AI coach · live'
+              : 'British examiner · live'
+            : isPractice
+              ? 'Preparing coach audio'
+              : 'Preparing examiner audio'}
         </span>
         <LiveWaveform active={entry.isExaminerSpeaking} tone="rose" />
       </div>
       <p className="min-h-4 whitespace-pre-wrap text-[12.5px] leading-snug text-foreground/90 sm:text-[13px]">
-        {isPreparing ? 'Getting the examiner voice ready…' : visibleText}
+        {isPreparing
+          ? `Getting the ${isPractice ? 'coach' : 'examiner'} voice ready…`
+          : visibleText}
         {entry.isExaminerSpeaking && visibleWordCount < words.length && (
           <span
             aria-hidden="true"
@@ -303,20 +236,16 @@ function ExaminerLiveTranscript({ entry }) {
   );
 }
 
-function MessageBody({ entry }) {
+function MessageBody({ entry, isPractice }) {
   if (entry.speaker === 'ai' && entry.isExaminerLive) {
-    return <ExaminerLiveTranscript entry={entry} />;
-  }
-
-  if (entry.speaker === 'coach') {
-    return <PracticeCoachCard entry={entry} />;
+    return <ExaminerLiveTranscript entry={entry} isPractice={isPractice} />;
   }
 
   if (entry.isLoading) {
     if (entry.speaker === 'user') {
       if (entry.isTranscriptDraft || entry.isLive) return <DraftTranscript entry={entry} />;
     }
-    return <LoadingText speaker={entry.speaker} />;
+    return <LoadingText speaker={entry.speaker} isPractice={isPractice} />;
   }
 
   if (entry.speaker === 'user' && entry.isTranscript) {
@@ -326,11 +255,11 @@ function MessageBody({ entry }) {
   return <p className="whitespace-pre-wrap">{cleanMessageText(entry.text)}</p>;
 }
 
-const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
+const ConversationMessage = React.memo(({ entry, index: _index, authUser, speakingMode }) => {
+  const isPractice = speakingMode === 'practice';
   const isCompactTranscript = entry.speaker === 'user' && (entry.isLive || entry.isTranscriptDraft);
   const isExaminerTranscript = entry.speaker === 'ai' && entry.isExaminerLive;
-  const isCoachMessage = entry.speaker === 'coach';
-  const isExaminerMessage = entry.speaker === 'ai' || entry.speaker === 'coach';
+  const isExaminerMessage = entry.speaker === 'ai';
   const isUserMessage = entry.speaker === 'user';
   const prefersReducedMotion = useReducedMotion();
 
@@ -347,11 +276,9 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
         className={`min-w-0 space-y-1 ${
           isCompactTranscript || isExaminerTranscript
             ? 'w-full max-w-[92%] sm:max-w-[78%] lg:max-w-[72%]'
-            : isCoachMessage
-              ? 'max-w-[92%] sm:max-w-[78%] lg:max-w-[68%]'
-              : isUserMessage
-                ? 'max-w-[78%] sm:max-w-[68%]'
-                : 'max-w-[88%] sm:max-w-[80%]'
+            : isUserMessage
+              ? 'max-w-[78%] sm:max-w-[68%]'
+              : 'max-w-[88%] sm:max-w-[80%]'
         } ${isUserMessage ? 'text-right' : ''}`}
       >
         {/* Label row */}
@@ -360,10 +287,10 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
         >
           <span className={cn(MICRO, MUTED, 'truncate sm:text-[10px]')}>
             {entry.speaker === 'ai'
-              ? 'Examiner'
-              : entry.speaker === 'coach'
-                ? 'Practice coach'
-                : authUser?.full_name || 'Candidate'}
+              ? isPractice
+                ? 'AI coach'
+                : 'Examiner'
+              : authUser?.full_name || 'Candidate'}
           </span>
           {entry.timestamp && (
             <span className="shrink-0 font-mono text-[9px] text-slate-400/70 dark:text-slate-500/50 sm:text-[10px]">
@@ -383,14 +310,12 @@ const ConversationMessage = React.memo(({ entry, index: _index, authUser }) => {
           className={`overflow-hidden text-left tracking-normal ${
             isCompactTranscript || isExaminerTranscript
               ? 'px-3 py-2'
-              : isCoachMessage
-                ? 'p-0'
-                : isExaminerMessage
-                  ? 'px-4 py-2 text-[13px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-sm'
-                  : 'px-4 py-2 text-[13.5px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-[14.5px]'
+              : isExaminerMessage
+                ? 'px-4 py-2 text-[13px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-sm'
+                : 'px-4 py-2 text-[13.5px] leading-snug sm:px-4.5 sm:py-2.5 sm:text-[14.5px]'
           } ${getBubbleClass(entry)}`}
         >
-          <MessageBody entry={entry} />
+          <MessageBody entry={entry} isPractice={isPractice} />
         </motion.div>
       </div>
     </motion.div>

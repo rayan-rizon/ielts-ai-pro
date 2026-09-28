@@ -21,6 +21,7 @@ import useSpeakingTestState from '../hooks/useSpeakingTestState';
 import useSpeakingTimers from '../hooks/useSpeakingTimers';
 import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
+import usePracticeBargeIn from '../hooks/usePracticeBargeIn';
 import { shouldAutomaticallyFinalizeSpeaking } from '../utils/autoFinalEvaluation';
 import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
 import { createSpeakingPartTransitionGuard } from '../utils/speakingPartTransitionGuard';
@@ -75,6 +76,7 @@ export default function SpeakingTest() {
   const {
     speakText,
     cancelCurrentAudio,
+    interruptCurrentAudio,
     isSpeaking,
     isTTSLoading,
     activeSpeechText,
@@ -380,7 +382,6 @@ export default function SpeakingTest() {
     setProcessingStatus,
     setShowUpgradeDialog,
     setSpeakingV2State,
-    speakingMode,
     speakingV2State,
     speakAiMessageFromLoadingState,
     speakText,
@@ -390,10 +391,15 @@ export default function SpeakingTest() {
     useSpeakingV2,
   });
 
+  // Practice mode is always hands-free: the coach listens after it speaks and
+  // sends after a natural pause. The learner can still pause auto-sending.
+  const isHandsFree = handsFreeEnabled || speakingMode === 'practice';
+  handsFreeEnabledRef.current = isHandsFree;
+
   const recorder = useAudioRecorder({
     processRecording,
     partNumber: currentPartNumber,
-    handsFreeEnabled,
+    handsFreeEnabled: isHandsFree,
   });
   const {
     cancelListening,
@@ -410,7 +416,7 @@ export default function SpeakingTest() {
   useEffect(() => {
     const canStartAutomatically = canAutoStartSpeakingAnswer({
       requested: autoStartRequestedRef.current,
-      handsFreeEnabled,
+      handsFreeEnabled: isHandsFree,
       testStarted,
       isProcessing,
       isSpeaking,
@@ -429,7 +435,7 @@ export default function SpeakingTest() {
   }, [
     autoStartRequestVersion,
     isListening,
-    handsFreeEnabled,
+    isHandsFree,
     isPart2Intro,
     isPart2Prep,
     isPartComplete,
@@ -448,6 +454,27 @@ export default function SpeakingTest() {
       cancelCurrentAudio();
     }
   }, [cancelCurrentAudio, cancelListening, isTestComplete]);
+
+  // Practice barge-in: when the learner starts talking over the coach, the
+  // coach stops mid-sentence and the answer recorder takes over the mic.
+  const handleInterruptSpeech = useCallback(() => {
+    interruptCurrentAudio();
+    requestAutoStart();
+  }, [interruptCurrentAudio, requestAutoStart]);
+  const canInterruptSpeech =
+    speakingMode === 'practice' &&
+    testStarted &&
+    !isProcessing &&
+    !isListening &&
+    !isPartComplete &&
+    !isPart2Intro &&
+    !isPart2Prep &&
+    !isTestComplete;
+  usePracticeBargeIn({
+    enabled: canInterruptSpeech,
+    isPlaybackActive,
+    onBargeIn: handleInterruptSpeech,
+  });
 
   const handleHandsFreeChange = useCallback(
     (enabled) => {
@@ -754,7 +781,8 @@ export default function SpeakingTest() {
           isPlaybackActive,
           speechProgress,
           processingStatus,
-          handsFreeEnabled,
+          handsFreeEnabled: isHandsFree,
+          onInterruptSpeech: canInterruptSpeech ? handleInterruptSpeech : undefined,
           timeExpired: testStarted && timeLeft === 0,
           timerExpiredRef,
           handleStartTest,
@@ -763,7 +791,7 @@ export default function SpeakingTest() {
           speakingV2Available,
         },
         isTestComplete,
-        handsFreeEnabled,
+        handsFreeEnabled: isHandsFree,
         setHandsFreeEnabled: handleHandsFreeChange,
         setShowExitDialog,
         showExitDialog,

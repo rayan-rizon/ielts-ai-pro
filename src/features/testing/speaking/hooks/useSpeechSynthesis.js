@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 import {
   getPlaybackAudio,
+  getPlaybackAudioContext,
   isSpeechPlaybackUnlocked,
   onSpeechPlaybackUnlocked,
   releasePlaybackAudio,
   unlockSpeechPlayback,
 } from '../utils/speechPlayback';
 import { normalizeSpeakingTtsText, requestSpeakingTts } from '../utils/speakingTtsPrefetch';
+import { getActivePcmPlayer, playPcmStream } from '../utils/pcmStreamPlayer';
 
 /**
  * useSpeechSynthesis
@@ -161,7 +163,7 @@ function getAudioProgressRatio(audio) {
 function hasValidTtsAudio(data, error) {
   if (error) return false;
   if (!data?.success) return false;
-  return Boolean(data?.audioUrl);
+  return Boolean(data?.audioUrl || data?.stream);
 }
 
 function shouldFallbackAfterError(err, googleTTSSucceeded) {
@@ -189,6 +191,9 @@ function cancelPlaybackFrame(playbackFrameRef) {
 
 function stopAudioSources(currentAudioRef, stopProgressTracking) {
   stopProgressTracking();
+  // A streamed practice reply is silenced the same way; its promise is left
+  // pending like the element's, so a newer turn decides what happens next.
+  getActivePcmPlayer()?.stop();
   if (currentAudioRef.current) {
     releasePlaybackAudio();
     currentAudioRef.current = null;
@@ -299,7 +304,9 @@ async function playGoogleTtsAudio({
 
 function evaluateTtsResponse(data, error) {
   if (hasValidTtsAudio(data, error)) {
-    return { status: 'success', audioUrl: data.audioUrl };
+    return data.stream
+      ? { status: 'stream', stream: data.stream, sampleRate: data.sampleRate }
+      : { status: 'success', audioUrl: data.audioUrl };
   }
   if (data?.fallback) {
     console.info('[TTS] Edge function signalled fallback:', data?.error);
@@ -334,6 +341,32 @@ async function requestAndPlayGoogleTts({
   }
 
   const evaluated = evaluateTtsResponse(data, error);
+  if (evaluated.status === 'stream') {
+    const context = getPlaybackAudioContext();
+    if (!context) {
+      evaluated.stream.cancel?.().catch?.(() => {});
+      return { played: false, shouldUseFallback: true };
+    }
+    const player = playPcmStream({
+      context,
+      stream: evaluated.stream,
+      sampleRate: evaluated.sampleRate,
+      text: cleanText,
+      isMuted: isMutedRef.current,
+      onPlaybackActive: () => {
+        if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) onPlaybackActive();
+      },
+      onPlayStart: options?.onPlayStart,
+      onProgress: (ratio) => {
+        if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) updateProgress(ratio);
+      },
+      onPlaybackEnded: () => {
+        if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) onPlaybackEnded();
+      },
+    });
+    await player.done;
+    return { played: true, shouldUseFallback: false };
+  }
   if (evaluated.status === 'success') {
     // Track the source while it is playing, not only after onended resolves.
     currentAudioRef.current = getPlaybackAudio();
@@ -626,6 +659,24 @@ export default function useSpeechSynthesis() {
     resetPlaybackState();
   }, [stopActiveAudioSources, resetPlaybackState]);
 
+  /**
+   * Stop speaking because the learner started talking. Unlike cancel, the
+   * pending speakText() settles as if playback had finished, so whatever the
+   * caller chained after the speech (start recording, close the part) still
+   * runs. The turn id moves on first, so no fallback voice resumes.
+   */
+  const interruptCurrentAudio = useCallback(() => {
+    const streamPlayer = getActivePcmPlayer();
+    const finishElementPlayback = getPlaybackAudio()?.onended;
+    requestIdRef.current += 1;
+    // A stream must be finished before the generic stop, which would leave
+    // its promise pending; the element's handler is captured before release.
+    streamPlayer?.finish();
+    stopActiveAudioSources();
+    resetPlaybackState();
+    if (!streamPlayer && typeof finishElementPlayback === 'function') finishElementPlayback();
+  }, [stopActiveAudioSources, resetPlaybackState]);
+
   const speakText = useCallback(
     async (text, options = { cancel: true }) => {
       const myRequestId = ++requestIdRef.current;
@@ -666,6 +717,7 @@ export default function useSpeechSynthesis() {
   return {
     speakText,
     cancelCurrentAudio,
+    interruptCurrentAudio,
     unlockSpeechPlayback,
     isSpeaking: state.isSpeaking,
     isTTSLoading: state.isTTSLoading,

@@ -15,7 +15,9 @@ describe('Speaking V2 transcript visibility', () => {
     ]);
   });
 
-  it('shows the transcript and coaching in Practice mode', () => {
-    expect(getVisibleSpeakingConversation(conversation, 'practice')).toEqual(conversation);
+  it('shows the transcript in Practice mode; coaching is spoken, not carded', () => {
+    expect(getVisibleSpeakingConversation(conversation, 'practice')).toEqual(
+      conversation.slice(0, 2)
+    );
   });
 });

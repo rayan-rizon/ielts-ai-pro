@@ -27,6 +27,8 @@ export type ModelEntry = {
     | 'cloudflare'
     | 'azure';
   pricing?: TokenPricing;
+  /** USD per 1M input characters, for speech models billed per character. */
+  characterPricingPerMillion?: number;
   /** Pricing note for services that are not billed per token. */
   pricingNote?: string;
   /** Where the numbers came from, so a stale rate is obvious on review. */
@@ -131,11 +133,41 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingNote:
       'Billed per audio hour by Azure Speech. Supplies the acoustic evidence, not a band.',
   },
-  'google-tts-studio': {
-    id: 'google-tts-studio',
+  'deepseek/deepseek-v4.1-flash': {
+    id: 'deepseek/deepseek-v4.1-flash',
+    vendor: 'DeepSeek',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.035, cachedInputPerMillion: 0.001, outputPerMillion: 0.29 },
+    pricingSource:
+      'OpenRouter catalog base price, verified 2026-09-28. The latency-sorted endpoint billed ~$0.00025 per coach reply, about 2x this rate; billed usage.cost wins when returned.',
+  },
+  'google-tts-neural2': {
+    id: 'google-tts-neural2',
     vendor: 'Google Cloud Text-to-Speech',
     access: 'google-direct',
-    pricingNote: 'Billed per character (Studio tier). Results are cached by SHA-1 of voice+text.',
+    characterPricingPerMillion: 16,
+    pricingNote:
+      'Billed $16 per 1M characters (Neural2 tier). Results are cached by SHA-1 of voice+text.',
+    pricingSource: 'Google Cloud TTS Neural2 list price; matches synthesizeSpeech cost constant.',
+  },
+  // Practice-mode examiner voice candidates, all reached through OpenRouter's
+  // /api/v1/audio/speech endpoint. Gemini TTS is billed per token (text in,
+  // audio out at ~25 tokens per second); the others are billed per character.
+  'google/gemini-3.8-flash-lite-tts': {
+    id: 'google/gemini-3.8-flash-lite-tts',
+    vendor: 'Google',
+    access: 'openrouter',
+    pricing: { inputPerMillion: 0.5, cachedInputPerMillion: 0.5, outputPerMillion: 6 },
+    pricingSource:
+      'OpenRouter catalog price (Google AI Studio), verified 2026-09-28. Google lists this as an introductory rate through 2026-12-31; it doubles to $1/$12 after. Output is audio tokens.',
+  },
+  'gemini-3.8-flash-lite-tts': {
+    id: 'gemini-3.8-flash-lite-tts',
+    vendor: 'Google',
+    access: 'google-direct',
+    pricing: { inputPerMillion: 0.5, cachedInputPerMillion: 0.5, outputPerMillion: 6 },
+    pricingSource:
+      'Google AI list price, verified 2026-09-28. Introductory rate through 2026-12-31, then $1/$12. Output is audio tokens (~25 per second of speech).',
   },
 };
 
@@ -564,11 +596,57 @@ export const AI_ROUTES: AiRoute[] = [
     file: 'supabase/functions/synthesizeSpeech/index.ts',
     steps: [
       {
-        model: 'google-tts-studio',
+        model: 'google-tts-neural2',
         role: 'primary',
-        when: 'GOOGLE_TTS_API_KEY, falling back to GEMINI_API_KEY for the same Google Cloud project.',
+        when: 'GOOGLE_TTS_API_KEY present. Default voice en-GB-Neural2-C.',
       },
     ],
+  },
+  {
+    id: 'practice-text-to-speech',
+    surface: 'Speaking practice mode: examiner and coach voice',
+    file: 'supabase/functions/synthesizePracticeSpeech/index.ts',
+    timeoutMs: 20000,
+    steps: [
+      {
+        model: 'gemini-3.8-flash-lite-tts',
+        role: 'primary',
+        when: 'PRACTICE_TTS_ROLLOUT allows the learner (off by default) and GEMINI_API_KEY is set. Streamed from Google, voice Sulafat with a British coach style. Measured 2026-09-28: first audio ~1.2s, a sentence done in ~1.9s.',
+      },
+      {
+        model: 'google/gemini-3.8-flash-lite-tts',
+        role: 'fallback',
+        when: 'Same model through OpenRouter when GEMINI_API_KEY is missing or the browser did not ask for a stream. Whole clip, ~4-5s.',
+      },
+      {
+        model: 'google-tts-neural2',
+        role: 'fallback',
+        when: 'Rollout excludes the learner, R2 or both keys are missing, or the provider refuses. The browser then calls synthesizeSpeech.',
+      },
+    ],
+    notes:
+      'Audio is cached in Cloudflare R2 under tts-cache/practice/v1/<sha256>.wav, keyed by model, voice, style and text, and stored after the stream ends; add a Cloudflare cache rule for /tts-cache/* so the CDN caches .wav. Exam mode never calls this route.',
+  },
+  {
+    id: 'practice-coach',
+    surface: 'Speaking practice mode: spoken coach reply after each answer',
+    file: 'supabase/functions/_shared/practiceCoach.ts',
+    maxOutputTokens: 400,
+    timeoutMs: 7000,
+    steps: [
+      {
+        model: 'deepseek/deepseek-v4.1-flash',
+        role: 'primary',
+        when: 'PRACTICE_COACH_ROLLOUT allows the learner and the turn is a real answer (advances, completes the part, or missed the question and is asked again). Runs in parallel with the turn decision, up to 4s. Measured median ~1.2s, ~$0.00025 a reply (measured with the earlier notes schema; the spoken-only reply is smaller).',
+      },
+      {
+        model: 'openai/gpt-6-luna',
+        role: 'fallback',
+        when: 'V4.1 Flash fails, times out or returns an invalid reply; gets the remaining 3s or more. No temperature (Luna rejects it). Measured median ~2.9s, ~$0.00012 a reply.',
+      },
+    ],
+    notes:
+      'The reply is spoken only; there is no written card. If the coach is off or every model fails, the scripted coaching line for the turn decision is spoken instead. The next question always comes from the question bank, never from the model.',
   },
 ];
 
@@ -594,6 +672,13 @@ export function estimateTokenCostUsd(model: string, tokens: TokenCounts): number
       1_000_000
     ).toFixed(6)
   );
+}
+
+/** USD cost of synthesizing `characters` with a per-character speech model. Unknown models cost 0. */
+export function estimateCharacterCostUsd(model: string, characters: number): number {
+  const perMillion = MODELS[model]?.characterPricingPerMillion;
+  if (!perMillion) return 0;
+  return Number(((Math.max(0, characters) * perMillion) / 1_000_000).toFixed(6));
 }
 
 /** Every route a given model appears in, with its role. Used by `npm run ai:models`. */

@@ -22,7 +22,9 @@ export function formatSpeakingBudget(state) {
 }
 
 export function getVisibleSpeakingConversation(conversation, speakingMode) {
+  // Practice coaching is spoken inside the examiner turn; 'coach' cards saved
+  // by older sessions are no longer shown.
   return speakingMode === 'exam'
     ? conversation.filter((entry) => entry.speaker === 'ai')
-    : conversation;
+    : conversation.filter((entry) => entry.speaker !== 'coach');
 }

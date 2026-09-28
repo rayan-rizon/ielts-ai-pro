@@ -1,4 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { setSpeakingTtsProfile } from '../utils/speakingTtsPrefetch';
 
 export default function useSpeakingTestState() {
   const [session, setSession] = useState(null);
@@ -10,6 +12,14 @@ export default function useSpeakingTestState() {
   const [testTitle, setTestTitle] = useState('');
   const [speakingMode, setSpeakingMode] = useState('exam');
   const [speakingV2State, setSpeakingV2State] = useState(null);
+
+  // The examiner voice follows the mode: practice may use the practice voice,
+  // exam always uses the standard one. Reset on unmount so no other page
+  // inherits the practice profile.
+  useEffect(() => {
+    setSpeakingTtsProfile(speakingMode);
+  }, [speakingMode]);
+  useEffect(() => () => setSpeakingTtsProfile('exam'), []);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');

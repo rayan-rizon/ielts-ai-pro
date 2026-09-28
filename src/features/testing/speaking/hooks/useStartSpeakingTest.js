@@ -68,6 +68,7 @@ export default function useStartSpeakingTest({
           setConversation,
           setCurrentQuestionIndex,
           setTestStarted,
+          speakingMode,
           speakText,
         });
       }
@@ -115,7 +116,7 @@ async function createSpeakingSession({
     const resolvedPassageId = pendingGreetingRef.current?.testId || testId;
     const partNumber = pendingGreetingRef.current?.partNumber || 1;
     const initialConversation = buildInitialSpeakingConversation({
-      greeting: pendingGreetingRef.current?.greeting,
+      greeting: resolveGreeting(pendingGreetingRef.current, speakingMode),
       currentPart: allParts[partNumber],
     });
     const newSession = await TestSession.create({
@@ -140,6 +141,14 @@ async function createSpeakingSession({
   }
 }
 
+/** Practice mode opens as a coach, not as an examiner. */
+function resolveGreeting(pending, speakingMode) {
+  if (!pending) return undefined;
+  return speakingMode === 'practice' && pending.practiceGreeting
+    ? pending.practiceGreeting
+    : pending.greeting;
+}
+
 export async function playInitialGreeting({
   allParts,
   firstQuestionInsertedRef,
@@ -148,9 +157,11 @@ export async function playInitialGreeting({
   setConversation,
   setCurrentQuestionIndex,
   setTestStarted,
+  speakingMode,
   speakText,
 }) {
-  const { greeting, partNumber } = pendingGreetingRef.current;
+  const { partNumber } = pendingGreetingRef.current;
+  const greeting = resolveGreeting(pendingGreetingRef.current, speakingMode);
   const initialConversation = buildInitialSpeakingConversation({
     greeting,
     currentPart: allParts[partNumber],

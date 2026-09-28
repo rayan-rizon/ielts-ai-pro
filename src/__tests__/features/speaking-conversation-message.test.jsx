@@ -84,29 +84,26 @@ describe('speaking conversation message', () => {
     expect(screen.queryByText('Answer captured')).not.toBeInTheDocument();
   });
 
-  it('turns the practice coach hint into an actionable card with the captured evidence', () => {
-    render(
+  it('labels the speaker as the AI coach in practice mode', () => {
+    const { rerender } = render(
       <ConversationMessage
         index={0}
         authUser={{ full_name: 'Candidate' }}
-        entry={{
-          speaker: 'coach',
-          code: 'develop_detail',
-          partNumber: 2,
-          evidenceQuote: 'The trip was memorable.',
-          text: 'Develop one idea with a concrete detail.',
-        }}
+        speakingMode="practice"
+        entry={{ speaker: 'ai', text: 'Okay, next question.' }}
       />
     );
+    expect(screen.getByText('AI coach')).toBeInTheDocument();
 
-    expect(screen.getByText('Turn the idea into a scene')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'For your long turn: Your main point is clear. Add one memorable detail about the place, activity, person, or feeling.'
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText('“The trip was memorable.”')).toBeInTheDocument();
-    expect(screen.getByText(/One moment I clearly remember is/)).toBeInTheDocument();
+    rerender(
+      <ConversationMessage
+        index={0}
+        authUser={{ full_name: 'Candidate' }}
+        speakingMode="exam"
+        entry={{ speaker: 'ai', text: 'Okay, next question.' }}
+      />
+    );
+    expect(screen.getByText('Examiner')).toBeInTheDocument();
   });
 
   it('marks a final practice transcript as captured after recognition settles', () => {

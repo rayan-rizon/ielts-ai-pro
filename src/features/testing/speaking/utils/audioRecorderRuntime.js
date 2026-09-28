@@ -48,6 +48,11 @@ function getCaptureAudioContext() {
   return sharedCaptureContext;
 }
 
+/** The same gesture-unlocked context, for other microphone analysers (barge-in). */
+export function getSharedCaptureAudioContext() {
+  return getCaptureAudioContext();
+}
+
 /** Call synchronously from a user gesture so hands-free captures can analyse. */
 export function unlockCaptureAudioContext() {
   const audioContext = getCaptureAudioContext();

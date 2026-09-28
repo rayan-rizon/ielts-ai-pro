@@ -110,6 +110,7 @@ export default function SpeakingConversationPanel({
   autoFinishCountdown,
   autoSubmitPaused,
   handsFreeEnabled,
+  onInterruptSpeech,
   timeExpired,
   timerExpiredRef,
   startListening,
@@ -185,7 +186,9 @@ export default function SpeakingConversationPanel({
           : isProcessing
             ? 'Processing response'
             : isSpeaking || isTTSLoading || isPlaybackActive
-              ? 'Examiner speaking'
+              ? speakingMode === 'practice'
+                ? 'Coach speaking'
+                : 'Examiner speaking'
               : 'Your turn';
 
   const roomStatusIsActive =
@@ -215,7 +218,9 @@ export default function SpeakingConversationPanel({
               <p className={cn(MICRO, 'hidden text-rose-600 dark:text-rose-400 sm:block')}>
                 Conversation room
               </p>
-              <p className={cn(TITLE, 'truncate text-xs sm:text-[13px]')}>AI examiner</p>
+              <p className={cn(TITLE, 'truncate text-xs sm:text-[13px]')}>
+                {speakingMode === 'practice' ? 'AI coach' : 'AI examiner'}
+              </p>
             </div>
           </div>
 
@@ -242,7 +247,7 @@ export default function SpeakingConversationPanel({
           ref={conversationContainerRef}
           className="custom-scrollbar flex-1 space-y-2.5 overflow-y-auto p-2.5 sm:space-y-3 sm:p-3.5 md:p-4"
           aria-live="polite"
-          aria-label="Conversation with the AI examiner"
+          aria-label={`Conversation with the ${speakingMode === 'practice' ? 'AI coach' : 'AI examiner'}`}
         >
           {!testStarted ? (
             <InitialWelcomeScreen
@@ -270,6 +275,7 @@ export default function SpeakingConversationPanel({
                   }
                   index={index}
                   authUser={authUser}
+                  speakingMode={speakingMode}
                 />
               ))}
               {showStreamingCandidate && (
@@ -286,6 +292,7 @@ export default function SpeakingConversationPanel({
                   }}
                   index={visibleConversation.length}
                   authUser={authUser}
+                  speakingMode={speakingMode}
                 />
               )}
               {speakingMode === 'exam' && isListening && <ExamListeningIndicator />}
@@ -343,6 +350,7 @@ export default function SpeakingConversationPanel({
                   onStopListening={stopListening}
                   onAutoSubmitPausedChange={setAutoSubmitPaused}
                   onStartTest={handleStartTest}
+                  onInterruptSpeech={onInterruptSpeech}
                 />
               </div>
             )}
