@@ -680,9 +680,9 @@ export default function SpeakingTest() {
   });
 
   const handleBeginTest = useCallback(() => {
-    if (previewVoice) stopVoicePreview();
+    stopVoicePreview();
     handleStartTest();
-  }, [handleStartTest, previewVoice, stopVoicePreview]);
+  }, [handleStartTest, stopVoicePreview]);
 
   const currentPart = allParts[currentPartNumber];
 
