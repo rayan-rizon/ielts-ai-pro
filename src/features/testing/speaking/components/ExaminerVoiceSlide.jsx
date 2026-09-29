@@ -2,8 +2,6 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Play, Square } from 'lucide-react';
 
-import { cn } from '@/lib/cn';
-
 import { EXAMINER_VOICE_PREVIEW } from '../utils/speakingAccents';
 
 export default function ExaminerVoiceSlide({
@@ -16,31 +14,17 @@ export default function ExaminerVoiceSlide({
   visible,
   voice,
 }) {
-  const handleSelect = () => {
-    if (center) onVoicePreview?.(voice.id, EXAMINER_VOICE_PREVIEW);
-    else onExaminerVoiceChange?.(voice.id);
-  };
-  const opacity = getSlideOpacity({ center, visible });
-
   return (
     <motion.div
       className="examiner-voice-slide group"
-      initial={false}
-      animate={{
-        x: `${offset * 112}%`,
-        scale: center ? 1 : 0.72,
-        opacity,
-      }}
-      transition={reducedMotion ? { duration: 0 } : { duration: 0.36, ease: [0.2, 0, 0, 1] }}
-      style={{ zIndex: center ? 2 : 1, pointerEvents: visible ? 'auto' : 'none' }}
-      aria-hidden={!visible}
+      {...getMotionProps({ center, offset, reducedMotion, visible })}
     >
       <button
         type="button"
         tabIndex={visible ? 0 : -1}
-        onClick={handleSelect}
-        aria-label={voiceActionLabel(voice, center, isPreviewing)}
-        className={voiceButtonClass(center, isPreviewing)}
+        onClick={() => selectVoice({ center, onExaminerVoiceChange, onVoicePreview, voice })}
+        aria-label={voiceActionLabel({ center, isPreviewing, voice })}
+        className={voiceButtonClass({ center, isPreviewing })}
       >
         <span className="examiner-voice-orb" data-voice={voice.id} aria-hidden="true">
           {center && <OrbPlaybackControl isPreviewing={isPreviewing} reducedMotion={reducedMotion} />}
@@ -51,22 +35,43 @@ export default function ExaminerVoiceSlide({
   );
 }
 
-function getSlideOpacity({ center, visible }) {
+function getMotionProps({ center, offset, reducedMotion, visible }) {
+  return {
+    initial: false,
+    animate: {
+      x: `${offset * 112}%`,
+      scale: center ? 1 : 0.72,
+      opacity: slideOpacity(center, visible),
+    },
+    transition: reducedMotion ? { duration: 0 } : { duration: 0.36, ease: [0.2, 0, 0, 1] },
+    style: { zIndex: center ? 2 : 1, pointerEvents: visible ? 'auto' : 'none' },
+    'aria-hidden': !visible,
+  };
+}
+
+function slideOpacity(center, visible) {
   if (!visible) return 0;
   return center ? 1 : 0.68;
 }
 
-function voiceActionLabel(voice, center, isPreviewing) {
+function voiceActionLabel({ center, isPreviewing, voice }) {
   if (center) return `${isPreviewing ? 'Stop' : 'Preview'} ${voice.name} voice`;
   return `Select ${voice.name}, ${voice.accent} ${voice.gender.toLowerCase()} examiner voice`;
 }
 
-function voiceButtonClass(center, isPreviewing) {
-  return cn(
+function voiceButtonClass({ center, isPreviewing }) {
+  return [
     'examiner-voice-orb-button group',
     center && 'examiner-voice-orb-button--selected',
-    isPreviewing && 'examiner-voice-orb-button--playing'
-  );
+    isPreviewing && 'examiner-voice-orb-button--playing',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function selectVoice({ center, onExaminerVoiceChange, onVoicePreview, voice }) {
+  if (center) return onVoicePreview?.(voice.id, EXAMINER_VOICE_PREVIEW);
+  return onExaminerVoiceChange?.(voice.id);
 }
 
 function OrbPlaybackControl({ isPreviewing, reducedMotion }) {

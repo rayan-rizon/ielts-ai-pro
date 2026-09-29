@@ -155,13 +155,7 @@ export default function SpeakingTest() {
     transitionCardRef,
   } = useSpeakingTestState();
 
-  const {
-    handleExaminerVoiceChange,
-    handleSpeakingModeChange,
-    handleVoicePreview,
-    previewVoice,
-    stopVoicePreview,
-  } = useExaminerVoiceSelection({
+  const examinerVoiceSelection = useExaminerVoiceSelection({
     cancelCurrentAudio,
     isMuted,
     setExaminerVoice,
@@ -667,6 +661,7 @@ export default function SpeakingTest() {
     isStartingTestRef,
     pendingGreetingRef,
     session,
+    stopVoicePreview: examinerVoiceSelection.stopVoicePreview,
     setConversation,
     setCurrentQuestionIndex,
     setSession,
@@ -678,11 +673,6 @@ export default function SpeakingTest() {
     testId,
     useSpeakingV2,
   });
-
-  const handleBeginTest = useCallback(() => {
-    stopVoicePreview();
-    handleStartTest();
-  }, [handleStartTest, stopVoicePreview]);
 
   const currentPart = allParts[currentPartNumber];
 
@@ -809,13 +799,13 @@ export default function SpeakingTest() {
           onInterruptSpeech: canInterruptSpeech ? handleInterruptSpeech : undefined,
           timeExpired: testStarted && timeLeft === 0,
           timerExpiredRef,
-          handleStartTest: handleBeginTest,
+          handleStartTest,
           speakingMode,
-          setSpeakingMode: handleSpeakingModeChange,
+          setSpeakingMode: examinerVoiceSelection.handleSpeakingModeChange,
           examinerVoice,
-          onExaminerVoiceChange: handleExaminerVoiceChange,
-          onVoicePreview: handleVoicePreview,
-          previewVoice,
+          onExaminerVoiceChange: examinerVoiceSelection.handleExaminerVoiceChange,
+          onVoicePreview: examinerVoiceSelection.handleVoicePreview,
+          previewVoice: examinerVoiceSelection.previewVoice,
           speakingV2Available,
         },
         isTestComplete,

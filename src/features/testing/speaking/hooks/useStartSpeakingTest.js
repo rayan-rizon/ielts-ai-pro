@@ -22,6 +22,7 @@ export default function useStartSpeakingTest({
   pendingGreetingRef,
   requestAutoStart,
   session,
+  stopVoicePreview,
   setConversation,
   setCurrentQuestionIndex,
   setSession,
@@ -33,6 +34,7 @@ export default function useStartSpeakingTest({
   useSpeakingV2 = false,
 }) {
   return useCallback(async () => {
+    stopVoicePreview?.();
     if (isStartingTestRef.current) return;
     isStartingTestRef.current = true;
     try {
@@ -113,6 +115,7 @@ export default function useStartSpeakingTest({
     pendingGreetingRef,
     requestAutoStart,
     session,
+    stopVoicePreview,
     setConversation,
     setCurrentQuestionIndex,
     setSession,
