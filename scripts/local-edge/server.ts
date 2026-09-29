@@ -30,7 +30,7 @@ const names = (
   .map((name: string) => name.trim())
   .filter(Boolean);
 
-const missing = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'OPENROUTER_API_KEY'].filter(
+const missing = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'].filter(
   (name) => !env.get(name)
 );
 if (missing.length) {

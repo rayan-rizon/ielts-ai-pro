@@ -10,11 +10,12 @@ import {
   getRateLimitIdentifier,
   quotaExceededResponse,
   reserveDatabaseQuota,
+  RATE_LIMITS,
 } from '../_shared/security.ts';
 import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
-  isPracticeTtsCacheable,
+  isSpeakingTtsCacheable,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
   normalizePracticeTtsText,
@@ -38,12 +39,11 @@ declare const Deno: any;
 declare const EdgeRuntime: any;
 
 // ============================================================
-// Practice-mode examiner voice through OpenRouter speech models.
+// Speaking examiner voice through Gemini TTS, shared by exam and practice.
 // ============================================================
-// Off unless PRACTICE_TTS_ROLLOUT is "admin" or "all". Whenever this route
-// cannot serve a learner it answers { fallback: true, useLegacy: true } and the
-// browser calls synthesizeSpeech (Google Neural2) instead, so a failure here
-// never silences the examiner. Exam mode never calls this function.
+// Practice is gated by PRACTICE_TTS_ROLLOUT; exam is available to authenticated
+// learners. Whenever this route cannot serve a learner, the browser calls
+// synthesizeSpeech (Google Neural2) instead.
 //
 // Audio is content-addressed in Cloudflare R2 (MP3, or WAV for Gemini's PCM).
 // A cache hit returns the public CDN URL. A miss with the Gemini voice and
@@ -78,11 +78,12 @@ function bytesToBase64(bytes: Uint8Array) {
 async function lookupCache(
   r2: ReturnType<typeof createR2Objects>,
   selection: PracticeTtsSelection,
-  text: string
+  text: string,
+  mode: 'practice' | 'exam'
 ) {
   const startedAt = performance.now();
   const cacheKey = await computePracticeTtsCacheKey(selection, text);
-  const cacheable = isPracticeTtsCacheable(text);
+  const cacheable = isSpeakingTtsCacheable(text, mode);
   let cacheHit = false;
   if (!cacheable) return { ...selection, cacheKey, cacheHit, cacheable, ms: 0 };
   try {
@@ -118,6 +119,7 @@ async function streamGeminiSpeech(params: {
   corsHeaders: Record<string, string>;
   startedAt: number;
   timings: Record<string, number>;
+  route: 'practice-tts' | 'exam-tts';
 }) {
   const { supabase, reservationId } = params;
   const providerStartedAt = performance.now();
@@ -136,7 +138,7 @@ async function streamGeminiSpeech(params: {
       reservationId,
       0,
       false,
-      { route: 'practice-tts', ttsError: String(error?.message || error).slice(0, 300) },
+      { route: params.route, ttsError: String(error?.message || error).slice(0, 300) },
       'failed'
     );
     return legacy('provider_error', params.corsHeaders);
@@ -170,7 +172,7 @@ async function streamGeminiSpeech(params: {
       usage.promptTokens + usage.outputTokens,
       false,
       {
-        route: 'practice-tts',
+        route: params.route,
         provider: 'google-direct',
         model: GEMINI_TTS_DIRECT_MODEL,
         voice: params.selection.voice,
@@ -251,9 +253,12 @@ serve(async (req: Request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
   let quotaReservationId: string | undefined;
+  let route: 'practice-tts' | 'exam-tts' = 'practice-tts';
 
   try {
     const body = await req.json().catch(() => ({}));
+    const mode: 'practice' | 'exam' = body?.mode === 'exam' ? 'exam' : 'practice';
+    route = mode === 'exam' ? 'exam-tts' : 'practice-tts';
     const text = normalizePracticeTtsText(body?.text);
     if (!text) {
       return new Response(JSON.stringify({ error: 'text is required' }), {
@@ -276,6 +281,7 @@ serve(async (req: Request) => {
 
     const rollout = parsePracticeTtsRollout(Deno.env.get('PRACTICE_TTS_ROLLOUT'));
     const apiKey = Deno.env.get('OPENROUTER_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     const r2Config = readR2Config();
     const r2 = r2Config ? createR2Objects(r2Config) : null;
     const configuredModel = Deno.env.get('PRACTICE_TTS_MODEL');
@@ -286,11 +292,12 @@ serve(async (req: Request) => {
     // result is read only after the rollout check below passes.
     const hasOverride = body?.model !== undefined || body?.voice !== undefined;
     const earlyLookup =
-      rollout !== 'off' && apiKey && r2 && !hasOverride
+      (mode === 'exam' || rollout !== 'off') && r2 && !hasOverride
         ? lookupCache(
             r2,
             resolvePracticeTtsSelection({ configuredModel, configuredVoice, isAdmin: false }),
-            text
+            text,
+            mode
           )
         : null;
 
@@ -303,18 +310,11 @@ serve(async (req: Request) => {
     timings.auth = performance.now() - startedAt;
 
     const isAdmin = profile.role === 'admin';
-    if (!isPracticeTtsAllowed(rollout, isAdmin)) return legacy('rollout', corsHeaders);
-
-    const tier = isAdmin ? 'admin' : String(profile.subscription_tier || 'free').toLowerCase();
-    const burst = checkRateLimit(
-      `${getRateLimitIdentifier(req, user.id)}:practice-tts`,
-      getBurstLimitConfig(tier)
-    );
-    // synthesizeSpeech applies its own burst limit to the fallback request.
-    if (!burst.allowed) return legacy('rate_limited', corsHeaders);
+    if (mode === 'practice' && !isPracticeTtsAllowed(rollout, isAdmin))
+      return legacy('rollout', corsHeaders);
 
     // Never synthesize without a cache: every repeat would be billed again.
-    if (!apiKey || !r2) return legacy('not_configured', corsHeaders);
+    if (!r2) return legacy('not_configured', corsHeaders);
 
     const selection = resolvePracticeTtsSelection({
       configuredModel,
@@ -329,7 +329,7 @@ serve(async (req: Request) => {
     const lookup =
       early && early.model === selection.model && early.voice === selection.voice
         ? early
-        : await lookupCache(r2, selection, text);
+        : await lookupCache(r2, selection, text, mode);
     const { cacheKey, cacheHit, cacheable } = lookup;
     const publicUrl = r2.publicUrl(cacheKey);
     timings.cache = lookup.ms;
@@ -343,6 +343,21 @@ serve(async (req: Request) => {
       );
     }
 
+    // Cache hits cost no provider call and should never change the examiner's
+    // voice when the learner hears several fixed questions in quick succession.
+    // Misses still use the shared database quota; the exam allows a short
+    // opening burst of questions even on the free tier.
+    const tier = isAdmin ? 'admin' : String(profile.subscription_tier || 'free').toLowerCase();
+    const burst = checkRateLimit(
+      `${getRateLimitIdentifier(req, user.id)}:${route}`,
+      mode === 'exam' ? RATE_LIMITS.AI_FUNCTION : getBurstLimitConfig(tier)
+    );
+    // synthesizeSpeech applies its own burst limit to the fallback request.
+    if (!burst.allowed) return legacy('rate_limited', corsHeaders);
+
+    if ((!geminiApiKey || body?.stream !== true) && !apiKey)
+      return legacy('not_configured', corsHeaders);
+
     // 2. Miss: reserve against the shared TTS quota (the same daily and monthly
     // limits as synthesizeSpeech), then synthesize once.
     const quota = await reserveDatabaseQuota(
@@ -350,13 +365,12 @@ serve(async (req: Request) => {
       user.id,
       'synthesizeSpeech',
       'tts',
-      `practice-tts:${cacheKey}`,
-      { route: 'practice-tts', textLength: text.length, ...selection }
+      `${route}:${cacheKey}`,
+      { route, textLength: text.length, ...selection }
     );
     if (!quota.allowed) return quotaExceededResponse(quota, corsHeaders);
     quotaReservationId = quota.reservationId;
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (
       body?.stream === true &&
       geminiApiKey &&
@@ -376,6 +390,7 @@ serve(async (req: Request) => {
         corsHeaders,
         startedAt,
         timings,
+        route,
       });
     }
 
@@ -420,7 +435,7 @@ serve(async (req: Request) => {
 
     timings.total = performance.now() - startedAt;
     await finalizeApiUsage(supabase, quotaReservationId, 0, false, {
-      route: 'practice-tts',
+      route,
       provider: 'openrouter',
       ...selection,
       textLength: text.length,
@@ -453,7 +468,7 @@ serve(async (req: Request) => {
         quotaReservationId,
         0,
         false,
-        { route: 'practice-tts', ttsError: String(error?.message || error).slice(0, 300) },
+        { route, ttsError: String(error?.message || error).slice(0, 300) },
         'failed'
       );
     }

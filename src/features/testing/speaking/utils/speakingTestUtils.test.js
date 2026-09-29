@@ -37,10 +37,13 @@ describe('speakingTestUtils', () => {
 
   it('formats IELTS why/why not prompts consistently', () => {
     expect(formatIeltsQuestion('Do you like music? [Why / Why not?]')).toBe(
-      'Do you like music? (Why or why not?)'
+      'Do you like music? Why or why not?'
     );
     expect(formatIeltsQuestion('Do you prefer cities (why/why not?)')).toBe(
-      'Do you prefer cities (Why or why not?)'
+      'Do you prefer cities Why or why not?'
+    );
+    expect(formatIeltsQuestion('Who do you study with? [Why?]')).toBe(
+      'Who do you study with? Why?'
     );
   });
 
@@ -59,7 +62,7 @@ describe('speakingTestUtils', () => {
       })
     ).toEqual([
       { speaker: 'ai', text: 'Welcome to the test.' },
-      { speaker: 'ai', text: 'Do you work or study? (Why or why not?)' },
+      { speaker: 'ai', text: 'Do you work or study? Why or why not?' },
     ]);
   });
 

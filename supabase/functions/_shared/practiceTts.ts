@@ -24,6 +24,11 @@ export const PRACTICE_TTS_CACHEABLE_MAX_CHARACTERS = 200;
 export function isPracticeTtsCacheable(text: string) {
   return text.length <= PRACTICE_TTS_CACHEABLE_MAX_CHARACTERS;
 }
+
+/** Exam lines are shared across learners, including longer introductions. */
+export function isSpeakingTtsCacheable(text: string, mode: 'practice' | 'exam') {
+  return mode === 'exam' || isPracticeTtsCacheable(text);
+}
 /** Real audio of even a one-word reply is larger than this. */
 export const PRACTICE_TTS_MIN_AUDIO_BYTES = 512;
 

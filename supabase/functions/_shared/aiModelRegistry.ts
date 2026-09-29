@@ -604,28 +604,28 @@ export const AI_ROUTES: AiRoute[] = [
   },
   {
     id: 'practice-text-to-speech',
-    surface: 'Speaking practice mode: examiner and coach voice',
+    surface: 'Speaking exam and practice: examiner voice and practice coach voice',
     file: 'supabase/functions/synthesizePracticeSpeech/index.ts',
     timeoutMs: 20000,
     steps: [
       {
         model: 'gemini-3.8-flash-lite-tts',
         role: 'primary',
-        when: 'PRACTICE_TTS_ROLLOUT allows the learner (off by default) and GEMINI_API_KEY is set. Streamed from Google, voice Sulafat with a British coach style. Measured 2026-09-28: first audio ~1.2s, a sentence done in ~1.9s.',
+        when: 'Exam mode is enabled by default; practice requires PRACTICE_TTS_ROLLOUT. With GEMINI_API_KEY, speech streams from Google using voice Sulafat. Measured 2026-09-28: first audio ~1.2s, a sentence done in ~1.9s.',
       },
       {
         model: 'google/gemini-3.8-flash-lite-tts',
         role: 'fallback',
-        when: 'Same model through OpenRouter when GEMINI_API_KEY is missing or the browser did not ask for a stream. Whole clip, ~4-5s.',
+        when: 'Same model through OpenRouter when GEMINI_API_KEY is missing or the browser did not ask for a stream, if OPENROUTER_API_KEY is set. Whole clip, ~4-5s.',
       },
       {
         model: 'google-tts-neural2',
         role: 'fallback',
-        when: 'Rollout excludes the learner, R2 or both keys are missing, or the provider refuses. The browser then calls synthesizeSpeech.',
+        when: 'Practice rollout excludes the learner, R2 or both keys are missing, or the provider refuses. The browser then calls synthesizeSpeech.',
       },
     ],
     notes:
-      'Audio is cached in Cloudflare R2 under tts-cache/practice/v1/<sha256>.wav, keyed by model, voice, style and text, and stored after the stream ends; add a Cloudflare cache rule for /tts-cache/* so the CDN caches .wav. Exam mode never calls this route.',
+      'Audio is cached in Cloudflare R2 under tts-cache/practice/v1/<sha256>.wav, keyed by model, voice, style and text, and stored after the stream ends. All exam lines are cacheable; practice coach replies over 200 characters are not. Add a Cloudflare cache rule for /tts-cache/* so the CDN caches .wav.',
   },
   {
     id: 'practice-coach',

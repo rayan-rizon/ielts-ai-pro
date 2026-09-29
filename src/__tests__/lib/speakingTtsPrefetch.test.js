@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import process from 'node:process';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
 
@@ -11,18 +11,21 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 import {
-  clearSpeakingTtsRequestCache,
   normalizeSpeakingTtsText,
   prefetchSpeakingTts,
   requestSpeakingTts,
+  resetSpeakingTtsRoutingForTests,
 } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
 import { playInitialGreeting } from '@/features/testing/speaking/hooks/useStartSpeakingTest';
 
 describe('speaking TTS prefetch cache', () => {
   beforeEach(() => {
-    clearSpeakingTtsRequestCache();
+    resetSpeakingTtsRoutingForTests();
+    vi.stubEnv('VITE_EXAM_TTS', 'off');
     invoke.mockReset();
   });
+
+  afterEach(() => vi.unstubAllEnvs());
 
   it('shares one Edge invocation between prefetch and playback', async () => {
     let resolveRequest;
@@ -71,17 +74,14 @@ describe('speaking TTS prefetch cache', () => {
   });
 
   it('routes initial greeting and question prefetches through the shared request cache', () => {
-    const initializationSource = readFileSync(
-      resolve(
-        process.cwd(),
-        'src/features/testing/speaking/hooks/useSpeakingTestInitialization.js'
-      ),
+    const startSource = readFileSync(
+      resolve(process.cwd(), 'src/features/testing/speaking/hooks/useStartSpeakingTest.js'),
       'utf8'
     );
 
-    expect(initializationSource).toContain('prefetchSpeakingTts(greeting)');
-    expect(initializationSource).toContain('prefetchSpeakingTts(firstQuestion)');
-    expect(initializationSource).not.toContain("functions.invoke('synthesizeSpeech'");
+    expect(startSource).toContain('prefetchSpeakingTts(greeting)');
+    expect(startSource).toContain('prefetchSpeakingTts(firstQuestion)');
+    expect(startSource).toContain('setSpeakingTtsProfile(speakingMode)');
   });
 
   it('reuses prefetched announcement and question audio when the test starts', async () => {

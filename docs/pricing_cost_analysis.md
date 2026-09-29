@@ -22,16 +22,17 @@ IELTS AI Pro employs an intelligent multi-model routing architecture that optimi
 
 Registry rates and scenario estimates below reflect the current `aiModelRegistry.ts`. They are token-based illustrations, not observed monthly averages; use recorded provider `usage.cost` values for actual unit economics. Run `npm run ai:models` to print the model map.
 
-| Model Identifier                    | Primary Provider / Gateway | Input / 1M Tokens       | Cached Input / 1M | Output / 1M Tokens | Role                                                                   |
-| ----------------------------------- | -------------------------- | ----------------------- | ----------------- | ------------------ | ---------------------------------------------------------------------- |
-| `deepseek/deepseek-v4-flash-0731`   | OpenRouter                 | $0.04                   | $0.016            | $0.64              | Speaking scoring, Grammar, Learning Path                               |
-| `openai/gpt-6-luna`                 | OpenRouter                 | $0.10                   | $0.010            | $0.50              | Writing and Speaking Deep Dive primary; Reading and Coach fallback     |
-| `gemini-2.5-flash`                  | Google Direct              | $0.30                   | $0.300            | $2.50              | Speaking Deep Dive and Writing fallback                                |
-| `gemini-2.5-flash-lite`             | Google Direct              | $0.10                   | $0.100            | $0.40              | High-speed, lightweight fallback                                       |
-| `@cf/openai/whisper-large-v3-turbo` | Cloudflare Workers AI      | Billed per audio minute | —                 | —                  | Real-time speech transcription                                         |
-| `azure-pronunciation-assessment`    | Microsoft Azure Speech     | Billed per audio hour   | —                 | —                  | Acoustic phonological scoring                                          |
-| `google-tts-neural2`                | Google Cloud TTS           | $16 / 1M characters     | —                 | —                  | Examiner voice (exam mode; practice fallback)                          |
-| `google/gemini-3.8-flash-lite-tts`  | OpenRouter                 | $0.50                   | —                 | $6.00 (audio)      | Practice-mode voice candidate; off until `PRACTICE_TTS_ROLLOUT` is set |
+| Model Identifier                    | Primary Provider / Gateway | Input / 1M Tokens       | Cached Input / 1M | Output / 1M Tokens | Role                                                               |
+| ----------------------------------- | -------------------------- | ----------------------- | ----------------- | ------------------ | ------------------------------------------------------------------ |
+| `deepseek/deepseek-v4-flash-0731`   | OpenRouter                 | $0.04                   | $0.016            | $0.64              | Speaking scoring, Grammar, Learning Path                           |
+| `openai/gpt-6-luna`                 | OpenRouter                 | $0.10                   | $0.010            | $0.50              | Writing and Speaking Deep Dive primary; Reading and Coach fallback |
+| `gemini-2.5-flash`                  | Google Direct              | $0.30                   | $0.300            | $2.50              | Speaking Deep Dive and Writing fallback                            |
+| `gemini-2.5-flash-lite`             | Google Direct              | $0.10                   | $0.100            | $0.40              | High-speed, lightweight fallback                                   |
+| `@cf/openai/whisper-large-v3-turbo` | Cloudflare Workers AI      | Billed per audio minute | —                 | —                  | Real-time speech transcription                                     |
+| `azure-pronunciation-assessment`    | Microsoft Azure Speech     | Billed per audio hour   | —                 | —                  | Acoustic phonological scoring                                      |
+| `google-tts-neural2`                | Google Cloud TTS           | $16 / 1M characters     | —                 | —                  | Speaking fallback voice                                            |
+| `gemini-3.8-flash-lite-tts`         | Google Direct              | $0.50                   | —                 | $6.00 (audio)      | Speaking exam voice; practice voice when rollout permits           |
+| `google/gemini-3.8-flash-lite-tts`  | OpenRouter                 | $0.50                   | —                 | $6.00 (audio)      | Whole-clip fallback when direct Gemini streaming is unavailable    |
 
 ---
 

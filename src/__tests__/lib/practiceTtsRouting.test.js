@@ -45,11 +45,42 @@ describe('practice-mode TTS routing', () => {
     vi.unstubAllEnvs();
   });
 
-  it('never sends exam mode to the practice voice', async () => {
+  it('sends exam mode to the same Gemini stream and voice route', async () => {
+    setSpeakingTtsProfile('exam');
+    callEdgeFunctionStream.mockResolvedValue(pcmResponse());
+    const result = await requestSpeakingTts('Do you work or study?');
+    expect(callEdgeFunctionStream).toHaveBeenCalledWith(
+      'synthesizePracticeSpeech',
+      expect.objectContaining({ text: 'Do you work or study?', mode: 'exam', stream: true })
+    );
+    expect(result.data.stream).toBeInstanceOf(ReadableStream);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('uses an R2 cached exam clip without calling Neural2', async () => {
+    setSpeakingTtsProfile('exam');
+    callEdgeFunctionStream.mockResolvedValue(jsonResponse(cachedPractice));
+    const result = await requestSpeakingTts('Do you work or study?');
+    expect(result.data).toMatchObject({ audioUrl: cachedPractice.audioUrl, cached: true });
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
+  it('falls back to Neural2 if exam Gemini is unavailable', async () => {
+    setSpeakingTtsProfile('exam');
+    callEdgeFunctionStream.mockResolvedValue(
+      jsonResponse({ useLegacy: true, reason: 'provider_error' })
+    );
+    const result = await requestSpeakingTts('Do you work or study?');
+    expect(result.data.audioUrl).toBe(legacyAudio.audioUrl);
+    expect(invoke).toHaveBeenCalledWith('synthesizeSpeech', expect.anything());
+  });
+
+  it('allows a build-time exam kill switch', async () => {
+    vi.stubEnv('VITE_EXAM_TTS', 'off');
     setSpeakingTtsProfile('exam');
     await requestSpeakingTts('Do you work or study?');
     expect(callEdgeFunctionStream).not.toHaveBeenCalled();
-    expect(invoke).toHaveBeenCalledWith('synthesizeSpeech', expect.anything());
+    expect(invoke).toHaveBeenCalledTimes(1);
   });
 
   it('keeps practice mode on the standard voice when the build kill switch is set', async () => {
@@ -67,7 +98,7 @@ describe('practice-mode TTS routing', () => {
 
     expect(callEdgeFunctionStream).toHaveBeenCalledWith(
       'synthesizePracticeSpeech',
-      expect.objectContaining({ text: 'Nice answer.', stream: true })
+      expect.objectContaining({ text: 'Nice answer.', mode: 'practice', stream: true })
     );
     expect(result.data.stream).toBeInstanceOf(ReadableStream);
     expect(result.data.sampleRate).toBe(24000);
@@ -129,9 +160,14 @@ describe('practice-mode TTS routing', () => {
     const handler = source.indexOf('serve(async');
     const auth = source.indexOf('if (authError || !user)', handler);
     const earlyLookup = source.indexOf('? lookupCache(', handler);
-    const rollout = source.indexOf('if (!isPracticeTtsAllowed(rollout, isAdmin))', handler);
+    const rollout = source.indexOf(
+      "if (mode === 'practice' && !isPracticeTtsAllowed(rollout, isAdmin))",
+      handler
+    );
     const readLookup = source.indexOf('await earlyLookup', handler);
     const quota = source.indexOf('reserveDatabaseQuota(', handler);
+    const cacheHit = source.indexOf('if (cacheHit)', handler);
+    const burst = source.indexOf('const burst = checkRateLimit(', handler);
     const gemini = source.indexOf('return await streamGeminiSpeech(', handler);
     const openRouter = source.indexOf('fetch(OPENROUTER_SPEECH_URL', handler);
 
@@ -139,10 +175,13 @@ describe('practice-mode TTS routing', () => {
     // The early cache lookup may start alongside the profile query, but only
     // for an authenticated caller, and its result is read after the rollout.
     expect(earlyLookup).toBeGreaterThan(auth);
-    expect(source.slice(handler, earlyLookup)).toContain("rollout !== 'off'");
+    expect(source.slice(handler, earlyLookup)).toContain("mode === 'exam' || rollout !== 'off'");
     expect(rollout).toBeGreaterThan(earlyLookup);
     expect(readLookup).toBeGreaterThan(rollout);
     expect(quota).toBeGreaterThan(readLookup);
+    expect(burst).toBeGreaterThan(cacheHit);
+    expect(quota).toBeGreaterThan(burst);
+    expect(source.slice(cacheHit, quota)).toContain("mode === 'exam' ? RATE_LIMITS.AI_FUNCTION");
     expect(gemini).toBeGreaterThan(quota);
     expect(openRouter).toBeGreaterThan(quota);
     // Shares the synthesizeSpeech TTS quota instead of opening a new, unmetered one.

@@ -13,9 +13,8 @@ export default function useSpeakingTestState() {
   const [speakingMode, setSpeakingMode] = useState('practice');
   const [speakingV2State, setSpeakingV2State] = useState(null);
 
-  // The examiner voice follows the mode: practice may use the practice voice,
-  // exam always uses the standard one. Reset on unmount so no other page
-  // inherits the practice profile.
+  // Keep the active voice route aligned with the selected Speaking mode.
+  // Reset on unmount so no other page inherits the current profile.
   useEffect(() => {
     setSpeakingTtsProfile(speakingMode);
   }, [speakingMode]);

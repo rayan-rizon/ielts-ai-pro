@@ -6,6 +6,7 @@ import {
   DEFAULT_PRACTICE_TTS_MODEL,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
+  isSpeakingTtsCacheable,
   normalizePracticeTtsText,
   parsePcmContentType,
   parsePracticeTtsRollout,
@@ -96,6 +97,14 @@ describe('practice TTS request and cache', () => {
     expect(await computePracticeTtsCacheKey(gemini, 'Hello.')).toBe(a);
     expect(await computePracticeTtsCacheKey({ ...gemini, voice: 'Kore' }, 'Hello.')).not.toBe(a);
     expect(await computePracticeTtsCacheKey(gemini, 'Hello!')).not.toBe(a);
+  });
+
+  it('caches long shared exam introductions but not unique practice coaching', () => {
+    const introduction = 'Welcome to your IELTS Speaking examination. '.repeat(7);
+    expect(introduction.length).toBeGreaterThan(200);
+    expect(isSpeakingTtsCacheable(introduction, 'exam')).toBe(true);
+    expect(isSpeakingTtsCacheable(introduction, 'practice')).toBe(false);
+    expect(isSpeakingTtsCacheable('Do you work or study?', 'practice')).toBe(true);
   });
 
   it('normalizes whitespace and caps length', () => {

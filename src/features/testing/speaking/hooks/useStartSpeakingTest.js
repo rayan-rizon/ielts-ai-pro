@@ -6,6 +6,7 @@ import { getLearningActivityId } from '@/features/testing/shared/activityContext
 import { callEdgeFunction } from '@/utils/api';
 
 import { buildInitialSpeakingConversation } from '../utils/speakingTestUtils';
+import { prefetchSpeakingTts, setSpeakingTtsProfile } from '../utils/speakingTtsPrefetch';
 
 export default function useStartSpeakingTest({
   allParts,
@@ -33,6 +34,21 @@ export default function useStartSpeakingTest({
       if (authUser?.id) {
         const isAllowed = await checkCurrentQuota();
         if (!isAllowed) return;
+      }
+
+      // The learner chooses a mode after initialization. Prefetch its voice
+      // during session startup so playback reuses the same request.
+      setSpeakingTtsProfile(speakingMode);
+      const opening = pendingGreetingRef.current;
+      if (opening) {
+        const greeting = resolveGreeting(opening, speakingMode);
+        if (greeting) prefetchSpeakingTts(greeting);
+        const initialConversation = buildInitialSpeakingConversation({
+          greeting,
+          currentPart: allParts[opening.partNumber],
+        });
+        const firstQuestion = initialConversation[initialConversation.length - 1]?.text;
+        if (firstQuestion && firstQuestion !== greeting) prefetchSpeakingTts(firstQuestion);
       }
 
       setTestStarted(true);
@@ -171,9 +187,8 @@ export async function playInitialGreeting({
   const firstQuestion = questionEntry?.text;
   // The greeting plays first and the first question appears only when it is
   // asked, so the learner never sees a question the examiner has not reached.
-  // Both utterances were prefetched during initialization, so these sequential
-  // playback calls reuse the same cached promises instead of making duplicate
-  // synthesis requests.
+  // The selected mode's opening lines were prefetched before session creation.
+  // Sequential playback reuses those requests and preserves question order.
   setConversation(greeting ? initialConversation.slice(0, -1) : initialConversation);
   setCurrentQuestionIndex(0);
   setTestStarted(true);

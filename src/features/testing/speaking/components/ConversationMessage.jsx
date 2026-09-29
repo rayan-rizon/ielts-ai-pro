@@ -3,9 +3,10 @@ import { AudioLines, CheckCircle2, Pause, Radio, Sparkles } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
+import { formatIeltsQuestion } from '../utils/speakingTestUtils';
 
-function cleanMessageText(text = '') {
-  return String(text)
+function cleanMessageText(text = '', formatQuestion = false) {
+  return (formatQuestion ? formatIeltsQuestion(text) : String(text))
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1');
 }
@@ -166,7 +167,7 @@ function FinalTranscript({ entry }) {
 }
 
 function ExaminerLiveTranscript({ entry, isPractice }) {
-  const cleanText = useMemo(() => cleanMessageText(entry.text), [entry.text]);
+  const cleanText = useMemo(() => cleanMessageText(entry.text, true), [entry.text]);
   const words = useMemo(() => cleanText.split(/\s+/).filter(Boolean), [cleanText]);
   const isPreparing = entry.isExaminerPreparing && !entry.isExaminerSpeaking;
   const hasAudioProgress = Number.isFinite(entry.speechProgress);
@@ -252,7 +253,9 @@ function MessageBody({ entry, isPractice }) {
     return <FinalTranscript entry={entry} />;
   }
 
-  return <p className="whitespace-pre-wrap">{cleanMessageText(entry.text)}</p>;
+  return (
+    <p className="whitespace-pre-wrap">{cleanMessageText(entry.text, entry.speaker === 'ai')}</p>
+  );
 }
 
 const ConversationMessage = React.memo(({ entry, index: _index, authUser, speakingMode }) => {

@@ -28,8 +28,8 @@ export function shouldShowPart2CueCard({ currentPartNumber, isPart2Prep, cueCard
 
 export function formatIeltsQuestion(text = '') {
   return String(text || '')
-    .replace(/\[\s*Why\s*\/\s*Why\s*not\s*\?*\]/gi, '(Why or why not?)')
-    .replace(/\(\s*Why\s*\/\s*Why\s*not\s*\?*\)/gi, '(Why or why not?)')
+    .replace(/(?:\[|\()\s*Why\s*\/\s*Why\s*not\s*\?*\s*(?:\]|\))/gi, 'Why or why not?')
+    .replace(/\[\s*(Why\s*\??)\s*\]/gi, (_, prompt) => prompt.trim().replace(/\?*$/, '?'))
     .replace(/Why\s*\/\s*Why\s*not/gi, 'Why or why not');
 }
 

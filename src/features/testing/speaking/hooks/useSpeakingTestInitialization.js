@@ -10,12 +10,10 @@ import {
   buildCueCardTopic,
   buildLegacySpeakingEvaluation,
   buildSpeakingResumeState,
-  getQuestionLines,
   trimConversationAfterPartCompletion,
 } from '../utils/speakingTestUtils';
 import { shouldResumeSpeakingFinalEvaluation } from '../utils/speakingResumePolicy';
 import { shouldStartUninitializedSpeakingV2Session } from '../utils/speakingV2ResumeRecovery';
-import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
 
 function isSpeakingV2Session(session) {
   return session?.content_data?.speakingVersion === 'v2';
@@ -371,14 +369,8 @@ export default function useSpeakingTestInitialization({
         partNumber: firstPart.partNumber,
       };
 
-      try {
-        prefetchSpeakingTts(greeting);
-        const questionLines = getQuestionLines(firstPart.questions);
-        const firstQuestion = questionLines[0] || "Let's begin. Can you tell me about yourself?";
-        prefetchSpeakingTts(firstQuestion);
-      } catch (error) {
-        console.warn('[TTS] Silent pre-cache warning:', error?.message || error);
-      }
+      // Wait for the learner to choose exam or practice before prefetching;
+      // the two modes can have different voice rollout behavior.
     };
 
     const initializeTest = async () => {
