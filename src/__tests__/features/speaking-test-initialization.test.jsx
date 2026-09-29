@@ -19,6 +19,8 @@ vi.mock('@/features/testing/shared/services/TestSession', () => ({
 vi.mock('@/utils/api', () => ({ callEdgeFunction }));
 vi.mock('@/features/testing/speaking/utils/speakingTtsPrefetch', () => ({
   prefetchSpeakingTts,
+  setSpeakingTtsProfile: vi.fn(),
+  setSpeakingTtsVoice: vi.fn(),
 }));
 
 const completedSession = {

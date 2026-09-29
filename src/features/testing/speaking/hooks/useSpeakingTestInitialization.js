@@ -14,6 +14,8 @@ import {
 } from '../utils/speakingTestUtils';
 import { shouldResumeSpeakingFinalEvaluation } from '../utils/speakingResumePolicy';
 import { shouldStartUninitializedSpeakingV2Session } from '../utils/speakingV2ResumeRecovery';
+import { getSpeakingVoice } from '../utils/speakingAccents';
+import { setSpeakingTtsProfile, setSpeakingTtsVoice } from '../utils/speakingTtsPrefetch';
 
 function isSpeakingV2Session(session) {
   return session?.content_data?.speakingVersion === 'v2';
@@ -36,6 +38,7 @@ export default function useSpeakingTestInitialization({
   setCurrentPartNumber,
   setCurrentQuestionIndex,
   setError,
+  setExaminerVoice,
   setFinalEvaluation,
   setIsLoading,
   setIsPart2Intro,
@@ -164,11 +167,19 @@ export default function useSpeakingTestInitialization({
 
     const restoreActiveSession = async (matchingSession, dbParts) => {
       setSession(matchingSession);
+      const savedVoice = getSpeakingVoice(
+        matchingSession.content_data?.examinerVoice ||
+          matchingSession.content_data?.examinerAccent ||
+          'british-female'
+      ).id;
+      setSpeakingTtsVoice(savedVoice);
+      setExaminerVoice?.(savedVoice);
 
       let serverResume = null;
       if (matchingSession.content_data?.speakingVersion === 'v2') {
         const savedMode =
           matchingSession.content_data?.speakingMode === 'practice' ? 'practice' : 'exam';
+        setSpeakingTtsProfile(savedMode);
         setSpeakingMode?.(savedMode);
         try {
           serverResume = await callEdgeFunction('processSpeakingSessionV2', {

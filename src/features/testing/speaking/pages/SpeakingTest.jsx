@@ -19,6 +19,7 @@ import useSpeakingSessionPersistence from '../hooks/useSpeakingSessionPersistenc
 import useSpeakingTestInitialization from '../hooks/useSpeakingTestInitialization';
 import useSpeakingTestState from '../hooks/useSpeakingTestState';
 import useSpeakingTimers from '../hooks/useSpeakingTimers';
+import useExaminerVoiceSelection from '../hooks/useExaminerVoiceSelection';
 import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
 import usePracticeBargeIn from '../hooks/usePracticeBargeIn';
@@ -98,6 +99,7 @@ export default function SpeakingTest() {
     currentPartNumber,
     currentQuestionIndex,
     error,
+    examinerVoice,
     firstQuestionInsertedRef,
     isExiting,
     isLoading,
@@ -126,6 +128,7 @@ export default function SpeakingTest() {
     setCurrentPartNumber,
     setCurrentQuestionIndex,
     setError,
+    setExaminerVoice,
     setIsLoading,
     setIsPart2Intro,
     setIsPart2Prep,
@@ -151,6 +154,14 @@ export default function SpeakingTest() {
     timerExpiredRef,
     transitionCardRef,
   } = useSpeakingTestState();
+
+  const examinerVoiceSelection = useExaminerVoiceSelection({
+    cancelCurrentAudio,
+    isMuted,
+    setExaminerVoice,
+    setSpeakingMode,
+    speakText,
+  });
   const speakingV2Available = isSpeakingV2Available(authUser);
   // All active Speaking sessions now run through the server-authoritative flow.
   // Legacy sessions are intentionally not resumed; initialization starts a clean V2 attempt.
@@ -622,6 +633,7 @@ export default function SpeakingTest() {
     setCurrentPartNumber,
     setCurrentQuestionIndex,
     setError,
+    setExaminerVoice,
     setFinalEvaluation,
     setIsLoading,
     setIsPart2Intro,
@@ -643,11 +655,13 @@ export default function SpeakingTest() {
   const handleStartTest = useStartSpeakingTest({
     allParts,
     authUser,
+    examinerVoice,
     checkCurrentQuota,
     firstQuestionInsertedRef,
     isStartingTestRef,
     pendingGreetingRef,
     session,
+    stopVoicePreview: examinerVoiceSelection.stopVoicePreview,
     setConversation,
     setCurrentQuestionIndex,
     setSession,
@@ -787,7 +801,11 @@ export default function SpeakingTest() {
           timerExpiredRef,
           handleStartTest,
           speakingMode,
-          setSpeakingMode,
+          setSpeakingMode: examinerVoiceSelection.handleSpeakingModeChange,
+          examinerVoice,
+          onExaminerVoiceChange: examinerVoiceSelection.handleExaminerVoiceChange,
+          onVoicePreview: examinerVoiceSelection.handleVoicePreview,
+          previewVoice: examinerVoiceSelection.previewVoice,
           speakingV2Available,
         },
         isTestComplete,

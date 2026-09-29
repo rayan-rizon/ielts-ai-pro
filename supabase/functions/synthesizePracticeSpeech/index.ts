@@ -15,6 +15,9 @@ import {
 import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
+  DEFAULT_PRACTICE_TTS_MODEL,
+  EXAM_SULAFAT_TTS_STYLE,
+  EXAM_TTS_STYLE,
   isSpeakingTtsCacheable,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
@@ -22,8 +25,10 @@ import {
   OPENROUTER_SPEECH_URL,
   parsePracticeTtsRollout,
   pcm16ToWav,
+  resolveExamGeminiVoice,
   resolvePracticeTtsSelection,
-  styleForModel,
+  resolveSpeakingAccent,
+  styleForSelection,
   toPlayableAudio,
   type PracticeTtsSelection,
 } from '../_shared/practiceTts.ts';
@@ -39,17 +44,13 @@ declare const Deno: any;
 declare const EdgeRuntime: any;
 
 // ============================================================
-// Speaking examiner voice through Gemini TTS, shared by exam and practice.
+// Speaking exam voices and practice coach through Gemini 3.8 Flash-Lite TTS.
 // ============================================================
 // Practice is gated by PRACTICE_TTS_ROLLOUT; exam is available to authenticated
-// learners. Whenever this route cannot serve a learner, the browser calls
-// synthesizeSpeech (Google Neural2) instead.
+// learners. Exam voices are chosen from Google's regional Voice Library.
 //
-// Audio is content-addressed in Cloudflare R2 (MP3, or WAV for Gemini's PCM).
-// A cache hit returns the public CDN URL. A miss with the Gemini voice and
-// { stream: true } streams raw PCM straight from Google as it is generated
-// (first audio ~1.2s) and stores the finished clip; other misses synthesize
-// through OpenRouter and return the audio inline.
+// Audio is content-addressed in Cloudflare R2 as WAV. A cache hit returns the
+// public CDN URL; misses stream Gemini PCM and save the completed clip.
 
 const PROVIDER_TIMEOUT_MS = 15000;
 const CACHE_CONTROL = 'public, max-age=31536000, immutable';
@@ -129,7 +130,7 @@ async function streamGeminiSpeech(params: {
       apiKey: params.apiKey,
       text: params.text,
       voice: params.selection.voice,
-      style: styleForModel(params.selection.model),
+      style: styleForSelection(params.selection),
     });
   } catch (error: any) {
     console.warn('[PracticeTTS] Gemini stream refused:', error?.message);
@@ -176,6 +177,7 @@ async function streamGeminiSpeech(params: {
         provider: 'google-direct',
         model: GEMINI_TTS_DIRECT_MODEL,
         voice: params.selection.voice,
+        accent: params.selection.accent || 'british',
         streamed: true,
         textLength: params.text.length,
         audioBytes: total,
@@ -228,6 +230,9 @@ async function streamGeminiSpeech(params: {
       ...params.corsHeaders,
       'Content-Type': `audio/pcm;rate=${GEMINI_TTS_SAMPLE_RATE};channels=1`,
       'Cache-Control': 'no-store',
+      'X-TTS-Model': params.selection.model,
+      'X-TTS-Voice': params.selection.voice,
+      'Access-Control-Expose-Headers': 'X-TTS-Model, X-TTS-Voice, Server-Timing',
       'Server-Timing': serverTiming({
         ...params.timings,
         total: performance.now() - params.startedAt,
@@ -258,6 +263,9 @@ serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({}));
     const mode: 'practice' | 'exam' = body?.mode === 'exam' ? 'exam' : 'practice';
+    const accent = resolveSpeakingAccent(body?.accent, mode);
+    const examVoice = mode === 'exam' ? resolveExamGeminiVoice(body?.examVoice, accent) : null;
+    const examStyle = examVoice === 'Sulafat' ? EXAM_SULAFAT_TTS_STYLE : EXAM_TTS_STYLE;
     route = mode === 'exam' ? 'exam-tts' : 'practice-tts';
     const text = normalizePracticeTtsText(body?.text);
     if (!text) {
@@ -290,12 +298,27 @@ serve(async (req: Request) => {
     // Start the cache lookup for the default voice while the profile loads. It
     // runs only for an authenticated caller with the route enabled, and its
     // result is read only after the rollout check below passes.
-    const hasOverride = body?.model !== undefined || body?.voice !== undefined;
+    const hasOverride =
+      mode === 'practice' && (body?.model !== undefined || body?.voice !== undefined);
     const earlyLookup =
       (mode === 'exam' || rollout !== 'off') && r2 && !hasOverride
         ? lookupCache(
             r2,
-            resolvePracticeTtsSelection({ configuredModel, configuredVoice, isAdmin: false }),
+            examVoice
+              ? {
+                  model: DEFAULT_PRACTICE_TTS_MODEL,
+                  voice: examVoice,
+                  style: examStyle,
+                  route: 'exam',
+                }
+              : {
+                  ...resolvePracticeTtsSelection({
+                    configuredModel,
+                    configuredVoice,
+                    isAdmin: false,
+                  }),
+                  accent,
+                },
             text,
             mode
           )
@@ -316,13 +339,23 @@ serve(async (req: Request) => {
     // Never synthesize without a cache: every repeat would be billed again.
     if (!r2) return legacy('not_configured', corsHeaders);
 
-    const selection = resolvePracticeTtsSelection({
-      configuredModel,
-      configuredVoice,
-      requestedModel: body?.model,
-      requestedVoice: body?.voice,
-      isAdmin,
-    });
+    const selection: PracticeTtsSelection = examVoice
+      ? {
+          model: DEFAULT_PRACTICE_TTS_MODEL,
+          voice: examVoice,
+          style: examStyle,
+          route: 'exam',
+        }
+      : {
+          ...resolvePracticeTtsSelection({
+            configuredModel,
+            configuredVoice,
+            requestedModel: body?.model,
+            requestedVoice: body?.voice,
+            isAdmin,
+          }),
+          accent,
+        };
 
     // 1. R2 cache lookup, reusing the early lookup when it was for this voice.
     const early = earlyLookup ? await earlyLookup : null;
@@ -352,10 +385,11 @@ serve(async (req: Request) => {
       `${getRateLimitIdentifier(req, user.id)}:${route}`,
       mode === 'exam' ? RATE_LIMITS.AI_FUNCTION : getBurstLimitConfig(tier)
     );
-    // synthesizeSpeech applies its own burst limit to the fallback request.
     if (!burst.allowed) return legacy('rate_limited', corsHeaders);
 
-    if ((!geminiApiKey || body?.stream !== true) && !apiKey)
+    if (examVoice && (!geminiApiKey || body?.stream !== true))
+      return legacy('not_configured', corsHeaders);
+    if (!examVoice && (!geminiApiKey || body?.stream !== true) && !apiKey)
       return legacy('not_configured', corsHeaders);
 
     // 2. Miss: reserve against the shared TTS quota (the same daily and monthly
@@ -441,7 +475,7 @@ serve(async (req: Request) => {
       textLength: text.length,
       audioBytes: audioBytes.byteLength,
       billingUnit: 'openrouter-speech',
-      estimatedProviderCostUsd: estimatePracticeTtsCostUsd(selection.model, text),
+      estimatedProviderCostUsd: estimatePracticeTtsCostUsd(selection.model, text, accent),
       generationId,
       providerLatencyMs: Math.round(timings.provider),
       cacheLookupMs: Math.round(timings.cache),
@@ -472,7 +506,7 @@ serve(async (req: Request) => {
         'failed'
       );
     }
-    // The browser falls back to the Neural2 examiner voice.
+    // The browser reports an unavailable exam voice without switching providers.
     return legacy('provider_error', corsHeaders);
   }
 });

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { setSpeakingTtsProfile } from '../utils/speakingTtsPrefetch';
+import { setSpeakingTtsProfile, setSpeakingTtsVoice } from '../utils/speakingTtsPrefetch';
 
 export default function useSpeakingTestState() {
   const [session, setSession] = useState(null);
@@ -11,6 +11,7 @@ export default function useSpeakingTestState() {
   const [isLoading, setIsLoading] = useState(true);
   const [testTitle, setTestTitle] = useState('');
   const [speakingMode, setSpeakingMode] = useState('practice');
+  const [examinerVoice, setExaminerVoice] = useState('british-female');
   const [speakingV2State, setSpeakingV2State] = useState(null);
 
   // Keep the active voice route aligned with the selected Speaking mode.
@@ -18,6 +19,9 @@ export default function useSpeakingTestState() {
   useEffect(() => {
     setSpeakingTtsProfile(speakingMode);
   }, [speakingMode]);
+  useEffect(() => {
+    setSpeakingTtsVoice(examinerVoice);
+  }, [examinerVoice]);
   useEffect(() => () => setSpeakingTtsProfile('exam'), []);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -99,6 +103,7 @@ export default function useSpeakingTestState() {
     currentPartNumber,
     currentQuestionIndex,
     error,
+    examinerVoice,
     firstQuestionInsertedRef,
     isExiting,
     isLoading,
@@ -127,6 +132,7 @@ export default function useSpeakingTestState() {
     setCurrentPartNumber,
     setCurrentQuestionIndex,
     setError,
+    setExaminerVoice,
     setIsLoading,
     setIsPart2Intro,
     setIsPart2Prep,

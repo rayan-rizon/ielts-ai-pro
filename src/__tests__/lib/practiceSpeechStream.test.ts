@@ -120,6 +120,8 @@ describe('PCM stream player', () => {
       sampleRate: 2,
       text: 'Hi.',
       onPlaybackActive,
+      onPlayStart: vi.fn(),
+      onProgress: vi.fn(),
       onPlaybackEnded,
     });
     expect(getActivePcmPlayer()).toBe(player);
@@ -143,7 +145,18 @@ describe('PCM stream player', () => {
         controller.enqueue(new Uint8Array([1, 0, 2, 0]));
       },
     });
-    const interrupted = playPcmStream({ context: context as any, stream: endless, sampleRate: 2 });
+    const callbacks = {
+      onPlaybackActive: vi.fn(),
+      onPlayStart: vi.fn(),
+      onProgress: vi.fn(),
+      onPlaybackEnded: vi.fn(),
+    };
+    const interrupted = playPcmStream({
+      context: context as any,
+      stream: endless,
+      sampleRate: 2,
+      ...callbacks,
+    });
     await vi.waitFor(() => expect(context.sources).toHaveLength(1));
     interrupted.finish();
     await expect(interrupted.done).resolves.toBeUndefined();
@@ -153,6 +166,7 @@ describe('PCM stream player', () => {
       context: context as any,
       stream: new ReadableStream<Uint8Array>({ start() {} }),
       sampleRate: 2,
+      ...callbacks,
     });
     cancelled.stop();
     const settled = await Promise.race([

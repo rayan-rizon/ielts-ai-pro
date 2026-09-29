@@ -120,6 +120,10 @@ export default function SpeakingConversationPanel({
   speakingMode = 'exam',
   setSpeakingMode,
   speakingV2Available = false,
+  examinerVoice,
+  onExaminerVoiceChange,
+  onVoicePreview,
+  previewVoice,
 }) {
   const cueCardRef = useRef(null);
   const prefersReducedMotion = useReducedMotion();
@@ -256,6 +260,10 @@ export default function SpeakingConversationPanel({
               speakingMode={speakingMode}
               setSpeakingMode={setSpeakingMode}
               speakingV2Available={speakingV2Available}
+              examinerVoice={examinerVoice}
+              onExaminerVoiceChange={onExaminerVoiceChange}
+              onVoicePreview={onVoicePreview}
+              previewVoice={previewVoice}
             />
           ) : (
             <AnimatePresence initial={false} mode="sync">

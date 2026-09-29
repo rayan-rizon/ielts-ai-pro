@@ -4,6 +4,8 @@ import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
   DEFAULT_PRACTICE_TTS_MODEL,
+  EXAM_TTS_STYLE,
+  EXAM_SULAFAT_TTS_STYLE,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
   isSpeakingTtsCacheable,
@@ -13,10 +15,13 @@ import {
   PRACTICE_TTS_MAX_CHARACTERS,
   PRACTICE_TTS_MODELS,
   PRACTICE_TTS_STYLE,
+  resolveSpeakingAccent,
   resolvePracticeTtsSelection,
+  resolveExamGeminiVoice,
   toPlayableAudio,
 } from '../../../supabase/functions/_shared/practiceTts.ts';
 import { AI_ROUTES, MODELS } from '../../../supabase/functions/_shared/aiModelRegistry.ts';
+import { SPEAKING_EXAMINER_VOICES } from '../../features/testing/speaking/utils/speakingAccents.js';
 
 describe('practice TTS rollout', () => {
   it('treats anything other than admin or all as off', () => {
@@ -97,6 +102,54 @@ describe('practice TTS request and cache', () => {
     expect(await computePracticeTtsCacheKey(gemini, 'Hello.')).toBe(a);
     expect(await computePracticeTtsCacheKey({ ...gemini, voice: 'Kore' }, 'Hello.')).not.toBe(a);
     expect(await computePracticeTtsCacheKey(gemini, 'Hello!')).not.toBe(a);
+    expect(await computePracticeTtsCacheKey({ ...gemini, accent: 'british' }, 'Hello.')).toBe(a);
+    expect(
+      await computePracticeTtsCacheKey({ ...gemini, accent: 'australian' }, 'Hello.')
+    ).not.toBe(a);
+    expect(await computePracticeTtsCacheKey({ ...gemini, accent: 'american' }, 'Hello.')).not.toBe(
+      a
+    );
+  });
+
+  it('keeps each regional Gemini exam voice in a separate R2 WAV key', async () => {
+    const base = {
+      model: DEFAULT_PRACTICE_TTS_MODEL,
+      voice: 'Sulafat',
+      style: EXAM_SULAFAT_TTS_STYLE,
+      route: 'exam' as const,
+    };
+    const british = await computePracticeTtsCacheKey(base, 'Good morning.');
+    expect(british).toMatch(/^tts-cache\/exam-gemini\/v1\/[0-9a-f]{64}\.wav$/);
+    expect(
+      await computePracticeTtsCacheKey({ ...base, voice: 'en-gb-tutor-14' }, 'Good morning.')
+    ).not.toBe(british);
+    expect(
+      await computePracticeTtsCacheKey({ ...base, voice: 'en-au-tutor-5' }, 'Good morning.')
+    ).not.toBe(british);
+    expect(resolveExamGeminiVoice('australian-male')).toBe('en-au-tutor-5');
+    expect(resolveExamGeminiVoice('untrusted', 'american')).toBe('despina');
+    expect(resolveExamGeminiVoice('australian-female')).toBe('en-au-tutor-5');
+    expect(resolveExamGeminiVoice('american-male')).toBe('despina');
+    for (const voice of SPEAKING_EXAMINER_VOICES) {
+      expect(resolveExamGeminiVoice(voice.id)).toBe(voice.geminiVoice);
+    }
+    expect(
+      await computePracticeTtsCacheKey({ ...base, route: undefined }, 'Good morning.')
+    ).not.toBe(british);
+  });
+
+  it('limits accent changes to exam mode and sends the selected style', () => {
+    expect(resolveSpeakingAccent('australian', 'exam')).toBe('australian');
+    expect(resolveSpeakingAccent('american', 'exam')).toBe('american');
+    expect(resolveSpeakingAccent('american', 'practice')).toBe('british');
+    expect(resolveSpeakingAccent('unknown', 'exam')).toBe('british');
+    const body = buildOpenRouterSpeechRequest(
+      { model: DEFAULT_PRACTICE_TTS_MODEL, voice: 'Sulafat', accent: 'australian' },
+      'Hello.'
+    ) as any;
+    expect(body.provider.options['google-ai-studio'].speech_metadata.style).toContain(
+      'Australian English accent'
+    );
   });
 
   it('caches long shared exam introductions but not unique practice coaching', () => {

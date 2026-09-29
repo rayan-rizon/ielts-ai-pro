@@ -1,0 +1,203 @@
+.examiner-voice-stage {
+  overflow: hidden;
+  padding: 5px 12px 6px;
+}
+
+.examiner-voice-scene {
+  position: relative;
+  height: 218px;
+  overflow: hidden;
+}
+
+.examiner-voice-slide {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 164px;
+  margin-left: -82px;
+  transform-origin: 50% 38%;
+}
+
+.examiner-voice-orb-button {
+  display: block;
+  width: 164px;
+  height: 164px;
+  border-radius: 50%;
+  outline-offset: 5px;
+  transition: scale 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.examiner-voice-orb-button:hover {
+  scale: 1.018;
+}
+.examiner-voice-orb-button:active {
+  scale: 0.97;
+}
+.examiner-voice-orb-button:focus-visible {
+  outline: 2px solid #5a63df;
+}
+
+.examiner-voice-orb {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  outline: 1px solid rgb(0 0 0 / 10%);
+  background:
+    radial-gradient(ellipse at 76% 35%, var(--orb-flare) 0%, transparent 35%),
+    radial-gradient(ellipse at 22% 17%, var(--orb-light) 0%, transparent 42%),
+    radial-gradient(ellipse at 25% 77%, var(--orb-deep) 0%, transparent 48%),
+    radial-gradient(
+      circle at 58% 51%,
+      var(--orb-light) 0%,
+      var(--orb-base) 57%,
+      var(--orb-deep) 100%
+    );
+  box-shadow:
+    inset -17px -19px 28px rgb(24 19 33 / 22%),
+    inset 9px 11px 20px rgb(255 255 255 / 19%);
+}
+
+.dark .examiner-voice-orb {
+  outline-color: rgb(255 255 255 / 10%);
+}
+
+.examiner-voice-orb::before,
+.examiner-voice-orb::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+}
+
+.examiner-voice-orb::before {
+  background: radial-gradient(ellipse at 32% 25%, rgb(255 255 255 / 58%), transparent 39%);
+  mix-blend-mode: screen;
+}
+
+.examiner-voice-orb::after {
+  background: radial-gradient(ellipse at 58% 94%, rgb(15 13 25 / 25%), transparent 52%);
+}
+
+.examiner-voice-orb-button--selected .examiner-voice-orb {
+  animation: examiner-orb-breathe 5.5s ease-in-out infinite;
+}
+
+.examiner-voice-orb-button--playing .examiner-voice-orb {
+  animation: examiner-orb-speaking 1.5s ease-in-out infinite;
+}
+
+.examiner-voice-orb[data-voice='british-female'] {
+  --orb-base: #8e85e5;
+  --orb-light: #f9aad8;
+  --orb-flare: #9ee9f3;
+  --orb-deep: #4a4baf;
+}
+.examiner-voice-orb[data-voice='british-male'] {
+  --orb-base: #787f9e;
+  --orb-light: #d2e5e8;
+  --orb-flare: #a6a6d7;
+  --orb-deep: #30374f;
+}
+.examiner-voice-orb[data-voice='australian-male'] {
+  --orb-base: #55ada4;
+  --orb-light: #d5f4d5;
+  --orb-flare: #a4dce8;
+  --orb-deep: #225e79;
+}
+.examiner-voice-orb[data-voice='american-female'] {
+  --orb-base: #bc729e;
+  --orb-light: #ffd1bb;
+  --orb-flare: #e6aedb;
+  --orb-deep: #643d78;
+}
+.examiner-voice-play {
+  z-index: 1;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 50%;
+  background: white;
+  color: #141319;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.examiner-voice-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 17px;
+}
+
+.examiner-voice-arrow {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  color: #77758d;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    scale 150ms ease;
+}
+.examiner-voice-arrow:hover {
+  background: rgb(90 99 223 / 9%);
+  color: #5a63df;
+}
+.examiner-voice-arrow:active {
+  scale: 0.96;
+}
+.examiner-voice-arrow:focus-visible {
+  outline: 2px solid #5a63df;
+}
+
+@keyframes examiner-orb-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes examiner-orb-speaking {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.018);
+  }
+}
+
+@media (max-width: 480px) {
+  .examiner-voice-scene {
+    height: 194px;
+  }
+  .examiner-voice-slide {
+    width: 140px;
+    margin-left: -70px;
+  }
+  .examiner-voice-orb-button {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .examiner-voice-orb-button--selected .examiner-voice-orb,
+  .examiner-voice-orb-button--playing .examiner-voice-orb {
+    animation: none;
+  }
+  .examiner-voice-orb-button,
+  .examiner-voice-arrow {
+    transition-duration: 0ms;
+  }
+}

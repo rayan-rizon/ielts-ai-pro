@@ -8,7 +8,11 @@ import {
   releasePlaybackAudio,
   unlockSpeechPlayback,
 } from '../utils/speechPlayback';
-import { normalizeSpeakingTtsText, requestSpeakingTts } from '../utils/speakingTtsPrefetch';
+import {
+  getActiveSpeakingVoice,
+  normalizeSpeakingTtsText,
+  requestSpeakingTts,
+} from '../utils/speakingTtsPrefetch';
 import { getActivePcmPlayer, playPcmStream } from '../utils/pcmStreamPlayer';
 
 /**
@@ -41,9 +45,8 @@ function hasSpeechSynthesis() {
 }
 
 // ── Web Speech API voice matching ─────────────────────────────────────────────
-// The examiner and the practice coach are female voices (Neural2-C, Gemini
-// Sulafat), so the last-resort browser voice must be female too. System voice
-// lists rarely expose gender, so it is inferred from well-known voice names.
+// System voice lists rarely expose gender, so the last-resort browser voice
+// uses the selected locale and known voice names when they are available.
 const HIGH_QUALITY_VOICE_KEYWORDS = ['Natural', 'Premium', 'Enhanced', 'Neural'];
 const FEMALE_VOICE_NAMES = [
   'Female',
@@ -98,21 +101,24 @@ function hasMatchingKeyword(name, keywords) {
 
 const isFemale = (voice) => hasMatchingKeyword(voice.name, FEMALE_VOICE_NAMES);
 const isMale = (voice) => hasMatchingKeyword(voice.name, MALE_VOICE_NAMES);
-const isEnGb = (voice) => voice.lang.startsWith('en-GB');
 const isEnglish = (voice) => voice.lang.startsWith('en');
 
-const VOICE_FINDERS = [
-  (voice) =>
-    isEnGb(voice) && isFemale(voice) && hasMatchingKeyword(voice.name, HIGH_QUALITY_VOICE_KEYWORDS),
-  (voice) => isEnGb(voice) && isFemale(voice),
-  (voice) => isEnglish(voice) && isFemale(voice),
-  (voice) => isEnGb(voice) && !isMale(voice),
-  (voice) => isEnglish(voice) && !isMale(voice),
-  isEnglish,
-];
-
-export function findBestVoice(voices) {
-  for (const finder of VOICE_FINDERS) {
+export function findBestVoice(voices, language = 'en-GB', gender = 'Female') {
+  const isSelectedAccent = (voice) => voice.lang.startsWith(language);
+  const isSelectedGender = gender === 'Male' ? isMale : isFemale;
+  const isOtherGender = gender === 'Male' ? isFemale : isMale;
+  const finders = [
+    (voice) =>
+      isSelectedAccent(voice) &&
+      isSelectedGender(voice) &&
+      hasMatchingKeyword(voice.name, HIGH_QUALITY_VOICE_KEYWORDS),
+    (voice) => isSelectedAccent(voice) && isSelectedGender(voice),
+    (voice) => isSelectedAccent(voice) && !isOtherGender(voice),
+    (voice) => isEnglish(voice) && isSelectedGender(voice),
+    (voice) => isEnglish(voice) && !isOtherGender(voice),
+    isEnglish,
+  ];
+  for (const finder of finders) {
     const match = voices.find(finder);
     if (match) return match;
   }
@@ -122,7 +128,8 @@ export function findBestVoice(voices) {
 function getOptimalWebVoice() {
   if (!hasSpeechSynthesis()) return null;
   const voices = window.speechSynthesis.getVoices();
-  return findBestVoice(voices || []);
+  const selected = getActiveSpeakingVoice();
+  return findBestVoice(voices || [], selected.language, selected.gender);
 }
 
 // ── Web Speech utterance runner ───────────────────────────────────────────────
@@ -134,7 +141,7 @@ function speakSingleChunk({ chunk, selectedVoice, spokenWords, totalWords, onPro
   return new Promise((resolve) => {
     const chunkWords = countWords(chunk);
     const utterance = new SpeechSynthesisUtterance(chunk);
-    utterance.lang = 'en-GB';
+    utterance.lang = selectedVoice?.lang || getActiveSpeakingVoice().language;
     utterance.rate = 0.92;
     utterance.pitch = 1.0;
     if (selectedVoice) {
@@ -480,16 +487,29 @@ async function runSpeechTurn({
     isTurnCurrent: isTurnActive(myRequestId, requestIdRef, isMountedRef),
   });
 
+  if (
+    options?.requireProviderVoice &&
+    !googleTTSSucceeded &&
+    isTurnActive(myRequestId, requestIdRef, isMountedRef)
+  ) {
+    throw new Error('The selected examiner voice is unavailable.');
+  }
+
   if (canRunFallback) {
     onFallbackStart();
     options?.onPlayStart?.();
 
     const sentences = splitIntoSentences(cleanText);
-    await speakChunksViaWebSpeech(sentences, webVoiceRef.current, isMountedRef, (progress) => {
-      if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
-        updateProgress(progress);
+    await speakChunksViaWebSpeech(
+      sentences,
+      getOptimalWebVoice() || webVoiceRef.current,
+      isMountedRef,
+      (progress) => {
+        if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
+          updateProgress(progress);
+        }
       }
-    });
+    );
   }
 }
 
@@ -733,21 +753,23 @@ export default function useSpeechSynthesis() {
       }
 
       state.startPlaybackState(text);
-      await executeTurnWithState({
-        text,
-        myRequestId,
-        requestIdRef,
-        isMountedRef,
-        webVoiceRef,
-        currentAudioRef,
-        options,
-        stopProgressTracking,
-        playbackFrameRef,
-        state,
-      });
-
-      if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
-        state.resetPlaybackState();
+      try {
+        await executeTurnWithState({
+          text,
+          myRequestId,
+          requestIdRef,
+          isMountedRef,
+          webVoiceRef,
+          currentAudioRef,
+          options,
+          stopProgressTracking,
+          playbackFrameRef,
+          state,
+        });
+      } finally {
+        if (isTurnActive(myRequestId, requestIdRef, isMountedRef)) {
+          state.resetPlaybackState();
+        }
       }
     },
     [state, stopActiveAudioSources, stopProgressTracking, isMountedRef]

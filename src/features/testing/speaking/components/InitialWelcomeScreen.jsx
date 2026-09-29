@@ -14,6 +14,7 @@ import { cn } from '@/lib/cn';
 import { MUTED } from '@/features/dashboard/components/primitives';
 
 import useSpeakingDeviceChecks from '../hooks/useSpeakingDeviceChecks';
+import ExaminerVoiceCarousel from './ExaminerVoiceCarousel';
 
 const DEVICE_COPY = {
   microphone: {
@@ -98,6 +99,10 @@ const InitialWelcomeScreen = ({
   speakingMode = 'exam',
   setSpeakingMode,
   speakingV2Available = false,
+  examinerVoice = 'british-female',
+  onExaminerVoiceChange,
+  onVoicePreview,
+  previewVoice,
 }) => {
   const { microphoneStatus, speakerStatus, testMicrophone, testSpeaker } =
     useSpeakingDeviceChecks();
@@ -110,18 +115,20 @@ const InitialWelcomeScreen = ({
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="flex w-full max-w-3xl flex-col items-center text-center"
       >
-        <div className="relative w-full max-w-44 sm:max-w-56 2xl:max-w-72">
-          <img
-            src="/speaking-assets/examiner-welcome-v1.png"
-            alt="AI speaking examiner wearing a headset"
-            className="aspect-3/2 w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
-            loading="eager"
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t/srgb from-white to-transparent dark:from-[#131315]"
-            aria-hidden="true"
-          />
-        </div>
+        {speakingMode === 'practice' && (
+          <div className="relative w-full max-w-44 sm:max-w-56 2xl:max-w-72">
+            <img
+              src="/speaking-assets/examiner-welcome-v1.png"
+              alt="AI speaking examiner wearing a headset"
+              className="aspect-3/2 w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
+              loading="eager"
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-linear-to-t/srgb from-white to-transparent dark:from-[#131315]"
+              aria-hidden="true"
+            />
+          </div>
+        )}
 
         <h2 className="mt-0.5 text-xl font-extrabold tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
           Ready to start Part {partNumber}?
@@ -156,6 +163,7 @@ const InitialWelcomeScreen = ({
                   type="button"
                   onClick={() => setSpeakingMode?.(mode.id)}
                   aria-pressed={selected}
+                  aria-label={mode.label}
                   className={cn(
                     'flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
                     selected
@@ -174,6 +182,15 @@ const InitialWelcomeScreen = ({
               );
             })}
           </div>
+        )}
+
+        {speakingMode === 'exam' && (
+          <ExaminerVoiceCarousel
+            examinerVoice={examinerVoice}
+            onExaminerVoiceChange={onExaminerVoiceChange}
+            onVoicePreview={onVoicePreview}
+            previewVoice={previewVoice}
+          />
         )}
 
         <div className="mt-2.5 grid w-full max-w-lg grid-cols-2 gap-2">
