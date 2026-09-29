@@ -159,6 +159,10 @@ describe('speaking device readiness checks', () => {
       />
     );
 
+    expect(screen.getByText('4 voices')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Select Harper/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Select Ethan/i })).not.toBeInTheDocument();
+
     fireEvent.click(
       screen.getByRole('button', { name: 'Select Noah, Australian male examiner voice' })
     );

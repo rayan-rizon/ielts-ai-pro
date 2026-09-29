@@ -47,7 +47,7 @@ export default function ExaminerVoiceCarousel({
             Choose your examiner voice
           </h3>
         </div>
-        <Pill tone="accent">6 voices</Pill>
+        <Pill tone="accent">{VOICES.length} voices</Pill>
       </div>
 
       <div

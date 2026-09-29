@@ -20,15 +20,6 @@ export const SPEAKING_EXAMINER_VOICES = [
     voice: 'en-GB-Neural2-D',
   },
   {
-    id: 'australian-female',
-    name: 'Harper',
-    accent: 'Australian',
-    region: 'Australia',
-    language: 'en-AU',
-    gender: 'Female',
-    voice: 'en-AU-Neural2-A',
-  },
-  {
     id: 'australian-male',
     name: 'Noah',
     accent: 'Australian',
@@ -46,15 +37,6 @@ export const SPEAKING_EXAMINER_VOICES = [
     gender: 'Female',
     voice: 'en-US-Neural2-C',
   },
-  {
-    id: 'american-male',
-    name: 'Ethan',
-    accent: 'American',
-    region: 'United States',
-    language: 'en-US',
-    gender: 'Male',
-    voice: 'en-US-Neural2-D',
-  },
 ];
 
 export const EXAMINER_VOICE_PREVIEW =
@@ -62,9 +44,15 @@ export const EXAMINER_VOICE_PREVIEW =
 
 export function getSpeakingVoice(value) {
   const legacyAccent = String(value || '').toLowerCase();
+  const legacySelection = {
+    'australian-female': 'australian-male',
+    'american-male': 'american-female',
+    australian: 'australian-male',
+    american: 'american-female',
+  }[legacyAccent];
   return (
     SPEAKING_EXAMINER_VOICES.find((item) => item.id === value) ||
-    SPEAKING_EXAMINER_VOICES.find((item) => item.id === `${legacyAccent}-female`) ||
+    SPEAKING_EXAMINER_VOICES.find((item) => item.id === legacySelection) ||
     SPEAKING_EXAMINER_VOICES[0]
   );
 }

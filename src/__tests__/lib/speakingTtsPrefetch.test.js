@@ -18,6 +18,10 @@ import {
   setSpeakingTtsVoice,
 } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
 import { playInitialGreeting } from '@/features/testing/speaking/hooks/useStartSpeakingTest';
+import {
+  getSpeakingVoice,
+  SPEAKING_EXAMINER_VOICES,
+} from '@/features/testing/speaking/utils/speakingAccents';
 
 describe('speaking TTS prefetch cache', () => {
   beforeEach(() => {
@@ -62,7 +66,7 @@ describe('speaking TTS prefetch cache', () => {
     expect(invoke).toHaveBeenCalledTimes(1);
   });
 
-  it('uses distinct regional female and male voices and separates their cache keys', async () => {
+  it('uses four distinct exam voices and keeps British female as the default', async () => {
     invoke.mockResolvedValue({
       data: { success: true, audioUrl: 'data:audio/mp3;base64,test' },
       error: null,
@@ -70,22 +74,20 @@ describe('speaking TTS prefetch cache', () => {
     await requestSpeakingTts('Good morning.');
     setSpeakingTtsVoice('british-male');
     await requestSpeakingTts('Good morning.');
-    setSpeakingTtsVoice('australian-female');
-    await requestSpeakingTts('Good morning.');
     setSpeakingTtsVoice('australian-male');
     await requestSpeakingTts('Good morning.');
     setSpeakingTtsVoice('american-female');
     await requestSpeakingTts('Good morning.');
-    setSpeakingTtsVoice('american-male');
-    await requestSpeakingTts('Good morning.');
     expect(invoke.mock.calls.map(([, { body }]) => body.voice)).toEqual([
       'en-GB-Neural2-C',
       'en-GB-Neural2-D',
-      'en-AU-Neural2-A',
       'en-AU-Neural2-B',
       'en-US-Neural2-C',
-      'en-US-Neural2-D',
     ]);
+    expect(SPEAKING_EXAMINER_VOICES).toHaveLength(4);
+    expect(getSpeakingVoice()).toMatchObject({ id: 'british-female', voice: 'en-GB-Neural2-C' });
+    expect(getSpeakingVoice('australian-female').id).toBe('australian-male');
+    expect(getSpeakingVoice('american-male').id).toBe('american-female');
   });
 
   it('does not retain failed or graceful-fallback responses', async () => {

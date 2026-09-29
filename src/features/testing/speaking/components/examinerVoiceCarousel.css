@@ -103,12 +103,6 @@
   --orb-flare: #a6a6d7;
   --orb-deep: #30374f;
 }
-.examiner-voice-orb[data-voice='australian-female'] {
-  --orb-base: #f87b58;
-  --orb-light: #ffd0a2;
-  --orb-flare: #ffedb9;
-  --orb-deep: #a8374c;
-}
 .examiner-voice-orb[data-voice='australian-male'] {
   --orb-base: #55ada4;
   --orb-light: #d5f4d5;
@@ -121,13 +115,6 @@
   --orb-flare: #e6aedb;
   --orb-deep: #643d78;
 }
-.examiner-voice-orb[data-voice='american-male'] {
-  --orb-base: #9b77b2;
-  --orb-light: #ffe4b4;
-  --orb-flare: #f6a7a1;
-  --orb-deep: #514473;
-}
-
 .examiner-voice-play {
   z-index: 1;
   display: grid;
