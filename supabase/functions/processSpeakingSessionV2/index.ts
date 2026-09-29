@@ -15,6 +15,7 @@ import {
   chooseVerifiedTranscript,
   createBrowserTranscriptRecovery,
   getTranscriptVerificationReason,
+  isLikelyNonAnswerTranscript,
   shouldGuardSilentSpeech,
   transcribeWithCloudflare,
   transcribeWithGeminiFallback,
@@ -387,7 +388,7 @@ async function transcribeAudio(params: {
   let provider = 'cloudflare';
   let model = '';
   let tokensUsed = 0;
-  let verificationReason: string | null = null;
+  let verificationReason: ReturnType<typeof getTranscriptVerificationReason> = null;
   let attempts = 0;
   try {
     const result = await transcribeWithCloudflare({
@@ -401,11 +402,17 @@ async function transcribeAudio(params: {
     model = result.model;
     tokensUsed = result.tokensUsed;
     attempts = result.attempts;
-    verificationReason = getTranscriptVerificationReason({
-      cloudflareTranscript: transcript,
-      browserHint: params.browserHint,
-      audioDurationMs: params.audioDurationMs,
-    });
+    // A stock filler in a long clip is not an answer. Do not pay for a
+    // second transcription model just to verify it before asking again.
+    verificationReason =
+      isLikelyNonAnswerTranscript(transcript, params.audioDurationMs) &&
+      !params.browserHint?.transcript?.trim()
+        ? null
+        : getTranscriptVerificationReason({
+            cloudflareTranscript: transcript,
+            browserHint: params.browserHint,
+            audioDurationMs: params.audioDurationMs,
+          });
     if (verificationReason && Deno.env.get('GEMINI_API_KEY')) {
       const verification = await transcribeWithGeminiFallback({
         apiKey: Deno.env.get('GEMINI_API_KEY'),
@@ -675,7 +682,10 @@ async function handleTurn(params: {
       audioDurationMs,
       browserHint,
     });
-    if (isFailedTranscript(transcription.transcript)) {
+    if (
+      isFailedTranscript(transcription.transcript) ||
+      isLikelyNonAnswerTranscript(transcription.transcript, audioDurationMs)
+    ) {
       await params.supabase.rpc('fail_speaking_v2_turn', {
         p_auth_id: params.authId,
         p_turn_id: turnId,

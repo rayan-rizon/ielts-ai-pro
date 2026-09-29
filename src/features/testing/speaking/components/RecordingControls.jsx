@@ -67,7 +67,12 @@ const RecordingControls = React.memo(function RecordingControls({
     (isSpeaking || isTTSLoading || isPlaybackActive);
   const isUnavailable =
     !canInterrupt &&
-    (isProcessing || isSpeaking || isTTSLoading || isPlaybackActive || timerExpiredRef?.current);
+    (isProcessing ||
+      isSpeaking ||
+      isTTSLoading ||
+      isPlaybackActive ||
+      timerExpiredRef?.current ||
+      (isListening && autoSubmitPaused));
 
   return (
     <div className="flex w-full flex-col items-center gap-2">
@@ -171,7 +176,9 @@ const RecordingControls = React.memo(function RecordingControls({
                 canInterrupt
                   ? 'Interrupt the coach and answer now'
                   : isListening
-                    ? 'Finish and send answer'
+                    ? autoSubmitPaused
+                      ? 'Resume before sending answer'
+                      : 'Finish and send answer'
                     : 'Start recording answer'
               }
               className={`group relative flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-extrabold transition-[background-color,border-color,color,opacity] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 ${
@@ -192,7 +199,11 @@ const RecordingControls = React.memo(function RecordingControls({
               ) : isListening ? (
                 <>
                   <Square className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-                  {handsFreeEnabled ? 'Finish now' : 'Finish & send'}
+                  {autoSubmitPaused
+                    ? 'Resume to finish'
+                    : handsFreeEnabled
+                      ? 'Finish now'
+                      : 'Finish & send'}
                 </>
               ) : (
                 <>

@@ -173,7 +173,8 @@ function shouldFinishAfterSilence(runtime, now, elapsedMs) {
 function createAnalysisLoop(runtime, samples) {
   return () => {
     const { refs } = runtime;
-    if (!refs.isListening.current || !refs.analyser.current) return;
+    if (!refs.isListening.current || refs.autoSubmitPaused.current || !refs.analyser.current)
+      return;
 
     refs.analyser.current.getByteTimeDomainData(samples);
     const now = Date.now();
@@ -231,6 +232,7 @@ function startAudioAnalysis(runtime, stream) {
 }
 
 function updateLiveRecognition(runtime, event) {
+  if (runtime.refs.autoSubmitPaused.current) return;
   const finalSegments = [];
   const interimSegments = [];
   const confidence = [];
@@ -287,9 +289,12 @@ function startSilenceMonitor(runtime) {
     if (!refs.smartFinishEnabled.current) return;
     if (refs.autoSubmitPaused.current) return;
     const now = Date.now();
-    const elapsedMs = now - refs.startTime.current;
+    const elapsedMs = now - refs.startTime.current - (refs.totalPausedMs?.current || 0);
     if (!hasSpeechEvidence(refs)) {
-      if (elapsedMs >= refs.captureConfig.current.noSpeechTimeoutMs) {
+      if (
+        now - (refs.noSpeechSince?.current || refs.startTime.current) >=
+        refs.captureConfig.current.noSpeechTimeoutMs
+      ) {
         stopRecorderCapture(runtime, 'no-speech-timeout');
       }
       return;
@@ -323,7 +328,12 @@ function startBrowserRecognition(runtime) {
 
 function restartRecognitionIfActive(runtime, recognition) {
   const isCurrentRecognition = runtime.refs.speechRecognition.current === recognition;
-  if (!runtime.refs.isListening.current || !isCurrentRecognition) return;
+  if (
+    !runtime.refs.isListening.current ||
+    runtime.refs.autoSubmitPaused.current ||
+    !isCurrentRecognition
+  )
+    return;
 
   const completedText = runtime.refs.recognitionSessionFinal.current;
   if (completedText) {
@@ -396,11 +406,70 @@ function stopMediaStream(runtime) {
   runtime.refs.stream.current = null;
 }
 
+/** Pause the microphone, audio file, and captions together. */
+export function setRecorderCapturePaused(runtime, paused) {
+  const { refs, actions } = runtime;
+  if (!refs.isListening.current || refs.autoSubmitPaused.current === paused) return false;
+  const recorder = refs.mediaRecorder.current;
+  if (!recorder || typeof recorder.pause !== 'function' || typeof recorder.resume !== 'function') {
+    return false;
+  }
+
+  if (paused) {
+    try {
+      recorder.pause();
+    } catch {
+      return false;
+    }
+    refs.pausedAt.current = Date.now();
+    refs.autoSubmitPaused.current = true;
+    stopSpeechRecognition(runtime);
+    refs.stream.current?.getTracks().forEach((track) => {
+      track.enabled = false;
+    });
+    if (refs.maxRecordingTimer.current) clearTimeout(refs.maxRecordingTimer.current);
+    refs.maxRecordingTimer.current = null;
+  } else {
+    try {
+      recorder.resume();
+    } catch {
+      return false;
+    }
+    refs.totalPausedMs.current += Date.now() - refs.pausedAt.current;
+    refs.pausedAt.current = null;
+    refs.stream.current?.getTracks().forEach((track) => {
+      track.enabled = true;
+    });
+    refs.autoSubmitPaused.current = false;
+    refs.lastVoiceAt.current = Date.now();
+    refs.noSpeechSince.current = Date.now();
+    const activeMs = Date.now() - refs.startTime.current - refs.totalPausedMs.current;
+    refs.maxRecordingTimer.current = setTimeout(
+      () => stopRecorderCapture(runtime, 'safety-limit'),
+      Math.max(1, MAX_RECORDING_DURATION - activeMs)
+    );
+    try {
+      startBrowserRecognition(runtime);
+    } catch {
+      // Audio capture still works without browser captions.
+    }
+  }
+
+  refs.graceStartedAt.current = null;
+  actions.setAutoFinishCountdown(null);
+  actions.setAutoSubmitPaused(paused);
+  return true;
+}
+
 export function stopRecorderCapture(runtime, reason = 'manual') {
   const { refs, actions } = runtime;
   refs.stopReason.current = reason;
   refs.isListening.current = false;
   refs.isRecording.current = false;
+  if (refs.pausedAt?.current) {
+    refs.totalPausedMs.current += Date.now() - refs.pausedAt.current;
+    refs.pausedAt.current = null;
+  }
 
   if (refs.maxRecordingTimer.current) {
     clearTimeout(refs.maxRecordingTimer.current);
@@ -409,7 +478,7 @@ export function stopRecorderCapture(runtime, reason = 'manual') {
 
   cleanupAudioAnalysis(runtime);
   stopSpeechRecognition(runtime);
-  if (refs.mediaRecorder.current?.state === 'recording') {
+  if (refs.mediaRecorder.current && refs.mediaRecorder.current.state !== 'inactive') {
     refs.mediaRecorder.current.stop();
   } else {
     stopMediaStream(runtime);
@@ -442,6 +511,9 @@ export function resetRecorderCapture(runtime) {
   if (refs.lastVoiceAt) refs.lastVoiceAt.current = 0;
   if (refs.graceStartedAt) refs.graceStartedAt.current = null;
   if (refs.autoSubmitPaused) refs.autoSubmitPaused.current = false;
+  if (refs.pausedAt) refs.pausedAt.current = null;
+  if (refs.totalPausedMs) refs.totalPausedMs.current = 0;
+  if (refs.noSpeechSince) refs.noSpeechSince.current = 0;
   if (refs.noiseFloor) refs.noiseFloor.current = MIN_VOICE_THRESHOLD / 2;
   if (refs.noiseWindow) refs.noiseWindow.current = [];
   actions.setLiveTranscript('');
@@ -459,12 +531,13 @@ function getRecorderMimeType() {
 }
 
 function resolveSpeechDetected(refs) {
-  if (refs.speechDetected.current || Boolean(refs.liveTranscript.current)) return true;
+  if (refs.speechDetected.current) return true;
 
   // A suspended/unavailable AudioContext cannot prove silence. Likewise, quiet
   // or noise-like audio is ambiguous: send it to the provider and let the
   // server-side VAD/transcriber decide. Only a working analyser that stayed at
   // an effectively flat digital signal may short-circuit as confirmed silence.
+  // Browser captions can hallucinate, so they cannot override that signal.
   if (!refs.analyserReady.current) return null;
   return refs.peakRms.current <= CONFIRMED_SILENCE_PEAK_RMS ? false : null;
 }
@@ -490,7 +563,7 @@ async function processCompletedRecording(runtime, mediaRecorder) {
   // capture while this turn is still uploading/transcribing.
   if (refs.isProcessing.current) return;
   refs.isProcessing.current = true;
-  const duration = Date.now() - refs.startTime.current;
+  const duration = Date.now() - refs.startTime.current - (refs.totalPausedMs?.current || 0);
   refs.mediaRecorder.current = null;
 
   if (refs.discardRecording.current) {
@@ -543,6 +616,9 @@ function createMediaRecorder(runtime, stream) {
 function markRecordingStarted(runtime) {
   const startedAt = Date.now();
   runtime.refs.startTime.current = startedAt;
+  if (runtime.refs.noSpeechSince) runtime.refs.noSpeechSince.current = startedAt;
+  if (runtime.refs.totalPausedMs) runtime.refs.totalPausedMs.current = 0;
+  if (runtime.refs.pausedAt) runtime.refs.pausedAt.current = null;
   runtime.refs.lastVoiceAt.current = startedAt;
   runtime.refs.isListening.current = true;
   runtime.refs.isRecording.current = true;

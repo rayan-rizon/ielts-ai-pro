@@ -4,6 +4,7 @@ import {
   cancelRecorderCapture,
   MIN_VOICE_THRESHOLD,
   startRecorderCapture,
+  setRecorderCapturePaused,
   stopRecorderCapture,
   unlockCaptureAudioContext,
 } from '../utils/audioRecorderRuntime';
@@ -16,6 +17,7 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     stream: useRef(null),
     maxRecordingTimer: useRef(null),
     startTime: useRef(0),
+    noSpeechSince: useRef(0),
     discardRecording: useRef(false),
     // Each permission prompt is asynchronous.  A monotonically increasing
     // request id lets cleanup/unmount invalidate a prompt that resolves later.
@@ -43,6 +45,8 @@ function useRecorderRefs(partNumber, handsFreeEnabled) {
     captureConfig: useRef(getSpeakingCaptureConfig(partNumber)),
     smartFinishEnabled: useRef(handsFreeEnabled),
     autoSubmitPaused: useRef(false),
+    pausedAt: useRef(null),
+    totalPausedMs: useRef(0),
     isListening: useRef(false),
     isRecording: useRef(false),
     isProcessing: useRef(false),
@@ -111,16 +115,7 @@ export default function useAudioRecorder({
     runtimeRef.current.refs.isProcessing.current = value;
   }, []);
   const setAutoSubmitPaused = useCallback((paused) => {
-    const currentRuntime = runtimeRef.current;
-    const nextPaused = Boolean(paused);
-    currentRuntime.refs.autoSubmitPaused.current = nextPaused;
-    currentRuntime.refs.graceStartedAt.current = null;
-    currentRuntime.actions.setAutoFinishCountdown(null);
-    currentRuntime.actions.setAutoSubmitPaused(nextPaused);
-
-    if (!nextPaused && currentRuntime.refs.isListening.current) {
-      currentRuntime.refs.lastVoiceAt.current = Date.now();
-    }
+    return setRecorderCapturePaused(runtimeRef.current, Boolean(paused));
   }, []);
 
   useEffect(() => {

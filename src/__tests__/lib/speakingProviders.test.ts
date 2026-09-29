@@ -9,6 +9,7 @@ import {
   cleanSpeakingQuestion,
   getTranscriptVerificationReason,
   isImplausiblyFastTranscript,
+  isLikelyNonAnswerTranscript,
   mapAzureScoreToProvisionalIeltsBand,
   resolveAzurePronunciationAssessment,
   shouldGuardSilentSpeech,
@@ -122,7 +123,7 @@ describe('speaking provider helpers', () => {
     ).toBe(true);
     expect(
       shouldGuardSilentSpeech(false, { transcript: 'I live in Dhaka', confidence: 0.91 })
-    ).toBe(false);
+    ).toBe(true);
     expect(shouldGuardSilentSpeech(null, null)).toBe(false);
   });
 
@@ -133,6 +134,16 @@ describe('speaking provider helpers', () => {
         audioDurationMs: 12000,
       })
     ).toBe('unexpectedly-short');
+  });
+
+  it('rejects the repeated filler captured during the paused practice session without another AI call', () => {
+    expect(isLikelyNonAnswerTranscript('Thank you. Thank you. Thank you.', 80007)).toBe(true);
+    expect(isLikelyNonAnswerTranscript('Thank you.', 12002)).toBe(true);
+    expect(isLikelyNonAnswerTranscript("I don't know how to do it.", 19000)).toBe(true);
+    expect(isLikelyNonAnswerTranscript('I spend most of my study time with Rakib.', 14802)).toBe(
+      false
+    );
+    expect(isLikelyNonAnswerTranscript('Thank you.', 2000)).toBe(false);
   });
 
   it('does not pay for verification when the transcript agrees with reliable live captions', () => {

@@ -5,6 +5,7 @@ import {
   MIN_VOICE_THRESHOLD,
   cancelRecorderCapture,
   startRecorderCapture,
+  setRecorderCapturePaused,
   stopRecorderCapture,
   __testing,
 } from './audioRecorderRuntime';
@@ -39,6 +40,13 @@ class FakeMediaRecorder {
     this.ondataavailable?.({ data: new Blob([new Uint8Array(6000)]) });
     this.onstop?.();
   }
+
+  pause() {
+    this.state = 'paused';
+  }
+  resume() {
+    this.state = 'recording';
+  }
 }
 
 function ref(value) {
@@ -54,6 +62,7 @@ function buildRuntime(processRecording) {
       stream: ref(null),
       maxRecordingTimer: ref(null),
       startTime: ref(0),
+      noSpeechSince: ref(0),
       discardRecording: ref(false),
       captureRequestId: ref(0),
       stopReason: ref('manual'),
@@ -79,6 +88,8 @@ function buildRuntime(processRecording) {
       captureConfig: ref(getSpeakingCaptureConfig(1)),
       smartFinishEnabled: ref(true),
       autoSubmitPaused: ref(false),
+      pausedAt: ref(null),
+      totalPausedMs: ref(0),
       isListening: ref(false),
       isRecording: ref(false),
       isProcessing: ref(false),
@@ -216,6 +227,56 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
     expect(processRecording.mock.calls[0][1].stopReason).toBe('smart-finish');
   });
 
+  it('excludes a long pause from the recorded audio and ignores captions during it', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+    await startRecorderCapture(runtime);
+    const recorder = runtime.refs.mediaRecorder.current;
+
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(setRecorderCapturePaused(runtime, true)).toBe(true);
+    expect(recorder.state).toBe('paused');
+    recognition.onresult({
+      results: [{ 0: { transcript: 'Thank you.', confidence: 0.9 }, isFinal: true, length: 1 }],
+    });
+    await vi.advanceTimersByTimeAsync(80000);
+    expect(processRecording).not.toHaveBeenCalled();
+    expect(runtime.refs.liveTranscript.current).toBe('');
+
+    expect(setRecorderCapturePaused(runtime, false)).toBe(true);
+    expect(recorder.state).toBe('recording');
+    await vi.advanceTimersByTimeAsync(2000);
+    stopRecorderCapture(runtime, 'manual');
+    expect(processRecording).toHaveBeenCalledOnce();
+    expect(processRecording.mock.calls[0][1].duration).toBe(4000);
+  });
+
+  it('restarts the no-speech wait after resuming', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+    await startRecorderCapture(runtime);
+    const timeoutMs = runtime.refs.captureConfig.current.noSpeechTimeoutMs;
+    await vi.advanceTimersByTimeAsync(timeoutMs - 1000);
+    expect(setRecorderCapturePaused(runtime, true)).toBe(true);
+    await vi.advanceTimersByTimeAsync(30000);
+    expect(setRecorderCapturePaused(runtime, false)).toBe(true);
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(processRecording).not.toHaveBeenCalled();
+    cancelRecorderCapture(runtime);
+  });
+
+  it('does not let a browser caption override confirmed microphone silence', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+    await startRecorderCapture(runtime);
+    runtime.refs.analyserReady.current = true;
+    runtime.refs.peakRms.current = 0.001;
+    runtime.refs.liveTranscript.current = 'Thank you. Thank you. Thank you.';
+    await vi.advanceTimersByTimeAsync(2000);
+    stopRecorderCapture(runtime, 'manual');
+    expect(processRecording.mock.calls[0][1].speechDetected).toBe(false);
+  });
+
   it('hears a pause through steady background noise such as a fan', () => {
     // A fan holds the room at ~0.03 RMS; the learner peaks well above it.
     const fanOnly = Array.from({ length: 60 }, (_, index) => 0.029 + (index % 3) * 0.001);
@@ -264,6 +325,8 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
     expect(__testing.resolveSpeechDetected(runtime.refs)).toBeNull();
 
     runtime.refs.liveTranscript.current = 'I was speaking quietly.';
+    expect(__testing.resolveSpeechDetected(runtime.refs)).toBeNull();
+    runtime.refs.speechDetected.current = true;
     expect(__testing.resolveSpeechDetected(runtime.refs)).toBe(true);
   });
 

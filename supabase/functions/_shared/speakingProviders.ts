@@ -38,6 +38,29 @@ function transcriptTokens(value: string): string[] {
     .filter(Boolean);
 }
 
+/** Short stock phrases in mostly empty audio are common ASR artifacts. */
+export function isLikelyNonAnswerTranscript(
+  transcript: string,
+  audioDurationMs?: number | null
+): boolean {
+  const tokens = transcriptTokens(transcript);
+  const durationMs = Math.max(0, Number(audioDurationMs) || 0);
+  if (durationMs < 6000 || tokens.length === 0) return false;
+  const normalized = tokens.join(' ');
+  if (/^(thank you|thanks|okay|hello|bye|sorry)$/.test(normalized)) return true;
+  if (/^i (?:don't|do not) know(?: how to do it| what to say)?$/.test(normalized)) return true;
+  if (tokens.length < 6 || tokens.length > 24) return false;
+  // Three or more repetitions of the same one- or two-word phrase carry no
+  // answer content and should never trigger another AI model or spoken coach.
+  for (const phraseLength of [1, 2]) {
+    if (tokens.length % phraseLength !== 0 || tokens.length / phraseLength < 3) continue;
+    const phrase = tokens.slice(0, phraseLength).join(' ');
+    if (tokens.every((token, index) => token === tokens[index % phraseLength]) && phrase)
+      return true;
+  }
+  return false;
+}
+
 function transcriptSimilarity(left: string, right: string): number {
   const leftTokens = new Set(transcriptTokens(left));
   const rightTokens = new Set(transcriptTokens(right));
@@ -95,14 +118,14 @@ export function createBrowserTranscriptRecovery(
 }
 
 /**
- * Treat a recorder-confirmed no-speech turn as inaudible unless a high-
- * confidence, multi-word live caption independently corroborates speech.
+ * Recorder-confirmed digital silence overrides browser captions: those
+ * captions are generated from the same microphone and can hallucinate too.
  */
 export function shouldGuardSilentSpeech(
   speechDetected: unknown,
-  browserTranscriptHint: { transcript: string; confidence: number } | null
+  _browserTranscriptHint: { transcript: string; confidence: number } | null
 ): boolean {
-  return speechDetected === false && !canRecoverFromBrowserTranscript(browserTranscriptHint);
+  return speechDetected === false;
 }
 
 export function getTranscriptVerificationReason(params: {
