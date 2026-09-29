@@ -27,6 +27,8 @@ import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
 import { createSpeakingPartTransitionGuard } from '../utils/speakingPartTransitionGuard';
 import { isSpeakingV2Available } from '../utils/speakingV2';
 import { advanceSpeakingV2Part } from '../utils/speakingV2Transition';
+import { getSpeakingVoice } from '../utils/speakingAccents';
+import { setSpeakingTtsProfile, setSpeakingTtsVoice } from '../utils/speakingTtsPrefetch';
 import { callEdgeFunction } from '@/utils/api';
 import { toast } from 'sonner';
 
@@ -56,6 +58,8 @@ export default function SpeakingTest() {
   const serverFinishRequestedRef = useRef(false);
   const partTransitionGuardRef = useRef(createSpeakingPartTransitionGuard());
   const [isPartTransitioning, setIsPartTransitioning] = useState(false);
+  const [previewVoice, setPreviewVoice] = useState(null);
+  const previewRequestRef = useRef(0);
   const [autoStartRequestVersion, setAutoStartRequestVersion] = useState(0);
   const requestAutoStart = useCallback(() => {
     if (!handsFreeEnabledRef.current) return;
@@ -98,6 +102,7 @@ export default function SpeakingTest() {
     currentPartNumber,
     currentQuestionIndex,
     error,
+    examinerVoice,
     firstQuestionInsertedRef,
     isExiting,
     isLoading,
@@ -126,6 +131,7 @@ export default function SpeakingTest() {
     setCurrentPartNumber,
     setCurrentQuestionIndex,
     setError,
+    setExaminerVoice,
     setIsLoading,
     setIsPart2Intro,
     setIsPart2Prep,
@@ -151,6 +157,57 @@ export default function SpeakingTest() {
     timerExpiredRef,
     transitionCardRef,
   } = useSpeakingTestState();
+
+  const stopVoicePreview = useCallback(() => {
+    previewRequestRef.current += 1;
+    setPreviewVoice(null);
+    cancelCurrentAudio();
+  }, [cancelCurrentAudio]);
+
+  const handleExaminerVoiceChange = useCallback(
+    (value) => {
+      const voiceId = getSpeakingVoice(value).id;
+      if (previewVoice) stopVoicePreview();
+      setSpeakingTtsVoice(voiceId);
+      setExaminerVoice(voiceId);
+    },
+    [previewVoice, setExaminerVoice, stopVoicePreview]
+  );
+
+  const handleVoicePreview = useCallback(
+    async (voiceId, text) => {
+      if (isMuted) {
+        toast.info('Unmute examiner audio to hear a voice preview.');
+        return;
+      }
+      if (previewVoice === voiceId) {
+        stopVoicePreview();
+        return;
+      }
+      stopVoicePreview();
+      setSpeakingTtsProfile('exam');
+      setSpeakingTtsVoice(voiceId);
+      setExaminerVoice(voiceId);
+      const request = ++previewRequestRef.current;
+      setPreviewVoice(voiceId);
+      try {
+        await speakText(text, { cancel: true, requireProviderVoice: true });
+      } catch {
+        toast.error('Voice preview is unavailable. Please try again.');
+      } finally {
+        if (previewRequestRef.current === request) setPreviewVoice(null);
+      }
+    },
+    [isMuted, previewVoice, setExaminerVoice, speakText, stopVoicePreview]
+  );
+
+  const handleSpeakingModeChange = useCallback(
+    (mode) => {
+      if (previewVoice) stopVoicePreview();
+      setSpeakingMode(mode);
+    },
+    [previewVoice, setSpeakingMode, stopVoicePreview]
+  );
   const speakingV2Available = isSpeakingV2Available(authUser);
   // All active Speaking sessions now run through the server-authoritative flow.
   // Legacy sessions are intentionally not resumed; initialization starts a clean V2 attempt.
@@ -622,6 +679,7 @@ export default function SpeakingTest() {
     setCurrentPartNumber,
     setCurrentQuestionIndex,
     setError,
+    setExaminerVoice,
     setFinalEvaluation,
     setIsLoading,
     setIsPart2Intro,
@@ -643,6 +701,7 @@ export default function SpeakingTest() {
   const handleStartTest = useStartSpeakingTest({
     allParts,
     authUser,
+    examinerVoice,
     checkCurrentQuota,
     firstQuestionInsertedRef,
     isStartingTestRef,
@@ -659,6 +718,11 @@ export default function SpeakingTest() {
     testId,
     useSpeakingV2,
   });
+
+  const handleBeginTest = useCallback(() => {
+    if (previewVoice) stopVoicePreview();
+    handleStartTest();
+  }, [handleStartTest, previewVoice, stopVoicePreview]);
 
   const currentPart = allParts[currentPartNumber];
 
@@ -785,9 +849,13 @@ export default function SpeakingTest() {
           onInterruptSpeech: canInterruptSpeech ? handleInterruptSpeech : undefined,
           timeExpired: testStarted && timeLeft === 0,
           timerExpiredRef,
-          handleStartTest,
+          handleStartTest: handleBeginTest,
           speakingMode,
-          setSpeakingMode,
+          setSpeakingMode: handleSpeakingModeChange,
+          examinerVoice,
+          onExaminerVoiceChange: handleExaminerVoiceChange,
+          onVoicePreview: handleVoicePreview,
+          previewVoice,
           speakingV2Available,
         },
         isTestComplete,

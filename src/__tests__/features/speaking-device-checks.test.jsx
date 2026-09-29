@@ -140,9 +140,44 @@ describe('speaking device readiness checks', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: /exam/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Exam' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('button', { name: /practice/i }));
     expect(setSpeakingMode).toHaveBeenCalledWith('practice');
+  });
+
+  it('selects and previews the exam accent from the welcome screen', () => {
+    const onExaminerVoiceChange = vi.fn();
+    const onVoicePreview = vi.fn();
+    const { rerender } = render(
+      <InitialWelcomeScreen
+        partNumber={1}
+        title="Introduction & Interview"
+        speakingMode="exam"
+        examinerVoice="british-female"
+        onExaminerVoiceChange={onExaminerVoiceChange}
+        onVoicePreview={onVoicePreview}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Select Noah, Australian male examiner voice' })
+    );
+    expect(onExaminerVoiceChange).toHaveBeenCalledWith('australian-male');
+    rerender(
+      <InitialWelcomeScreen
+        partNumber={1}
+        title="Introduction & Interview"
+        speakingMode="exam"
+        examinerVoice="australian-male"
+        onExaminerVoiceChange={onExaminerVoiceChange}
+        onVoicePreview={onVoicePreview}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Preview Noah voice' }));
+    expect(onVoicePreview).toHaveBeenCalledWith(
+      'australian-male',
+      expect.stringContaining('Good morning')
+    );
   });
 
   it('uses the server-authoritative speaking implementation for every learner', () => {

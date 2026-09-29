@@ -15,6 +15,7 @@ import {
   prefetchSpeakingTts,
   requestSpeakingTts,
   resetSpeakingTtsRoutingForTests,
+  setSpeakingTtsVoice,
 } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
 import { playInitialGreeting } from '@/features/testing/speaking/hooks/useStartSpeakingTest';
 
@@ -59,6 +60,32 @@ describe('speaking TTS prefetch cache', () => {
 
     expect(normalizeSpeakingTtsText('[Why / Why not?]')).toBe('Why, or why not?');
     expect(invoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses distinct regional female and male voices and separates their cache keys', async () => {
+    invoke.mockResolvedValue({
+      data: { success: true, audioUrl: 'data:audio/mp3;base64,test' },
+      error: null,
+    });
+    await requestSpeakingTts('Good morning.');
+    setSpeakingTtsVoice('british-male');
+    await requestSpeakingTts('Good morning.');
+    setSpeakingTtsVoice('australian-female');
+    await requestSpeakingTts('Good morning.');
+    setSpeakingTtsVoice('australian-male');
+    await requestSpeakingTts('Good morning.');
+    setSpeakingTtsVoice('american-female');
+    await requestSpeakingTts('Good morning.');
+    setSpeakingTtsVoice('american-male');
+    await requestSpeakingTts('Good morning.');
+    expect(invoke.mock.calls.map(([, { body }]) => body.voice)).toEqual([
+      'en-GB-Neural2-C',
+      'en-GB-Neural2-D',
+      'en-AU-Neural2-A',
+      'en-AU-Neural2-B',
+      'en-US-Neural2-C',
+      'en-US-Neural2-D',
+    ]);
   });
 
   it('does not retain failed or graceful-fallback responses', async () => {

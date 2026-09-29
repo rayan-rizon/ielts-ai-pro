@@ -46,6 +46,7 @@ vi.mock('@/features/testing/speaking/utils/speechPlayback', () => ({
 }));
 
 vi.mock('@/features/testing/speaking/utils/speakingTtsPrefetch', () => ({
+  getActiveSpeakingVoice: vi.fn(() => ({ language: 'en-GB', gender: 'Female' })),
   normalizeSpeakingTtsText: vi.fn((t) => t),
   requestSpeakingTts: vi.fn().mockResolvedValue({
     data: { success: true, audioUrl: 'https://example.com/audio.mp3' },
@@ -162,6 +163,21 @@ describe('useSpeechSynthesis hook', () => {
     expect(result.current.activeSpeechText).toBe('');
   });
 
+  it('rejects a preview when the selected provider voice is unavailable', async () => {
+    requestSpeakingTts.mockResolvedValueOnce({ data: { fallback: true }, error: null });
+    const { result } = renderHook(() => useSpeechSynthesis());
+    await act(async () => {
+      await expect(
+        result.current.speakText('Preview sample.', {
+          cancel: true,
+          requireProviderVoice: true,
+        })
+      ).rejects.toThrow('selected examiner voice is unavailable');
+    });
+    expect(result.current.isSpeaking).toBe(false);
+    expect(result.current.isPlaybackActive).toBe(false);
+  });
+
   it('settles the pending speech when the learner barges in, so the next step runs', async () => {
     const { result } = renderHook(() => useSpeechSynthesis());
     let completion;
@@ -214,7 +230,7 @@ describe('useSpeechSynthesis hook', () => {
 });
 
 describe('browser fallback voice', () => {
-  it('picks a female British voice, never Daniel', async () => {
+  it('matches the selected accent and gender when the browser has that voice', async () => {
     const { findBestVoice } = await import('@/features/testing/speaking/hooks/useSpeechSynthesis');
     const voices = [
       { name: 'Daniel', lang: 'en-GB' },
@@ -223,6 +239,8 @@ describe('browser fallback voice', () => {
       { name: 'Samantha', lang: 'en-US' },
     ];
     expect(findBestVoice(voices).name).toBe('Google UK English Female');
+    expect(findBestVoice(voices, 'en-GB', 'Male').name).toBe('Daniel');
+    expect(findBestVoice(voices, 'en-US', 'Female').name).toBe('Samantha');
     expect(findBestVoice([voices[0], voices[3]]).name).toBe('Samantha');
     expect(
       findBestVoice([

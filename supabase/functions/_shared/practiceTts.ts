@@ -12,6 +12,7 @@ export const OPENROUTER_SPEECH_URL = 'https://openrouter.ai/api/v1/audio/speech'
 /** Bump when the audio for the same (model, voice, style, text) should change. */
 export const PRACTICE_TTS_CACHE_VERSION = 'v1';
 export const PRACTICE_TTS_CACHE_PREFIX = `tts-cache/practice/${PRACTICE_TTS_CACHE_VERSION}`;
+export const EXAM_NEURAL2_CACHE_PREFIX = `tts-cache/exam-neural2/${PRACTICE_TTS_CACHE_VERSION}`;
 export const PRACTICE_TTS_MAX_CHARACTERS = 1500;
 /**
  * Only short, shared lines are worth caching: the greeting, bank questions,
@@ -38,6 +39,39 @@ export const PRACTICE_TTS_MIN_AUDIO_BYTES = 512;
  */
 export const PRACTICE_TTS_STYLE =
   'A warm, encouraging IELTS speaking coach with a clear British English accent, speaking at a natural conversational pace.';
+
+export type SpeakingAccent = 'british' | 'australian' | 'american';
+export const SPEAKING_ACCENT_STYLES: Record<SpeakingAccent, string> = {
+  // Keep the original wording so existing British audio retains its R2 key.
+  british: PRACTICE_TTS_STYLE,
+  australian:
+    'A warm, encouraging IELTS speaking coach with a clear Australian English accent, speaking at a natural conversational pace.',
+  american:
+    'A warm, encouraging IELTS speaking coach with a clear American English accent, speaking at a natural conversational pace.',
+};
+
+export function resolveSpeakingAccent(value: unknown, mode: 'practice' | 'exam'): SpeakingAccent {
+  if (mode === 'exam' && (value === 'australian' || value === 'american')) return value;
+  return 'british';
+}
+
+export const EXAM_NEURAL2_VOICES = {
+  'british-female': 'en-GB-Neural2-C',
+  'british-male': 'en-GB-Neural2-D',
+  'australian-female': 'en-AU-Neural2-A',
+  'australian-male': 'en-AU-Neural2-B',
+  'american-female': 'en-US-Neural2-C',
+  'american-male': 'en-US-Neural2-D',
+} as const;
+
+export function resolveExamNeural2Voice(value: unknown, accent?: unknown) {
+  const voiceId = typeof value === 'string' ? value : '';
+  const legacyAccent = resolveSpeakingAccent(accent, 'exam');
+  return (
+    EXAM_NEURAL2_VOICES[voiceId as keyof typeof EXAM_NEURAL2_VOICES] ||
+    EXAM_NEURAL2_VOICES[`${legacyAccent}-female` as keyof typeof EXAM_NEURAL2_VOICES]
+  );
+}
 
 type PracticeTtsModel = {
   voices: readonly string[];
@@ -106,7 +140,7 @@ export function isPracticeTtsAllowed(rollout: PracticeTtsRollout, isAdmin: boole
   return rollout === 'admin' && isAdmin;
 }
 
-export type PracticeTtsSelection = { model: string; voice: string };
+export type PracticeTtsSelection = { model: string; voice: string; accent?: SpeakingAccent };
 
 /**
  * Choose the model and voice. The server default comes from environment
@@ -149,8 +183,8 @@ export function normalizePracticeTtsText(text: unknown) {
     .slice(0, PRACTICE_TTS_MAX_CHARACTERS);
 }
 
-export function styleForModel(model: string) {
-  return PRACTICE_TTS_MODELS[model]?.styleProviderKey ? PRACTICE_TTS_STYLE : '';
+export function styleForModel(model: string, accent: SpeakingAccent = 'british') {
+  return PRACTICE_TTS_MODELS[model]?.styleProviderKey ? SPEAKING_ACCENT_STYLES[accent] : '';
 }
 
 function toHex(buffer: ArrayBuffer) {
@@ -165,11 +199,12 @@ export async function computePracticeTtsCacheKey(selection: PracticeTtsSelection
     PRACTICE_TTS_CACHE_VERSION,
     selection.model,
     selection.voice,
-    styleForModel(selection.model),
+    styleForModel(selection.model, selection.accent),
     text,
   ]);
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(material));
-  return `${PRACTICE_TTS_CACHE_PREFIX}/${toHex(digest)}.wav`;
+  const neural2 = selection.model === 'google-tts-neural2';
+  return `${neural2 ? EXAM_NEURAL2_CACHE_PREFIX : PRACTICE_TTS_CACHE_PREFIX}/${toHex(digest)}.${neural2 ? 'mp3' : 'wav'}`;
 }
 
 export function buildOpenRouterSpeechRequest(selection: PracticeTtsSelection, text: string) {
@@ -184,7 +219,11 @@ export function buildOpenRouterSpeechRequest(selection: PracticeTtsSelection, te
   const styleProviderKey = PRACTICE_TTS_MODELS[selection.model]?.styleProviderKey;
   if (styleProviderKey) {
     body.provider = {
-      options: { [styleProviderKey]: { speech_metadata: { style: PRACTICE_TTS_STYLE } } },
+      options: {
+        [styleProviderKey]: {
+          speech_metadata: { style: styleForModel(selection.model, selection.accent) },
+        },
+      },
     };
   }
   return body;
@@ -247,10 +286,14 @@ const GEMINI_AUDIO_TOKENS_PER_SECOND = 25;
 const SPOKEN_CHARACTERS_PER_SECOND = 13;
 const TEXT_CHARACTERS_PER_TOKEN = 4;
 
-export function estimatePracticeTtsCostUsd(model: string, text: string) {
+export function estimatePracticeTtsCostUsd(
+  model: string,
+  text: string,
+  accent: SpeakingAccent = 'british'
+) {
   const characters = text.length;
   const promptTokens = Math.ceil(
-    (characters + styleForModel(model).length) / TEXT_CHARACTERS_PER_TOKEN
+    (characters + styleForModel(model, accent).length) / TEXT_CHARACTERS_PER_TOKEN
   );
   const outputTokens = Math.ceil(
     (characters / SPOKEN_CHARACTERS_PER_SECOND) * GEMINI_AUDIO_TOKENS_PER_SECOND

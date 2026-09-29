@@ -604,28 +604,33 @@ export const AI_ROUTES: AiRoute[] = [
   },
   {
     id: 'practice-text-to-speech',
-    surface: 'Speaking exam and practice: examiner voice and practice coach voice',
+    surface: 'Speaking exam: regional examiner voices; practice: Gemini coach voice',
     file: 'supabase/functions/synthesizePracticeSpeech/index.ts',
     timeoutMs: 20000,
     steps: [
       {
+        model: 'google-tts-neural2',
+        role: 'primary',
+        when: 'Exam mode uses a server-allowlisted British, Australian, or American Neural2 voice, with female and male choices. All fixed exam lines are cached in R2.',
+      },
+      {
         model: 'gemini-3.8-flash-lite-tts',
         role: 'primary',
-        when: 'Exam mode is enabled by default; practice requires PRACTICE_TTS_ROLLOUT. With GEMINI_API_KEY, speech streams from Google using voice Sulafat. Measured 2026-09-28: first audio ~1.2s, a sentence done in ~1.9s.',
+        when: 'Practice requires PRACTICE_TTS_ROLLOUT. With GEMINI_API_KEY, speech streams from Google using voice Sulafat. Measured 2026-09-28: first audio ~1.2s, a sentence done in ~1.9s.',
       },
       {
         model: 'google/gemini-3.8-flash-lite-tts',
         role: 'fallback',
-        when: 'Same model through OpenRouter when GEMINI_API_KEY is missing or the browser did not ask for a stream, if OPENROUTER_API_KEY is set. Whole clip, ~4-5s.',
+        when: 'Practice mode uses the same model through OpenRouter when GEMINI_API_KEY is missing or the browser did not ask for a stream, if OPENROUTER_API_KEY is set. Whole clip, ~4-5s.',
       },
       {
         model: 'google-tts-neural2',
         role: 'fallback',
-        when: 'Practice rollout excludes the learner, R2 or both keys are missing, or the provider refuses. The browser then calls synthesizeSpeech.',
+        when: 'R2 or the selected provider key is missing, the practice rollout excludes the learner, or the provider refuses. The browser then calls synthesizeSpeech with the selected regional voice.',
       },
     ],
     notes:
-      'Audio is cached in Cloudflare R2 under tts-cache/practice/v1/<sha256>.wav, keyed by model, voice, style and text, and stored after the stream ends. All exam lines are cacheable; practice coach replies over 200 characters are not. Add a Cloudflare cache rule for /tts-cache/* so the CDN caches .wav.',
+      'Exam Neural2 MP3 is cached in R2 under tts-cache/exam-neural2/v1; practice Gemini WAV under tts-cache/practice/v1. Keys include model, voice, style and text. All exam lines are cacheable; practice coach replies over 200 characters are not. The /tts-cache/* CDN rule covers both.',
   },
   {
     id: 'practice-coach',

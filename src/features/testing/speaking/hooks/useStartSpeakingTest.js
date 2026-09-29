@@ -6,11 +6,16 @@ import { getLearningActivityId } from '@/features/testing/shared/activityContext
 import { callEdgeFunction } from '@/utils/api';
 
 import { buildInitialSpeakingConversation } from '../utils/speakingTestUtils';
-import { prefetchSpeakingTts, setSpeakingTtsProfile } from '../utils/speakingTtsPrefetch';
+import {
+  prefetchSpeakingTts,
+  setSpeakingTtsVoice,
+  setSpeakingTtsProfile,
+} from '../utils/speakingTtsPrefetch';
 
 export default function useStartSpeakingTest({
   allParts,
   authUser,
+  examinerVoice,
   checkCurrentQuota,
   firstQuestionInsertedRef,
   isStartingTestRef,
@@ -39,6 +44,7 @@ export default function useStartSpeakingTest({
       // The learner chooses a mode after initialization. Prefetch its voice
       // during session startup so playback reuses the same request.
       setSpeakingTtsProfile(speakingMode);
+      setSpeakingTtsVoice(examinerVoice);
       const opening = pendingGreetingRef.current;
       if (opening) {
         const greeting = resolveGreeting(opening, speakingMode);
@@ -61,6 +67,7 @@ export default function useStartSpeakingTest({
           pendingGreetingRef,
           setSession,
           speakingMode,
+          examinerVoice,
           testId,
           useSpeakingV2,
         });
@@ -99,6 +106,7 @@ export default function useStartSpeakingTest({
   }, [
     allParts,
     authUser,
+    examinerVoice,
     checkCurrentQuota,
     firstQuestionInsertedRef,
     isStartingTestRef,
@@ -120,6 +128,7 @@ export default function useStartSpeakingTest({
 async function createSpeakingSession({
   allParts,
   authUser,
+  examinerVoice,
   pendingGreetingRef,
   setSession,
   speakingMode,
@@ -146,6 +155,7 @@ async function createSpeakingSession({
         passage_id: resolvedPassageId,
         currentPart: partNumber,
         ...(useSpeakingV2 ? { speakingVersion: 'v2', speakingMode } : {}),
+        ...(speakingMode === 'exam' ? { examinerVoice } : {}),
       },
       answers: { conversation: initialConversation.slice(0, 1), currentQuestionIndex: 0 },
     });

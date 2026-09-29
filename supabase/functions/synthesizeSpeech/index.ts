@@ -54,6 +54,8 @@ const ALLOWED_VOICES = new Set([
   'en-US-Neural2-H',
   'en-US-Neural2-I',
   'en-US-Neural2-J',
+  'en-AU-Neural2-A',
+  'en-AU-Neural2-B',
 ]);
 
 /**
@@ -79,7 +81,7 @@ async function callGoogleTTS(
   voiceName: string,
   apiKey: string
 ): Promise<{ buffer?: ArrayBuffer; base64?: string; error?: string }> {
-  const languageCode = voiceName.startsWith('en-GB') ? 'en-GB' : 'en-US';
+  const languageCode = voiceName.slice(0, 5);
 
   const body = {
     input: { text },

@@ -18,6 +18,7 @@ import {
   prefetchSpeakingTts,
   requestSpeakingTts,
   resetSpeakingTtsRoutingForTests,
+  setSpeakingTtsVoice,
   setSpeakingTtsProfile,
 } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
 
@@ -45,21 +46,36 @@ describe('practice-mode TTS routing', () => {
     vi.unstubAllEnvs();
   });
 
-  it('sends exam mode to the same Gemini stream and voice route', async () => {
+  it('sends exam mode with the selected regional voice to the R2 route', async () => {
     setSpeakingTtsProfile('exam');
-    callEdgeFunctionStream.mockResolvedValue(pcmResponse());
+    setSpeakingTtsVoice('australian-male');
+    callEdgeFunctionStream.mockResolvedValue(
+      jsonResponse({
+        success: true,
+        audioUrl: 'data:audio/mpeg;base64,test',
+        model: 'google-tts-neural2',
+        voice: 'en-AU-Neural2-B',
+      })
+    );
     const result = await requestSpeakingTts('Do you work or study?');
     expect(callEdgeFunctionStream).toHaveBeenCalledWith(
       'synthesizePracticeSpeech',
-      expect.objectContaining({ text: 'Do you work or study?', mode: 'exam', stream: true })
+      expect.objectContaining({
+        text: 'Do you work or study?',
+        mode: 'exam',
+        stream: true,
+        examVoice: 'australian-male',
+      })
     );
-    expect(result.data.stream).toBeInstanceOf(ReadableStream);
+    expect(result.data.audioUrl).toContain('audio/mpeg');
     expect(invoke).not.toHaveBeenCalled();
   });
 
   it('uses an R2 cached exam clip without calling Neural2', async () => {
     setSpeakingTtsProfile('exam');
-    callEdgeFunctionStream.mockResolvedValue(jsonResponse(cachedPractice));
+    callEdgeFunctionStream.mockResolvedValue(
+      jsonResponse({ ...cachedPractice, model: 'google-tts-neural2', voice: 'en-GB-Neural2-C' })
+    );
     const result = await requestSpeakingTts('Do you work or study?');
     expect(result.data).toMatchObject({ audioUrl: cachedPractice.audioUrl, cached: true });
     expect(invoke).not.toHaveBeenCalled();
@@ -67,12 +83,40 @@ describe('practice-mode TTS routing', () => {
 
   it('falls back to Neural2 if exam Gemini is unavailable', async () => {
     setSpeakingTtsProfile('exam');
+    setSpeakingTtsVoice('british-male');
     callEdgeFunctionStream.mockResolvedValue(
       jsonResponse({ useLegacy: true, reason: 'provider_error' })
     );
     const result = await requestSpeakingTts('Do you work or study?');
     expect(result.data.audioUrl).toBe(legacyAudio.audioUrl);
-    expect(invoke).toHaveBeenCalledWith('synthesizeSpeech', expect.anything());
+    expect(invoke).toHaveBeenCalledWith('synthesizeSpeech', {
+      body: { text: 'Do you work or study?', voice: 'en-GB-Neural2-D' },
+    });
+  });
+
+  it('rejects an old Gemini exam response instead of playing the wrong accent', async () => {
+    setSpeakingTtsProfile('exam');
+    setSpeakingTtsVoice('australian-male');
+    callEdgeFunctionStream.mockResolvedValue(
+      jsonResponse({
+        ...cachedPractice,
+        model: 'google/gemini-3.8-flash-lite-tts',
+        voice: 'Sulafat',
+      })
+    );
+    await requestSpeakingTts('Do you work or study?');
+    expect(invoke).toHaveBeenCalledWith('synthesizeSpeech', {
+      body: { text: 'Do you work or study?', voice: 'en-AU-Neural2-B' },
+    });
+  });
+
+  it('rejects a Gemini PCM stream in exam mode', async () => {
+    setSpeakingTtsProfile('exam');
+    callEdgeFunctionStream.mockResolvedValue(pcmResponse());
+    await requestSpeakingTts('Do you work or study?');
+    expect(invoke).toHaveBeenCalledWith('synthesizeSpeech', {
+      body: { text: 'Do you work or study?', voice: 'en-GB-Neural2-C' },
+    });
   });
 
   it('allows a build-time exam kill switch', async () => {

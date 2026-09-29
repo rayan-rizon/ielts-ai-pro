@@ -1,18 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { callEdgeFunctionStream } from '@/utils/api';
 import { formatIeltsQuestion } from './speakingTestUtils';
+import { getSpeakingVoice } from './speakingAccents';
 
-// Neural2-C is a natural-sounding British female voice at the standard TTS
-// price tier. Keeping the voice in one constant keeps prefetch and playback
-// requests on the same cache key.
+// Practice uses the original British fallback. Exam voice selection comes from
+// the catalog below and uses the same key for prefetch and playback.
 export const SPEAKING_TTS_VOICE = 'en-GB-Neural2-C';
 
 const MAX_CACHED_REQUESTS = 40;
 const requestCache = new Map();
 
-// Both modes use the streamed Gemini voice, with Neural2 as the fallback.
-// Practice remains gated by PRACTICE_TTS_ROLLOUT (off by default); exam is
-// enabled by default. The build-time switches can disable either route.
+// Practice streams Gemini when its rollout allows it; exam uses regional
+// Neural2 with R2. The build-time switches can disable either R2 route.
 const PRACTICE_OVERRIDE_MODEL_KEY = 'ielts.practiceTts.model';
 const PRACTICE_OVERRIDE_VOICE_KEY = 'ielts.practiceTts.voice';
 const PRACTICE_DEBUG_KEY = 'ielts.practiceTts.debug';
@@ -20,10 +19,19 @@ const PRACTICE_DEBUG_KEY = 'ielts.practiceTts.debug';
 const STICKY_LEGACY_REASONS = new Set(['rollout', 'not_configured', 'profile_missing']);
 
 let ttsProfile = 'exam';
+let examVoiceId = 'british-female';
 const routeDisabled = { practice: false, exam: false };
 
 export function setSpeakingTtsProfile(mode) {
   ttsProfile = mode === 'practice' ? 'practice' : 'exam';
+}
+
+export function setSpeakingTtsVoice(voiceId) {
+  examVoiceId = getSpeakingVoice(voiceId).id;
+}
+
+export function getActiveSpeakingVoice() {
+  return getSpeakingVoice(ttsProfile === 'exam' ? examVoiceId : 'british-female');
 }
 
 function isPracticeTtsBuildEnabled() {
@@ -51,7 +59,7 @@ export function normalizeSpeakingTtsText(text) {
     .trim();
 }
 
-function shouldUseGeminiRoute() {
+function shouldUseR2Route() {
   return (
     !routeDisabled[ttsProfile] &&
     (ttsProfile === 'exam' ? isExamTtsBuildEnabled() : isPracticeTtsBuildEnabled())
@@ -82,7 +90,7 @@ function logPracticeTts(details) {
  * silence it. A fresh phrase comes back as a live PCM stream
  * ({ stream, sampleRate }); a phrase already in the cache as { audioUrl }.
  */
-async function requestPracticeTts(cleanText, legacyVoice, mode) {
+async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
   // Admin-only on the server; ignored for everyone else.
   const model = readLocalSetting(PRACTICE_OVERRIDE_MODEL_KEY);
   const voice = readLocalSetting(PRACTICE_OVERRIDE_VOICE_KEY);
@@ -94,10 +102,14 @@ async function requestPracticeTts(cleanText, legacyVoice, mode) {
       text: cleanText,
       stream: true,
       mode,
+      ...(mode === 'exam' ? { examVoice } : {}),
       ...(model ? { model } : {}),
       ...(voice ? { voice } : {}),
     });
     const contentType = response.headers.get('Content-Type') || '';
+    if (mode === 'exam' && contentType.startsWith('audio/pcm')) {
+      return requestLegacyTts(cleanText, legacyVoice);
+    }
     if (response.ok && contentType.startsWith('audio/pcm') && response.body) {
       const sampleRate = Number(/rate=(\d+)/.exec(contentType)?.[1]) || 24000;
       logPracticeTts({
@@ -108,7 +120,9 @@ async function requestPracticeTts(cleanText, legacyVoice, mode) {
       return { data: { success: true, stream: response.body, sampleRate }, error: null };
     }
     const data = await response.json().catch(() => null);
-    if (response.ok && data?.success && data?.audioUrl) {
+    const matchesExamVoice =
+      mode !== 'exam' || (data?.model === 'google-tts-neural2' && data?.voice === legacyVoice);
+    if (response.ok && data?.success && data?.audioUrl && matchesExamVoice) {
       logPracticeTts({
         model: data.model,
         voice: data.voice,
@@ -130,13 +144,13 @@ async function requestPracticeTts(cleanText, legacyVoice, mode) {
  * prefetch parks the request for the one playback that follows; playback
  * takes it (removing it) or asks afresh without caching.
  */
-function requestPracticeOnce(key, cleanText, voice, { prefetch, mode }) {
+function requestPracticeOnce(key, cleanText, voice, { prefetch, mode, examVoice }) {
   const parked = requestCache.get(key);
   if (parked) {
     if (!prefetch) requestCache.delete(key);
     return parked;
   }
-  const request = requestPracticeTts(cleanText, voice, mode);
+  const request = requestPracticeTts(cleanText, voice, mode, examVoice);
   if (prefetch) {
     if (requestCache.size >= MAX_CACHED_REQUESTS) evictOldestRequest();
     requestCache.set(key, request);
@@ -147,16 +161,23 @@ function requestPracticeOnce(key, cleanText, voice, { prefetch, mode }) {
   return request;
 }
 
-export function requestSpeakingTts(text, voice = SPEAKING_TTS_VOICE, options = {}) {
+export function requestSpeakingTts(text, voice, options = {}) {
   const cleanText = normalizeSpeakingTtsText(text);
   if (!cleanText) return Promise.resolve({ data: null, error: null });
 
-  const useGemini = shouldUseGeminiRoute();
-  const key = cacheKey(cleanText, voice, useGemini ? ttsProfile : 'standard');
-  if (useGemini) {
-    return requestPracticeOnce(key, cleanText, voice, {
+  const selectedVoice = getActiveSpeakingVoice();
+  const legacyVoice = voice || selectedVoice.voice;
+  const useR2 = shouldUseR2Route();
+  const key = cacheKey(
+    cleanText,
+    legacyVoice,
+    useR2 ? `${ttsProfile}:${selectedVoice.id}` : 'standard'
+  );
+  if (useR2) {
+    return requestPracticeOnce(key, cleanText, legacyVoice, {
       prefetch: Boolean(options.prefetch),
       mode: ttsProfile,
+      examVoice: selectedVoice.id,
     });
   }
 
@@ -165,7 +186,7 @@ export function requestSpeakingTts(text, voice = SPEAKING_TTS_VOICE, options = {
 
   if (requestCache.size >= MAX_CACHED_REQUESTS) evictOldestRequest();
 
-  const request = requestLegacyTts(cleanText, voice)
+  const request = requestLegacyTts(cleanText, legacyVoice)
     .then((result) => {
       if (result?.error || !result?.data?.success || !result?.data?.audioUrl) {
         if (requestCache.get(key) === request) requestCache.delete(key);
@@ -181,7 +202,7 @@ export function requestSpeakingTts(text, voice = SPEAKING_TTS_VOICE, options = {
   return request;
 }
 
-export function prefetchSpeakingTts(text, voice = SPEAKING_TTS_VOICE) {
+export function prefetchSpeakingTts(text, voice) {
   requestSpeakingTts(text, voice, { prefetch: true }).catch(() => {});
 }
 
@@ -192,6 +213,7 @@ export function clearSpeakingTtsRequestCache() {
 /** Test hook: restore module state between cases. */
 export function resetSpeakingTtsRoutingForTests() {
   ttsProfile = 'exam';
+  examVoiceId = 'british-female';
   routeDisabled.practice = false;
   routeDisabled.exam = false;
   requestCache.clear();

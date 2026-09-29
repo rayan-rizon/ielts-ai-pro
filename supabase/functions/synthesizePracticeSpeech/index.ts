@@ -22,13 +22,15 @@ import {
   OPENROUTER_SPEECH_URL,
   parsePracticeTtsRollout,
   pcm16ToWav,
+  resolveExamNeural2Voice,
   resolvePracticeTtsSelection,
+  resolveSpeakingAccent,
   styleForModel,
   toPlayableAudio,
   type PracticeTtsSelection,
 } from '../_shared/practiceTts.ts';
 import { createR2Objects, readR2Config } from '../_shared/r2Objects.ts';
-import { estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
+import { estimateCharacterCostUsd, estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
 import {
   GEMINI_TTS_DIRECT_MODEL,
   GEMINI_TTS_SAMPLE_RATE,
@@ -39,17 +41,15 @@ declare const Deno: any;
 declare const EdgeRuntime: any;
 
 // ============================================================
-// Speaking examiner voice through Gemini TTS, shared by exam and practice.
+// Speaking exam voices through Google Neural2; practice coach through Gemini.
 // ============================================================
 // Practice is gated by PRACTICE_TTS_ROLLOUT; exam is available to authenticated
 // learners. Whenever this route cannot serve a learner, the browser calls
 // synthesizeSpeech (Google Neural2) instead.
 //
 // Audio is content-addressed in Cloudflare R2 (MP3, or WAV for Gemini's PCM).
-// A cache hit returns the public CDN URL. A miss with the Gemini voice and
-// { stream: true } streams raw PCM straight from Google as it is generated
-// (first audio ~1.2s) and stores the finished clip; other misses synthesize
-// through OpenRouter and return the audio inline.
+// A cache hit returns the public CDN URL. Exam misses synthesize an MP3 with
+// the selected regional Neural2 voice. Practice misses stream Gemini PCM.
 
 const PROVIDER_TIMEOUT_MS = 15000;
 const CACHE_CONTROL = 'public, max-age=31536000, immutable';
@@ -72,6 +72,30 @@ function bytesToBase64(bytes: Uint8Array) {
     binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
   }
   return btoa(binary);
+}
+
+async function synthesizeExamNeural2(text: string, voice: string, apiKey: string) {
+  const response = await fetch(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: { text },
+        voice: { languageCode: voice.slice(0, 5), name: voice },
+        audioConfig: { audioEncoding: 'MP3', speakingRate: 0.91, pitch: 0 },
+      }),
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+    }
+  );
+  if (!response.ok) throw new Error(`Google Neural2 returned ${response.status}`);
+  const payload = await response.json();
+  if (!payload?.audioContent) throw new Error('Google Neural2 returned no audio');
+  const binary = atob(payload.audioContent);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  if (bytes.byteLength < 512) throw new Error('Google Neural2 returned incomplete audio');
+  return bytes;
 }
 
 /** A lookup error counts as a miss: the worst case is one extra synthesis. */
@@ -129,7 +153,7 @@ async function streamGeminiSpeech(params: {
       apiKey: params.apiKey,
       text: params.text,
       voice: params.selection.voice,
-      style: styleForModel(params.selection.model),
+      style: styleForModel(params.selection.model, params.selection.accent),
     });
   } catch (error: any) {
     console.warn('[PracticeTTS] Gemini stream refused:', error?.message);
@@ -176,6 +200,7 @@ async function streamGeminiSpeech(params: {
         provider: 'google-direct',
         model: GEMINI_TTS_DIRECT_MODEL,
         voice: params.selection.voice,
+        accent: params.selection.accent || 'british',
         streamed: true,
         textLength: params.text.length,
         audioBytes: total,
@@ -258,6 +283,8 @@ serve(async (req: Request) => {
   try {
     const body = await req.json().catch(() => ({}));
     const mode: 'practice' | 'exam' = body?.mode === 'exam' ? 'exam' : 'practice';
+    const accent = resolveSpeakingAccent(body?.accent, mode);
+    const examVoice = mode === 'exam' ? resolveExamNeural2Voice(body?.examVoice, accent) : null;
     route = mode === 'exam' ? 'exam-tts' : 'practice-tts';
     const text = normalizePracticeTtsText(body?.text);
     if (!text) {
@@ -282,6 +309,7 @@ serve(async (req: Request) => {
     const rollout = parsePracticeTtsRollout(Deno.env.get('PRACTICE_TTS_ROLLOUT'));
     const apiKey = Deno.env.get('OPENROUTER_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    const googleTtsApiKey = Deno.env.get('GOOGLE_TTS_API_KEY');
     const r2Config = readR2Config();
     const r2 = r2Config ? createR2Objects(r2Config) : null;
     const configuredModel = Deno.env.get('PRACTICE_TTS_MODEL');
@@ -290,12 +318,22 @@ serve(async (req: Request) => {
     // Start the cache lookup for the default voice while the profile loads. It
     // runs only for an authenticated caller with the route enabled, and its
     // result is read only after the rollout check below passes.
-    const hasOverride = body?.model !== undefined || body?.voice !== undefined;
+    const hasOverride =
+      mode === 'practice' && (body?.model !== undefined || body?.voice !== undefined);
     const earlyLookup =
       (mode === 'exam' || rollout !== 'off') && r2 && !hasOverride
         ? lookupCache(
             r2,
-            resolvePracticeTtsSelection({ configuredModel, configuredVoice, isAdmin: false }),
+            examVoice
+              ? { model: 'google-tts-neural2', voice: examVoice }
+              : {
+                  ...resolvePracticeTtsSelection({
+                    configuredModel,
+                    configuredVoice,
+                    isAdmin: false,
+                  }),
+                  accent,
+                },
             text,
             mode
           )
@@ -316,13 +354,18 @@ serve(async (req: Request) => {
     // Never synthesize without a cache: every repeat would be billed again.
     if (!r2) return legacy('not_configured', corsHeaders);
 
-    const selection = resolvePracticeTtsSelection({
-      configuredModel,
-      configuredVoice,
-      requestedModel: body?.model,
-      requestedVoice: body?.voice,
-      isAdmin,
-    });
+    const selection: PracticeTtsSelection = examVoice
+      ? { model: 'google-tts-neural2', voice: examVoice }
+      : {
+          ...resolvePracticeTtsSelection({
+            configuredModel,
+            configuredVoice,
+            requestedModel: body?.model,
+            requestedVoice: body?.voice,
+            isAdmin,
+          }),
+          accent,
+        };
 
     // 1. R2 cache lookup, reusing the early lookup when it was for this voice.
     const early = earlyLookup ? await earlyLookup : null;
@@ -355,7 +398,8 @@ serve(async (req: Request) => {
     // synthesizeSpeech applies its own burst limit to the fallback request.
     if (!burst.allowed) return legacy('rate_limited', corsHeaders);
 
-    if ((!geminiApiKey || body?.stream !== true) && !apiKey)
+    if (examVoice && !googleTtsApiKey) return legacy('not_configured', corsHeaders);
+    if (!examVoice && (!geminiApiKey || body?.stream !== true) && !apiKey)
       return legacy('not_configured', corsHeaders);
 
     // 2. Miss: reserve against the shared TTS quota (the same daily and monthly
@@ -370,6 +414,43 @@ serve(async (req: Request) => {
     );
     if (!quota.allowed) return quotaExceededResponse(quota, corsHeaders);
     quotaReservationId = quota.reservationId;
+
+    if (examVoice && googleTtsApiKey) {
+      const providerStartedAt = performance.now();
+      const audioBytes = await synthesizeExamNeural2(text, examVoice, googleTtsApiKey);
+      timings.provider = performance.now() - providerStartedAt;
+      if (cacheable) {
+        const upload = r2
+          .put(cacheKey, audioBytes, { contentType: 'audio/mpeg', cacheControl: CACHE_CONTROL })
+          .catch((error: any) => console.warn('[PracticeTTS] R2 upload failed:', error?.message));
+        if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime?.waitUntil)
+          EdgeRuntime.waitUntil(upload);
+        else await upload;
+      }
+      await finalizeApiUsage(supabase, quotaReservationId, text.length, false, {
+        route,
+        provider: 'google-direct',
+        model: 'google-tts-neural2',
+        voice: examVoice,
+        textLength: text.length,
+        audioBytes: audioBytes.byteLength,
+        estimatedProviderCostUsd: estimateCharacterCostUsd('google-tts-neural2', text.length),
+        providerLatencyMs: Math.round(timings.provider),
+      });
+      quotaReservationId = undefined;
+      timings.total = performance.now() - startedAt;
+      return json(
+        {
+          success: true,
+          audioUrl: `data:audio/mpeg;base64,${bytesToBase64(audioBytes)}`,
+          cached: false,
+          ...selection,
+          timings,
+        },
+        corsHeaders,
+        { 'Server-Timing': serverTiming(timings) }
+      );
+    }
 
     if (
       body?.stream === true &&
@@ -441,7 +522,7 @@ serve(async (req: Request) => {
       textLength: text.length,
       audioBytes: audioBytes.byteLength,
       billingUnit: 'openrouter-speech',
-      estimatedProviderCostUsd: estimatePracticeTtsCostUsd(selection.model, text),
+      estimatedProviderCostUsd: estimatePracticeTtsCostUsd(selection.model, text, accent),
       generationId,
       providerLatencyMs: Math.round(timings.provider),
       cacheLookupMs: Math.round(timings.cache),

@@ -13,10 +13,13 @@ import {
   PRACTICE_TTS_MAX_CHARACTERS,
   PRACTICE_TTS_MODELS,
   PRACTICE_TTS_STYLE,
+  resolveSpeakingAccent,
   resolvePracticeTtsSelection,
+  resolveExamNeural2Voice,
   toPlayableAudio,
 } from '../../../supabase/functions/_shared/practiceTts.ts';
 import { AI_ROUTES, MODELS } from '../../../supabase/functions/_shared/aiModelRegistry.ts';
+import { SPEAKING_EXAMINER_VOICES } from '../../features/testing/speaking/utils/speakingAccents.js';
 
 describe('practice TTS rollout', () => {
   it('treats anything other than admin or all as off', () => {
@@ -97,6 +100,44 @@ describe('practice TTS request and cache', () => {
     expect(await computePracticeTtsCacheKey(gemini, 'Hello.')).toBe(a);
     expect(await computePracticeTtsCacheKey({ ...gemini, voice: 'Kore' }, 'Hello.')).not.toBe(a);
     expect(await computePracticeTtsCacheKey(gemini, 'Hello!')).not.toBe(a);
+    expect(await computePracticeTtsCacheKey({ ...gemini, accent: 'british' }, 'Hello.')).toBe(a);
+    expect(
+      await computePracticeTtsCacheKey({ ...gemini, accent: 'australian' }, 'Hello.')
+    ).not.toBe(a);
+    expect(await computePracticeTtsCacheKey({ ...gemini, accent: 'american' }, 'Hello.')).not.toBe(
+      a
+    );
+  });
+
+  it('keeps each regional Neural2 voice in a separate R2 MP3 key', async () => {
+    const base = { model: 'google-tts-neural2', voice: 'en-GB-Neural2-C' };
+    const british = await computePracticeTtsCacheKey(base, 'Good morning.');
+    expect(british).toMatch(/^tts-cache\/exam-neural2\/v1\/[0-9a-f]{64}\.mp3$/);
+    expect(
+      await computePracticeTtsCacheKey({ ...base, voice: 'en-GB-Neural2-D' }, 'Good morning.')
+    ).not.toBe(british);
+    expect(
+      await computePracticeTtsCacheKey({ ...base, voice: 'en-AU-Neural2-A' }, 'Good morning.')
+    ).not.toBe(british);
+    expect(resolveExamNeural2Voice('australian-male')).toBe('en-AU-Neural2-B');
+    expect(resolveExamNeural2Voice('untrusted', 'american')).toBe('en-US-Neural2-C');
+    for (const voice of SPEAKING_EXAMINER_VOICES) {
+      expect(resolveExamNeural2Voice(voice.id)).toBe(voice.voice);
+    }
+  });
+
+  it('limits accent changes to exam mode and sends the selected style', () => {
+    expect(resolveSpeakingAccent('australian', 'exam')).toBe('australian');
+    expect(resolveSpeakingAccent('american', 'exam')).toBe('american');
+    expect(resolveSpeakingAccent('american', 'practice')).toBe('british');
+    expect(resolveSpeakingAccent('unknown', 'exam')).toBe('british');
+    const body = buildOpenRouterSpeechRequest(
+      { model: DEFAULT_PRACTICE_TTS_MODEL, voice: 'Sulafat', accent: 'australian' },
+      'Hello.'
+    ) as any;
+    expect(body.provider.options['google-ai-studio'].speech_metadata.style).toContain(
+      'Australian English accent'
+    );
   });
 
   it('caches long shared exam introductions but not unique practice coaching', () => {
