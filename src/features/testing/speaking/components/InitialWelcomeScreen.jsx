@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/cn';
-import { IconChip, MICRO, MUTED, Pill, WELL } from '@/features/dashboard/components/primitives';
+import { MUTED } from '@/features/dashboard/components/primitives';
 
 import useSpeakingDeviceChecks from '../hooks/useSpeakingDeviceChecks';
 import ExaminerVoiceCarousel from './ExaminerVoiceCarousel';
@@ -54,108 +54,26 @@ const MODES = [
   },
 ];
 
-function PracticeCoachCard() {
-  return (
-    <section className="mt-3 w-full max-w-2xl text-left" aria-labelledby="practice-coach-title">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div>
-          <p className={cn(MICRO, MUTED)}>Before you begin</p>
-          <h3
-            id="practice-coach-title"
-            className="text-xs font-extrabold text-slate-800 dark:text-slate-100 sm:text-sm"
-          >
-            Meet your live AI coach
-          </h3>
-        </div>
-        <Pill tone="emerald">Live coaching</Pill>
-      </div>
-
-      <div
-        className={cn(
-          WELL,
-          'flex min-h-[256px] flex-col justify-center rounded-xl border border-[#e4e2f0] p-3 sm:p-4 dark:border-white/[0.07]'
-        )}
-      >
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="relative w-28 shrink-0 sm:w-36">
-            <img
-              src="/speaking-assets/examiner-welcome-v1.png"
-              alt="AI speaking examiner wearing a headset"
-              className="aspect-3/2 w-full rounded-lg object-cover object-center mix-blend-multiply dark:mix-blend-normal"
-              loading="eager"
-            />
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-linear-to-t/srgb from-white to-transparent dark:from-[#131315]"
-              aria-hidden="true"
-            />
-          </div>
-
-          <div className="grid min-w-0 flex-1 grid-cols-1 gap-1.5 sm:gap-2">
-            <div className="flex items-start gap-2.5 rounded-lg border border-[#e4e2f0]/70 bg-white/80 p-2 text-left dark:border-white/[0.06] dark:bg-white/4">
-              <IconChip icon={MessageSquareText} tone="rose" size="sm" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
-                  Live voice coaching
-                </p>
-                <p className={cn(MUTED, 'text-[10px] leading-tight')}>
-                  Your coach speaks aloud after each response to guide and improve your phrasing.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 rounded-lg border border-[#e4e2f0]/70 bg-white/80 p-2 text-left dark:border-white/[0.06] dark:bg-white/4">
-              <IconChip icon={Sparkles} tone="amber" size="sm" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
-                  Instant vocabulary hints
-                </p>
-                <p className={cn(MUTED, 'text-[10px] leading-tight')}>
-                  Get high-band suggestions, collocations, and grammatical corrections in real time.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 rounded-lg border border-[#e4e2f0]/70 bg-white/80 p-2 text-left dark:border-white/[0.06] dark:bg-white/4">
-              <IconChip icon={Mic2} tone="emerald" size="sm" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
-                  Hands-free flow with pause
-                </p>
-                <p className={cn(MUTED, 'text-[10px] leading-tight')}>
-                  Answers submit automatically. You can pause anytime to take notes or gather
-                  thoughts.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        className="mt-2 flex flex-wrap justify-center gap-1 sm:gap-1.5"
-        role="group"
-        aria-label="Practice highlights"
-      >
-        <span className="inline-flex min-h-7 items-center gap-1 rounded-full border border-[#e4e2f0] bg-white/70 px-2.5 text-[10px] font-bold text-slate-600 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-300">
-          <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />8 min active time
-        </span>
-        <span className="inline-flex min-h-7 items-center gap-1 rounded-full border border-[#e4e2f0] bg-white/70 px-2.5 text-[10px] font-bold text-slate-600 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-300">
-          <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
-          Interactive transcript
-        </span>
-        <span className="inline-flex min-h-7 items-center gap-1 rounded-full border border-[#e4e2f0] bg-white/70 px-2.5 text-[10px] font-bold text-slate-600 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-300">
-          <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
-          Full coaching report
-        </span>
-      </div>
-
-      <p className={cn(MUTED, 'mt-1.5 text-center text-[10px] leading-4')}>
-        Your coach listens actively and speaks after each answer. Your choice stays with this
-        session.
-      </p>
-    </section>
-  );
-}
+const PRACTICE_BENEFITS = [
+  {
+    icon: MessageSquareText,
+    title: 'Live voice coaching',
+    detail: 'Your coach speaks after each answer with guidance on your phrasing.',
+    tone: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+  },
+  {
+    icon: Sparkles,
+    title: 'Instant vocabulary hints',
+    detail: 'Get useful vocabulary, collocations, and grammar suggestions as you practise.',
+    tone: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  },
+  {
+    icon: Mic2,
+    title: 'Hands-free flow with pause',
+    detail: 'Answers submit automatically. Pause anytime to gather your thoughts.',
+    tone: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  },
+];
 
 function ReadinessCard({ device, icon: Icon, status, onClick }) {
   const [label, detail] = DEVICE_COPY[device][status] || DEVICE_COPY[device].idle;
@@ -230,13 +148,15 @@ const InitialWelcomeScreen = ({
   return (
     <div className="flex min-h-full w-full justify-center px-0 py-2 sm:px-4 sm:py-3">
       <motion.div
-        layout="position"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-        className="flex w-full max-w-3xl flex-col items-center text-center"
+        transition={{
+          duration: 0.45,
+          ease: [0.16, 1, 0.3, 1],
+        }}
+        className="relative flex w-full max-w-3xl flex-col items-center text-center"
       >
-        <h2 className="mt-0.5 text-xl font-extrabold tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
+        <h2 className="text-xl font-extrabold tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
           Ready to start Part {partNumber}?
         </h2>
         <p className="mt-1 text-xs font-bold text-rose-500 sm:text-sm">{title}</p>
@@ -274,7 +194,7 @@ const InitialWelcomeScreen = ({
                       transition={
                         prefersReducedMotion
                           ? { duration: 0 }
-                          : { type: 'spring', stiffness: 500, damping: 36 }
+                          : { type: 'spring', stiffness: 340, damping: 34 }
                       }
                     />
                   )}
@@ -308,16 +228,71 @@ const InitialWelcomeScreen = ({
           </div>
         )}
 
-        <div className="relative w-full max-w-2xl min-h-[340px]">
-          <AnimatePresence mode="wait" initial={false}>
-            {speakingMode === 'exam' ? (
+        <div className="relative isolate min-h-[350px] w-full max-w-2xl sm:min-h-[320px]">
+          <AnimatePresence mode="sync" initial={false}>
+            {speakingMode === 'practice' ? (
+              <motion.div
+                key="practice-mode-stage"
+                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0"
+                role="group"
+                aria-label="Practice mode"
+              >
+                <div className="grid h-full w-full grid-cols-1 items-center gap-1.5 rounded-xl border border-[#e4e2f0] bg-[#f5f4fa] p-2.5 dark:border-white/[0.07] dark:bg-[#141319] sm:grid-cols-[minmax(0,0.72fr)_minmax(0,1.7fr)] sm:gap-3 sm:p-3">
+                  <div className="relative mx-auto w-full max-w-32 sm:max-w-none">
+                    <img
+                      src="/speaking-assets/examiner-welcome-v1.png"
+                      alt="AI speaking examiner wearing a headset"
+                      className="aspect-3/2 w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
+                      loading="eager"
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t/srgb from-[#f5f4fa] to-transparent dark:from-[#141319]"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="grid min-w-0 gap-1.5 sm:gap-2">
+                    {PRACTICE_BENEFITS.map(({ icon: Icon, title: benefitTitle, detail, tone }) => (
+                      <div
+                        key={benefitTitle}
+                        className="flex min-w-0 items-center gap-2 rounded-lg border border-[#e4e2f0]/80 bg-white px-2 py-1.5 text-left dark:border-white/[0.07] dark:bg-[#19181f] sm:gap-2.5 sm:p-2"
+                      >
+                        <span
+                          className={cn(
+                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
+                            tone
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[10px] font-extrabold leading-4 text-slate-800 dark:text-slate-100 sm:text-xs">
+                            {benefitTitle}
+                          </span>
+                          <span
+                            className={cn(MUTED, 'block text-[9px] leading-3.5 sm:text-[10px]')}
+                          >
+                            {detail}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
               <motion.div
                 key="exam-mode-stage"
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
                 animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full"
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-x-0 top-0"
+                role="group"
+                aria-label="Exam mode"
               >
                 <ExaminerVoiceCarousel
                   examinerVoice={examinerVoice}
@@ -326,28 +301,11 @@ const InitialWelcomeScreen = ({
                   previewVoice={previewVoice}
                 />
               </motion.div>
-            ) : (
-              <motion.div
-                key="practice-mode-stage"
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 6 }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full"
-              >
-                <PracticeCoachCard />
-              </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <motion.div
-          layout
-          transition={
-            prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: [0.22, 1, 0.36, 1] }
-          }
-          className="mt-2.5 grid w-full max-w-lg grid-cols-2 gap-2"
-        >
+        <div className="mt-2.5 grid w-full max-w-lg grid-cols-2 gap-2">
           <ReadinessCard
             device="microphone"
             icon={Mic2}
@@ -360,7 +318,7 @@ const InitialWelcomeScreen = ({
             status={speakerStatus}
             onClick={testSpeaker}
           />
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );
