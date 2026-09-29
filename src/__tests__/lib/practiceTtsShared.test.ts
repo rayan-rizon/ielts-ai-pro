@@ -5,6 +5,7 @@ import {
   computePracticeTtsCacheKey,
   DEFAULT_PRACTICE_TTS_MODEL,
   EXAM_TTS_STYLE,
+  EXAM_SULAFAT_TTS_STYLE,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
   isSpeakingTtsCacheable,
@@ -113,8 +114,8 @@ describe('practice TTS request and cache', () => {
   it('keeps each regional Gemini exam voice in a separate R2 WAV key', async () => {
     const base = {
       model: DEFAULT_PRACTICE_TTS_MODEL,
-      voice: 'en-gb-tutor-4',
-      style: EXAM_TTS_STYLE,
+      voice: 'Sulafat',
+      style: EXAM_SULAFAT_TTS_STYLE,
       route: 'exam' as const,
     };
     const british = await computePracticeTtsCacheKey(base, 'Good morning.');

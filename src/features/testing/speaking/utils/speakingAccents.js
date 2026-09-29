@@ -3,13 +3,13 @@
 export const SPEAKING_EXAMINER_VOICES = [
   {
     id: 'british-female',
-    name: 'Sophie',
+    name: 'Sulafat',
     accent: 'British',
     region: 'United Kingdom',
     language: 'en-GB',
     gender: 'Female',
     voice: 'en-GB-Neural2-C',
-    geminiVoice: 'en-gb-tutor-4',
+    geminiVoice: 'Sulafat',
   },
   {
     id: 'british-male',

@@ -77,7 +77,7 @@ describe('practice-mode TTS routing', () => {
       jsonResponse({
         ...cachedPractice,
         model: 'google/gemini-3.8-flash-lite-tts',
-        voice: 'en-gb-tutor-4',
+        voice: 'Sulafat',
       })
     );
     const result = await requestSpeakingTts('Do you work or study?');
@@ -104,7 +104,7 @@ describe('practice-mode TTS routing', () => {
       jsonResponse({
         ...cachedPractice,
         model: 'google/gemini-3.8-flash-lite-tts',
-        voice: 'en-gb-tutor-4',
+        voice: 'Sulafat',
       })
     );
     const result = await requestSpeakingTts('Do you work or study?');
@@ -117,7 +117,7 @@ describe('practice-mode TTS routing', () => {
     callEdgeFunctionStream.mockResolvedValueOnce(
       pcmResponse({
         'X-TTS-Model': 'google/gemini-3.8-flash-lite-tts',
-        'X-TTS-Voice': 'en-gb-tutor-4',
+        'X-TTS-Voice': 'Sulafat',
       })
     );
     const selected = await requestSpeakingTts('Do you work or study?');

@@ -16,6 +16,7 @@ import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
   DEFAULT_PRACTICE_TTS_MODEL,
+  EXAM_SULAFAT_TTS_STYLE,
   EXAM_TTS_STYLE,
   isSpeakingTtsCacheable,
   estimatePracticeTtsCostUsd,
@@ -264,6 +265,7 @@ serve(async (req: Request) => {
     const mode: 'practice' | 'exam' = body?.mode === 'exam' ? 'exam' : 'practice';
     const accent = resolveSpeakingAccent(body?.accent, mode);
     const examVoice = mode === 'exam' ? resolveExamGeminiVoice(body?.examVoice, accent) : null;
+    const examStyle = examVoice === 'Sulafat' ? EXAM_SULAFAT_TTS_STYLE : EXAM_TTS_STYLE;
     route = mode === 'exam' ? 'exam-tts' : 'practice-tts';
     const text = normalizePracticeTtsText(body?.text);
     if (!text) {
@@ -306,7 +308,7 @@ serve(async (req: Request) => {
               ? {
                   model: DEFAULT_PRACTICE_TTS_MODEL,
                   voice: examVoice,
-                  style: EXAM_TTS_STYLE,
+                  style: examStyle,
                   route: 'exam',
                 }
               : {
@@ -341,7 +343,7 @@ serve(async (req: Request) => {
       ? {
           model: DEFAULT_PRACTICE_TTS_MODEL,
           voice: examVoice,
-          style: EXAM_TTS_STYLE,
+          style: examStyle,
           route: 'exam',
         }
       : {

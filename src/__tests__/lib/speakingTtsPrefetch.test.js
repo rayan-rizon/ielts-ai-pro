@@ -78,7 +78,7 @@ describe('speaking TTS prefetch cache', () => {
           cached: true,
           audioUrl: 'https://media.ieltsai.pro/exam-voice.wav',
           model: 'google/gemini-3.8-flash-lite-tts',
-          voice: 'en-gb-tutor-4',
+          voice: 'Sulafat',
         }),
         { headers: { 'Content-Type': 'application/json' } }
       )
@@ -102,7 +102,7 @@ describe('speaking TTS prefetch cache', () => {
 
   it('uses four distinct Gemini exam voices and keeps British female as the default', () => {
     expect(SPEAKING_EXAMINER_VOICES.map((voice) => voice.geminiVoice)).toEqual([
-      'en-gb-tutor-4',
+      'Sulafat',
       'en-gb-tutor-14',
       'en-au-tutor-5',
       'despina',
@@ -110,7 +110,8 @@ describe('speaking TTS prefetch cache', () => {
     expect(SPEAKING_EXAMINER_VOICES).toHaveLength(4);
     expect(getSpeakingVoice()).toMatchObject({
       id: 'british-female',
-      geminiVoice: 'en-gb-tutor-4',
+      name: 'Sulafat',
+      geminiVoice: 'Sulafat',
     });
     expect(getSpeakingVoice('australian-female').id).toBe('australian-male');
     expect(getSpeakingVoice('american-male').id).toBe('american-female');

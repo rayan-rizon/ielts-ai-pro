@@ -41,6 +41,8 @@ export const PRACTICE_TTS_STYLE =
   'A warm, encouraging IELTS speaking coach with a clear British English accent, speaking at a natural conversational pace.';
 export const EXAM_TTS_STYLE =
   'A calm, professional IELTS speaking examiner. Speak clearly at a natural conversational pace, and read the supplied text exactly.';
+export const EXAM_SULAFAT_TTS_STYLE =
+  'A calm, professional IELTS speaking examiner with a clear British English accent. Speak clearly at a natural conversational pace, and read the supplied text exactly.';
 
 export type SpeakingAccent = 'british' | 'australian' | 'american';
 export const SPEAKING_ACCENT_STYLES: Record<SpeakingAccent, string> = {
@@ -60,7 +62,7 @@ export function resolveSpeakingAccent(value: unknown, mode: 'practice' | 'exam')
 // Region and gender come from Google's Voice Library metadata, not a prompt
 // asking a generic voice to imitate an accent.
 export const EXAM_GEMINI_VOICES = {
-  'british-female': 'en-gb-tutor-4',
+  'british-female': 'Sulafat',
   'british-male': 'en-gb-tutor-14',
   'australian-male': 'en-au-tutor-5',
   'american-female': 'despina',
