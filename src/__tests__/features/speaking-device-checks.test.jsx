@@ -145,6 +145,36 @@ describe('speaking device readiness checks', () => {
     expect(setSpeakingMode).toHaveBeenCalledWith('practice');
   });
 
+  it('renders both practice and exam modes within the unified stage card without layout shift', () => {
+    const { rerender } = render(
+      <InitialWelcomeScreen
+        partNumber={1}
+        title="Introduction & Interview"
+        speakingMode="practice"
+        speakingV2Available
+      />
+    );
+
+    expect(screen.getByRole('group', { name: 'Practice mode' })).toBeInTheDocument();
+    expect(screen.getByText('Live voice coaching')).toBeInTheDocument();
+    expect(screen.getByText('Instant vocabulary hints')).toBeInTheDocument();
+    expect(screen.getByText('Hands-free flow with pause')).toBeInTheDocument();
+
+    rerender(
+      <InitialWelcomeScreen
+        partNumber={1}
+        title="Introduction & Interview"
+        speakingMode="exam"
+        speakingV2Available
+        examinerVoice="british-female"
+      />
+    );
+
+    expect(screen.getByRole('group', { name: 'Exam mode' })).toBeInTheDocument();
+    expect(screen.getByText('Choose your examiner voice')).toBeInTheDocument();
+    expect(screen.getByText('4 voices')).toBeInTheDocument();
+  });
+
   it('selects and previews the exam accent from the welcome screen', () => {
     const onExaminerVoiceChange = vi.fn();
     const onVoicePreview = vi.fn();

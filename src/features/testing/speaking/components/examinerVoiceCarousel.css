@@ -1,11 +1,11 @@
 .examiner-voice-stage {
   overflow: hidden;
-  padding: 5px 12px 6px;
+  padding: 2px 12px 4px;
 }
 
 .examiner-voice-scene {
   position: relative;
-  height: 172px;
+  height: 164px;
   overflow: hidden;
 }
 

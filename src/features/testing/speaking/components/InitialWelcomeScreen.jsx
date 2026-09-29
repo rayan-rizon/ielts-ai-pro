@@ -92,11 +92,11 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
       onClick={onClick}
       disabled={isTesting}
       whileTap={isTesting ? undefined : { scale: 0.985 }}
-      className={`flex min-w-0 items-center gap-2 rounded-xl border p-2 text-left transition-colors sm:gap-3 sm:p-3 ${toneClass}`}
+      className={`flex min-w-0 items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors sm:gap-3 sm:px-3.5 sm:py-2.5 ${toneClass}`}
       aria-label={label}
     >
       <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 sm:rounded-xl ${
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 ${
           device === 'microphone'
             ? 'bg-emerald-500/8 text-emerald-600 dark:text-emerald-400'
             : 'bg-rose-500/8 text-rose-600 dark:text-rose-400'
@@ -109,18 +109,18 @@ function ReadinessCard({ device, icon: Icon, status, onClick }) {
         )}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1 text-[10px] font-extrabold text-slate-800 dark:text-slate-100 sm:gap-1.5 sm:text-xs">
+        <span className="flex items-center gap-1 text-[11px] font-extrabold text-slate-800 dark:text-slate-100 sm:gap-1.5 sm:text-xs">
           {label}
           {isReady ? (
-            <Check className="h-3 w-3 text-emerald-500" aria-hidden="true" />
+            <Check className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
           ) : needsAttention ? (
-            <AlertCircle className="h-3 w-3 text-amber-500" aria-hidden="true" />
+            <AlertCircle className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
           ) : null}
         </span>
         <span
           className={cn(
             MUTED,
-            'mt-0.5 hidden truncate text-[9px] min-[360px]:block sm:text-[10px]'
+            'mt-0.5 hidden truncate text-[10px] min-[360px]:block sm:text-[11px]'
           )}
         >
           {detail}
@@ -146,61 +146,62 @@ const InitialWelcomeScreen = ({
     useSpeakingDeviceChecks();
 
   return (
-    <div className="flex min-h-full w-full justify-center px-0 py-2 sm:px-4 sm:py-3">
+    <div className="flex min-h-full w-full flex-col items-center justify-start px-0 py-2 pt-2.5 sm:px-3 sm:py-3 sm:pt-3.5">
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{
-          duration: 0.45,
+          duration: 0.35,
           ease: [0.16, 1, 0.3, 1],
         }}
-        className="relative flex w-full max-w-3xl flex-col items-center text-center"
+        className="relative flex w-full max-w-2xl flex-col items-center text-center"
       >
-        <h2 className="text-xl font-extrabold tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-3xl">
+        <h2 className="text-xl font-extrabold tracking-[-0.035em] text-slate-900 dark:text-slate-50 sm:text-2xl md:text-[28px]">
           Ready to start Part {partNumber}?
         </h2>
         <p className="mt-1 text-xs font-bold text-rose-500 sm:text-sm">{title}</p>
-        <p className={cn(MUTED, 'mt-1.5 max-w-xl text-xs leading-5 sm:text-sm sm:leading-6')}>
+        <p className={cn(MUTED, 'mt-1.5 max-w-lg text-xs leading-relaxed sm:text-sm')}>
           {PART_INTROS[partNumber] || 'Answer naturally, listen carefully, and speak clearly.'}
-          <br className="hidden sm:block" /> Answer naturally and speak clearly.
         </p>
 
         {speakingV2Available && (
           <div
-            className="relative mt-3 grid w-full max-w-lg grid-cols-2 gap-2"
+            className="relative mt-3 mb-3.5 sm:mb-4 grid w-full max-w-md grid-cols-2 gap-2.5"
             aria-label="Speaking mode"
           >
             {MODES.map((mode) => {
               const Icon = mode.icon;
               const selected = speakingMode === mode.id;
               return (
-                <button
+                <motion.button
                   key={mode.id}
                   type="button"
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                  transition={{ duration: 0.1, ease: 'easeOut' }}
                   onClick={() => setSpeakingMode?.(mode.id)}
                   aria-pressed={selected}
                   aria-label={mode.label}
                   className={cn(
-                    'relative flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors cursor-pointer select-none',
+                    'relative flex items-center gap-2.5 rounded-lg border px-3 py-2 text-left transition-colors duration-200 ease-out cursor-pointer select-none sm:px-3.5 sm:py-2.5',
                     selected
-                      ? 'border-[#5a63df]/40 text-[#444cc7] dark:text-[#aeb3ff]'
-                      : 'border-[#e4e2f0] bg-white text-slate-700 hover:border-[#5a63df]/25 hover:bg-slate-50/50 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-200 dark:hover:bg-white/6'
+                      ? 'border-transparent text-[#444cc7] dark:text-[#aeb3ff]'
+                      : 'border-[#e4e2f0] bg-white text-slate-700 hover:border-[#5a63df]/30 hover:bg-slate-50/60 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-200 dark:hover:bg-white/6'
                   )}
                 >
                   {selected && (
                     <motion.div
-                      layoutId="speakingModeActiveIndicator"
-                      className="absolute -inset-px rounded-xl border-2 border-[#5a63df] bg-[#5a63df]/8 dark:border-[#8f97ff] dark:bg-[#5a63df]/15 pointer-events-none"
+                      layoutId="speakingModeActivePill"
+                      className="absolute -inset-px rounded-lg border-1.5 border-[#5a63df] bg-[#5a63df]/8 dark:border-[#8f97ff] dark:bg-[#5a63df]/15 pointer-events-none shadow-xs"
                       transition={
                         prefersReducedMotion
                           ? { duration: 0 }
-                          : { type: 'spring', stiffness: 340, damping: 34 }
+                          : { type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }
                       }
                     />
                   )}
                   <span
                     className={cn(
-                      'relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                      'relative z-10 flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-md transition-colors duration-200 ease-out sm:h-8 sm:w-8',
                       selected
                         ? 'bg-[#5a63df]/12 text-[#5a63df] dark:bg-[#5a63df]/25 dark:text-[#aeb3ff]'
                         : 'bg-slate-100 text-slate-500 dark:bg-white/6 dark:text-slate-400'
@@ -209,103 +210,125 @@ const InitialWelcomeScreen = ({
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="relative z-10 min-w-0 flex-1">
-                    <span className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em]">
+                    <span className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.1em] sm:text-[11px]">
                       {mode.label}
                       {selected && (
-                        <span
+                        <motion.span
+                          initial={prefersReducedMotion ? false : { scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={prefersReducedMotion ? undefined : { scale: 0, opacity: 0 }}
+                          transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
                           className="h-1.5 w-1.5 rounded-full bg-[#5a63df] dark:bg-[#aeb3ff]"
                           aria-hidden="true"
                         />
                       )}
                     </span>
-                    <span className={cn(MUTED, 'block truncate text-[9px] sm:text-[10px]')}>
+                    <span className={cn(MUTED, 'block truncate text-[9.5px] sm:text-[10.5px]')}>
                       {mode.detail}
                     </span>
                   </span>
-                </button>
+                </motion.button>
               );
             })}
           </div>
         )}
 
-        <div className="relative isolate min-h-[350px] w-full max-w-2xl sm:min-h-[320px]">
-          <AnimatePresence mode="sync" initial={false}>
-            {speakingMode === 'practice' ? (
-              <motion.div
-                key="practice-mode-stage"
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0"
-                role="group"
-                aria-label="Practice mode"
-              >
-                <div className="grid h-full w-full grid-cols-1 items-center gap-1.5 rounded-xl border border-[#e4e2f0] bg-[#f5f4fa] p-2.5 dark:border-white/[0.07] dark:bg-[#141319] sm:grid-cols-[minmax(0,0.72fr)_minmax(0,1.7fr)] sm:gap-3 sm:p-3">
-                  <div className="relative mx-auto w-full max-w-32 sm:max-w-none">
-                    <img
-                      src="/speaking-assets/examiner-welcome-v1.png"
-                      alt="AI speaking examiner wearing a headset"
-                      className="aspect-3/2 w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
-                      loading="eager"
-                    />
-                    <div
-                      className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t/srgb from-[#f5f4fa] to-transparent dark:from-[#141319]"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div className="grid min-w-0 gap-1.5 sm:gap-2">
-                    {PRACTICE_BENEFITS.map(({ icon: Icon, title: benefitTitle, detail, tone }) => (
+        <div
+          className={cn(
+            'relative isolate w-full max-w-2xl rounded-xl border border-[#e4e2f0] bg-[#f5f4fa] dark:border-white/[0.07] dark:bg-[#141319] h-[284px] sm:h-[290px] overflow-hidden',
+            !speakingV2Available && 'mt-3 sm:mt-4'
+          )}
+        >
+          <div className="grid grid-cols-1 grid-rows-1 w-full h-full overflow-hidden">
+            <AnimatePresence initial={false}>
+              {speakingMode === 'practice' ? (
+                <motion.div
+                  key="practice-mode-stage"
+                  initial={prefersReducedMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : 0.18,
+                    ease: [0.2, 0, 0, 1],
+                  }}
+                  className="col-start-1 row-start-1 flex w-full h-full flex-col justify-center"
+                  role="group"
+                  aria-label="Practice mode"
+                >
+                  <div className="grid w-full grid-cols-1 items-center gap-2 p-2.5 sm:grid-cols-[minmax(0,0.72fr)_minmax(0,1.7fr)] sm:gap-3.5 sm:p-3.5">
+                    <div className="relative mx-auto w-full max-w-32 sm:max-w-40">
+                      <img
+                        src="/speaking-assets/examiner-welcome-v1.png"
+                        alt="AI speaking examiner wearing a headset"
+                        className="aspect-3/2 w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal"
+                        loading="eager"
+                      />
                       <div
-                        key={benefitTitle}
-                        className="flex min-w-0 items-center gap-2 rounded-lg border border-[#e4e2f0]/80 bg-white px-2 py-1.5 text-left dark:border-white/[0.07] dark:bg-[#19181f] sm:gap-2.5 sm:p-2"
-                      >
-                        <span
-                          className={cn(
-                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
-                            tone
-                          )}
-                        >
-                          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block text-[10px] font-extrabold leading-4 text-slate-800 dark:text-slate-100 sm:text-xs">
-                            {benefitTitle}
-                          </span>
-                          <span
-                            className={cn(MUTED, 'block text-[9px] leading-3.5 sm:text-[10px]')}
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-linear-to-t/srgb from-[#f5f4fa] to-transparent dark:from-[#141319]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="grid min-w-0 gap-1.5 sm:gap-2">
+                      {PRACTICE_BENEFITS.map(
+                        ({ icon: Icon, title: benefitTitle, detail, tone }) => (
+                          <div
+                            key={benefitTitle}
+                            className="flex min-w-0 items-center gap-2.5 rounded-lg border border-[#e4e2f0]/80 bg-white px-2.5 py-1.5 text-left dark:border-white/[0.07] dark:bg-[#19181f] sm:gap-3 sm:px-3 sm:py-2"
                           >
-                            {detail}
-                          </span>
-                        </span>
-                      </div>
-                    ))}
+                            <span
+                              className={cn(
+                                'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg sm:h-7.5 sm:w-7.5',
+                                tone
+                              )}
+                            >
+                              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-[11px] font-extrabold leading-snug text-slate-800 dark:text-slate-100 sm:text-xs">
+                                {benefitTitle}
+                              </span>
+                              <span
+                                className={cn(
+                                  MUTED,
+                                  'block text-[9.5px] leading-snug sm:text-[10.5px]'
+                                )}
+                              >
+                                {detail}
+                              </span>
+                            </span>
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="exam-mode-stage"
-                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
-                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-x-0 top-0"
-                role="group"
-                aria-label="Exam mode"
-              >
-                <ExaminerVoiceCarousel
-                  examinerVoice={examinerVoice}
-                  onExaminerVoiceChange={onExaminerVoiceChange}
-                  onVoicePreview={onVoicePreview}
-                  previewVoice={previewVoice}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="exam-mode-stage"
+                  initial={prefersReducedMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : 0.18,
+                    ease: [0.2, 0, 0, 1],
+                  }}
+                  className="col-start-1 row-start-1 flex w-full h-full flex-col justify-center"
+                  role="group"
+                  aria-label="Exam mode"
+                >
+                  <ExaminerVoiceCarousel
+                    examinerVoice={examinerVoice}
+                    onExaminerVoiceChange={onExaminerVoiceChange}
+                    onVoicePreview={onVoicePreview}
+                    previewVoice={previewVoice}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        <div className="mt-2.5 grid w-full max-w-lg grid-cols-2 gap-2">
+        <div className="mt-3.5 grid w-full max-w-lg grid-cols-2 gap-2 sm:mt-4 sm:gap-2.5">
           <ReadinessCard
             device="microphone"
             icon={Mic2}
