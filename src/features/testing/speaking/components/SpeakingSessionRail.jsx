@@ -1,4 +1,5 @@
 import React from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { AudioWaveform, Check, Circle, Headphones, Mic2, Sparkles } from 'lucide-react';
 
 import { Switch } from '@/components/ui/switch';
@@ -279,6 +280,7 @@ export default function SpeakingSessionRail({
   speakingMode,
   speakingV2State,
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const budget = formatSpeakingBudget(speakingV2State);
   return (
     <>
@@ -303,15 +305,25 @@ export default function SpeakingSessionRail({
       >
         {speakingV2State && (
           <section className="border-b border-[#e4e2f0] px-5 py-3 dark:border-white/[0.07]">
-            <p className={cn(MICRO, 'text-[#5a63df]')}>{speakingMode} mode</p>
-            <p className="mt-1 font-mono text-xs font-bold text-slate-700 dark:text-slate-200">
-              {budget}
-            </p>
-            <p className={cn(MUTED, 'mt-1 text-[10px]')}>
-              {speakingMode === 'exam'
-                ? 'Transcript and coaching stay hidden until your report.'
-                : 'Your coach replies out loud after each answer and helps you say it better. Answers are hands-free; use Pause for a break.'}
-            </p>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={speakingMode}
+                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -2 }}
+                animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 2 }}
+                transition={{ duration: 0.18 }}
+              >
+                <p className={cn(MICRO, 'text-[#5a63df]')}>{speakingMode} mode</p>
+                <p className="mt-1 font-mono text-xs font-bold text-slate-700 dark:text-slate-200">
+                  {budget}
+                </p>
+                <p className={cn(MUTED, 'mt-1 text-[10px]')}>
+                  {speakingMode === 'exam'
+                    ? 'Transcript and coaching stay hidden until your report.'
+                    : 'Your coach replies out loud after each answer and helps you say it better. Answers are hands-free; use Pause for a break.'}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </section>
         )}
         <TestRoadmap allParts={allParts} currentPartNumber={currentPartNumber} />
@@ -320,9 +332,19 @@ export default function SpeakingSessionRail({
           isPart2Prep={isPart2Prep}
           currentPartNumber={currentPartNumber}
         />
-        {speakingMode !== 'practice' && (
-          <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} />
-        )}
+        <AnimatePresence initial={false}>
+          {speakingMode !== 'practice' && (
+            <motion.div
+              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <HandsFreeAnswerControl enabled={handsFreeEnabled} onChange={onHandsFreeChange} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </aside>
     </>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Activity, AudioLines, Mic2, PlayCircle, Radio, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AnimatePresence, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, NUM, PANEL, TILE, TITLE } from '@/features/dashboard/components/primitives';
 
@@ -222,9 +222,18 @@ export default function SpeakingConversationPanel({
               <p className={cn(MICRO, 'hidden text-rose-600 dark:text-rose-400 sm:block')}>
                 Conversation room
               </p>
-              <p className={cn(TITLE, 'truncate text-xs sm:text-[13px]')}>
-                {speakingMode === 'practice' ? 'AI coach' : 'AI examiner'}
-              </p>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.p
+                  key={speakingMode}
+                  initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -2 }}
+                  animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 2 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className={cn(TITLE, 'truncate text-xs sm:text-[13px]')}
+                >
+                  {speakingMode === 'practice' ? 'AI coach' : 'AI examiner'}
+                </motion.p>
+              </AnimatePresence>
             </div>
           </div>
 
