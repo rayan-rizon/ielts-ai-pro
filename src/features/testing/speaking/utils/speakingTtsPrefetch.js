@@ -10,8 +10,7 @@ export const SPEAKING_TTS_VOICE = 'en-GB-Neural2-C';
 const MAX_CACHED_REQUESTS = 40;
 const requestCache = new Map();
 
-// Practice streams Gemini when its rollout allows it; exam uses regional
-// Neural2 with R2. The build-time switches can disable either R2 route.
+// Practice and exam stream Gemini when enabled. Exam uses four regional voices.
 const PRACTICE_OVERRIDE_MODEL_KEY = 'ielts.practiceTts.model';
 const PRACTICE_OVERRIDE_VOICE_KEY = 'ielts.practiceTts.voice';
 const PRACTICE_DEBUG_KEY = 'ielts.practiceTts.debug';
@@ -84,12 +83,7 @@ function logPracticeTts(details) {
   console.info('[PracticeTTS]', details);
 }
 
-/**
- * Practice voice first; anything short of playable audio falls through to the
- * Neural2 examiner voice, so this route can only change the voice, never
- * silence it. A fresh phrase comes back as a live PCM stream
- * ({ stream, sampleRate }); a phrase already in the cache as { audioUrl }.
- */
+/** A fresh phrase streams PCM; an R2 hit returns an audio URL. */
 async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
   // Admin-only on the server; ignored for everyone else.
   const model = readLocalSetting(PRACTICE_OVERRIDE_MODEL_KEY);
@@ -107,10 +101,16 @@ async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
       ...(voice ? { voice } : {}),
     });
     const contentType = response.headers.get('Content-Type') || '';
-    if (mode === 'exam' && contentType.startsWith('audio/pcm')) {
-      return requestLegacyTts(cleanText, legacyVoice);
-    }
+    const expectedGeminiVoice = mode === 'exam' ? getSpeakingVoice(examVoice).geminiVoice : null;
     if (response.ok && contentType.startsWith('audio/pcm') && response.body) {
+      if (
+        mode === 'exam' &&
+        (response.headers.get('X-TTS-Model') !== 'google/gemini-3.8-flash-lite-tts' ||
+          response.headers.get('X-TTS-Voice') !== expectedGeminiVoice)
+      ) {
+        await response.body.cancel();
+        return { data: null, error: new Error('Exam Gemini voice did not match selection') };
+      }
       const sampleRate = Number(/rate=(\d+)/.exec(contentType)?.[1]) || 24000;
       logPracticeTts({
         streamed: true,
@@ -121,7 +121,8 @@ async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
     }
     const data = await response.json().catch(() => null);
     const matchesExamVoice =
-      mode !== 'exam' || (data?.model === 'google-tts-neural2' && data?.voice === legacyVoice);
+      mode !== 'exam' ||
+      (data?.model === 'google/gemini-3.8-flash-lite-tts' && data?.voice === expectedGeminiVoice);
     if (response.ok && data?.success && data?.audioUrl && matchesExamVoice) {
       logPracticeTts({
         model: data.model,
@@ -134,8 +135,9 @@ async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
     }
     if (STICKY_LEGACY_REASONS.has(data?.reason)) routeDisabled[mode] = true;
   } catch (error) {
-    console.warn('[PracticeTTS] Falling back to the standard voice:', error?.message || error);
+    console.warn('[PracticeTTS] Speech request failed:', error?.message || error);
   }
+  if (mode === 'exam') return { data: null, error: new Error('Gemini exam voice unavailable') };
   return requestLegacyTts(cleanText, legacyVoice);
 }
 
@@ -179,6 +181,10 @@ export function requestSpeakingTts(text, voice, options = {}) {
       mode: ttsProfile,
       examVoice: selectedVoice.id,
     });
+  }
+
+  if (ttsProfile === 'exam') {
+    return Promise.resolve({ data: null, error: new Error('Gemini exam voice unavailable') });
   }
 
   const cached = requestCache.get(key);

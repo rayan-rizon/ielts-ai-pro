@@ -4,18 +4,22 @@ import process from 'node:process';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
+const { invoke, callEdgeFunctionStream } = vi.hoisted(() => ({
+  invoke: vi.fn(),
+  callEdgeFunctionStream: vi.fn(),
+}));
 
 vi.mock('@/lib/supabase', () => ({
   supabase: { functions: { invoke } },
 }));
+vi.mock('@/utils/api', () => ({ callEdgeFunctionStream }));
 
 import {
   normalizeSpeakingTtsText,
   prefetchSpeakingTts,
   requestSpeakingTts,
   resetSpeakingTtsRoutingForTests,
-  setSpeakingTtsVoice,
+  setSpeakingTtsProfile,
 } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
 import { playInitialGreeting } from '@/features/testing/speaking/hooks/useStartSpeakingTest';
 import {
@@ -26,8 +30,10 @@ import {
 describe('speaking TTS prefetch cache', () => {
   beforeEach(() => {
     resetSpeakingTtsRoutingForTests();
-    vi.stubEnv('VITE_EXAM_TTS', 'off');
+    setSpeakingTtsProfile('practice');
+    vi.stubEnv('VITE_PRACTICE_TTS', 'off');
     invoke.mockReset();
+    callEdgeFunctionStream.mockReset();
   });
 
   afterEach(() => vi.unstubAllEnvs());
@@ -53,6 +59,34 @@ describe('speaking TTS prefetch cache', () => {
     expect(invoke).toHaveBeenCalledTimes(1);
   });
 
+  it('shares a Gemini exam cache request between prefetch and playback', async () => {
+    setSpeakingTtsProfile('exam');
+    let resolveRequest;
+    callEdgeFunctionStream.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve;
+      })
+    );
+
+    prefetchSpeakingTts('What do you do?');
+    const playback = requestSpeakingTts('What do you do?');
+    expect(callEdgeFunctionStream).toHaveBeenCalledTimes(1);
+    resolveRequest(
+      new Response(
+        JSON.stringify({
+          success: true,
+          cached: true,
+          audioUrl: 'https://media.ieltsai.pro/exam-voice.wav',
+          model: 'google/gemini-3.8-flash-lite-tts',
+          voice: 'en-gb-tutor-4',
+        }),
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+    await expect(playback).resolves.toMatchObject({ data: { cached: true } });
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it('normalizes equivalent IELTS question notation to the same cache key', async () => {
     invoke.mockResolvedValue({
       data: { success: true, audioUrl: 'data:audio/mp3;base64,test' },
@@ -66,26 +100,18 @@ describe('speaking TTS prefetch cache', () => {
     expect(invoke).toHaveBeenCalledTimes(1);
   });
 
-  it('uses four distinct exam voices and keeps British female as the default', async () => {
-    invoke.mockResolvedValue({
-      data: { success: true, audioUrl: 'data:audio/mp3;base64,test' },
-      error: null,
-    });
-    await requestSpeakingTts('Good morning.');
-    setSpeakingTtsVoice('british-male');
-    await requestSpeakingTts('Good morning.');
-    setSpeakingTtsVoice('australian-male');
-    await requestSpeakingTts('Good morning.');
-    setSpeakingTtsVoice('american-female');
-    await requestSpeakingTts('Good morning.');
-    expect(invoke.mock.calls.map(([, { body }]) => body.voice)).toEqual([
-      'en-GB-Neural2-C',
-      'en-GB-Neural2-D',
-      'en-AU-Neural2-B',
-      'en-US-Neural2-C',
+  it('uses four distinct Gemini exam voices and keeps British female as the default', () => {
+    expect(SPEAKING_EXAMINER_VOICES.map((voice) => voice.geminiVoice)).toEqual([
+      'en-gb-tutor-4',
+      'en-gb-tutor-14',
+      'en-au-tutor-5',
+      'despina',
     ]);
     expect(SPEAKING_EXAMINER_VOICES).toHaveLength(4);
-    expect(getSpeakingVoice()).toMatchObject({ id: 'british-female', voice: 'en-GB-Neural2-C' });
+    expect(getSpeakingVoice()).toMatchObject({
+      id: 'british-female',
+      geminiVoice: 'en-gb-tutor-4',
+    });
     expect(getSpeakingVoice('australian-female').id).toBe('australian-male');
     expect(getSpeakingVoice('american-male').id).toBe('american-female');
   });

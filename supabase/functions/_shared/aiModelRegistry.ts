@@ -604,14 +604,14 @@ export const AI_ROUTES: AiRoute[] = [
   },
   {
     id: 'practice-text-to-speech',
-    surface: 'Speaking exam: regional examiner voices; practice: Gemini coach voice',
+    surface: 'Speaking exam: regional Gemini examiner voices; practice: Gemini coach voice',
     file: 'supabase/functions/synthesizePracticeSpeech/index.ts',
     timeoutMs: 20000,
     steps: [
       {
-        model: 'google-tts-neural2',
+        model: 'gemini-3.8-flash-lite-tts',
         role: 'primary',
-        when: 'Exam mode uses a server-allowlisted British, Australian, or American Neural2 voice, with female and male choices. All fixed exam lines are cached in R2.',
+        when: 'Exam mode uses four server-allowlisted regional Gemini Voice Library voices: British female and male, Australian male, and American female. All fixed exam lines are cached in R2.',
       },
       {
         model: 'gemini-3.8-flash-lite-tts',
@@ -626,11 +626,11 @@ export const AI_ROUTES: AiRoute[] = [
       {
         model: 'google-tts-neural2',
         role: 'fallback',
-        when: 'R2 or the selected provider key is missing, the practice rollout excludes the learner, or the provider refuses. The browser then calls synthesizeSpeech with the selected regional voice.',
+        when: 'Practice only: R2 or the selected provider key is missing, the practice rollout excludes the learner, or the provider refuses. Exam mode does not fall back to Neural2.',
       },
     ],
     notes:
-      'Exam Neural2 MP3 is cached in R2 under tts-cache/exam-neural2/v1; practice Gemini WAV under tts-cache/practice/v1. Keys include model, voice, style and text. All exam lines are cacheable; practice coach replies over 200 characters are not. The /tts-cache/* CDN rule covers both.',
+      'Exam Gemini WAV is cached in R2 under tts-cache/exam-gemini/v1; practice Gemini WAV under tts-cache/practice/v1. Keys include model, voice, style and text. All exam lines are cacheable; practice coach replies over 200 characters are not. The /tts-cache/* CDN rule covers both.',
   },
   {
     id: 'practice-coach',

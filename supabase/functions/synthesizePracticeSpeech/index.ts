@@ -15,6 +15,8 @@ import {
 import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
+  DEFAULT_PRACTICE_TTS_MODEL,
+  EXAM_TTS_STYLE,
   isSpeakingTtsCacheable,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
@@ -22,15 +24,15 @@ import {
   OPENROUTER_SPEECH_URL,
   parsePracticeTtsRollout,
   pcm16ToWav,
-  resolveExamNeural2Voice,
+  resolveExamGeminiVoice,
   resolvePracticeTtsSelection,
   resolveSpeakingAccent,
-  styleForModel,
+  styleForSelection,
   toPlayableAudio,
   type PracticeTtsSelection,
 } from '../_shared/practiceTts.ts';
 import { createR2Objects, readR2Config } from '../_shared/r2Objects.ts';
-import { estimateCharacterCostUsd, estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
+import { estimateTokenCostUsd } from '../_shared/aiModelRegistry.ts';
 import {
   GEMINI_TTS_DIRECT_MODEL,
   GEMINI_TTS_SAMPLE_RATE,
@@ -41,15 +43,13 @@ declare const Deno: any;
 declare const EdgeRuntime: any;
 
 // ============================================================
-// Speaking exam voices through Google Neural2; practice coach through Gemini.
+// Speaking exam voices and practice coach through Gemini 3.8 Flash-Lite TTS.
 // ============================================================
 // Practice is gated by PRACTICE_TTS_ROLLOUT; exam is available to authenticated
-// learners. Whenever this route cannot serve a learner, the browser calls
-// synthesizeSpeech (Google Neural2) instead.
+// learners. Exam voices are chosen from Google's regional Voice Library.
 //
-// Audio is content-addressed in Cloudflare R2 (MP3, or WAV for Gemini's PCM).
-// A cache hit returns the public CDN URL. Exam misses synthesize an MP3 with
-// the selected regional Neural2 voice. Practice misses stream Gemini PCM.
+// Audio is content-addressed in Cloudflare R2 as WAV. A cache hit returns the
+// public CDN URL; misses stream Gemini PCM and save the completed clip.
 
 const PROVIDER_TIMEOUT_MS = 15000;
 const CACHE_CONTROL = 'public, max-age=31536000, immutable';
@@ -72,30 +72,6 @@ function bytesToBase64(bytes: Uint8Array) {
     binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
   }
   return btoa(binary);
-}
-
-async function synthesizeExamNeural2(text: string, voice: string, apiKey: string) {
-  const response = await fetch(
-    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input: { text },
-        voice: { languageCode: voice.slice(0, 5), name: voice },
-        audioConfig: { audioEncoding: 'MP3', speakingRate: 0.91, pitch: 0 },
-      }),
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
-    }
-  );
-  if (!response.ok) throw new Error(`Google Neural2 returned ${response.status}`);
-  const payload = await response.json();
-  if (!payload?.audioContent) throw new Error('Google Neural2 returned no audio');
-  const binary = atob(payload.audioContent);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-  if (bytes.byteLength < 512) throw new Error('Google Neural2 returned incomplete audio');
-  return bytes;
 }
 
 /** A lookup error counts as a miss: the worst case is one extra synthesis. */
@@ -153,7 +129,7 @@ async function streamGeminiSpeech(params: {
       apiKey: params.apiKey,
       text: params.text,
       voice: params.selection.voice,
-      style: styleForModel(params.selection.model, params.selection.accent),
+      style: styleForSelection(params.selection),
     });
   } catch (error: any) {
     console.warn('[PracticeTTS] Gemini stream refused:', error?.message);
@@ -253,6 +229,9 @@ async function streamGeminiSpeech(params: {
       ...params.corsHeaders,
       'Content-Type': `audio/pcm;rate=${GEMINI_TTS_SAMPLE_RATE};channels=1`,
       'Cache-Control': 'no-store',
+      'X-TTS-Model': params.selection.model,
+      'X-TTS-Voice': params.selection.voice,
+      'Access-Control-Expose-Headers': 'X-TTS-Model, X-TTS-Voice, Server-Timing',
       'Server-Timing': serverTiming({
         ...params.timings,
         total: performance.now() - params.startedAt,
@@ -284,7 +263,7 @@ serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const mode: 'practice' | 'exam' = body?.mode === 'exam' ? 'exam' : 'practice';
     const accent = resolveSpeakingAccent(body?.accent, mode);
-    const examVoice = mode === 'exam' ? resolveExamNeural2Voice(body?.examVoice, accent) : null;
+    const examVoice = mode === 'exam' ? resolveExamGeminiVoice(body?.examVoice, accent) : null;
     route = mode === 'exam' ? 'exam-tts' : 'practice-tts';
     const text = normalizePracticeTtsText(body?.text);
     if (!text) {
@@ -309,7 +288,6 @@ serve(async (req: Request) => {
     const rollout = parsePracticeTtsRollout(Deno.env.get('PRACTICE_TTS_ROLLOUT'));
     const apiKey = Deno.env.get('OPENROUTER_API_KEY');
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    const googleTtsApiKey = Deno.env.get('GOOGLE_TTS_API_KEY');
     const r2Config = readR2Config();
     const r2 = r2Config ? createR2Objects(r2Config) : null;
     const configuredModel = Deno.env.get('PRACTICE_TTS_MODEL');
@@ -325,7 +303,12 @@ serve(async (req: Request) => {
         ? lookupCache(
             r2,
             examVoice
-              ? { model: 'google-tts-neural2', voice: examVoice }
+              ? {
+                  model: DEFAULT_PRACTICE_TTS_MODEL,
+                  voice: examVoice,
+                  style: EXAM_TTS_STYLE,
+                  route: 'exam',
+                }
               : {
                   ...resolvePracticeTtsSelection({
                     configuredModel,
@@ -355,7 +338,12 @@ serve(async (req: Request) => {
     if (!r2) return legacy('not_configured', corsHeaders);
 
     const selection: PracticeTtsSelection = examVoice
-      ? { model: 'google-tts-neural2', voice: examVoice }
+      ? {
+          model: DEFAULT_PRACTICE_TTS_MODEL,
+          voice: examVoice,
+          style: EXAM_TTS_STYLE,
+          route: 'exam',
+        }
       : {
           ...resolvePracticeTtsSelection({
             configuredModel,
@@ -395,10 +383,10 @@ serve(async (req: Request) => {
       `${getRateLimitIdentifier(req, user.id)}:${route}`,
       mode === 'exam' ? RATE_LIMITS.AI_FUNCTION : getBurstLimitConfig(tier)
     );
-    // synthesizeSpeech applies its own burst limit to the fallback request.
     if (!burst.allowed) return legacy('rate_limited', corsHeaders);
 
-    if (examVoice && !googleTtsApiKey) return legacy('not_configured', corsHeaders);
+    if (examVoice && (!geminiApiKey || body?.stream !== true))
+      return legacy('not_configured', corsHeaders);
     if (!examVoice && (!geminiApiKey || body?.stream !== true) && !apiKey)
       return legacy('not_configured', corsHeaders);
 
@@ -414,43 +402,6 @@ serve(async (req: Request) => {
     );
     if (!quota.allowed) return quotaExceededResponse(quota, corsHeaders);
     quotaReservationId = quota.reservationId;
-
-    if (examVoice && googleTtsApiKey) {
-      const providerStartedAt = performance.now();
-      const audioBytes = await synthesizeExamNeural2(text, examVoice, googleTtsApiKey);
-      timings.provider = performance.now() - providerStartedAt;
-      if (cacheable) {
-        const upload = r2
-          .put(cacheKey, audioBytes, { contentType: 'audio/mpeg', cacheControl: CACHE_CONTROL })
-          .catch((error: any) => console.warn('[PracticeTTS] R2 upload failed:', error?.message));
-        if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime?.waitUntil)
-          EdgeRuntime.waitUntil(upload);
-        else await upload;
-      }
-      await finalizeApiUsage(supabase, quotaReservationId, text.length, false, {
-        route,
-        provider: 'google-direct',
-        model: 'google-tts-neural2',
-        voice: examVoice,
-        textLength: text.length,
-        audioBytes: audioBytes.byteLength,
-        estimatedProviderCostUsd: estimateCharacterCostUsd('google-tts-neural2', text.length),
-        providerLatencyMs: Math.round(timings.provider),
-      });
-      quotaReservationId = undefined;
-      timings.total = performance.now() - startedAt;
-      return json(
-        {
-          success: true,
-          audioUrl: `data:audio/mpeg;base64,${bytesToBase64(audioBytes)}`,
-          cached: false,
-          ...selection,
-          timings,
-        },
-        corsHeaders,
-        { 'Server-Timing': serverTiming(timings) }
-      );
-    }
 
     if (
       body?.stream === true &&
@@ -553,7 +504,7 @@ serve(async (req: Request) => {
         'failed'
       );
     }
-    // The browser falls back to the Neural2 examiner voice.
+    // The browser reports an unavailable exam voice without switching providers.
     return legacy('provider_error', corsHeaders);
   }
 });

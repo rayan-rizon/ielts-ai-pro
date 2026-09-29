@@ -12,7 +12,7 @@ export const OPENROUTER_SPEECH_URL = 'https://openrouter.ai/api/v1/audio/speech'
 /** Bump when the audio for the same (model, voice, style, text) should change. */
 export const PRACTICE_TTS_CACHE_VERSION = 'v1';
 export const PRACTICE_TTS_CACHE_PREFIX = `tts-cache/practice/${PRACTICE_TTS_CACHE_VERSION}`;
-export const EXAM_NEURAL2_CACHE_PREFIX = `tts-cache/exam-neural2/${PRACTICE_TTS_CACHE_VERSION}`;
+export const EXAM_GEMINI_CACHE_PREFIX = `tts-cache/exam-gemini/${PRACTICE_TTS_CACHE_VERSION}`;
 export const PRACTICE_TTS_MAX_CHARACTERS = 1500;
 /**
  * Only short, shared lines are worth caching: the greeting, bank questions,
@@ -39,6 +39,8 @@ export const PRACTICE_TTS_MIN_AUDIO_BYTES = 512;
  */
 export const PRACTICE_TTS_STYLE =
   'A warm, encouraging IELTS speaking coach with a clear British English accent, speaking at a natural conversational pace.';
+export const EXAM_TTS_STYLE =
+  'A calm, professional IELTS speaking examiner. Speak clearly at a natural conversational pace, and read the supplied text exactly.';
 
 export type SpeakingAccent = 'british' | 'australian' | 'american';
 export const SPEAKING_ACCENT_STYLES: Record<SpeakingAccent, string> = {
@@ -55,21 +57,30 @@ export function resolveSpeakingAccent(value: unknown, mode: 'practice' | 'exam')
   return 'british';
 }
 
-export const EXAM_NEURAL2_VOICES = {
-  'british-female': 'en-GB-Neural2-C',
-  'british-male': 'en-GB-Neural2-D',
-  'australian-female': 'en-AU-Neural2-A',
-  'australian-male': 'en-AU-Neural2-B',
-  'american-female': 'en-US-Neural2-C',
-  'american-male': 'en-US-Neural2-D',
+// Region and gender come from Google's Voice Library metadata, not a prompt
+// asking a generic voice to imitate an accent.
+export const EXAM_GEMINI_VOICES = {
+  'british-female': 'en-gb-tutor-4',
+  'british-male': 'en-gb-tutor-14',
+  'australian-male': 'en-au-tutor-5',
+  'american-female': 'despina',
 } as const;
 
-export function resolveExamNeural2Voice(value: unknown, accent?: unknown) {
+export function resolveExamGeminiVoice(value: unknown, accent?: unknown) {
   const voiceId = typeof value === 'string' ? value : '';
   const legacyAccent = resolveSpeakingAccent(accent, 'exam');
+  const aliases: Record<string, keyof typeof EXAM_GEMINI_VOICES> = {
+    'australian-female': 'australian-male',
+    'american-male': 'american-female',
+  };
+  const resolvedId = aliases[voiceId] || voiceId;
   return (
-    EXAM_NEURAL2_VOICES[voiceId as keyof typeof EXAM_NEURAL2_VOICES] ||
-    EXAM_NEURAL2_VOICES[`${legacyAccent}-female` as keyof typeof EXAM_NEURAL2_VOICES]
+    EXAM_GEMINI_VOICES[resolvedId as keyof typeof EXAM_GEMINI_VOICES] ||
+    EXAM_GEMINI_VOICES[
+      (legacyAccent === 'australian'
+        ? 'australian-male'
+        : `${legacyAccent}-female`) as keyof typeof EXAM_GEMINI_VOICES
+    ]
   );
 }
 
@@ -140,7 +151,13 @@ export function isPracticeTtsAllowed(rollout: PracticeTtsRollout, isAdmin: boole
   return rollout === 'admin' && isAdmin;
 }
 
-export type PracticeTtsSelection = { model: string; voice: string; accent?: SpeakingAccent };
+export type PracticeTtsSelection = {
+  model: string;
+  voice: string;
+  accent?: SpeakingAccent;
+  style?: string;
+  route?: 'exam';
+};
 
 /**
  * Choose the model and voice. The server default comes from environment
@@ -187,6 +204,10 @@ export function styleForModel(model: string, accent: SpeakingAccent = 'british')
   return PRACTICE_TTS_MODELS[model]?.styleProviderKey ? SPEAKING_ACCENT_STYLES[accent] : '';
 }
 
+export function styleForSelection(selection: PracticeTtsSelection) {
+  return selection.style || styleForModel(selection.model, selection.accent);
+}
+
 function toHex(buffer: ArrayBuffer) {
   return Array.from(new Uint8Array(buffer))
     .map((byte) => byte.toString(16).padStart(2, '0'))
@@ -199,12 +220,12 @@ export async function computePracticeTtsCacheKey(selection: PracticeTtsSelection
     PRACTICE_TTS_CACHE_VERSION,
     selection.model,
     selection.voice,
-    styleForModel(selection.model, selection.accent),
+    styleForSelection(selection),
     text,
   ]);
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(material));
-  const neural2 = selection.model === 'google-tts-neural2';
-  return `${neural2 ? EXAM_NEURAL2_CACHE_PREFIX : PRACTICE_TTS_CACHE_PREFIX}/${toHex(digest)}.${neural2 ? 'mp3' : 'wav'}`;
+  const prefix = selection.route === 'exam' ? EXAM_GEMINI_CACHE_PREFIX : PRACTICE_TTS_CACHE_PREFIX;
+  return `${prefix}/${toHex(digest)}.wav`;
 }
 
 export function buildOpenRouterSpeechRequest(selection: PracticeTtsSelection, text: string) {
@@ -221,7 +242,7 @@ export function buildOpenRouterSpeechRequest(selection: PracticeTtsSelection, te
     body.provider = {
       options: {
         [styleProviderKey]: {
-          speech_metadata: { style: styleForModel(selection.model, selection.accent) },
+          speech_metadata: { style: styleForSelection(selection) },
         },
       },
     };

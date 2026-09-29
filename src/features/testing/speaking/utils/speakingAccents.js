@@ -1,5 +1,5 @@
-// Exam voices use locale-specific Google Neural2 voices. The server checks its
-// own allowlist before accepting a selected voice.
+// Exam voices use region-specific Gemini 3.8 Flash-Lite Voice Library IDs.
+// Neural2 IDs remain only for the separate practice fallback path.
 export const SPEAKING_EXAMINER_VOICES = [
   {
     id: 'british-female',
@@ -9,6 +9,7 @@ export const SPEAKING_EXAMINER_VOICES = [
     language: 'en-GB',
     gender: 'Female',
     voice: 'en-GB-Neural2-C',
+    geminiVoice: 'en-gb-tutor-4',
   },
   {
     id: 'british-male',
@@ -18,6 +19,7 @@ export const SPEAKING_EXAMINER_VOICES = [
     language: 'en-GB',
     gender: 'Male',
     voice: 'en-GB-Neural2-D',
+    geminiVoice: 'en-gb-tutor-14',
   },
   {
     id: 'australian-male',
@@ -27,6 +29,7 @@ export const SPEAKING_EXAMINER_VOICES = [
     language: 'en-AU',
     gender: 'Male',
     voice: 'en-AU-Neural2-B',
+    geminiVoice: 'en-au-tutor-5',
   },
   {
     id: 'american-female',
@@ -36,6 +39,7 @@ export const SPEAKING_EXAMINER_VOICES = [
     language: 'en-US',
     gender: 'Female',
     voice: 'en-US-Neural2-C',
+    geminiVoice: 'despina',
   },
 ];
 

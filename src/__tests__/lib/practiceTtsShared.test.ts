@@ -4,6 +4,7 @@ import {
   buildOpenRouterSpeechRequest,
   computePracticeTtsCacheKey,
   DEFAULT_PRACTICE_TTS_MODEL,
+  EXAM_TTS_STYLE,
   estimatePracticeTtsCostUsd,
   isPracticeTtsAllowed,
   isSpeakingTtsCacheable,
@@ -15,7 +16,7 @@ import {
   PRACTICE_TTS_STYLE,
   resolveSpeakingAccent,
   resolvePracticeTtsSelection,
-  resolveExamNeural2Voice,
+  resolveExamGeminiVoice,
   toPlayableAudio,
 } from '../../../supabase/functions/_shared/practiceTts.ts';
 import { AI_ROUTES, MODELS } from '../../../supabase/functions/_shared/aiModelRegistry.ts';
@@ -109,21 +110,31 @@ describe('practice TTS request and cache', () => {
     );
   });
 
-  it('keeps each regional Neural2 voice in a separate R2 MP3 key', async () => {
-    const base = { model: 'google-tts-neural2', voice: 'en-GB-Neural2-C' };
+  it('keeps each regional Gemini exam voice in a separate R2 WAV key', async () => {
+    const base = {
+      model: DEFAULT_PRACTICE_TTS_MODEL,
+      voice: 'en-gb-tutor-4',
+      style: EXAM_TTS_STYLE,
+      route: 'exam' as const,
+    };
     const british = await computePracticeTtsCacheKey(base, 'Good morning.');
-    expect(british).toMatch(/^tts-cache\/exam-neural2\/v1\/[0-9a-f]{64}\.mp3$/);
+    expect(british).toMatch(/^tts-cache\/exam-gemini\/v1\/[0-9a-f]{64}\.wav$/);
     expect(
-      await computePracticeTtsCacheKey({ ...base, voice: 'en-GB-Neural2-D' }, 'Good morning.')
+      await computePracticeTtsCacheKey({ ...base, voice: 'en-gb-tutor-14' }, 'Good morning.')
     ).not.toBe(british);
     expect(
-      await computePracticeTtsCacheKey({ ...base, voice: 'en-AU-Neural2-A' }, 'Good morning.')
+      await computePracticeTtsCacheKey({ ...base, voice: 'en-au-tutor-5' }, 'Good morning.')
     ).not.toBe(british);
-    expect(resolveExamNeural2Voice('australian-male')).toBe('en-AU-Neural2-B');
-    expect(resolveExamNeural2Voice('untrusted', 'american')).toBe('en-US-Neural2-C');
+    expect(resolveExamGeminiVoice('australian-male')).toBe('en-au-tutor-5');
+    expect(resolveExamGeminiVoice('untrusted', 'american')).toBe('despina');
+    expect(resolveExamGeminiVoice('australian-female')).toBe('en-au-tutor-5');
+    expect(resolveExamGeminiVoice('american-male')).toBe('despina');
     for (const voice of SPEAKING_EXAMINER_VOICES) {
-      expect(resolveExamNeural2Voice(voice.id)).toBe(voice.voice);
+      expect(resolveExamGeminiVoice(voice.id)).toBe(voice.geminiVoice);
     }
+    expect(
+      await computePracticeTtsCacheKey({ ...base, route: undefined }, 'Good morning.')
+    ).not.toBe(british);
   });
 
   it('limits accent changes to exam mode and sends the selected style', () => {
