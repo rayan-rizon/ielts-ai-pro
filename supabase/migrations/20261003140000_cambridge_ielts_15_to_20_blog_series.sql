@@ -18,7 +18,7 @@ SELECT
   $post$,
   'cambridge-ielts-20-academic-2025-practice-tests',
   ARRAY['Cambridge IELTS 20 Academic 2025', 'Cambridge IELTS 20 practice tests', 'IELTS 20 Academic test guide', 'Cambridge IELTS 20 answer key', 'IELTS Academic practice test', 'IELTS Reading Listening Writing Speaking'],
-  'Mock Tests', 3, '2026-10-03T14:00:00Z'::timestamptz, true, false, 'free'
+  'Mock Tests', 3, '2026-10-02T21:45:00Z'::timestamptz, true, false, 'free'
 WHERE NOT EXISTS (
   SELECT 1 FROM public.resources
   WHERE content_type = 'blog' AND slug = 'cambridge-ielts-20-academic-2025-practice-tests'
@@ -40,7 +40,7 @@ SELECT
   $post$,
   'cambridge-ielts-19-academic-2024-practice-tests',
   ARRAY['Cambridge IELTS 19 Academic 2024', 'Cambridge IELTS 19 practice tests', 'IELTS 19 Academic test guide', 'Cambridge IELTS 19 answer key', 'IELTS Academic practice test', 'IELTS Reading Listening Writing Speaking'],
-  'Mock Tests', 3, '2026-10-03T14:00:00Z'::timestamptz, true, false, 'free'
+  'Mock Tests', 3, '2026-10-02T21:45:00Z'::timestamptz, true, false, 'free'
 WHERE NOT EXISTS (
   SELECT 1 FROM public.resources
   WHERE content_type = 'blog' AND slug = 'cambridge-ielts-19-academic-2024-practice-tests'
@@ -62,7 +62,7 @@ SELECT
   $post$,
   'cambridge-ielts-18-academic-2023-practice-tests',
   ARRAY['Cambridge IELTS 18 Academic 2023', 'Cambridge IELTS 18 practice tests', 'IELTS 18 Academic test guide', 'Cambridge IELTS 18 answer key', 'IELTS Academic practice test', 'IELTS Reading Listening Writing Speaking'],
-  'Mock Tests', 3, '2026-10-03T14:00:00Z'::timestamptz, true, false, 'free'
+  'Mock Tests', 3, '2026-10-02T21:45:00Z'::timestamptz, true, false, 'free'
 WHERE NOT EXISTS (
   SELECT 1 FROM public.resources
   WHERE content_type = 'blog' AND slug = 'cambridge-ielts-18-academic-2023-practice-tests'
@@ -84,7 +84,7 @@ SELECT
   $post$,
   'cambridge-ielts-17-academic-2022-practice-tests',
   ARRAY['Cambridge IELTS 17 Academic 2022', 'Cambridge IELTS 17 practice tests', 'IELTS 17 Academic test guide', 'Cambridge IELTS 17 answer key', 'IELTS Academic practice test', 'IELTS error log'],
-  'Mock Tests', 3, '2026-10-03T14:00:00Z'::timestamptz, true, false, 'free'
+  'Mock Tests', 3, '2026-10-02T21:45:00Z'::timestamptz, true, false, 'free'
 WHERE NOT EXISTS (
   SELECT 1 FROM public.resources
   WHERE content_type = 'blog' AND slug = 'cambridge-ielts-17-academic-2022-practice-tests'
@@ -106,7 +106,7 @@ SELECT
   $post$,
   'cambridge-ielts-16-academic-2021-practice-tests',
   ARRAY['Cambridge IELTS 16 Academic 2021', 'Cambridge IELTS 16 practice tests', 'IELTS 16 Academic test guide', 'Cambridge IELTS 16 answer key', 'IELTS Academic practice test', 'IELTS study plan'],
-  'Mock Tests', 3, '2026-10-03T14:00:00Z'::timestamptz, true, false, 'free'
+  'Mock Tests', 3, '2026-10-02T21:45:00Z'::timestamptz, true, false, 'free'
 WHERE NOT EXISTS (
   SELECT 1 FROM public.resources
   WHERE content_type = 'blog' AND slug = 'cambridge-ielts-16-academic-2021-practice-tests'
@@ -128,7 +128,7 @@ SELECT
   $post$,
   'cambridge-ielts-15-academic-2020-practice-tests',
   ARRAY['Cambridge IELTS 15 Academic 2020', 'Cambridge IELTS 15 practice tests', 'IELTS 15 Academic test guide', 'Cambridge IELTS 15 answer key', 'older IELTS practice tests', 'IELTS Academic practice test'],
-  'Mock Tests', 3, '2026-10-03T14:00:00Z'::timestamptz, true, false, 'free'
+  'Mock Tests', 3, '2026-10-02T21:45:00Z'::timestamptz, true, false, 'free'
 WHERE NOT EXISTS (
   SELECT 1 FROM public.resources
   WHERE content_type = 'blog' AND slug = 'cambridge-ielts-15-academic-2020-practice-tests'
