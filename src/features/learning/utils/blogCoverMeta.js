@@ -80,6 +80,18 @@ const COVER_ALT_BY_SLUG = {
     'IELTS learner matching highlighted paraphrases between a reading passage and a laptop',
   'cambridge-ielts-21-academic-2026-practice-tests':
     'Cambridge IELTS 21 Academic 2026 title above a learner planning four practice sets',
+  'cambridge-ielts-20-academic-2025-practice-tests':
+    'Cambridge IELTS 20 Academic 2025 practice test edition graphic with IELTS Ai Pro watermark',
+  'cambridge-ielts-19-academic-2024-practice-tests':
+    'Cambridge IELTS 19 Academic 2024 practice test edition graphic with IELTS Ai Pro watermark',
+  'cambridge-ielts-18-academic-2023-practice-tests':
+    'Cambridge IELTS 18 Academic 2023 practice test edition graphic with IELTS Ai Pro watermark',
+  'cambridge-ielts-17-academic-2022-practice-tests':
+    'Cambridge IELTS 17 Academic 2022 practice test edition graphic with IELTS Ai Pro watermark',
+  'cambridge-ielts-16-academic-2021-practice-tests':
+    'Cambridge IELTS 16 Academic 2021 practice test edition graphic with IELTS Ai Pro watermark',
+  'cambridge-ielts-15-academic-2020-practice-tests':
+    'Cambridge IELTS 15 Academic 2020 practice test edition graphic with IELTS Ai Pro watermark',
   'ielts-listening-multiple-choice-part-3':
     'IELTS learner tracking two speakers and multiple-choice decisions with headphones',
   'ielts-writing-task-1-overview-key-features':
