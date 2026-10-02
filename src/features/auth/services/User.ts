@@ -723,6 +723,7 @@ export const User = {
       // Only subscriptions whose current paid period has not ended are actionable.
       query = query
         .eq('cancel_at_period_end', true)
+        .not('stripe_subscription_id', 'is', null)
         .gt('subscription_end_date', new Date().toISOString());
     }
     if (filters.subscriptionStatus === 'expiring') {

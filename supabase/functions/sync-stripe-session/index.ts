@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
         promo_code: session.metadata?.promo_code || null,
       },
       // Same rule as the webhook: a one-time Exam Pass never renews.
-      p_cancel_at_period_end: session.mode === 'payment',
+      p_cancel_at_period_end: false,
     });
 
     if (error) {

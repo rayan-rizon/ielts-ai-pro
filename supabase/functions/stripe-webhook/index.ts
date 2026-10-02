@@ -317,8 +317,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventId
       marketing_delivery_id: session.metadata?.marketing_delivery_id || null,
       promo_code: session.metadata?.promo_code || null,
     },
-    // The 3-Month Exam Pass is a one-time payment: it ends on its own date.
-    p_cancel_at_period_end: session.mode === 'payment',
+    // Checkout starts paid access; a one-time pass expiring is not a cancellation.
+    p_cancel_at_period_end: false,
   });
 
   if (requireClaimedStripeEvent(data, error, 'checkout.session.completed')) {
