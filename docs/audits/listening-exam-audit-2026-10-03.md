@@ -93,4 +93,4 @@ The Chrome check verifies that every audio URL loads and supplies valid media me
 
 ## Repeat the audio audit
 
-Run `node scripts/audit-listening-exam-audio.mjs <catalog.json> <output.json>`. Set `AUDIT_CHROME_PATH` when using an installed Chrome instead of a Playwright-managed browser. The catalog input must contain each paper’s `id`, `title`, and `parts` entries with `audio_url` fields. The local audit metadata and results are under `tmp/listening-exam-audit-2026-10-03/`.
+Run `node scripts/audit-listening-exam-audio.mjs <catalog.json> <output.json>`. Set `AUDIT_CHROME_PATH` when using an installed Chrome instead of a Playwright-managed browser. The catalog input must contain each paper’s `id`, `title`, and `parts` entries with `audio_url` fields. Temporary catalog, audio, session-summary, question-shape, and numbering JSON snapshots were removed after the findings were recorded in this report. Export a fresh read-only catalog snapshot to repeat the audit.
