@@ -1,0 +1,30 @@
+create role anon; create role authenticated; create role service_role bypassrls;
+create schema auth;
+create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create function auth.role() returns text language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),current_user)$$;
+grant usage on schema public,auth to anon,authenticated,service_role;
+grant execute on all functions in schema auth to anon,authenticated,service_role;
+create table public.users(id uuid primary key default gen_random_uuid(),auth_id uuid unique references auth.users,email text,full_name text,role text default 'user',subscription_tier text default 'free',subscription_end_date timestamptz,stripe_subscription_id text,subscription_currency text default 'USD');
+alter table public.users enable row level security;
+create policy own_user on public.users for select to authenticated using(auth_id=auth.uid());
+grant select on public.users to authenticated;grant all on public.users to service_role;
+create table public.system_settings(key text primary key,value jsonb);
+grant all on public.system_settings to service_role;
+insert into public.system_settings values('pricing_tiers','{"pro":{"price":9.99,"currency":"USD"},"premium":{"price":15.99,"currency":"USD"}}');
+create table public.billing_history(id uuid primary key default gen_random_uuid(),user_id uuid,auth_id uuid,amount numeric,currency text,payment_method text,transaction_id text unique,status text,tier text,billing_interval text,created_at timestamptz default now());
+grant all on public.billing_history to service_role;
+create function public.entitled_subscription_tier(p_tier text,p_end_date timestamptz) returns text language sql stable as $$select case when p_end_date<=now() then 'free' else p_tier end$$;
+
+alter table public.users add column bonus_writing_credits integer default 0, add column bonus_speaking_credits integer default 0, add column referral_bonus_expires_at timestamptz;
+create table public.ai_api_usage(id uuid primary key default gen_random_uuid(),user_id uuid,endpoint text,tokens_used integer default 0,cached boolean default false,request_metadata jsonb default '{}',created_at timestamptz default now());
+create table public.tier_rate_limits(tier text,currency text default 'ALL',daily_limit integer,monthly_limit integer,writing_daily_limit integer,writing_monthly_limit integer,speaking_daily_limit integer,speaking_monthly_limit integer);
+insert into public.tier_rate_limits values('free','ALL',1,2,1,2,1,2),('pro','ALL',10,100,10,100,10,100),('premium','ALL',20,200,20,200,20,200);
+create function public.get_user_daily_usage(p_user uuid,p_endpoint text) returns integer language sql as $$ select count(*)::integer from public.ai_api_usage where user_id=p_user and (p_endpoint is null or endpoint=p_endpoint) and created_at>=date_trunc('day',now()) $$;
+create function public.get_user_monthly_usage(p_user uuid,p_endpoint text) returns integer language sql as $$ select count(*)::integer from public.ai_api_usage where user_id=p_user and (p_endpoint is null or endpoint=p_endpoint) and created_at>=date_trunc('month',now()) $$;
+
+create schema objective_private;
+create schema skill_lab_private;
+create table objective_private.test_start_ledger(session_id uuid,user_id uuid,request_id uuid,test_type text,counts_toward_free_limit boolean,started_at timestamptz default now());
+alter table public.tier_rate_limits add column reading_daily_limit integer default 1, add column reading_monthly_limit integer default 2,add column listening_daily_limit integer default 1,add column listening_monthly_limit integer default 2;
+create function skill_lab_private.tier(p_user uuid) returns text language sql stable set search_path='' as $$ select case when role='admin' then 'premium' when subscription_end_date is not null and subscription_end_date<=now() then 'free' when subscription_tier in ('pro','premium') then subscription_tier else 'free' end from public.users where id=p_user $$;

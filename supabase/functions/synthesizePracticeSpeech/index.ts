@@ -325,7 +325,7 @@ serve(async (req: Request) => {
         : null;
 
     const { data: profile } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select('subscription_tier, role')
       .eq('auth_id', user.id)
       .maybeSingle();

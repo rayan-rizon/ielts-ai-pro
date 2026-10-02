@@ -268,7 +268,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: profile } = await admin
-    .from('users')
+    .from('institution_learner_profiles')
     .select('id, role, subscription_tier, subscription_end_date')
     .eq('auth_id', authUser.id)
     .single();
@@ -501,7 +501,11 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error) {
     const failed = telemetryError(error);
-    const fallbackReason = fallbackReasonCodes(primaryError, fallbackAttempts);
+    const fallbackReason = fallbackReasonCodes(
+      readingAssistantPrimaryModel(input.action),
+      primaryError,
+      fallbackAttempts
+    );
     // Nothing usable came back, but the providers that generated and then failed
     // the contract still charged for it, so the budget has to absorb that.
     // The rethrown error is the last attempt in the list, so it is de-duplicated
@@ -511,8 +515,8 @@ Deno.serve(async (req: Request) => {
         [primaryError, ...fallbackAttempts.map(({ error: item }) => item), error].filter(Boolean)
       ),
     ];
-    const wastedCost = attempts.reduce((total, item) => total + billedCost(item), 0);
-    const wastedTokens = attempts.reduce((total, item) => total + billedTokens(item), 0);
+    const wastedCost = attempts.reduce<number>((total, item) => total + billedCost(item), 0);
+    const wastedTokens = attempts.reduce<number>((total, item) => total + billedTokens(item), 0);
     await Promise.allSettled([
       admin.rpc('reading_assistant_finish', {
         p_id: input.requestId,

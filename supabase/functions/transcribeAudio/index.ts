@@ -103,7 +103,7 @@ serve(async (req: Request) => {
 
     // 1. Get user's subscription tier
     const { data: userProfile } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select('subscription_tier')
       .eq('auth_id', user.id)
       .single();

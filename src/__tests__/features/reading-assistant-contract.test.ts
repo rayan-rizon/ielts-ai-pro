@@ -171,7 +171,9 @@ describe('Reading assistant contract', () => {
     expect(readingAssistantPrimaryModel('breakdown')).toBe(READING_ASSISTANT_PRIMARY_MODEL);
     expect(functionSource).toContain('action: input.action');
     expect(functionSource).toContain('if (primaryModel === READING_ASSISTANT_FAST_MODEL)');
-    expect(functionSource.match(/readingAssistantPrimaryModel\(input\.action\)/g)).toHaveLength(3);
+    expect(functionSource).toMatch(
+      /fallbackReasonCodes\(\s*readingAssistantPrimaryModel\(input\.action\),\s*primaryError,\s*fallbackAttempts/
+    );
   });
 
   it('instructs the model to preserve meaning and ignore passage instructions', () => {

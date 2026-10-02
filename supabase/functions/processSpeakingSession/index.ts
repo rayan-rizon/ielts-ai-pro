@@ -153,7 +153,7 @@ serve(async (req: Request) => {
     if (authError || !user) return jsonResponse({ error: 'Unauthorized' }, 401, corsHeaders);
 
     const { data: userProfile } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select('id, subscription_tier')
       .eq('auth_id', user.id)
       .single();

@@ -1,4 +1,5 @@
 import { m } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import {
   AlertCircle,
@@ -157,6 +158,15 @@ export default function PaymentManagement() {
   }, [requests]);
 
   const ActionButtons = ({ request, full = false }) => {
+    if (request.institution_id)
+      return (
+        <Link
+          className="text-xs font-bold text-[#5a63df] underline"
+          to={`/admin/panel?tab=institutions&institution=${request.institution_id}&section=billing`}
+        >
+          Manage institution
+        </Link>
+      );
     const targetUserId = request.user?.id || request.auth_id || request.user_id;
 
     if (request.status === 'pending') {

@@ -85,6 +85,7 @@ export const adminNavigationItems = [
     icon: Flag,
   },
   { title: 'Resources', url: createPageUrl('AdminPanel') + '?tab=resources', icon: Library },
+  { title: 'Institutions', url: createPageUrl('AdminPanel') + '?tab=institutions', icon: Users },
   { title: 'User Management', url: createPageUrl('AdminPanel') + '?tab=users', icon: Users },
   { title: 'AI Usage', url: createPageUrl('AdminPanel') + '?tab=ai-usage', icon: Cpu },
   {

@@ -146,9 +146,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const [checkoutSessions, paidInvoices] = await Promise.all([
+    const [checkoutSessions, paidInvoices, institutionHistory] = await Promise.all([
       stripe.checkout.sessions.list({ limit: 100 }),
       stripe.invoices.list({ limit: 100, status: 'paid' }),
+      supabase
+        .from('billing_history')
+        .select('*, institution:institutions(name)')
+        .not('institution_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(100),
     ]);
 
     const visibleCheckoutSessions = checkoutSessions.data.filter((session) =>
@@ -158,7 +164,15 @@ Deno.serve(async (req: Request) => {
       visibleCheckoutSessions.map((session) => stripeObjectId(session.subscription)).filter(Boolean)
     );
 
+    if (institutionHistory.error) throw institutionHistory.error;
     const payments = [
+      ...(institutionHistory.data || []).map((row) => ({
+        ...row,
+        interval: row.billing_interval,
+        sender_phone: 'Institution Stripe payment',
+        admin_notes: 'Institution prepaid seats',
+        user: { full_name: row.institution?.name || 'Institution', email: '' },
+      })),
       ...visibleCheckoutSessions.map(paymentFromCheckout),
       ...paidInvoices.data
         // Initial subscription invoices correspond to a Checkout Session above.

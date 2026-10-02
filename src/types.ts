@@ -6,6 +6,19 @@ export interface UserProfile {
   country?: string | null;
   role: 'user' | 'admin';
   subscription_tier?: 'free' | 'pro' | 'premium';
+  personal_subscription?: {
+    subscription_tier: 'free' | 'pro' | 'premium';
+    subscription_end_date: string | null;
+  };
+  institution_owner_ids?: string[];
+  institution_access?: {
+    institution_id: string;
+    name: string;
+    status: 'active' | 'waiting';
+    tier: 'pro' | 'premium';
+    access_until?: string;
+    waiting?: unknown;
+  } | null;
   avatar_url?: string;
   created_at?: string;
   last_login?: string;

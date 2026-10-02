@@ -1,0 +1,43 @@
+# Institution subscriptions
+
+Implemented behind `system_settings.institution_enabled` (initially false). The additive database migrations and 15 dependent Edge Functions were deployed to the linked project on October 3, 2026; the frontend was verified locally. The gate was restored to false after the QA pilot. See [deployment and verification evidence](institution-verification-2026-10-03.md). Institutions distribute prepaid Pro/Premium seats; students keep the standard learner experience. Ownership never grants the global admin role. Learner submissions and private activity are absent from the institution API.
+
+## Management
+
+Platform admins use **Admin → Institutions** to create a centre, invite/replace its owner, manage global/default/bulk and negotiated/package pricing, issue complimentary seats, suspend/archive it, and inspect audit history. The detail workspace is explicitly labelled as an admin view and uses the admin's own session. Administrative access corrections require reasons. Unused seats can be revoked from Billing; assigned access can be corrected, extended, revoked or released from Students. Partial refunds require selecting affected seats in Billing before distribution can resume.
+
+Owners use `/institution`: Overview, Students (including CSV preview, duplicate validation, resend/reassign/cancel), Subscription, Billing and Settings. CSV has an `email` header and optional `name`. Each row reports delivery/results; retry or resend a failed delivery without distributing another seat. Invitations use hashed, expiring, single-use tokens and verified recipient email. Recipients accept at `/institution/accept`; existing accounts can sign in and return to the original invitation URL.
+
+Paid seats support 1 or 3 calendar months, accepted within 90 days of verified payment. Complimentary seats support a custom number of days and deadline. Waiting reservations survive this deadline; activated seats receive their entire allocation duration. One active and one waiting seat per student are enforced by unique indexes and transactional recipient locks. Renewal means inviting the student to another seat. Unaccepted invitations can be reassigned. Institution suspension blocks new quotes/distribution and leaves activated access intact.
+
+Personal subscription rows, Stripe customer IDs and usage counters are never overwritten by institution activation. Personal recurring renewals can keep delaying a waiting seat; students see an explanation and the existing personal billing controls. Effective access runs reconciliation before learner profile/quota checks and falls back to any valid personal entitlement. The reconciliation job also runs every minute when pg_cron is installed.
+
+## Pricing and payments
+
+Precedence is exact package total → institution override → highest applicable bulk threshold → default rate. Rates cover every seat in a purchase. Initial defaults independently copy the current global/regional individual monthly and three-month prices; subsequent personal price changes do not change institution rates. Admins can configure additional currencies. Orders retain an immutable server-generated quote for 24 hours. Checkout uses that snapshot, not client totals.
+
+The institution has a separate Stripe customer. Checkout uses one-time payment mode with invoice creation and institution metadata. Verified webhook payment is the only path that issues paid seats. Delayed success is supported, with the 90-day deadline based on the successful payment event rather than checkout creation. Duplicate and late events do not issue extra seats or change settled pricing. Charge evidence is rechecked after fulfilment to cover a refund arriving first.
+
+Full refunds invalidate seats. Partial refunds block new allocation until admin reconciliation. Gross order/ledger amounts stay unchanged; Revenue Analytics reads net institution amounts after refunds. A purchase contributes one payment record; sponsored students are not converted into personal paying subscribers or purchase-conversion events. Complimentary grants produce no payment/revenue records.
+
+## Backend-first rollout
+
+1. Apply `20261002214310_institution_subscriptions.sql` and `20261002215002_institution_foreign_key_indexes.sql` additively to staging, then the production project when reviewed. These versions are already applied to the linked project. Keep the gate false. Inspect RLS, grants and the existing-function rewrites against the deployed schema. The effective profile view mirrors the current users columns; future migrations that add columns should rebuild that view before relying on those fields.
+2. Confirm `pg_cron` is installed and `institution-access-reconcile` exists in `cron.job`. Inspect job failures; do not enable the pilot if reconciliation is unavailable.
+3. Deploy `institutions`, `stripe-webhook`, `admin-payment-history`, and every learner Edge Function changed to read `institution_learner_profiles`: `ai-coach`, `evaluateGrammarTransfer`, `evaluateSpeakingTest`, `generateAdaptiveLearningPath`, `generateDetailedFeedback`, `generateDetailedSpeakingFeedback`, `generateStudyRecommendations`, `processSpeakingSession`, `reading-assistant`, `synthesizePracticeSpeech`, `synthesizeSpeech`, `transcribeAudio`. Deploy shared modules with each dependent function. Keep existing JWT verification settings and webhook signature verification. `institutions` independently verifies the bearer token and confirmed email.
+4. Reuse existing Stripe/Supabase/Resend secrets and the site `FRONTEND_URL`. Add webhook subscriptions for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.finalized`, `invoice.paid`, `charge.refunded`, `charge.refund.updated`, and `refund.updated`. Preserve existing personal subscription event subscriptions.
+5. Deploy frontend after backend readiness. Create a pilot institution from Admin, verify all needed currency/plan/duration prices, then enable the gate and invite its owner. Test the actual authenticated admin → owner → student journey and Stripe test-mode immediate/delayed payments, retries, invoices and refunds before allowing live purchases.
+6. Monitor pending/failed orders, partial-refund reconciliation orders, paid quantity versus seat count, invitation delivery errors, waiting activations, expiry processing and cron failures. Disabling the gate pauses new purchases/distribution/acceptance and keeps existing learner entitlements.
+
+## Local verification
+
+- `scripts/test-institution-database.sh`: isolated socket-only PostgreSQL 16 cluster, authentic quota function bodies, RLS and seat/payment lifecycle assertions, plus real parallel repeated-acceptance and competing-last-seat transactions. It never connects to the linked project. Set `POSTGRES_BIN` if PostgreSQL binaries live elsewhere.
+- `npx vitest run`: repository unit suite; institution pricing/CSV/webhook tests and personal billing provenance regression tests are included.
+- `npx playwright test institution-panel.spec.js --project=chromium`: real institution/admin/settings components with mocked transport, including mobile/light/dark. Requires the configured browser installation. These checks do not prove live authenticated permissions, email delivery or real Stripe payment behaviour.
+- `deno check --config supabase/functions/deno.json supabase/functions/institutions/index.ts supabase/functions/stripe-webhook/index.ts supabase/functions/admin-payment-history/index.ts`, ESLint on changed frontend files, and `npm run build`.
+
+These repeatable local suites do not themselves deploy anything or configure Stripe event subscriptions. The October 3 verification additionally exercised hosted database/API operations and a real Stripe sandbox payment against the same webhook implementation run locally. Live Stripe webhook subscription configuration and live payment delivery remain release checks. Public institution applications remain deferred as agreed.
+
+## Institution panel and history
+
+The institution routes use a dedicated shell, separate from learner navigation. Platform-admin institution details have dedicated Pricing and History tabs, with an explicit owner-panel preview link. History is served by the admin-only `history` operation in `institutions`, using category/reason filters and ID cursors to return 25 events per page with actor display names. See `institution-panel-redesign-2026-10-03.md` for verification evidence.

@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { institutionRequest } from '@/features/institution/services/institutions';
 import { User, TestSession } from '@/entities';
 import { sendEmail } from '@/utils/api';
 import { createPageUrl } from '@/utils';
@@ -159,7 +160,13 @@ export default function AdminUserDetails() {
         return;
       }
 
-      setUser(userData);
+      let institutionAccess = null;
+      try {
+        institutionAccess = await institutionRequest('user_access', { user_id: userData.id });
+      } catch {
+        /* Additive rollout may not be enabled yet. */
+      }
+      setUser({ ...userData, institution_access: institutionAccess?.institution_access });
 
       const sessions = await TestSession.list({ user_id: userData.id });
       setTestSessions(sessions);
@@ -311,6 +318,22 @@ export default function AdminUserDetails() {
             </DialogContent>
           </Dialog>
         </AdminPageHeader>
+        {user.institution_access && (
+          <div className={cn(PANEL, 'p-3 text-xs')}>
+            {user.institution_access.tier} access provided by {user.institution_access.name} ·{' '}
+            {user.institution_access.status}
+            <button
+              className="ml-3 text-[#5a63df] underline"
+              onClick={() =>
+                navigate(
+                  `/admin/panel?tab=institutions&institution=${user.institution_access.institution_id}`
+                )
+              }
+            >
+              Manage institution
+            </button>
+          </div>
+        )}
       </m.div>
 
       <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-3 gap-3">

@@ -642,7 +642,10 @@ export const AuthProvider = ({ children }) => {
     if (typeof window === 'undefined' || !userProfile?.id) return;
 
     const userId = userProfile.id;
-    const currentTier = normalizeSubscriptionTier(userProfile.subscription_tier);
+    // Institution entitlement changes are access grants, not personal purchase conversions.
+    const currentTier = normalizeSubscriptionTier(
+      userProfile.personal_subscription?.subscription_tier ?? userProfile.subscription_tier
+    );
     const previousTier = getStoredSubscriptionTier(userId);
 
     if (!previousTier) {

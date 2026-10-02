@@ -223,30 +223,37 @@ describe('translateService - cache persistence', () => {
   });
 
   it('coalesces a page of translations into a single storage write', async () => {
-    const fetchMock = vi.fn(async (url: string) => {
-      const text = decodeURIComponent(String(url).match(/q=([^&]*)/)![1]);
-      return mockTranslationResponse(text) as any;
-    });
-    vi.stubGlobal('fetch', fetchMock);
+    // A loaded CI worker may exceed the real debounce window while draining
+    // mocked requests. Keep the batch inside that window deliberately.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const fetchMock = vi.fn(async (url: string) => {
+        const text = decodeURIComponent(String(url).match(/q=([^&]*)/)![1]);
+        return mockTranslationResponse(text) as any;
+      });
+      vi.stubGlobal('fetch', fetchMock);
 
-    const setItem = vi.spyOn(Storage.prototype, 'setItem');
-    const mod = await freshModule();
+      const setItem = vi.spyOn(Storage.prototype, 'setItem');
+      const mod = await freshModule();
 
-    // A full page of distinct rows resolving together.
-    await Promise.all(
-      Array.from({ length: 30 }, (_, i) => mod.translateText(`row-${i}`, 'nl', 'en'))
-    );
-    mod.flushTranslationCache();
+      // A full page of distinct rows resolving together.
+      await Promise.all(
+        Array.from({ length: 30 }, (_, i) => mod.translateText(`row-${i}`, 'nl', 'en'))
+      );
+      mod.flushTranslationCache();
 
-    const cacheWrites = setItem.mock.calls.filter(([key]) =>
-      String(key).includes('TranslationCache')
-    );
-    // Serialising the whole cache is O(cache size); doing it per row would be
-    // 30 full rewrites on the main thread.
-    expect(cacheWrites.length).toBeLessThanOrEqual(2);
-    expect(mod.getCachedTranslation('row-29', 'nl', 'en')).toBe('translated:row-29');
+      const cacheWrites = setItem.mock.calls.filter(([key]) =>
+        String(key).includes('TranslationCache')
+      );
+      // Serialising the whole cache is O(cache size); doing it per row would be
+      // 30 full rewrites on the main thread.
+      expect(cacheWrites.length).toBeLessThanOrEqual(2);
+      expect(mod.getCachedTranslation('row-29', 'nl', 'en')).toBe('translated:row-29');
 
-    setItem.mockRestore();
+      setItem.mockRestore();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('flushes pending writes when the page is hidden', async () => {

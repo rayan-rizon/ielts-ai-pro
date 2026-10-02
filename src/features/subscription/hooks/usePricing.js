@@ -97,7 +97,7 @@ export function usePricing(defaultPlans, options = {}) {
   }, [pricingConfig, defaultPlans]);
 
   return {
-    user,
+    user: user?.personal_subscription ? { ...user, ...user.personal_subscription } : user,
     refetchUser,
     plans,
     detectedCountry: pricingConfig?.userCountry,

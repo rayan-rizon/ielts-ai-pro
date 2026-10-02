@@ -135,6 +135,12 @@ const Listening = lazyWithRetry(() => import('@/features/testing/shared/pages/Li
 const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Reading.jsx'));
 const Speaking = lazyWithRetry(() => import('@/features/testing/shared/pages/Speaking.jsx'));
 const Writing = lazyWithRetry(() => import('@/features/testing/shared/pages/Writing.jsx'));
+const InstitutionPanel = lazyWithRetry(
+  () => import('@/features/institution/pages/InstitutionPanel.jsx')
+);
+const AcceptInstitutionInvitation = lazyWithRetry(
+  () => import('@/features/institution/pages/AcceptInvitation.jsx')
+);
 const AdminPanel = lazyWithRetry(() => import('@/features/admin/pages/AdminPanel.jsx'));
 const AdminUserDetails = lazyWithRetry(() => import('@/features/admin/pages/AdminUserDetails.jsx'));
 const CambridgeTests = lazyWithRetry(
@@ -385,6 +391,26 @@ const router = createBrowserRouter(
         <LazyPage data-oid="email-confirmation-page">
           <EmailConfirmation data-oid="email-confirmation-comp" />
         </LazyPage>
+      ),
+    },
+    {
+      path: '/institution',
+      element: (
+        <ProtectedRoute>
+          <LazyPage>
+            <InstitutionPanel />
+          </LazyPage>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/institution/accept',
+      element: (
+        <ProtectedRoute>
+          <LazyPage>
+            <AcceptInstitutionInvitation />
+          </LazyPage>
+        </ProtectedRoute>
       ),
     },
     {

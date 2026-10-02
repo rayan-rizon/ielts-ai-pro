@@ -175,7 +175,7 @@ serve(async (req: Request) => {
 
     // Rate limiting
     const { data: userProfile } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select('id, subscription_tier')
       .eq('auth_id', user.id)
       .single();
@@ -529,7 +529,10 @@ serve(async (req: Request) => {
       ? Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)
       : null;
     const actualDurationSeconds =
-      Number.isFinite(elapsedSeconds) && elapsedSeconds > 0 && elapsedSeconds <= 14_400
+      elapsedSeconds !== null &&
+      Number.isFinite(elapsedSeconds) &&
+      elapsedSeconds > 0 &&
+      elapsedSeconds <= 14_400
         ? elapsedSeconds
         : null;
     const criteriaScores = {

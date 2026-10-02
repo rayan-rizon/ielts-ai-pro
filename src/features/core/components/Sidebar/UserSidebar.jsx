@@ -264,6 +264,20 @@ const UserSidebarFooter = ({ user, handleLogout, showUpgradeOffer }) => {
         </div>
         <UpgradeCard isFree={showUpgradeOffer && isFree} onNavigate={closeMobileSidebar} />
         <UserProfileLink user={user} onNavigate={closeMobileSidebar} />
+        {!!user?.institution_owner_ids?.length && (
+          <SidebarMenuButton asChild tooltip="Switch to institution panel">
+            <Link
+              to="/institution"
+              onClick={closeMobileSidebar}
+              className="gap-2.5 px-3 text-slate-600 dark:text-slate-300"
+            >
+              <GraduationCap className="h-4 w-4" />
+              <span className={cn('text-xs font-semibold', COLLAPSIBLE_LABEL)}>
+                Switch to institution panel
+              </span>
+            </Link>
+          </SidebarMenuButton>
+        )}
         <SidebarMenuButton
           onClick={signOut}
           aria-label="Sign out"

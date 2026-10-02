@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { loadInstitutionAccess } from '@/features/institution/services/institutions';
 import { emailSchema, signUpSchema } from '@/lib/validations';
 import { UserProfile } from '@/types';
 import { getCsrfHeaders } from '@/lib/csrf';
@@ -118,6 +119,10 @@ export const User = {
     }
   },
   async me(referralCode: string | null = null): Promise<UserProfile> {
+    const profile = await this.personalProfile(referralCode);
+    return { ...profile, ...(await loadInstitutionAccess()) };
+  },
+  async personalProfile(referralCode: string | null = null): Promise<UserProfile> {
     const {
       data: { session },
     } = await supabase.auth.getSession();

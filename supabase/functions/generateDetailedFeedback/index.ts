@@ -195,7 +195,7 @@ serve(async (req: Request) => {
     }
 
     const { data: userProfile, error: profileError } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select('id, subscription_tier')
       .eq('auth_id', user.id)
       .single();

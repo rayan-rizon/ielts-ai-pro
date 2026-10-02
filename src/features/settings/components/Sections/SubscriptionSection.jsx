@@ -29,7 +29,7 @@ import {
 } from '@/features/dashboard/components/primitives';
 
 export default function SubscriptionSection({
-  user,
+  user: accessUser,
   isOpeningPortal,
   isCancelling,
   showCancelDialog,
@@ -38,14 +38,37 @@ export default function SubscriptionSection({
   handleToggleCancellation,
   navigate,
 }) {
+  const institution = accessUser?.institution_access;
+  const user = accessUser?.personal_subscription
+    ? { ...accessUser, ...accessUser.personal_subscription }
+    : accessUser;
   const isFree = user?.subscription_tier === 'free' || !user?.subscription_tier;
   const hasStripeSubscription = Boolean(user?.stripe_customer_id && user?.stripe_subscription_id);
   const isCancellingScheduled = hasStripeSubscription && !!user?.cancel_at_period_end;
 
   return (
     <div className="space-y-3">
+      {institution && (
+        <section className={cn(PANEL, 'p-4 sm:p-5')}>
+          <PanelTitle label={`Access provided by ${institution.name}`} accent />
+          <Pill tone={institution.status === 'active' ? 'ok' : 'warn'}>
+            {institution.tier} · {institution.status}
+          </Pill>
+          <p className={cn(MUTED, 'mt-2 text-xs')}>
+            {institution.status === 'waiting'
+              ? 'Your seat is reserved and will start when your current paid access ends. A recurring personal subscription can postpone activation. Manage personal billing below if you want it to end.'
+              : `Institution access until ${format(new Date(institution.access_until), 'MMMM dd, yyyy')}. Your institution manages this access.`}
+          </p>
+          {institution.waiting && (
+            <p className={cn(MUTED, 'mt-2 text-xs')}>
+              Your next institution seat is reserved and will start after current access ends.
+            </p>
+          )}
+        </section>
+      )}
+
       <div className={cn(PANEL, 'p-4 sm:p-5')}>
-        <PanelTitle label="Current subscription" accent />
+        <PanelTitle label={institution ? 'Personal subscription' : 'Current subscription'} accent />
         <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
           Manage your plan details and billing cycle.
         </p>

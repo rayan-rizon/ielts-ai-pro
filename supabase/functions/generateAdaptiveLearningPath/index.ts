@@ -456,7 +456,7 @@ serve(async (req: Request) => {
     const trigger = ALLOWED_TRIGGERS.has(requestedTrigger) ? requestedTrigger : 'manual_refresh';
 
     const { data: profile, error: profileError } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select(
         'id, subscription_tier, target_band_score, test_date, study_hours_goal, study_availability, weak_area, exam_type'
       )

@@ -176,7 +176,7 @@ serve(async (req: Request) => {
 
     // Rate limiting and Tier Checks
     const { data: userProfile } = await supabase
-      .from('users')
+      .from('institution_learner_profiles')
       .select('id, subscription_tier, role')
       .eq('auth_id', user.id)
       .single();

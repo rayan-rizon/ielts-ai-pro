@@ -16,6 +16,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
+import { handleInstitutionWebhook } from '../_shared/institutionWebhook.ts';
 import { sendEmail } from '../_shared/resend.ts';
 import { getEmailTemplate } from '../_shared/templates.ts';
 import { sendGa4Purchase } from '../_shared/ga4.ts';
@@ -182,6 +183,13 @@ Deno.serve(async (req: Request) => {
   console.log(`[Webhook] Processing event: ${event.type} (${event.id})`);
 
   try {
+    if (await handleInstitutionWebhook(event, stripe, supabase)) {
+      return new Response(JSON.stringify({ received: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;

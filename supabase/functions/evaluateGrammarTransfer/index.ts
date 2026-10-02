@@ -131,7 +131,7 @@ serve(async (req: Request) => {
     if (authError || !user) return errorResponse('Unauthorized', 401, corsHeaders);
 
     const { data: profile, error: profileError } = await serviceClient
-      .from('users')
+      .from('institution_learner_profiles')
       .select('id, subscription_tier, role')
       .eq('auth_id', user.id)
       .single();

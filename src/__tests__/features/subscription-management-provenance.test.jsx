@@ -51,6 +51,37 @@ describe('billing provenance in settings', () => {
     expect(screen.getByText('Next charge')).toBeInTheDocument();
   });
 
+  it('shows sponsored access while keeping personal billing separate', () => {
+    show({
+      subscription_tier: 'premium',
+      personal_subscription: { subscription_tier: 'free', subscription_end_date: null },
+      institution_access: {
+        name: 'IELTS Centre',
+        tier: 'premium',
+        status: 'active',
+        access_until: '2099-01-01T00:00:00Z',
+      },
+    });
+    expect(screen.getByText('Access provided by IELTS Centre')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Basic learner' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Manage Stripe billing' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel subscription' })).not.toBeInTheDocument();
+  });
+  it('explains waiting seats and preserves the recurring personal portal', () => {
+    show({
+      ...baseUser,
+      stripe_subscription_id: 'sub_personal',
+      personal_subscription: {
+        subscription_tier: 'premium',
+        subscription_end_date: '2099-01-01T00:00:00Z',
+      },
+      institution_access: { name: 'IELTS Centre', tier: 'pro', status: 'waiting' },
+    });
+    expect(
+      screen.getByText(/A recurring personal subscription can postpone activation/)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Manage Stripe billing' })).toBeInTheDocument();
+  });
   it('explains the manual-access request without invoking Stripe cancellation', () => {
     const props = show(baseUser, true);
     expect(screen.getByRole('dialog')).toHaveTextContent(

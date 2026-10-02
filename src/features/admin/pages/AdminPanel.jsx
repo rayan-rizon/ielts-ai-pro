@@ -22,6 +22,11 @@ import { AnimatePresence, m } from 'framer-motion';
 import { ADMIN_PAGE_TRANSITION, AdminPageSkeleton } from '@/components/admin/ui/primitives';
 
 // Lazy load admin components
+const InstitutionAdmin = lazy(() =>
+  import('@/features/institution/components/InstitutionWorkspace').then((module) => ({
+    default: module.InstitutionAdmin,
+  }))
+);
 const AdminOverview = lazy(() => import('@/components/admin/AdminOverview'));
 const TestManagement = lazy(() => import('@/components/admin/tests'));
 const UserManagement = lazy(() => import('@/components/admin/UserManagement'));
@@ -40,6 +45,7 @@ const TestIssueReports = lazy(() => import('@/components/admin/TestIssueReports'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'institutions', label: 'Institutions', icon: Users },
   { id: 'users', label: 'Users', icon: Users },
   { id: 'tests', label: 'Tests', icon: FileText },
   { id: 'resources', label: 'Resources', icon: Library },
@@ -282,6 +288,8 @@ export default function AdminPanel() {
           />
         );
 
+      case 'institutions':
+        return <InstitutionAdmin />;
       case 'users':
         return <UserManagement data-oid="c.hqmod" />;
       case 'promo':
