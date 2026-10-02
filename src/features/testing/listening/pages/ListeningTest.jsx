@@ -111,7 +111,7 @@ function ListeningTestInner() {
           <TakeWithFriend test={state.testData} />
         </div>
       )}
-      {isAwaitingStart && state.error && (
+      {state.error && (
         <div
           role="alert"
           className="mx-4 mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[rgba(var(--signal-fault),0.25)] bg-[rgba(var(--signal-fault),0.04)] px-3 py-2 text-xs text-[rgb(var(--signal-fault))]"

@@ -358,6 +358,16 @@ export async function createTestSession({
   audioDurations = [],
   requestId = crypto.randomUUID(),
 }: CreateSessionParams): Promise<TestSession> {
+  if (
+    !Number.isFinite(durationSeconds) ||
+    durationSeconds <= 0 ||
+    (type === 'listening' &&
+      testMode === 'exam' &&
+      (audioDurations.length !== 4 ||
+        !audioDurations.every((duration) => Number.isFinite(duration) && duration > 0)))
+  ) {
+    throw new Error('Unable to determine listening exam timing. Please try again.');
+  }
   const { data, error } = await supabase.rpc('start_objective_test', {
     p_passage_id: passageId,
     p_test_type: type,

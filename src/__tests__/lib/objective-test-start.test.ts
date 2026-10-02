@@ -53,15 +53,39 @@ describe('solo objective test start', () => {
       type: 'listening',
       testMode: 'exam',
       durationSeconds: 2400,
-      audioDurations: [900, 1380],
+      audioDurations: [600, 580, 600, 500],
     });
     expect(mocks.rpc).toHaveBeenCalledWith(
       'start_objective_test',
       expect.objectContaining({
         p_test_type: 'listening',
-        p_audio_durations: [900, 1380],
+        p_audio_durations: [600, 580, 600, 500],
       })
     );
+  });
+
+  it('rejects invalid Listening exam timing before calling the server', async () => {
+    for (const audioDurations of [[NaN, NaN, NaN, NaN], [600, 0, 600, 500], []]) {
+      await expect(
+        createTestSession({
+          passageId: 'passage-2',
+          type: 'listening',
+          testMode: 'exam',
+          durationSeconds: 2400,
+          audioDurations,
+        })
+      ).rejects.toThrow(/timing/);
+    }
+    await expect(
+      createTestSession({
+        passageId: 'passage-2',
+        type: 'listening',
+        testMode: 'exam',
+        durationSeconds: NaN,
+        audioDurations: [600, 580, 600, 500],
+      })
+    ).rejects.toThrow(/timing/);
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
   it('reports a quota denial with the server reset time', async () => {

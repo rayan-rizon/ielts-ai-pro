@@ -34,37 +34,7 @@ import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline
 import { trackAppEvent } from '@/lib/tracking';
 import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
 
-function loadAudioDuration(src) {
-  return new Promise((resolve, reject) => {
-    const audio = new Audio();
-    let settled = false;
-    const cleanup = () => {
-      window.clearTimeout(timeout);
-      audio.onloadedmetadata = null;
-      audio.onerror = null;
-      audio.removeAttribute('src');
-      audio.load();
-    };
-    const finish = (callback) => {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      callback();
-    };
-    const timeout = window.setTimeout(
-      () => finish(() => reject(new Error(`Audio metadata timed out: ${src}`))),
-      15_000
-    );
-    audio.preload = 'metadata';
-    audio.onloadedmetadata = () => {
-      finish(() => resolve(Math.ceil(audio.duration)));
-    };
-    audio.onerror = () => {
-      finish(() => reject(new Error(`Unable to load audio metadata: ${src}`)));
-    };
-    audio.src = src;
-  });
-}
+import { loadAudioDuration, recoverListeningExamTiming } from '../utils/examAudio';
 
 export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpired } = {}) => {
   const paired = usePairedTest();
@@ -109,7 +79,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
       dispatch({ type: ACTIONS.SET_LOADING, payload: true });
 
       try {
-        const {
+        let {
           testData,
           questions,
           session: existingSession,
@@ -122,6 +92,16 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
           viewResults,
           user: currentUser, // Pass user to avoid redundant User.me()
         }));
+
+        if (
+          !paired &&
+          existingSession &&
+          getSessionTestMode(existingSession) === 'exam' &&
+          !existingSession.is_completed &&
+          !viewResults
+        ) {
+          existingSession = await recoverListeningExamTiming(existingSession, testData);
+        }
 
         if (paired) dispatch({ type: ACTIONS.RESET_TEST });
         // 1. PREPARE STORE STATE (Validate or Reset)
@@ -148,7 +128,12 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
           if (existingSession) {
             dispatch({ type: ACTIONS.SET_SESSION, payload: existingSession });
             setSelectedMode(getSessionTestMode(existingSession));
-            if (getSessionTestMode(existingSession) === 'exam' && !existingSession.is_completed) {
+            if (
+              !paired &&
+              getSessionTestMode(existingSession) === 'exam' &&
+              !existingSession.is_completed &&
+              !viewResults
+            ) {
               const durations = existingSession.content_data?.audio_durations || [];
               const durationSeconds =
                 Number(existingSession.content_data?.duration_seconds) ||
@@ -520,7 +505,9 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
         const parts = getListeningParts(testData);
         const audioDurations =
           testMode === 'exam'
-            ? await Promise.all(parts.map((part) => loadAudioDuration(part.audio_url)))
+            ? await Promise.all(
+                parts.map((part) => loadAudioDuration(part.audio_url || part.audioUrl))
+              )
             : [];
         const durationSeconds =
           testMode === 'exam'
