@@ -10,3 +10,19 @@ process.env.VITE_SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'plac
 afterEach(() => {
   cleanup();
 });
+
+if (typeof HTMLCanvasElement !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = function (contextType) {
+    if (contextType === '2d') {
+      return {
+        clearRect: () => {},
+        fillRect: () => {},
+        beginPath: () => {},
+        arc: () => {},
+        fill: () => {},
+        scale: () => {},
+      };
+    }
+    return null;
+  };
+}

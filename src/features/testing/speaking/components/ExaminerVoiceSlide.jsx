@@ -2,6 +2,7 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Play, Square } from 'lucide-react';
 
+import MatrixOrb from '@/components/ui/matrix-orb';
 import { EXAMINER_VOICE_PREVIEW } from '../utils/speakingAccents';
 
 export default function ExaminerVoiceSlide({
@@ -27,7 +28,19 @@ export default function ExaminerVoiceSlide({
         className={voiceButtonClass({ center, isPreviewing })}
       >
         <span className="examiner-voice-orb" data-voice={voice.id} aria-hidden="true">
-          {center && <OrbPlaybackControl isPreviewing={isPreviewing} reducedMotion={reducedMotion} />}
+          <MatrixOrb
+            state={isPreviewing ? 'listening' : 'idle'}
+            size={120}
+            dots={11}
+            color="currentColor"
+            showLabel={false}
+            forceAnimate={true}
+            paused={!visible}
+            className="w-full h-full justify-center pointer-events-none"
+          />
+          {center && (
+            <OrbPlaybackControl isPreviewing={isPreviewing} reducedMotion={reducedMotion} />
+          )}
         </span>
       </button>
       <VoiceIdentity voice={voice} />
@@ -40,7 +53,7 @@ function getMotionProps({ center, offset, reducedMotion, visible }) {
     initial: false,
     animate: {
       x: `${offset * 112}%`,
-      scale: center ? 1 : 0.72,
+      scale: center ? 1 : 0.76,
       opacity: slideOpacity(center, visible),
     },
     transition: reducedMotion ? { duration: 0 } : { duration: 0.36, ease: [0.2, 0, 0, 1] },
@@ -51,7 +64,7 @@ function getMotionProps({ center, offset, reducedMotion, visible }) {
 
 function slideOpacity(center, visible) {
   if (!visible) return 0;
-  return center ? 1 : 0.68;
+  return center ? 1 : 0.8;
 }
 
 function voiceActionLabel({ center, isPreviewing, voice }) {

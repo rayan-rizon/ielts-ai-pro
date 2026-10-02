@@ -121,7 +121,15 @@ export default function ExaminerVoiceCarousel({
                     : 'border-[#e4e2f0] bg-white/70 text-slate-500 hover:border-[#5a63df]/30 hover:text-slate-800 dark:border-white/[0.07] dark:bg-white/3 dark:text-slate-400 dark:hover:text-slate-100'
                 )}
               >
-                {selected && <Check className="h-3 w-3" aria-hidden="true" />}
+                {selected ? (
+                  <Check className="h-3 w-3" aria-hidden="true" />
+                ) : (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: voice.color || '#5a63df' }}
+                    aria-hidden="true"
+                  />
+                )}
                 {voice.name}
               </button>
             );

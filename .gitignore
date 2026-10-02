@@ -98,3 +98,11 @@ SEO-KEYWORD-ANALYSIS.md
 .claude/skills/bulk-classify/
 skills/
 skills-lock.json
+
+# --- Hyperframes & Videos ---
+launch-video/
+launch-video-9x16/
+*launch-video*/
+renders/
+*.mp4
+*.webm
