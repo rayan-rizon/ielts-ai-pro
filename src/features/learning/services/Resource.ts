@@ -41,6 +41,29 @@ interface ListResult {
 }
 
 export const Resource = {
+  /** Full-content export, traversed by immutable ID in bounded batches. */
+  async exportAll(): Promise<ResourceType[]> {
+    const result: ResourceType[] = [];
+    const startedAt = new Date().toISOString();
+    let afterId: string | null = null;
+    while (true) {
+      let query = supabase
+        .from('resources')
+        .select('*')
+        .lte('created_at', startedAt)
+        .order('id', { ascending: true })
+        .limit(250);
+      if (afterId) query = query.gt('id', afterId);
+      const { data, error } = await query;
+      if (error) throw error;
+      const rows = (data || []) as ResourceType[];
+      result.push(...rows);
+      if (rows.length < 250) return result;
+      const nextId = rows[rows.length - 1].id;
+      if (nextId === afterId) throw new Error('Resource export cursor did not advance');
+      afterId = nextId;
+    }
+  },
   /**
    * List resources with filtering, sorting, and pagination
    */

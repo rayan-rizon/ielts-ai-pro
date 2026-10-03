@@ -1,6 +1,7 @@
 import { m } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { usePaymentHistory } from '@/hooks/admin/usePaymentHistory';
 import {
   AlertCircle,
   Check,
@@ -18,7 +19,7 @@ import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
-import { matchesPaymentSearch, mergePaymentHistory } from './paymentHistory';
+import { matchesPaymentSearch } from './paymentHistory';
 import CustomerBillingSheet from './billing/CustomerBillingSheet';
 import RefundLedgerPanel from './billing/RefundLedgerPanel';
 import {
@@ -31,6 +32,7 @@ import {
   pillTone,
   STAGGER_CONTAINER,
   FADE_UP,
+  AdminButton,
 } from './ui/primitives';
 
 const STATUS_TONE = { pending: 'warn', approved: 'ok', rejected: 'fault', refunded: 'accent' };
@@ -50,66 +52,25 @@ const FILTERS = [
 ];
 
 export default function PaymentManagement() {
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [isProcessing, setIsProcessing] = useState(null);
   const [billingUserId, setBillingUserId] = useState(null);
   const [ledgerKey, setLedgerKey] = useState(0);
-
-  useEffect(() => {
-    fetchRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
-
-  const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('payment_requests')
-        .select(
-          `
-          *,
-          user:users!payment_requests_auth_id_fkey (
-            full_name,
-            email,
-            id
-          )
-        `
-        )
-        .order('created_at', { ascending: false });
-
-      if (filter !== 'all') {
-        query = query.eq('status', filter);
-      }
-
-      const [{ data, error }, { data: stripeData, error: stripeError }] = await Promise.all([
-        query,
-        supabase.functions.invoke('admin-payment-history', { method: 'GET' }),
-      ]);
-
-      if (error) throw error;
-
-      if (stripeError) {
-        // Manual payments are still useful when Stripe history is temporarily unavailable.
-        console.error('Error fetching Stripe payment history:', stripeError);
-        toast.error('Stripe payment history is temporarily unavailable');
-      }
-
-      const paymentHistory = mergePaymentHistory(data || [], stripeData?.payments || []);
-      setRequests(
-        filter === 'all'
-          ? paymentHistory
-          : paymentHistory.filter((payment) => payment.status === filter)
-      );
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      toast.error('Failed to load payment requests');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    requests,
+    loading,
+    busy,
+    hasMore,
+    loadMore,
+    refreshManual,
+    retryManual,
+    retryStripe,
+    refreshStripe,
+    stripeLoading,
+    manualError,
+    stripeError,
+  } = usePaymentHistory(filter, search);
 
   const handleStatusUpdate = async (request, newStatus) => {
     try {
@@ -130,7 +91,7 @@ export default function PaymentManagement() {
         toast.info(`Payment request ${newStatus}`);
       }
 
-      await fetchRequests();
+      await refreshManual();
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Failed to update status');
@@ -258,6 +219,7 @@ export default function PaymentManagement() {
             <Input
               aria-label="Search payments"
               placeholder="Search TrxID, phone, user…"
+              maxLength={160}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8 h-8 w-full rounded-md border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-xs font-medium"
@@ -266,18 +228,41 @@ export default function PaymentManagement() {
         </AdminPageHeader>
       </m.div>
 
+      {(manualError || stripeError) && (
+        <div role="alert" className="text-xs text-amber-700 dark:text-amber-300">
+          {manualError || stripeError}
+          <AdminButton
+            variant="outline"
+            onClick={() => (manualError ? retryManual() : retryStripe())}
+            loading={busy}
+          >
+            Retry history
+          </AdminButton>
+        </div>
+      )}
+      {stripeLoading && (
+        <p role="status" className="text-xs text-stone-500">
+          Loading Stripe history… Manual payments are available as they load.
+        </p>
+      )}
       {/* Queue state */}
       <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Kpi
           label="Awaiting review"
           value={stats.pending}
-          sub={stats.pending ? `oldest ${stats.oldestHours}h ago` : 'queue is clear'}
-          tip="Submitted payments awaiting approval."
+          sub={
+            stats.pending ? `loaded · oldest ${stats.oldestHours}h ago` : 'none in loaded history'
+          }
+          tip="Pending payments in the loaded history. Select Pending and load older records to review the full queue."
         />
-        <Kpi label="Approved" value={stats.approved} sub="upgrades applied" />
-        <Kpi label="Rejected" value={stats.rejected} sub="declined transfers" />
-        <Kpi label="Refunded" value={stats.refunded} sub="money returned" />
-        <Kpi label="Total records" value={requests.length} sub="manual + Stripe" />
+        <Kpi label="Approved" value={stats.approved} sub="in loaded history" />
+        <Kpi label="Rejected" value={stats.rejected} sub="in loaded history" />
+        <Kpi label="Refunded" value={stats.refunded} sub="in loaded history" />
+        <Kpi
+          label="Loaded records"
+          value={requests.length}
+          sub={hasMore ? 'more history available' : 'manual + Stripe'}
+        />
       </m.div>
 
       {/* Filter row */}
@@ -495,6 +480,17 @@ export default function PaymentManagement() {
         </div>
       </m.div>
 
+      {hasMore && (
+        <div className="flex items-center gap-3">
+          <AdminButton variant="outline" onClick={loadMore} loading={busy}>
+            Load older payments
+          </AdminButton>
+          <p className="text-xs text-stone-500">
+            Search includes all manual records and loaded Stripe history. Load older payments to
+            search further back in Stripe.
+          </p>
+        </div>
+      )}
       <m.div variants={FADE_UP}>
         <RefundLedgerPanel onOpenCustomer={setBillingUserId} refreshKey={ledgerKey} />
       </m.div>
@@ -505,7 +501,8 @@ export default function PaymentManagement() {
         onOpenChange={(next) => !next && setBillingUserId(null)}
         onChanged={() => {
           setLedgerKey((key) => key + 1);
-          fetchRequests();
+          refreshManual();
+          refreshStripe();
         }}
       />
     </m.div>

@@ -1,3 +1,4 @@
+import { useLatestRequest } from '@/hooks/admin/useLatestRequest';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -173,7 +174,10 @@ const ResourceManagement = () => {
   const [resourceToDelete, setResourceToDelete] = useState(null);
   const [bulkActionToDelete, setBulkActionToDelete] = useState(false);
 
+  const requestGate = useLatestRequest();
+
   const fetchResources = useCallback(async () => {
+    const request = requestGate.start();
     try {
       setLoading(true);
       const filters = {};
@@ -182,19 +186,30 @@ const ResourceManagement = () => {
 
       const orderBy = sortDirection === 'desc' ? `-${sortField}` : sortField;
       const result = await Resource.list(filters, orderBy, pagination.limit, pagination.page);
+      if (!requestGate.isCurrent(request)) return;
       setResources(result.data);
       setPagination((prev) => ({ ...prev, count: result.count }));
     } catch (error) {
+      if (!requestGate.isCurrent(request)) return;
       console.error('Error fetching resources:', error);
       toast.error('Failed to load resources');
     } finally {
-      setLoading(false);
+      if (requestGate.isCurrent(request)) setLoading(false);
     }
-  }, [filterType, searchQuery, sortField, sortDirection, pagination.page, pagination.limit]);
+  }, [
+    filterType,
+    searchQuery,
+    sortField,
+    sortDirection,
+    pagination.page,
+    pagination.limit,
+    requestGate,
+  ]);
 
   useEffect(() => {
     fetchResources();
-  }, [fetchResources]);
+    return requestGate.invalidate;
+  }, [fetchResources, requestGate]);
 
   useEffect(() => {
     if (!thumbnailFile) {
@@ -545,11 +560,12 @@ const ResourceManagement = () => {
   const handleExport = async () => {
     try {
       toast.info('Preparing export...');
-      // Fetch all resources without pagination for export
-      const result = await Resource.list({}, '-created_at', 1000, 1);
-
-      const dataStr =
-        'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(result.data, null, 2));
+      const resources = await Resource.exportAll();
+      const dataStr = URL.createObjectURL(
+        new Blob([JSON.stringify(resources, null, 2)], {
+          type: 'application/json',
+        })
+      );
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute('href', dataStr);
       downloadAnchorNode.setAttribute(
@@ -559,6 +575,7 @@ const ResourceManagement = () => {
       document.body.appendChild(downloadAnchorNode); // required for firefox
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
+      setTimeout(() => URL.revokeObjectURL(dataStr), 1000);
       toast.success('Export successful');
     } catch (error) {
       console.error('Export failed:', error);

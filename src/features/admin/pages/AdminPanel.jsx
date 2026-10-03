@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { useLatestRequest } from '@/hooks/admin/useLatestRequest';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -81,24 +82,18 @@ const UserAnalyticsWrapper = () => {
   const [analyticsData, setAnalyticsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState('30D');
-  const mountedRef = useRef(true);
-
-  useEffect(
-    () => () => {
-      mountedRef.current = false;
-    },
-    []
-  );
+  const requestGate = useLatestRequest();
 
   const loadAnalyticsData = useCallback(
     async (range) => {
+      const request = requestGate.start();
       try {
         setLoading(true);
         // The RPC owns range-specific aggregation, so every KPI and chart
         // changes together instead of mixing windowed and lifetime values.
         const rpcRange = (range || selectedRange).toLowerCase();
         const data = await AnalyticsService.getUserIntelligence(rpcRange);
-        if (!mountedRef.current) return;
+        if (!requestGate.isCurrent(request)) return;
 
         setStats({
           totalUsers: data.totalUsers,
@@ -123,15 +118,16 @@ const UserAnalyticsWrapper = () => {
       } catch (error) {
         console.error('Error loading analytics data:', error);
       } finally {
-        if (mountedRef.current) setLoading(false);
+        if (requestGate.isCurrent(request)) setLoading(false);
       }
     },
-    [selectedRange]
+    [selectedRange, requestGate]
   );
 
   useEffect(() => {
     loadAnalyticsData(selectedRange);
-  }, [selectedRange, loadAnalyticsData]);
+    return requestGate.invalidate;
+  }, [selectedRange, loadAnalyticsData, requestGate]);
 
   if (loading && !Object.keys(stats).length) {
     return <AdminPageSkeleton kpis={6} panels={3} />;
@@ -157,22 +153,16 @@ const RevenueAnalyticsWrapper = () => {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRange, setSelectedRange] = useState('30D');
-  const mountedRef = useRef(true);
-
-  useEffect(
-    () => () => {
-      mountedRef.current = false;
-    },
-    []
-  );
+  const requestGate = useLatestRequest();
 
   const loadAnalyticsData = useCallback(
     async (range = selectedRange) => {
+      const request = requestGate.start();
       try {
         setLoading(true);
 
         const revenueData = await AnalyticsService.getRevenueIntelligence(range.toLowerCase());
-        if (!mountedRef.current) return;
+        if (!requestGate.isCurrent(request)) return;
 
         setStats({
           activeSubscribers: revenueData.activeSubscribers,
@@ -199,15 +189,16 @@ const RevenueAnalyticsWrapper = () => {
       } catch (error) {
         console.error('Error loading revenue analytics:', error);
       } finally {
-        if (mountedRef.current) setLoading(false);
+        if (requestGate.isCurrent(request)) setLoading(false);
       }
     },
-    [selectedRange]
+    [selectedRange, requestGate]
   );
 
   useEffect(() => {
     loadAnalyticsData(selectedRange);
-  }, [selectedRange, loadAnalyticsData]);
+    return requestGate.invalidate;
+  }, [selectedRange, loadAnalyticsData, requestGate]);
 
   if (loading) {
     return <AdminPageSkeleton kpis={3} panels={1} />;

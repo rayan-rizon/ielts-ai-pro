@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useLatestRequest } from '@/hooks/admin/useLatestRequest';
 import { m, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -218,42 +219,54 @@ const HistoryRow = ({ notification, readCount, onToggleActive, onDelete }) => {
 export default function BroadcastsPanel() {
   const [notifications, setNotifications] = useState([]);
   const [readCounts, setReadCounts] = useState(new Map());
+  const [stats, setStats] = useState({
+    live: '—',
+    scheduled: '—',
+    paused: '—',
+    expired: '—',
+    reads: '—',
+  });
+  const [cursor, setCursor] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const requestGate = useLatestRequest();
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
-  const fetchAll = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [rows, counts] = await Promise.all([
-        Notification.listAll(),
-        Notification.readCounts().catch(() => new Map()),
-      ]);
-      setNotifications(rows || []);
-      setReadCounts(counts);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      toast.error('Could not load broadcasts');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchAll = useCallback(
+    async (after = null) => {
+      const request = requestGate.start();
+      try {
+        setLoading(true);
+        const page = await Notification.adminPage(after);
+        if (!requestGate.isCurrent(request)) return;
+        setNotifications((old) => (after ? [...old, ...page.entries] : page.entries));
+        setReadCounts(
+          (old) =>
+            new Map([...(after ? old : []), ...page.entries.map((row) => [row.id, row.read_count])])
+        );
+        setStats(page.stats);
+        setCursor(page.cursor);
+        setLoadError('');
+      } catch (error) {
+        if (!requestGate.isCurrent(request)) return;
+        console.error('Error fetching notifications:', error);
+        toast.error('Could not load broadcasts');
+        setLoadError('Could not refresh broadcast history. Retry with Refresh.');
+      } finally {
+        if (requestGate.isCurrent(request)) setLoading(false);
+      }
+    },
+    [requestGate]
+  );
 
   useEffect(() => {
     fetchAll();
-  }, [fetchAll]);
+    return requestGate.invalidate;
+  }, [fetchAll, requestGate]);
 
   const set = (patch) => setForm((prev) => ({ ...prev, ...patch }));
-
-  const stats = useMemo(() => {
-    const counts = { live: 0, scheduled: 0, paused: 0, expired: 0 };
-    notifications.forEach((notification) => {
-      counts[notificationState(notification)] += 1;
-    });
-    const reads = Array.from(readCounts.values()).reduce((sum, value) => sum + value, 0);
-    return { ...counts, reads };
-  }, [notifications, readCounts]);
 
   const handleSend = async () => {
     if (!form.title.trim() || !form.message.trim()) {
@@ -303,6 +316,7 @@ export default function BroadcastsPanel() {
     try {
       await Notification.setActive(notification.id, next);
       toast.success(next ? 'Broadcast resumed' : 'Broadcast paused');
+      fetchAll();
     } catch (error) {
       console.error('Error updating notification:', error);
       toast.error('Could not update broadcast');
@@ -496,13 +510,19 @@ export default function BroadcastsPanel() {
       <div className={cn(PANEL, 'overflow-hidden')}>
         <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-2.5 dark:border-white/6">
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Broadcast history · {notifications.length}
+            Broadcast history · {notifications.length} loaded
           </p>
-          <AdminButton variant="ghost" size="sm" onClick={fetchAll}>
+          <AdminButton variant="ghost" size="sm" onClick={() => fetchAll()} disabled={loading}>
             <RefreshCcw className={cn('h-3 w-3', loading && 'animate-spin')} />
             Refresh
           </AdminButton>
         </div>
+
+        {loadError && (
+          <p role="alert" className="px-4 py-3 text-xs text-amber-700 dark:text-amber-300">
+            {loadError}
+          </p>
+        )}
 
         {/* Mobile list */}
         <div className="divide-y divide-stone-100 dark:divide-white/5 md:hidden">
@@ -628,6 +648,18 @@ export default function BroadcastsPanel() {
             </TableBody>
           </Table>
         </div>
+        {cursor && (
+          <div className="p-3">
+            <AdminButton
+              variant="outline"
+              onClick={() => fetchAll(cursor)}
+              loading={loading}
+              disabled={loading}
+            >
+              Load older broadcasts
+            </AdminButton>
+          </div>
+        )}
       </div>
     </m.div>
   );

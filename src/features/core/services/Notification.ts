@@ -143,6 +143,30 @@ export const Notification = {
 
   // --- Admin ---------------------------------------------------------------
 
+  /** Bounded history with database counts across all broadcasts and receipts. */
+  async adminPage(cursor: { date: string; id: string } | null = null) {
+    const { data, error } = await supabase.rpc(
+      'admin_broadcast_page',
+      cursor ? { p_before_date: cursor.date, p_before_id: cursor.id } : {},
+      { get: true }
+    );
+    if (error) throw error;
+    const rows = data.entries as (NotificationRecord & { read_count: number })[];
+    const entries = rows.slice(0, 25);
+    const last = entries[entries.length - 1];
+    return {
+      entries,
+      stats: data.stats as {
+        live: number;
+        scheduled: number;
+        paused: number;
+        expired: number;
+        reads: number;
+      },
+      cursor: rows.length > 25 ? { date: last.created_at, id: last.id } : null,
+    };
+  },
+
   /** Every broadcast, live or not, newest first. */
   async listAll(): Promise<NotificationRecord[]> {
     const { data, error } = await supabase

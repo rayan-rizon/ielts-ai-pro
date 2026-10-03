@@ -18,7 +18,7 @@ import {
 import { createPageUrl } from '@/utils';
 import { adminNavigationItems, analyticsNavigationItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
-import { useAdminPaymentAlerts } from './useAdminPaymentAlerts';
+import { useAdminBadges } from './useAdminBadges';
 
 /*
  * Same instrument-panel language as the rest of the admin area: graphite
@@ -31,61 +31,70 @@ const COLLAPSIBLE_LABEL =
 const COLLAPSIBLE_PROFILE_DETAILS =
   'flex min-w-0 flex-1 flex-col justify-center overflow-hidden whitespace-nowrap opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none';
 
-const AdminNavItem = memo(
-  ({ item, isActive, pendingCount = 0, stripePaymentCount = 0, stripeFailureCount = 0 }) => {
-    const { isMobile, setOpenMobile } = useSidebar();
-    const isPaymentsItem = item.title === 'Payments';
-    const isNotificationsItem = item.title === 'Notifications';
-    const badgeCount = pendingCount + stripePaymentCount + stripeFailureCount;
-    const showBadge = (isPaymentsItem || isNotificationsItem) && badgeCount > 0;
+const AdminNavItem = memo(({ item, isActive, badges = {} }) => {
+  const { isMobile, setOpenMobile } = useSidebar();
+  const tab = new URLSearchParams(item.url.split('?')[1] || '').get('tab');
+  const paymentCount =
+    (badges.pendingCount || 0) +
+    (badges.stripePaymentCount || 0) +
+    (badges.stripeFailureCount || 0);
+  const badgeByTab = {
+    payments: [paymentCount, 'new payment alerts'],
+    'feature-requests': [badges.featureRequestCount || 0, 'feature requests awaiting review'],
+    'test-reports': [badges.testReportCount || 0, 'unresolved test reports'],
+    institutions: [badges.institutionRequestCount || 0, 'institution requests awaiting review'],
+  };
+  const [badgeCount, badgeLabel] = badgeByTab[tab] || [0, ''];
+  const showBadge = badgeCount > 0;
 
-    const handleLinkClick = useCallback(() => {
-      if (isMobile) setOpenMobile(false);
-    }, [isMobile, setOpenMobile]);
+  const handleLinkClick = useCallback(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [isMobile, setOpenMobile]);
 
-    const btnClasses = `group transition-all duration-quick ease-smooth-out rounded-md relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
-      isActive
-        ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
-        : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
-    }`;
+  const btnClasses = `group transition-all duration-quick ease-smooth-out rounded-md relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
+    isActive
+      ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
+      : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
+  }`;
 
-    const iconClasses = `w-4 h-4 shrink-0 transition-transform duration-quick ease-smooth-out group-hover:scale-105 ${
-      isActive
-        ? 'text-white dark:text-stone-50'
-        : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
-    }`;
+  const iconClasses = `w-4 h-4 shrink-0 transition-transform duration-quick ease-smooth-out group-hover:scale-105 ${
+    isActive
+      ? 'text-white dark:text-stone-50'
+      : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
+  }`;
 
-    return (
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild className={btnClasses} tooltip={item.title}>
-          <Link
-            to={item.url}
-            className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
-            onClick={handleLinkClick}
-          >
-            <item.icon className={iconClasses} />
-            <span className={`${COLLAPSIBLE_LABEL} truncate`}>{item.title}</span>
-            {showBadge && (
-              <span
-                role="status"
-                aria-label={
-                  isNotificationsItem
-                    ? `${pendingCount} pending payment approval${pendingCount === 1 ? '' : 's'}, ${stripePaymentCount} new Stripe payment${stripePaymentCount === 1 ? '' : 's'}, and ${stripeFailureCount} Stripe payment failure${stripeFailureCount === 1 ? '' : 's'}`
-                    : `${badgeCount} payment alert${badgeCount === 1 ? '' : 's'}`
-                }
-                className={`ml-auto h-4 px-1 min-w-[16px] rounded-full grid place-items-center shrink-0 ${MICRO} font-mono tabular-nums tracking-tight transition-all duration-quick ease-bounce animate-in fade-in zoom-in-75 ${
-                  isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
-                }`}
-              >
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        className={btnClasses}
+        tooltip={showBadge ? `${item.title} (${badgeCount > 99 ? '99+' : badgeCount})` : item.title}
+      >
+        <Link
+          to={item.url}
+          className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
+          onClick={handleLinkClick}
+        >
+          <item.icon className={iconClasses} />
+          <span className={`${COLLAPSIBLE_LABEL} truncate`}>{item.title}</span>
+          {showBadge && (
+            <span
+              role="status"
+              aria-label={`${badgeCount > 99 ? '99+' : badgeCount} ${badgeLabel}${badges.stale ? ' (last known count)' : ''}`}
+              className={`ml-auto h-4 px-1 min-w-[16px] rounded-full grid place-items-center shrink-0 group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:right-0.5 group-data-[collapsible=icon]:top-0.5 group-data-[collapsible=icon]:size-1.5 group-data-[collapsible=icon]:min-w-0 group-data-[collapsible=icon]:p-0 ${MICRO} font-mono tabular-nums tracking-tight transition-all duration-quick ease-bounce animate-in fade-in zoom-in-75 ${
+                isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
+              }`}
+            >
+              <span className="group-data-[collapsible=icon]:sr-only">
                 {badgeCount > 99 ? '99+' : badgeCount}
               </span>
-            )}
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    );
-  }
-);
+            </span>
+          )}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+});
 AdminNavItem.displayName = 'AdminNavItem';
 
 const AdminSidebarHeader = memo(() => (
@@ -234,10 +243,8 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const currentPath = location.pathname;
   const currentSearch = location.search || '';
-  const isOnPaymentsTab = currentSearch.includes('tab=payments');
-  const { pendingCount, stripePaymentCount, stripeFailureCount } = useAdminPaymentAlerts({
-    isOnPaymentsTab,
-  });
+  const isOnPaymentsTab = new URLSearchParams(currentSearch).get('tab') === 'payments';
+  const badges = useAdminBadges({ adminId: user?.auth_id || user?.id, isOnPaymentsTab });
 
   const isActiveAdminRoute = useCallback(
     (itemUrl) => checkIsActiveAdminRoute(currentPath, currentSearch, itemUrl),
@@ -259,9 +266,7 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
                   key={item.title}
                   item={item}
                   isActive={isActiveAdminRoute(item.url)}
-                  pendingCount={pendingCount}
-                  stripePaymentCount={stripePaymentCount}
-                  stripeFailureCount={stripeFailureCount}
+                  badges={badges}
                 />
               ))}
             </SidebarMenu>

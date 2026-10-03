@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLatestRequest } from '@/hooks/admin/useLatestRequest';
 import { m } from 'framer-motion';
 import {
   BarChart3,
@@ -64,76 +65,97 @@ const EMPTY_DATA = {
   currentSubscriptions: { total: 0, pro: 0, premium: 0 },
 };
 
+const COMMON_KEYS = ['campaigns', 'journeys', 'recovery', 'autopilot'];
+const TAB_KEYS = {
+  copilot: ['growth', 'currentSubscriptions'],
+  performance: ['growth', 'currentSubscriptions', 'dashboard', 'intelligence', 'breakdowns'],
+  campaigns: ['segments', 'promos', 'templates'],
+  audiences: ['segments'],
+  templates: ['templates'],
+  journeys: ['journeyMetrics'],
+};
+
 export default function MarketingHub() {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const [tab, setTab] = useState('copilot');
   const [data, setData] = useState(EMPTY_DATA);
+  const [loadError, setLoadError] = useState('');
+  const loaded = useRef(new Set());
+  const inFlight = useRef(new Map());
+  const navigationRequest = useRef(0);
+  const gate = useLatestRequest();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [
-        campaigns,
-        segments,
-        templates,
-        promos,
-        journeys,
-        dashboard,
-        intelligence,
-        breakdowns,
-        journeyMetrics,
-        recovery,
-        autopilot,
-        growth,
-        currentSubscriptions,
-      ] = await Promise.all([
-        MarketingService.listCampaigns(),
-        MarketingService.listSegments(),
-        MarketingService.listTemplates(),
-        PromoCode.list(),
-        MarketingService.listJourneys(),
-        MarketingService.getDashboard(30),
-        MarketingService.getOfferIntelligence(),
-        MarketingService.getBreakdowns(30),
-        MarketingService.getJourneyMetrics(30),
-        MarketingService.getCheckoutRecoveryDashboard(),
-        MarketingService.getAutopilotSnapshot(30),
-        MarketingService.getSubscriptionGrowth(),
-        MarketingService.getCurrentSubscriptionSummary(),
-      ]);
-      setData({
-        campaigns,
-        segments,
-        templates,
-        promos,
-        journeys,
-        dashboard,
-        intelligence,
-        breakdowns,
-        journeyMetrics,
-        recovery,
-        autopilot,
-        growth,
-        currentSubscriptions,
-      });
-    } catch (error) {
-      console.error('Marketing hub load failed:', error);
-      toast.error(error.message || 'Could not load the Marketing hub');
-    } finally {
-      setLoading(false);
-      setInitialized(true);
-    }
-  }, []);
+  const load = useCallback(
+    async (force = true) => {
+      const request = gate.start();
+      if (force) {
+        loaded.current.clear();
+        inFlight.current.clear();
+      }
+      setLoading(true);
+      try {
+        const loaders = {
+          campaigns: () => MarketingService.listCampaigns(),
+          segments: () => MarketingService.listSegments(),
+          templates: () => MarketingService.listTemplates(),
+          promos: () => PromoCode.list(),
+          journeys: () => MarketingService.listJourneys(),
+          dashboard: () => MarketingService.getDashboard(30),
+          intelligence: () => MarketingService.getOfferIntelligence(),
+          breakdowns: () => MarketingService.getBreakdowns(30),
+          journeyMetrics: () => MarketingService.getJourneyMetrics(30),
+          recovery: () => MarketingService.getCheckoutRecoveryDashboard(),
+          autopilot: () => MarketingService.getAutopilotSnapshot(30),
+          growth: () => MarketingService.getSubscriptionGrowth(),
+          currentSubscriptions: () => MarketingService.getCurrentSubscriptionSummary(),
+        };
+        const keys = [...COMMON_KEYS, ...TAB_KEYS[tab]].filter((key) => !loaded.current.has(key));
+        const values = await Promise.all(
+          keys.map((key) => {
+            if (!inFlight.current.has(key)) inFlight.current.set(key, loaders[key]());
+            return inFlight.current.get(key);
+          })
+        );
+        if (!gate.isCurrent(request)) return;
+        keys.forEach((key) => {
+          loaded.current.add(key);
+          inFlight.current.delete(key);
+        });
+        setData((old) => ({
+          ...old,
+          ...Object.fromEntries(keys.map((key, index) => [key, values[index]])),
+        }));
+        setLoadError('');
+      } catch (error) {
+        if (!gate.isCurrent(request)) return;
+        inFlight.current.clear();
+        console.error('Marketing hub load failed:', error);
+        toast.error(error.message || 'Could not load the Marketing hub');
+        setLoadError(
+          'Could not refresh this workspace. Retry with Refresh; previously loaded data is retained.'
+        );
+      } finally {
+        if (gate.isCurrent(request)) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      }
+    },
+    [tab, gate]
+  );
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load(false);
+    return gate.invalidate;
+  }, [load, gate]);
 
   const navigateToTab = useCallback((nextTab) => {
     if (!TABS.some(([value]) => value === nextTab)) return;
+    const navigation = ++navigationRequest.current;
     setTab(nextTab);
     requestAnimationFrame(() => {
+      if (navigation !== navigationRequest.current) return;
       document.getElementById(`marketing-tab-${nextTab}`)?.focus();
       document.getElementById(`marketing-tabpanel-${nextTab}`)?.scrollIntoView({
         block: 'start',
@@ -142,6 +164,14 @@ export default function MarketingHub() {
     });
   }, []);
 
+  useEffect(
+    () => () => {
+      navigationRequest.current += 1;
+    },
+    []
+  );
+
+  const ready = [...COMMON_KEYS, ...TAB_KEYS[tab]].every((key) => loaded.current.has(key));
   if (!initialized) return <AdminPageSkeleton kpis={5} panels={2} />;
 
   return (
@@ -156,25 +186,32 @@ export default function MarketingHub() {
           title="Marketing"
           description="Grow subscriptions. Review actions. Follow results."
         >
-          <AdminButton variant="outline" onClick={load} loading={loading}>
+          <AdminButton variant="outline" onClick={() => load()} loading={loading}>
             <RefreshCcw className="h-3.5 w-3.5" />
             Refresh
           </AdminButton>
         </AdminPageHeader>
       </m.div>
+      {loadError && (
+        <p role="alert" className="text-xs text-amber-700 dark:text-amber-300">
+          {loadError}
+        </p>
+      )}
 
       {/* Misconfiguration is a property of the hub, not of one tab — a stalled
           journey matters just as much while an operator is writing a campaign,
           so the checks stay above the tab bar rather than inside Performance. */}
-      <m.div variants={FADE_UP}>
-        <HubChecks
-          campaigns={data.campaigns}
-          journeys={data.journeys}
-          recovery={data.recovery}
-          autopilot={data.autopilot}
-          onNavigate={navigateToTab}
-        />
-      </m.div>
+      {COMMON_KEYS.every((key) => loaded.current.has(key)) && (
+        <m.div variants={FADE_UP}>
+          <HubChecks
+            campaigns={data.campaigns}
+            journeys={data.journeys}
+            recovery={data.recovery}
+            autopilot={data.autopilot}
+            onNavigate={navigateToTab}
+          />
+        </m.div>
+      )}
 
       <m.div variants={FADE_UP}>
         <Tabs
@@ -239,111 +276,147 @@ export default function MarketingHub() {
             id="marketing-tabpanel-copilot"
             className="mt-0 space-y-4 outline-none"
           >
-            <m.div
-              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-4"
-            >
-              <GrowthDecisionPanel
-                growth={data.growth}
-                currentSubscriptions={data.currentSubscriptions}
-                compact
-              />
-              <AdminOperationsPanel refreshKey={data.autopilot} />
-              <AutopilotPanel
-                autopilot={data.autopilot}
-                onRefresh={load}
-                onNavigate={navigateToTab}
-              />
-            </m.div>
+            {ready ? (
+              <m.div
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="space-y-4"
+              >
+                <GrowthDecisionPanel
+                  growth={data.growth}
+                  currentSubscriptions={data.currentSubscriptions}
+                  compact
+                />
+                <AdminOperationsPanel refreshKey={data.autopilot} />
+                <AutopilotPanel
+                  autopilot={data.autopilot}
+                  onRefresh={load}
+                  onNavigate={navigateToTab}
+                />
+              </m.div>
+            ) : loading ? (
+              <AdminPageSkeleton kpis={3} panels={1} />
+            ) : (
+              <p className="text-xs text-stone-500">Data unavailable. Use Refresh to try again.</p>
+            )}
           </TabsContent>
           <TabsContent
             value="performance"
             id="marketing-tabpanel-performance"
             className="mt-0 space-y-4 outline-none"
           >
-            <m.div
-              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-4"
-            >
-              <GrowthDecisionPanel
-                growth={data.growth}
-                currentSubscriptions={data.currentSubscriptions}
-              />
-              <CommandStrip campaigns={data.campaigns} dashboard={data.dashboard} />
-              <AnalyticsPanel
-                dashboard={data.dashboard}
-                intelligence={data.intelligence}
-                breakdowns={data.breakdowns}
-                recovery={data.recovery}
-              />
-            </m.div>
+            {ready ? (
+              <m.div
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="space-y-4"
+              >
+                <GrowthDecisionPanel
+                  growth={data.growth}
+                  currentSubscriptions={data.currentSubscriptions}
+                />
+                <CommandStrip campaigns={data.campaigns} dashboard={data.dashboard} />
+                <AnalyticsPanel
+                  dashboard={data.dashboard}
+                  intelligence={data.intelligence}
+                  breakdowns={data.breakdowns}
+                  recovery={data.recovery}
+                />
+              </m.div>
+            ) : loading ? (
+              <AdminPageSkeleton kpis={3} panels={1} />
+            ) : (
+              <p className="text-xs text-stone-500">Data unavailable. Use Refresh to try again.</p>
+            )}
           </TabsContent>
           <TabsContent
             value="campaigns"
             id="marketing-tabpanel-campaigns"
             className="mt-0 outline-none"
           >
-            <m.div
-              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <CampaignsPanel
-                campaigns={data.campaigns}
-                segments={data.segments}
-                promos={data.promos}
-                templates={data.templates}
-                onRefresh={load}
-              />
-            </m.div>
+            {ready ? (
+              <m.div
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <CampaignsPanel
+                  campaigns={data.campaigns}
+                  segments={data.segments}
+                  promos={data.promos}
+                  templates={data.templates}
+                  onRefresh={load}
+                />
+              </m.div>
+            ) : loading ? (
+              <AdminPageSkeleton kpis={3} panels={1} />
+            ) : (
+              <p className="text-xs text-stone-500">Data unavailable. Use Refresh to try again.</p>
+            )}
           </TabsContent>
           <TabsContent
             value="audiences"
             id="marketing-tabpanel-audiences"
             className="mt-0 outline-none"
           >
-            <m.div
-              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <SegmentsPanel segments={data.segments} onRefresh={load} />
-            </m.div>
+            {ready ? (
+              <m.div
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <SegmentsPanel segments={data.segments} onRefresh={load} />
+              </m.div>
+            ) : loading ? (
+              <AdminPageSkeleton kpis={3} panels={1} />
+            ) : (
+              <p className="text-xs text-stone-500">Data unavailable. Use Refresh to try again.</p>
+            )}
           </TabsContent>
           <TabsContent
             value="templates"
             id="marketing-tabpanel-templates"
             className="mt-0 outline-none"
           >
-            <m.div
-              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <TemplatesPanel templates={data.templates} onRefresh={load} />
-            </m.div>
+            {ready ? (
+              <m.div
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <TemplatesPanel templates={data.templates} onRefresh={load} />
+              </m.div>
+            ) : loading ? (
+              <AdminPageSkeleton kpis={3} panels={1} />
+            ) : (
+              <p className="text-xs text-stone-500">Data unavailable. Use Refresh to try again.</p>
+            )}
           </TabsContent>
           <TabsContent
             value="journeys"
             id="marketing-tabpanel-journeys"
             className="mt-0 outline-none"
           >
-            <m.div
-              initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <JourneysPanel
-                journeys={data.journeys}
-                campaigns={data.campaigns}
-                metrics={data.journeyMetrics}
-                onRefresh={load}
-              />
-            </m.div>
+            {ready ? (
+              <m.div
+                initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <JourneysPanel
+                  journeys={data.journeys}
+                  campaigns={data.campaigns}
+                  metrics={data.journeyMetrics}
+                  onRefresh={load}
+                />
+              </m.div>
+            ) : loading ? (
+              <AdminPageSkeleton kpis={3} panels={1} />
+            ) : (
+              <p className="text-xs text-stone-500">Data unavailable. Use Refresh to try again.</p>
+            )}
           </TabsContent>
         </Tabs>
       </m.div>

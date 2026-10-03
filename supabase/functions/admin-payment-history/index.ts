@@ -1,11 +1,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
-import { isVisibleIeltsCheckout, stripeObjectId } from './visibility.ts';
+import { loadHistoryPage, parseHistoryOptions } from './pagination.ts';
 import { getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import { fromStripeAmount } from '../_shared/planPricing.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
 const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
 
 const stripe = new Stripe(stripeSecretKey, {
@@ -96,14 +97,14 @@ const paymentFromInvoice = (invoice: Stripe.Invoice) => {
 Deno.serve(async (req: Request) => {
   const corsHeaders = { ...getCorsHeaders(req), 'Content-Type': 'application/json' };
   if (req.method === 'OPTIONS') return handleCorsPrelight(req);
-  if (req.method !== 'GET') {
+  if (!['GET', 'POST'].includes(req.method)) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers: corsHeaders,
     });
   }
 
-  if (!supabaseUrl || !serviceRoleKey || !stripeSecretKey) {
+  if (!supabaseUrl || !serviceRoleKey || !stripeSecretKey || !anonKey) {
     console.error('[admin-payment-history] Required payment configuration is missing');
     return new Response(JSON.stringify({ error: 'Payment history is not configured' }), {
       status: 503,
@@ -133,59 +134,57 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('role')
-      .eq('auth_id', user.id)
-      .maybeSingle();
-
-    if (profileError || profile?.role !== 'admin') {
+    const caller = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false },
+    });
+    const { data: isAdmin, error: adminError } = await caller.rpc('is_admin');
+    if (adminError || isAdmin !== true) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: corsHeaders,
       });
     }
-
-    const [checkoutSessions, paidInvoices, institutionHistory] = await Promise.all([
-      stripe.checkout.sessions.list({ limit: 100 }),
-      stripe.invoices.list({ limit: 100, status: 'paid' }),
-      supabase
-        .from('billing_history')
-        .select('*, institution:institutions(name)')
-        .not('institution_id', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(100),
-    ]);
-
-    const visibleCheckoutSessions = checkoutSessions.data.filter((session) =>
-      isVisibleIeltsCheckout(session, LEGACY_TEST_CHECKOUT_SESSION_IDS)
-    );
-    const visibleSubscriptionIds = new Set(
-      visibleCheckoutSessions.map((session) => stripeObjectId(session.subscription)).filter(Boolean)
-    );
-
-    if (institutionHistory.error) throw institutionHistory.error;
-    const payments = [
-      ...(institutionHistory.data || []).map((row) => ({
+    let options;
+    try {
+      options = parseHistoryOptions(req.method === 'POST' ? await req.json() : { limit: 100 });
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid history page' }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+    const page = await loadHistoryPage(stripe, supabase, options, LEGACY_TEST_CHECKOUT_SESSION_IDS);
+    const candidates = [
+      ...page.institutions.map((row) => ({
         ...row,
         interval: row.billing_interval,
         sender_phone: 'Institution Stripe payment',
         admin_notes: 'Institution prepaid seats',
         user: { full_name: row.institution?.name || 'Institution', email: '' },
       })),
-      ...visibleCheckoutSessions.map(paymentFromCheckout),
-      ...paidInvoices.data
-        // Initial subscription invoices correspond to a Checkout Session above.
-        .filter(
-          (invoice) =>
-            invoice.billing_reason !== 'subscription_create' &&
-            Number(invoice.amount_paid) > 0 &&
-            visibleSubscriptionIds.has(stripeObjectId(invoice.subscription) || '')
-        )
-        .map(paymentFromInvoice),
+      ...page.checkouts.map(paymentFromCheckout),
+      ...page.invoices.map(paymentFromInvoice),
     ];
 
-    return new Response(JSON.stringify({ payments }), { status: 200, headers: corsHeaders });
+    // Persisted Stripe records are authoritative even when their manual-history
+    // page has not been loaded yet. Check only this bounded provider page.
+    const transactionIds = candidates.map((payment) => payment.transaction_id).filter(Boolean);
+    const recorded = transactionIds.length
+      ? await supabase
+          .from('payment_requests')
+          .select('transaction_id')
+          .ilike('payment_method', 'stripe')
+          .in('transaction_id', transactionIds)
+      : { data: [], error: null };
+    if (recorded.error) throw recorded.error;
+    const recordedIds = new Set((recorded.data || []).map((row) => row.transaction_id));
+    const payments = candidates.filter((payment) => !recordedIds.has(payment.transaction_id));
+
+    return new Response(JSON.stringify({ payments, cursor: page.cursor }), {
+      status: 200,
+      headers: corsHeaders,
+    });
   } catch (error) {
     console.error('[admin-payment-history] Failed to list Stripe payments:', error);
     return new Response(JSON.stringify({ error: 'Unable to load Stripe payment history' }), {

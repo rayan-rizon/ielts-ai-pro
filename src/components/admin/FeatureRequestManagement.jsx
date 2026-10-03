@@ -1,3 +1,4 @@
+import { useLatestRequest } from '@/hooks/admin/useLatestRequest';
 import { useCallback, useEffect, useState } from 'react';
 import { m } from 'framer-motion';
 import {
@@ -90,21 +91,28 @@ export default function FeatureRequestManagement() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  const requestGate = useLatestRequest();
+
   const load = useCallback(async () => {
+    const request = requestGate.start();
     setLoading(true);
     setError('');
     try {
-      setPage(await featureRequestService.adminPage({ status, search: query, offset }));
+      const result = await featureRequestService.adminPage({ status, search: query, offset });
+      if (!requestGate.isCurrent(request)) return;
+      setPage(result);
     } catch {
+      if (!requestGate.isCurrent(request)) return;
       setError('Could not load feature requests. No request data was changed.');
     } finally {
-      setLoading(false);
+      if (requestGate.isCurrent(request)) setLoading(false);
     }
-  }, [status, query, offset]);
+  }, [status, query, offset, requestGate]);
 
   useEffect(() => {
     load();
-  }, [load]);
+    return requestGate.invalidate;
+  }, [load, requestGate]);
 
   useEffect(() => {
     const items = page?.items;

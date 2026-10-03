@@ -127,3 +127,31 @@ describe('AIApiUsage analytics reporting', () => {
     });
   });
 });
+
+describe('AI admin authorization is enforced by each RPC', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    mocks.rpc.mockImplementation((name) =>
+      Promise.resolve({
+        data: ['get_daily_api_usage_stats', 'get_ai_usage_endpoint_stats'].includes(name) ? [] : {},
+        error: null,
+      })
+    );
+  });
+  it('does not perform redundant role queries before the five admin analytics RPCs', async () => {
+    await AIApiUsage.getUserStatsPaginated({});
+    await AIApiUsage.getUsageAggregates();
+    await AIApiUsage.getCoachBudgetStatus();
+    await AIApiUsage.getDailyStats(30);
+    await AIApiUsage.getEndpointStats(30);
+    expect(mocks.rpc).toHaveBeenCalledTimes(5);
+    expect(mocks.isAdmin).not.toHaveBeenCalled();
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+  it('propagates RPC denial instead of fetching raw usage as a fallback', async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: new Error('Admin access required') });
+    await expect(AIApiUsage.getDailyStats(30)).rejects.toThrow('Admin access required');
+    await expect(AIApiUsage.getEndpointStats(30)).rejects.toThrow('Admin access required');
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
+});

@@ -1,3 +1,4 @@
+import { useLatestRequest } from '@/hooks/admin/useLatestRequest';
 import { m } from 'framer-motion';
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, CalendarDays, RefreshCw } from 'lucide-react';
@@ -46,81 +47,120 @@ const AIUsageManagement = () => {
   const [sortField, setSortField] = useState('totalCalls');
   const [sortDirection, setSortDirection] = useState('desc');
 
-  const fetchUserStats = useCallback(
-    async ({ isManualRefresh = false } = {}) => {
-      try {
-        if (isManualRefresh) setRefreshing(true);
-        else setLoading(true);
+  const pageGate = useLatestRequest();
+  const summaryGate = useLatestRequest();
+  const chartGate = useLatestRequest();
+  const [chartError, setChartError] = useState('');
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState('');
+  const [hasSummary, setHasSummary] = useState(false);
 
-        const [paginatedUsers, aggTotals, coachBudgetStatus] = await Promise.all([
-          AIApiUsage.getUserStatsPaginated({
-            page: currentPage,
-            pageSize,
-            sortField,
-            sortDirection,
-          }),
-          AIApiUsage.getUsageAggregates(),
-          AIApiUsage.getCoachBudgetStatus().catch(() => null),
-        ]);
+  const fetchUserStats = useCallback(async () => {
+    const request = pageGate.start();
+    try {
+      setLoading(true);
+      const paginatedUsers = await AIApiUsage.getUserStatsPaginated({
+        page: currentPage,
+        pageSize,
+        sortField,
+        sortDirection,
+      });
+      if (!pageGate.isCurrent(request)) return;
 
-        const formattedUsers = (paginatedUsers.data || []).map((u) => ({
-          user: {
-            id: u.user_id,
-            full_name: u.full_name,
-            email: u.email,
-            avatar_url: u.avatar_url,
-          },
-          totalCalls: u.total_calls,
-          completedCalls: u.completed_calls,
-          pendingCalls: u.pending_calls,
-          failedCalls: u.failed_calls,
-          cachedCalls: u.cached_calls,
-          totalTokens: u.total_tokens,
-          trackedProviderCost: u.tracked_provider_cost,
-          unpricedCompletedCalls: u.unpriced_completed_calls,
-          hasLifecycleTelemetry: typeof u.completed_calls !== 'undefined',
-          endpoints: u.endpoints || {},
-          lastActivity: u.last_activity,
-        }));
+      const formattedUsers = (paginatedUsers.data || []).map((u) => ({
+        user: {
+          id: u.user_id,
+          full_name: u.full_name,
+          email: u.email,
+          avatar_url: u.avatar_url,
+        },
+        totalCalls: u.total_calls,
+        completedCalls: u.completed_calls,
+        pendingCalls: u.pending_calls,
+        failedCalls: u.failed_calls,
+        cachedCalls: u.cached_calls,
+        totalTokens: u.total_tokens,
+        trackedProviderCost: u.tracked_provider_cost,
+        unpricedCompletedCalls: u.unpriced_completed_calls,
+        hasLifecycleTelemetry: typeof u.completed_calls !== 'undefined',
+        endpoints: u.endpoints || {},
+        lastActivity: u.last_activity,
+      }));
 
-        setUserStats(formattedUsers);
-        setTotalItems(paginatedUsers.total || 0);
-        setTotalPages(Math.ceil((paginatedUsers.total || 0) / pageSize));
+      setUserStats(formattedUsers);
+      setTotalItems(paginatedUsers.total || 0);
+      setTotalPages(Math.ceil((paginatedUsers.total || 0) / pageSize));
 
-        setTotals(aggTotals || {});
-        setCoachBudget(coachBudgetStatus);
-        setLastUpdatedAt(new Date());
-      } catch (error) {
-        console.error('Error fetching user stats:', error);
-        toast.error('Failed to load user statistics');
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
+      setLastUpdatedAt(new Date());
+    } catch (error) {
+      if (!pageGate.isCurrent(request)) return;
+      console.error('Error fetching user stats:', error);
+      toast.error('Failed to load user statistics');
+    } finally {
+      if (pageGate.isCurrent(request)) setLoading(false);
+    }
+  }, [currentPage, pageSize, sortField, sortDirection, pageGate]);
+
+  const fetchSummary = useCallback(async () => {
+    const request = summaryGate.start();
+    setSummaryLoading(true);
+    try {
+      const [aggTotals, coachBudgetStatus] = await Promise.all([
+        AIApiUsage.getUsageAggregates(),
+        AIApiUsage.getCoachBudgetStatus(),
+      ]);
+      if (!summaryGate.isCurrent(request)) return;
+      setTotals(aggTotals || {});
+      setCoachBudget(coachBudgetStatus);
+      setHasSummary(true);
+      setSummaryError('');
+    } catch {
+      if (summaryGate.isCurrent(request)) {
+        setSummaryError(
+          'Could not refresh usage totals and budget. Use Refresh to retry; previous values are retained when available.'
+        );
+        toast.error('Could not refresh usage totals and budget');
       }
-    },
-    [currentPage, pageSize, sortField, sortDirection]
-  );
+    } finally {
+      if (summaryGate.isCurrent(request)) setSummaryLoading(false);
+    }
+  }, [summaryGate]);
 
   const fetchChartStats = useCallback(async () => {
+    const request = chartGate.start();
     try {
       const [daily, endpoints] = await Promise.all([
-        AIApiUsage.getDailyStats(dateRange).catch(() => []),
-        AIApiUsage.getEndpointStats(dateRange).catch(() => []),
+        AIApiUsage.getDailyStats(dateRange),
+        AIApiUsage.getEndpointStats(dateRange),
       ]);
+      if (!chartGate.isCurrent(request)) return;
       setDailyStats(daily || []);
       setEndpointStats(endpoints || []);
-    } catch (error) {
-      console.error('Error fetching chart stats:', error);
+      setChartError('');
+    } catch {
+      if (chartGate.isCurrent(request))
+        setChartError('Usage charts could not be refreshed. Showing the last available data.');
     }
-  }, [dateRange]);
+  }, [dateRange, chartGate]);
 
   useEffect(() => {
     fetchUserStats();
-  }, [fetchUserStats]);
-
+    return pageGate.invalidate;
+  }, [fetchUserStats, pageGate]);
+  useEffect(() => {
+    fetchSummary();
+    return summaryGate.invalidate;
+  }, [fetchSummary, summaryGate]);
   useEffect(() => {
     fetchChartStats();
-  }, [fetchChartStats]);
+    return chartGate.invalidate;
+  }, [fetchChartStats, chartGate]);
+
+  const refreshAll = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchUserStats(), fetchSummary(), fetchChartStats()]);
+    setRefreshing(false);
+  };
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -171,8 +211,7 @@ const AIUsageManagement = () => {
           </Select>
           <button
             onClick={() => {
-              fetchUserStats({ isManualRefresh: true });
-              fetchChartStats();
+              refreshAll();
             }}
             disabled={refreshing}
             className={cn(
@@ -187,7 +226,15 @@ const AIUsageManagement = () => {
       </m.div>
 
       <m.div variants={FADE_UP}>
-        <AIUsageStatsCards totals={totals} loading={loading} />
+        {summaryError && (
+          <p role="alert" className="mb-2 text-xs text-amber-700 dark:text-amber-300">
+            {summaryError}
+          </p>
+        )}
+        <AIUsageStatsCards
+          totals={totals}
+          loading={summaryLoading || (!hasSummary && Boolean(summaryError))}
+        />
       </m.div>
 
       {coachBudget?.warning ? (
@@ -206,6 +253,11 @@ const AIUsageManagement = () => {
       ) : null}
 
       <m.div variants={FADE_UP}>
+        {chartError && (
+          <p role="alert" className="text-xs text-amber-700 dark:text-amber-300">
+            {chartError}
+          </p>
+        )}
         <AIUsageCharts
           dailyStats={dailyStats}
           endpointStats={endpointStats}

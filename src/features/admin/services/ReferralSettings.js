@@ -76,38 +76,9 @@ export const ReferralSettings = {
    * Get referral statistics (admin)
    */
   async getStats() {
-    const [{ count: totalReferrals }, { data: topReferrers }] = await Promise.all([
-      supabase.from('user_referrals').select('*', { count: 'exact', head: true }),
-      supabase
-        .from('user_referrals')
-        .select('referrer_id, users!user_referrals_referrer_id_fkey(full_name, email)')
-        .order('referrer_id')
-        .limit(100),
-    ]);
-
-    // Aggregate top referrers
-    const referrerCounts = {};
-    (topReferrers || []).forEach((ref) => {
-      const id = ref.referrer_id;
-      if (!referrerCounts[id]) {
-        referrerCounts[id] = {
-          id,
-          name: ref.users?.full_name || ref.users?.email || 'Unknown',
-          email: ref.users?.email,
-          count: 0,
-        };
-      }
-      referrerCounts[id].count++;
-    });
-
-    const top = Object.values(referrerCounts)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
-    return {
-      totalReferrals: totalReferrals || 0,
-      topReferrers: top,
-    };
+    const { data, error } = await supabase.rpc('get_admin_referral_stats', {}, { get: true });
+    if (error) throw error;
+    return data;
   },
 };
 
