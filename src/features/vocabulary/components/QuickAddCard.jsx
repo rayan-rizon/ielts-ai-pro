@@ -2,12 +2,23 @@ import React, { useState, useEffect, useRef, useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Zap, Search, ChevronRight, Volume2 } from 'lucide-react';
+import {
+  Plus,
+  Zap,
+  Search,
+  ChevronRight,
+  Volume2,
+  BookOpen,
+  Pencil,
+  Check,
+  Loader2,
+} from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { useWordSuggestions, useWordDefinition } from '@/features/vocabulary/hooks';
+import { isUsableDefinition as hasMeaning } from '../utils/dictionaryLookup';
 import { playPronunciation } from '../utils/audioUtils';
-import { IconChip, PANEL, Pill } from '@/features/dashboard/components/primitives';
+import { IconChip, PANEL, TILE, MICRO, Pill } from '@/features/dashboard/components/primitives';
 
 const VOCABULARY_LIMITS = { free: 100, pro: 300, premium: Infinity };
 const CATEGORIES = ['Academic', 'Speaking', 'Writing', 'Reading'];
@@ -37,16 +48,6 @@ function checkWordLimit(user, allVocabularyCount, onShowAlert) {
   return false;
 }
 
-function hasMeaning(value) {
-  return (
-    typeof value === 'string' &&
-    Boolean(value.trim()) &&
-    !/^(definition unavailable|definition not found|saved ielts vocabulary word|no definition)$/i.test(
-      value.trim()
-    )
-  );
-}
-
 export default function QuickAddCard({
   onAddWord,
   isAdding,
@@ -58,6 +59,7 @@ export default function QuickAddCard({
   const [newWord, setNewWord] = useState('');
   const [newDefinition, setNewDefinition] = useState('');
   const [newExample, setNewExample] = useState('');
+  const [isEditingMeaning, setIsEditingMeaning] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Academic');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -70,8 +72,13 @@ export default function QuickAddCard({
     fetchWordDetails: fetchDefinition,
     isFetchingDef,
     error: definitionError,
+    wordData,
     clearWordData: clearDefinitionLookup,
   } = useWordDefinition();
+
+  useEffect(() => {
+    if (isEditingMeaning) definitionInputRef.current?.focus();
+  }, [isEditingMeaning]);
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -110,6 +117,7 @@ export default function QuickAddCard({
     setNewWord(word);
     setNewDefinition('');
     setNewExample('');
+    setIsEditingMeaning(false);
     definitionEditedRef.current = false;
     clearDefinitionLookup();
     clearSuggestions();
@@ -154,7 +162,7 @@ export default function QuickAddCard({
     // it cannot be reviewed, drilled or read back. Ask for a definition instead of
     // persisting a filler string the learner never sees the origin of.
     if (!hasMeaning(finalDefinition)) {
-      definitionInputRef.current?.focus();
+      setIsEditingMeaning(true);
       const message = {
         title: 'No definition found',
         message: `We could not look up "${newWord.trim()}". Enter its meaning below, then save it again.`,
@@ -175,6 +183,7 @@ export default function QuickAddCard({
       setNewWord('');
       setNewDefinition('');
       setNewExample('');
+      setIsEditingMeaning(false);
       definitionEditedRef.current = false;
       clearDefinitionLookup();
       clearSuggestions();
@@ -187,7 +196,6 @@ export default function QuickAddCard({
 
   return (
     <div className={cn(PANEL, 'relative z-30 overflow-visible p-4')}>
-      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#5a63df]/10 blur-xl" />
       <div className="relative flex flex-wrap items-center justify-between gap-2 border-b border-[#eeedf7] pb-3 dark:border-white/[0.07]">
         <h3 className="flex min-w-0 items-center gap-2 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
           <IconChip icon={Plus} />
@@ -265,7 +273,14 @@ export default function QuickAddCard({
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 rounded-lg text-[#5a63df] hover:bg-[#5a63df]/10"
-                onClick={handleAddWord}
+                aria-label="Look up meaning"
+                onClick={async () => {
+                  const details = await fetchDefinition(newWord.trim());
+                  if (hasMeaning(details?.definition) && !definitionEditedRef.current) {
+                    setNewDefinition(details.definition);
+                    setNewExample(details.example || '');
+                  }
+                }}
                 disabled={isFetchingDef || !newWord.trim()}
               >
                 <Zap className={cn('h-4 w-4', isFetchingDef && 'animate-spin')} />
@@ -279,7 +294,7 @@ export default function QuickAddCard({
                 initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[#e2e5f2] bg-white py-1 shadow-lg dark:border-white/10 dark:bg-[#131315]"
+                className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[#e2e5f2] bg-white py-1 dark:border-white/10 dark:bg-[#131315]"
               >
                 {suggestions.map((sug, index) => (
                   <div
@@ -302,46 +317,86 @@ export default function QuickAddCard({
           </AnimatePresence>
         </div>
 
-        <div className="space-y-1.5">
-          <label
-            htmlFor={meaningInputId}
-            className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400"
-          >
-            Meaning
-          </label>
-          <Textarea
-            id={meaningInputId}
-            ref={definitionInputRef}
-            rows={2}
-            value={newDefinition}
-            onChange={(e) => {
-              definitionEditedRef.current = true;
-              setNewDefinition(e.target.value);
-            }}
-            placeholder={
-              isFetchingDef
-                ? 'Looking up the meaning…'
-                : definitionError
-                  ? 'No meaning found. Enter one here.'
-                  : 'The meaning will appear here automatically.'
-            }
-            aria-describedby={`${meaningInputId}-status`}
-            className="min-h-0 w-full resize-y rounded-lg border-[#e2e5f2] bg-white px-3.5 py-2.5 text-xs font-medium leading-relaxed text-slate-900 shadow-none placeholder:text-slate-400 focus:border-[#5a63df] focus-visible:ring-2 focus-visible:ring-[#5a63df]/15 dark:border-white/10 dark:bg-white/4 dark:text-white dark:placeholder:text-slate-500"
-          />
-          <p
-            id={`${meaningInputId}-status`}
-            aria-live="polite"
-            className="min-h-4 text-[10px] font-medium text-slate-500 dark:text-slate-400"
-          >
-            {isFetchingDef
-              ? 'Looking up meaning…'
-              : hasMeaning(newDefinition)
-                ? 'Dictionary meaning. Edit it if needed.'
-                : definitionError
-                  ? 'Add the meaning yourself to save this word.'
-                  : ''}
-          </p>
-        </div>
+        <section aria-label="Word meaning" className={cn(TILE, 'overflow-hidden')}>
+          <div className="flex items-center justify-between gap-2 border-b border-[#e4e2f0] px-3.5 py-2.5 dark:border-white/[0.07]">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-3.5 w-3.5 text-[#5a63df]" />
+              <span className={cn(MICRO, 'text-slate-500 dark:text-slate-400')}>Meaning</span>
+              {hasMeaning(newDefinition) && wordData?.partOfSpeech && (
+                <Pill className="text-[8px]">{wordData.partOfSpeech}</Pill>
+              )}
+            </div>
+            {newWord.trim() && (
+              <button
+                type="button"
+                onClick={() => setIsEditingMeaning((editing) => !editing)}
+                aria-label={
+                  isEditingMeaning
+                    ? 'Done editing meaning'
+                    : hasMeaning(newDefinition)
+                      ? 'Edit meaning'
+                      : 'Enter meaning'
+                }
+                className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-[10px] font-bold text-[#5a63df] hover:bg-[#5a63df]/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+              >
+                {isEditingMeaning ? <Check className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
+                {isEditingMeaning ? 'Done' : hasMeaning(newDefinition) ? 'Edit' : 'Enter meaning'}
+              </button>
+            )}
+          </div>
+          <div className="px-3.5 py-3">
+            {isEditingMeaning ? (
+              <>
+                <label htmlFor={meaningInputId} className="sr-only">
+                  Meaning
+                </label>
+                <Textarea
+                  id={meaningInputId}
+                  ref={definitionInputRef}
+                  rows={3}
+                  value={newDefinition}
+                  onChange={(e) => {
+                    definitionEditedRef.current = true;
+                    setNewDefinition(e.target.value);
+                  }}
+                  placeholder="Enter the meaning in your own words…"
+                  className="min-h-0 resize-y border-[#e4e2f0] bg-white text-xs leading-relaxed shadow-none dark:border-white/10 dark:bg-white/4"
+                />
+              </>
+            ) : (
+              <div aria-live="polite" aria-atomic="true">
+                {hasMeaning(newDefinition) ? (
+                  <>
+                    <p className="text-[13px] font-medium leading-relaxed text-slate-900 dark:text-slate-100">
+                      {newDefinition}
+                    </p>
+                    {newExample && (
+                      <div className="mt-3 border-l-2 border-[#5a63df]/30 pl-2.5">
+                        <span className={cn(MICRO, 'text-slate-400')}>Example</span>
+                        <p className="mt-1 text-xs italic leading-relaxed text-slate-600 dark:text-slate-400">
+                          {newExample}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="flex items-center gap-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    {isFetchingDef && (
+                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#5a63df]" />
+                    )}
+                    {isFetchingDef
+                      ? 'Looking up meaning…'
+                      : definitionError
+                        ? 'No dictionary meaning found. You can enter one manually.'
+                        : newWord.trim()
+                          ? 'Finding the meaning…'
+                          : 'Type a word to see its meaning.'}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
 
         <Button
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5a63df] text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"

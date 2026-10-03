@@ -17,7 +17,11 @@ vi.mock('@/features/vocabulary/services/VocabularyItem', () => ({
 }));
 
 describe('reading word definitions', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
 
   it('falls back to Datamuse when the primary dictionary is unavailable', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -45,7 +49,7 @@ describe('reading word definitions', () => {
       expect(result.current.wordDefinition).toMatchObject({
         word: 'obstructing',
         definition: 'To block a passage with an obstacle.',
-        part_of_speech: 'v',
+        part_of_speech: 'verb',
       })
     );
     expect(fetchMock.mock.calls[1][0]).toContain('api.datamuse.com/words?sp=obstructing');
@@ -101,7 +105,7 @@ describe('reading word definitions', () => {
       definition: 'Easy to see.',
       position: { x: 52, y: 91 },
     });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('renders resolved definitions in the learner panel card treatment', () => {
@@ -175,6 +179,152 @@ describe('reading word definitions', () => {
       contextual: true,
     });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('keeps waiting for a valid AI meaning beyond the old five-second deadline', async () => {
+    vi.useFakeTimers();
+    let resolveAI;
+    requestReadingAssistance.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveAI = resolve;
+        })
+    );
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { result } = renderHook(() => useWordDefinition(null, null, 0, 'session', true));
+    let lookup;
+    act(() => {
+      lookup = result.current.fetchWordDefinition('delayed', { start: 0, end: 7 });
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6000);
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    await act(async () => {
+      resolveAI({ result: { meaning: 'The correct meaning in the passage.' } });
+      await lookup;
+    });
+    expect(result.current.wordDefinition).toMatchObject({
+      contextual: true,
+      definition: 'The correct meaning in the passage.',
+    });
+  });
+
+  it('upgrades a provisional dictionary result when AI arrives after the longer deadline', async () => {
+    vi.useFakeTimers();
+    let resolveAI;
+    requestReadingAssistance.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveAI = resolve;
+        })
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url) =>
+        url.includes('dictionaryapi.dev')
+          ? Promise.reject(new Error('Unavailable'))
+          : Promise.resolve({
+              ok: true,
+              json: async () => [{ word: 'late', defs: ['adj\tAfter the usual time.'] }],
+            })
+      )
+    );
+    const { result } = renderHook(() => useWordDefinition(null, null, 0, 'session', true));
+    act(() => {
+      result.current.fetchWordDefinition('late', { start: 0, end: 4 });
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20001);
+    });
+    expect(result.current.wordDefinition.contextual).toBe(false);
+    await act(async () => {
+      resolveAI({ result: { meaning: 'Late in this passage.' } });
+    });
+    expect(result.current.wordDefinition).toMatchObject({
+      contextual: true,
+      definition: 'Late in this passage.',
+    });
+  });
+
+  it('does not reopen a dismissed card when the AI request finishes', async () => {
+    let resolveAI;
+    requestReadingAssistance.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveAI = resolve;
+        })
+    );
+    const { result } = renderHook(() => useWordDefinition(null, null, 0, 'session', true));
+    let lookup;
+    act(() => {
+      lookup = result.current.fetchWordDefinition('dismissed', { start: 0, end: 9 });
+    });
+    act(() => result.current.setWordDefinition(null));
+    await act(async () => {
+      resolveAI({ result: { meaning: 'Should stay closed.' } });
+      await lookup;
+    });
+    expect(result.current.wordDefinition).toBeNull();
+  });
+
+  it('does not let an older AI selection overwrite the current word', async () => {
+    let resolveOld;
+    requestReadingAssistance
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOld = resolve;
+          })
+      )
+      .mockResolvedValueOnce({ result: { meaning: 'Meaning of the current word.' } });
+    const { result } = renderHook(() => useWordDefinition(null, null, 0, 'session', true));
+    let olderLookup;
+    act(() => {
+      olderLookup = result.current.fetchWordDefinition('older', { start: 0, end: 5 });
+    });
+    await act(async () => result.current.fetchWordDefinition('current', { start: 6, end: 13 }));
+    await act(async () => {
+      resolveOld({ result: { meaning: 'Stale meaning.' } });
+      await olderLookup;
+    });
+    expect(result.current.wordDefinition).toMatchObject({
+      word: 'current',
+      definition: 'Meaning of the current word.',
+      contextual: true,
+    });
+  });
+
+  it('clears contextual and error flags when AI fails and a dictionary meaning succeeds', async () => {
+    requestReadingAssistance.mockRejectedValue(new Error('AI unavailable'));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url) =>
+        url.includes('dictionaryapi.dev')
+          ? Promise.reject(new Error('Unavailable'))
+          : Promise.resolve({
+              ok: true,
+              json: async () => [{ word: 'fallback', defs: ['n\tAn alternative.'] }],
+            })
+      )
+    );
+    const { result } = renderHook(() => useWordDefinition(null, null, 0, 'session', true));
+    act(() =>
+      result.current.setWordDefinition({
+        word: 'fallback',
+        contextual: true,
+        error: true,
+        position: { x: 10, y: 20 },
+      })
+    );
+    await act(async () => result.current.fetchWordDefinition('fallback', { start: 0, end: 8 }));
+    expect(result.current.wordDefinition).toMatchObject({
+      definition: 'An alternative.',
+      contextual: false,
+      error: false,
+      position: { x: 10, y: 20 },
+    });
   });
 
   it('labels contextual meanings while preserving pronunciation controls', () => {

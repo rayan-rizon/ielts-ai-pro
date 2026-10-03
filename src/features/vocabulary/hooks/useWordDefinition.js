@@ -1,82 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
-const DATAMUSE_API_URL = 'https://api.datamuse.com/words';
+import { fetchFastDefinition } from '../utils/dictionaryLookup';
+
 const LOOKUP_TIMEOUT_MS = 7000;
-
-function isUsableDefinition(definition) {
-  return (
-    typeof definition === 'string' &&
-    Boolean(definition.trim()) &&
-    !/^(definition unavailable|definition not found|saved ielts vocabulary word|no definition)$/i.test(
-      definition.trim()
-    )
-  );
-}
-
-function findAudioUrl(phonetics) {
-  if (!phonetics) return '';
-  const found = phonetics.find((p) => p.audio);
-  return found ? found.audio : '';
-}
-
-function extractFirstMeaning(meanings) {
-  for (const meaning of meanings || []) {
-    const definition = meaning.definitions?.find((item) => isUsableDefinition(item?.definition));
-    if (definition) {
-      return {
-        definition: definition.definition.trim(),
-        example: definition.example || '',
-        partOfSpeech: meaning.partOfSpeech || '',
-      };
-    }
-  }
-  return null;
-}
-
-function parseDictionaryResponse(data) {
-  if (!Array.isArray(data) || data.length === 0) return null;
-  const firstEntry = data[0];
-  const meanings = firstEntry.meanings || [];
-  const meaning = extractFirstMeaning(meanings);
-  if (!meaning) return null;
-
-  return {
-    word: firstEntry.word,
-    phonetic: firstEntry.phonetic || '',
-    ...meaning,
-    audio: findAudioUrl(firstEntry.phonetics),
-    allMeanings: meanings,
-  };
-}
-
-function parseDatamuseResponse(data, word) {
-  const entry = Array.isArray(data)
-    ? data.find((item) => item.word?.trim().toLowerCase() === word.trim().toLowerCase())
-    : null;
-  const rawDefinition = entry?.defs?.find(isUsableDefinition);
-  if (!rawDefinition) return null;
-
-  const [partOfSpeech = '', ...definitionParts] = rawDefinition.split('\t');
-  const definition = definitionParts.join('\t').trim() || rawDefinition.trim();
-  if (!isUsableDefinition(definition)) return null;
-
-  return {
-    word: entry.word,
-    phonetic: '',
-    definition,
-    example: '',
-    partOfSpeech,
-    audio: '',
-    allMeanings: [],
-  };
-}
-
-async function fetchJson(url, signal) {
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error(`Definition service returned ${response.status}`);
-  return response.json();
-}
 
 /**
  * Custom hook for fetching word definitions from dictionary API
@@ -113,37 +39,13 @@ export function useWordDefinition() {
 
     const promise = (async () => {
       try {
-        let result = null;
-        try {
-          const data = await fetchJson(
-            `${DICTIONARY_API_URL}/${encodeURIComponent(trimmed)}`,
-            controller.signal
-          );
-          result = parseDictionaryResponse(data);
-        } catch (lookupError) {
-          if (controller.signal.aborted) throw lookupError;
-        }
-
-        if (!result && !controller.signal.aborted) {
-          try {
-            const data = await fetchJson(
-              `${DATAMUSE_API_URL}?sp=${encodeURIComponent(trimmed)}&md=d&max=5`,
-              controller.signal
-            );
-            result = parseDatamuseResponse(data, trimmed);
-          } catch (lookupError) {
-            if (controller.signal.aborted) throw lookupError;
-          }
-        }
-
-        if (!result) throw new Error('No definition found');
-        if (requestId === requestIdRef.current) setWordData(result);
+        const result = await fetchFastDefinition(trimmed, controller.signal);
+        if (requestId !== requestIdRef.current) return null;
+        setWordData(result);
         return result;
       } catch {
         if (requestId === requestIdRef.current) {
-          setError(
-            controller.signal.aborted ? 'Definition lookup timed out' : 'No definition found'
-          );
+          setError('No definition found. Enter the meaning manually.');
         }
         return null;
       } finally {
