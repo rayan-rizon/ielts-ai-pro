@@ -1,6 +1,18 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+const DATAMUSE_API_URL = 'https://api.datamuse.com/words';
+const LOOKUP_TIMEOUT_MS = 7000;
+
+function isUsableDefinition(definition) {
+  return (
+    typeof definition === 'string' &&
+    Boolean(definition.trim()) &&
+    !/^(definition unavailable|definition not found|saved ielts vocabulary word|no definition)$/i.test(
+      definition.trim()
+    )
+  );
+}
 
 function findAudioUrl(phonetics) {
   if (!phonetics) return '';
@@ -9,40 +21,61 @@ function findAudioUrl(phonetics) {
 }
 
 function extractFirstMeaning(meanings) {
-  const defaultResult = { definition: 'Definition unavailable.', example: '', partOfSpeech: '' };
-  if (!meanings || meanings.length === 0) return defaultResult;
-
-  const firstMeaning = meanings[0];
-  const partOfSpeech = firstMeaning.partOfSpeech || '';
-
-  const definitions = firstMeaning.definitions || [];
-  if (definitions.length === 0) {
-    return { definition: 'Definition unavailable.', example: '', partOfSpeech };
+  for (const meaning of meanings || []) {
+    const definition = meaning.definitions?.find((item) => isUsableDefinition(item?.definition));
+    if (definition) {
+      return {
+        definition: definition.definition.trim(),
+        example: definition.example || '',
+        partOfSpeech: meaning.partOfSpeech || '',
+      };
+    }
   }
-
-  const firstDef = definitions[0];
-  return {
-    definition: firstDef.definition || 'Definition unavailable.',
-    example: firstDef.example || '',
-    partOfSpeech,
-  };
+  return null;
 }
 
 function parseDictionaryResponse(data) {
-  if (!data || data.length === 0) return null;
+  if (!Array.isArray(data) || data.length === 0) return null;
   const firstEntry = data[0];
   const meanings = firstEntry.meanings || [];
-  const { definition, example, partOfSpeech } = extractFirstMeaning(meanings);
+  const meaning = extractFirstMeaning(meanings);
+  if (!meaning) return null;
 
   return {
     word: firstEntry.word,
     phonetic: firstEntry.phonetic || '',
-    definition,
-    example,
-    partOfSpeech,
+    ...meaning,
     audio: findAudioUrl(firstEntry.phonetics),
     allMeanings: meanings,
   };
+}
+
+function parseDatamuseResponse(data, word) {
+  const entry = Array.isArray(data)
+    ? data.find((item) => item.word?.trim().toLowerCase() === word.trim().toLowerCase())
+    : null;
+  const rawDefinition = entry?.defs?.find(isUsableDefinition);
+  if (!rawDefinition) return null;
+
+  const [partOfSpeech = '', ...definitionParts] = rawDefinition.split('\t');
+  const definition = definitionParts.join('\t').trim() || rawDefinition.trim();
+  if (!isUsableDefinition(definition)) return null;
+
+  return {
+    word: entry.word,
+    phonetic: '',
+    definition,
+    example: '',
+    partOfSpeech,
+    audio: '',
+    allMeanings: [],
+  };
+}
+
+async function fetchJson(url, signal) {
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error(`Definition service returned ${response.status}`);
+  return response.json();
 }
 
 /**
@@ -52,44 +85,85 @@ export function useWordDefinition() {
   const [isFetchingDef, setIsFetchingDef] = useState(false);
   const [wordData, setWordData] = useState(null);
   const [error, setError] = useState(null);
+  const requestRef = useRef(null);
+  const requestIdRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      requestIdRef.current += 1;
+      requestRef.current?.controller.abort();
+    },
+    []
+  );
 
   const fetchWordDetails = useCallback(async (word) => {
     const trimmed = (word || '').trim();
     if (!trimmed) return null;
 
+    const normalizedWord = trimmed.toLowerCase();
+    if (requestRef.current?.word === normalizedWord) return requestRef.current.promise;
+
+    requestRef.current?.controller.abort();
+    const controller = new AbortController();
+    const requestId = ++requestIdRef.current;
+    const timeoutId = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
+
     setIsFetchingDef(true);
     setError(null);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const promise = (async () => {
+      try {
+        let result = null;
+        try {
+          const data = await fetchJson(
+            `${DICTIONARY_API_URL}/${encodeURIComponent(trimmed)}`,
+            controller.signal
+          );
+          result = parseDictionaryResponse(data);
+        } catch (lookupError) {
+          if (controller.signal.aborted) throw lookupError;
+        }
 
-    try {
-      const response = await fetch(`${DICTIONARY_API_URL}/${encodeURIComponent(trimmed)}`, {
-        signal: controller.signal,
-      });
+        if (!result && !controller.signal.aborted) {
+          try {
+            const data = await fetchJson(
+              `${DATAMUSE_API_URL}?sp=${encodeURIComponent(trimmed)}&md=d&max=5`,
+              controller.signal
+            );
+            result = parseDatamuseResponse(data, trimmed);
+          } catch (lookupError) {
+            if (controller.signal.aborted) throw lookupError;
+          }
+        }
 
-      if (!response.ok) {
-        throw new Error('Word not found');
-      }
-
-      const data = await response.json();
-      const result = parseDictionaryResponse(data);
-      if (result) {
-        setWordData(result);
+        if (!result) throw new Error('No definition found');
+        if (requestId === requestIdRef.current) setWordData(result);
         return result;
+      } catch {
+        if (requestId === requestIdRef.current) {
+          setError(
+            controller.signal.aborted ? 'Definition lookup timed out' : 'No definition found'
+          );
+        }
+        return null;
+      } finally {
+        clearTimeout(timeoutId);
+        if (requestId === requestIdRef.current) {
+          setIsFetchingDef(false);
+          requestRef.current = null;
+        }
       }
-      return null;
-    } catch (err) {
-      const errorMessage = err.name === 'AbortError' ? 'Request timed out' : err.message;
-      setError(errorMessage);
-      return null;
-    } finally {
-      clearTimeout(timeoutId);
-      setIsFetchingDef(false);
-    }
+    })();
+
+    requestRef.current = { word: normalizedWord, controller, promise };
+    return promise;
   }, []);
 
   const clearWordData = useCallback(() => {
+    requestIdRef.current += 1;
+    requestRef.current?.controller.abort();
+    requestRef.current = null;
+    setIsFetchingDef(false);
     setWordData(null);
     setError(null);
   }, []);

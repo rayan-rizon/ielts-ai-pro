@@ -8,16 +8,13 @@ async function call(name, params, options) {
 
 export const featureRequestService = {
   learnerPage: ({ scope = 'board', sort = 'top', search = '', offset = 0 } = {}) =>
-    call(
-      'feature_request_page',
-      {
-        p_scope: scope,
-        p_sort: sort,
-        p_search: search,
-        p_offset: offset,
-      },
-      { get: true }
-    ),
+    // Institution access can reconcile seats; this lookup requires POST.
+    call('feature_request_page', {
+      p_scope: scope,
+      p_sort: sort,
+      p_search: search,
+      p_offset: offset,
+    }),
   submit: (title, description, category) =>
     call('submit_feature_request', {
       p_title: title,

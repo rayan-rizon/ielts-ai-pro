@@ -124,6 +124,22 @@ describe('PlatformHealthDashboard operations console', () => {
     ]);
   });
 
+  it('coalesces visibility refreshes while the current window is loading', async () => {
+    let complete;
+    mocks.get.mockReturnValueOnce(
+      new Promise((resolve) => {
+        complete = resolve;
+      })
+    );
+    render(<PlatformHealthDashboard />);
+    await waitFor(() => expect(mocks.get).toHaveBeenCalledTimes(1));
+    fireEvent(document, new Event('visibilitychange'));
+    fireEvent(document, new Event('visibilitychange'));
+    expect(mocks.get).toHaveBeenCalledTimes(1);
+    complete(health);
+    expect(await screen.findByText('Action queue')).toBeInTheDocument();
+  });
+
   it('puts impact, resolution, ownership and evidence in the action queue', async () => {
     render(<PlatformHealthDashboard />);
 

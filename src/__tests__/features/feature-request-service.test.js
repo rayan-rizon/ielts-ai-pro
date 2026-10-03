@@ -14,7 +14,7 @@ import {
 describe('feature request service', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('uses read-only RPCs for learner and admin pages', async () => {
+  it('uses writable learner access and read-only admin page requests', async () => {
     mocks.rpc.mockResolvedValue({ data: { items: [], total: 0 }, error: null });
 
     await featureRequestService.learnerPage({ scope: 'mine', sort: 'new', search: 'audio' });
@@ -24,7 +24,7 @@ describe('feature request service', () => {
       1,
       'feature_request_page',
       { p_scope: 'mine', p_sort: 'new', p_search: 'audio', p_offset: 0 },
-      { get: true }
+      undefined
     );
     expect(mocks.rpc).toHaveBeenNthCalledWith(
       2,

@@ -178,6 +178,8 @@ const METRIC_LABEL = {
   completedReplies: 'Coach replies',
   failedRequests: 'Coach failures',
   featureEnabled: 'Release gate',
+  checks: 'Contract checks',
+  failedChecks: 'Failed checks',
   resetsAt: 'Budget reset',
   turns: 'Turns',
   unheardTurns: 'Not heard',
@@ -204,6 +206,7 @@ const ALARM_KEYS = new Set([
   'failedDispatches',
   'lastRunFailed',
   'practiceVoiceErrors',
+  'failedChecks',
   // `upstreamFailures` is deliberately not an alarm. It counts provider calls
   // that failed *and then recovered* — the fallback chain doing its job. The
   // alarm belongs on `errors`, which counts failures the learner actually felt.
@@ -451,6 +454,9 @@ const overviewFor = (counts, total) => {
  * provider outage or a bad API key cannot be fixed from this screen.
  */
 const REPAIRS = {
+  learner_access_contracts: {
+    how: 'Inspect the failed contract names in the learner impact message. Verify the account-access and grammar-progress migrations, service-only profile RPC permissions, and writable catalogue functions. Then check the signed-in learner screens. This check validates database contracts; it does not send AI requests or exercise browser journeys.',
+  },
   personalized_ai_coach: {
     how: 'Check the daily spend, pending and stuck reservations, recent failures, and p95 latency together. A budget pause resets at 00:00 UTC. Keep the release gate disabled until multilingual grounding benchmarks pass; investigate stuck reservations or provider failures before changing the budget.',
   },
@@ -1121,7 +1127,7 @@ const PlatformConsoleHeader = ({
             </div>
             <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-2">
               {allClear
-                ? 'No user-facing failures detected in this window.'
+                ? 'No failures recorded by these checks in this window.'
                 : `${problems.length} service${problems.length === 1 ? '' : 's'} need admin action. Start with learner-blocking faults, then reduce degraded fallbacks.`}
             </p>
           </div>
@@ -1381,10 +1387,13 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
   const [serviceFilter, setServiceFilter] = useState('all');
   const [serviceQuery, setServiceQuery] = useState('');
   const requestId = useRef(0);
+  const inFlight = useRef(null);
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
+      if (inFlight.current?.hours === hours) return;
       const currentRequest = ++requestId.current;
+      inFlight.current = { hours, request: currentRequest };
       try {
         if (silent) setRefreshing(true);
         else setLoading(true);
@@ -1413,6 +1422,7 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
         setError(err.message || 'Unable to load platform health');
         if (silent) toast.error('Could not refresh platform health');
       } finally {
+        if (inFlight.current?.request === currentRequest) inFlight.current = null;
         if (currentRequest === requestId.current) {
           setLoading(false);
           setRefreshing(false);
@@ -1424,6 +1434,10 @@ const PlatformHealthDashboard = ({ maintenance, onLoadingChange }) => {
 
   useEffect(() => {
     load();
+    return () => {
+      requestId.current += 1;
+      inFlight.current = null;
+    };
   }, [load]);
 
   useEffect(() => {

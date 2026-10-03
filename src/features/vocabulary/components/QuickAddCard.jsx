@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Plus, Zap, Search, ChevronRight, Volume2 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -36,6 +37,16 @@ function checkWordLimit(user, allVocabularyCount, onShowAlert) {
   return false;
 }
 
+function hasMeaning(value) {
+  return (
+    typeof value === 'string' &&
+    Boolean(value.trim()) &&
+    !/^(definition unavailable|definition not found|saved ielts vocabulary word|no definition)$/i.test(
+      value.trim()
+    )
+  );
+}
+
 export default function QuickAddCard({
   onAddWord,
   isAdding,
@@ -50,9 +61,17 @@ export default function QuickAddCard({
   const [selectedCategory, setSelectedCategory] = useState('Academic');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const meaningInputId = useId();
+  const definitionEditedRef = useRef(false);
+  const definitionInputRef = useRef(null);
 
   const { suggestions, fetchSuggestions, clearSuggestions } = useWordSuggestions();
-  const { fetchWordDetails: fetchDefinition, isFetchingDef } = useWordDefinition();
+  const {
+    fetchWordDetails: fetchDefinition,
+    isFetchingDef,
+    error: definitionError,
+    clearWordData: clearDefinitionLookup,
+  } = useWordDefinition();
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -66,16 +85,35 @@ export default function QuickAddCard({
     return () => clearTimeout(delayDebounce);
   }, [newWord, fetchSuggestions, clearSuggestions]);
 
-  const handleSelectSuggestion = async (word) => {
+  useEffect(() => {
+    const word = newWord.trim();
+    if (word.length < 2) return undefined;
+
+    let isCurrentLookup = true;
+    const lookupTimer = setTimeout(async () => {
+      const details = await fetchDefinition(word);
+      if (!isCurrentLookup || !details || !hasMeaning(details.definition)) return;
+
+      if (!definitionEditedRef.current) {
+        setNewDefinition(details.definition);
+        setNewExample(details.example || '');
+      }
+    }, 400);
+
+    return () => {
+      isCurrentLookup = false;
+      clearTimeout(lookupTimer);
+    };
+  }, [newWord, fetchDefinition]);
+
+  const handleSelectSuggestion = (word) => {
     setNewWord(word);
+    setNewDefinition('');
+    setNewExample('');
+    definitionEditedRef.current = false;
+    clearDefinitionLookup();
     clearSuggestions();
     setShowSuggestions(false);
-
-    const details = await fetchDefinition(word);
-    if (details) {
-      setNewDefinition(details.definition || '');
-      if (details.example) setNewExample(details.example);
-    }
   };
 
   const handleAudio = (e) => {
@@ -87,6 +125,7 @@ export default function QuickAddCard({
 
   const handleAddWord = async () => {
     if (!newWord.trim()) return;
+    if (isFetchingDef) return;
     if (!user) {
       alert('Please sign in to add words.');
       return;
@@ -102,7 +141,7 @@ export default function QuickAddCard({
     if (!finalDefinition) {
       try {
         const details = await fetchDefinition(newWord.trim());
-        if (details?.definition) {
+        if (hasMeaning(details?.definition)) {
           finalDefinition = details.definition;
           finalExample = details.example || '';
         }
@@ -114,11 +153,14 @@ export default function QuickAddCard({
     // A word saved with the placeholder "Saved IELTS vocabulary word" is dead weight:
     // it cannot be reviewed, drilled or read back. Ask for a definition instead of
     // persisting a filler string the learner never sees the origin of.
-    if (!finalDefinition) {
-      onShowAlert?.({
+    if (!hasMeaning(finalDefinition)) {
+      definitionInputRef.current?.focus();
+      const message = {
         title: 'No definition found',
-        message: `We could not look up "${newWord.trim()}". Add a short definition yourself and save it again.`,
-      });
+        message: `We could not look up "${newWord.trim()}". Enter its meaning below, then save it again.`,
+      };
+      if (onShowAlert) onShowAlert(message);
+      else alert(message.message);
       return;
     }
 
@@ -129,15 +171,17 @@ export default function QuickAddCard({
       source: selectedCategory,
     });
 
-    if (result.success || result) {
+    if (result === true || result?.success === true) {
       setNewWord('');
       setNewDefinition('');
       setNewExample('');
+      definitionEditedRef.current = false;
+      clearDefinitionLookup();
       clearSuggestions();
       setShowSuggestions(false);
       onSuccess?.();
     } else {
-      alert('Failed to add word: ' + (result.error || 'Unknown error'));
+      alert('Failed to add word: ' + (result?.error || 'Unknown error'));
     }
   };
 
@@ -188,6 +232,10 @@ export default function QuickAddCard({
               className="h-11 rounded-lg border-[#e2e5f2] bg-white pl-3.5 pr-16 text-xs font-semibold text-slate-900 focus:border-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-white"
               value={newWord}
               onChange={(e) => {
+                definitionEditedRef.current = false;
+                setNewDefinition('');
+                setNewExample('');
+                clearDefinitionLookup();
                 setNewWord(e.target.value);
                 setShowSuggestions(true);
               }}
@@ -254,16 +302,51 @@ export default function QuickAddCard({
           </AnimatePresence>
         </div>
 
-        {newDefinition && (
-          <div className="rounded-lg border border-[#e2e5f2] bg-[#5a63df]/6 p-3 text-xs font-semibold italic leading-relaxed text-[#5a63df] dark:border-white/10 dark:bg-indigo-950/40 dark:text-indigo-200">
-            &quot;{newDefinition}&quot;
-          </div>
-        )}
+        <div className="space-y-1.5">
+          <label
+            htmlFor={meaningInputId}
+            className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400"
+          >
+            Meaning
+          </label>
+          <Textarea
+            id={meaningInputId}
+            ref={definitionInputRef}
+            rows={2}
+            value={newDefinition}
+            onChange={(e) => {
+              definitionEditedRef.current = true;
+              setNewDefinition(e.target.value);
+            }}
+            placeholder={
+              isFetchingDef
+                ? 'Looking up the meaning…'
+                : definitionError
+                  ? 'No meaning found. Enter one here.'
+                  : 'The meaning will appear here automatically.'
+            }
+            aria-describedby={`${meaningInputId}-status`}
+            className="min-h-0 w-full resize-y rounded-lg border-[#e2e5f2] bg-white px-3.5 py-2.5 text-xs font-medium leading-relaxed text-slate-900 shadow-none placeholder:text-slate-400 focus:border-[#5a63df] focus-visible:ring-2 focus-visible:ring-[#5a63df]/15 dark:border-white/10 dark:bg-white/4 dark:text-white dark:placeholder:text-slate-500"
+          />
+          <p
+            id={`${meaningInputId}-status`}
+            aria-live="polite"
+            className="min-h-4 text-[10px] font-medium text-slate-500 dark:text-slate-400"
+          >
+            {isFetchingDef
+              ? 'Looking up meaning…'
+              : hasMeaning(newDefinition)
+                ? 'Dictionary meaning. Edit it if needed.'
+                : definitionError
+                  ? 'Add the meaning yourself to save this word.'
+                  : ''}
+          </p>
+        </div>
 
         <Button
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5a63df] text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleAddWord}
-          disabled={isAdding || !newWord.trim()}
+          disabled={isAdding || isFetchingDef || !newWord.trim()}
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           {isAdding ? 'Adding Word...' : 'Save Word'}
