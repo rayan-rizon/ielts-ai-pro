@@ -262,7 +262,7 @@ async function loadContext(admin: any, profile: any, sourceReference: any) {
 
 async function handleBootstrap(admin: any, authId: string) {
   const { data: profile } = await admin
-    .from('institution_learner_profiles')
+    .rpc('get_institution_learner_profile', { p_auth: authId })
     .select('id,subscription_tier,subscription_end_date')
     .eq('auth_id', authId)
     .single();
@@ -301,7 +301,7 @@ async function handleBootstrap(admin: any, authId: string) {
 async function handleHistory(admin: any, authId: string, body: any) {
   if (!UUID.test(String(body.conversationId || ''))) throw new Error('Invalid conversation');
   const { data: profile } = await admin
-    .from('institution_learner_profiles')
+    .rpc('get_institution_learner_profile', { p_auth: authId })
     .select('id')
     .eq('auth_id', authId)
     .single();
@@ -338,7 +338,7 @@ async function handleHistory(admin: any, authId: string, body: any) {
 async function handleConfirm(admin: any, authId: string, body: any) {
   if (!UUID.test(String(body.proposalId || ''))) throw new Error('Invalid action');
   const { data: profile } = await admin
-    .from('institution_learner_profiles')
+    .rpc('get_institution_learner_profile', { p_auth: authId })
     .select('id,subscription_tier,subscription_end_date')
     .eq('auth_id', authId)
     .single();
@@ -501,7 +501,7 @@ Deno.serve(async (req: Request) => {
       if (!isCoachLanguage(body.explanationLanguage))
         throw new Error('Unsupported explanation language');
       const { data: profile } = await admin
-        .from('institution_learner_profiles')
+        .rpc('get_institution_learner_profile', { p_auth: authUser.id })
         .select('id')
         .eq('auth_id', authUser.id)
         .maybeSingle();
@@ -515,7 +515,7 @@ Deno.serve(async (req: Request) => {
     if (body.operation === 'delete_conversation') {
       if (!UUID.test(String(body.conversationId || ''))) throw new Error('Invalid conversation');
       const { data: profile } = await admin
-        .from('institution_learner_profiles')
+        .rpc('get_institution_learner_profile', { p_auth: authUser.id })
         .select('id')
         .eq('auth_id', authUser.id)
         .maybeSingle();
@@ -531,7 +531,7 @@ Deno.serve(async (req: Request) => {
 
     const input = validateCoachSendBody(body);
     const { data: profile, error: profileError } = await admin
-      .from('institution_learner_profiles')
+      .rpc('get_institution_learner_profile', { p_auth: authUser.id })
       .select(
         'id,role,subscription_tier,subscription_end_date,target_band_score,test_date,study_hours_goal,study_availability,exam_type,updated_at'
       )

@@ -268,7 +268,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: profile } = await admin
-    .from('institution_learner_profiles')
+    .rpc('get_institution_learner_profile', { p_auth: authUser.id })
     .select('id, role, subscription_tier, subscription_end_date')
     .eq('auth_id', authUser.id)
     .single();

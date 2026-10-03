@@ -177,7 +177,7 @@ serve(async (req: Request) => {
     }
 
     const { data: userProfile, error: profileError } = await supabase
-      .from('institution_learner_profiles')
+      .rpc('get_institution_learner_profile', { p_auth: user.id })
       .select('subscription_tier, role')
       .eq('auth_id', user.id)
       .single();

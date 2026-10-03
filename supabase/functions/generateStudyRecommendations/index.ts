@@ -80,7 +80,7 @@ serve(async (req) => {
 
     // Resolve auth_id → users.id server-side (matches generateDetailedFeedback pattern)
     const { data: userData, error: userError } = await supabase
-      .from('institution_learner_profiles')
+      .rpc('get_institution_learner_profile', { p_auth: user.id })
       .select(
         'id, subscription_tier, target_band_score, test_date, study_hours_goal, weaknesses, strengths, current_estimated_band, exam_type'
       )
