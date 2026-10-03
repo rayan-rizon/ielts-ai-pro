@@ -1,9 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import ListeningTranscriptHighlighter, {
   parseManualQuestionNumbers,
+  offsetFromPoint,
 } from '@/components/admin/tests/creation/ListeningTranscriptHighlighter';
 import { serializeListeningSections } from '@/components/admin/tests/creation/listeningEditorSerialization';
 import SyncedTranscript from '@/features/testing/listening/components/ListeningTest/components/SyncedTranscript';
@@ -27,6 +28,23 @@ function selectNodeContents(node) {
 }
 
 describe('Listening admin transcript highlighter', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('clamps stale Safari caret offsets to the current text length', () => {
+    const segment = document.createElement('span');
+    segment.textContent = 'Short';
+    const original = document.caretRangeFromPoint;
+    document.caretRangeFromPoint = () => ({
+      startContainer: segment.firstChild,
+      startOffset: 50,
+    });
+    try {
+      expect(offsetFromPoint(10, 10, segment)).toBe(5);
+    } finally {
+      document.caretRangeFromPoint = original;
+    }
+  });
+
   it('accepts individual and grouped question numbers safely', () => {
     expect(parseManualQuestionNumbers('21, 22 and 22', 21, 30)).toEqual([21, 22]);
     expect(parseManualQuestionNumbers('20, 31', 21, 30)).toEqual([]);

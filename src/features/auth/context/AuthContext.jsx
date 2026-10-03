@@ -13,6 +13,7 @@ import { resetProductIdentity } from '@/lib/posthog';
 import { clearAdminAccess } from '@/features/auth/utils/adminAccess';
 import { normalizeAnnouncement, normalizeMaintenance } from '@/lib/communications';
 import { reportServiceRecovered, trackServiceError } from '@/lib/serviceOutage';
+import { scheduleIdle } from '@/lib/scheduleIdle';
 
 const AuthContext = createContext();
 
@@ -540,7 +541,7 @@ export const AuthProvider = ({ children }) => {
     const isAnonymousLanding =
       typeof window !== 'undefined' && window.location.pathname === '/' && !hasLocalSession;
 
-    let idleHandle;
+    let cancelDeferred;
     if (isAnonymousLanding) {
       // Anonymous visitors do not need Supabase to render or use the public
       // landing page, so keep the auth bundle off the critical path — but the
@@ -557,23 +558,14 @@ export const AuthProvider = ({ children }) => {
         initializeAuth();
       };
 
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        idleHandle = window.requestIdleCallback(startDeferred, { timeout: 2500 });
-      } else {
-        idleHandle = window.setTimeout(startDeferred, 1200);
-      }
+      cancelDeferred = scheduleIdle(startDeferred, { timeout: 2500, fallbackDelay: 1200 });
     } else {
       initializeAuth();
     }
 
     return () => {
       isMounted = false;
-      if (idleHandle !== undefined) {
-        if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
-          window.cancelIdleCallback?.(idleHandle);
-        }
-        window.clearTimeout?.(idleHandle);
-      }
+      cancelDeferred?.();
       authListener?.subscription?.unsubscribe();
     };
   }, [refreshGlobalSettings]);

@@ -161,10 +161,15 @@ export default function GrammarLab() {
   }, [guideSlug, screen]);
 
   const startAttempt = async (options) => {
-    const data = await grammar.startAttempt({
-      ...options,
-      learningPathActivityId: requestedActivityId || undefined,
-    });
+    // The mutation displays its error toast. React does not consume a promise
+    // returned by an event handler, so handle that rejection before navigating.
+    const data = await grammar
+      .startAttempt({
+        ...options,
+        learningPathActivityId: requestedActivityId || undefined,
+      })
+      .catch(() => null);
+    if (!data) return null;
     const next = new URLSearchParams(searchParams);
     next.set('mode', options.mode);
     if (options.targetSkills?.[0]) next.set('skill', options.targetSkills[0]);

@@ -67,15 +67,34 @@ export function usePairedRoom(id) {
   useEffect(() => {
     if (!id) return;
     let disposed = false;
+    let refreshPending = null;
+    let refreshAgain = false;
     const refresh = () => {
-      if (!disposed) act('get').catch(() => {});
+      if (disposed) return Promise.resolve(null);
+      // Polling, broadcasts and subscription callbacks can arrive together.
+      // Share the pending read instead of building a queue of identical reads.
+      if (!refreshPending) {
+        refreshPending = act('get')
+          .catch(() => null)
+          .finally(() => {
+            refreshPending = null;
+            // A broadcast may describe a write that happened after this read
+            // started. Follow it with one fresh read so the update is not lost.
+            if (refreshAgain && !disposed) {
+              refreshAgain = false;
+              refresh();
+            }
+          });
+      }
+      return refreshPending;
     };
     refresh();
     let timer;
     const poll = () => {
       if (disposed) return;
-      refresh();
-      timer = setTimeout(poll, roomRef.current?.state === 'lobby' ? 2000 : 10000);
+      refresh().finally(() => {
+        if (!disposed) timer = setTimeout(poll, roomRef.current?.state === 'lobby' ? 2000 : 10000);
+      });
     };
     timer = setTimeout(poll, 2000);
     window.addEventListener('online', refresh);
@@ -87,7 +106,10 @@ export function usePairedRoom(id) {
       config: { private: true, presence: { key: crypto.randomUUID() } },
     });
     channel
-      .on('broadcast', { event: 'changed' }, refresh)
+      .on('broadcast', { event: 'changed' }, () => {
+        if (refreshPending) refreshAgain = true;
+        refresh();
+      })
       .on('presence', { event: 'sync' }, () => {
         const users = new Set(
           Object.values(channel.presenceState())
@@ -101,7 +123,7 @@ export function usePairedRoom(id) {
         if (disposed) return;
         setConnected(status === 'SUBSCRIBED');
         if (status === 'SUBSCRIBED') {
-          const result = await act('get').catch(() => null);
+          const result = await refresh();
           if (result && !disposed) await channel.track({ user_id: result.actor_id });
         }
       });

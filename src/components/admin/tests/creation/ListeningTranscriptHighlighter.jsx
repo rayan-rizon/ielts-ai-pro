@@ -106,7 +106,7 @@ function snapToWordEnd(text, offset) {
 }
 
 /** Character offset of a pointer position inside a rendered transcript segment. */
-function offsetFromPoint(x, y, segmentElement) {
+export function offsetFromPoint(x, y, segmentElement) {
   let node = null;
   let offset = 0;
 
@@ -124,9 +124,17 @@ function offsetFromPoint(x, y, segmentElement) {
 
   if (!node || !segmentElement.contains(node)) return null;
 
+  // Safari may return a stale caret offset while a highlight is rerendered.
+  // DOM Range offsets count characters in text nodes and children in elements.
+  const maximum = [3, 4, 8].includes(node.nodeType)
+    ? node.textContent.length
+    : node.childNodes.length;
+  if (!Number.isFinite(offset)) return null;
+  const safeOffset = Math.max(0, Math.min(Math.trunc(offset), maximum));
+
   const measured = document.createRange();
   measured.selectNodeContents(segmentElement);
-  measured.setEnd(node, offset);
+  measured.setEnd(node, safeOffset);
   return measured.toString().length;
 }
 

@@ -127,6 +127,7 @@ export async function initializeTest({
   ]);
 
   const sessionFromUrl = sessionResult?.data as TestSession | null;
+  if (sessionResult?.error && userData) throw sessionResult.error;
   if (sessionFromUrl?.paired_room_id) {
     const { pairedRequest } = await import('@/features/testing/paired/pairedApi');
     const room = await pairedRequest('get', String(sessionFromUrl.paired_room_id), {
@@ -276,15 +277,20 @@ export async function initializeTest({
 
   if (!resolvedSession && userData && !isRetake) {
     // Look for existing sessions for this specific passage
-    const { data: userSessions } = await supabase
+    const { data: userSessions, error: sessionsError } = await supabase
       .from('test_sessions')
       .select(
-        'id, user_id, passage_id, test_type, test_mode, is_completed, answers, band_score, score, content_data, created_at, started_at, completed_at, time_remaining, time_spent, duration_minutes, user_responses'
+        'id, user_id, passage_id, test_type, test_mode, is_completed, answers, band_score, score, content_data, created_at, started_at, completed_at, duration_minutes, user_responses'
       )
       .eq('user_id', userData.id)
       .eq('test_type', type)
       .eq('passage_id', passageData.id)
+      .is('paired_room_id', null)
       .order('created_at', { ascending: false });
+
+    // A failed lookup must not masquerade as a missing attempt and create a
+    // fresh session in place of the learner's saved work.
+    if (sessionsError) throw sessionsError;
 
     const sessions = userSessions as TestSession[] | null;
 

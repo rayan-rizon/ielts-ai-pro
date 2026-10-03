@@ -155,14 +155,14 @@ export function useGrammarLab() {
     result,
     setResult,
     startAttempt: startMutation.mutateAsync,
-    resumeAttempt: resumeMutation.mutateAsync,
+    resumeAttempt: resumeMutation.mutate,
     submitResponse: responseMutation.mutateAsync,
-    completeAttempt: completeMutation.mutateAsync,
+    completeAttempt: completeMutation.mutate,
     isStarting: startMutation.isPending,
     isResuming: resumeMutation.isPending,
     isSubmitting: responseMutation.isPending,
     isCompleting: completeMutation.isPending,
-    setGuideCompletion: guideCompletionMutation.mutateAsync,
+    setGuideCompletion: guideCompletionMutation.mutate,
     isUpdatingGuideCompletion: guideCompletionMutation.isPending,
   };
 }

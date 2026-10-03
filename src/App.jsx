@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
 import { isChunkLoadError } from '@/lib/chunkLoadRecovery';
+import { scheduleIdle } from '@/lib/scheduleIdle';
 import GlobalLegalRoute from '@/features/core/components/legal/GlobalLegalRoute.jsx';
 
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -53,13 +54,7 @@ const IdleToaster = () => {
   React.useEffect(() => {
     const callback = () => setReady(true);
 
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(callback, { timeout: 2000 });
-      return () => window.cancelIdleCallback?.(id);
-    }
-
-    const id = window.setTimeout(callback, 1200);
-    return () => window.clearTimeout(id);
+    return scheduleIdle(callback, { timeout: 2000, fallbackDelay: 1200 });
   }, []);
 
   if (!ready) return null;

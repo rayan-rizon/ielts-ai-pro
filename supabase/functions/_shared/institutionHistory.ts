@@ -1,4 +1,4 @@
-import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import type { SupabaseClient } from '@supabase/supabase-js';
 export const HISTORY_CATEGORIES: Record<string, string[]> = {
   institution: ['create', 'update', 'invite_owner', 'application_approved'],
   students: ['invite', 'accept', 'cancel', 'correct', 'extend', 'release', 'revoke'],

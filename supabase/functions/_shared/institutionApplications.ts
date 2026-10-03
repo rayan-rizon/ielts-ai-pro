@@ -2,7 +2,7 @@ export function validateInstitutionApplication(input: Record<string, unknown>) {
   const text = (key: string, min: number, max: number) => {
     const value = typeof input[key] === 'string' ? (input[key] as string).trim() : '';
     if (value.length < min || value.length > max)
-      throw new Error(`Please check ${key.replaceAll('_', ' ')}`);
+      throw new Error(`Please check ${key.replace(/_/g, ' ')}`);
     return value;
   };
   const email = text('email', 3, 254).toLowerCase();

@@ -4,6 +4,7 @@ import App from '@/App.jsx';
 import { RootProviders } from './components/RootProviders';
 import { optionalPublicEnv } from '@/lib/publicEnv';
 import { shouldDropSentryEvent } from '@/lib/sentryFilters';
+import { scheduleIdle } from '@/lib/scheduleIdle';
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 const isLiveProduction = import.meta.env.PROD && !isLocalHost;
@@ -12,16 +13,6 @@ const sentryDsn = optionalPublicEnv('VITE_SENTRY_DSN');
 const isSentryEnabled =
   Boolean(sentryDsn) &&
   (isLiveProduction || import.meta.env.VITE_SENTRY_ENABLE_DEVELOPMENT === 'true');
-
-const scheduleIdle = (callback: () => void, timeout = 3000) => {
-  if ('requestIdleCallback' in window) {
-    const id = (window as any).requestIdleCallback(callback, { timeout });
-    return () => (window as any).cancelIdleCallback?.(id);
-  }
-
-  const id = (window as any).setTimeout(callback, Math.min(timeout, 2000));
-  return () => (window as any).clearTimeout(id);
-};
 
 const scheduleDeferredTelemetry = (callback: () => void, delay = 8000) => {
   let started = false;
@@ -33,7 +24,7 @@ const scheduleDeferredTelemetry = (callback: () => void, delay = 8000) => {
     if (timer) window.clearTimeout(timer);
     window.removeEventListener('pointerdown', start);
     window.removeEventListener('keydown', start);
-    scheduleIdle(callback, 4000);
+    scheduleIdle(callback, { timeout: 4000 });
   };
 
   const schedule = () => {
