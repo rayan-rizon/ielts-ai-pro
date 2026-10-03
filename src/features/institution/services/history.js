@@ -1,5 +1,7 @@
 import { fromStripeAmount } from '../../../../supabase/functions/_shared/planPricing.ts';
 export const ACTION_LABELS = {
+  application_approved: 'Institution request approved',
+  application_declined: 'Institution request declined',
   create: 'Institution created',
   update: 'Institution details updated',
   invite_owner: 'Owner invited',
@@ -52,6 +54,7 @@ const FIELDS = {
   months: 'Access duration',
   access_days: 'Access duration',
   quantity: 'Seats',
+  expected_seats: 'Requested student seats',
   amount: 'Price',
   amount_minor: 'Purchase total',
   refunded_minor: 'Refunded amount',

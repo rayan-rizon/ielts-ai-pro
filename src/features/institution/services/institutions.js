@@ -31,3 +31,41 @@ export async function loadInstitutionAccess() {
     return {};
   }
 }
+
+export async function submitInstitutionApplication(data) {
+  const result = await supabase.functions.invoke('institution-applications', {
+    body: { action: 'submit', data },
+    headers: getCsrfHeaders(),
+  });
+  if (result.error) {
+    let message = 'We could not submit your request. Please try again.';
+    try {
+      message = (await result.error.context?.json())?.error || message;
+    } catch {
+      /* Keep form fields on network errors. */
+    }
+    throw new Error(message);
+  }
+  if (result.data?.error) throw new Error(result.data.error);
+  if (!result.data?.data?.received)
+    throw new Error('Your request was not confirmed. Please try again.');
+  return result.data.data;
+}
+
+export async function institutionInvitationRequest(action, data) {
+  const result = await supabase.functions.invoke('institution-applications', {
+    body: { action, data },
+    headers: getCsrfHeaders(),
+  });
+  if (result.error) {
+    let message = 'Unable to check your invitation. Please try again.';
+    try {
+      message = (await result.error.context?.json())?.error || message;
+    } catch {
+      /* Network error. */
+    }
+    throw new Error(message);
+  }
+  if (result.data?.error) throw new Error(result.data.error);
+  return result.data?.data;
+}

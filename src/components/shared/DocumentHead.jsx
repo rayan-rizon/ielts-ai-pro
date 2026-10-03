@@ -6,6 +6,7 @@ const SITE_NAME = 'IELTS Ai Pro';
 const STALE_META_SELECTORS = [
   'title',
   'meta[name="description"]',
+  'meta[name="keywords"]',
   'meta[name="robots"]',
   'link[rel="canonical"]',
   'meta[property^="og:"]',

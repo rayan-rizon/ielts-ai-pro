@@ -316,6 +316,26 @@
       "destination": "/ielts-university-requirements/index.html"
     },
     {
+      "source": "/institutions",
+      "destination": "/institutions/index.html"
+    },
+    {
+      "source": "/institution",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/institution/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/institution/apply",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/institution/accept",
+      "destination": "/index.html"
+    },
+    {
       "source": "/landing-v2",
       "destination": "/index.html"
     },

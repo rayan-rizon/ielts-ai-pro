@@ -50,6 +50,7 @@ function renderLlmsTxt(posts = []) {
 - [Cambridge-style IELTS Practice Tests](${SITE_URL}/cambridge-ielts-practice-tests): Public Reading and Listening practice hub with a diagnostic-review-repeat workflow.
 - [IELTS Band Score Calculator](${SITE_URL}/ielts-band-score-calculator): Overall-band rounding and Reading and Listening raw-score conversions.
 - [IELTS University Requirements by Country](${SITE_URL}/ielts-university-requirements): Compare country- and course-specific IELTS entry scores, including per-skill minimums and links to each institution's official source.
+- [IELTS Practice for Institutions](${SITE_URL}/institutions): Pro and Premium prepaid student seats, a separate institution portal, student invitations, billing, and the institution application and approval process.
 - [IELTS Preparation Blog](${SITE_URL}/blog): Practical IELTS strategies, study plans, and exam guidance.
 - [About](${SITE_URL}/about): Platform mission and editorial context.
 - [Contact](${SITE_URL}/contact): Support and correction requests.

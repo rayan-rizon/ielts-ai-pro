@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import InstitutionPanel from '../../features/institution/pages/InstitutionPanel';
 import InstitutionHistory from '../../features/institution/components/InstitutionHistory';
+vi.mock('@/components/shared/DocumentHead', () => ({ default: () => null }));
 const state = vi.hoisted(() => ({ admin: false, request: vi.fn() }));
 vi.mock('@/features/auth/context/AuthContext', () => ({
   useAuth: () => ({ isAdmin: state.admin, signOut: vi.fn() }),

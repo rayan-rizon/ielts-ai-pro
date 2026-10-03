@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
+  Building2,
   Tag,
   Settings,
   Megaphone,
@@ -45,7 +46,7 @@ const TestIssueReports = lazy(() => import('@/components/admin/TestIssueReports'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'institutions', label: 'Institutions', icon: Users },
+  { id: 'institutions', label: 'Institutions', icon: Building2 },
   { id: 'users', label: 'Users', icon: Users },
   { id: 'tests', label: 'Tests', icon: FileText },
   { id: 'resources', label: 'Resources', icon: Library },

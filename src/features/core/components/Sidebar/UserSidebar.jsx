@@ -44,7 +44,7 @@ const NavItem = memo(({ item, isActive }) => {
       <SidebarMenuButton
         asChild
         className={cn(
-          'group relative mb-0.5 rounded-lg border border-transparent transition-all duration-150 ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#100f15]',
+          'group relative rounded-lg border border-transparent transition-all duration-150 ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#100f15]',
           isActive ? ACCENT_ACTIVE : cn('text-slate-600 dark:text-slate-300', ACCENT_HOVER)
         )}
         tooltip={item.title}
@@ -52,14 +52,14 @@ const NavItem = memo(({ item, isActive }) => {
         <Link
           to={item.url}
           data-tour={item.tourKey}
-          className="flex items-center gap-2.5 px-3 py-2 text-[13px]"
+          className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs"
           onClick={() => {
             if (isMobile) setOpenMobile(false);
           }}
         >
           <span
             className={cn(
-              'absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df] transition-all duration-200 ease-sidebar',
+              'absolute left-0 top-1/2 h-3.5 w-[3px] -translate-y-1/2 rounded-full bg-[#5a63df] transition-all duration-200 ease-sidebar',
               isActive ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
             )}
           />
@@ -102,7 +102,7 @@ const resolveMainNavigation = (user) =>
   });
 
 const UserSidebarHeader = () => (
-  <SidebarHeader className="border-b border-slate-100 p-4 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 dark:border-white/6">
+  <SidebarHeader className="border-b border-slate-100 px-3 py-2.5 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 dark:border-white/6">
     <Link
       to="/dashboard"
       className="relative flex h-8 w-full items-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto"
@@ -119,11 +119,11 @@ const UserSidebarHeader = () => (
 
 const NavigationSection = ({ label, items, currentPath, className }) => (
   <SidebarGroup className={className}>
-    <SidebarGroupLabel className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-400">
+    <SidebarGroupLabel className="h-5 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
       {label}
     </SidebarGroupLabel>
     <SidebarGroupContent>
-      <SidebarMenu>
+      <SidebarMenu className="gap-0.5">
         {items.map((item) => (
           <NavItem key={item.title} item={item} isActive={currentPath === item.url} />
         ))}
@@ -140,7 +140,7 @@ const LearnerNavigation = ({ user, currentPath }) => {
   };
 
   return (
-    <SidebarContent className="flex-1 p-2.5 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:pt-6">
+    <SidebarContent className="flex-1 px-2 py-1.5 gap-0.5 group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:pt-4">
       <NavigationSection
         label="Main menu"
         items={resolveMainNavigation(user)}
@@ -205,11 +205,11 @@ const UserProfileLink = ({ user, onNavigate }) => (
   <Link
     to={createPageUrl('Settings')}
     aria-label="Account and profile settings"
-    className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#100f15]"
+    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#100f15]"
     onClick={onNavigate}
   >
-    <div className="flex items-center gap-2.5 overflow-hidden rounded-xl border border-transparent px-2.5 py-2 transition-all duration-150 ease-smooth-out hover:border-slate-200/80 hover:bg-slate-50/80 active:scale-[0.98] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 dark:hover:border-white/8 dark:hover:bg-white/5">
-      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-2 ring-slate-100 dark:bg-slate-800 dark:ring-slate-800">
+    <div className="flex items-center gap-2.5 overflow-hidden rounded-lg border border-transparent px-2 py-1.5 transition-all duration-150 ease-smooth-out hover:border-slate-200/80 hover:bg-slate-50/80 active:scale-[0.98] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 dark:hover:border-white/8 dark:hover:bg-white/5">
+      <div className="h-7 w-7 shrink-0 overflow-hidden rounded-md bg-slate-100 ring-1 ring-slate-200/60 dark:bg-slate-800 dark:ring-white/10">
         <img
           src={getAvatarUrl(user)}
           alt={user?.full_name ? `${user.full_name}'s avatar` : 'User avatar'}
@@ -218,13 +218,13 @@ const UserProfileLink = ({ user, onNavigate }) => (
         />
       </div>
       <div className={cn(COLLAPSIBLE_DETAILS, 'group-data-[collapsible=icon]:hidden')}>
-        <p className="w-full truncate text-[13px] font-bold leading-tight text-slate-800 dark:text-slate-100">
+        <p className="w-full truncate text-xs font-bold leading-tight text-slate-800 dark:text-slate-100">
           {user?.full_name || 'Student'}
         </p>
         {isPremiumUser(user) ? (
           <TierBadge tier={user.subscription_tier} className="mt-0.5 shrink-0" />
         ) : (
-          <span className="mt-0.5 inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+          <span className="mt-0.5 inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-100 px-1.5 py-0.2 text-[9px] font-extrabold uppercase tracking-wide text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
             Free
           </span>
         )}
@@ -251,11 +251,11 @@ const UserSidebarFooter = ({ user, handleLogout, showUpgradeOffer }) => {
   };
 
   return (
-    <SidebarFooter className="p-2.5 group-data-[collapsible=icon]:p-2">
-      <div className="space-y-1.5">
-        <div className="mb-1 flex justify-center">
+    <SidebarFooter className="p-2 group-data-[collapsible=icon]:p-1.5">
+      <div className="space-y-1">
+        <div className="flex justify-center">
           <SidebarTrigger
-            className="text-slate-500 transition-colors duration-200 ease-sidebar hover:text-[#5a63df] dark:text-slate-300 dark:hover:text-white"
+            className="text-slate-500 transition-colors duration-200 ease-sidebar hover:text-[#5a63df] dark:text-slate-300 dark:hover:text-white h-7.5 w-7.5"
             aria-label="Toggle sidebar"
           />
         </div>
@@ -269,7 +269,7 @@ const UserSidebarFooter = ({ user, handleLogout, showUpgradeOffer }) => {
             <Link
               to="/institution"
               onClick={closeMobileSidebar}
-              className="gap-2.5 px-3 text-slate-600 dark:text-slate-300"
+              className="gap-2.5 px-2.5 h-7.5 text-xs text-slate-600 dark:text-slate-300"
             >
               <GraduationCap className="h-4 w-4" />
               <span className={cn('text-xs font-semibold', COLLAPSIBLE_LABEL)}>
@@ -282,10 +282,10 @@ const UserSidebarFooter = ({ user, handleLogout, showUpgradeOffer }) => {
           onClick={signOut}
           aria-label="Sign out"
           tooltip="Sign out"
-          className="w-full justify-start gap-2.5 rounded-lg px-3 text-slate-600 transition-all duration-150 ease-smooth-out hover:bg-red-50 hover:text-red-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+          className="w-full justify-start gap-2.5 rounded-lg px-2.5 h-7.5 text-xs text-slate-600 transition-all duration-150 ease-smooth-out hover:bg-red-50 hover:text-red-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400"
         >
           <LogOut className="h-4 w-4" strokeWidth={2} />
-          <span className={cn('text-[13px] font-semibold', COLLAPSIBLE_LABEL)}>Sign out</span>
+          <span className={cn('text-xs font-semibold', COLLAPSIBLE_LABEL)}>Sign out</span>
         </SidebarMenuButton>
       </div>
     </SidebarFooter>

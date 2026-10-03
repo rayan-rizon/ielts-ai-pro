@@ -1,5 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import {
+  institutionLanding,
+  institutionFaqs,
+} from '../src/features/institution/content/landingContent.js';
 import { renderFeed } from '../api/feed.js';
 import { renderLlmsTxt } from '../api/llms.js';
 import { renderSitemap } from '../api/sitemap.js';
@@ -29,6 +33,7 @@ const removedStaticPagePaths = [
 ];
 const publicRoutes = [
   '/',
+  '/institutions',
   '/ielts-writing-checker',
   '/ielts-speaking-practice-ai',
   '/cambridge-ielts-practice-tests',
@@ -83,6 +88,14 @@ const notFoundHtml = readFileSync(notFoundPath, 'utf8');
 // which makes them self-disowning duplicates and turns any sitemap entry for them
 // into an error, so a new public route belongs in the generator and in this map.
 const generatedSeoPages = {
+  '/institutions': {
+    path: path.join(root, 'dist/institutions/index.html'),
+    title: institutionLanding.title,
+    description: institutionLanding.description,
+    heading: institutionLanding.heading,
+    primaryHref: institutionLanding.primaryHref,
+    secondaryHref: institutionLanding.secondaryHref,
+  },
   '/ielts-writing-checker': {
     path: path.join(root, 'dist/ielts-writing-checker/index.html'),
     title: 'IELTS Writing Checker: Task 1 & 2 | IELTS Ai Pro',
@@ -260,6 +273,7 @@ const rewrites = new Map(
   (vercel.rewrites || []).map(({ source, destination }) => [source, destination])
 );
 const requiredRewrites = {
+  '/institutions': '/institutions/index.html',
   '/sitemap.xml': '/api/sitemap',
   '/llms.txt': '/api/llms',
   '/blog/feed.xml': '/api/feed',
@@ -327,6 +341,43 @@ for (const [route, config] of Object.entries(generatedSeoPages)) {
   if (config.secondaryHref && !html.includes(`href="${config.secondaryHref}"`)) {
     fail(`generated ${route} page is missing its priority supporting link`);
   }
+}
+
+// Institution discovery must advertise the real approval flow and matching assets,
+// including for crawlers that never execute the React route.
+const institutionHtml = readFileSync(generatedSeoPages['/institutions'].path, 'utf8');
+for (const [property, value] of [
+  ['og:image', institutionLanding.image],
+  ['og:image:width', '1200'],
+  ['og:image:height', '630'],
+  ['og:image:type', 'image/jpeg'],
+]) {
+  if (!institutionHtml.includes(`<meta property="${property}" content="${value}"`)) {
+    fail(`institution social metadata is missing ${property}=${value}`);
+  }
+}
+if (!existsSync(path.join(root, 'public/images/institutions/social.jpg'))) {
+  fail('institution social sharing image is missing');
+}
+if (institutionHtml.includes('href="/ielts-hero-student-640.webp"')) {
+  fail('institution page preloads the unrelated homepage hero');
+}
+if (!institutionHtml.includes('imagesrcset="/images/institutions/hero-640.avif')) {
+  fail('institution page does not preload its responsive hero');
+}
+const institutionGraph = JSON.parse(
+  institutionHtml.match(
+    /<script\s+data-static-seo\s+type="application\/ld\+json">([\s\S]*?)<\/script>/
+  )?.[1] || '{}'
+);
+const schemaFaqs = institutionGraph['@graph']?.find(
+  (node) => node['@type'] === 'FAQPage'
+)?.mainEntity;
+if (
+  JSON.stringify(schemaFaqs?.map(({ name, acceptedAnswer }) => [name, acceptedAnswer.text])) !==
+  JSON.stringify(institutionFaqs)
+) {
+  fail('institution FAQ schema differs from visible answers');
 }
 
 if (!indexHtml.includes('type="application/rss+xml"')) {

@@ -192,24 +192,46 @@ export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) 
 );
 
 /** Page header shared by every admin screen. */
-export const AdminPageHeader = ({ title, description, tip, children }) => (
-  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 w-full">
-    <div className="min-w-0">
-      <div className="flex items-center gap-1.5">
-        <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
-          {title}
-        </h2>
-        {tip && <InfoTip>{tip}</InfoTip>}
-      </div>
-      {description && (
-        <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-1">{description}</p>
+export const AdminPageHeader = ({
+  title,
+  description,
+  tip,
+  children,
+  className,
+  responsive = 'lg',
+}) => {
+  const rowBreakpoint =
+    responsive === 'xl'
+      ? 'xl:flex-row xl:items-center'
+      : responsive === 'md'
+        ? 'md:flex-row md:items-center'
+        : 'lg:flex-row lg:items-center';
+
+  return (
+    <div
+      className={cn(
+        'flex flex-col gap-3.5 sm:gap-4 justify-between w-full',
+        rowBreakpoint,
+        className
       )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+            {title}
+          </h2>
+          {tip && <InfoTip>{tip}</InfoTip>}
+        </div>
+        {description && (
+          <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-1 max-w-2xl leading-relaxed">
+            {description}
+          </p>
+        )}
+      </div>
+      {children && <div className="flex flex-wrap items-center gap-2 shrink-0">{children}</div>}
     </div>
-    {children && (
-      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">{children}</div>
-    )}
-  </div>
-);
+  );
+};
 
 /** Shared form-control sizing for admin dialogs — inputs, selects, textareas. */
 export const FIELD =

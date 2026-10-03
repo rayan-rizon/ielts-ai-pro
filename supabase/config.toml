@@ -397,3 +397,7 @@ verify_jwt = true
 # Dedicated scheduler secret is checked inside the function before any storage access.
 [functions.skill-lab-cleanup]
 verify_jwt = false
+
+# Public request submission only. Review operations stay in the authenticated institutions function.
+[functions.institution-applications]
+verify_jwt = false

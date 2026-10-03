@@ -38,6 +38,9 @@ async function rpc(actor: string, action: string, data: Record<string, unknown>)
 async function createInvitation(actor: string, action: string, data: Record<string, unknown>) {
   const raw = crypto.randomUUID() + crypto.randomUUID();
   const result = await rpc(actor, action, { ...data, token_hash: await hashToken(raw) });
+  return deliverInvitation(result, raw);
+}
+async function deliverInvitation(result: { id: string; email: string }, raw: string) {
   const url = `${frontend}/institution/accept?token=${encodeURIComponent(raw)}`;
   const email = await sendEmail({
     to: result.email,
@@ -82,6 +85,66 @@ Deno.serve(async (req) => {
     const { action, data = {} } = await req.json();
     const actor = user.id;
     if (typeof action !== 'string') throw new Error('Operation required');
+    if (
+      action === 'applications_list' ||
+      action === 'application_approve' ||
+      action === 'application_decline'
+    ) {
+      const raw = crypto.randomUUID() + crypto.randomUUID();
+      const { data: result, error } = await db.rpc('institution_application_admin', {
+        p_actor: actor,
+        p_action:
+          action === 'applications_list'
+            ? 'list'
+            : action === 'application_approve'
+              ? 'approve'
+              : 'decline',
+        p_data: {
+          ...data,
+          ...(action === 'application_approve' ? { token_hash: await hashToken(raw) } : {}),
+        },
+      });
+      if (error) throw error;
+      if (action === 'applications_list') {
+        const all = result.entries || [];
+        const entries = all.slice(0, 25);
+        const last = entries[entries.length - 1];
+        return json(
+          {
+            data: {
+              entries,
+              pending_count: result.pending_count,
+              next_cursor:
+                all.length > 25 ? { cursor_id: last.id, cursor_date: last.created_at } : null,
+            },
+          },
+          200,
+          headers
+        );
+      }
+      let delivery: { url?: string; delivery_error?: string | null } = {};
+      if (result.invitation && !result.already_reviewed) {
+        try {
+          delivery = await deliverInvitation(result.invitation, raw);
+        } catch {
+          delivery = {
+            delivery_error:
+              'The institution was approved, but invitation delivery needs attention. Open the institution and resend the owner invitation.',
+          };
+        }
+      }
+      return json(
+        {
+          data: {
+            application: result.application,
+            already_reviewed: !!result.already_reviewed,
+            ...delivery,
+          },
+        },
+        200,
+        headers
+      );
+    }
     if (action === 'history')
       return json({ data: await getInstitutionHistory(db, actor, data) }, 200, headers);
     // Accept is always bound to Supabase's verified address, never a client-supplied identity.

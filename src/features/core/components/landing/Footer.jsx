@@ -8,11 +8,8 @@ import Mail from 'lucide-react/icons/mail';
 import ShieldCheck from 'lucide-react/icons/shield-check';
 import ArrowUp from 'lucide-react/icons/arrow-up';
 import Layers from 'lucide-react/icons/layers';
-import BookOpen from 'lucide-react/icons/book-open';
 import SparklesIcon from 'lucide-react/icons/sparkles';
 import Building2 from 'lucide-react/icons/building-2';
-import Youtube from 'lucide-react/icons/youtube';
-import Linkedin from 'lucide-react/icons/linkedin';
 import Facebook from 'lucide-react/icons/facebook';
 import Instagram from 'lucide-react/icons/instagram';
 import { toast } from 'sonner';
@@ -41,26 +38,14 @@ const footerLinks = {
       { label: 'University Requirements', href: '/ielts-university-requirements' },
       { label: 'Writing Task Evaluator', href: '/ielts-writing-checker' },
       { label: 'Speaking Test Simulator', href: '/ielts-speaking-practice-ai' },
-      { label: 'Listening Practice Hub', href: '/cambridge-ielts-practice-tests#listening' },
-      { label: 'Reading Comprehension', href: '/cambridge-ielts-practice-tests#reading' },
-    ],
-  },
-  'Test Prep': {
-    icon: BookOpen,
-    links: [
-      { label: 'Writing Band Score Criteria', href: '/ielts-writing-checker' },
-      { label: 'Speaking Criteria Breakdown', href: '/ielts-speaking-practice-ai' },
-      // /vocabulary is a ProtectedRoute and is Disallow'd in robots.txt, so linking
-      // it from the public footer spent an internal link on a page crawlers cannot read.
-      { label: 'Reading Strategies', href: '/blog?category=Reading' },
-      { label: 'Mock Test Analytics', href: '/cambridge-ielts-practice-tests' },
+      { label: 'Reading & Listening Practice', href: '/cambridge-ielts-practice-tests' },
     ],
   },
   Resources: {
     icon: SparklesIcon,
     links: [
       { label: 'IELTS Prep Blog & Guides', href: '/blog' },
-      { label: 'Cambridge Practice Material', href: '/cambridge-ielts-practice-tests' },
+      { label: 'For Institutions', href: '/institutions' },
       { label: 'Pricing Plans & Access', href: '/#pricing' },
     ],
   },
@@ -69,9 +54,6 @@ const footerLinks = {
     links: [
       { label: 'About Platform', href: '/about' },
       { label: 'Contact Support', href: '/contact' },
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms of Service', href: '/terms' },
-      { label: 'Refund & Cancellation', href: '/refund' },
     ],
   },
 };
@@ -94,18 +76,6 @@ const socialLinks = [
     label: 'X',
     href: 'https://x.com/IELTSAiPro',
     hoverClass: 'hover:text-white hover:border-white/40 hover:bg-white/10',
-  },
-  {
-    icon: Youtube,
-    label: 'YouTube',
-    href: 'https://youtube.com',
-    hoverClass: 'hover:text-[#FF0000] hover:border-[#FF0000]/40 hover:bg-[#FF0000]/10',
-  },
-  {
-    icon: Linkedin,
-    label: 'LinkedIn',
-    href: 'https://linkedin.com',
-    hoverClass: 'hover:text-[#0A66C2] hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/10',
   },
 ];
 
@@ -203,15 +173,9 @@ function FooterBrandSection({ handleCopyEmail }) {
 function getFooterLegalLinks(isBangladesh) {
   if (!isBangladesh) return footerLinks;
 
-  const legalDocuments = ['privacy', 'terms', 'refund-cancellation'];
-  const legalLabels = ['Privacy Notice', 'Terms & Conditions', 'Refund & Cancellation'];
   const regionalCompanyLinks = [
     { label: 'About Platform', href: '/about' },
     { label: 'Contact Support', href: '/contact' },
-    ...legalDocuments.map((document, index) => ({
-      label: legalLabels[index],
-      href: `/bd/${document}`,
-    })),
   ];
 
   return {
@@ -239,7 +203,7 @@ function FooterNavigationGrid({ links, isBangladesh }) {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-y-3 sm:gap-x-6 sm:gap-y-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3 sm:gap-x-6 sm:gap-y-8">
       {Object.entries(links).map(([title, category]) => {
         const Icon = category.icon;
         const isOpen = !!openCategories[title];
@@ -322,14 +286,6 @@ function FooterBottomBar({ currentYear, isBangladesh }) {
             <span className="text-slate-700">•</span>
           </React.Fragment>
         ))}
-        <Link
-          to="/about"
-          className="hover:text-white transition-colors py-1 px-1.5 sm:p-0"
-          onClick={scrollToPageTopImmediately}
-          viewTransition
-        >
-          About Platform
-        </Link>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-3.5 sm:gap-4">

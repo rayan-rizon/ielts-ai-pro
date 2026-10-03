@@ -43,13 +43,13 @@ const AdminNavItem = memo(
       if (isMobile) setOpenMobile(false);
     }, [isMobile, setOpenMobile]);
 
-    const btnClasses = `group transition-all duration-quick ease-smooth-out rounded-md mb-0.5 relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
+    const btnClasses = `group transition-all duration-quick ease-smooth-out rounded-md relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
       isActive
         ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
         : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
     }`;
 
-    const iconClasses = `w-4 h-4 transition-transform duration-quick ease-smooth-out group-hover:scale-105 ${
+    const iconClasses = `w-4 h-4 shrink-0 transition-transform duration-quick ease-smooth-out group-hover:scale-105 ${
       isActive
         ? 'text-white dark:text-stone-50'
         : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
@@ -60,7 +60,7 @@ const AdminNavItem = memo(
         <SidebarMenuButton asChild className={btnClasses} tooltip={item.title}>
           <Link
             to={item.url}
-            className="flex items-center gap-3 px-3 py-2 text-[13px] relative z-10"
+            className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
             onClick={handleLinkClick}
           >
             <item.icon className={iconClasses} />
@@ -73,7 +73,7 @@ const AdminNavItem = memo(
                     ? `${pendingCount} pending payment approval${pendingCount === 1 ? '' : 's'}, ${stripePaymentCount} new Stripe payment${stripePaymentCount === 1 ? '' : 's'}, and ${stripeFailureCount} Stripe payment failure${stripeFailureCount === 1 ? '' : 's'}`
                     : `${badgeCount} payment alert${badgeCount === 1 ? '' : 's'}`
                 }
-                className={`ml-auto h-4.5 px-1.5 min-w-[18px] rounded-full grid place-items-center shrink-0 ${MICRO} font-mono tabular-nums tracking-tight transition-all duration-quick ease-bounce animate-in fade-in zoom-in-75 ${
+                className={`ml-auto h-4 px-1 min-w-[16px] rounded-full grid place-items-center shrink-0 ${MICRO} font-mono tabular-nums tracking-tight transition-all duration-quick ease-bounce animate-in fade-in zoom-in-75 ${
                   isActive ? 'bg-white/20 text-white' : 'bg-[rgb(var(--signal-warn))] text-white'
                 }`}
               >
@@ -89,7 +89,7 @@ const AdminNavItem = memo(
 AdminNavItem.displayName = 'AdminNavItem';
 
 const AdminSidebarHeader = memo(() => (
-  <SidebarHeader className="border-b border-stone-200/70 dark:border-white/6 p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+  <SidebarHeader className="border-b border-stone-200/70 dark:border-white/6 px-3 py-2.5 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
     <div className="flex items-center justify-between w-full group-data-[collapsible=icon]:justify-center">
       <Link
         to={createPageUrl('AdminPanel')}
@@ -118,41 +118,43 @@ const AdminSidebarQuickActions = memo(({ isMobile, setOpenMobile }) => {
   }, [isMobile, setOpenMobile]);
 
   return (
-    <SidebarGroup className="mt-4">
+    <SidebarGroup className="mt-1">
       <SidebarGroupLabel
-        className={`${MICRO} text-stone-500 dark:text-stone-400 px-3 py-2 font-extrabold`}
+        className={`${MICRO} h-5 px-2 text-stone-400 dark:text-stone-500 font-extrabold`}
       >
         Quick actions
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-0.5">
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="group w-full justify-start gap-3 px-3 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium"
+              className="group w-full justify-start rounded-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors font-medium active:scale-[0.98]"
               tooltip="Create Test"
             >
               <Link
                 to={createPageUrl('AdminPanel') + '?tab=tests&action=create'}
+                className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
                 onClick={handleLinkClick}
               >
-                <Plus className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
-                <span className={`${COLLAPSIBLE_LABEL} text-[13px]`}>Create test</span>
+                <Plus className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
+                <span className={`${COLLAPSIBLE_LABEL} text-xs`}>Create test</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="group w-full justify-start gap-3 px-3 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium"
+              className="group w-full justify-start rounded-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors font-medium active:scale-[0.98]"
               tooltip="Add Promo"
             >
               <Link
                 to={createPageUrl('AdminPanel') + '?tab=promo&action=create'}
+                className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
                 onClick={handleLinkClick}
               >
-                <Crown className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
-                <span className={`${COLLAPSIBLE_LABEL} text-[13px]`}>Add promo</span>
+                <Crown className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
+                <span className={`${COLLAPSIBLE_LABEL} text-xs`}>Add promo</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -170,10 +172,10 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
   }, [isMobile, setOpenMobile, handleLogout]);
 
   return (
-    <SidebarFooter className="border-t border-stone-200/70 dark:border-white/6 p-3 group-data-[collapsible=icon]:p-2 space-y-1">
-      <div className="flex justify-center mb-1">
+    <SidebarFooter className="border-t border-stone-200/70 dark:border-white/6 p-2 group-data-[collapsible=icon]:p-1.5 space-y-1">
+      <div className="flex justify-center">
         <SidebarTrigger
-          className="text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md h-9 w-9 transition-colors"
+          className="text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md h-7.5 w-7.5 transition-colors"
           aria-label="Toggle admin sidebar"
         />
       </div>
@@ -182,14 +184,14 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
         <ThemeToggle />
       </div>
 
-      <div className="bg-stone-50 dark:bg-white/3 hover:bg-stone-100 dark:hover:bg-white/6 p-2 rounded-xl flex items-center gap-3 overflow-hidden cursor-pointer transition-colors border border-stone-200/70 dark:border-white/6 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 my-1">
-        <div className="w-8 h-8 bg-stone-900 dark:bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+      <div className="bg-stone-50 dark:bg-white/3 hover:bg-stone-100 dark:hover:bg-white/6 px-2 py-1.5 rounded-lg flex items-center gap-2.5 overflow-hidden cursor-pointer transition-colors border border-stone-200/70 dark:border-white/6 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 my-0.5">
+        <div className="w-7 h-7 bg-stone-900 dark:bg-white/10 rounded-md flex items-center justify-center shrink-0">
           <span className="text-white dark:text-stone-50 font-bold text-xs">
             {user?.full_name?.[0] || 'A'}
           </span>
         </div>
         <div className={COLLAPSIBLE_PROFILE_DETAILS}>
-          <p className="font-bold text-stone-900 dark:text-stone-50 text-xs truncate leading-none mb-1">
+          <p className="font-bold text-stone-900 dark:text-stone-50 text-xs truncate leading-none mb-0.5">
             {user?.full_name || 'Admin User'}
           </p>
           <div className="flex items-center gap-1.5">
@@ -203,10 +205,10 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
         onClick={onLogoutClick}
         aria-label="Sign out"
         tooltip="Sign out"
-        className="group w-full justify-start gap-3 px-3 py-2 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:px-2.5"
+        className="group w-full justify-start gap-2.5 px-2.5 h-7.5 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:px-2 text-xs"
       >
-        <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors" />
-        <span className={`${COLLAPSIBLE_LABEL} text-[13px]`}>Sign out</span>
+        <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
+        <span className={`${COLLAPSIBLE_LABEL} text-xs`}>Sign out</span>
       </SidebarMenuButton>
     </SidebarFooter>
   );
@@ -245,13 +247,13 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
   return (
     <>
       <AdminSidebarHeader />
-      <SidebarContent className="p-3 group-data-[collapsible=icon]:p-2">
+      <SidebarContent className="px-2 py-1.5 gap-0.5 group-data-[collapsible=icon]:p-1.5">
         <SidebarGroup>
-          <SidebarGroupLabel className={`${MICRO} text-stone-500 dark:text-stone-400 px-3 py-2`}>
+          <SidebarGroupLabel className={`${MICRO} h-5 px-2 text-stone-400 dark:text-stone-500`}>
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {adminNavigationItems.map((item) => (
                 <AdminNavItem
                   key={item.title}
@@ -266,12 +268,12 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel className={`${MICRO} text-stone-500 dark:text-stone-400 px-3 py-2`}>
+        <SidebarGroup className="mt-1">
+          <SidebarGroupLabel className={`${MICRO} h-5 px-2 text-stone-400 dark:text-stone-500`}>
             Intelligence
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {analyticsNavigationItems.map((item) => (
                 <AdminNavItem
                   key={item.title}

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 export const HISTORY_CATEGORIES: Record<string, string[]> = {
-  institution: ['create', 'update', 'invite_owner'],
+  institution: ['create', 'update', 'invite_owner', 'application_approved'],
   students: ['invite', 'accept', 'cancel', 'correct', 'extend', 'release', 'revoke'],
   pricing: ['pricing'],
   billing: ['quote', 'payment', 'refund', 'reconcile_refund', 'grant'],

@@ -1,25 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { History, Search } from 'lucide-react';
-import {
-  PANEL,
-  TILE,
-  MICRO,
-  MUTED,
-  PanelTitle,
-  Pill,
-  Empty,
-} from '@/features/dashboard/components/primitives';
+import { History, Search, RefreshCw } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Empty } from '@/features/dashboard/components/primitives';
 import { institutionRequest } from '../services/institutions';
 import { ACTION_LABELS, historyChanges, historyDate, historySubject } from '../services/history';
-export default function InstitutionHistory({ institutionId, seats }) {
-  const [category, setCategory] = useState('all'),
-    [search, setSearch] = useState(''),
-    [query, setQuery] = useState('');
-  const [page, setPage] = useState(null),
-    [entries, setEntries] = useState([]),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+import { NativeSelect } from './NativeSelect';
+
+export default function InstitutionHistory({ institutionId, seats = [] }) {
+  const [category, setCategory] = useState('all');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(null);
+  const [entries, setEntries] = useState([]);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const version = useRef(0);
+
   const load = async (cursor = null, generation = version.current) => {
     setBusy(true);
     setError('');
@@ -39,6 +38,7 @@ export default function InstitutionHistory({ institutionId, seats }) {
       if (generation === version.current) setBusy(false);
     }
   };
+
   useEffect(() => {
     const generation = ++version.current;
     setEntries([]);
@@ -50,19 +50,27 @@ export default function InstitutionHistory({ institutionId, seats }) {
     // Query inputs define this request; stale responses are discarded on every change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [institutionId, category, query]);
+
   return (
-    <section className={`${PANEL} space-y-4 p-4`}>
-      <PanelTitle label="Institution history" />
-      <p className={`${MUTED} text-sm`}>
-        A record of institution changes, student access, pricing, and payments. Newest first. Times
-        use your local timezone.
-      </p>
-      <div className="grid gap-3 sm:flex sm:flex-wrap">
-        <label className="space-y-1 text-xs">
+    <Card className="p-5 sm:p-6 space-y-5">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="h-4 w-1 rounded-full bg-primary dark:bg-[#8f97ff]" />
+          <h2 className="text-base font-bold text-foreground">Institution history</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Audit log of seat allocations, student invitations, and pricing changes. Ordered newest
+          first.
+        </p>
+      </div>
+
+      {/* Filter Toolbar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <label className="space-y-1.5 text-xs font-semibold text-foreground">
           Activity type
-          <select
+          <NativeSelect
             aria-label="History activity type"
-            className="block w-full rounded-md border border-[#e4e2f0] bg-white px-3 py-2 dark:border-white/10 dark:bg-[#141319] sm:w-auto"
+            wrapperClassName="w-full sm:w-52"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
@@ -77,8 +85,9 @@ export default function InstitutionHistory({ institutionId, seats }) {
                 {label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
+
         <form
           className="flex min-w-0 flex-1 items-end gap-2"
           onSubmit={(e) => {
@@ -86,57 +95,92 @@ export default function InstitutionHistory({ institutionId, seats }) {
             setQuery(search.trim());
           }}
         >
-          <label className="min-w-0 flex-1 space-y-1 text-xs">
+          <label className="min-w-0 flex-1 space-y-1.5 text-xs font-semibold text-foreground">
             Search reasons
-            <input
-              className="block w-full rounded-md border border-[#e4e2f0] bg-white px-3 py-2 dark:border-white/10 dark:bg-[#141319]"
-              placeholder="e.g. trial or refund"
-              value={search}
-              maxLength={200}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-9 h-9"
+                placeholder="e.g. trial or refund"
+                value={search}
+                maxLength={200}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </label>
-          <button className="rounded-md bg-[#5a63df] p-2.5 text-white" aria-label="Search history">
-            <Search className="h-4 w-4" />
-          </button>
+          <Button type="submit" size="sm" className="h-9" aria-label="Search history">
+            Search
+          </Button>
         </form>
       </div>
+
+      {/* Error state */}
       {error && (
-        <p role="alert" className="text-sm text-[rgb(var(--signal-fault))]">
-          {error}{' '}
-          <button className="underline" onClick={() => load(page?.next_cursor || null)}>
+        <div
+          role="alert"
+          className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive"
+        >
+          <span>{error}</span>
+          <button
+            type="button"
+            className="font-bold underline hover:opacity-80"
+            onClick={() => load(page?.next_cursor || null)}
+          >
             Try again
           </button>
-        </p>
+        </div>
       )}
+
+      {/* Events timeline */}
       <ol className="space-y-3" aria-label="Institution history events">
         {entries.map((entry) => {
           const changes = historyChanges(entry);
           return (
-            <li key={entry.id} className={`${TILE} p-3 sm:p-4`}>
+            <li
+              key={entry.id}
+              className="rounded-xl border border-border bg-card p-4 transition-all duration-150 hover:border-primary/30 dark:hover:border-[#8f97ff]/40 space-y-2 shadow-2xs"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-bold">
-                  {ACTION_LABELS[entry.action] || 'Institution activity'}
-                </p>
-                <time dateTime={entry.created_at} className={`${MUTED} text-xs`}>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2 w-2 rounded-full bg-primary dark:bg-[#8f97ff]"
+                    aria-hidden="true"
+                  />
+                  <p className="text-xs font-bold text-foreground">
+                    {ACTION_LABELS[entry.action] || 'Institution activity'}
+                  </p>
+                </div>
+                <time
+                  dateTime={entry.created_at}
+                  className="font-mono tabular-nums text-muted-foreground text-[11px]"
+                >
                   {historyDate(entry.created_at)}
                 </time>
               </div>
-              <p className="mt-1 break-words text-xs text-[#5a63df] dark:text-[#bfc3ff]">
+
+              {/* Subject */}
+              <p className="break-words text-xs font-semibold text-primary dark:text-[#afb5ff]">
                 {historySubject(entry, seats)}
               </p>
-              <p className="mt-2 break-words text-sm">
+
+              {/* Reason */}
+              <p className="break-words text-xs text-foreground/90 leading-relaxed">
                 {entry.reason || 'No additional reason recorded.'}
               </p>
-              <div className={`mt-2 flex flex-wrap items-center gap-2 ${MUTED} text-xs`}>
-                <Pill tone="neutral">
+
+              {/* Actor */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground pt-1">
+                <Badge
+                  variant={entry.actor?.role === 'admin' ? 'default' : 'secondary'}
+                  className="text-[10px]"
+                >
                   {!entry.actor_auth_id
                     ? 'System'
                     : entry.actor?.role === 'admin'
                       ? 'Platform admin'
                       : 'Account'}
-                </Pill>
-                <span className="break-all">
+                </Badge>
+                <span className="break-all text-[11px]">
                   {entry.actor?.full_name ||
                     entry.actor?.email ||
                     (entry.actor_auth_id
@@ -144,28 +188,34 @@ export default function InstitutionHistory({ institutionId, seats }) {
                       : 'Automatic payment processing')}
                 </span>
               </div>
+
+              {/* Changes Details Diff */}
               {changes.length > 0 && (
-                <details className="mt-3 border-t border-[#e4e2f0] pt-2 dark:border-white/[0.07]">
-                  <summary className="cursor-pointer text-xs font-semibold text-[#5a63df] dark:text-[#bfc3ff]">
+                <details className="mt-3 border-t border-border pt-2.5 group">
+                  <summary className="cursor-pointer text-xs font-bold text-primary dark:text-[#afb5ff] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                     View {changes.length} {changes.length === 1 ? 'change' : 'changes'}
                   </summary>
-                  <dl className="mt-3 space-y-2">
+                  <dl className="mt-2.5 space-y-2 rounded-lg bg-muted/40 p-3 text-xs border border-border">
                     {changes.map((change) => (
                       <div
                         key={change.key}
                         className="grid min-w-0 gap-1 text-xs sm:grid-cols-[140px_1fr]"
                       >
-                        <dt className={`${MICRO} ${MUTED}`}>{change.label}</dt>
+                        <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-0.5">
+                          {change.label}
+                        </dt>
                         <dd className="min-w-0 break-words">
                           {!change.created && (
                             <>
-                              <span className={MUTED}>{change.before}</span>
-                              <span aria-label="changed to" className="mx-2">
+                              <span className="text-muted-foreground line-through opacity-80">
+                                {change.before}
+                              </span>
+                              <span aria-label="changed to" className="mx-2 text-muted-foreground">
                                 →
                               </span>
                             </>
                           )}
-                          <span className="font-semibold">{change.after}</span>
+                          <span className="font-semibold text-foreground">{change.after}</span>
                         </dd>
                       </div>
                     ))}
@@ -176,11 +226,16 @@ export default function InstitutionHistory({ institutionId, seats }) {
           );
         })}
       </ol>
+
+      {/* Loading state */}
       {busy && (
-        <p role="status" className={`${MUTED} text-sm`}>
-          Loading history…
-        </p>
+        <div role="status" className="flex items-center justify-center gap-2 py-4">
+          <RefreshCw className="h-4 w-4 animate-spin text-primary dark:text-[#afb5ff]" />
+          <span className="text-xs text-muted-foreground">Loading history…</span>
+        </div>
       )}
+
+      {/* Empty state */}
       {!busy && !error && !entries.length && (
         <Empty
           icon={History}
@@ -188,18 +243,27 @@ export default function InstitutionHistory({ institutionId, seats }) {
           description="Try a different activity type or search reason. New changes will appear here."
         />
       )}
+
+      {/* Pagination */}
       {page?.next_cursor && (
-        <button
-          disabled={busy}
-          className="rounded-md border border-[#e4e2f0] px-3 py-2 text-xs font-bold dark:border-white/10 disabled:opacity-50"
-          onClick={() => load(page.next_cursor)}
-        >
-          Load older activity
-        </button>
+        <div className="pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            onClick={() => load(page.next_cursor)}
+          >
+            Load older activity
+          </Button>
+        </div>
       )}
+
       {!busy && entries.length > 0 && !page?.next_cursor && (
-        <p className={`${MUTED} text-xs`}>All matching activity is shown.</p>
+        <p className="text-center text-xs text-muted-foreground pt-2">
+          All matching activity is shown.
+        </p>
       )}
-    </section>
+    </Card>
   );
 }

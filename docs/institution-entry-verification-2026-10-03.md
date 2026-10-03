@@ -1,0 +1,50 @@
+# Institution sign-in and request workflow — October 3, 2026
+
+## Implemented workflow
+
+- `/institution/login` now has its own institution-only sign-in form. It exposes no public sign-up, Google account creation, or links to learner sign-in. Password recovery stays in this portal. An invited recipient can set their initial password only after the server validates an unexpired, unused invitation for an active institution. See the follow-up verification below; it supersedes the original shared-login implementation.
+- `/institution/apply` accepts an institution name, contact person, work email, country, expected student seats, and optional message. Submission creates a private pending request; it creates no account, institution, seats, payment, or subscription.
+- Admin → Institutions → Institution requests provides pending/approved/declined filters, search, pagination, and review reasons. Approval chooses USD or BDT and atomically creates the institution and an expiring owner invitation. A retry or concurrent approval cannot create another institution or invitation. Decline records the decision without creating access.
+- Owners accept their invitation with its verified recipient account and reach `/institution`. Ownership remains separate from the platform admin role and personal subscription. Existing institution pricing, purchases, and free-grant controls remain available in the institution's admin details.
+- Institution history includes request approval, owner invitation, acceptance, and later admin changes. It displays actor names, dates, reasons, and readable changed fields, including requested student seats. Mobile owner navigation has compact utility controls; institution page titles no longer retain the sign-in title.
+
+## Backend deployment
+
+Applied additive migration `20261003000022_institution_applications.sql` to linked project `zvrmvycajimjxghrnpgy` and recorded its exact version/source in migration history. The migration and history record committed together. No unrelated migration was applied.
+
+Deployed `institution-applications` version 1 with JWT gateway verification disabled for public submission, and `institutions` version 3 with its existing JWT gateway verification retained. Review stays in the authenticated function, which verifies the account and confirmed email and binds the actor server-side. The service-only review RPC independently requires the persisted admin role.
+
+Live catalog/API checks confirmed RLS is enabled; anonymous and authenticated clients cannot select requests or directly execute either new RPC. Both functions have an empty search path. A verified ordinary account received `403 Admin required` for the request inbox. The public function rejects review operations and invalid input. Public intake has input/body limits, a honeypot, a retry key, normalized pending-request deduplication, and a database-backed per-IP submission budget. Only a keyed hash of the IP identifier is stored.
+
+The existing institution feature gate was observed enabled and was left unchanged. Earlier verification documents describe their own prior gate state. The frontend remains a local implementation; this run did not deploy it to Vercel.
+
+## Verification
+
+- Focused Vitest suite: **10 files / 62 tests passed**. Covers owner/learner destinations, invitation tokens, signup confirmation and password recovery destinations, input validation, request retry, admin approval/pagination/filtering, readable history, panel separation, CSV, pricing, and payment-webhook contracts.
+- `bash scripts/test-institution-database.sh` passed against an isolated socket-only PostgreSQL 16 cluster. New checks cover private table/RPC permissions, non-admin denial, normalized duplicates, no automatic access, required reviews, currency validation, atomic rollback on an invitation collision, repeat approval/decline, deterministic pagination, and durable submission limits. Four real simultaneous approvals produce one institution and one owner invitation. The existing institution/quota/payment/RLS/lifecycle/concurrency checks also passed.
+- Deno type checks passed for both deployed functions, with dependency resolution kept outside the project's Node modules.
+- ESLint passed on the changed frontend/entry tests; `git diff --check` passed. The production build passed, including the repository's sanitizer and public-page generation checks.
+- Browser verification used local Vite pages against the deployed backend. A public request appeared in the admin inbox; approval produced an invitation; the verified QA owner signed in through the institution entry, retained the token, accepted it, and reached the separate owner panel. Billing, owner sign-out, approved filtering, review reasons, and readable approval/acceptance history were inspected. A second mobile request was declined and appeared in the declined filter.
+- Mobile rendering at 390×844 and desktop rendering were inspected in light/dark themes. The public sign-in/form and owner page had no horizontal document overflow at the mobile breakpoint. Temporary viewport overrides were cleared and the original themes restored.
+
+Screenshots are saved locally under `docs/verification/institution-entry-2026-10-03/`: desktop/mobile sign-in, mobile request form, owner overview in both themes, owner billing, and admin approval history. These are local evidence files and may be excluded by repository ignore rules.
+
+## QA cleanup and remaining release checks
+
+The approved test institution `7f21e0f4-bdd0-46dd-a64c-ea4984b8f401` was empty: zero orders and zero seats. Its owner remained role `user` with personal plan `free`. It was archived through the admin UI with a QA reason, and its disposable test account was banned. The declined request has no institution ID. Labelled requests and audit events remain for traceability. No purchase, student grant, or real-user access change was made. The user's original admin session was preserved.
+
+Real-inbox invitation/email-confirmation delivery and Google consent were not exercised. The invitation provider accepted the QA send; that does not prove mailbox delivery. Password recovery was verified as a destination-preservation contract without changing a password. Production Stripe delivery/transactions and the entire repository test suite were not rerun for this entry-page change; prior billing verification remains documented separately. The Supabase MCP advisor tool was unavailable to this connector session; scoped live catalog/permission checks were completed through the linked CLI. Production frontend deployment and a real-owner invitation/email walkthrough remain release checks.
+
+## Follow-up: application-first access and separate sign-in
+
+Removed the shared learner Login component from InstitutionLogin and removed the institution cross-link from learner login. Public institutions apply at `/institution/apply`; administrators review or contact the request before approval and invitation. There is no self-registration option in the institution entry.
+
+The existing public `institution-applications` function now supports token-bound invitation inspection and initial account setup in addition to request submission. Setup derives its recipient from the hashed invitation, rejects expired/cancelled/accepted invitations and unavailable institutions, checks the institution feature gate, and validates passwords. It creates a verified account only for the invitation recipient; the invitation is email-possession proof. It never resets or alters an existing account. Ownership or learner seats are still assigned exclusively by the existing authenticated acceptance transaction. Inspection and setup have separate per-IP rate budgets so student invitation traffic does not exhaust the application budget. No schema migration was required. The revised function was deployed to the linked project; the frontend remains local.
+
+Follow-up verification: **5 files / 52 focused tests passed** for the separate sign-in, invitation-only setup, existing-account protection, recovery, request form, and owner shell/workspace. Scoped frontend ESLint, Deno backend type checking, the production build, and diff whitespace checks passed. Backend TypeScript validation used Deno; the repository's ESLint configuration does not cover the backend TypeScript helper.
+
+A disposable live institution/invitation exercised account creation through the deployed API. Tampered recipient/role inputs were ignored; repeating setup returned an existing-account result and the original password still authenticated. Setup alone granted no ownership. Browser sign-in preserved the token, acceptance reached the separate owner panel, and sign-out returned to institution sign-in. Invalid and already accepted invitations were rejected by the deployed API. The account retained role `user` and personal plan `free`. The temporary institution was archived with a QA history reason and its auth account banned; temporary credential files were removed. No real-user account password was changed.
+
+The sign-in page and application form were inspected at 390px in light/dark modes, with document width equal to viewport width. All sign-in page links resolve within `/institution`; no learner sign-in, sign-up, or Google entry appears. Invitation-only password setup was inspected in the browser without submitting new credentials; actual creation and duplicate-account protection were tested through the backend API. The original admin tab/session was preserved. Screenshots include `institution-signin-no-signup-dark.png`, mobile light/dark variants, and the invited setup/owner panel under the evidence folder above.
+
+Real mailbox receipt and the recovery email redirect were not exercised; recovery destination/update behavior passed component tests. A real-owner invitation and password-recovery email walkthrough, plus production frontend deployment, remain release checks. Google is absent from the institution entry. Earlier test/deployment details above record the original implementation and should not be read as proof of a current institution signup flow.

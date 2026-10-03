@@ -38,3 +38,17 @@ assert sum(r.returncode==0 for r in results)==1,[r.stderr for r in results]
 assert checked("select count(*) from public.institution_seats where institution_id='10000000-0000-0000-0000-000000000010'")=='2'
 assert checked("select count(*) from public.institution_invitations where institution_id='10000000-0000-0000-0000-000000000010' and cancelled_at is null")=='2'
 print('Concurrent repeated acceptance and last-seat reservation checks passed.')
+
+# Simultaneous reviews serialize on the request, creating one institution and owner invitation.
+checked("""
+select set_config('request.jwt.claim.role','service_role',false);
+select public.institution_application_submit('{"request_key":"30000000-0000-0000-0000-000000000001","institution_name":"Parallel Application","contact_name":"Test Owner","email":"parallel-app@example.test","country":"Bangladesh","expected_seats":20}',repeat('e',64));
+""")
+app=checked("select id from public.institution_applications where institution_name='Parallel Application'")
+approve="select set_config('request.jwt.claim.role','service_role',false); select public.institution_application_admin('10000000-0000-0000-0000-000000000001','approve',jsonb_build_object('application_id','%s','reason','Concurrent approval','token_hash',repeat('f',64)));" % app
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+    results=list(pool.map(run,[approve]*4))
+assert all(r.returncode==0 for r in results),[r.stderr for r in results]
+assert checked("select count(*) from public.institutions where name='Parallel Application'")=='1'
+assert checked("select count(*) from public.institution_invitations where institution_id=(select institution_id from public.institution_applications where id='%s')" % app)=='1'
+print('Concurrent application approval creates exactly one institution and owner invitation.')

@@ -22,6 +22,9 @@ Disallow: /analytics
 Disallow: /learning-path
 Disallow: /leaderboard
 
+Disallow: /institution$
+Disallow: /institution/
+
 # Auth flows
 Disallow: /login
 Disallow: /signup

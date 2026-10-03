@@ -1,0 +1,71 @@
+/* Institution Landing Page - Supporting Keyframes and Micro-Animations
+ * Note: Core styling is handled directly via Tailwind and Learner Panel design primitives
+ * ensuring seamless light and dark mode compatibility with the rest of the application.
+ */
+
+@keyframes il-pulse-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes il-waveform {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.il-wave-bar {
+  transform-origin: bottom;
+  animation: il-waveform 1.4s ease-in-out infinite;
+}
+
+.il-wave-bar:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.il-wave-bar:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.il-wave-bar:nth-child(4) {
+  animation-delay: 0.45s;
+}
+.il-wave-bar:nth-child(5) {
+  animation-delay: 0.6s;
+}
+.il-wave-bar:nth-child(6) {
+  animation-delay: 0.25s;
+}
+.il-wave-bar:nth-child(7) {
+  animation-delay: 0.5s;
+}
+.il-wave-bar:nth-child(8) {
+  animation-delay: 0.1s;
+}
+.il-wave-bar:nth-child(9) {
+  animation-delay: 0.35s;
+}
+.il-wave-bar:nth-child(10) {
+  animation-delay: 0.55s;
+}
+.il-wave-bar:nth-child(11) {
+  animation-delay: 0.2s;
+}
+.il-wave-bar:nth-child(12) {
+  animation-delay: 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-wave-bar {
+    animation: none !important;
+  }
+}

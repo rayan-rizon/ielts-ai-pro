@@ -10,6 +10,7 @@ import {
   Brain,
   Trophy,
   Users,
+  Building2,
   LayoutDashboard,
   ClipboardList,
   Cpu,
@@ -85,7 +86,11 @@ export const adminNavigationItems = [
     icon: Flag,
   },
   { title: 'Resources', url: createPageUrl('AdminPanel') + '?tab=resources', icon: Library },
-  { title: 'Institutions', url: createPageUrl('AdminPanel') + '?tab=institutions', icon: Users },
+  {
+    title: 'Institutions',
+    url: createPageUrl('AdminPanel') + '?tab=institutions',
+    icon: Building2,
+  },
   { title: 'User Management', url: createPageUrl('AdminPanel') + '?tab=users', icon: Users },
   { title: 'AI Usage', url: createPageUrl('AdminPanel') + '?tab=ai-usage', icon: Cpu },
   {

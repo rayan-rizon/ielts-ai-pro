@@ -34,6 +34,7 @@ const CORE_ROUTES = [
     changefreq: 'weekly',
     priority: '0.9',
   },
+  { path: '/institutions', lastmod: '2026-10-03', changefreq: 'monthly', priority: '0.8' },
   { path: '/blog', lastmod: '2026-07-26', changefreq: 'weekly', priority: '0.8' },
   { path: '/about', lastmod: '2026-07-26', changefreq: 'monthly', priority: '0.5' },
   { path: '/contact', lastmod: '2026-07-26', changefreq: 'monthly', priority: '0.4' },

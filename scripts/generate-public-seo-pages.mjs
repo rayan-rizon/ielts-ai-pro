@@ -6,6 +6,8 @@ import {
   toPrerenderConfig,
 } from '../src/features/core/components/seo-landing/seoLandingContent.js';
 
+import { institutionPrerender } from '../src/features/institution/content/landingContent.js';
+
 const root = process.cwd();
 const distDirectory = path.join(root, 'dist');
 const sourcePage = readFileSync(path.join(distDirectory, 'index.html'), 'utf8');
@@ -33,6 +35,7 @@ function seoLandingPage(content) {
 }
 
 const publicPages = [
+  institutionPrerender,
   {
     path: 'ielts-writing-checker',
     title: 'IELTS Writing Checker: Task 1 & 2 | IELTS Ai Pro',
@@ -574,7 +577,7 @@ const publicPages = [
       ],
     },
   },
-].map((page) => ({ ...page, image: 'https://www.ieltsai.pro/ielts-hero-student.webp' }));
+].map((page) => ({ image: 'https://www.ieltsai.pro/ielts-hero-student.webp', ...page }));
 
 const SITE_URL = 'https://www.ieltsai.pro';
 
@@ -723,6 +726,26 @@ function renderPublicPage(html, config) {
     `<meta property="og:image" content="${config.image}" />`,
     'Open Graph image'
   );
+  if (config.path === 'institutions') {
+    page = page.replace(
+      /(<meta property="og:image:width" content=")[^"]+/,
+      (_, prefix) => `${prefix}1200`
+    );
+    page = page.replace(
+      /(<meta property="og:image:height" content=")[^"]+/,
+      (_, prefix) => `${prefix}630`
+    );
+    page = page.replace(/(<meta property="og:image:type" content=")[^"]+/, '$1image/jpeg');
+    page = page.replace(
+      /<link[^>]*rel="preload"[^>]*href="\/ielts-hero-student-640\.webp"[^>]*>/g,
+      ''
+    );
+    // Start the route's LCP image before the lazy React chunk is downloaded.
+    page = page.replace(
+      '</head>',
+      '<link rel="preload" as="image" type="image/avif" href="/images/institutions/hero-960.avif" imagesrcset="/images/institutions/hero-640.avif 640w, /images/institutions/hero-960.avif 960w, /images/institutions/hero-1440.avif 1440w" imagesizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1240px) 50vw, 660px" fetchpriority="high" />\n</head>'
+    );
+  }
   page = replaceTag(
     page,
     /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/>/,

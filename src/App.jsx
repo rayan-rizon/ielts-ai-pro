@@ -32,9 +32,20 @@ function PracticeLabRedirect() {
   );
 }
 
-const RouteLoading = ({ message = 'Loading...', fullScreen = true }) => (
-  <PremiumLoading message={message} fullScreen={fullScreen} />
-);
+const RouteLoading = ({ message = 'Loading...', fullScreen = true }) => {
+  if (typeof window !== 'undefined' && window.location.pathname === '/institutions') {
+    return (
+      <div
+        role="status"
+        className="fixed inset-0 z-100 flex min-h-screen flex-col items-center justify-center gap-5 bg-[#fdfdff] text-[#545e80]"
+      >
+        <img src="/logo.svg" width="180" height="43" alt="IELTS Ai Pro" />
+        <p className="text-sm">Loading institution overview…</p>
+      </div>
+    );
+  }
+  return <PremiumLoading message={message} fullScreen={fullScreen} />;
+};
 
 const IdleToaster = () => {
   const [ready, setReady] = React.useState(false);
@@ -135,8 +146,17 @@ const Listening = lazyWithRetry(() => import('@/features/testing/shared/pages/Li
 const Reading = lazyWithRetry(() => import('@/features/testing/shared/pages/Reading.jsx'));
 const Speaking = lazyWithRetry(() => import('@/features/testing/shared/pages/Speaking.jsx'));
 const Writing = lazyWithRetry(() => import('@/features/testing/shared/pages/Writing.jsx'));
+const InstitutionLanding = lazyWithRetry(
+  () => import('@/features/institution/pages/InstitutionLanding.jsx')
+);
 const InstitutionPanel = lazyWithRetry(
   () => import('@/features/institution/pages/InstitutionPanel.jsx')
+);
+const InstitutionLogin = lazyWithRetry(
+  () => import('@/features/institution/pages/InstitutionLogin.jsx')
+);
+const InstitutionApply = lazyWithRetry(
+  () => import('@/features/institution/pages/InstitutionApply.jsx')
 );
 const AcceptInstitutionInvitation = lazyWithRetry(
   () => import('@/features/institution/pages/AcceptInvitation.jsx')
@@ -230,7 +250,7 @@ const LazyPage = ({ children, className }) => {
     </Suspense>
   );
 
-  if (pathname === '/') return page;
+  if (pathname === '/' || pathname === '/institutions') return page;
 
   return (
     <Suspense fallback={<RouteLoading message="Loading..." fullScreen />}>
@@ -394,9 +414,33 @@ const router = createBrowserRouter(
       ),
     },
     {
+      path: '/institutions',
+      element: (
+        <LazyPage>
+          <InstitutionLanding />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/institution/login',
+      element: (
+        <LazyPage>
+          <InstitutionLogin />
+        </LazyPage>
+      ),
+    },
+    {
+      path: '/institution/apply',
+      element: (
+        <LazyPage>
+          <InstitutionApply />
+        </LazyPage>
+      ),
+    },
+    {
       path: '/institution',
       element: (
-        <ProtectedRoute>
+        <ProtectedRoute redirectPath="/institution/login">
           <LazyPage>
             <InstitutionPanel />
           </LazyPage>
@@ -406,7 +450,7 @@ const router = createBrowserRouter(
     {
       path: '/institution/accept',
       element: (
-        <ProtectedRoute>
+        <ProtectedRoute redirectPath="/institution/login">
           <LazyPage>
             <AcceptInstitutionInvitation />
           </LazyPage>
