@@ -157,6 +157,8 @@ serve(async (req: Request) => {
   let promptTokens = 0;
   let outputTokens = 0;
   let providerCalls = 0;
+  let providerMetadata: Record<string, unknown> = {};
+  let failureStage = 'validation';
 
   try {
     // Authenticate user
@@ -242,6 +244,23 @@ serve(async (req: Request) => {
     }
 
     const speakingSessionId = ownedSession.id;
+    const savedEvaluation = ownedSession.content_data?.finalEvaluation;
+    if (
+      ownedSession.evaluation_status === 'complete' &&
+      savedEvaluation?.evaluationVersion === CURRENT_EVALUATION_VERSION &&
+      savedEvaluation?.speakingSessionId === speakingSessionId
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          evaluation: savedEvaluation,
+          sessionPersisted: true,
+          cached: true,
+          xpAward: null,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const { data: v2State, error: v2StateError } = await supabase
       .from('speaking_session_state')
       .select('status, mode')
@@ -348,7 +367,9 @@ serve(async (req: Request) => {
         })
         .eq('id', speakingSessionId)
         .eq('user_id', userProfile?.id)
-        .eq('evaluation_status', 'pending')
+        // A lost browser response may release its claim while this server request runs.
+        .eq('is_completed', false)
+        .in('evaluation_status', ['pending', 'failed', 'not_requested'])
         .select('id')
         .maybeSingle();
       if (persistError || !persistedSession) {
@@ -451,6 +472,7 @@ serve(async (req: Request) => {
       'full'
     );
     const providerStartedAt = Date.now();
+    failureStage = 'provider';
     const providerResult = await requestSpeakingEvaluation({
       prompt: evaluationPrompt,
       systemPrompt: SPEAKING_EVALUATION_SYSTEM_PROMPT,
@@ -465,6 +487,16 @@ serve(async (req: Request) => {
     promptTokens = providerResult.usage.promptTokens;
     outputTokens = providerResult.usage.outputTokens;
     providerCalls = providerResult.providerCalls;
+    providerMetadata = {
+      provider: providerResult.provider,
+      model: providerResult.model,
+      fallbackUsed: providerResult.fallbackUsed,
+      fallbackReason: providerResult.fallbackReason,
+      routingReason: providerResult.routingReason,
+      estimatedProviderCostUsd: providerResult.usage.estimatedProviderCostUsd,
+      providerLatencyMs,
+    };
+    failureStage = 'validation';
     let evaluation;
 
     try {
@@ -498,6 +530,8 @@ serve(async (req: Request) => {
           testId,
           speakingSessionId,
           failureReason: 'evaluation_parse_failed',
+          failureStage,
+          ...providerMetadata,
           promptTokens,
           outputTokens,
           providerCalls,
@@ -524,6 +558,7 @@ serve(async (req: Request) => {
     // Completion and its reward are server-owned. A browser can display the
     // result, but it cannot turn a fabricated session row into XP.
     const evaluatedAt = new Date().toISOString();
+    failureStage = 'persistence';
     const startedAt = ownedSession.started_at || ownedSession.created_at;
     const elapsedSeconds = startedAt
       ? Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)
@@ -571,7 +606,9 @@ serve(async (req: Request) => {
       })
       .eq('id', speakingSessionId)
       .eq('user_id', userProfile?.id)
-      .eq('evaluation_status', 'pending')
+      // A lost browser response may release its claim while this server request runs.
+      .eq('is_completed', false)
+      .in('evaluation_status', ['pending', 'failed', 'not_requested'])
       .select('id')
       .maybeSingle();
     if (persistError || !persistedSession) {
@@ -632,9 +669,16 @@ serve(async (req: Request) => {
       await finalizeApiUsage(
         supabase,
         quotaReservationId,
-        0,
+        tokensUsed,
         false,
-        { failureReason: error?.message || 'Internal server error' },
+        {
+          failureReason: error?.message || 'Internal server error',
+          failureStage,
+          ...providerMetadata,
+          promptTokens,
+          outputTokens,
+          providerCalls,
+        },
         'failed'
       );
     }

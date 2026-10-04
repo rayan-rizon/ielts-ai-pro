@@ -1,3 +1,4 @@
+import { updateSpeakingSessionSummary } from '../_shared/speakingSessionSummary.ts';
 // @ts-ignore
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 // @ts-ignore
@@ -152,71 +153,38 @@ function firstQuestionResponse(state: StateRow, questions: Question[]) {
  * operation; it deliberately never trusts a browser progress or evaluation flag.
  */
 async function synchronizeV2SessionSummary(supabase: any, state: StateRow, questions: Question[]) {
-  const { data: session, error } = await supabase
-    .from('test_sessions')
-    .select('content_data, answers, is_completed, evaluation_status')
-    .eq('id', state.test_session_id)
-    .maybeSingle();
-  if (error || !session) return;
-
-  const isInProgress = ['active', 'paused', 'part_complete'].includes(state.status);
-  const isAwaitingEvaluation = state.status === 'ready_for_evaluation';
-  const shouldKeepLearnerSessionOpen = isInProgress || isAwaitingEvaluation;
-  const contentData = {
-    ...(session.content_data || {}),
-    speakingVersion: 'v2',
-    currentPart: state.current_part,
-    isPartComplete: state.status === 'part_complete',
-    speakingV2State: publicState(state, questions.length),
-    ...(shouldKeepLearnerSessionOpen ? { evaluationPending: false } : {}),
-  };
-  const answers = {
-    ...(session.answers || {}),
-    currentQuestionIndex: state.current_question_index,
-  };
-  const { error: updateError } = await supabase
-    .from('test_sessions')
-    .update({
-      content_data: contentData,
-      answers,
-      ...(shouldKeepLearnerSessionOpen
-        ? { is_completed: false, evaluation_status: 'not_requested' }
-        : {}),
-    })
-    .eq('id', state.test_session_id);
-  if (updateError)
-    console.warn('Could not synchronize Speaking V2 session summary', updateError.message);
+  await updateSpeakingSessionSummary(supabase, state.test_session_id, (session) => ({
+    content_data: {
+      ...(session.content_data || {}),
+      speakingVersion: 'v2',
+      currentPart: state.current_part,
+      isPartComplete: state.status === 'part_complete',
+      speakingV2State: publicState(state, questions.length),
+      evaluationPending: false,
+    },
+    answers: {
+      ...(session.answers || {}),
+      currentQuestionIndex: state.current_question_index,
+    },
+  }));
 }
 
 async function synchronizeExpiredV2SessionSummary(supabase: any, state: StateRow) {
-  const { data: session, error } = await supabase
-    .from('test_sessions')
-    .select('content_data, answers')
-    .eq('id', state.test_session_id)
-    .maybeSingle();
-  if (error || !session) return;
-
   const expiredState = toExpiredSpeakingState(publicState(state));
-  const { error: updateError } = await supabase
-    .from('test_sessions')
-    .update({
-      content_data: {
-        ...(session.content_data || {}),
-        speakingVersion: 'v2',
-        currentPart: state.current_part,
-        isPartComplete: false,
-        evaluationPending: false,
-        speakingV2State: expiredState,
-      },
-      answers: {
-        ...(session.answers || {}),
-        currentQuestionIndex: state.current_question_index,
-      },
-    })
-    .eq('id', state.test_session_id);
-  if (updateError) {
-    console.warn('Could not synchronize expired Speaking V2 session summary', updateError.message);
-  }
+  await updateSpeakingSessionSummary(supabase, state.test_session_id, (session) => ({
+    content_data: {
+      ...(session.content_data || {}),
+      speakingVersion: 'v2',
+      currentPart: state.current_part,
+      isPartComplete: false,
+      evaluationPending: false,
+      speakingV2State: expiredState,
+    },
+    answers: {
+      ...(session.answers || {}),
+      currentQuestionIndex: state.current_question_index,
+    },
+  }));
 }
 
 async function handleStart(params: {
