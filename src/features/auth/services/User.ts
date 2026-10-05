@@ -7,6 +7,18 @@ import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
 import { getMissingSignupProfileFields, getSignupAttribution } from '@/lib/attribution';
 import { resolveSignupCountry } from '@/lib/geo';
 
+// Signup and session listeners can create the profile concurrently.
+// Ignore an existing email without updating its owner, tier or referral data.
+async function insertProfileIfMissing(profile: Record<string, any>) {
+  const result = await supabase
+    .from('users')
+    .upsert(profile, { onConflict: 'email', ignoreDuplicates: true })
+    .select('*')
+    .maybeSingle();
+  if (result.error || result.data) return result;
+  return supabase.from('users').select('*').eq('auth_id', profile.auth_id).maybeSingle();
+}
+
 // Admin list options interface
 interface ListOptions {
   orderBy?: string;
@@ -213,14 +225,14 @@ export const User = {
       ...(country ? { country } : {}),
     };
 
-    const { data: insertedProfile, error: insertError } = await supabase
-      .from('users')
-      .insert(defaultProfile)
-      .select()
-      .single();
+    const { data: insertedProfile, error: insertError } =
+      await insertProfileIfMissing(defaultProfile);
 
-    if (insertError) {
-      console.error('[User.me] Failed to create profile:', insertError.message);
+    if (insertError || !insertedProfile) {
+      console.error(
+        '[User.me] Failed to create profile:',
+        insertError?.message || 'Profile missing'
+      );
       // Return a default profile object even on error
       return {
         ...user,
@@ -329,11 +341,15 @@ export const User = {
         // Note: referred_by is set by the process_referral RPC, not here
         // (referred_by is a UUID, not the referral code string)
 
-        const { data: insertedProfile, error: profileError } = await supabase
+        const { data: existingProfile, error: lookupError } = await supabase
           .from('users')
-          .insert(profileData)
           .select('id')
-          .single();
+          .eq('auth_id', u.id)
+          .maybeSingle();
+        if (lookupError) throw lookupError;
+        const { data: insertedProfile, error: profileError } = existingProfile
+          ? { data: existingProfile, error: null }
+          : await insertProfileIfMissing(profileData);
 
         if (profileError) {
           console.warn(

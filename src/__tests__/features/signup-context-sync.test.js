@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { database, query } = vi.hoisted(() => {
   const query = Object.fromEntries(
-    ['update', 'eq', 'is', 'or', 'select', 'maybeSingle'].map((method) => [method, vi.fn()])
+    ['update', 'upsert', 'eq', 'is', 'or', 'select', 'maybeSingle'].map((method) => [
+      method,
+      vi.fn(),
+    ])
   );
-  return { query, database: { from: vi.fn(), auth: { signUp: vi.fn() } } };
+  return {
+    query,
+    database: { from: vi.fn(), rpc: vi.fn(), auth: { signUp: vi.fn(), getSession: vi.fn() } },
+  };
 });
 vi.mock('@/lib/supabase', () => ({ supabase: database }));
 vi.mock('@/lib/tracking', () => ({ trackSignupCompleted: vi.fn(), pushUserIdentity: vi.fn() }));
@@ -15,7 +21,8 @@ beforeEach(() => {
   window.localStorage.clear();
   delete window.__signupAttribution;
   database.from.mockReturnValue(query);
-  for (const method of ['update', 'eq', 'is', 'or', 'select']) query[method].mockReturnValue(query);
+  for (const method of ['update', 'upsert', 'eq', 'is', 'or', 'select'])
+    query[method].mockReturnValue(query);
   query.maybeSingle.mockResolvedValue({ data: null, error: null });
   window.localStorage.setItem(
     'attribution_first_touch',
@@ -28,6 +35,66 @@ beforeEach(() => {
 });
 
 describe('signup attribution persistence', () => {
+  const signupSession = { user: { id: 'auth-new', email: 'learner@example.test' } };
+
+  it('returns the actual profile when another profile loader wins the insert race', async () => {
+    database.auth.getSession.mockResolvedValue({ data: { session: signupSession } });
+    const winner = {
+      id: 'winner',
+      auth_id: 'auth-new',
+      email: 'learner@example.test',
+      subscription_tier: 'pro',
+    };
+    query.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: winner, error: null });
+    expect(await User.personalProfile()).toMatchObject(winner);
+    expect(query.update).not.toHaveBeenCalled();
+    expect(query.eq).toHaveBeenLastCalledWith('auth_id', 'auth-new');
+  });
+
+  it('uses the Auth-trigger profile and still processes its referral without another insert', async () => {
+    database.auth.signUp.mockResolvedValue({ data: { session: signupSession }, error: null });
+    query.maybeSingle.mockResolvedValue({ data: { id: 'profile-existing' }, error: null });
+    database.rpc.mockResolvedValue({ data: {}, error: null });
+    await User.signUp('learner@example.test', 'StrongPass123!', 'Learner', 'FRIEND');
+    expect(query.upsert).not.toHaveBeenCalled();
+    expect(database.rpc).toHaveBeenCalledWith('process_referral', {
+      p_new_user_id: 'profile-existing',
+      p_referral_code: 'FRIEND',
+    });
+  });
+
+  it('recovers the winning profile when a session listener creates it during signup', async () => {
+    database.auth.signUp.mockResolvedValue({ data: { session: signupSession }, error: null });
+    query.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: { id: 'winner', subscription_tier: 'pro' }, error: null });
+    database.rpc.mockResolvedValue({ data: {}, error: null });
+    await User.signUp('learner@example.test', 'StrongPass123!', 'Learner', 'FRIEND');
+    expect(query.upsert).toHaveBeenCalledWith(expect.objectContaining({ auth_id: 'auth-new' }), {
+      onConflict: 'email',
+      ignoreDuplicates: true,
+    });
+    expect(query.update).not.toHaveBeenCalled();
+    expect(query.eq).toHaveBeenLastCalledWith('auth_id', 'auth-new');
+    expect(database.rpc).toHaveBeenCalledWith('process_referral', {
+      p_new_user_id: 'winner',
+      p_referral_code: 'FRIEND',
+    });
+  });
+
+  it('does not create a profile before email confirmation', async () => {
+    database.auth.signUp.mockResolvedValue({
+      data: { session: null, user: { id: 'auth-new' } },
+      error: null,
+    });
+    await User.signUp('learner@example.test', 'StrongPass123!', 'Learner');
+    expect(database.from).not.toHaveBeenCalled();
+  });
   it('sends AI evidence and the finalization marker through email Auth metadata', async () => {
     database.auth.signUp.mockResolvedValue({
       data: { session: null, user: { id: 'new-user' } },

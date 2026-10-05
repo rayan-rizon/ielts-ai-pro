@@ -3,6 +3,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { sendEmail, unsubscribeHeaders } from '../_shared/resend.ts';
 import { getCampaignTemplate } from '../_shared/templates.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
+import {
+  nextMarketingAttempt,
+  readMarketingAudienceRows,
+  reserveMarketingDelivery,
+} from '../_shared/marketingDelivery.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -192,30 +197,35 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
     p_limit: 10000,
   });
   if (memberError) throw memberError;
-  const audience = members || [];
+  const audience = [
+    ...new Map((members || []).map((member: any) => [member.user_id, member])).values(),
+  ] as any[];
   const userIds = audience.map((member: any) => member.user_id);
-  const { data: usernameRows, error: usernameError } = userIds.length
-    ? await admin
-        .from('users')
-        .select('id,username,promo_discount,used_promo_codes')
-        .in('id', userIds)
-    : { data: [], error: null };
-  if (usernameError) throw usernameError;
+  const usernameRows = await readMarketingAudienceRows(
+    admin,
+    'users',
+    'id,username,promo_discount,used_promo_codes',
+    userIds,
+    'id'
+  );
   const profiles = new Map((usernameRows || []).map((row: any) => [row.id, row]));
   const usernames = new Map((usernameRows || []).map((row: any) => [row.id, row.username]));
-  const { data: preferenceRows } = userIds.length
-    ? await admin.from('learner_marketing_preferences').select('*').in('user_id', userIds)
-    : { data: [] };
+  const preferenceRows = await readMarketingAudienceRows(
+    admin,
+    'learner_marketing_preferences',
+    '*',
+    userIds,
+    'user_id',
+    'user_id'
+  );
   const preferenceByUser = new Map((preferenceRows || []).map((row: any) => [row.user_id, row]));
-  const { data: history } = userIds.length
-    ? await admin
-        .from('marketing_deliveries')
-        .select(
-          'user_id,channel,campaign_id,attempt,status,failure_reason,created_at,campaign:marketing_campaigns(objective)'
-        )
-        .in('user_id', userIds)
-        .order('created_at', { ascending: false })
-    : { data: [] };
+  const history = await readMarketingAudienceRows(
+    admin,
+    'marketing_deliveries',
+    'user_id,channel,campaign_id,attempt,status,failure_reason,created_at,campaign:marketing_campaigns(objective)',
+    userIds
+  );
+  history.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const existing = new Map<string, any[]>();
   const historyByUser = new Map<string, any[]>();
@@ -260,7 +270,8 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
     const recipient = { ...member, username: usernames.get(member.user_id) || null };
     const preference = preferenceByUser.get(member.user_id);
     if (
-      journey?.delay_hours > 0 &&
+      journey &&
+      journey.delay_hours > 0 &&
       member.triggered_at &&
       now.getTime() < new Date(member.triggered_at).getTime() + journey.delay_hours * 3_600_000
     ) {
@@ -281,12 +292,16 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           row.failure_reason === 'no_eligible_channel'
       );
       if (!priorSkip) {
-        await admin.from('marketing_deliveries').insert({
+        await reserveMarketingDelivery(admin, {
           campaign_id: campaign.id,
           journey_id: journey?.id || null,
           user_id: member.user_id,
           channel: fallbackChannel,
-          attempt: 1,
+          attempt: nextMarketingAttempt(
+            (existing.get(`${member.user_id}:${fallbackChannel}`) || []).filter(
+              (row) => row.campaign_id === campaign.id
+            )
+          ),
           status: 'skipped',
           content: {
             title: campaign.title,
@@ -344,7 +359,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         (['in_app', 'banner'].includes(channel) && preference?.in_app_enabled === false);
       const outsideContactWindow =
         channel === 'email' && !externalContactWindowOpen(preference, now);
-      const attempt = allCampaignRows.length + 1;
+      const attempt = nextMarketingAttempt(allCampaignRows);
       const content = {
         title: campaign.title,
         message: campaign.message,
@@ -386,7 +401,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           (row) => row.status === 'skipped' && row.failure_reason === reason
         );
         if (!alreadyRecorded) {
-          await admin.from('marketing_deliveries').insert({
+          await reserveMarketingDelivery(admin, {
             campaign_id: campaign.id,
             journey_id: journey?.id || null,
             user_id: member.user_id,
@@ -401,22 +416,18 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         continue;
       }
 
-      const { data: delivery, error: deliveryError } = await admin
-        .from('marketing_deliveries')
-        .insert({
-          campaign_id: campaign.id,
-          journey_id: journey?.id || null,
-          user_id: member.user_id,
-          channel,
-          attempt,
-          status: 'processing',
-          content,
-          delivered_at: null,
-        })
-        .select('id,tracking_token')
-        .single();
-      if (deliveryError || !delivery) {
-        stats.failed += 1;
+      const delivery = await reserveMarketingDelivery(admin, {
+        campaign_id: campaign.id,
+        journey_id: journey?.id || null,
+        user_id: member.user_id,
+        channel,
+        attempt,
+        status: 'processing',
+        content,
+        delivered_at: null,
+      });
+      if (!delivery) {
+        stats.skipped += 1;
         continue;
       }
 

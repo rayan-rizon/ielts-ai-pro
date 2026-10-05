@@ -247,7 +247,7 @@ describe('Admin Marketing Hub contracts', () => {
     expect(commandStrip).toContain('No paid-conversion campaign is live');
     expect(analyticsPanel).toContain('From delivery to paid learner');
     expect(analyticsPanel).toContain('Checkout started');
-    expect(dispatcher).toContain("select('id,username,promo_discount,used_promo_codes')");
+    expect(dispatcher).toContain("'id,username,promo_discount,used_promo_codes'");
     expect(dispatcher).toContain('recipient.username');
     // Campaign mail renders through the shared shell now, so the brand header
     // and the closing reassurance line live in templates.ts, not the dispatcher.
