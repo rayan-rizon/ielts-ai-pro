@@ -9,6 +9,8 @@
  * Everything now derives from one pass so the modal can only tell one story.
  */
 
+import { percentOf } from '@/features/testing/shared/utils/resultEvidence';
+
 export const STATUS = {
   correct: 'correct',
   wrong: 'wrong',
@@ -16,13 +18,34 @@ export const STATUS = {
   unknown: 'unknown',
 };
 
+const isBlankAnswer = (answer) =>
+  answer == null ||
+  answer === '' ||
+  answer === '(not selected)' ||
+  (Array.isArray(answer) && answer.length === 0) ||
+  (typeof answer === 'string' && answer.trim() === '');
+
 function statusFromResponse(resp) {
   if (!resp) return null;
   if (resp.isCorrect === true) return STATUS.correct;
-  if (resp.isCorrect === false) {
-    return !resp.userAnswer || resp.isSkipped ? STATUS.skipped : STATUS.wrong;
-  }
+  // A blank answer that did not score is a skip whatever the grader stored
+  // alongside it: reading writes `isCorrect: null` for "not attempted", and
+  // older multi-select records wrote `''`. Treating those as unknown left the
+  // grid incomplete for most reading papers and pushed counts onto a fallback.
+  if (isBlankAnswer(resp.userAnswer)) return STATUS.skipped;
+  if (resp.isCorrect === false) return resp.isSkipped ? STATUS.skipped : STATUS.wrong;
   return null;
+}
+
+/**
+ * Several records can share one question number (each input of a grouped
+ * table gap, each blank of a two-blank sentence). The question only earned its
+ * mark when every part did, and was only skipped when every part was blank.
+ */
+function combineStatuses(statuses) {
+  if (statuses.every((status) => status === STATUS.correct)) return STATUS.correct;
+  if (statuses.every((status) => status === STATUS.skipped)) return STATUS.skipped;
+  return STATUS.wrong;
 }
 
 /**
@@ -31,19 +54,31 @@ function statusFromResponse(resp) {
  * listening keeps them in `answersMap`; both expose the same fields.
  */
 function buildStatusLookup(testResults) {
-  const lookup = new Map();
-
-  const record = (entry) => {
-    const status = statusFromResponse(entry);
-    if (!status || entry?.questionNumber == null) return;
-    lookup.set(String(entry.questionNumber), status);
-  };
+  const byQuestion = new Map();
 
   const map = testResults?.correctAnswersMap || testResults?.answersMap;
-  if (map && typeof map === 'object') Object.values(map).forEach(record);
+  if (map && typeof map === 'object') {
+    Object.values(map).forEach((entry) => {
+      const status = statusFromResponse(entry);
+      if (!status || entry?.questionNumber == null) return;
+      const key = String(entry.questionNumber);
+      byQuestion.set(key, [...(byQuestion.get(key) || []), status]);
+    });
+  }
 
-  // User responses are the more direct signal, so they are applied last and win.
-  if (Array.isArray(testResults?.userResponses)) testResults.userResponses.forEach(record);
+  const lookup = new Map(
+    [...byQuestion.entries()].map(([key, statuses]) => [key, combineStatuses(statuses)])
+  );
+
+  // User responses are already one record per question and the more direct
+  // signal, so they are applied last and win.
+  if (Array.isArray(testResults?.userResponses)) {
+    testResults.userResponses.forEach((entry) => {
+      const status = statusFromResponse(entry);
+      if (!status || entry?.questionNumber == null) return;
+      lookup.set(String(entry.questionNumber), status);
+    });
+  }
 
   return lookup;
 }
@@ -68,7 +103,11 @@ export function deriveResultStats(testResults) {
   });
 
   const covered = questions.filter((q) => q.status !== STATUS.unknown);
-  const isComplete = total > 0 && covered.length === total;
+  const gridCorrect = questions.filter((q) => q.status === STATUS.correct).length;
+  // The grid is only trusted when it covers every question *and* agrees with
+  // the authoritative score; otherwise its wrong/skipped split could not add
+  // up to the headline total.
+  const isComplete = total > 0 && covered.length === total && gridCorrect === correct;
 
   let wrong;
   let skipped;
@@ -91,7 +130,7 @@ export function deriveResultStats(testResults) {
     correct,
     wrong,
     skipped,
-    accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
+    accuracy: percentOf(correct, total),
     questions,
     /** True when every question has a known status — the grid is exhaustive. */
     isComplete,

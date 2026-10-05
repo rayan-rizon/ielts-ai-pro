@@ -198,6 +198,40 @@ export function calculateTimeMetrics(
   };
 }
 
+const isBlankRecordedAnswer = (value: unknown): boolean =>
+  value === null ||
+  value === undefined ||
+  (typeof value === 'string' && value.trim() === '') ||
+  (Array.isArray(value) && value.length === 0);
+
+/**
+ * Unanswered question count from graded per-question records, or null when the
+ * map is not the graded-record shape (every entry an object with a question
+ * number and a user answer field) or does not cover the whole paper.
+ */
+function countUnansweredFromGradedRecords(
+  correctAnswersMap: Record<string, unknown>,
+  totalQuestions: number
+): number | null {
+  const entries = Object.values(correctAnswersMap);
+  if (entries.length === 0) return null;
+
+  const answeredByNumber = new Map<string, boolean>();
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    const record = entry as { questionNumber?: unknown; userAnswer?: unknown };
+    if (record.questionNumber === undefined || record.questionNumber === null) return null;
+    if (!('userAnswer' in record)) return null;
+    const key = String(record.questionNumber);
+    const answered = !isBlankRecordedAnswer(record.userAnswer);
+    answeredByNumber.set(key, Boolean(answeredByNumber.get(key)) || answered);
+  }
+
+  if (answeredByNumber.size !== totalQuestions) return null;
+  const answered = [...answeredByNumber.values()].filter(Boolean).length;
+  return Math.max(0, totalQuestions - answered);
+}
+
 /**
  * Analyze error patterns from user responses.
  */
@@ -249,28 +283,35 @@ export function calculateErrorPatterns(
     }
   });
 
-  // Count unanswered by checking unique QUESTION NUMBERS, not answer keys
-  // This correctly handles grouped questions (e.g., table_completion) where
-  // multiple answer keys map to the same question number
-  const answeredQuestionNumbers = new Set<string>();
-  Object.entries(answers).forEach(([questionId, val]) => {
-    if (val !== null && val !== undefined && val !== '') {
-      // Get the question number from correctAnswersMap if available
-      const entry = correctAnswersMap[questionId];
-      // Use simple property access - entry might be an object with questionNumber
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const entryObj = entry as any;
-      const questionNumber =
-        entryObj && entryObj.questionNumber !== undefined
-          ? String(entryObj.questionNumber)
-          : questionId; // Fall back to questionId if no mapping
-      answeredQuestionNumbers.add(questionNumber);
-    }
-  });
-  unansweredCount = Math.max(
-    0,
-    Math.min(totalQuestions, totalQuestions - answeredQuestionNumbers.size)
-  );
+  // Count unanswered by checking unique QUESTION NUMBERS, not answer keys.
+  // Prefer the graded records: one answer key can cover several numbered
+  // questions (a "choose TWO" multiple choice is saved under one key but
+  // graded as `<id>_multi_0`/`_multi_1`), and grouped inputs (table gaps)
+  // share one number. Each graded record carries its number and the answer.
+  const unansweredFromRecords = countUnansweredFromGradedRecords(correctAnswersMap, totalQuestions);
+  if (unansweredFromRecords !== null) {
+    unansweredCount = unansweredFromRecords;
+  } else {
+    const answeredQuestionNumbers = new Set<string>();
+    Object.entries(answers).forEach(([questionId, val]) => {
+      if (val !== null && val !== undefined && val !== '') {
+        // Get the question number from correctAnswersMap if available
+        const entry = correctAnswersMap[questionId];
+        // Use simple property access - entry might be an object with questionNumber
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const entryObj = entry as any;
+        const questionNumber =
+          entryObj && entryObj.questionNumber !== undefined
+            ? String(entryObj.questionNumber)
+            : questionId; // Fall back to questionId if no mapping
+        answeredQuestionNumbers.add(questionNumber);
+      }
+    });
+    unansweredCount = Math.max(
+      0,
+      Math.min(totalQuestions, totalQuestions - answeredQuestionNumbers.size)
+    );
+  }
 
   // Find trouble types (lowest accuracy)
   const troubleTypes = Object.entries(typeStats)

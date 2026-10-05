@@ -7,7 +7,7 @@
 
 import { normalizeAnswer, isAnswerCorrect } from './answerValidation.js';
 import { calculateListeningBandScore as calculateListeningBandScoreFromRaw } from './bandScore.js';
-import { standardizeResponseDetails } from './resultEvidence.js';
+import { percentOf, standardizeResponseDetails } from './resultEvidence.js';
 
 // Re-export for backward compatibility
 export { normalizeAnswer, isAnswerCorrect };
@@ -298,15 +298,17 @@ function parseMultiChoiceAnswerList(rawAnswer) {
 }
 
 function scoreMultiOptionRow(opts) {
-  const { idx, q, correctAnswers, matchedCorrectAnswers, userAnswers, answersMap } = opts;
+  const { idx, q, correctAnswers, matchedCorrectAnswers, unmatchedSelections, answersMap } = opts;
   const correctAns = correctAnswers[idx] || '';
   const wasMatched = matchedCorrectAnswers.has(correctAns);
 
+  // A row the learner did not earn shows one of their *other* picks, so a
+  // correct pick is never displayed twice and a wrong pick is never hidden.
   let userDisplay = '(not selected)';
   if (wasMatched) {
     userDisplay = correctAns.toUpperCase();
-  } else if (userAnswers[idx]) {
-    userDisplay = userAnswers[idx].toUpperCase();
+  } else if (unmatchedSelections.length > 0) {
+    userDisplay = unmatchedSelections.shift().toUpperCase();
   }
 
   const displayNum = q._displayStartNumber + idx;
@@ -335,13 +337,17 @@ function scoreMultipleChoiceMulti({ q, answers, answersMap, size }) {
     }
   });
 
+  const unmatchedSelections = [...new Set(userAnswers.filter(Boolean))].filter(
+    (selection) => !matchedCorrectAnswers.has(selection)
+  );
+
   for (let idx = 0; idx < size; idx++) {
     scoreMultiOptionRow({
       idx,
       q,
       correctAnswers,
       matchedCorrectAnswers,
-      userAnswers,
+      unmatchedSelections,
       answersMap,
     });
   }
@@ -405,17 +411,14 @@ function dispatchQuestionScoring(ctx) {
   return scoreSingleQuestion(ctx);
 }
 
-function calculateSectionStats(displaySections, questions, answersMap) {
+function calculateSectionStats(displaySections, questions, answersMap, keysByQuestion) {
   return displaySections.map((section, idx) => {
     const sectionQuestions = questions.filter((q) => isQuestionInSection(q, section, idx));
     let sectionCorrect = 0;
     let sectionTotal = 0;
 
     sectionQuestions.forEach((q) => {
-      const qKeys = Object.keys(answersMap).filter(
-        (key) =>
-          key === String(q.id) || key.startsWith(`${q.id}_`) || key.startsWith(`map_${q.id}_`)
-      );
+      const qKeys = keysByQuestion.get(q) || [];
 
       if (qKeys.length > 0) {
         qKeys.forEach((key) => {
@@ -431,12 +434,12 @@ function calculateSectionStats(displaySections, questions, answersMap) {
       title: section.title || `Part ${idx + 1}`,
       correct: sectionCorrect,
       total: sectionTotal,
-      percentage: sectionTotal > 0 ? Math.round((sectionCorrect / sectionTotal) * 100) : 0,
+      percentage: percentOf(sectionCorrect, sectionTotal),
     };
   });
 }
 
-function calculateTypeStats(questions, answersMap) {
+function calculateTypeStats(questions, answersMap, keysByQuestion) {
   const typeStats = {};
   questions.forEach((q) => {
     const type = q.type || 'unknown';
@@ -444,9 +447,7 @@ function calculateTypeStats(questions, answersMap) {
       typeStats[type] = { correct: 0, total: 0 };
     }
 
-    const qKeys = Object.keys(answersMap).filter(
-      (key) => key === String(q.id) || key.startsWith(`${q.id}_`) || key.startsWith(`map_${q.id}_`)
-    );
+    const qKeys = keysByQuestion.get(q) || [];
 
     if (qKeys.length > 0) {
       qKeys.forEach((key) => {
@@ -489,20 +490,20 @@ function calculateErrorPatterns(answersMap, typeStats, totalScoredItems) {
   };
 }
 
-function buildResponseDetails(questions, displaySections, answersMap, flaggedQuestions) {
+function buildResponseDetails(
+  questions,
+  displaySections,
+  answersMap,
+  keysByQuestion,
+  flaggedQuestions
+) {
   const details = questions.flatMap((question) => {
     const type = question.type || 'unknown';
     const sectionIndex = Math.max(
       0,
       displaySections.findIndex((section, index) => isQuestionInSection(question, section, index))
     );
-    const questionId = String(question.id);
-    const keys = Object.keys(answersMap).filter(
-      (key) =>
-        key === questionId ||
-        key.startsWith(`${questionId}_`) ||
-        key.startsWith(`map_${questionId}_`)
-    );
+    const keys = keysByQuestion.get(question) || [];
 
     return keys.map((key) => ({
       questionId: key,
@@ -533,25 +534,37 @@ export const calculateListeningTestResults = (
 ) => {
   let correctCount = 0;
   const answersMap = {};
+  // Each scorer appends its items to answersMap; record exactly which keys a
+  // question produced. Matching-features items are keyed by their own ids
+  // (e.g. `mq_17`), so attributing keys by a `${q.id}_` prefix silently
+  // dropped them from the type, section and per-question breakdowns.
+  const keysByQuestion = new Map();
 
   questions.forEach((q) => {
     const questionNum = q._displayStartNumber || q.question_number;
     const size = q._displaySize || 1;
     const ctx = { q, answers, answersMap, questionNum, size };
+    const keyCountBefore = Object.keys(answersMap).length;
     correctCount += dispatchQuestionScoring(ctx);
+    keysByQuestion.set(q, Object.keys(answersMap).slice(keyCountBefore));
   });
 
   const totalScoredItems = Object.keys(answersMap).length;
-  const percentage = totalScoredItems > 0 ? (correctCount / totalScoredItems) * 100 : 0;
   const bandScore = calculateListeningBandScore(correctCount, totalScoredItems);
 
-  const sectionStats = calculateSectionStats(displaySections, questions, answersMap);
-  const typeStats = calculateTypeStats(questions, answersMap);
+  const sectionStats = calculateSectionStats(
+    displaySections,
+    questions,
+    answersMap,
+    keysByQuestion
+  );
+  const typeStats = calculateTypeStats(questions, answersMap, keysByQuestion);
   const errorPatterns = calculateErrorPatterns(answersMap, typeStats, totalScoredItems);
   const responseDetails = buildResponseDetails(
     questions,
     displaySections,
     answersMap,
+    keysByQuestion,
     flaggedQuestions
   );
 
@@ -561,7 +574,7 @@ export const calculateListeningTestResults = (
       totalScoredItems > 0
         ? totalScoredItems
         : questions.reduce((acc, q) => acc + (q._displaySize || 1), 0),
-    percentage: Math.round(percentage),
+    percentage: percentOf(correctCount, totalScoredItems),
     bandScore,
     sectionStats,
     typeStats,

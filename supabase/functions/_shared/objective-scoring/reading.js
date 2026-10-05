@@ -5,7 +5,7 @@
 
 import { normalizeAnswer, isAnswerCorrect } from './answerValidation.js';
 import { calculateReadingBandScore } from './bandScore.js';
-import { standardizeResponseDetails } from './resultEvidence.js';
+import { percentOf, standardizeResponseDetails } from './resultEvidence.js';
 
 // Re-export for backward compatibility
 export { normalizeAnswer, isAnswerCorrect };
@@ -230,7 +230,8 @@ function scoreTableQuestion(q, answers, result) {
 function scoreNormalizedPair({ answerKey, questionNumber, rawUserAns, correctAnswer }, result) {
   result.total++;
   const userAnswer = normalizeAnswer(rawUserAns);
-  const isCorrect = userAnswer === normalizeAnswer(correctAnswer);
+  // A blank answer never earns a mark, even against a blank (missing) key.
+  const isCorrect = userAnswer !== '' && userAnswer === normalizeAnswer(correctAnswer);
 
   if (isCorrect) result.correct++;
   result.details.push({
@@ -409,6 +410,7 @@ function scoreSentenceSingle(q, answers, blankCount, result) {
   result.total++;
   let correctBlanks = 0;
   const parts = sentenceAnswerParts(q, blankCount);
+  const blankDetails = [];
 
   for (let i = 0; i < blankCount; i++) {
     const answerKey = `${q.id}_blank_${i + 1}`;
@@ -416,7 +418,7 @@ function scoreSentenceSingle(q, answers, blankCount, result) {
     const isCorrect = isAnswerCorrect(answers[answerKey], correctAnswer);
     if (isCorrect) correctBlanks++;
 
-    result.details.push({
+    blankDetails.push({
       questionId: answerKey,
       questionNumber: q.question_number,
       userAnswer: (answers[answerKey] || '').trim(),
@@ -425,7 +427,19 @@ function scoreSentenceSingle(q, answers, blankCount, result) {
     });
   }
 
-  if (correctBlanks === blankCount) result.correct++;
+  // One mark needs every blank, so the per-question record must say the same
+  // thing the score does rather than echo whichever blank was listed first.
+  const isQuestionCorrect = correctBlanks === blankCount;
+  if (isQuestionCorrect) result.correct++;
+  blankDetails.forEach((detail, groupIndex) =>
+    result.details.push({
+      ...detail,
+      isQuestionCorrect,
+      isGroupedQuestion: true,
+      groupIndex,
+      groupSize: blankCount,
+    })
+  );
 }
 
 function scoreSentenceMulti(q, answers, blankCount, result) {
@@ -746,7 +760,6 @@ export const calculateTestResults = (
     );
   });
 
-  const percentage = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
   const bandScore = calculateBandScore(totalCorrect, totalQuestions);
 
   const sectionStats = sections.map((section, idx) => {
@@ -769,7 +782,7 @@ export const calculateTestResults = (
       title: section.title || `Passage ${idx + 1}`,
       correct: sectionCorrect,
       total: sectionTotal,
-      percentage: sectionTotal > 0 ? Math.round((sectionCorrect / sectionTotal) * 100) : 0,
+      percentage: percentOf(sectionCorrect, sectionTotal),
     };
   });
 
@@ -779,7 +792,7 @@ export const calculateTestResults = (
   return {
     correctAnswers: totalCorrect,
     totalQuestions,
-    percentage: Math.round(percentage),
+    percentage: percentOf(totalCorrect, totalQuestions),
     bandScore,
     typeStats,
     sectionStats,
