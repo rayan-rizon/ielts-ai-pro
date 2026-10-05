@@ -593,14 +593,17 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           continue;
         }
         stats.accepted += 1;
-        await admin.from('marketing_events').insert({
-          campaign_id: campaign.id,
-          delivery_id: delivery.id,
-          user_id: member.user_id,
-          event_type: 'delivered',
-          channel,
-          dedupe_key: `${delivery.id}:delivered`,
-        });
+        await admin.from('marketing_events').upsert(
+          {
+            campaign_id: campaign.id,
+            delivery_id: delivery.id,
+            user_id: member.user_id,
+            event_type: 'delivered',
+            channel,
+            dedupe_key: `${delivery.id}:delivered`,
+          },
+          { onConflict: 'dedupe_key', ignoreDuplicates: true }
+        );
         continue;
       }
 

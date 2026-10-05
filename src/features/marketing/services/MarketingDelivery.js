@@ -165,15 +165,18 @@ export const MarketingDelivery = {
   async record(delivery, eventType, metadata = {}) {
     if (!isCompleteDelivery(delivery)) return;
     const dedupeKey = `${delivery.id}:${eventType}`;
-    const { error } = await supabase.from('marketing_events').insert({
-      campaign_id: delivery.campaign_id,
-      delivery_id: delivery.id,
-      user_id: delivery.user_id,
-      event_type: eventType,
-      channel: delivery.channel,
-      dedupe_key: dedupeKey,
-      metadata,
-    });
+    const { error } = await supabase.from('marketing_events').upsert(
+      {
+        campaign_id: delivery.campaign_id,
+        delivery_id: delivery.id,
+        user_id: delivery.user_id,
+        event_type: eventType,
+        channel: delivery.channel,
+        dedupe_key: dedupeKey,
+        metadata,
+      },
+      { onConflict: 'dedupe_key', ignoreDuplicates: true }
+    );
     if (!isIgnorableDatabaseError(error)) {
       throw error;
     }

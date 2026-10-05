@@ -28,6 +28,27 @@ vi.mock('@/features/auth/context/AuthContext', () => ({
   useAuth: () => ({ userProfile: { full_name: 'Alex Rivera' } }),
 }));
 
+// Partner avatar lookups must not query the live project with fixture IDs.
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    channel: vi.fn(() => {
+      const channel = {
+        on: vi.fn(() => channel),
+        subscribe: vi.fn(() => channel),
+        presenceState: vi.fn(() => ({})),
+        track: vi.fn().mockResolvedValue('ok'),
+      };
+      return channel;
+    }),
+    removeChannel: vi.fn().mockResolvedValue('ok'),
+    from: vi.fn(() => ({
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }),
+      }),
+    })),
+  },
+}));
+
 function fixture(type = 'reading') {
   const count = type === 'reading' ? 3 : 4;
   const parts = Array.from({ length: count }, (_, i) => ({

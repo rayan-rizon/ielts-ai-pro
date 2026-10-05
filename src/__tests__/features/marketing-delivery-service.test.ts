@@ -101,9 +101,9 @@ describe('MarketingDelivery Service', () => {
       expect(supabaseMock.from).not.toHaveBeenCalled();
     });
 
-    it('inserts marketing event with dedupe key', async () => {
-      const insertMock = vi.fn().mockResolvedValue({ error: null });
-      supabaseMock.from.mockReturnValue({ insert: insertMock });
+    it('ignores repeated marketing events atomically without overwriting them', async () => {
+      const upsertMock = vi.fn().mockResolvedValue({ error: null });
+      supabaseMock.from.mockReturnValue({ upsert: upsertMock });
 
       const delivery = {
         id: 'del-1',
@@ -115,27 +115,30 @@ describe('MarketingDelivery Service', () => {
       await MarketingDelivery.record(delivery, 'click', { button: 'cta' });
 
       expect(supabaseMock.from).toHaveBeenCalledWith('marketing_events');
-      expect(insertMock).toHaveBeenCalledWith({
-        campaign_id: 'camp-1',
-        delivery_id: 'del-1',
-        user_id: 'user-1',
-        event_type: 'click',
-        channel: 'in_app',
-        dedupe_key: 'del-1:click',
-        metadata: { button: 'cta' },
-      });
+      expect(upsertMock).toHaveBeenCalledWith(
+        {
+          campaign_id: 'camp-1',
+          delivery_id: 'del-1',
+          user_id: 'user-1',
+          event_type: 'click',
+          channel: 'in_app',
+          dedupe_key: 'del-1:click',
+          metadata: { button: 'cta' },
+        },
+        { onConflict: 'dedupe_key', ignoreDuplicates: true }
+      );
     });
 
     it('ignores 23505 unique violation and 42P01 missing table errors', async () => {
       supabaseMock.from.mockReturnValue({
-        insert: vi.fn().mockResolvedValue({ error: { code: '23505' } }),
+        upsert: vi.fn().mockResolvedValue({ error: { code: '23505' } }),
       });
       await expect(
         MarketingDelivery.record({ id: '1', campaign_id: '2', user_id: '3' }, 'click')
       ).resolves.not.toThrow();
 
       supabaseMock.from.mockReturnValue({
-        insert: vi.fn().mockResolvedValue({ error: { code: '42P01' } }),
+        upsert: vi.fn().mockResolvedValue({ error: { code: '42P01' } }),
       });
       await expect(
         MarketingDelivery.record({ id: '1', campaign_id: '2', user_id: '3' }, 'click')
@@ -145,7 +148,7 @@ describe('MarketingDelivery Service', () => {
     it('throws unexpected database errors', async () => {
       const dbError = new Error('Database connection failed');
       supabaseMock.from.mockReturnValue({
-        insert: vi.fn().mockResolvedValue({ error: dbError }),
+        upsert: vi.fn().mockResolvedValue({ error: dbError }),
       });
 
       await expect(

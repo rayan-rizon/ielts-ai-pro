@@ -36,15 +36,18 @@ serve(async (req) => {
   if (!delivery)
     return eventType === 'viewed' ? pixelResponse() : new Response('Invalid link', { status: 404 });
 
-  await admin.from('marketing_events').insert({
-    campaign_id: delivery.campaign_id,
-    delivery_id: delivery.id,
-    user_id: delivery.user_id,
-    event_type: eventType,
-    channel: delivery.channel,
-    dedupe_key: `${delivery.id}:${eventType}`,
-    metadata: { source: 'email_tracking_link' },
-  });
+  await admin.from('marketing_events').upsert(
+    {
+      campaign_id: delivery.campaign_id,
+      delivery_id: delivery.id,
+      user_id: delivery.user_id,
+      event_type: eventType,
+      channel: delivery.channel,
+      dedupe_key: `${delivery.id}:${eventType}`,
+      metadata: { source: 'email_tracking_link' },
+    },
+    { onConflict: 'dedupe_key', ignoreDuplicates: true }
+  );
 
   if (eventType === 'viewed') return pixelResponse();
   const target = url.searchParams.get('target');
