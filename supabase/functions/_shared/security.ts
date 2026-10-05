@@ -3,8 +3,6 @@
  *
  * Provides CORS, rate limiting, and security helpers for all Supabase Edge Functions.
  */
-import { sendEmail } from './resend.ts';
-import { getEmailTemplate } from './templates.ts';
 import { isAllowedOrigin } from './originValidation.ts';
 
 // =============================================================================
@@ -452,22 +450,10 @@ export async function checkDatabaseQuota(
 
     const result = data?.[0] || data;
 
-    // Trigger low quota / conversion email for free users ONLY when exactly 1 credit remains
-    if (
-      effectiveTier === 'free' &&
-      result?.allowed &&
-      (result?.daily_remaining === 1 || result?.monthly_remaining === 1) &&
-      userProfile.email
-    ) {
-      const template = getEmailTemplate('quota_conversion', { full_name: userProfile.full_name });
-      sendEmail({
-        to: userProfile.email,
-        subject: template.subject,
-        type: 'quota_conversion',
-        html: template.html,
-        text: template.text,
-      }).catch((err) => console.error('Failed to send quota email:', err));
-    }
+    // Subscription promotions belong to marketing-campaign-dispatch. Sending
+    // from an access check repeats on every request, bypasses unsubscribe and
+    // contact caps, and confuses daily limits with monthly allowances. The
+    // low_quota journey owns the opt-out, cooldown and delivery claim.
 
     return {
       allowed: result?.allowed ?? false,

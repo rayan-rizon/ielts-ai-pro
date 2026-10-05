@@ -49,7 +49,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
     if (isExitingRef && typeof isExitingRef === 'object' && 'current' in isExitingRef) {
       isExitingRef.current = true;
     }
-    navigate('/pricing');
+    navigate(tier === 'pro' ? '/pricing?plan=premium' : '/upgrade?focus=speaking');
   };
 
   return (
@@ -57,7 +57,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
       <AlertDialogContent
         className={cn(
           PANEL,
-          'max-w-[460px] gap-0 overflow-hidden p-0 rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] shadow-md sm:shadow-lg'
+          'max-w-[460px] gap-0 overflow-hidden p-0 rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] '
         )}
       >
         <div className="relative p-6 sm:p-7 space-y-5">
@@ -85,7 +85,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
 
             <AlertDialogHeader className="space-y-2 text-center sm:text-center w-full">
               <AlertDialogTitle className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 text-center w-full">
-                Speaking Limit Reached
+                Keep your Speaking feedback going
               </AlertDialogTitle>
               <AlertDialogDescription
                 className={cn(
@@ -113,7 +113,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
             <div className="flex items-center justify-between border-b border-[#eeedf7] bg-[#f4f3fb] px-4 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
               <span className={cn(MICRO, MUTED)}>INCLUDED WITH PLAN</span>
               <span className={cn(MICRO, 'font-bold text-[#5a63df] dark:text-[#afb5ff]')}>
-                FULL EXAMINER ENGINE
+                AI SPEAKING FEEDBACK
               </span>
             </div>
 
@@ -163,7 +163,7 @@ const UpgradeDialog = React.memo(({ open, onOpenChange, authUser, isExitingRef }
               onClick={() => onOpenChange(false)}
               className="h-9 w-full rounded-lg text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors active:scale-[0.98] cursor-pointer"
             >
-              {isPremiumOrAdmin ? 'Got It' : 'Maybe Later'}
+              {isPremiumOrAdmin ? 'Got It' : 'Continue with free practice'}
             </Button>
           </div>
         </div>

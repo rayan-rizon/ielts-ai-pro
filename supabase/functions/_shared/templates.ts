@@ -610,6 +610,7 @@ export function getCampaignTemplate(input: {
   message: string;
   subject?: string | null;
   objective?: string | null;
+  lifecycleStage?: string | null;
   ctaLabel?: string | null;
   recipientName: string;
   clickUrl: string;
@@ -625,40 +626,95 @@ export function getCampaignTemplate(input: {
     discountPercent?: number | null;
     expiresAt?: string | null;
     durationHours?: number | null;
+    firstPaymentOnly?: boolean;
   } | null;
 }): EmailTemplate {
+  const expiresAt = input.offer?.expiresAt ? new Date(input.offer.expiresAt).getTime() : null;
+  // Never advertise an expired or malformed offer, even if a caller missed validation.
+  const offer =
+    expiresAt !== null && (!Number.isFinite(expiresAt) || expiresAt <= Date.now())
+      ? null
+      : input.offer;
+  const remainingMinutes =
+    expiresAt === null ? null : Math.max(0, Math.floor((expiresAt - Date.now()) / 60_000));
+  const countdown =
+    remainingMinutes === null
+      ? null
+      : [
+          { value: Math.floor(remainingMinutes / 1440), label: 'Days' },
+          { value: Math.floor((remainingMinutes % 1440) / 60), label: 'Hours' },
+          { value: remainingMinutes % 60, label: 'Minutes' },
+        ];
+  const countdownText = countdown
+    ? remainingMinutes === 0
+      ? 'Less than 1 minute remaining when sent.'
+      : `Time remaining when sent: ${countdown[0].value} days, ${countdown[1].value} hours, ${countdown[2].value} minutes.`
+    : '';
   const baseUrl = BASE_URL;
   const name = escapeHtml(input.recipientName || 'there');
   const title = escapeHtml(input.title);
   const message = escapeHtml(input.message);
   const ctaLabel = escapeHtml(input.ctaLabel || 'Learn more');
-  const objective = escapeHtml((input.objective || 'update').replaceAll('_', ' '));
-  const offerWindow = (() => {
-    if (!input.offer?.expiresAt) return 'Apply it at checkout when you choose your plan.';
-    const remainingHours = Math.max(
-      1,
-      Math.ceil((new Date(input.offer.expiresAt).getTime() - Date.now()) / 3_600_000)
-    );
-    const hours = Math.max(1, Number(input.offer.durationHours || remainingHours));
-    return hours > 48 && hours % 24 === 0
-      ? `Apply it at checkout within ${hours / 24} days.`
-      : `Apply it at checkout within ${hours} hours.`;
-  })();
-  const progressParagraph = input.offer
-    ? ''
-    : paragraph(
-        'Pick up where you left off, review your recent feedback, and choose the one thing that moves you closest to your target band.'
-      );
+  const stageLabels: Record<string, string> = {
+    signup: 'First steps',
+    first_result: 'Your next step',
+    quota: 'More room to practise',
+  };
+  const objective = escapeHtml(
+    stageLabels[input.lifecycleStage || ''] || (input.objective || 'update').replaceAll('_', ' ')
+  );
+  const offerWindow = offer?.expiresAt
+    ? `Expires ${new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(offer.expiresAt))} UTC.`
+    : 'Apply it at checkout when you choose your plan.';
+  const lifecycleItems: Record<string, string[]> = {
+    signup: [
+      'Set your target band and study time in onboarding.',
+      'Complete one Writing, Speaking, Reading or Listening task within your Free allowance.',
+      'Review the result and choose one thing to work on next.',
+    ],
+    first_result: [
+      'More AI Writing evaluations and Speaking sessions for repeated practice.',
+      'An adaptive Learning Path and advanced weakness analytics.',
+      'Expanded vocabulary kits and unlimited Reading Assistant requests.',
+    ],
+    quota: [
+      'Choose Pro for a regular feedback routine, or Premium for higher practice capacity.',
+      'Compare your regional prices and exact allowances before paying.',
+      'Your saved results stay in your account when you upgrade.',
+    ],
+  };
+  const stageItems = lifecycleItems[input.lifecycleStage || ''];
+  const progressText =
+    offer || stageItems
+      ? ''
+      : 'Pick up where you left off, review your recent feedback, and choose one thing to work on next.';
+  const progressParagraph = stageItems
+    ? checklist(stageItems.map((item) => escapeHtml(item)))
+    : progressText
+      ? paragraph(progressText)
+      : '';
 
-  const offerBlock = input.offer
+  const offerTerms = offer?.firstPaymentOnly
+    ? `${offer.discountPercent ? `${offer.discountPercent}% off` : 'Your discount applies to'} the first payment of your subscription. Once per account. Future renewals use the regular plan price.`
+    : '';
+
+  const offerBlock = offer
     ? `
-<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:26px 0 0;border-collapse:separate;background:${ACCENT_SOFT};border:1px solid ${ACCENT_BORDER};border-radius:12px">
-  <tr><td align="center" style="padding:22px 18px">
-    <p style="margin:0 0 8px;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#6246d9;line-height:1.2">${
-      input.offer.discountPercent ? `${escapeHtml(input.offer.discountPercent)}% off` : 'Your offer'
-    }</p>
-    <p style="margin:0;font-family:Consolas,Menlo,Monaco,'Courier New',monospace;font-size:22px;font-weight:800;letter-spacing:.08em;color:#4c43a8;line-height:1.2">${escapeHtml(input.offer.code)}</p>
-    <p style="margin:10px 0 0;font-size:13px;font-weight:500;line-height:1.5;color:#625d82">${escapeHtml(offerWindow)}</p>
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:26px 0 0;border-collapse:separate;background:#faf9ff;border:1px solid #e4e2f0;border-radius:20px;table-layout:fixed">
+  <tr><td align="center" style="padding:20px 16px;text-align:center">
+    <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a63df">Your personal offer</p>
+    <p style="margin:8px 0 18px;font-size:28px;font-weight:800;line-height:1.1;color:#262438">${offer.discountPercent ? `${escapeHtml(offer.discountPercent)}% off` : 'Your discount'}<span style="display:block;margin-top:6px;font-size:13px;font-weight:500;color:#68657a">${offer.firstPaymentOnly ? 'First subscription payment' : ''}</span></p>
+    ${
+      countdown
+        ? `
+    <p style="margin:0 0 8px;font-size:11px;color:#68657a">Time remaining when sent${remainingMinutes === 0 ? ' · less than 1 minute' : ''}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;border-spacing:0"><tr>${countdown.map(({ value, label }) => `<td align="center" style="padding:12px 4px;background:#ffffff;border:1px solid #e4e2f0;border-radius:4px"><span style="display:block;font-family:Consolas,Menlo,Monaco,monospace;font-size:28px;font-weight:700;line-height:1.2;color:#262438">${String(value).padStart(2, '0')}</span><span style="display:block;margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#68657a">${label}</span></td>`).join('<td width="8" style="width:8px"></td>')}</tr></table>
+    <p style="margin:10px 0 18px;font-size:12px;line-height:1.5;color:#68657a">${escapeHtml(offerWindow)}</p>`
+        : ''
+    }
+    <p style="margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#68657a">Copy the code below</p>
+    <p style="margin:0;padding:12px;background:#ffffff;border:1px solid #e4e2f0;border-radius:4px;font-family:Consolas,Menlo,Monaco,'Courier New',monospace;font-size:18px;font-weight:700;letter-spacing:.03em;word-break:break-all;overflow-wrap:anywhere;color:#4c43a8;line-height:1.7">${escapeHtml(offer.code)}</p>
+    ${offerTerms ? `<p style="margin:14px 0 0;font-size:12px;line-height:1.6;color:${BODY_TEXT}">${escapeHtml(offerTerms)}</p>` : ''}
   </td></tr>
 </table>`
     : '';
@@ -682,12 +738,14 @@ ${footnote('Your progress and practice history stay saved in your account, so yo
 Hi ${input.recipientName || 'there'},
 
 ${input.message}
-${input.offer ? '' : '\nPick up where you left off, review your recent feedback, and choose the one thing that moves you closest to your target band.\n'}
+${stageItems ? stageItems.map((item) => `- ${item}`).join('\n') : progressText}
 ${
-  input.offer
+  offer
     ? `
-Your offer code: ${input.offer.code}${input.offer.discountPercent ? ` (${input.offer.discountPercent}% off)` : ''}
+Copy the code below: ${offer.code}${offer.discountPercent ? ` (${offer.discountPercent}% off)` : ''}
+${countdownText}
 ${offerWindow}
+${offerTerms}
 `
     : ''
 }
@@ -696,7 +754,7 @@ ${input.ctaLabel || 'Learn more'}: ${input.clickUrl}
 Your progress and practice history stay saved in your account, so you can return whenever you are ready.`;
 
   const consentLine =
-    'You are receiving this because you enabled marketing communications on your account.';
+    'Account tips and offers from IELTS AI Pro. You can unsubscribe from these emails using the link below.';
 
   return {
     subject: input.subject || input.title,

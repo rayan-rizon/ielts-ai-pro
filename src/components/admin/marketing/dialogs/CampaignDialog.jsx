@@ -235,6 +235,10 @@ const CampaignDialog = ({
               </div>
               <div className="block">
                 <FieldLabel>Offer code</FieldLabel>
+                <p className="mb-1 text-[10px] text-stone-500">
+                  Select the personal signup offer to reuse each recipient's existing code.
+                  Conflicting discounts are skipped.
+                </p>
                 <Select
                   value={form.promo_code_id || 'none'}
                   onValueChange={(val) => set({ promo_code_id: val === 'none' ? '' : val })}

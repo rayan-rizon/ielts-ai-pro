@@ -236,3 +236,28 @@ describe('pricing plan configuration', () => {
     });
   });
 });
+
+describe('START20 checkout pricing', () => {
+  const offer = {
+    discount_type: 'percentage',
+    discount_value: 20,
+    applicable_plans: ['pro', 'premium'],
+  };
+  it.each([
+    [9.99, 'USD', 7.99],
+    [14.99, 'USD', 11.99],
+    [699, 'BDT', 559],
+    [999, 'BDT', 799],
+  ])('discounts %s %s by 20 percent with provider rounding', (price, currency, expected) => {
+    expect(calculateCheckoutAmount(price, 'monthly', offer, currency)).toBe(expected);
+  });
+  it('does not apply a Pro-only promo to Premium', () => {
+    const meta = getPlanPriceAndMeta({
+      plans: [{ tier: 'premium', basePrice: 14.99, currency: 'USD' }],
+      planTier: 'premium',
+      billingInterval: 'monthly',
+      promoDiscount: { ...offer, applicable_plans: ['pro'] },
+    });
+    expect(meta.chargeAmount).toBe(14.99);
+  });
+});

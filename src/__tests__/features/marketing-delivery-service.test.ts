@@ -71,6 +71,27 @@ describe('MarketingDelivery Service', () => {
     });
   });
 
+  describe('manual offer links', () => {
+    it('carries the selected in-app discount to pricing', () => {
+      const result = MarketingDelivery.linkFor({
+        id: 'delivery',
+        campaign_id: 'campaign',
+        content: { cta_url: '/pricing?tier=pro', promo_code: 'FIRST30' },
+      });
+      expect(result).toContain('promo=FIRST30');
+      expect(result).toContain('tier=pro');
+    });
+    it('preserves an explicit code already included in the link', () => {
+      const result = MarketingDelivery.linkFor({
+        id: 'delivery',
+        campaign_id: 'campaign',
+        content: { cta_url: '/pricing?promo=FIRST30', promo_code: 'START20-OTHER' },
+      });
+      expect(result).toContain('promo=FIRST30');
+      expect(result).not.toContain('START20-OTHER');
+    });
+  });
+
   describe('record', () => {
     it('skips insert if delivery is incomplete', async () => {
       await MarketingDelivery.record(null, 'impression');

@@ -35,7 +35,7 @@ const NumberField = ({ label, icon: Icon, value, onChange, placeholder }) => (
       <Input
         type="number"
         value={value}
-        onChange={(event) => onChange(parseInt(event.target.value))}
+        onChange={(event) => onChange(Number(event.target.value))}
         placeholder={placeholder}
         className={cn(FIELD_INPUT, 'pl-8')}
       />
@@ -103,7 +103,7 @@ const SchemeFields = ({ promo, onChange }) => {
               type="number"
               value={promo.discount_value}
               onChange={(event) =>
-                onChange({ ...promo, discount_value: parseInt(event.target.value) })
+                onChange({ ...promo, discount_value: Number(event.target.value) })
               }
               placeholder="20"
               className={cn(FIELD_INPUT, 'pl-8')}
@@ -136,7 +136,7 @@ const ExpirationField = ({ value, onChange }) => (
         <CalendarUI
           mode="single"
           selected={value ? new Date(value) : undefined}
-          onSelect={(date) => onChange(date ? date.toISOString().split('T')[0] : '')}
+          onSelect={(date) => onChange(date ? format(date, 'yyyy-MM-dd') : '')}
           initialFocus
           disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
         />
@@ -193,7 +193,7 @@ export const PromoCodeDialog = ({
   campaigns = [],
 }) => (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden shadow-lg max-h-[90vh] overflow-y-auto p-4 sm:p-5">
+    <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 w-[95vw] max-w-md rounded-lg overflow-hidden max-h-[90vh] overflow-y-auto p-4 sm:p-5">
       <DialogHeader className="space-y-0.5">
         <DialogTitle className="text-base font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
           Create promo code
@@ -253,6 +253,35 @@ export const PromoCodeDialog = ({
           </div>
         </div>
         <SchemeFields promo={promo} onChange={onPromoChange} />
+        {!promo.grants_subscription && (
+          <div>
+            <Label htmlFor="promo-plans" className={FIELD_LABEL}>
+              Applies to
+            </Label>
+            <select
+              id="promo-plans"
+              className={cn(FIELD_INPUT, 'w-full px-3')}
+              value={
+                promo.applicable_plans?.length === 2 ? 'both' : promo.applicable_plans?.[0] || 'pro'
+              }
+              onChange={(event) =>
+                onPromoChange({
+                  ...promo,
+                  applicable_plans:
+                    event.target.value === 'both' ? ['pro', 'premium'] : [event.target.value],
+                })
+              }
+            >
+              <option value="both">Pro and Premium</option>
+              <option value="pro">Pro only</option>
+              <option value="premium">Premium only</option>
+            </select>
+            <p className="mt-1 text-xs text-stone-500">
+              Once per account. Monthly renewals return to the regular price. Expiry dates include
+              the selected day (UTC).
+            </p>
+          </div>
+        )}
         <LimitsFields promo={promo} onChange={onPromoChange} />
       </div>
       <DialogFooter className="gap-2 flex-col sm:flex-row">

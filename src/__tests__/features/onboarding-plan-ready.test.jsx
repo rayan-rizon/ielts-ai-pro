@@ -1,7 +1,11 @@
+vi.mock('@/features/subscription/services/signupOffer', () => ({
+  getSignupOffer: vi.fn(() => Promise.resolve(null)),
+}));
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getSignupOffer } from '@/features/subscription/services/signupOffer';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
 import { buildOnboardingPlanPreview } from '@/features/onboarding/components/steps/onboardingPlanPreview';
 import { loadPricingConfiguration } from '@/features/subscription/hooks/usePricing';
@@ -44,6 +48,8 @@ const bangladeshPricingConfig = {
 
 describe('onboarding plan-ready experience', () => {
   beforeEach(() => {
+    window.localStorage.clear();
+    getSignupOffer.mockResolvedValue(null);
     loadPricingConfiguration.mockResolvedValue(bangladeshPricingConfig);
   });
 
@@ -111,7 +117,9 @@ describe('onboarding plan-ready experience', () => {
       vi.advanceTimersByTime(2000);
     });
 
-    expect(screen.getByRole('heading', { name: 'Your study plan is ready' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Your study plan preview is ready' })
+    ).toBeInTheDocument();
     expect(screen.getByText('Band 7.5')).toBeInTheDocument();
     expect(screen.getByText('195 min')).toBeInTheDocument();
     expect(screen.getByText('Writing level check')).toBeInTheDocument();
@@ -197,5 +205,57 @@ describe('onboarding plan-ready experience', () => {
     expect(source).toMatch(/onboarding_completed: true,\s*\n\s*onboarding_outcome: 'skipped',/);
     expect(source).toContain("trackAuthenticatedAppEvent('onboarding_plan_selected'");
     expect(source).toContain("trackAuthenticatedAppEvent('onboarding_free_continue'");
+  });
+});
+
+describe('personal signup offer on the paywall', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    loadPricingConfiguration.mockResolvedValue(bangladeshPricingConfig);
+    getSignupOffer.mockResolvedValue({
+      available: true,
+      code: 'START20-PERSONALTEST',
+      discount_percent: 20,
+      expires_at: '2026-10-20T12:00:00Z',
+    });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+    window.localStorage.clear();
+  });
+  it('shows the personal code, discounts the same regional prices, and carries the code to checkout', async () => {
+    vi.useFakeTimers();
+    const onUpgrade = vi.fn();
+    render(<CompleteStep formData={formData} onUpgrade={onUpgrade} />);
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText('Your personal 20% signup offer')).toBeInTheDocument();
+    expect(screen.getByText('START20-PERSONALTEST')).toBeInTheDocument();
+    expect(screen.getByText('৳880')).toBeInTheDocument();
+    expect(screen.getByText('৳1360')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose Pro' }));
+    expect(onUpgrade).toHaveBeenCalledWith('pro');
+    expect(window.localStorage.getItem('pending_promo_code')).toBe('START20-PERSONALTEST');
+  });
+  it('preserves an explicit campaign code instead of issuing a signup offer', async () => {
+    vi.useFakeTimers();
+    window.localStorage.setItem('pending_promo_code', 'FIRST30');
+    render(<CompleteStep formData={formData} />);
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(getSignupOffer).not.toHaveBeenCalled();
+    expect(screen.queryByText('Your personal 20% signup offer')).not.toBeInTheDocument();
+    expect(window.localStorage.getItem('pending_promo_code')).toBe('FIRST30');
+  });
+  it('does not issue an offer to an existing paid learner', async () => {
+    vi.useFakeTimers();
+    render(<CompleteStep formData={formData} hasPaidPlan />);
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(getSignupOffer).not.toHaveBeenCalled();
   });
 });

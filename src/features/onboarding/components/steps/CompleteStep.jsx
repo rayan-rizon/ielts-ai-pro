@@ -1,19 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
-  BookOpenCheck,
   Calendar,
   CalendarDays,
   Check,
-  CheckCircle2,
   ChevronRight,
-  Crown,
   Gauge,
   Lock,
   LockKeyhole,
   Sparkles,
   Target,
-  TrendingUp,
 } from 'lucide-react';
 import { m, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -25,13 +21,14 @@ import {
   PANEL,
   WELL,
 } from '@/features/dashboard/components/primitives';
-import { LogoIcon } from '@/components/shared/Logo';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import {
   configurePricingPlans,
   loadPricingConfiguration,
 } from '@/features/subscription/hooks/usePricing';
-import { calculatePrice } from '@/lib/pricingUtils';
+import { getSignupOffer } from '@/features/subscription/services/signupOffer';
+import { capturePromoCode, getPendingPromoCode } from '@/lib/promoOffer';
+import { calculatePrice, calculateCheckoutAmount } from '@/lib/pricingUtils';
 import { buildOnboardingPlanPreview } from './onboardingPlanPreview';
 
 const ASSEMBLY_STEPS = [
@@ -77,24 +74,16 @@ const PLAN_OPTIONS = {
   pro: {
     name: 'Pro',
     icon: ReiconSparkle,
-    period: '/mo',
-    price: '$9.99',
-    oldPrice: '$15',
-    dailyPrice: '$0.33/day',
-    saveBadge: 'SAVE 33%',
-    description: 'Full adaptive roadmap & 100 AI evaluations',
+    period: '/month',
     tone: 'accent',
+    description: 'Build a regular practice routine with AI feedback and an adaptive Learning Path.',
   },
   premium: {
     name: 'Premium',
     icon: ReiconCrown,
-    period: '/mo',
-    price: '$15.99',
-    oldPrice: '$25',
-    dailyPrice: '$0.53/day',
-    saveBadge: 'BEST VALUE',
-    description: 'All Pro features + 2x limits & VIP feedback',
+    period: '/month',
     tone: 'amber',
+    description: 'Choose more evaluation capacity and advanced Band 8–9 vocabulary kits.',
   },
 };
 
@@ -103,7 +92,7 @@ const PLAN_OPTIONS = {
  * Bangladeshi learner sees the BDT price here too. Prices render only once the
  * real price book has resolved — a USD placeholder that later flips to BDT is
  * worse than a brief dash. */
-function useOnboardingPlanPricing() {
+function useOnboardingPlanPricing(offer) {
   const [configuredPlans, setConfiguredPlans] = useState(null);
 
   useEffect(() => {
@@ -126,23 +115,29 @@ function useOnboardingPlanPricing() {
 
   return useMemo(() => {
     const pricing = {};
-    Object.keys(PLAN_OPTIONS).forEach((tier) => {
+    ['free', ...Object.keys(PLAN_OPTIONS)].forEach((tier) => {
       const plan = configuredPlans?.find((entry) => entry.tier === tier);
       if (!plan) {
-        pricing[tier] = { price: null, oldPrice: null, dailyPrice: null };
+        pricing[tier] = { price: null, oldPrice: null, dailyPrice: null, features: [] };
         return;
       }
       const symbol = plan.currencySymbol || '$';
       pricing[tier] = {
-        price: `${symbol}${calculatePrice(plan.basePrice, 'monthly', null, plan.currency)}`,
-        oldPrice: plan.oldPrice
-          ? `${symbol}${calculatePrice(plan.oldPrice, 'monthly', null, plan.currency)}`
-          : null,
-        dailyPrice: `${symbol}${formatDailyRate(plan.basePrice)}/day`,
+        price: `${symbol}${calculatePrice(plan.basePrice, 'monthly', offer ? { discount_type: 'percentage', discount_value: offer.discount_percent } : null, plan.currency)}`,
+        oldPrice:
+          offer && tier !== 'free'
+            ? `${symbol}${calculatePrice(plan.basePrice, 'monthly', null, plan.currency)}`
+            : plan.oldPrice
+              ? `${symbol}${calculatePrice(plan.oldPrice, 'monthly', null, plan.currency)}`
+              : null,
+        dailyPrice: `${symbol}${formatDailyRate(calculateCheckoutAmount(plan.basePrice, 'monthly', offer ? { discount_type: 'percentage', discount_value: offer.discount_percent } : null, plan.currency))}/day`,
+        features: plan.features.filter((feature) =>
+          /AI Writing Evaluation|AI Speaking Session/.test(feature)
+        ),
       };
     });
     return pricing;
-  }, [configuredPlans]);
+  }, [configuredPlans, offer]);
 }
 
 /** Sub-unit currencies need the cents ($0.33/day); a 1,100 BDT plan reads as
@@ -274,7 +269,7 @@ function LockedScheduleGrid({ preview }) {
         </span>
       </div>
 
-      {/* 28-day schedule matrix with frosted glass blur overlay */}
+      {/* 28-day schedule matrix with compact plan preview overlay */}
       <div className="relative my-1 overflow-hidden rounded-md">
         <div className="grid grid-cols-7 gap-1 text-center">
           {daysHeader.map((d, i) => (
@@ -322,7 +317,7 @@ function LockedScheduleGrid({ preview }) {
         </div>
 
         {/* Subtle blur overlay with compact lock badge */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/55 backdrop-blur-[1.5px] dark:bg-[#100f15]/60">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/55 dark:bg-[#100f15]/60">
           <div className="flex items-center gap-1.5 rounded-full border border-[#5a63df]/30 bg-white/95 px-2.5 py-0.5 shadow-2xs dark:border-white/10 dark:bg-[#16151f]/95">
             <LockKeyhole className="h-2.5 w-2.5 text-[#5a63df] dark:text-[#8f97ff]" />
             <span className="text-[9px] font-black text-slate-900 dark:text-white">
@@ -359,73 +354,48 @@ function LockedScheduleGrid({ preview }) {
   );
 }
 
-function BandScoreProjection({ preview }) {
-  const targetBand = preview.targetBand;
-  const selfStudyBand = Math.max(4.5, Number((targetBand - 1.5).toFixed(1)));
-
+function PracticeFeedbackLoop({ preview }) {
   return (
-    <section
-      className={cn(PANEL, 'flex flex-col justify-between p-2.5 text-left')}
-      aria-label="Band score projection"
-    >
-      <div className="flex items-center justify-between gap-1 border-b border-[#e4e2f0] pb-1.5 dark:border-white/[0.07]">
-        <div className="flex items-center gap-1.5">
-          <TrendingUp className="h-3 w-3 text-[#5a63df] dark:text-[#8f97ff]" />
-          <h3 className="text-[11px] font-black text-slate-900 dark:text-white">
-            Band Score Projection
-          </h3>
-        </div>
-        <span className="inline-flex items-center rounded-full border border-[rgb(var(--signal-ok))/0.3] bg-[rgb(var(--signal-ok))/0.06] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[rgb(var(--signal-ok))] dark:border-[rgb(var(--signal-ok))/0.25] dark:bg-[rgb(var(--signal-ok))/0.10]">
-          +1.5 Band Uplift
-        </span>
+    <section className={cn(PANEL, 'p-3 text-left')} aria-label="Your next practice steps">
+      <div className="flex items-center gap-2 border-b border-[#e4e2f0] pb-2 dark:border-white/[0.07]">
+        <IconChip icon={Target} tone="accent" size="sm" />
+        <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+          Practise. Review. Improve.
+        </h3>
       </div>
-
-      <div className="my-1.5 space-y-2">
-        {/* With IELTS AI Pro */}
-        <div>
-          <div className="flex items-center justify-between text-[10px]">
-            <span className="flex items-center gap-1 font-bold text-slate-900 dark:text-white">
-              <LogoIcon className="h-3 w-3 shrink-0" />
-              With IELTS AI Pro
-            </span>
-            <span className={cn(NUM, 'font-black text-[#5a63df] dark:text-[#8f97ff]')}>
-              Band {targetBand.toFixed(1)} 🎯
-            </span>
-          </div>
-          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[#dedbea] dark:bg-white/10">
-            <m.div
-              className="h-full rounded-full bg-linear-to-r from-[#5a63df] to-[#7b83eb] dark:from-[#8f97ff] dark:to-[#5a63df]"
-              initial={{ width: '0%' }}
-              animate={{ width: `${Math.min(96, (targetBand / 9.0) * 100)}%` }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-            />
-          </div>
-        </div>
-
-        {/* Self-Study Alone */}
-        <div>
-          <div className="flex items-center justify-between text-[9.5px]">
-            <span className="font-medium text-slate-500 dark:text-slate-400">Self-study alone</span>
-            <span className={cn(NUM, 'font-bold text-slate-400 dark:text-slate-500')}>
-              Band {selfStudyBand.toFixed(1)} 📉
-            </span>
-          </div>
-          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/6">
-            <m.div
-              className="h-full rounded-full bg-slate-300 dark:bg-slate-600"
-              initial={{ width: '0%' }}
-              animate={{ width: `${Math.min(65, (selfStudyBand / 9.0) * 100)}%` }}
-              transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Target Affirmation Row */}
-      <div className="flex items-center gap-1.5 border-t border-[#e4e2f0] pt-1.5 text-[9.5px] font-semibold text-slate-600 dark:border-white/[0.07] dark:text-slate-300">
-        <CheckCircle2 className="h-3 w-3 shrink-0 text-[rgb(var(--signal-ok))]" />
-        <span className="truncate">Reach 100% of your target with IELTS AI Pro</span>
-      </div>
+      <ol className="mt-2 space-y-2">
+        {[
+          [
+            'Start with a level check',
+            `Use your ${preview.focusLabel} priority to choose your first task.`,
+          ],
+          [
+            'Find what to work on',
+            'Review your result and choose one correction for your next attempt.',
+          ],
+          [
+            'Build a repeatable routine',
+            'Pro adds more AI feedback and an adaptive Learning Path.',
+          ],
+        ].map(([title, detail], index) => (
+          <li key={title} className="flex gap-2">
+            <span className={cn(NUM, 'text-[11px] font-bold text-[#5a63df]')}>0{index + 1}</span>
+            <div>
+              <p className="text-[11px] font-bold text-slate-900 dark:text-white">{title}</p>
+              <p className={cn(MUTED, 'text-[10px] leading-relaxed')}>{detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p
+        className={cn(
+          MUTED,
+          'mt-2 border-t border-[#e4e2f0] pt-2 text-[10px] dark:border-white/[0.07]'
+        )}
+      >
+        Band {preview.targetBand.toFixed(1)} is your goal. Your first result establishes your
+        starting point.
+      </p>
     </section>
   );
 }
@@ -434,19 +404,17 @@ function PlanOption({ tier, recommended, onSelect, pricing }) {
   const option = PLAN_OPTIONS[tier];
   const PlanIcon = option.icon;
   const isPro = tier === 'pro';
-  const currentPrice = pricing?.price || option.price || '—';
-  const previousPrice = pricing?.oldPrice || option.oldPrice;
+  const currentPrice = pricing?.price || '—';
+  const previousPrice = pricing?.oldPrice;
 
   return (
     <article
       className={cn(
-        'onboarding-plan-card relative flex min-w-0 flex-col justify-between rounded-xl transition-all duration-200',
-        isPro
-          ? 'onboarding-plan-card--pro onboarding-pro-card'
-          : 'onboarding-plan-card--premium onboarding-premium-card'
+        PANEL,
+        'relative flex min-w-0 flex-col justify-between rounded-xl transition-colors duration-200',
+        isPro ? 'border-[#5a63df]/30 dark:border-[#8f97ff]/30' : ''
       )}
     >
-      <div className="onboarding-plan-card__beam" aria-hidden="true" />
       <div className="onboarding-plan-card__inner flex h-full flex-col justify-between p-2.5 sm:p-3 text-left">
         <div>
           {/* Header row: Plan Name + Reicon + Pill badge */}
@@ -458,7 +426,7 @@ function PlanOption({ tier, recommended, onSelect, pricing }) {
                   {option.name}
                 </h3>
                 <p className={cn(MICRO, MUTED, 'text-[8.5px] leading-none')}>
-                  {pricing?.dailyPrice || option.dailyPrice || '\u2014'}
+                  {pricing?.dailyPrice || 'Loading price…'}
                 </p>
               </div>
             </div>
@@ -471,11 +439,11 @@ function PlanOption({ tier, recommended, onSelect, pricing }) {
                     : 'border-amber-500/25 bg-amber-500/6 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300'
                 )}
               >
-                Best fit
+                Start here
               </span>
             ) : (
               <span className="rounded-full border border-slate-200/80 bg-slate-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/4 dark:text-slate-400">
-                {option.saveBadge}
+                More practice
               </span>
             )}
           </div>
@@ -507,21 +475,27 @@ function PlanOption({ tier, recommended, onSelect, pricing }) {
             </div>
           </div>
 
-          <p className="mt-1 text-[10px] font-medium leading-snug text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-[11px] font-medium leading-snug text-slate-600 dark:text-slate-300">
             {option.description}
           </p>
+          <ul className="mt-2 space-y-1 text-[11px] text-slate-700 dark:text-slate-200">
+            {(pricing?.features || []).map((feature) => (
+              <li key={feature}>{feature}</li>
+            ))}
+          </ul>
         </div>
 
         {/* Compact action button */}
         <button
           type="button"
           onClick={() => onSelect(tier)}
+          disabled={!pricing?.price}
           className={cn(
-            'relative z-1 mt-2.5 inline-flex h-7.5 w-full items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-bold transition-all duration-150 active:scale-[0.98]',
+            'relative z-1 mt-2.5 inline-flex min-h-11 w-full items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-bold transition-all duration-150 active:scale-[0.98] disabled:cursor-wait disabled:opacity-50',
             recommended
               ? isPro
-                ? 'bg-[#5a63df] text-white shadow-[0_2px_8px_-2px_rgba(90,99,223,0.3)] hover:bg-[#4a52c9]'
-                : 'bg-amber-500 text-white shadow-[0_2px_8px_-2px_rgba(245,158,11,0.3)] hover:bg-amber-600'
+                ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9]'
+                : 'bg-amber-500 text-white hover:bg-amber-600'
               : 'border border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900 dark:border-white/10 dark:bg-white/3 dark:text-slate-200 dark:hover:border-white/20'
           )}
         >
@@ -541,16 +515,18 @@ function ReadyPlan({
   onOpenPlan,
   planPricing,
   onPlanOfferViewed,
+  signupOffer,
 }) {
-  const recommendedTier = preview.targetBand >= 8 ? 'premium' : 'pro';
+  const recommendedTier = 'pro';
+  const pricesReady = Boolean(planPricing.pro?.price && planPricing.premium?.price);
 
   // Reported here rather than on entering the step: the offer only exists once
   // the assembly animation has finished, so anyone who leaves during it never
   // saw a price and must not count as having seen the offer.
   useEffect(() => {
-    if (hasPaidPlan) return;
+    if (hasPaidPlan || !pricesReady) return;
     onPlanOfferViewed?.();
-  }, [hasPaidPlan, onPlanOfferViewed]);
+  }, [hasPaidPlan, onPlanOfferViewed, pricesReady]);
 
   return (
     <m.div
@@ -563,7 +539,7 @@ function ReadyPlan({
       <header className="mb-2.5 sm:mb-3 text-center">
         <div className="flex items-center justify-center gap-1.5">
           <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
-            Your study plan is ready
+            Your study plan preview is ready
           </h2>
           <span className="rounded-full border border-[rgb(var(--signal-ok))/0.3] bg-[rgb(var(--signal-ok))/0.06] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[rgb(var(--signal-ok))] dark:border-[rgb(var(--signal-ok))/0.25] dark:bg-[rgb(var(--signal-ok))/0.10]">
             Personalized
@@ -585,10 +561,10 @@ function ReadyPlan({
         </p>
       </header>
 
-      {/* Side-by-side: Locked Schedule Grid (Left) + Band Score Projection (Right) */}
+      {/* Side-by-side: Locked Schedule Grid (Left) + Practice Feedback Loop (Right) */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <LockedScheduleGrid preview={preview} />
-        <BandScoreProjection preview={preview} />
+        <PracticeFeedbackLoop preview={preview} />
       </div>
 
       {/* Subscription Paywall or Active Learner Gate */}
@@ -618,7 +594,16 @@ function ReadyPlan({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+          {signupOffer && (
+            <div className={cn(WELL, 'mb-2 rounded-lg p-2.5 text-xs')}>
+              <p className="font-bold">Your personal 20% signup offer</p>
+              <p className={cn(MUTED, 'mt-1')}>
+                First payment only · expires {new Date(signupOffer.expires_at).toLocaleString()}.
+              </p>
+              <p className={cn(NUM, 'mt-1 break-all text-[10px]')}>{signupOffer.code}</p>
+            </div>
+          )}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5">
             {Object.keys(PLAN_OPTIONS).map((tier) => (
               <PlanOption
                 key={tier}
@@ -630,12 +615,26 @@ function ReadyPlan({
             ))}
           </div>
 
+          <div className={cn(WELL, 'mt-2 rounded-lg p-2.5 text-[11px]')}>
+            <p className="font-bold text-slate-900 dark:text-white">
+              Free is a useful starting point
+            </p>
+            <p className={cn(MUTED, 'mt-1')}>Reading &amp; Listening practice stays available.</p>
+            {(planPricing.free?.features || []).map((feature) => (
+              <p key={feature} className={cn(MUTED, 'mt-1')}>
+                {feature}
+              </p>
+            ))}
+          </div>
+          <p className={cn(MUTED, 'mt-2 text-center text-[10px]')}>
+            Monthly subscriptions renew until cancelled. Review payment terms at checkout.
+          </p>
           <button
             type="button"
             onClick={onContinue}
             className={cn(
               MICRO,
-              'mt-2 inline-flex min-h-5 w-full items-center justify-center gap-1 rounded py-0.5 text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#5a63df] dark:text-slate-400 dark:hover:text-white text-[10.5px] font-semibold'
+              'mt-2 inline-flex min-h-11 w-full items-center justify-center gap-1 rounded py-0.5 text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#5a63df] dark:text-slate-400 dark:hover:text-white text-[10.5px] font-semibold'
             )}
           >
             Continue with free practice
@@ -654,12 +653,30 @@ export default function CompleteStep({
   onContinue,
   onOpenPlan,
   onPlanOfferViewed,
+  loadSignupOffer = getSignupOffer,
 }) {
   const reduceMotion = useReducedMotion();
   const [isAssembling, setIsAssembling] = useState(true);
   const preview = useMemo(() => buildOnboardingPlanPreview(formData), [formData]);
   // Resolved while the assembly animation plays, so the cards land priced.
-  const planPricing = useOnboardingPlanPricing();
+  const [signupOffer, setSignupOffer] = useState(null);
+  useEffect(() => {
+    if (hasPaidPlan || getPendingPromoCode()) return;
+    let active = true;
+    loadSignupOffer()
+      .then((offer) => {
+        if (active) setSignupOffer(offer);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [hasPaidPlan, loadSignupOffer]);
+  const planPricing = useOnboardingPlanPricing(signupOffer);
+  const selectPlan = (tier) => {
+    if (signupOffer?.code) capturePromoCode(signupOffer.code);
+    onUpgrade?.(tier);
+  };
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsAssembling(false), reduceMotion ? 200 : 1750);
@@ -672,10 +689,11 @@ export default function CompleteStep({
     <ReadyPlan
       preview={preview}
       hasPaidPlan={hasPaidPlan}
-      onUpgrade={onUpgrade}
+      onUpgrade={selectPlan}
       onContinue={onContinue}
       onOpenPlan={onOpenPlan}
       planPricing={planPricing}
+      signupOffer={signupOffer}
       onPlanOfferViewed={onPlanOfferViewed}
     />
   );

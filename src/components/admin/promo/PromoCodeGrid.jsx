@@ -22,7 +22,9 @@ const PromoCard = forwardRef(function PromoCard(
   { promo, metrics, index, onToggle, onDelete },
   ref
 ) {
-  const isExpired = new Date(promo.valid_until) < new Date();
+  const isExpired = Boolean(
+    promo.valid_until && promo.valid_until < new Date().toISOString().slice(0, 10)
+  );
   const status = isExpired ? 'expired' : promo.is_active ? 'active' : 'paused';
   const usagePercentage = Math.min(((promo.current_uses || 0) / (promo.max_uses || 1)) * 100, 100);
   const grant = promo.grants_subscription;
@@ -69,7 +71,9 @@ const PromoCard = forwardRef(function PromoCard(
           </button>
         </div>
       </div>
-      <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status]))}>{status}</span>
+      <span className={cn(PILL_BASE, pillTone(STATUS_TONE[status]))}>
+        {promo.is_signup_offer_template ? `personal offer rule · ${status}` : status}
+      </span>
       {(promo.label || promo.marketing_campaign_id) && (
         <p className="truncate text-[10px] font-bold text-stone-500 dark:text-stone-400">
           {promo.label || 'Campaign-owned offer'}
@@ -98,7 +102,11 @@ const PromoCard = forwardRef(function PromoCard(
             )}
           </p>
           <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
-            {grant ? `${promo.subscription_duration_days}d grant` : 'checkout discount'}
+            {promo.is_signup_offer_template
+              ? 'Unique code · 7 days per account'
+              : grant
+                ? `${promo.subscription_duration_days}d grant`
+                : 'first payment · once per account'}
           </p>
         </div>
       </div>
@@ -106,13 +114,18 @@ const PromoCard = forwardRef(function PromoCard(
         <div className="flex items-center justify-between">
           <span className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1')}>
             <Calendar className="w-2.5 h-2.5" />
-            {new Date(promo.valid_until).toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-            })}
+            {promo.is_signup_offer_template
+              ? 'Evergreen'
+              : promo.valid_until
+                ? new Date(promo.valid_until).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : 'No expiry'}
           </span>
           <span className={cn(NUM, 'text-[10px] font-bold text-stone-600 dark:text-stone-300')}>
-            {promo.current_uses || 0}/{promo.max_uses}
+            {promo.current_uses || 0}
+            {promo.is_signup_offer_template ? ' issued' : `/${promo.max_uses ?? '∞'}`}
           </span>
         </div>
         <div className="h-1 bg-stone-100 dark:bg-white/6 rounded-full overflow-hidden">

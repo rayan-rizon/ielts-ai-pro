@@ -246,7 +246,7 @@ export default function PromoCodeRedemption({ onPromoApplied, existingDiscount }
                     <DialogDescription asChild>
                       <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-[13px] font-medium max-w-[290px] leading-relaxed">
                         {existingDiscount && !showNewCodeInput
-                          ? 'You have an active promotional discount applied to your account.'
+                          ? 'One promo code is allowed per account. Removing it does not reset eligibility.'
                           : 'Enter your code to unlock exclusive discounts or subscription upgrades.'}
                       </p>
                     </DialogDescription>

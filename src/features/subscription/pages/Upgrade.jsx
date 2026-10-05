@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { m } from 'framer-motion';
 import {
   ArrowRight,
@@ -143,13 +143,13 @@ const TIER_DEFAULTS = {
 
 const PLAN_CARD_CONFIGS = {
   pro: {
-    targetBand: 'TARGET BAND 7.0–7.5',
+    targetBand: 'REGULAR PRACTICE',
     targetBandClass: 'text-[#5a63df] dark:text-[#afb5ff]',
     badgeIcon: Sparkles,
     badgeText: 'Most Popular',
     badgeTone: 'accent',
     planTitle: 'Pro Plan',
-    tagline: 'Essential toolkit for focused score gains with examiner grading.',
+    tagline: 'Build a consistent routine with AI feedback and an adaptive Learning Path.',
     buttonText: 'Upgrade to Pro',
     buttonClass: 'bg-[#5a63df] text-white hover:bg-[#4a52c9] shadow-xs',
     checkColorClass: 'text-[#5a63df] dark:text-[#afb5ff]',
@@ -165,13 +165,13 @@ const PLAN_CARD_CONFIGS = {
     ],
   },
   premium: {
-    targetBand: 'TARGET BAND 8.0–9.0',
+    targetBand: 'HIGHER PRACTICE CAPACITY',
     targetBandClass: 'text-sky-600 dark:text-sky-300',
     badgeIcon: Award,
     badgeText: 'Maximum Support',
     badgeTone: 'sky',
     planTitle: 'Premium Plan',
-    tagline: 'Double evaluation limits with high-level lexical kits & dynamic roadmap.',
+    tagline: 'More evaluation capacity and advanced vocabulary kits for frequent practice.',
     buttonText: 'Get Premium',
     buttonClass:
       'border border-[#5a63df] bg-transparent text-[#5a63df] dark:text-[#afb5ff] dark:border-[#8f97ff]/40 hover:bg-[#5a63df]/10 dark:hover:bg-[#8f97ff]/10',
@@ -247,7 +247,7 @@ function resolvePlanConfig(tier, plans, pricingConfig, isBD) {
   };
 }
 
-function UpgradeHeader() {
+function UpgradeHeader({ focus }) {
   return (
     <m.header variants={ITEM_VARIANTS} className="text-center">
       <div className="mb-3.5 inline-flex flex-wrap items-center justify-center gap-2">
@@ -264,7 +264,7 @@ function UpgradeHeader() {
       </div>
 
       <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl lg:text-4xl">
-        Elevate Your IELTS Band Potential
+        {focus ? `Keep your ${focus} feedback going` : 'Turn practice into a focused routine'}
       </h1>
       <p
         className={cn(
@@ -346,7 +346,21 @@ function PlanPriceDisplay({ symbol, price, oldPrice }) {
   );
 }
 
+function pricingDestination(search, tier) {
+  const incoming = new URLSearchParams(search);
+  const params = new URLSearchParams();
+  if (tier) params.set('plan', tier);
+  // Carry email attribution and any issued offer through the upgrade hub to
+  // the existing checkout flow instead of dropping them at the plan link.
+  ['campaign_id', 'delivery_id', 'promo'].forEach((key) => {
+    const value = incoming.get(key);
+    if (value) params.set(key, value);
+  });
+  return `${createPageUrl('Pricing')}${params.size ? `?${params}` : ''}`;
+}
+
 function PlanCard({ tier, planData }) {
+  const { search } = useLocation();
   const config = PLAN_CARD_CONFIGS[tier];
   const BadgeIcon = config.badgeIcon;
   const features = config.getFeatures(planData);
@@ -398,7 +412,7 @@ function PlanCard({ tier, planData }) {
       </div>
 
       <Link
-        to={`${createPageUrl('Pricing')}?plan=${tier}`}
+        to={pricingDestination(search, tier)}
         className={cn(
           MICRO,
           'mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg font-bold',
@@ -457,14 +471,36 @@ function TrustMetricsSection() {
   );
 }
 
+function FreePlanComparison({ pricingConfig }) {
+  const free = pricingConfig?.tierLimits?.free;
+  return (
+    <m.section
+      variants={ITEM_VARIANTS}
+      className={cn(TILE, 'p-4')}
+      aria-label="Free practice and paid support"
+    >
+      <p className={cn(MICRO, MUTED)}>YOUR STARTING POINT</p>
+      <h2 className={cn(TITLE, 'mt-1')}>Try the feedback. Subscribe for a regular routine.</h2>
+      <p className={cn(MUTED, 'mt-2 text-xs leading-relaxed')}>
+        Free includes Reading &amp; Listening practice
+        {free &&
+          `, ${free.writing_monthly_limit === -1 ? 'unlimited' : free.writing_monthly_limit} Writing evaluations and ${free.speaking_monthly_limit === -1 ? 'unlimited' : free.speaking_monthly_limit} Speaking sessions per month`}
+        . Pro adds more AI evaluations, advanced analytics and an adaptive Learning Path. Your saved
+        results stay in your account.
+      </p>
+    </m.section>
+  );
+}
+
 function UpgradeFooter() {
+  const { search } = useLocation();
   return (
     <m.footer
       variants={ITEM_VARIANTS}
       className="flex flex-col items-center justify-between gap-3 border-t border-[#eceafa] pt-4 text-center dark:border-white/[0.07] sm:flex-row sm:text-left"
     >
       <Link
-        to={createPageUrl('Pricing')}
+        to={pricingDestination(search)}
         className={cn(
           MICRO,
           'inline-flex items-center gap-1.5 text-slate-600 transition-colors hover:text-[#5a63df] dark:text-slate-400 dark:hover:text-[#afb5ff]'
@@ -495,7 +531,10 @@ function UpgradeFooter() {
  * Adheres strictly to the Learner Panel Design System (PANEL, TILE, NUM, MICRO).
  */
 export default function Upgrade() {
-  const { plans, pricingConfig, pricingCountry } = usePricing(DEFAULT_PRICING_PLANS);
+  const { plans, pricingConfig, pricingCountry, isLoading } = usePricing(DEFAULT_PRICING_PLANS);
+  const { search } = useLocation();
+  const requestedFocus = new URLSearchParams(search).get('focus');
+  const focus = { writing: 'Writing', speaking: 'Speaking' }[requestedFocus];
 
   const isBD = detectIsBangladesh(pricingCountry, pricingConfig);
   const proData = resolvePlanConfig('pro', plans, pricingConfig, isBD);
@@ -522,9 +561,20 @@ export default function Upgrade() {
           animate="visible"
           className="relative z-10 mx-auto max-w-4xl space-y-6"
         >
-          <UpgradeHeader />
+          <UpgradeHeader focus={focus} />
+          <FreePlanComparison pricingConfig={pricingConfig} />
+          {isLoading ? (
+            <p role="status" className={cn(MUTED, 'text-center text-sm')}>
+              Loading your regional plans…
+            </p>
+          ) : (
+            <PlanSelectionSection proData={proData} premiumData={premiumData} />
+          )}
+          <p className={cn(MUTED, 'text-center text-xs')}>
+            Monthly subscriptions renew until cancelled. Review billing periods and payment terms at
+            checkout.
+          </p>
           <CapabilitiesSection />
-          <PlanSelectionSection proData={proData} premiumData={premiumData} />
           <TrustMetricsSection />
           <UpgradeFooter />
         </m.div>

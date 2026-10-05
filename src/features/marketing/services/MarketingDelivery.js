@@ -5,12 +5,13 @@ const DISMISSIVE_ACTIONS = new Set(['dismissed', 'not_interested', 'not_useful']
 const ACTIVE_INTERVENTIONS = new Set(['approved', 'queued', 'sent']);
 const ACTIVE_CAMPAIGNS = new Set(['active', 'scheduled']);
 
-const appendCampaignParams = (url, campaignId, deliveryId) => {
+const appendCampaignParams = (url, campaignId, deliveryId, promoCode) => {
   if (!url) return '';
   try {
     const parsed = new URL(url, window.location.origin);
     parsed.searchParams.set('campaign_id', campaignId);
     parsed.searchParams.set('delivery_id', deliveryId);
+    if (promoCode && !parsed.searchParams.has('promo')) parsed.searchParams.set('promo', promoCode);
     return parsed.origin === window.location.origin
       ? `${parsed.pathname}${parsed.search}${parsed.hash}`
       : parsed.toString();
@@ -252,7 +253,12 @@ export const MarketingDelivery = {
   },
 
   linkFor(delivery) {
-    return appendCampaignParams(delivery?.content?.cta_url, delivery?.campaign_id, delivery?.id);
+    return appendCampaignParams(
+      delivery?.content?.cta_url,
+      delivery?.campaign_id,
+      delivery?.id,
+      delivery?.content?.promo_code
+    );
   },
 };
 

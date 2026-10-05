@@ -32,7 +32,7 @@ describe('WritingUpgradeDialog', () => {
       />
     );
 
-    expect(screen.getByText('Limit Reached')).toBeInTheDocument();
+    expect(screen.getByText('Keep your Writing feedback going')).toBeInTheDocument();
     expect(screen.getByText('1.5 of 3 Used')).toBeInTheDocument();
     expect(
       screen.getByText(/You've used 1.5 of your 3 monthly Writing evaluations/i)
@@ -46,7 +46,9 @@ describe('WritingUpgradeDialog', () => {
     expect(screen.getByText('Examiner Coaching & Focus Tips')).toBeInTheDocument();
 
     expect(screen.getByRole('button', { name: /upgrade to pro/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /maybe later/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /continue with free practice/i })
+    ).toBeInTheDocument();
 
     // Verify there is NO mention of "unlimited evaluations"
     expect(screen.queryByText(/unlimited evaluations/i)).not.toBeInTheDocument();
@@ -69,10 +71,10 @@ describe('WritingUpgradeDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /upgrade to pro/i }));
 
     expect(isExiting.current).toBe(true);
-    expect(navigate).toHaveBeenCalledWith('/upgrade');
+    expect(navigate).toHaveBeenCalledWith('/upgrade?focus=writing');
   });
 
-  it('calls onOpenChange(false) when clicking Maybe Later', () => {
+  it('calls onOpenChange(false) when choosing free practice', () => {
     const onOpenChange = vi.fn();
 
     render(
@@ -84,7 +86,7 @@ describe('WritingUpgradeDialog', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /maybe later/i }));
+    fireEvent.click(screen.getByRole('button', { name: /continue with free practice/i }));
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });

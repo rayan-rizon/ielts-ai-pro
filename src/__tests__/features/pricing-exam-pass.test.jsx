@@ -1,4 +1,10 @@
+vi.mock('@/features/subscription/services/signupOffer', () => ({
+  getSignupOffer: vi.fn(() => Promise.resolve(null)),
+  getAppliedPromo: vi.fn(() => Promise.resolve(null)),
+}));
 import React from 'react';
+import { supabase } from '@/lib/supabase';
+import { getSignupOffer, getAppliedPromo } from '@/features/subscription/services/signupOffer';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -114,5 +120,73 @@ describe('pricing page picks the plan length from the exam date', () => {
     rerender(<Pricing />);
     await waitFor(() => expect(screen.queryByText(/paid once/)).not.toBeInTheDocument());
     await waitFor(() => expect(within(proCard()).getByText('$9.99')).toBeInTheDocument());
+  });
+});
+
+describe('explicit marketing offer priority', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    vi.clearAllMocks();
+  });
+  afterEach(() => {
+    pricingState.user = null;
+    window.localStorage.clear();
+    vi.restoreAllMocks();
+  });
+  const setup = () => {
+    pricingState.user = {
+      ...learner(null),
+      promo_discount: { code: 'START20-PERSONAL', discount_type: 'percentage', discount_value: 20 },
+    };
+    window.localStorage.setItem('pending_promo_code', 'FIRST30');
+  };
+  it('checks an explicit marketing code without replacing the account offer when rejected', async () => {
+    setup();
+    const redeem = vi.spyOn(supabase, 'rpc').mockResolvedValue({
+      data: {
+        success: false,
+        error: 'Only one promo code can be used per account.',
+      },
+      error: null,
+    });
+    render(<Pricing />);
+    await waitFor(() =>
+      expect(redeem).toHaveBeenCalledWith('redeem_promo_code', { code_lookup: 'FIRST30' })
+    );
+    await waitFor(() => expect(within(proCard()).getByText('$7.99')).toBeInTheDocument());
+    expect(getSignupOffer).not.toHaveBeenCalled();
+  });
+  it('keeps the starter discount when the marketing code is rejected', async () => {
+    setup();
+    vi.spyOn(supabase, 'rpc').mockResolvedValue({
+      data: { success: false, error: 'Expired offer' },
+      error: null,
+    });
+    render(<Pricing />);
+    await waitFor(() => expect(window.localStorage.getItem('pending_promo_code')).toBeNull());
+    expect(within(proCard()).getByText('$7.99')).toBeInTheDocument();
+    expect(getSignupOffer).not.toHaveBeenCalled();
+  });
+});
+
+describe('payment offer validation', () => {
+  afterEach(() => {
+    pricingState.user = null;
+    vi.clearAllMocks();
+    window.localStorage.clear();
+  });
+  it('drops an expired discount before showing payment instructions', async () => {
+    window.localStorage.clear();
+    pricingState.user = {
+      ...learner(null),
+      promo_discount: { code: 'START20-PERSONAL', discount_type: 'percentage', discount_value: 20 },
+    };
+    getAppliedPromo.mockResolvedValue(null);
+    render(<Pricing />);
+    await waitFor(() => expect(within(proCard()).getByText('$7.99')).toBeInTheDocument());
+    fireEvent.click(within(proCard()).getByRole('button'));
+    await waitFor(() => expect(getAppliedPromo).toHaveBeenCalled());
+    await waitFor(() => expect(within(proCard()).getByText('$9.99')).toBeInTheDocument());
+    expect(screen.queryByText('Manual Payment Portal')).not.toBeInTheDocument();
   });
 });

@@ -33,6 +33,7 @@ type CampaignOffer = {
   code: string;
   discountPercent?: number | null;
   expiresAt?: string | null;
+  firstPaymentOnly?: boolean;
 };
 
 /**
@@ -54,12 +55,9 @@ const campaignEmail = (
     message: campaign.message,
     subject: campaign.subject || campaign.title,
     objective: campaign.objective,
+    lifecycleStage: campaign.metadata?.lifecycle_stage,
     ctaLabel: campaign.cta_label,
-    recipientName:
-      recipient.username ||
-      recipient.full_name?.split(' ')[0] ||
-      recipient.email?.split('@')[0] ||
-      'there',
+    recipientName: recipient.username?.trim() || 'there',
     clickUrl,
     openUrl,
     unsubscribeUrl,
@@ -136,7 +134,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
   const { data: campaign, error: campaignError } = await admin
     .from('marketing_campaigns')
     .select(
-      '*, segment:marketing_segments(*), promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,discount_value,is_active,valid_until,max_uses,current_uses)'
+      '*, segment:marketing_segments(*), promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,discount_type,discount_value,is_signup_offer_template,assigned_user_id,is_active,valid_from,valid_until,offer_expires_at,max_uses,current_uses)'
     )
     .eq('id', campaignId)
     .single();
@@ -173,7 +171,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
   const promoExhausted =
     campaign.promo &&
     (!campaign.promo.is_active ||
-      (campaign.promo.valid_until && new Date(campaign.promo.valid_until) <= now) ||
+      (campaign.promo.valid_until && campaign.promo.valid_until < now.toISOString().slice(0, 10)) ||
       (campaign.promo.max_uses && campaign.promo.current_uses >= campaign.promo.max_uses));
   if (promoExhausted) {
     await admin.from('marketing_campaigns').update({ status: 'paused' }).eq('id', campaign.id);
@@ -196,9 +194,14 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
   if (memberError) throw memberError;
   const audience = members || [];
   const userIds = audience.map((member: any) => member.user_id);
-  const { data: usernameRows } = userIds.length
-    ? await admin.from('users').select('id,username').in('id', userIds)
-    : { data: [] };
+  const { data: usernameRows, error: usernameError } = userIds.length
+    ? await admin
+        .from('users')
+        .select('id,username,promo_discount,used_promo_codes')
+        .in('id', userIds)
+    : { data: [], error: null };
+  if (usernameError) throw usernameError;
+  const profiles = new Map((usernameRows || []).map((row: any) => [row.id, row]));
   const usernames = new Map((usernameRows || []).map((row: any) => [row.id, row.username]));
   const { data: preferenceRows } = userIds.length
     ? await admin.from('learner_marketing_preferences').select('*').in('user_id', userIds)
@@ -222,11 +225,36 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
     historyByUser.set(row.user_id, [...(historyByUser.get(row.user_id) || []), row]);
   });
 
-  const staticOffer = campaign.promo?.code
-    ? { code: campaign.promo.code, discountPercent: Number(campaign.promo.discount_value) || null }
-    : null;
+  const todayUtc = now.toISOString().slice(0, 10);
+  const promo = campaign.promo;
+  const staticOffer =
+    promo?.code &&
+    !promo.is_signup_offer_template &&
+    promo.is_active &&
+    (!promo.valid_from || promo.valid_from <= todayUtc) &&
+    (!promo.valid_until || promo.valid_until >= todayUtc) &&
+    (!promo.offer_expires_at || new Date(promo.offer_expires_at) > now) &&
+    (promo.max_uses == null || Number(promo.current_uses || 0) < promo.max_uses)
+      ? {
+          code: promo.code,
+          discountPercent:
+            promo.discount_type === 'percentage' ? Number(promo.discount_value) : null,
+          expiresAt:
+            promo.offer_expires_at ||
+            (promo.valid_until
+              ? new Date(
+                  new Date(`${promo.valid_until}T00:00:00Z`).getTime() + 86400000
+                ).toISOString()
+              : null),
+          firstPaymentOnly: true,
+        }
+      : null;
   const issuesCheckoutRecoveryOffer =
     Number(campaign.metadata?.checkout_recovery_offer_percent) === 15;
+  const issuesSignupOffer =
+    campaign.promo?.is_signup_offer_template ||
+    (Number(campaign.metadata?.signup_offer_percent) === 20 &&
+      ['signup', 'first_result', 'quota'].includes(campaign.metadata?.lifecycle_stage));
   const stats = { accepted: 0, skipped: 0, failed: 0 };
   await mapLimit(audience, 5, async (member: any) => {
     const recipient = { ...member, username: usernames.get(member.user_id) || null };
@@ -381,9 +409,9 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           user_id: member.user_id,
           channel,
           attempt,
-          status: channel === 'email' ? 'processing' : 'accepted',
+          status: 'processing',
           content,
-          delivered_at: channel === 'email' ? null : now.toISOString(),
+          delivered_at: null,
         })
         .select('id,tracking_token')
         .single();
@@ -392,21 +420,94 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         continue;
       }
 
-      if (channel !== 'email') {
-        stats.accepted += 1;
-        await admin.from('marketing_events').insert({
-          campaign_id: campaign.id,
-          delivery_id: delivery.id,
-          user_id: member.user_id,
-          event_type: 'delivered',
-          channel,
-          dedupe_key: `${delivery.id}:delivered`,
-        });
+      if (campaign.promo?.assigned_user_id && campaign.promo.assigned_user_id !== member.user_id) {
+        stats.skipped += 1;
+        await admin
+          .from('marketing_deliveries')
+          .update({ status: 'skipped', failure_reason: 'offer_assigned_to_another_account' })
+          .eq('id', delivery.id);
         continue;
       }
-
       let offer: CampaignOffer | null = staticOffer;
-      if (issuesCheckoutRecoveryOffer) {
+      if (staticOffer && !issuesSignupOffer) {
+        const { data: personalOffer, error: personalError } = await admin
+          .from('promo_codes')
+          .select('code,discount_value,discount_type,is_active,offer_expires_at,current_uses')
+          .eq('assigned_user_id', member.user_id)
+          .not('signup_offer_template_id', 'is', null)
+          .maybeSingle();
+        if (
+          personalError ||
+          (personalOffer &&
+            (!personalOffer.is_active ||
+              !personalOffer.offer_expires_at ||
+              new Date(personalOffer.offer_expires_at) <= now ||
+              personalOffer.discount_type !== 'percentage' ||
+              Number(personalOffer.discount_value) !== staticOffer.discountPercent))
+        ) {
+          stats.skipped += 1;
+          await admin
+            .from('marketing_deliveries')
+            .update({ status: 'skipped', failure_reason: 'account_offer_conflict_or_expired' })
+            .eq('id', delivery.id);
+          continue;
+        }
+        if (personalOffer)
+          offer = {
+            code: personalOffer.code,
+            discountPercent: Number(personalOffer.discount_value),
+            expiresAt: personalOffer.offer_expires_at,
+            firstPaymentOnly: true,
+          };
+      }
+      const account = profiles.get(member.user_id) as any;
+      if (
+        !issuesSignupOffer &&
+        offer &&
+        account?.used_promo_codes?.length &&
+        account?.promo_discount?.code !== offer.code
+      ) {
+        stats.skipped += 1;
+        await admin
+          .from('marketing_deliveries')
+          .update({ status: 'skipped', failure_reason: 'account_promo_already_used' })
+          .eq('id', delivery.id);
+        continue;
+      }
+      if (issuesSignupOffer) {
+        const { data: signupOffer, error: signupOfferError } = await admin.rpc(
+          'provision_signup_subscription_offer',
+          { p_campaign_id: campaign.id, p_user_id: member.user_id, p_delivery_id: delivery.id }
+        );
+        if (signupOfferError) {
+          stats.failed += 1;
+          await admin
+            .from('marketing_deliveries')
+            .update({ status: 'failed', failure_reason: signupOfferError.message })
+            .eq('id', delivery.id);
+          continue;
+        }
+        offer = signupOffer?.available
+          ? {
+              code: signupOffer.code,
+              discountPercent: 20,
+              expiresAt: signupOffer.expires_at,
+              firstPaymentOnly: true,
+            }
+          : null;
+        if (!offer && campaign.metadata?.lifecycle_stage !== 'signup') {
+          stats.skipped += 1;
+          await admin
+            .from('marketing_deliveries')
+            .update({
+              status: 'skipped',
+              failure_reason: signupOffer?.reason || 'signup_offer_unavailable',
+            })
+            .eq('id', delivery.id);
+          continue;
+        }
+      }
+      if (!issuesSignupOffer && issuesCheckoutRecoveryOffer && channel === 'email') {
         const { data: recoveryOffer, error: recoveryOfferError } = await admin.rpc(
           'provision_checkout_recovery_offer',
           {
@@ -451,7 +552,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
       destination.searchParams.set('campaign_id', campaign.id);
       destination.searchParams.set('delivery_id', delivery.id);
       if (offer?.code) destination.searchParams.set('promo', offer.code);
-      await admin
+      const { error: contentError } = await admin
         .from('marketing_deliveries')
         .update({
           content: {
@@ -459,9 +560,39 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
             cta_url: `${destination.pathname}${destination.search}`,
             promo_code: offer?.code || null,
             offer_expires_at: offer?.expiresAt || null,
+            discount_percent: offer?.discountPercent || null,
           },
         })
         .eq('id', delivery.id);
+      if (contentError) {
+        stats.failed += 1;
+        await admin
+          .from('marketing_deliveries')
+          .update({ status: 'failed', failure_reason: contentError.message })
+          .eq('id', delivery.id);
+        continue;
+      }
+      if (channel !== 'email') {
+        const { error: acceptError } = await admin
+          .from('marketing_deliveries')
+          .update({ status: 'accepted', delivered_at: now.toISOString() })
+          .eq('id', delivery.id);
+        if (acceptError) {
+          stats.failed += 1;
+          continue;
+        }
+        stats.accepted += 1;
+        await admin.from('marketing_events').insert({
+          campaign_id: campaign.id,
+          delivery_id: delivery.id,
+          user_id: member.user_id,
+          event_type: 'delivered',
+          channel,
+          dedupe_key: `${delivery.id}:delivered`,
+        });
+        continue;
+      }
+
       const unsubscribeUrl = unsubscribeEndpoint(delivery.id, delivery.tracking_token);
       const email = campaignEmail(
         campaign,

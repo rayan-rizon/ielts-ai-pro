@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
-import { getPlanPriceAndMeta, calculatePrice, formatBillingNote } from '@/lib/pricingUtils';
+import {
+  getPlanPriceAndMeta,
+  calculatePrice,
+  formatBillingNote,
+  promoForPlan,
+} from '@/lib/pricingUtils';
 import { describeExamCoverage, getExamPlanContext } from '@/lib/examPlan';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
 import { getGaSessionHandle, trackAppEvent, trackAuthenticatedAppEvent } from '@/lib/tracking';
 import { getMarketingAttribution } from '@/lib/marketingAttribution';
+import { getSignupOffer, getAppliedPromo } from '@/features/subscription/services/signupOffer';
 import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/lib/promoOffer';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 import { requirePublicEnv } from '@/lib/publicEnv';
@@ -299,7 +305,7 @@ function PricingPlansGrid({
         const displayPrice = calculatePrice(
           plan.basePrice,
           billingInterval,
-          promoDiscount,
+          promoForPlan(promoDiscount, plan.tier),
           plan.currency
         );
         const isActive = user
@@ -311,7 +317,11 @@ function PricingPlansGrid({
             key={plan.tier}
             plan={plan}
             displayPrice={displayPrice}
-            priceNote={formatBillingNote(plan, billingInterval, promoDiscount)}
+            priceNote={formatBillingNote(
+              plan,
+              billingInterval,
+              promoForPlan(promoDiscount, plan.tier)
+            )}
             isActive={isActive}
             isSubscribed={isSubscribed}
             isLoading={isLoading}
@@ -384,6 +394,7 @@ export default function Pricing() {
           code: redemptionData.code,
           discount_type: redemptionData.discount_type,
           discount_value: redemptionData.discount_value,
+          applicable_plans: redemptionData.applicable_plans,
         });
       }
     }
@@ -397,9 +408,9 @@ export default function Pricing() {
     captureUrlPromoCode();
 
     const code = getPendingPromoCode();
-    if (!code || !user) return;
+    if (!user) return;
 
-    if (user.promo_discount?.code) {
+    if (user.promo_discount?.code && (!code || code === user.promo_discount.code)) {
       clearPendingPromoCode();
       return;
     }
@@ -407,7 +418,11 @@ export default function Pricing() {
     let cancelled = false;
     const applyPendingOffer = async () => {
       try {
-        const data = await redeemPromoOfferRpc(code);
+        // Explicit links and already-applied promos take priority. Only create
+        // a personal signup offer when no other discount is being requested.
+        const offerCode = code || (await getSignupOffer())?.code;
+        if (!offerCode || cancelled) return;
+        const data = await redeemPromoOfferRpc(offerCode);
         if (cancelled) return;
 
         clearPendingPromoCode();
@@ -415,6 +430,7 @@ export default function Pricing() {
           code: data.code,
           discount_type: data.discount_type,
           discount_value: data.discount_value,
+          applicable_plans: data.applicable_plans,
         });
         await refetchUser();
         const { toast } = await import('sonner');
@@ -656,6 +672,31 @@ export default function Pricing() {
       return;
     }
 
+    if (promoDiscount?.code) {
+      setIsLoading(true);
+      try {
+        const validOffer = await getAppliedPromo();
+        const freshMeta = getPlanPriceAndMeta({
+          plans,
+          planTier,
+          billingInterval,
+          promoDiscount: validOffer,
+          currentTier: user.subscription_tier,
+        });
+        if (!validOffer || freshMeta.chargeAmount !== meta.chargeAmount) {
+          setPromoDiscount(validOffer);
+          const { toast } = await import('sonner');
+          toast.error('Your offer changed or expired. Review the updated price before paying.');
+          return;
+        }
+      } catch {
+        const { toast } = await import('sonner');
+        toast.error('We could not verify your discount. Please try again before paying.');
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    }
     if (useManualBdPayment) {
       startManualBdCheckout(planTier, meta.plan, meta.chargeAmount);
       return;

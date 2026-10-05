@@ -64,7 +64,7 @@ export default function WritingUpgradeDialog({
     if (isExiting && typeof isExiting === 'object' && 'current' in isExiting) {
       isExiting.current = true;
     }
-    navigate('/upgrade');
+    navigate('/upgrade?focus=writing');
   };
 
   const used = currentWritingUsage?.used;
@@ -78,7 +78,7 @@ export default function WritingUpgradeDialog({
       <AlertDialogContent
         className={cn(
           PANEL,
-          'max-w-[460px] gap-0 overflow-hidden p-0 rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] shadow-md sm:shadow-lg'
+          'max-w-[460px] gap-0 overflow-hidden p-0 rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] '
         )}
       >
         <div className="relative p-6 sm:p-7 space-y-5">
@@ -106,7 +106,7 @@ export default function WritingUpgradeDialog({
 
             <AlertDialogHeader className="space-y-2 text-center sm:text-center w-full">
               <AlertDialogTitle className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 text-center w-full">
-                Limit Reached
+                Keep your Writing feedback going
               </AlertDialogTitle>
               <AlertDialogDescription
                 className={cn(
@@ -120,7 +120,7 @@ export default function WritingUpgradeDialog({
                     <b className="font-semibold text-slate-800 dark:text-slate-100">
                       {hasProQuota
                         ? `${proWritingLimit} evaluations per month`
-                        : 'its current admin-set allowance'}
+                        : 'more evaluations'}
                     </b>{' '}
                     and in-depth examiner feedback.
                   </>
@@ -130,7 +130,7 @@ export default function WritingUpgradeDialog({
                     <b className="font-semibold text-slate-800 dark:text-slate-100">
                       {hasProQuota
                         ? `${proWritingLimit} evaluations per month`
-                        : 'its current admin-set allowance'}
+                        : 'more evaluations'}
                     </b>{' '}
                     and in-depth examiner feedback.
                   </>
@@ -144,7 +144,7 @@ export default function WritingUpgradeDialog({
             <div className="flex items-center justify-between border-b border-[#eeedf7] bg-[#f4f3fb] px-4 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.04]">
               <span className={cn(MICRO, MUTED)}>INCLUDED WITH PRO</span>
               <span className={cn(MICRO, NUM, 'font-bold text-[#5a63df] dark:text-[#afb5ff]')}>
-                {hasProQuota ? `${proWritingLimit} EVALUATIONS / MO` : 'ADMIN-SET PLAN LIMIT'}
+                {hasProQuota ? `${proWritingLimit} EVALUATIONS / MO` : 'MORE AI FEEDBACK'}
               </span>
             </div>
 
@@ -204,7 +204,7 @@ export default function WritingUpgradeDialog({
               onClick={() => onOpenChange(false)}
               className="h-9 w-full rounded-lg text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors active:scale-[0.98] cursor-pointer"
             >
-              Maybe Later
+              Continue with free practice
             </Button>
           </div>
         </div>

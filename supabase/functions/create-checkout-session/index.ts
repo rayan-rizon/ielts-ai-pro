@@ -411,7 +411,7 @@ Deno.serve(async (req: Request) => {
         const { data: promoData } = await serviceClient
           .from('promo_codes')
           .select(
-            'id, code, discount_type, discount_value, is_active, valid_until, offer_expires_at, assigned_user_id'
+            'id, code, discount_type, discount_value, is_active, valid_from, valid_until, offer_expires_at, assigned_user_id, applicable_plans, is_signup_offer_template'
           )
           .ilike('code', userPromoDiscount.code)
           .eq('is_active', true)
@@ -419,14 +419,24 @@ Deno.serve(async (req: Request) => {
 
         if (promoData) {
           const isNotExpired =
-            (!promoData.valid_until || new Date(promoData.valid_until) > new Date()) &&
+            (!promoData.valid_from ||
+              promoData.valid_from <= new Date().toISOString().slice(0, 10)) &&
+            (!promoData.valid_until ||
+              promoData.valid_until >= new Date().toISOString().slice(0, 10)) &&
             (!promoData.offer_expires_at || new Date(promoData.offer_expires_at) > new Date());
           const isAssignedToUser =
             !promoData.assigned_user_id || promoData.assigned_user_id === userData.id;
 
           // Capacity was claimed atomically by redeem_promo_code. Rechecking
           // current_uses here would reject the learner who claimed the final slot.
-          if (isNotExpired && isAssignedToUser) {
+          const isApplicable =
+            !promoData.applicable_plans?.length || promoData.applicable_plans.includes(tier);
+          if (
+            isNotExpired &&
+            isAssignedToUser &&
+            isApplicable &&
+            !promoData.is_signup_offer_template
+          ) {
             validatedDiscount = {
               code: promoData.code,
               discount_type: promoData.discount_type,
@@ -603,12 +613,10 @@ Deno.serve(async (req: Request) => {
       cancel_url: `${FRONTEND_URL}/pricing`,
     };
 
-    // Apply discount: use server-validated coupon OR allow manual promo codes
-    // Stripe doesn't allow both discounts[] and allow_promotion_codes simultaneously
+    // All codes are redeemed in-app, where ownership, expiry and the account's
+    // redemption history are enforced. Stripe's public code field bypasses those checks.
     if (stripeCouponId) {
       checkoutBody['discounts[0][coupon]'] = stripeCouponId;
-    } else {
-      checkoutBody['allow_promotion_codes'] = 'true';
     }
 
     // Add line_items manually using Stripe's array format

@@ -92,6 +92,13 @@ const scheduledEmails = readFileSync(
 );
 
 describe('Admin Marketing Hub contracts', () => {
+  it('enforces account promos before checkout and prevents Stripe code-entry bypass', () => {
+    expect(checkoutSession).not.toContain("checkoutBody['allow_promotion_codes']");
+    expect(checkoutSession).toContain("checkoutBody['discounts[0][coupon]'] = stripeCouponId");
+    expect(checkoutSession).toContain("duration: 'once'");
+    expect(checkoutSession).toContain('promoData.assigned_user_id === userData.id');
+    expect(checkoutSession).toContain('promoData.applicable_plans.includes(tier)');
+  });
   it('separates the glanceable growth goal from specialist workspaces', () => {
     expect(marketingHub).toContain("['copilot', 'Copilot'");
     expect(marketingHub).not.toContain('<SubscriptionGrowthCockpit');
@@ -240,7 +247,7 @@ describe('Admin Marketing Hub contracts', () => {
     expect(commandStrip).toContain('No paid-conversion campaign is live');
     expect(analyticsPanel).toContain('From delivery to paid learner');
     expect(analyticsPanel).toContain('Checkout started');
-    expect(dispatcher).toContain("select('id,username')");
+    expect(dispatcher).toContain("select('id,username,promo_discount,used_promo_codes')");
     expect(dispatcher).toContain('recipient.username');
     // Campaign mail renders through the shared shell now, so the brand header
     // and the closing reassurance line live in templates.ts, not the dispatcher.

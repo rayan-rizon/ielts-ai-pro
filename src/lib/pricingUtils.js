@@ -181,6 +181,9 @@ export const formatBillingNote = (plan, interval, discount) => {
   return interval === 'quarterly' ? formatExamPassCharge(plan, discount) : 'Paid month to month';
 };
 
+export const promoForPlan = (discount, tier) =>
+  discount?.applicable_plans?.length && !discount.applicable_plans.includes(tier) ? null : discount;
+
 export const getPlanPriceAndMeta = ({
   plans,
   planTier,
@@ -191,8 +194,9 @@ export const getPlanPriceAndMeta = ({
   const plan = Array.isArray(plans) ? plans.find((entry) => entry.tier === planTier) : undefined;
   const basePrice = plan ? plan.basePrice : 0;
   const currency = plan?.currency || 'USD';
-  const displayPrice = calculatePrice(basePrice, billingInterval, promoDiscount, currency);
-  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, promoDiscount, currency);
+  const discount = promoForPlan(promoDiscount, planTier);
+  const displayPrice = calculatePrice(basePrice, billingInterval, discount, currency);
+  const chargeAmount = calculateCheckoutAmount(basePrice, billingInterval, discount, currency);
   const tier = currentTier || 'free';
   return { plan, displayPrice, chargeAmount, currency, tier };
 };

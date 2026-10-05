@@ -25,7 +25,7 @@ const emptyPromo = () => ({
   valid_from: new Date().toISOString().split('T')[0],
   valid_until: '',
   max_uses: 100,
-  applicable_plans: ['pro'],
+  applicable_plans: ['pro', 'premium'],
   grants_subscription: null,
   subscription_duration_days: 30,
   label: '',
@@ -35,12 +35,23 @@ const emptyPromo = () => ({
 const validatePromo = (promo, promoCodes) => {
   if (!promo.code.trim()) return 'Promo code is required.';
   if (!promo.valid_until) return 'Code expiration date is required.';
-  if (!promo.grants_subscription && promo.discount_value <= 0) {
+  if (
+    !promo.grants_subscription &&
+    (!Number.isFinite(promo.discount_value) || promo.discount_value <= 0)
+  ) {
     return 'Discount value must be greater than 0.';
   }
   if (promo.grants_subscription && promo.subscription_duration_days < 1) {
     return 'Duration is required for subscription grants.';
   }
+  if (promo.discount_type === 'percentage' && promo.discount_value > 100)
+    return 'Percentage must be 100 or less.';
+  if (!Number.isInteger(promo.max_uses) || promo.max_uses < 1)
+    return 'Usage cap must be a positive whole number.';
+  if (!/^[A-Z0-9-]{6,64}$/i.test(promo.code.trim()))
+    return 'Use 6–64 letters, numbers or hyphens for the code.';
+  if (promo.valid_until < new Date().toISOString().slice(0, 10))
+    return 'Expiration date cannot be in the past.';
   const normalizedCode = promo.code.toLowerCase().trim();
   if (promoCodes.some((existing) => existing.code.toLowerCase() === normalizedCode)) {
     return `Promo code "${promo.code}" already exists.`;
@@ -149,8 +160,15 @@ const PromoManagement = () => {
   const stats = useMemo(
     () => ({
       total: promoCodes.length,
-      active: promoCodes.filter((promo) => promo.is_active).length,
-      totalUses: promoCodes.reduce((total, promo) => total + (promo.current_uses || 0), 0),
+      active: promoCodes.filter(
+        (promo) =>
+          promo.is_active &&
+          (!promo.valid_until || promo.valid_until >= new Date().toISOString().slice(0, 10))
+      ).length,
+      totalUses: promoCodes.reduce(
+        (total, promo) => total + (promo.is_signup_offer_template ? 0 : promo.current_uses || 0),
+        0
+      ),
     }),
     [promoCodes]
   );
