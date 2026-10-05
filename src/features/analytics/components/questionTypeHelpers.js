@@ -1,3 +1,5 @@
+import { percentOf } from '@/features/testing/shared/utils/resultEvidence';
+
 export function getQuestionSuccessSummary(data = []) {
   const totals = data.reduce(
     (summary, item) => ({
@@ -9,7 +11,7 @@ export function getQuestionSuccessSummary(data = []) {
 
   return {
     ...totals,
-    accuracy: totals.total ? Math.round((totals.correct / totals.total) * 100) : 0,
+    accuracy: percentOf(totals.correct, totals.total),
   };
 }
 

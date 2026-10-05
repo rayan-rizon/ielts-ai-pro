@@ -63,10 +63,23 @@ const CustomTooltip = ({ active, payload }) => {
  * carried alone — rides in the footnote, because it answers the same question
  * the ring does: what to change about how answers get given.
  */
-export default function ErrorAudit({ data, sessionReferences = {}, onDrilldown, behaviour }) {
+export default function ErrorAudit({
+  data,
+  sessionReferences = {},
+  onDrilldown,
+  behaviour,
+  totalMistakes,
+}) {
   const hasData = data && data.length > 0;
   const edge = behaviour?.hasSignal ? behaviour.revisionEdge : null;
-  const totalPointsLost = hasData ? data.reduce((sum, d) => sum + d.value, 0) : 0;
+  // A wrong answer can be both a near miss and a timing error; the headline
+  // counts each question once when the analytics model supplies that total.
+  const categorySum = hasData ? data.reduce((sum, d) => sum + d.value, 0) : 0;
+  const totalPointsLost = hasData
+    ? Number.isFinite(totalMistakes)
+      ? Math.min(categorySum, totalMistakes)
+      : categorySum
+    : 0;
 
   const handleCellClick = (entry) => {
     const categoryMap = {

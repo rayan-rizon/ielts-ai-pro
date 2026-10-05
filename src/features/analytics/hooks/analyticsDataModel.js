@@ -1,3 +1,4 @@
+import { percentOf } from '@/features/testing/shared/utils/resultEvidence';
 import {
   computeAdvancedMetrics,
   computeChartData,
@@ -34,7 +35,7 @@ export function buildGrammarEvidence(grammarAttempts, selectedTimeframe, now = D
 
   return {
     completedAttempts: completed.length,
-    accuracy: totals.questions > 0 ? Math.round((totals.correct / totals.questions) * 100) : null,
+    accuracy: totals.questions > 0 ? percentOf(totals.correct, totals.questions) : null,
     transferAttempts: totals.transfer,
   };
 }

@@ -81,14 +81,9 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
       : stats.avgScore;
 
   const currentLabel = hasScoreData ? getBandLabel(displayScore) : 'No score yet';
-  const efficiencyValues = Object.values(stats.efficiency || {}).filter(
-    (value) => Number(value) > 0
-  );
-  const averageMinutes = efficiencyValues.length
-    ? Math.round(
-        efficiencyValues.reduce((sum, value) => sum + Number(value), 0) / efficiencyValues.length
-      )
-    : null;
+  // Mean recorded minutes per test. Averaging the per-module averages instead
+  // gave one Speaking session the same weight as twenty Reading tests.
+  const averageMinutes = Number(stats.avgMinutesPerTest) > 0 ? stats.avgMinutesPerTest : null;
 
   const scoredText = hasOverallEstimate
     ? 'Latest score from all 4 modules'
@@ -133,7 +128,9 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             <InfoTip>
               {hasOverallEstimate
                 ? 'IELTS-rounded average of your latest Reading, Writing, Listening and Speaking scores.'
-                : 'Average of every scored, non-abandoned test in this period.'}
+                : 'Average of every scored, non-abandoned test in this period.'}{' '}
+              The ▲/▼ trend compares your recent and earlier results within each module, then
+              averages across modules.
             </InfoTip>
           </div>
 

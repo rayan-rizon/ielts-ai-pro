@@ -1,6 +1,14 @@
 import { formatBand, calculateImprovement } from '../utils';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
-import { reconcileObjectiveResultEvidence } from '@/features/testing/shared/utils/resultEvidence';
+import {
+  percentOf,
+  reconcileObjectiveResultEvidence,
+} from '@/features/testing/shared/utils/resultEvidence';
+import {
+  countNearMissesFromGradedRecords,
+  countUnansweredFromGradedRecords,
+  isGradedNearMiss,
+} from '@/services/testMetricsService';
 
 export const MODULES = ['reading', 'writing', 'listening', 'speaking'];
 export const MAX_REASONABLE_TEST_SECONDS = 4 * 60 * 60;
@@ -175,6 +183,22 @@ const averageScore = (sessions) => {
   return sessions.reduce((sum, session) => sum + Number(session.score), 0) / sessions.length;
 };
 
+/**
+ * Recent-versus-earlier band movement, measured inside each module and then
+ * averaged across the modules that have one. Comparing the last few tests
+ * regardless of module read a Writing 5.0 after a Reading 8.0 as a 3-band
+ * drop; a module is only ever compared with itself.
+ */
+export function calculateModuleImprovement(scoredSessions) {
+  const changes = MODULES.map((type) =>
+    (scoredSessions || []).filter((s) => String(s.test_type || '').toLowerCase() === type)
+  )
+    .filter((sessions) => sessions.length >= 2)
+    .map((sessions) => calculateImprovement(sessions));
+  if (changes.length === 0) return 0;
+  return Number((changes.reduce((sum, change) => sum + change, 0) / changes.length).toFixed(1));
+}
+
 const getStudyHoursTrend = (studyHours, previousStudyHours) => {
   if (previousStudyHours > 0) {
     return Math.round(((studyHours - previousStudyHours) / previousStudyHours) * 100);
@@ -210,7 +234,7 @@ export function computeStats(filteredSessions, previousSessions, authUser, vocab
 
   const studyHoursTrend = getStudyHoursTrend(studyHours, prevStudyHours);
 
-  const improvement = calculateImprovement(measuredScored);
+  const improvement = calculateModuleImprovement(measuredScored);
   const moduleLatestScores = getLatestModuleScores(measuredScored);
 
   const overallEstimate = computeOverallEstimate(moduleLatestScores);
@@ -397,23 +421,33 @@ function processQuestionTiming(content, aggState, sessionBrief) {
   const answers = content.correctAnswersMap;
   if (!times || !answers) return;
 
-  const { rushed: rushedHere, overanalysed: overanalysedHere } = countTimingErrors(times, answers);
+  const {
+    rushed: rushedHere,
+    overanalysed: overanalysedHere,
+    alsoNearMiss,
+  } = countTimingErrors(times, answers);
 
   aggState.behaviourAgg.rushed += rushedHere;
   aggState.behaviourAgg.overanalysed += overanalysedHere;
+  aggState.enhancedMetricsAgg.timingNearMissOverlap += alsoNearMiss;
 
   addTimingReference(aggState, 'rushed', rushedHere, sessionBrief);
   addTimingReference(aggState, 'overanalyzed', overanalysedHere, sessionBrief);
 }
 
 function countTimingErrors(times, answers) {
-  const result = { rushed: 0, overanalysed: 0 };
+  const result = { rushed: 0, overanalysed: 0, alsoNearMiss: 0 };
   Object.entries(times).forEach(([questionId, rawSeconds]) => {
     const seconds = Number(rawSeconds);
     const record = answers[questionId];
     if (!isTimedIncorrectAnswer(record, seconds)) return;
-    if (seconds <= RUSHED_MAX_SECONDS) result.rushed += 1;
-    if (seconds >= OVERANALYSED_MIN_SECONDS) result.overanalysed += 1;
+    const rushed = seconds <= RUSHED_MAX_SECONDS;
+    const overanalysed = seconds >= OVERANALYSED_MIN_SECONDS;
+    if (rushed) result.rushed += 1;
+    if (overanalysed) result.overanalysed += 1;
+    // The same wrong answer can be both a timing error and a near miss; the
+    // panel's total counts each question once.
+    if ((rushed || overanalysed) && isGradedNearMiss(record)) result.alsoNearMiss += 1;
   });
   return result;
 }
@@ -434,10 +468,15 @@ function addTimingReference(aggState, category, count, sessionBrief) {
  * plus `correctAnswersMap` answers it directly: accuracy on questions the
  * learner revised, against accuracy on questions they left alone.
  */
-function processAnswerChanges(content, aggState) {
+// Only the reading test records answer revisions. Listening sessions carry an
+// empty `answerChangeCounts`, which used to file every listening answer —
+// blanks included — as an unrevised first answer.
+const MODULES_WITH_REVISION_TRACKING = new Set(['reading']);
+
+function processAnswerChanges(content, aggState, type) {
   const changes = content.answerChangeCounts;
   const answers = content.correctAnswersMap;
-  if (!changes || !answers) return;
+  if (!changes || !answers || !MODULES_WITH_REVISION_TRACKING.has(type)) return;
 
   Object.entries(answers).forEach(([questionId, record]) => {
     if (!hasRecordedAnswer(record)) return;
@@ -448,8 +487,16 @@ function processAnswerChanges(content, aggState) {
   });
 }
 
+const isBlankAnswer = (answer) =>
+  answer == null ||
+  (typeof answer === 'string' && (answer.trim() === '' || answer === '(not selected)')) ||
+  (Array.isArray(answer) && answer.length === 0);
+
 const hasRecordedAnswer = (record) =>
-  Boolean(record) && record.isCorrect !== null && record.isCorrect !== undefined;
+  Boolean(record) &&
+  record.isCorrect !== null &&
+  record.isCorrect !== undefined &&
+  !isBlankAnswer(record.userAnswer);
 
 /*
  * NOTE: `content_data.skillGaps` (scanningEfficiency, globalComprehension, …)
@@ -471,8 +518,17 @@ function processTimeMetrics(content, aggState) {
 
 function processErrorPatterns(content, aggState, sessionBrief) {
   if (!content.errorPatterns) return;
-  const nearMisses = nonNegativeCount(content.errorPatterns.nearMissCount);
-  const unanswered = nonNegativeCount(content.errorPatterns.unansweredCount);
+  // Recount from the graded per-question records when they exist. The stored
+  // counts flagged some accepted answers as near misses and over-counted
+  // blanks on choose-two questions; the records carry the grader's verdict.
+  const answers = content.correctAnswersMap;
+  const nearMisses = nonNegativeCount(
+    countNearMissesFromGradedRecords(answers) ?? content.errorPatterns.nearMissCount
+  );
+  const unanswered = nonNegativeCount(
+    (answers && countUnansweredFromGradedRecords(answers, Number(content.totalQuestions))) ??
+      content.errorPatterns.unansweredCount
+  );
 
   aggState.enhancedMetricsAgg.totalNearMisses += nearMisses;
   aggState.enhancedMetricsAgg.totalUnanswered += unanswered;
@@ -506,6 +562,13 @@ function processModuleEfficiency(s, type, aggState) {
   }
 }
 
+/** Mean recorded minutes per test across every module — one sitting, one vote. */
+function computeAverageMinutesPerTest(aggState) {
+  const minutes = MODULES.reduce((sum, m) => sum + aggState.moduleEfficiency[m], 0);
+  const tests = MODULES.reduce((sum, m) => sum + aggState.moduleEfficiencyCount[m], 0);
+  return tests > 0 ? Math.round(minutes / tests) : null;
+}
+
 function processSessionContent(s, aggState) {
   if (!s) return;
   const type = String(s.test_type || '').toLowerCase();
@@ -536,7 +599,7 @@ function processSessionContent(s, aggState) {
   processTimeMetrics(content, aggState);
   processErrorPatterns(content, aggState, sessionBrief);
   processQuestionTiming(content, aggState, sessionBrief);
-  processAnswerChanges(content, aggState);
+  processAnswerChanges(content, aggState, type);
 }
 
 function getFeedbackScores(fbs, taskName) {
@@ -663,6 +726,7 @@ function buildInitialAggState() {
       troubleTypesFrequency: {},
       totalNearMisses: 0,
       totalUnanswered: 0,
+      timingNearMissOverlap: 0,
       sessionReferences: { nearMisses: [], unanswered: [], rushed: [], overanalyzed: [] },
     },
     behaviourAgg: {
@@ -693,7 +757,7 @@ function computeTypeAccuracy(aggState) {
     .map(([, stats]) => ({
       module: stats.module,
       type: stats.questionType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-      accuracy: Math.round((stats.correct / (stats.total || 1)) * 100),
+      accuracy: percentOf(stats.correct, stats.total),
       correct: stats.correct,
       total: stats.total,
     }))
@@ -709,7 +773,7 @@ function computeSectionPerformance(aggState) {
       correct: stats.correct,
       total: stats.total,
       attempts: stats.attempts,
-      accuracy: Math.round((stats.correct / (stats.total || 1)) * 100),
+      accuracy: percentOf(stats.correct, stats.total),
       avgMinutes:
         stats.timedAttempts > 0 ? Math.round(stats.seconds / stats.timedAttempts / 60) : null,
     }))
@@ -719,8 +783,7 @@ function computeSectionPerformance(aggState) {
 
 function computeAnswerBehaviour(aggState) {
   const { revised, firstAnswer, rushed, overanalysed } = aggState.behaviourAgg;
-  const rate = (bucket) =>
-    bucket.total > 0 ? Math.round((bucket.correct / bucket.total) * 100) : null;
+  const rate = (bucket) => (bucket.total > 0 ? percentOf(bucket.correct, bucket.total) : null);
 
   const revisedRate = rate(revised);
   const firstRate = rate(firstAnswer);
@@ -754,7 +817,7 @@ export function getSessionAccuracy(content) {
   const correct = Number(c.correct ?? c.correctAnswers);
   const total = Number(c.total ?? c.totalQuestions);
   if (!hasValidAccuracyCounts(correct, total)) return null;
-  return Math.round((Math.min(correct, total) / total) * 100);
+  return percentOf(Math.min(correct, total), total);
 }
 
 const hasValidAccuracyCounts = (correct, total) =>
@@ -797,6 +860,15 @@ function computeEnhancedMetricsResult(aggState) {
     totalOveranalyzed: behaviour.overanalysed,
     totalNearMisses: tNearMisses,
     totalUnanswered: tUnanswered,
+    // Questions behind the four categories, each counted once.
+    distinctMistakes: Math.max(
+      0,
+      tNearMisses +
+        tUnanswered +
+        behaviour.rushed +
+        behaviour.overanalysed -
+        aggState.enhancedMetricsAgg.timingNearMissOverlap
+    ),
     behaviour,
     sessionReferences: aggState.enhancedMetricsAgg.sessionReferences,
     // Rushing and over-thinking were hardcoded to zero, so two of the four ring
@@ -861,6 +933,7 @@ export function computeAdvancedMetrics(filteredSessions) {
     typeAccuracy,
     sectionPerformance,
     efficiency,
+    avgMinutesPerTest: computeAverageMinutesPerTest(aggState),
     enhancedMetrics,
     writingCriteria,
     speakingCriteria,

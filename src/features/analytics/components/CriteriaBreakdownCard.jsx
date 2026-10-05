@@ -89,7 +89,7 @@ function CriterionMeter({ criterion }) {
       content={
         score == null
           ? `${hint}. No marked ${criterion.moduleName} test has scored this yet.`
-          : `${hint}. Averaged from ${sampleCount} marked evaluation${sampleCount === 1 ? '' : 's'}.`
+          : `${hint}. Averaged from ${sampleCount} evaluation${sampleCount === 1 ? '' : 's'} marked with the current scheme; reports from older marking are not included.`
       }
     >
       <div>

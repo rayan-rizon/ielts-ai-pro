@@ -125,6 +125,7 @@ export default function AnalyticsReport({
                   data={stats?.enhancedMetrics?.errorAuditData}
                   sessionReferences={stats?.enhancedMetrics?.sessionReferences}
                   behaviour={stats?.enhancedMetrics?.behaviour}
+                  totalMistakes={stats?.enhancedMetrics?.distinctMistakes}
                   onDrilldown={(category, data) => setDrilldown({ isOpen: true, category, data })}
                 />
               </Suspense>

@@ -201,7 +201,7 @@ export function calculateTimeMetrics(
 const isBlankRecordedAnswer = (value: unknown): boolean =>
   value === null ||
   value === undefined ||
-  (typeof value === 'string' && value.trim() === '') ||
+  (typeof value === 'string' && (value.trim() === '' || value === '(not selected)')) ||
   (Array.isArray(value) && value.length === 0);
 
 /**
@@ -209,7 +209,7 @@ const isBlankRecordedAnswer = (value: unknown): boolean =>
  * map is not the graded-record shape (every entry an object with a question
  * number and a user answer field) or does not cover the whole paper.
  */
-function countUnansweredFromGradedRecords(
+export function countUnansweredFromGradedRecords(
   correctAnswersMap: Record<string, unknown>,
   totalQuestions: number
 ): number | null {
@@ -230,6 +230,42 @@ function countUnansweredFromGradedRecords(
   if (answeredByNumber.size !== totalQuestions) return null;
   const answered = [...answeredByNumber.values()].filter(Boolean).length;
   return Math.max(0, totalQuestions - answered);
+}
+
+/**
+ * Near misses from graded per-question records: wrong, non-blank answers that
+ * sit within spelling distance of the key. Returns null when the map is not
+ * the graded-record shape, so callers can fall back to a stored count.
+ */
+export function countNearMissesFromGradedRecords(
+  correctAnswersMap: Record<string, unknown> | null | undefined
+): number | null {
+  const entries = Object.values(correctAnswersMap || {});
+  if (entries.length === 0) return null;
+  let count = 0;
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    const record = entry as { isCorrect?: unknown; userAnswer?: unknown };
+    if (!('userAnswer' in record) || !('isCorrect' in record)) return null;
+    if (isGradedNearMiss(record)) count += 1;
+  }
+  return count;
+}
+
+/** One graded record: wrong, answered, and within spelling distance of the key. */
+export function isGradedNearMiss(record: unknown): boolean {
+  if (!record || typeof record !== 'object') return false;
+  const { isCorrect, userAnswer, correctAnswer } = record as {
+    isCorrect?: unknown;
+    userAnswer?: unknown;
+    correctAnswer?: unknown;
+  };
+  if (isCorrect !== false || isBlankRecordedAnswer(userAnswer)) return false;
+  const userStr = String(userAnswer).toLowerCase().trim();
+  const correctStr = String(correctAnswer ?? '')
+    .toLowerCase()
+    .trim();
+  return userStr !== correctStr && isNearMiss(userStr, correctStr);
 }
 
 /**
@@ -262,6 +298,9 @@ export function calculateErrorPatterns(
   Object.entries(answers).forEach(([questionId, userAnswer]) => {
     const entry = correctAnswersMap[questionId];
     if (!entry) return;
+    // An answer the grader accepted is not a miss, near or otherwise — the raw
+    // key text can still differ ("forty eight" vs "forty-eight").
+    if (typeof entry === 'object' && (entry as { isCorrect?: unknown }).isCorrect === true) return;
 
     // Handle both string and object formats for correctAnswersMap
     const correctAnswer =
