@@ -21,6 +21,7 @@ import { countries } from '@/lib/countries';
 import InstitutionApprovalSteps from '../components/InstitutionApprovalSteps';
 import { NativeSelect } from '../components/NativeSelect';
 import { cn } from '@/lib/cn';
+import { trackAppEvent } from '@/lib/tracking';
 
 const INPUT =
   'w-full min-w-0 rounded-lg border border-[#e4e2f0] bg-white px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all duration-150 focus:border-[#5a63df] focus:ring-2 focus:ring-[#5a63df]/15 hover:border-stone-300 disabled:opacity-60 dark:border-white/10 dark:bg-[#141319] dark:hover:border-white/20 dark:focus:border-[#5a63df]';
@@ -60,6 +61,7 @@ export default function InstitutionApply() {
     setError('');
     try {
       await submitInstitutionApplication({ ...data, request_key: requestKey.current });
+      trackAppEvent('institution_application_submitted', { email: data.email });
       setSent(true);
     } catch (e) {
       setError(e.message);

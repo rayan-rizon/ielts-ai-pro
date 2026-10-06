@@ -32,6 +32,8 @@ const ALLOWED_EVENTS = new Set([
   // in src/lib/tracking.js for why it always represents a genuine new signup,
   // never a renewal.
   'Subscribe',
+  // B2B institution application — see PIXEL_EVENT_MAP in src/lib/tracking.js.
+  'SubmitApplication',
 ]);
 /**
  * Only the production site may write to the dataset.

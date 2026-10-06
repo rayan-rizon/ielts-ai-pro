@@ -55,6 +55,9 @@ const PIXEL_EVENT_MAP = {
   manual_checkout_started: 'InitiateCheckout',
   subscription_purchase: 'Purchase',
   writing_checker_signup_gate_viewed: 'ViewContent',
+  // B2B institution application. SubmitApplication is deliberately not Lead:
+  // Lead is the learner onboarding signal the BD campaign optimises against.
+  institution_application_submitted: 'SubmitApplication',
 };
 
 /**
@@ -81,6 +84,7 @@ const CAPI_EVENTS = new Set([
   'InitiateCheckout',
   'Purchase',
   'Subscribe',
+  'SubmitApplication',
 ]);
 
 /**
