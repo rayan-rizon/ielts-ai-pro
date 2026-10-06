@@ -10,7 +10,9 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   aggregateReadiness,
-  isLearningPlanExpired,
+  getPlanStartDate,
+  getRolledScheduleStart,
+  isLearningPlanBehind,
   isScoredLearningSession,
   objectiveTypeStats,
   studyDateKey,
@@ -20,6 +22,7 @@ import {
   fingerprintLearningPathInputs,
   LEARNING_PATH_GENERATOR_VERSION,
   normalizeStudyAvailability,
+  rollScheduleForward,
   scheduleRecurringRepair,
   summarizeEvidence,
   summarizeVocabularyEvidence,
@@ -58,6 +61,7 @@ const ALLOWED_TRIGGERS = new Set([
   'result_recovery',
   'manual_refresh',
   'schedule_expired',
+  'schedule_rolled',
   'practice_completed',
   'generator_updated',
 ]);
@@ -65,6 +69,8 @@ const ALLOWED_TRIGGERS = new Set([
 const triggerMessage = (trigger: string, module?: string) => {
   if (trigger === 'schedule_expired')
     return 'Your previous seven-day plan ended. A new week was scheduled from your latest results and availability.';
+  if (trigger === 'schedule_rolled')
+    return 'Your week moved forward to start today. Days already in your plan kept their tasks.';
   if (trigger === 'practice_completed')
     return 'New practice results changed the skill evidence used by your plan.';
   if (trigger === 'test_completed') {
@@ -163,6 +169,48 @@ function applyAiRanking(schedule: Record<string, any[]>, rankedActivityKeys: str
             Number(first.is_optional) - Number(second.is_optional) ||
             (rankByKey.get(first.activity_key) || 999) - (rankByKey.get(second.activity_key) || 999)
         ),
+    ])
+  );
+}
+
+/**
+ * A rolled week keeps the AI's order for the tasks it already ranked, then the
+ * new days' tasks in date order. A schedule-only renewal makes no AI call, so
+ * re-ranking from scratch would throw the earlier ranking away.
+ */
+function keepPreviousRanking(previousKeys: unknown, currentKeys: string[]) {
+  const current = new Set(currentKeys);
+  const kept = (Array.isArray(previousKeys) ? previousKeys : []).filter(
+    (key: unknown): key is string => typeof key === 'string' && current.has(key)
+  );
+  const keptSet = new Set(kept);
+  return [...kept, ...currentKeys.filter((key) => !keptSet.has(key))];
+}
+
+/**
+ * Recurring-mistake repair for a rolled week. If the repair is still ahead in
+ * the kept days it stays where the learner saw it; otherwise it may only replace
+ * a task on a newly added day, never one the learner was already shown.
+ */
+function repairOnNewTasks(
+  schedule: Record<string, any[]>,
+  previousKeys: Set<string>,
+  mistake: any
+) {
+  if (!mistake) return schedule;
+  const evidenceKey = `recurring:${mistake.module}:${mistake.type}`;
+  if (collectActivities(schedule).some((task: any) => task.evidence_key === evidenceKey)) {
+    return schedule;
+  }
+  const isKept = (task: any) => previousKeys.has(task?.activity_key);
+  const newTasks = Object.fromEntries(
+    Object.entries(schedule).map(([day, tasks]) => [day, tasks.filter((task) => !isKept(task))])
+  );
+  const repaired = scheduleRecurringRepair(newTasks, mistake);
+  return Object.fromEntries(
+    Object.entries(schedule).map(([day, tasks]) => [
+      day,
+      [...tasks.filter(isKept), ...(repaired[day] || [])],
     ])
   );
 }
@@ -602,11 +650,12 @@ serve(async (req: Request) => {
     };
     const fingerprint = await fingerprintLearningPathInputs(fingerprintInput);
     const latest = latestRows?.[0];
-    if (
-      latest?.path_data?.input_fingerprint === fingerprint &&
-      latest?.path_data?.generator_version === LEARNING_PATH_GENERATOR_VERSION &&
-      !isLearningPlanExpired(latest.path_data)
-    ) {
+    const latestPath = latest?.path_data;
+    const sameInputs =
+      latestPath?.version === 2 &&
+      latestPath?.input_fingerprint === fingerprint &&
+      latestPath?.generator_version === LEARNING_PATH_GENERATOR_VERSION;
+    if (sameInputs && !isLearningPlanBehind(latestPath)) {
       await logApiUsage(supabase, authData.user.id, 'generateAdaptiveLearningPath', true, 0, {
         trigger,
         fingerprint,
@@ -632,24 +681,67 @@ serve(async (req: Request) => {
         ? profile.test_date
         : null;
     const roadmap = buildRoadmap(planningTestDate, localToday);
-    const scheduleData = buildSevenDaySchedule({
+    const scheduleInput = {
       availability,
       evidence,
       readiness,
       vocabularyEvidence,
       testDate: planningTestDate,
       targetBand: Number(profile.target_band_score || 7),
-      now: localToday,
-    });
-    scheduleData.schedule = mergeRecoveryTasks(
-      scheduleData.schedule,
-      latest?.path_data,
-      availability
-    );
-    scheduleData.schedule = scheduleRecurringRepair(
-      scheduleData.schedule,
-      recurringMistakes[0] || null
-    );
+    };
+    const scheduleData = buildSevenDaySchedule({ ...scheduleInput, now: localToday });
+    // Same evidence, but today is past the plan's first day: roll the week
+    // forward instead of re-planning days the learner has already been shown.
+    const previousStartDate = sameInputs ? getPlanStartDate(latestPath) : null;
+    const rolling = Boolean(previousStartDate);
+    let keepsPreviousWeek = false;
+    if (rolling) {
+      const { data: savedActivities, error: activityError } = await supabase
+        .from('learning_path_activities')
+        .select('activity_key, scheduled_date')
+        .eq('learning_path_id', latest.id)
+        .eq('user_id', profile.id);
+      if (activityError) {
+        console.error('Learning Path activity read failed', activityError);
+        return errorResponse(
+          'Your saved plan could not be loaded. It is unchanged. Please retry.',
+          503,
+          corsHeaders
+        );
+      }
+      const activityDates = Object.fromEntries(
+        (savedActivities || [])
+          .filter((activity: any) => activity.activity_key)
+          .map((activity: any) => [activity.activity_key, activity.scheduled_date])
+      );
+      const rolled = rollScheduleForward({
+        previousSchedule: latestPath.weekly_schedule,
+        previousStartDate: previousStartDate as string,
+        freshSchedule: buildSevenDaySchedule({
+          ...scheduleInput,
+          now: getRolledScheduleStart(previousStartDate as string, localToday),
+        }).schedule,
+        today: localToday,
+        availability,
+        activityDates,
+      });
+      keepsPreviousWeek = rolled.freshDates.length < 7;
+      const previousKeys = new Set<string>(
+        collectActivities(latestPath.weekly_schedule || {}).map((task: any) => task.activity_key)
+      );
+      scheduleData.schedule = mergeRecoveryTasks(rolled.schedule, latestPath, availability);
+      scheduleData.schedule = repairOnNewTasks(
+        scheduleData.schedule,
+        previousKeys,
+        recurringMistakes[0] || null
+      );
+    } else {
+      scheduleData.schedule = mergeRecoveryTasks(scheduleData.schedule, latestPath, availability);
+      scheduleData.schedule = scheduleRecurringRepair(
+        scheduleData.schedule,
+        recurringMistakes[0] || null
+      );
+    }
     const finalActivities = collectActivities(scheduleData.schedule);
     scheduleData.weekly_planned_minutes = finalActivities.reduce(
       (total: number, task: any) => total + task.estimated_time,
@@ -688,9 +780,20 @@ serve(async (req: Request) => {
       scheduleOnly:
         latest?.path_data?.input_fingerprint === fingerprint || trigger === 'generator_updated',
     });
-    scheduleData.schedule = applyAiRanking(scheduleData.schedule, coach.rankedActivityKeys || []);
+    const rankedActivityKeys = rolling
+      ? keepPreviousRanking(latestPath.ai_ranking?.activity_keys, coach.rankedActivityKeys || [])
+      : coach.rankedActivityKeys || [];
+    scheduleData.schedule = applyAiRanking(scheduleData.schedule, rankedActivityKeys);
 
-    const effectiveTrigger = latest ? trigger : 'first_plan';
+    // A partly kept week is the same plan a day further on: keep the reason and
+    // summary the learner already read rather than announcing a change.
+    const effectiveTrigger = !latest
+      ? 'first_plan'
+      : keepsPreviousWeek
+        ? latestPath.generation_trigger || 'schedule_rolled'
+        : rolling
+          ? 'schedule_expired'
+          : trigger;
     const learningPath = {
       version: 2,
       generator_version: LEARNING_PATH_GENERATOR_VERSION,
@@ -730,7 +833,7 @@ serve(async (req: Request) => {
         vocabulary: vocabularyEvidence,
       },
       ai_ranking: {
-        activity_keys: coach.rankedActivityKeys || [],
+        activity_keys: rankedActivityKeys,
         constrained_to_candidates: true,
       },
       grammar_evidence: {
@@ -747,10 +850,16 @@ serve(async (req: Request) => {
         criterion_signals: evidence.criterion_signals,
       },
       recurring_mistakes: recurringMistakes,
-      coach_summary: coach.summary,
-      why_plan_changed: triggerMessage(effectiveTrigger, body?.module),
+      coach_summary:
+        keepsPreviousWeek && latestPath.coach_summary ? latestPath.coach_summary : coach.summary,
+      why_plan_changed:
+        keepsPreviousWeek && latestPath.why_plan_changed
+          ? latestPath.why_plan_changed
+          : triggerMessage(effectiveTrigger, body?.module),
       next_checkpoint: checkpoint,
-      deterministic_fallback: coach.deterministicFallback,
+      deterministic_fallback: keepsPreviousWeek
+        ? Boolean(latestPath.deterministic_fallback)
+        : coach.deterministicFallback,
       recovery_source_session_id:
         latest?.path_data?.source_session_id ||
         latest?.path_data?.recovery_source_session_id ||

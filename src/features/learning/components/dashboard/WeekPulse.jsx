@@ -105,7 +105,16 @@ export default function WeekPulse({ days, weeklyCapacity, onCustomize, onStart }
     }).length;
     const moduleStats = tasks.reduce((counts, task) => {
       const rawModule = String(task.module || '').toLowerCase();
-      const module = ['reading', 'writing', 'listening', 'speaking'].includes(rawModule)
+      // Grammar and Vocabulary have their own label and colour; folding them
+      // into "General" named the same task differently from the week plan.
+      const module = [
+        'reading',
+        'writing',
+        'listening',
+        'speaking',
+        'grammar',
+        'vocabulary',
+      ].includes(rawModule)
         ? rawModule
         : 'general';
       const entry = counts[module] || { total: 0, done: 0 };

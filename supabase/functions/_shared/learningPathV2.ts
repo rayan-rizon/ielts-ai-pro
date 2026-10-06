@@ -94,14 +94,132 @@ function validStudyTimezone(timezone: string) {
   }
 }
 
+const planTimezone = (path: any) => path?.goal_snapshot?.study_availability?.timezone || 'UTC';
+
+/** The first calendar day a saved plan covers, in the learner's timezone. */
+export function getPlanStartDate(path: any): string | null {
+  if (path?.schedule_start_date) return String(path.schedule_start_date).slice(0, 10);
+  const generatedAt = new Date(path?.generated_at || '').getTime();
+  if (!Number.isFinite(generatedAt)) return null;
+  return studyDateKey(new Date(generatedAt), planTimezone(path));
+}
+
+/** The last calendar day a saved plan covers: six days after its first. */
+export function getPlanEndDate(path: any): string | null {
+  const start = getPlanStartDate(path);
+  return start ? toIsoDate(addDays(startOfUtcDay(start), 6)) : null;
+}
+
 /** A plan covers seven calendar days, including rest days, in the learner's timezone. */
 export function isLearningPlanExpired(path: any, now: Date | string = new Date()) {
-  const generatedAt = new Date(path?.generated_at || '').getTime();
-  if (!Number.isFinite(generatedAt)) return true;
-  const timezone = path?.goal_snapshot?.study_availability?.timezone || 'UTC';
-  const start = path?.schedule_start_date || studyDateKey(new Date(generatedAt), timezone);
-  const end = toIsoDate(addDays(startOfUtcDay(start), 7));
-  return studyDateKey(now, timezone) >= end;
+  const end = getPlanEndDate(path);
+  if (!end) return true;
+  return studyDateKey(now, planTimezone(path)) > end;
+}
+
+/**
+ * The week view always runs from today. Once today is past a plan's first day,
+ * the view's last days fall beyond the plan's end and would read as empty, so a
+ * plan that is behind rolls forward even though nothing about it has changed.
+ */
+export function isLearningPlanBehind(path: any, now: Date | string = new Date()) {
+  const start = getPlanStartDate(path);
+  if (!start) return true;
+  return studyDateKey(now, planTimezone(path)) > start;
+}
+
+/**
+ * Where to start the schedule that fills a rolled week's new days.
+ *
+ * The scheduler rotates focus areas from its first day, so new days cut from a
+ * schedule starting today would repeat what the kept days already hold. Start
+ * it the day after the previous plan ends instead: the new days then get what
+ * the following week's plan would have given them. Once the previous plan has
+ * fully passed nothing is kept, and the new week simply starts today.
+ */
+export function getRolledScheduleStart(previousStartDate: string, today: string) {
+  const nextWeekStart = toIsoDate(addDays(startOfUtcDay(previousStartDate), 7));
+  return nextWeekStart > today ? nextWeekStart : today;
+}
+
+const scheduledTasks = (schedule: Record<string, any[]> | null | undefined) =>
+  Object.values(schedule || {}).flatMap((tasks) => (Array.isArray(tasks) ? tasks : []));
+
+/**
+ * Moves a plan whose evidence has not changed forward to start on `today`.
+ *
+ * Days the previous plan already covered keep exactly the tasks the learner was
+ * shown, with the same activity keys, so verified completions carry over and a
+ * task does not change under them overnight. Tasks keep any date the learner
+ * moved them to (`activityDates`). Only the days past the previous plan's end
+ * take tasks from `freshSchedule`, and a fresh task is added only while it fits
+ * the day's study time next to anything the learner moved onto that day.
+ *
+ * Returns the schedule keyed by weekday in date order from today, plus the
+ * dates that were filled from the fresh schedule.
+ */
+export function rollScheduleForward({
+  previousSchedule,
+  previousStartDate,
+  freshSchedule,
+  today,
+  availability,
+  activityDates = {},
+}: {
+  previousSchedule: Record<string, any[]> | null | undefined;
+  previousStartDate: string;
+  freshSchedule: Record<string, any[]>;
+  today: string;
+  availability: StudyAvailability;
+  activityDates?: Record<string, string | null | undefined>;
+}) {
+  const start = startOfUtcDay(today);
+  const windowDates = Array.from({ length: 7 }, (_, offset) => toIsoDate(addDays(start, offset)));
+  const previousEnd = toIsoDate(addDays(startOfUtcDay(previousStartDate), 6));
+  const coveredDates = new Set(
+    windowDates.filter((date) => date >= previousStartDate && date <= previousEnd)
+  );
+  const dayNameFor = (date: string) => STUDY_DAYS[(startOfUtcDay(date).getUTCDay() + 6) % 7];
+
+  const keptByDate = new Map<string, any[]>();
+  scheduledTasks(previousSchedule).forEach((task) => {
+    const date = String(activityDates[task?.activity_key] || task?.scheduled_date || '').slice(
+      0,
+      10
+    );
+    if (!windowDates.includes(date)) return;
+    const tasks = keptByDate.get(date) || [];
+    tasks.push({ ...task, scheduled_date: date, scheduled_day: dayNameFor(date) });
+    keptByDate.set(date, tasks);
+  });
+
+  const freshByDate = new Map<string, any[]>();
+  scheduledTasks(freshSchedule).forEach((task) => {
+    const date = String(task?.scheduled_date || '').slice(0, 10);
+    const tasks = freshByDate.get(date) || [];
+    tasks.push(task);
+    freshByDate.set(date, tasks);
+  });
+
+  const freshDates: string[] = [];
+  const schedule: Record<string, any[]> = {};
+  windowDates.forEach((date) => {
+    const tasks = [...(keptByDate.get(date) || [])];
+    if (!coveredDates.has(date)) {
+      const capacity = numberOr(availability.days[dayNameFor(date)], 0);
+      let used = tasks.reduce((total, task) => total + numberOr(task.estimated_time, 0), 0);
+      (freshByDate.get(date) || []).forEach((task) => {
+        const minutes = numberOr(task.estimated_time, 0);
+        if (used + minutes > capacity) return;
+        tasks.push(task);
+        used += minutes;
+      });
+      freshDates.push(date);
+    }
+    schedule[dayNameFor(date)] = tasks;
+  });
+
+  return { schedule, freshDates };
 }
 
 export function normalizeStudyAvailability(

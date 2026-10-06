@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import {
   aggregateReadiness,
+  getPlanEndDate,
+  getPlanStartDate,
+  isLearningPlanBehind,
   isLearningPlanExpired,
   recommendAssessmentMode,
   LEARNING_PATH_GENERATOR_VERSION,
@@ -315,6 +318,45 @@ export function getFriendlyTaskTitle(task = {}) {
   return matchOriginalTitlePattern(titleCaseWords(rawTitle));
 }
 
+/**
+ * A few plain words a student can read at a glance: why this task is in the
+ * plan. Short enough to sit on one line beside the minutes at phone width. The saved `reason` is written for the planner ("1% skill progress
+ * across 2147 results makes this a confirmed focus"), so this speaks from the
+ * task's kind instead and keeps the full reason for the details view.
+ */
+export function getTaskPurpose(task = {}) {
+  const module = String(task.module || '').toLowerCase();
+  const label = getModuleLabel(module);
+  const type = String(task.activity_type || '').toLowerCase();
+  const evidenceKey = String(task.evidence_key || '');
+
+  if (type === 'targeted_repair' || evidenceKey.startsWith('recurring:')) {
+    const sessions = Number(task.evidence?.observations);
+    return Number.isFinite(sessions) && sessions >= 2
+      ? `Missed in ${sessions} recent tests`
+      : 'A question type you keep missing';
+  }
+  if (type === 'targeted_drill') return `A weak ${label} area`;
+  if (type === 'spaced_review') return 'Due for a quick review';
+  if (type === 'vocabulary_review') return 'Saved words due today';
+  if (type === 'grammar_diagnostic') return 'Finds your grammar level';
+  if (type === 'diagnostic') return `Sets your ${label} score`;
+  if (type === 'practice_assessment') return 'Scored, with feedback';
+  if (type === 'exam_assessment') return 'Timed, no hints';
+  if (type === 'timed_assessment') return `Grammar check in ${label}`;
+  if (type === 'maintenance') return 'Keeps a strong skill sharp';
+  return 'Part of this week';
+}
+
+/** "Practice Mode", "Exam Mode" or "Review": how the task opens when started. */
+export function getTaskModeLabel(task = {}) {
+  const mode = String(task.requested_mode || task.routing?.mode || '').toLowerCase();
+  if (mode === 'exam' || mode === 'mock') return 'Exam Mode';
+  if (mode === 'review') return 'Review';
+  if (mode === 'diagnostic') return 'Level check';
+  return 'Practice Mode';
+}
+
 export function formatMinutes(totalMinutes = 0) {
   const minutes = Math.max(0, Math.round(Number(totalMinutes) || 0));
   if (!minutes) return '0 min';
@@ -572,6 +614,18 @@ export function getFriendlyPlanText(text = '') {
 
   return (
     String(text)
+      // The planner's own sentence ("1% skill progress across 2147 results makes
+      // this a confirmed focus") reads as a statistic. Say what it means, and
+      // leave the raw answer count out of a student-facing line.
+      .replace(
+        /\b(\d+)% (?:skill progress|mastery) across \d+ (?:results|answers) makes this a confirmed focus\.?/gi,
+        (match, percent) =>
+          `Your estimated level on this skill is ${percent}%, one of your lowest, so it is a focus for now.`
+      )
+      .replace(
+        /\bThis previously practised skill is due for recall; it is not being inferred as a new weakness\.?/gi,
+        'You practised this before and it is due for a quick refresher. It is not a new weakness.'
+      )
       .replace(/\bevidence quality is an early signal\b/gi, 'How sure we are: needs more results')
       .replace(/\bmeasured priorit(?:y|ies)\b/gi, (match) =>
         /ies$/i.test(match) ? 'confirmed focus areas' : 'confirmed focus'
@@ -652,17 +706,32 @@ const normalizeSkillEvidence = (skill) => ({
   confidence_level: skill?.confidence_level ?? skill?.confidence,
 });
 
+/**
+ * The seven days from today, each with its tasks and saved study time.
+ *
+ * The view always starts today, but a dated plan covers the seven days from the
+ * day it was made. A day past the plan's end is flagged `inPlan: false`, so an
+ * empty one reads as "not planned yet" rather than as a rest day the learner
+ * chose. Legacy weekday-only plans have no end and cover every day.
+ */
 export function computeSevenDays(path, activityByKey = {}, availability = {}) {
   const schedule = path?.weekly_schedule || path?.schedule || path?.daily_schedule || {};
   const tasksBySchedule = groupTasksBySchedule(schedule, activityByKey);
   const today = new Date(`${studyDateKey(new Date(), availability.timezone || 'UTC')}T12:00:00`);
+  const planWindow = getPlanWindow(path);
 
   return Array.from({ length: 7 }, (_, offset) =>
-    buildUpcomingDay({ today, offset, tasksBySchedule, availability })
+    buildUpcomingDay({ today, offset, tasksBySchedule, availability, planWindow })
   );
 }
 
-function buildUpcomingDay({ today, offset, tasksBySchedule, availability }) {
+const getPlanWindow = (path) =>
+  path?.version === 2 ? { start: getPlanStartDate(path), end: getPlanEndDate(path) } : null;
+
+const isInPlanWindow = (window, scheduledDate) =>
+  !window?.start || (scheduledDate >= window.start && scheduledDate <= window.end);
+
+function buildUpcomingDay({ today, offset, tasksBySchedule, availability, planWindow }) {
   const date = new Date(today);
   date.setDate(date.getDate() + offset);
   const scheduledDate = dateKey(date);
@@ -672,6 +741,7 @@ function buildUpcomingDay({ today, offset, tasksBySchedule, availability }) {
     date,
     dayName,
     capacity: Number(availability?.days?.[dayName] || 0),
+    inPlan: isInPlanWindow(planWindow, scheduledDate),
     tasks: getTasksForDay(tasksBySchedule, scheduledDate, dayName),
   };
 }
@@ -1408,6 +1478,7 @@ export function getPlanRefreshTrigger({
     .some((skill) => Date.parse(skill.last_practiced_at || '') > generatedAt);
   if (newPractice) return 'practice_completed';
   if (isLearningPlanExpired(path, now)) return 'schedule_expired';
+  if (isLearningPlanBehind(path, now)) return 'schedule_rolled';
   if (path.generator_version !== LEARNING_PATH_GENERATOR_VERSION) return 'generator_updated';
 
   return null;

@@ -15,7 +15,7 @@ const adaptiveLearningRoute = AI_ROUTES.find((route) => route.id === 'adaptive-l
 
 describe('Learning Path Edge Function safeguards', () => {
   it('suppresses duplicate path and AI work on an unchanged fingerprint', () => {
-    const fingerprintGate = source.indexOf('latest?.path_data?.input_fingerprint === fingerprint');
+    const fingerprintGate = source.indexOf('latestPath?.input_fingerprint === fingerprint');
     const aiCall = source.lastIndexOf('await buildCoachSummary');
     expect(fingerprintGate).toBeGreaterThan(-1);
     expect(fingerprintGate).toBeLessThan(aiCall);
