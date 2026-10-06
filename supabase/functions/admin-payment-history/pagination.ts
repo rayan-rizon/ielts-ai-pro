@@ -91,7 +91,7 @@ export async function loadHistoryPage(
     (i) => i.billing_reason !== 'subscription_create' && Number(i.amount_paid) > 0
   );
   const missing = [
-    ...new Set(
+    ...new Set<string>(
       candidates
         .map((i) => stripeObjectId(i.subscription))
         .filter((id): id is string => Boolean(id) && !visibleSubscriptions.has(id))
