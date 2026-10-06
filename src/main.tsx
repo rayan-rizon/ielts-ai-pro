@@ -5,6 +5,7 @@ import { RootProviders } from './components/RootProviders';
 import { optionalPublicEnv } from '@/lib/publicEnv';
 import { shouldDropSentryEvent } from '@/lib/sentryFilters';
 import { scheduleIdle } from '@/lib/scheduleIdle';
+import { recoverFromChunkLoadError } from '@/lib/chunkLoadRecovery';
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 const isLiveProduction = import.meta.env.PROD && !isLocalHost;
@@ -131,28 +132,16 @@ const IdleTelemetry = () => {
  * are no longer available on the server.
  */
 if (typeof window !== 'undefined') {
-  const handleChunkError = (error: any) => {
-    const errorString = error?.message || error?.reason?.message || '';
-    const isChunkError =
-      errorString.includes('Failed to fetch dynamically imported module') ||
-      errorString.includes('Importing a module script failed') ||
-      errorString.includes('error loading dynamically imported module');
-
-    if (isChunkError) {
-      const pageHasAlreadyBeenForceRefreshed = JSON.parse(
-        window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
-      );
-
-      if (!pageHasAlreadyBeenForceRefreshed) {
-        console.warn('[GlobalListener] Chunk load failure detected. Refreshing...', errorString);
-        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
-        window.location.reload();
-      }
-    }
-  };
-
-  window.addEventListener('error', (event) => handleChunkError(event), true);
-  window.addEventListener('unhandledrejection', (event) => handleChunkError(event));
+  // Vite reports a failed lazy-route import here first. Schedule the reload but
+  // never preventDefault: a cancelled preloadError makes Vite resolve the
+  // import with `undefined`, which React then reports as an unrelated
+  // "reading 'default'" TypeError instead of the chunk failure it is.
+  window.addEventListener('vite:preloadError', (event: any) => {
+    recoverFromChunkLoadError(event?.payload);
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    if (recoverFromChunkLoadError(event.reason)) event.preventDefault();
+  });
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

@@ -7,7 +7,7 @@ import {
   useRouteError,
 } from 'react-router-dom';
 import { trackAppEvent, trackPageView } from '@/lib/tracking';
-import { isChunkLoadError } from '@/lib/chunkLoadRecovery';
+import { isChunkReloadPending, recoverFromChunkLoadError } from '@/lib/chunkLoadRecovery';
 import { scheduleIdle } from '@/lib/scheduleIdle';
 import GlobalLegalRoute from '@/features/core/components/legal/GlobalLegalRoute.jsx';
 
@@ -66,50 +66,35 @@ const IdleToaster = () => {
   );
 };
 
-function hasAlreadyForceRefreshed() {
-  return JSON.parse(window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false');
-}
-
 /**
- * Lazy load with automatic retry and page reload on chunk load failure.
- * This handles stale cache issues after deployments where old chunk hashes
- * are no longer available on the server.
+ * Lazy load with automatic recovery when this tab is still running an older
+ * deployment whose chunk hashes are no longer on the server.
  */
-const lazyWithRetry = (componentImport) => {
-  return lazy(async () => {
+const lazyWithRetry = (componentImport) =>
+  lazy(async () => {
     try {
-      const component = await componentImport();
-      window.sessionStorage.removeItem('page-has-been-force-refreshed');
-      return component;
+      return await componentImport();
     } catch (error) {
-      if (isChunkLoadError(error) && !hasAlreadyForceRefreshed()) {
-        console.warn('[LazyRetry] Chunk load failure detected. Forcing page refresh...', error);
-        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
-        window.location.reload();
-        return { default: () => null };
+      if (recoverFromChunkLoadError(error)) {
+        return { default: () => <RouteLoading message="Updating to the latest version..." /> };
       }
       throw error;
     }
   });
-};
 
 /**
  * Root level Error Element for React Router.
- * Handles errors that bubble up to the route level, specifically chunk load failures.
+ * A stale-chunk failure shows a loading state while the single reload runs —
+ * several chunks fail together after a deploy, and only the first one
+ * schedules the reload, so the rest must not fall through to the 500 page.
  */
 const GlobalErrorElement = () => {
   const error = useRouteError();
 
-  const isRecoverableChunkError = isChunkLoadError(error);
-
-  if (isRecoverableChunkError && !hasAlreadyForceRefreshed()) {
-    console.warn('[GlobalErrorElement] Detected chunk load failure. Refreshing...', error);
-    window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
-    window.location.reload();
-    return null;
+  if (recoverFromChunkLoadError(error) || isChunkReloadPending()) {
+    return <RouteLoading message="Updating to the latest version..." fullScreen />;
   }
 
-  // If it's not a chunk error or we've already tried reloading, show the full error page
   return (
     <Suspense fallback={<RouteLoading message="Loading error page..." fullScreen />}>
       <Error500 data-oid="o.z4:zc" />
