@@ -428,7 +428,9 @@ describe('Learning Path main page composition', () => {
     // Repair averages every measured skill against the 75% bar, so a repaired
     // skill can never be displaced by the next-weakest one.
     expect(phases[1].progressPercent).toBe(70);
-    expect(phases[1].progressLabel).toBe('1 of 2 measured skills at 75%');
+    expect(phases[1].progressLabel).toBe(
+      '2 measured skills are 70% of the way to 75% · 1 repaired'
+    );
 
     // Timed progress comes from the scored record (one timed attempt of two),
     // never from a task ticked off in a schedule that is rebuilt every refresh.
@@ -524,7 +526,7 @@ describe('Learning Path main page composition', () => {
     const path = {
       version: 2,
       input_fingerprint: 'same-inputs',
-      generator_version: '2.4.3',
+      generator_version: '2.4.4',
       generated_at: '2026-07-23T09:00:00.000Z',
       goal_snapshot: {
         target_band: 7,

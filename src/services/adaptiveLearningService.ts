@@ -304,7 +304,13 @@ export async function refreshLearningPathAfterTest(
 export function calculateDaysUntilExam(testDate: string | null): number | null {
   if (!testDate) return null;
 
-  const examDate = new Date(testDate);
+  // A date-only value ("2026-10-20") parses as UTC midnight, which is the
+  // previous evening west of UTC. Read it as a local calendar day instead.
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(testDate).slice(0, 10));
+  const examDate =
+    dateOnly && String(testDate).length <= 10
+      ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+      : new Date(testDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   examDate.setHours(0, 0, 0, 0);

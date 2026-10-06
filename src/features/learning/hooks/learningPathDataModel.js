@@ -1,3 +1,5 @@
+import { objectiveTypeStats } from '../../../../supabase/functions/_shared/learningPathV2';
+
 const EMPTY_OBJ = Object.freeze({});
 
 export const EMPTY_STATS = Object.freeze({
@@ -65,7 +67,7 @@ const getTrend = (points) => {
 
 const addSessionSkillPoints = (pointsBySkill, session) => {
   const testType = session?.test_type;
-  const typeStats = session?.content_data?.typeStats;
+  const typeStats = sessionTypeStats(session);
   if (!hasSkillStats(testType, typeStats)) return;
 
   Object.entries(typeStats).forEach(([typeKey, stats]) => {
@@ -77,6 +79,13 @@ const addSessionSkillPoints = (pointsBySkill, session) => {
     pointsBySkill[skillCode] = points;
   });
 };
+
+// Reading and Listening totals get the same legacy repair the result card uses;
+// other modules keep whatever typeStats they stored.
+const sessionTypeStats = (session) =>
+  ['reading', 'listening'].includes(String(session?.test_type || '').toLowerCase())
+    ? objectiveTypeStats(session)
+    : session?.content_data?.typeStats;
 
 const hasSkillStats = (testType, typeStats) =>
   Boolean(testType) && Boolean(typeStats) && typeof typeStats === 'object';

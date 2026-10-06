@@ -10,6 +10,17 @@ import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 export { normalizeTargetScore };
 
 const dataOr = (result, fallback) => result.data ?? fallback;
+
+/** Enough history for the per-module trend lines and each module's latest score. */
+const RECENT_SESSION_LIMIT = 20;
+
+const getBrowserTimezone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch {
+    return null;
+  }
+};
 const firstOrNull = (items) => items[0] ?? null;
 
 const assertDashboardQueriesSucceeded = (queryResults) => {
@@ -22,17 +33,24 @@ const assertDashboardQueriesSucceeded = (queryResults) => {
 async function fetchDashboardStats(userId) {
   if (!userId) return null;
 
+  // Onboarding seeds a row for every skill before any question is answered.
+  // Those rows carry a starting estimate, not evidence: leaving them in made an
+  // untouched skill the "weakest" one and let them crowd practised rows out of
+  // the limit. The most any learner has practised today is 30 skills.
   const skillProficiencyRequest = supabase
     .from('skill_proficiency')
     .select('skill_code, module, mastery_probability, practice_count, correct_count, streak_count')
     .eq('user_id', userId)
+    .gt('practice_count', 0)
     .order('mastery_probability', { ascending: true })
-    .limit(24);
+    .limit(200);
 
   const [statsResult, recentSessionsResult, cambridgeResult, skillProficiencyResult] =
     await Promise.all([
-      supabase.rpc('get_dashboard_stats'),
-      supabase.rpc('get_recent_sessions', { p_limit: 8 }),
+      // Day boundaries (today, streak, this week, heatmap) follow the browser's
+      // timezone, the same one the heatmap and weekday labels are drawn in.
+      supabase.rpc('get_dashboard_stats', { p_timezone: getBrowserTimezone() }),
+      supabase.rpc('get_recent_sessions', { p_limit: RECENT_SESSION_LIMIT }),
       supabase.rpc('get_cambridge_tests', { p_limit: 4 }),
       skillProficiencyRequest,
     ]);

@@ -1671,7 +1671,7 @@ export type Database = {
         Args: { p_start_date?: string };
         Returns: Json;
       };
-      get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json };
+      get_dashboard_stats: { Args: { p_timezone?: string }; Returns: Json };
       get_due_vocabulary: {
         Args: { p_limit?: number; p_user_id: string };
         Returns: {
@@ -1708,14 +1708,16 @@ export type Database = {
       get_my_user_id: { Args: never; Returns: string };
       get_objective_test_quotas: { Args: never; Returns: Json };
       get_recent_sessions: {
-        Args: { p_limit?: number; p_user_id: string };
+        Args: { p_limit?: number };
         Returns: {
           completed_at: string;
           duration_minutes: number;
+          duration_seconds: number;
           id: string;
           passage_id: string;
           passage_title: string;
           score: number;
+          test_mode: string;
           test_type: string;
         }[];
       };

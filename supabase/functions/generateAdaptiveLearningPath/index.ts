@@ -12,6 +12,7 @@ import {
   aggregateReadiness,
   isLearningPlanExpired,
   isScoredLearningSession,
+  objectiveTypeStats,
   studyDateKey,
   buildRoadmap,
   buildSevenDaySchedule,
@@ -574,7 +575,9 @@ serve(async (req: Request) => {
         score: session.score,
         test_mode: session.test_mode || 'practice',
         completed_at: session.completed_at,
-        type_stats: session.content_data?.typeStats || null,
+        type_stats: ['reading', 'listening'].includes(String(session.test_type).toLowerCase())
+          ? objectiveTypeStats(session)
+          : session.content_data?.typeStats || null,
         time_metrics: session.content_data?.timeMetrics || null,
       })),
       skills: currentSkills.map((skill: any) => ({

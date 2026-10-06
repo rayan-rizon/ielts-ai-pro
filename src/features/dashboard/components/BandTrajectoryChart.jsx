@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   CartesianGrid,
   Line,
@@ -20,8 +20,11 @@ import {
   PANEL,
   PanelFootnote,
   PanelTitle,
+  PILL_BASE,
+  pillTone,
   TILE,
 } from './primitives';
+import { MODULE_LABELS, groupScoredTestsByModule, moduleChange } from './bandTrajectoryModel';
 
 // A literal SVG fill, not a Tailwind class — recharts writes this straight onto
 // the tick <text> element, so a CSS var is the only way to have it track theme.
@@ -49,9 +52,11 @@ function ChartTooltip({ active, payload }) {
  * practised. This one measures the only outcome a candidate is actually graded
  * on: the band, test by test, against the target they set.
  *
- * The trend footnote compares the first and last scored test in the window. It
- * is a measured difference, never an extrapolation — the dashboard does not
- * predict an exam-day band it cannot know.
+ * One module at a time: a Reading 8 followed by a Writing 5 is not a fall, so
+ * modules are never joined into one line or compared with each other. The
+ * footnote compares the first and last scored test of the selected module in
+ * the window. It is a measured difference, never an extrapolation — the
+ * dashboard does not predict an exam-day band it cannot know.
  */
 function calculateDomain(data, target) {
   const scaleValues = data.map((point) => point.score);
@@ -71,24 +76,33 @@ function parseTargetScore(stats) {
   return Number.isFinite(parsedTarget) && parsedTarget > 0 ? parsedTarget : null;
 }
 
-function formatScoredTests(recentTests) {
-  const scored = (Array.isArray(recentTests) ? recentTests : [])
-    .filter((test) => Number.isFinite(Number(test?.score)) && test?.completed_at)
-    .slice()
-    .sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at))
-    .map((test) => ({
-      score: Number(test.score),
-      module: String(test.test_type || '').toLowerCase(),
-      dateLabel: new Date(test.completed_at).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-      }),
-    }));
-
-  return {
-    data: scored,
-    change: scored.length >= 2 ? scored[scored.length - 1].score - scored[0].score : null,
-  };
+function ModuleSwitch({ modules, selected, onSelect }) {
+  if (modules.length < 2) return null;
+  return (
+    <div role="tablist" aria-label="Module" className="mb-2 flex flex-wrap gap-1">
+      {modules.map((module) => {
+        const active = module === selected;
+        return (
+          <button
+            key={module}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onSelect(module)}
+            className={cn(
+              PILL_BASE,
+              'transition-all duration-150 ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+              active
+                ? pillTone('accent')
+                : 'border-[#e4e2f0] text-slate-500 hover:text-[#5a63df] dark:border-white/10 dark:text-slate-400 dark:hover:text-[#afb5ff]'
+            )}
+          >
+            {MODULE_LABELS[module]}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 function StepOneTile({ hasOneTest, firstScore, firstModule }) {
@@ -129,7 +143,7 @@ function StepOneTile({ hasOneTest, firstScore, firstModule }) {
   );
 }
 
-function StepTwoTile({ hasOneTest, target }) {
+function StepTwoTile({ hasOneTest, target, module }) {
   const containerClass = hasOneTest
     ? 'border-[#5a63df]/30 bg-[#5a63df]/[0.03] dark:bg-[#8f97ff]/[0.06]'
     : 'border-[#ebeaf7] opacity-75 dark:border-white/8';
@@ -139,7 +153,7 @@ function StepTwoTile({ hasOneTest, target }) {
     : 'bg-slate-200 text-slate-500 dark:bg-white/10 dark:text-slate-400';
 
   const title = hasOneTest
-    ? 'Take another test to see progress'
+    ? `Take another ${MODULE_LABELS[module] || ''} test to see progress`.replace(/\s+/g, ' ')
     : 'Take tests to see progress over time';
 
   const subtitle =
@@ -174,7 +188,7 @@ function BandTrajectoryEmptySteps({ data, target }) {
   return (
     <div className="flex flex-1 flex-col justify-center gap-2.5 py-1">
       <StepOneTile hasOneTest={hasOneTest} firstScore={firstScore} firstModule={firstModule} />
-      <StepTwoTile hasOneTest={hasOneTest} target={target} />
+      <StepTwoTile hasOneTest={hasOneTest} target={target} module={data[0]?.module} />
     </div>
   );
 }
@@ -228,25 +242,32 @@ function TrajectoryLineChart({ data, target, domainFloor, domainCeil }) {
 
 const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
   const target = useMemo(() => parseTargetScore(stats), [stats]);
-  const { data, change } = useMemo(() => formatScoredTests(recentTests), [recentTests]);
+  const grouped = useMemo(() => groupScoredTestsByModule(recentTests), [recentTests]);
+  const [chosenModule, setChosenModule] = useState(null);
+  const selected =
+    chosenModule && grouped.byModule[chosenModule] ? chosenModule : grouped.latestModule;
+  const data = useMemo(() => (selected ? grouped.byModule[selected] : []), [grouped, selected]);
+  const change = moduleChange(data);
   const { domainFloor, domainCeil } = useMemo(() => calculateDomain(data, target), [data, target]);
-
   const latest = data.length ? data[data.length - 1].score : null;
+  const moduleLabel = selected ? MODULE_LABELS[selected] : null;
 
   return (
     <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
       <PanelTitle
         label="Band score progress"
         accent
-        tip="Your band score on each scored test, from oldest to newest, against your target."
+        tip="Your band score on each scored test in one module, oldest to newest, against your target. Modules are never compared with each other."
         action={
           latest != null ? (
             <span className={cn(MICRO, MUTED)}>
-              latest band score <FootNum>{latest.toFixed(1)}</FootNum>
+              latest {moduleLabel} <FootNum>{latest.toFixed(1)}</FootNum>
             </span>
           ) : null
         }
       />
+
+      <ModuleSwitch modules={grouped.modules} selected={selected} onSelect={setChosenModule} />
 
       {data.length < 2 ? (
         <BandTrajectoryEmptySteps data={data} target={target} />
@@ -262,10 +283,11 @@ const BandTrajectoryChart = React.memo(({ recentTests, stats }) => {
       <PanelFootnote>
         {change != null ? (
           <span className="inline-flex items-center gap-1.5">
-            <Delta value={change} /> band points since your first scored test
+            <Delta value={change} /> band from the first to the latest of these {data.length}{' '}
+            {moduleLabel} tests
           </span>
         ) : (
-          <>Take two scored tests to see your progress</>
+          <>Take two scored tests in one module to see your progress</>
         )}
       </PanelFootnote>
     </div>

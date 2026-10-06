@@ -32,7 +32,7 @@ const availability = normalizeStudyAvailability({
 });
 const plan = {
   version: 2,
-  generator_version: '2.4.3',
+  generator_version: '2.4.4',
   input_fingerprint: 'same',
   generated_at: '2026-09-17T00:00:00Z',
   goal_snapshot: { target_band: 7, test_date: null, study_availability: availability },

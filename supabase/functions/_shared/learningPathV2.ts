@@ -1,4 +1,6 @@
-export const LEARNING_PATH_GENERATOR_VERSION = '2.4.3';
+import { reconcileObjectiveResultEvidence } from './objective-scoring/resultEvidence.js';
+
+export const LEARNING_PATH_GENERATOR_VERSION = '2.4.4';
 
 export const STUDY_DAYS = [
   'monday',
@@ -290,6 +292,8 @@ export function summarizeVocabularyEvidence(
   };
 }
 
+const SCORED_EVALUATION_STATUSES = ['complete', 'completed', 'legacy'];
+
 export function isScoredLearningSession(session: any) {
   if (!session || session.is_completed === false) return false;
   if (session.score == null || session.score === '' || typeof session.score === 'boolean')
@@ -298,10 +302,13 @@ export function isScoredLearningSession(session: any) {
   const module = String(session.test_type || '').toLowerCase();
   if (!IELTS_MODULES.includes(module as any) || !Number.isFinite(score) || score < 0 || score > 9)
     return false;
+  // test_sessions_evaluation_status_check allows not_requested, pending,
+  // complete, failed and legacy. Only an evaluation that finished ('complete',
+  // or 'legacy' for results scored before the status existed) carries a band.
   if (
     ['writing', 'speaking'].includes(module) &&
     session.evaluation_status &&
-    session.evaluation_status !== 'completed'
+    !SCORED_EVALUATION_STATUSES.includes(String(session.evaluation_status).toLowerCase())
   )
     return false;
   // Exclude known early exits, but keep real zero scores and unknown durations.
@@ -1100,6 +1107,23 @@ export async function fingerprintLearningPathInputs(value: unknown) {
     .join('');
 }
 
+/**
+ * A Reading or Listening session's per-question-type totals, after the same
+ * guarded repair the result card, Analytics and the skill-evidence trigger
+ * apply. Results graded by an older bundle stored listening matching-features
+ * answers under no type, so their raw typeStats show those questions as wrong.
+ */
+export function objectiveTypeStats(session: any): Record<string, any> {
+  const module = String(session?.test_type || '').toLowerCase();
+  const content = session?.content_data;
+  if (!content || typeof content !== 'object') return {};
+  const repaired = ['reading', 'listening'].includes(module)
+    ? reconcileObjectiveResultEvidence(content, module)
+    : content;
+  const typeStats = repaired?.typeStats;
+  return typeStats && typeof typeStats === 'object' ? typeStats : {};
+}
+
 export function findRecurringObjectiveMistakes(sessions: any[]) {
   const observations = new Map<string, Array<{ id: string; accuracy: number }>>();
   [...(sessions || [])]
@@ -1112,19 +1136,17 @@ export function findRecurringObjectiveMistakes(sessions: any[]) {
       const module = String(session.test_type || '').toLowerCase();
       if (!['reading', 'listening'].includes(module) || !session.is_completed || !session.id)
         return;
-      Object.entries(session.content_data?.typeStats || {}).forEach(
-        ([type, stats]: [string, any]) => {
-          const total = Number(stats?.total || 0);
-          const correct = Number(stats?.correct || 0);
-          if (total < 3 || correct < 0 || correct > total) return;
-          const key = `${module}:${type}`;
-          const points = observations.get(key) || [];
-          if (points.length < 3 && !points.some((point) => point.id === session.id)) {
-            points.push({ id: session.id, accuracy: correct / total });
-            observations.set(key, points);
-          }
+      Object.entries(objectiveTypeStats(session)).forEach(([type, stats]: [string, any]) => {
+        const total = Number(stats?.total || 0);
+        const correct = Number(stats?.correct || 0);
+        if (total < 3 || correct < 0 || correct > total) return;
+        const key = `${module}:${type}`;
+        const points = observations.get(key) || [];
+        if (points.length < 3 && !points.some((point) => point.id === session.id)) {
+          points.push({ id: session.id, accuracy: correct / total });
+          observations.set(key, points);
         }
-      );
+      });
     });
   return [...observations.entries()]
     .filter(

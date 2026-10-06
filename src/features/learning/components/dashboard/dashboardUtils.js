@@ -983,7 +983,7 @@ function buildFoundationPhase(readiness, tasks = []) {
     checklist: [
       {
         label: `${sufficientCount} of 4 subjects have two recent scores`,
-        done: sufficientCount >= 3,
+        done: sufficientCount === 4,
       },
       {
         label: missing.length
@@ -996,12 +996,17 @@ function buildFoundationPhase(readiness, tasks = []) {
   };
 }
 
-const skillStrength = (item) =>
-  Math.min(1, Number(item?.mastery || 0) / PROGRESS_RULES.FOCUS_MASTERY_TARGET);
-
 const isSkillRepaired = (item) =>
   Number(item?.mastery || 0) >= PROGRESS_RULES.FOCUS_MASTERY_TARGET &&
   Number(item?.observations || 0) >= PROGRESS_RULES.FOCUS_OBSERVATION_TARGET;
+
+// A skill only counts in full once it is repaired — at the mastery bar *and*
+// across enough answers. Above the bar on too few answers it stops just short,
+// so the stage can never read 100% while its own checklist is still open.
+const skillStrength = (item) =>
+  isSkillRepaired(item)
+    ? 1
+    : Math.min(0.99, Number(item?.mastery || 0) / PROGRESS_RULES.FOCUS_MASTERY_TARGET);
 
 const getReviewsChecklistLabel = (reviewsDue) =>
   reviewsDue
@@ -1009,13 +1014,17 @@ const getReviewsChecklistLabel = (reviewsDue) =>
     : 'All scheduled reviews completed';
 
 /**
- * Stage 2 — share of measured skills that have reached the 75% bar.
+ * Stage 2 — how far the measured skills are, on average, toward the 75% bar.
  *
  * The denominator is every skill with enough evidence to judge (weak ones plus
- * already-strong ones), so pushing one skill over the bar always moves the
+ * already-strong ones), so pushing one skill toward the bar always moves the
  * number, and a skill leaving the weak list can never *shrink* it. Averaging
  * only the weak list — the previous behaviour — meant repairing your worst
  * skill promoted the next-worst into its place and the bar barely moved.
+ *
+ * The bar is an average, not a count, so the label states both: the average
+ * the bar draws and how many skills are fully repaired. Printing only the count
+ * ("0 of 4 at 75%") beside a 73% bar read as a contradiction.
  */
 function buildRepairPhase(evidence = {}) {
   const weak = evidence.measured_priorities || [];
@@ -1026,11 +1035,14 @@ function buildRepairPhase(evidence = {}) {
   const strength = measured.length
     ? measured.reduce((total, item) => total + skillStrength(item), 0) / measured.length
     : 0;
+  const allRepaired = measured.length > 0 && repaired === measured.length;
+  const progressPercent = allRepaired ? 100 : Math.min(99, clampPercent(strength * 100));
+  const bar = Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100);
 
   return {
-    progressPercent: clampPercent(strength * 100),
+    progressPercent,
     progressLabel: measured.length
-      ? `${repaired} of ${measured.length} measured skills at ${Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100)}%`
+      ? `${measured.length} measured ${measured.length === 1 ? 'skill is' : 'skills are'} ${progressPercent}% of the way to ${bar}% · ${repaired} repaired`
       : 'Waiting for confirmed focus skills',
     progressRule: measured.length
       ? `Every answer that lifts a focus skill toward ${Math.round(PROGRESS_RULES.FOCUS_MASTERY_TARGET * 100)}% raises this.`
