@@ -78,9 +78,11 @@ function buildResultHref(module, testId) {
   return route ? `/${route}/${testId}?view-results=true` : null;
 }
 
+// A 10-second submission is not a 1-minute one; under a minute reads "<1".
 function formatMinutes(durationSeconds) {
   const seconds = Number(durationSeconds);
-  return Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : null;
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+  return seconds < 60 ? '<1' : Math.round(seconds / 60);
 }
 
 function formatDateLabel(completedAt) {
