@@ -18,7 +18,7 @@ import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { toast } from 'sonner';
-import { IconChip, MICRO, MUTED } from '@/features/dashboard/components/primitives';
+import { MICRO, MUTED, NUM, PANEL } from '@/features/dashboard/components/primitives';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 import {
@@ -35,59 +35,67 @@ import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
 import { queueFirstRunProductTour } from '@/features/dashboard/lib/productTourStorage';
 import { recordOnboardingOffer } from '@/features/onboarding/services/onboardingOffer';
 import { Logo } from '@/components/shared/Logo';
+import OnboardingHeading from '@/features/onboarding/components/OnboardingHeading';
+import '../onboarding.css';
 
-// Step configurations
+// Step configurations. Question steps share one heading shape: a short
+// eyebrow, a title whose closing phrase carries the accent, and one line of
+// supporting copy. Welcome and the plan screen render their own.
 const steps = [
   {
     id: 'welcome',
     title: 'Welcome to IELTS Ai Pro',
-    description: 'Personalize your learning journey in under 60 seconds.',
     icon: Brain,
   },
   {
     id: 'target',
-    title: 'What is your target Band Score?',
-    description: 'This helps us calibrate the difficulty of your practice tests.',
+    eyebrow: 'Your goal',
+    title: 'What band score',
+    accent: 'are you aiming for?',
+    description: 'We pace your practice and feedback toward this score.',
     icon: Target,
   },
   {
     id: 'timeline',
-    title: 'When do you plan to take IELTS?',
-    description: 'Choose a specific date or an estimated timeline.',
+    eyebrow: 'Exam date',
+    title: 'When is your',
+    accent: 'IELTS test?',
+    description: 'Tap your booked date, or estimate — the plan counts down to it.',
     icon: CalendarIcon,
   },
   {
     id: 'studyTime',
-    title: 'When can you study each week?',
-    description: 'Set your active days and study limits so the plan fits real life.',
+    eyebrow: 'Weekly rhythm',
+    title: 'How much time can you',
+    accent: 'study each week?',
+    description: 'We fit sessions to the days you choose.',
     icon: Clock,
   },
   {
     id: 'focus',
-    title: 'Which area needs the most work?',
-    description: "We'll prioritize this in your personalized study plan.",
+    eyebrow: 'Starting point',
+    title: 'Which skill should we',
+    accent: 'start with?',
+    description: 'Pick a starting point. Your practice results refine it from there.',
     icon: Zap,
   },
   {
     id: 'complete',
     title: 'Your personalized plan',
-    description: 'A realistic first structure, built from the goals and time you shared.',
     icon: Rocket,
   },
 ];
 
+const QUESTION_COUNT = steps.filter((step) => step.eyebrow).length;
+const EASE_OUT = [0.22, 1, 0.36, 1];
+
 const stepVariants = {
-  enter: (dir) => ({
-    x: dir > 0 ? 20 : -20,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
+  enter: (dir) => ({ x: dir > 0 ? 28 : -28, opacity: 0 }),
+  center: { x: 0, opacity: 1, transition: { duration: 0.32, ease: EASE_OUT } },
   exit: (dir) => ({
     x: dir > 0 ? -20 : 20,
     opacity: 0,
+    transition: { duration: 0.16, ease: 'easeIn' },
   }),
 };
 
@@ -237,11 +245,13 @@ export default function Onboarding() {
     );
   }, [formData.target_band_score, formData.weak_area, user]);
 
-  const openSubscriptionPlans = (tier = 'pro') => {
+  const openSubscriptionPlans = (tier = 'pro', interval = 'monthly') => {
     void recordOnboardingOffer('plan_clicked', tier);
-    trackAuthenticatedAppEvent('onboarding_plan_selected', { plan_tier: tier }, user);
+    const selection = { plan_tier: tier, billing_interval: interval };
+    trackAuthenticatedAppEvent('onboarding_plan_selected', selection, user);
     const params = new URLSearchParams({
       plan: tier,
+      interval,
       source: 'onboarding',
       focus: formData.weak_area || 'all',
       target: String(formData.target_band_score || 7),
@@ -290,7 +300,7 @@ export default function Onboarding() {
   const renderStepContent = (stepId) => {
     switch (stepId) {
       case 'welcome':
-        return <WelcomeStep />;
+        return <WelcomeStep onStart={handleNext} isLoading={isLoading} />;
       case 'target':
         return (
           <TargetStep
@@ -349,7 +359,15 @@ export default function Onboarding() {
     }
   };
 
-  const StepIcon = steps[currentStep]?.icon || Brain;
+  const headingRef = useRef(null);
+  const bodyRef = useRef(null);
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [currentStep]);
+
+  const stepConfig = steps[currentStep];
+  const isLastQuestion = steps[currentStep + 1]?.id === 'complete';
 
   if (isCheckingStatus) {
     return (
@@ -363,151 +381,133 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-y-auto bg-[#f1f0f7] p-2.5 sm:p-4 dark:bg-[#08080a]">
-      {/* Subtle dot-grid + ambient depth */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.14]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(90,99,223,0.07),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 -left-24 z-0 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(90,99,223,0.05),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.12),transparent_70%)]"
-      />
-
-      <div
-        className={cn(
-          'relative z-10 w-full overflow-hidden rounded-2xl',
-          currentStep === steps.length - 1 ? 'max-w-2xl' : 'max-w-lg sm:max-w-xl',
-          'border border-[#cecbe2] bg-linear-to-b from-white to-[#faf9ff]',
-          'dark:border-white/[0.08] dark:from-[#141319] dark:to-[#100f15]',
-          'shadow-[0_12px_36px_-6px_rgba(20,18,48,0.06),0_4px_16px_-4px_rgba(20,18,48,0.03)] dark:shadow-none'
-        )}
+    <div className="onboarding-page">
+      <section
+        className={cn(PANEL, 'onboarding-frame', `onboarding-frame--${stepConfig.id}`)}
+        aria-label="Personalize your IELTS practice"
       >
-        {/* Step rail — one segment per step */}
-        <div className="flex gap-1 p-3 pb-0 sm:p-4 sm:pb-0">
-          {steps.map((step, index) => (
-            <span
-              key={step.id}
-              aria-hidden="true"
-              className={cn(
-                'h-1 flex-1 rounded-full transition-colors duration-300',
-                index <= currentStep
-                  ? 'bg-[#5a63df] dark:bg-[#8f97ff]'
-                  : 'bg-[#e2e0f0] dark:bg-white/[0.07]'
-              )}
-            />
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between gap-2 px-3 pt-2.5 sm:px-4">
-          <Logo size="sm" className="shrink-0" />
-
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <div className="flex items-center gap-1.5">
-              <IconChip icon={StepIcon} tone="accent" size="xs" />
-              <span className={cn(MICRO, MUTED, 'text-[10px]')}>
-                Step {currentStep + 1} of {steps.length}
-              </span>
-            </div>
-            {currentStep < steps.length - 1 && (
-              <>
-                <span className="h-3 w-px bg-[#e2e0f0] dark:bg-white/10" />
-                <button
-                  type="button"
-                  onClick={skipOnboarding}
-                  disabled={isLoading}
+        <header className="onboarding-header">
+          <Logo size="md" animated={false} />
+          <div
+            className="onboarding-progress"
+            role="progressbar"
+            aria-label="Onboarding progress"
+            aria-valuemin={1}
+            aria-valuemax={steps.length}
+            aria-valuenow={currentStep + 1}
+            aria-valuetext={`Step ${currentStep + 1} of ${steps.length}`}
+          >
+            <div className="onboarding-progress__rail" aria-hidden="true">
+              {steps.map((step, index) => (
+                <span
+                  key={step.id}
                   className={cn(
-                    MICRO,
-                    'inline-flex min-h-[24px] items-center rounded-sm px-1 text-[10.5px] text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:text-slate-200'
+                    index < currentStep && 'is-complete',
+                    index === currentStep && 'is-current'
                   )}
-                >
-                  Skip for now
-                </button>
-              </>
-            )}
+                />
+              ))}
+            </div>
+            <span className={cn(NUM, 'onboarding-progress__count')}>
+              {stepConfig.eyebrow ? (
+                <>
+                  {String(currentStep).padStart(2, '0')}
+                  <span className="opacity-50"> / {String(QUESTION_COUNT).padStart(2, '0')}</span>
+                </>
+              ) : currentStep === 0 ? (
+                'Start'
+              ) : (
+                'Ready'
+              )}
+            </span>
           </div>
+          {currentStep < steps.length - 1 ? (
+            <button
+              type="button"
+              onClick={skipOnboarding}
+              disabled={isLoading}
+              className="onboarding-skip"
+            >
+              Skip for now
+            </button>
+          ) : (
+            <span className="onboarding-skip-placeholder" />
+          )}
+        </header>
+
+        <div className="onboarding-body" ref={bodyRef}>
+          <AnimatePresence
+            mode="wait"
+            custom={direction}
+            initial={false}
+            onExitComplete={() => {
+              headingRef.current?.focus({ preventScroll: true });
+            }}
+          >
+            <m.div
+              key={stepConfig.id}
+              custom={direction}
+              variants={stepVariants}
+              initial={reduceMotion ? { opacity: 0 } : 'enter'}
+              animate={reduceMotion ? { opacity: 1 } : 'center'}
+              exit={reduceMotion ? { opacity: 0 } : 'exit'}
+              transition={reduceMotion ? { duration: 0.1 } : undefined}
+              onAnimationComplete={() => {
+                bodyRef.current?.scrollTo({ top: 0 });
+                window.scrollTo({ top: 0 });
+                headingRef.current?.focus({ preventScroll: true });
+              }}
+              className={cn('onboarding-step', `onboarding-step--${stepConfig.id}`)}
+            >
+              <div
+                ref={headingRef}
+                tabIndex={-1}
+                className="onboarding-step-heading"
+                aria-label={stepConfig.eyebrow ? undefined : stepConfig.title}
+              >
+                {stepConfig.eyebrow && (
+                  <OnboardingHeading
+                    step={currentStep}
+                    eyebrow={stepConfig.eyebrow}
+                    title={stepConfig.title}
+                    accent={stepConfig.accent}
+                    description={stepConfig.description}
+                  />
+                )}
+              </div>
+              {renderStepContent(steps[currentStep].id)}
+            </m.div>
+          </AnimatePresence>
         </div>
 
-        <div className="px-3.5 pb-3.5 pt-2 sm:px-5 sm:pb-5">
-          <div className="relative w-full">
-            <AnimatePresence mode="wait" custom={direction} initial={false}>
-              <m.div
-                key={steps[currentStep].id}
-                custom={direction}
-                variants={stepVariants}
-                initial={reduceMotion ? { opacity: 0 } : 'enter'}
-                animate={reduceMotion ? { opacity: 1 } : 'center'}
-                exit={reduceMotion ? { opacity: 0 } : 'exit'}
-                transition={{ duration: reduceMotion ? 0.1 : 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full"
-              >
-                {steps[currentStep].id !== 'complete' && (
-                  <div className="mb-2.5 sm:mb-3 text-center">
-                    <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
-                      {steps[currentStep].title}
-                    </h1>
-                    <p
-                      className={cn(
-                        'mt-0.5 text-[12px] font-medium leading-relaxed',
-                        MUTED,
-                        'mx-auto max-w-sm sm:max-w-md'
-                      )}
-                    >
-                      {steps[currentStep].description}
-                    </p>
-                  </div>
-                )}
-
-                {renderStepContent(steps[currentStep].id)}
-              </m.div>
-            </AnimatePresence>
-          </div>
-
-          {currentStep < steps.length - 1 && (
-            <div className="mt-3.5 flex items-center justify-between gap-3 border-t border-[#e2e0f0] pt-2.5 dark:border-white/[0.07]">
-              {currentStep > 0 ? (
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={isLoading || currentStep === steps.length - 1}
-                  className="inline-flex h-8.5 items-center gap-1 rounded-lg px-2.5 text-[12px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40 dark:text-slate-400 dark:hover:text-white"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                  Back
-                </button>
-              ) : (
-                <div aria-hidden="true" className="w-10" />
-              )}
-
+        {currentStep > 0 && (
+          <footer className="onboarding-footer">
+            <button type="button" onClick={goBack} disabled={isLoading} className="onboarding-back">
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" /> Back
+            </button>
+            {currentStep < steps.length - 1 && (
               <button
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
-                className={cn(
-                  'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-6 text-[13px] font-bold text-white transition-all duration-150',
-                  'bg-[#5a63df] hover:bg-[#4a52c9] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50'
-                )}
+                className="onboarding-primary"
               >
                 {isLoading ? (
                   <>
-                    <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Creating plan…
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />{' '}
+                    Saving preferences…
                   </>
                 ) : (
                   <>
-                    Continue
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    {isLastQuestion ? 'See my plan' : 'Continue'}
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
                   </>
                 )}
               </button>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </footer>
+        )}
+      </section>
     </div>
   );
 }

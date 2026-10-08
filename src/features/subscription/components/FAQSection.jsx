@@ -6,10 +6,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { IconChip, PANEL } from '@/features/dashboard/components/primitives';
+import { IconChip, MICRO, PANEL } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
+import { EXAM_PASS_DISCOUNT_PERCENT, EXAM_PASS_MONTHS } from '@/lib/pricingUtils';
 
 const faqs = [
+  {
+    question: `What is the ${EXAM_PASS_MONTHS}-Month Exam Pass?`,
+    answer: `One payment covers ${EXAM_PASS_MONTHS} months of Pro or Premium at ${EXAM_PASS_DISCOUNT_PERCENT}% less than paying monthly. It never renews — your access simply ends after ${EXAM_PASS_MONTHS} months, so there is nothing to cancel.`,
+  },
   {
     question: 'Can I cancel my subscription anytime?',
     answer:
@@ -40,10 +45,15 @@ const faqs = [
 export default function FAQSection() {
   return (
     <section className="mx-auto mb-16 max-w-3xl">
-      <div className="mb-6 flex items-center justify-center gap-2.5">
-        <IconChip icon={HelpCircle} size="md" />
-        <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-          Frequently asked questions
+      <div className="mb-6 flex flex-col items-center gap-3 text-center">
+        <p
+          className={cn(MICRO, 'inline-flex items-center gap-2 text-slate-500 dark:text-slate-400')}
+        >
+          <IconChip icon={HelpCircle} size="sm" />
+          Before you choose
+        </p>
+        <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-slate-900 dark:text-white sm:text-[28px]">
+          Frequently asked <span className="text-[#5a63df] dark:text-[#a9afff]">questions</span>
         </h2>
       </div>
       <div className={cn(PANEL, 'p-5 sm:p-7')}>

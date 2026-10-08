@@ -1,68 +1,78 @@
 import React from 'react';
-import { Award, Brain, Compass, Sparkles, Star, TrendingUp } from 'lucide-react';
-import { cn } from '@/lib/cn';
-import { IconChip, MICRO, MUTED, Pill, TILE } from '@/features/dashboard/components/primitives';
+import { CalendarCheck2, SquareCheckBig, ArrowRight } from 'lucide-react';
+import { IconChip } from '@/features/dashboard/components/primitives';
+import OnboardingHeading from '../OnboardingHeading';
 
-const VALUE_PROPS = [
-  {
-    icon: Compass,
-    title: 'Target-calibrated roadmap',
-    desc: 'Every session is sequenced step-by-step toward your target band and exam date.',
-  },
-  {
-    icon: Brain,
-    title: 'Adaptive AI diagnostics',
-    desc: 'Weak question types and skill gaps are diagnosed early with targeted drills.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Examiner-grade scoring',
-    desc: 'Instant band scoring for Writing & Speaking using official IELTS rubric criteria.',
-  },
+const BENEFITS = [
+  { icon: FeedbackIcon, label: 'Smart Feedback' },
+  { icon: CalendarCheck2, label: 'Personalised Plan' },
+  { icon: SquareCheckBig, label: 'Real Exam Practice' },
 ];
-
-export default function WelcomeStep() {
+function FeedbackIcon(props) {
   return (
-    <div className="space-y-3 py-1 text-center">
-      {/* Social Proof Pill */}
-      <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300">
-        <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-        <span>4.9 / 5.0 Rating</span>
-        <span className="text-amber-400 dark:text-amber-500/50">·</span>
-        <span className="font-semibold text-amber-700 dark:text-amber-200">
-          25,000+ IELTS Learners
-        </span>
-      </div>
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m14 6 2-2a2.1 2.1 0 0 1 3 3l-2 2m-3-3L5 15l-1 5 5-1 8-10m-3-3 3 3" />
+      <path
+        d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"
+        fill="currentColor"
+        stroke="none"
+      />
+    </svg>
+  );
+}
 
-      <div className="grid gap-2 pt-1 text-left">
-        {VALUE_PROPS.map((item) => (
-          <div
-            key={item.title}
-            className={cn(
-              'flex items-start gap-3 rounded-xl p-3 transition-all duration-150 hover:-translate-y-0.5',
-              'border border-[#dedbea] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.03),0_4px_12px_-2px_rgba(15,23,42,0.04)]',
-              'dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none',
-              'hover:border-[#5a63df]/40 hover:shadow-[0_4px_16px_-2px_rgba(15,23,42,0.07),0_8px_24px_-4px_rgba(90,99,223,0.06)] dark:hover:border-white/20'
-            )}
-          >
-            <IconChip icon={item.icon} tone="accent" size="sm" className="mt-0.5" />
-            <div className="min-w-0">
-              <p className="text-[12.5px] font-extrabold text-slate-900 dark:text-slate-100">
-                {item.title}
-              </p>
-              <p
-                className={cn(
-                  MICRO,
-                  MUTED,
-                  'mt-0.5 text-[11px] normal-case tracking-normal leading-snug'
-                )}
-              >
-                {item.desc}
-              </p>
-            </div>
-          </div>
-        ))}
+export default function WelcomeStep({ onStart, isLoading = false }) {
+  return (
+    <div className="onboarding-welcome">
+      <div className="onboarding-welcome__copy">
+        <OnboardingHeading
+          eyebrow="Welcome to IELTS Ai Pro"
+          title="Your AI-powered"
+          accent="IELTS companion"
+          description="Personal practice, instant feedback and a plan that moves you toward your target band — set up in under a minute."
+        />
+        <ul className="onboarding-benefits">
+          {BENEFITS.map(({ icon, label }, index) => (
+            <li key={label} className="onboarding-benefit" data-rise style={{ '--i': index + 3 }}>
+              <IconChip icon={icon} tone="accent" size="md" className="onboarding-benefit-icon" />
+              <span>{label}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          onClick={onStart}
+          disabled={isLoading}
+          className="onboarding-primary onboarding-welcome__start"
+          data-rise
+          style={{ '--i': 6 }}
+        >
+          Get started <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <p className="onboarding-welcome__time" data-rise style={{ '--i': 7 }}>
+          4 quick questions · about 60 seconds
+        </p>
       </div>
+      <figure className="onboarding-welcome__art" data-rise style={{ '--i': 2 }}>
+        <img
+          className="onboarding-welcome__illustration"
+          src="/onboarding/welcome-dashboard-v3-480.webp"
+          srcSet="/onboarding/welcome-dashboard-v3-480.webp 480w, /onboarding/welcome-dashboard-v3-640.webp 640w, /onboarding/welcome-dashboard-v3.webp 960w"
+          sizes="(max-width: 1044px) 320px, 430px"
+          width="960"
+          height="960"
+          alt="Illustrative score dashboard: Overall Band Score 7.0, Good. Writing 7.0, Speaking 7.0, Listening 7.5, Reading 6.5."
+          decoding="async"
+        />
+      </figure>
     </div>
   );
 }

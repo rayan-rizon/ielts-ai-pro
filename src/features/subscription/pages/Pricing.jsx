@@ -37,7 +37,7 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 },
+    transition: { staggerChildren: 0.07, delayChildren: 0.1 },
   },
 };
 
@@ -165,6 +165,13 @@ function resolveInitialPlanFromUrl(user) {
     return planParam.toLowerCase();
   }
   return user?.subscription_tier || 'free';
+}
+
+/** A plan length chosen upstream (onboarding's toggle) carries over here. */
+function resolveIntervalFromUrl() {
+  if (typeof window === 'undefined') return null;
+  const interval = new URLSearchParams(window.location.search).get('interval');
+  return interval === 'monthly' || interval === 'quarterly' ? interval : null;
 }
 
 function captureUrlPromoCode() {
@@ -299,7 +306,7 @@ function PricingPlansGrid({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto pt-2 sm:pt-4 mb-16 items-stretch"
+      className="mx-auto mb-16 grid max-w-6xl grid-cols-1 items-stretch gap-4 md:grid-cols-3 lg:gap-5"
     >
       {plans.map((plan) => {
         const displayPrice = calculatePrice(
@@ -338,7 +345,7 @@ export default function Pricing() {
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [promoDiscount, setPromoDiscount] = useState(null);
   // null until the learner picks one; until then the exam date decides.
-  const [chosenInterval, setChosenInterval] = useState(null);
+  const [chosenInterval, setChosenInterval] = useState(resolveIntervalFromUrl);
   const [showManualPayment, setShowManualPayment] = useState(false);
   const [showFreePlanDialog, setShowFreePlanDialog] = useState(false);
   const [manualPaymentData, setManualPaymentData] = useState(null);
@@ -746,7 +753,7 @@ export default function Pricing() {
       <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-16 transition-colors duration-500 dark:bg-[#08080a]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[560px] bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.1] [mask-image:radial-gradient(70%_100%_at_50%_0%,black,transparent)] dark:opacity-[0.14]"
         />
 
         <m.div

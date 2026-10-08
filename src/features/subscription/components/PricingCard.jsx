@@ -1,41 +1,44 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Check, Crown, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Crown, Minus, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { NUM, PANEL, Pill } from '@/features/dashboard/components/primitives';
+import { MICRO, NUM, PANEL, Pill } from '@/features/dashboard/components/primitives';
 import { Crossfade, SwapLine } from './pricingMotion';
 
 function PricingFeature({ label, unavailable }) {
   const isUnavailable = unavailable || label.startsWith('0 ');
+  const isInheritance = !isUnavailable && /^Everything in /.test(label);
 
   return (
-    <div className="flex items-start gap-2.5">
-      <div
+    <li className="flex items-start gap-2.5">
+      <span
         className={cn(
-          'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
+          'mt-px flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full',
           isUnavailable
-            ? 'bg-slate-100 text-slate-300 dark:bg-white/5 dark:text-slate-600'
+            ? 'border border-dashed border-slate-300 text-slate-300 dark:border-white/15 dark:text-slate-600'
             : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]'
         )}
       >
         {isUnavailable ? (
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+          <Minus className="h-2.5 w-2.5 stroke-[3]" />
         ) : (
-          <Check className="h-3 w-3 stroke-[2.8]" />
+          <Check className="h-2.5 w-2.5 stroke-[3.5]" />
         )}
-      </div>
+      </span>
       <span
         className={cn(
           'text-[13px] leading-snug',
           isUnavailable
-            ? 'font-medium text-slate-400 line-through dark:text-slate-500'
-            : 'font-bold text-slate-800 dark:text-slate-100'
+            ? 'font-medium text-slate-400 dark:text-slate-500'
+            : isInheritance
+              ? 'font-extrabold text-slate-900 dark:text-white'
+              : 'font-semibold text-slate-600 dark:text-slate-300'
         )}
       >
         {label}
       </span>
-    </div>
+    </li>
   );
 }
 
@@ -66,7 +69,7 @@ function PriceDisplay({ plan, displayPrice, priceNote, isPricingLoading }) {
     : 0;
 
   return (
-    <div className="mb-2">
+    <div>
       <div className="flex items-baseline gap-1.5">
         {isPricingLoading ? (
           <Skeleton className="h-10 w-32" />
@@ -75,7 +78,7 @@ function PriceDisplay({ plan, displayPrice, priceNote, isPricingLoading }) {
             <Crossfade
               className={cn(
                 NUM,
-                'text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl'
+                'text-[34px] font-extrabold leading-none text-slate-900 dark:text-white sm:text-[40px]'
               )}
             >
               {`${symbol}${displayPrice}`}
@@ -93,16 +96,21 @@ function PriceDisplay({ plan, displayPrice, priceNote, isPricingLoading }) {
         </SwapLine>
       </div>
 
-      {plan.oldPrice && (
-        <div className="mt-1 flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Was</span>
-          <span className={cn(NUM, 'text-xs font-bold text-slate-400 line-through')}>
-            {symbol}
-            {plan.oldPrice}
-          </span>
-          <Pill tone="accent">Save {discountPercent}%</Pill>
-        </div>
-      )}
+      {/* Always holds its row, so every card's button lines up. */}
+      <div className="mt-1 flex h-5 items-center gap-2">
+        {plan.oldPrice && (
+          <>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Was
+            </span>
+            <span className={cn(NUM, 'text-xs font-bold text-slate-400 line-through')}>
+              {symbol}
+              {plan.oldPrice}
+            </span>
+            <Pill tone="accent">Save {discountPercent}%</Pill>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -110,10 +118,10 @@ function PriceDisplay({ plan, displayPrice, priceNote, isPricingLoading }) {
 function FeatureList({ plan, isPricingLoading }) {
   if (isPricingLoading) {
     return (
-      <div className="mb-6 space-y-3">
+      <div className="space-y-3">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
-            <Skeleton className="h-5 w-5 shrink-0 rounded-full" />
+            <Skeleton className="h-[18px] w-[18px] shrink-0 rounded-full" />
             <Skeleton className={cn('h-4', i % 2 === 0 ? 'w-3/4' : 'w-1/2')} />
           </div>
         ))}
@@ -121,14 +129,27 @@ function FeatureList({ plan, isPricingLoading }) {
     );
   }
 
+  const limitations = plan.limitations || [];
   return (
-    <div className="mb-6 space-y-3">
-      {plan.features.map((feature, i) => (
-        <PricingFeature key={i} label={feature} unavailable={false} />
-      ))}
-      {plan.limitations?.map((lim, i) => (
-        <PricingFeature key={`lim-${i}`} label={lim} unavailable={true} />
-      ))}
+    <div className="space-y-4">
+      <div>
+        <p className={cn(MICRO, 'mb-2.5 text-slate-400 dark:text-slate-500')}>What you get</p>
+        <ul className="space-y-2.5">
+          {plan.features.map((feature) => (
+            <PricingFeature key={feature} label={feature} />
+          ))}
+        </ul>
+      </div>
+      {limitations.length > 0 && (
+        <div className="border-t border-dashed border-[#e4e2f0] pt-3 dark:border-white/[0.08]">
+          <p className={cn(MICRO, 'mb-2.5 text-slate-400 dark:text-slate-500')}>Not included</p>
+          <ul className="space-y-2.5">
+            {limitations.map((lim) => (
+              <PricingFeature key={lim} label={lim} unavailable />
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -148,12 +169,12 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       onClick={() => onUpgrade(plan.tier)}
       disabled={isLoading || isPricingLoading || isActive}
       className={cn(
-        'group mt-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg text-sm font-bold tracking-tight transition-all duration-200 ease-smooth-out disabled:cursor-not-allowed disabled:opacity-60',
+        'group flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold tracking-tight transition-all duration-200 ease-smooth-out disabled:cursor-not-allowed disabled:opacity-60',
         isActive
           ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500 cursor-default'
           : isPro
             ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]'
-            : 'cursor-pointer border border-[#e2e5f2] bg-white text-slate-700 hover:border-[#5a63df]/40 hover:bg-[#5a63df]/5 hover:text-[#5a63df] hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.99] dark:border-white/10 dark:bg-white/4 dark:text-slate-200 dark:hover:border-[#5a63df]/40 dark:hover:bg-white/10 dark:hover:text-white'
+            : 'cursor-pointer bg-[#eeedfb] text-[#4f57cd] hover:bg-[#e4e2f8] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] dark:bg-[#5a63df]/15 dark:text-[#b5baff] dark:hover:bg-[#5a63df]/25'
       )}
     >
       {isActive ? (
@@ -167,6 +188,12 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
     </button>
   );
 }
+
+/** Rises in with the grid's stagger; the grid owns the timing. */
+const PRICING_CARD_VARIANTS = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
+};
 
 export default function PricingCard({
   plan,
@@ -182,55 +209,47 @@ export default function PricingCard({
   const isPremium = plan.tier === 'premium';
 
   return (
-    <m.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(
-        'h-full transition-transform duration-300 ease-smooth-out',
-        isPro && 'lg:-translate-y-4'
-      )}
-    >
+    <m.div variants={PRICING_CARD_VARIANTS} className="h-full">
       <div
         className={cn(
           PANEL,
-          'flex h-full w-full flex-col justify-between px-6 pb-6 pt-5 transition-all duration-200 ease-smooth-out hover:-translate-y-0.5 hover:shadow-md sm:px-7 sm:pb-7 sm:pt-6',
-          isPro &&
-            'border-[#5a63df]/40 ring-1 ring-[#5a63df]/20 dark:border-[#5a63df]/50 shadow-md shadow-[#5a63df]/5'
+          'relative flex h-full w-full flex-col overflow-hidden rounded-2xl px-6 pb-6 pt-6 transition-[transform,border-color] duration-200 ease-smooth-out hover:-translate-y-0.5 sm:px-7',
+          isPro
+            ? 'border-[#5a63df] from-[#f7f6ff] to-white ring-1 ring-inset ring-[#5a63df] dark:border-[#5a63df]/70 dark:from-[#17162a] dark:to-[#100f15] dark:ring-[#5a63df]/40'
+            : 'hover:border-[#cfd0f5] dark:hover:border-white/15'
         )}
       >
-        <div>
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              {plan.name}
-            </h3>
-            <CardHeaderBadge isPro={isPro} isPremium={isPremium} />
-          </div>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-[22px]">
+            {plan.name}
+          </h3>
+          <CardHeaderBadge isPro={isPro} isPremium={isPremium} />
+        </div>
+        <p className="mb-5 min-h-[40px] text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+          {plan.description}
+        </p>
 
-          <PriceDisplay
+        <PriceDisplay
+          plan={plan}
+          displayPrice={displayPrice}
+          priceNote={priceNote}
+          isPricingLoading={isPricingLoading}
+        />
+
+        <div className="mb-6 mt-5">
+          <ActionButton
             plan={plan}
-            displayPrice={displayPrice}
-            priceNote={priceNote}
+            isActive={isActive}
+            isSubscribed={isSubscribed}
+            isLoading={isLoading}
             isPricingLoading={isPricingLoading}
+            onUpgrade={onUpgrade}
           />
-
-          <p className="mb-4 mt-2 text-[13px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            {plan.description}
-          </p>
-
-          <div className="mb-4 h-px bg-[#eeedf7] dark:bg-white/[0.07]" />
-
-          <FeatureList plan={plan} isPricingLoading={isPricingLoading} />
         </div>
 
-        <ActionButton
-          plan={plan}
-          isActive={isActive}
-          isSubscribed={isSubscribed}
-          isLoading={isLoading}
-          isPricingLoading={isPricingLoading}
-          onUpgrade={onUpgrade}
-        />
+        <div className="mb-5 h-px bg-[#eeedf7] dark:bg-white/[0.07]" />
+
+        <FeatureList plan={plan} isPricingLoading={isPricingLoading} />
       </div>
     </m.div>
   );

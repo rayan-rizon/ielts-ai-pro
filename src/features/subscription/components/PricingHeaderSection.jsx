@@ -1,6 +1,8 @@
 import React from 'react';
 import { m } from 'framer-motion';
+import { CalendarCheck2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { MICRO } from '@/features/dashboard/components/primitives';
 import PromoCodeRedemption from '@/components/PromoCodeRedemption';
 import { EXAM_PASS_DISCOUNT_PERCENT, EXAM_PASS_MONTHS } from '@/lib/pricingUtils';
 import { SwapLine } from './pricingMotion';
@@ -21,13 +23,22 @@ export default function PricingHeaderSection({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       // Clears the floating sidebar button on phones now the badge no longer does.
-      className="mb-6 space-y-3 pt-10 text-center sm:pt-0"
+      className="mb-8 space-y-4 pt-10 text-center sm:pt-2"
     >
-      <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-5xl">
+      <p
+        className={cn(
+          MICRO,
+          'inline-flex items-center gap-2 rounded-full border border-[#e4e2f0] bg-white px-3 py-1.5 text-slate-500 dark:border-white/10 dark:bg-white/4 dark:text-slate-400'
+        )}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df]" aria-hidden="true" />
+        Plans &amp; pricing
+      </p>
+      <h1 className="mx-auto max-w-3xl text-balance text-[32px] font-extrabold leading-[1.08] tracking-[-0.04em] text-slate-900 dark:text-white sm:text-[44px] md:text-[52px]">
         Your dream starts with{' '}
         <span className="text-[#5a63df] dark:text-[#a9afff]">the right band score</span>
       </h1>
-      <p className="mx-auto max-w-md text-balance px-2 text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400 sm:text-base">
+      <p className="mx-auto max-w-md text-balance px-2 text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400 sm:text-[15px]">
         Instant AI band scores and a study plan built around your exam date.
       </p>
 
@@ -84,7 +95,13 @@ export default function PricingHeaderSection({
         </div>
 
         {/* One line, fixed height: the exam date if there is one, else how billing works. */}
-        <div className="-mt-1 w-full max-w-md text-xs font-semibold">
+        <div
+          className={cn(
+            '-mt-1 inline-flex max-w-md items-center justify-center gap-1.5 text-xs font-semibold',
+            coverageNote && 'text-[#5a63df] dark:text-[#a9afff]'
+          )}
+        >
+          {coverageNote && <CalendarCheck2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
           <SwapLine
             align="center"
             className={

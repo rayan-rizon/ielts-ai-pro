@@ -1,17 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowRight,
-  Calendar,
-  CalendarDays,
-  Check,
-  ChevronRight,
-  Gauge,
-  Lock,
-  LockKeyhole,
-  Sparkles,
-  Target,
-} from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Gauge, Target } from 'lucide-react';
+import { addWeeks } from 'date-fns';
 import { m, useReducedMotion } from 'framer-motion';
+import OnboardingHeading from '../OnboardingHeading';
 import { cn } from '@/lib/cn';
 import {
   IconChip,
@@ -28,7 +19,14 @@ import {
 } from '@/features/subscription/hooks/usePricing';
 import { getSignupOffer } from '@/features/subscription/services/signupOffer';
 import { capturePromoCode, getPendingPromoCode } from '@/lib/promoOffer';
-import { calculatePrice, calculateCheckoutAmount } from '@/lib/pricingUtils';
+import {
+  calculatePrice,
+  calculateCheckoutAmount,
+  EXAM_PASS_DISCOUNT_PERCENT,
+  EXAM_PASS_MONTHS,
+  formatExamPassCharge,
+} from '@/lib/pricingUtils';
+import { describeExamCoverage, getExamPlanContext } from '@/lib/examPlan';
 import { buildOnboardingPlanPreview } from './onboardingPlanPreview';
 
 const ASSEMBLY_STEPS = [
@@ -36,6 +34,8 @@ const ASSEMBLY_STEPS = [
   { icon: Target, shortLabel: 'Focus', label: 'Setting your first priority' },
   { icon: Gauge, shortLabel: 'Pace', label: 'Calibrating your target pace' },
 ];
+// Total assembly time; each check lands in turn inside it.
+const ASSEMBLY_MS = 1750;
 
 function ReiconSparkle({ className }) {
   return (
@@ -71,27 +71,19 @@ function ReiconCrown({ className }) {
 }
 
 const PLAN_OPTIONS = {
-  pro: {
-    name: 'Pro',
-    icon: ReiconSparkle,
-    period: '/month',
-    tone: 'accent',
-    description: 'Build a regular practice routine with AI feedback and an adaptive Learning Path.',
-  },
-  premium: {
-    name: 'Premium',
-    icon: ReiconCrown,
-    period: '/month',
-    tone: 'amber',
-    description: 'Choose more evaluation capacity and advanced Band 8–9 vocabulary kits.',
-  },
+  pro: { name: 'Pro', icon: ReiconSparkle, extra: 'Adaptive AI Learning Path' },
+  premium: { name: 'Premium', icon: ReiconCrown, extra: 'Band 8–9 vocabulary kits' },
 };
+const BILLING_INTERVALS = ['monthly', 'quarterly'];
+// The few price-book lines that actually separate the tiers.
+const FEATURE_PICK = /AI Writing Evaluation|AI Speaking Session|Practice Lab AI Test/;
 
 /** Onboarding must never quote a different price than the pricing page. Both
  * read the same admin price book through the same regional resolution, so a
  * Bangladeshi learner sees the BDT price here too. Prices render only once the
  * real price book has resolved — a USD placeholder that later flips to BDT is
- * worse than a brief dash. */
+ * worse than a brief dash. Returns both plan lengths so the toggle never
+ * waits on a fetch. */
 function useOnboardingPlanPricing(offer) {
   const [configuredPlans, setConfiguredPlans] = useState(null);
 
@@ -114,30 +106,60 @@ function useOnboardingPlanPricing(offer) {
   }, []);
 
   return useMemo(() => {
-    const pricing = {};
-    ['free', ...Object.keys(PLAN_OPTIONS)].forEach((tier) => {
-      const plan = configuredPlans?.find((entry) => entry.tier === tier);
-      if (!plan) {
-        pricing[tier] = { price: null, oldPrice: null, dailyPrice: null, features: [] };
-        return;
-      }
-      const symbol = plan.currencySymbol || '$';
-      pricing[tier] = {
-        price: `${symbol}${calculatePrice(plan.basePrice, 'monthly', offer ? { discount_type: 'percentage', discount_value: offer.discount_percent } : null, plan.currency)}`,
-        oldPrice:
-          offer && tier !== 'free'
-            ? `${symbol}${calculatePrice(plan.basePrice, 'monthly', null, plan.currency)}`
+    const discount = offer
+      ? { discount_type: 'percentage', discount_value: offer.discount_percent }
+      : null;
+    const byInterval = {};
+    BILLING_INTERVALS.forEach((interval) => {
+      const pricing = {};
+      ['free', ...Object.keys(PLAN_OPTIONS)].forEach((tier) => {
+        const plan = configuredPlans?.find((entry) => entry.tier === tier);
+        if (!plan) {
+          pricing[tier] = { price: null, oldPrice: null, note: null, features: [] };
+          return;
+        }
+        const symbol = plan.currencySymbol || '$';
+        const isPaid = tier !== 'free';
+        const perMonth = calculatePrice(plan.basePrice, interval, discount, plan.currency);
+        const regularMonthly = calculatePrice(plan.basePrice, 'monthly', null, plan.currency);
+        // Struck-through figure: the regular monthly price whenever this card
+        // undercuts it (offer or pass), else the price book's own "was".
+        const undercut = isPaid && (offer || interval === 'quarterly');
+        pricing[tier] = {
+          price: `${symbol}${perMonth}`,
+          oldPrice: undercut
+            ? `${symbol}${regularMonthly}`
             : plan.oldPrice
               ? `${symbol}${calculatePrice(plan.oldPrice, 'monthly', null, plan.currency)}`
               : null,
-        dailyPrice: `${symbol}${formatDailyRate(calculateCheckoutAmount(plan.basePrice, 'monthly', offer ? { discount_type: 'percentage', discount_value: offer.discount_percent } : null, plan.currency))}/day`,
-        features: plan.features.filter((feature) =>
-          /AI Writing Evaluation|AI Speaking Session/.test(feature)
-        ),
-      };
+          note: !isPaid
+            ? 'Free forever'
+            : interval === 'quarterly'
+              ? formatExamPassCharge(plan, discount)
+              : `${symbol}${formatDailyRate(calculateCheckoutAmount(plan.basePrice, 'monthly', discount, plan.currency))}/day`,
+          features: plan.features.filter((feature) => FEATURE_PICK.test(feature)),
+        };
+      });
+      byInterval[interval] = pricing;
     });
-    return pricing;
+    return byInterval;
   }, [configuredPlans, offer]);
+}
+
+/** The exam date the learner just gave, in the shape /pricing reads from the
+ * saved profile, so both default to the same plan length. */
+function getOnboardingExamPlan(formData) {
+  if (formData.timeline_type === 'specific' && formData.test_date) {
+    return getExamPlanContext(formData.test_date, new Date(), 'confirmed');
+  }
+  if (formData.timeline_type === 'estimated' && formData.estimated_weeks) {
+    return getExamPlanContext(
+      addWeeks(new Date(), formData.estimated_weeks),
+      new Date(),
+      'estimated'
+    );
+  }
+  return null;
 }
 
 /** Sub-unit currencies need the cents ($0.33/day); a 1,100 BDT plan reads as
@@ -150,360 +172,149 @@ function formatDailyRate(monthlyPrice) {
 
 function PlanAssembly({ preview }) {
   const reduceMotion = useReducedMotion();
-  const [activeStep, setActiveStep] = useState(reduceMotion ? ASSEMBLY_STEPS.length - 1 : 0);
-
+  const [done, setDone] = useState(reduceMotion ? ASSEMBLY_STEPS.length : 0);
   useEffect(() => {
     if (reduceMotion) return undefined;
-    const timer = window.setInterval(() => {
-      setActiveStep((current) => Math.min(current + 1, ASSEMBLY_STEPS.length - 1));
-    }, 520);
-    return () => window.clearInterval(timer);
+    const step = ASSEMBLY_MS / (ASSEMBLY_STEPS.length + 1);
+    const timers = ASSEMBLY_STEPS.map((_, index) =>
+      window.setTimeout(() => setDone(index + 1), step * (index + 1))
+    );
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [reduceMotion]);
 
-  const progress = ((activeStep + 1) / ASSEMBLY_STEPS.length) * 100;
-
   return (
-    <div className="flex min-h-[250px] flex-col justify-center py-3 text-center">
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5a63df]/12 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]">
-        <Sparkles className="h-5 w-5 animate-pulse" />
+    <div className="onboarding-assembly" role="status" aria-live="polite">
+      <div className="onboarding-assembly-art" aria-hidden="true" data-rise style={{ '--i': 0 }}>
+        <img src="/onboarding/welcome-orbits-v2.webp" width="960" height="960" alt="" />
+        <div className={cn(PANEL, 'onboarding-assembly-calendar')}>
+          <IconChip icon={CalendarDays} tone="accent" size="md" />
+          <div className="onboarding-assembly-days">
+            {Array.from({ length: 14 }, (_, index) => (
+              <span
+                key={index}
+                className={index % 3 === 0 ? 'is-study-day' : ''}
+                style={{ '--d': index }}
+              >
+                {index % 3 === 0 && <Check className="h-3 w-3" />}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-      <h2 className="mt-2 text-base font-black tracking-tight text-slate-900 text-balance dark:text-white">
-        Building your Band {preview.targetBand.toFixed(1)} plan
-      </h2>
-      <p className={cn('mx-auto mt-0.5 max-w-sm text-[11.5px] font-medium text-pretty', MUTED)}>
-        Matching {preview.weeklyMinutes} weekly minutes to your {preview.focusLabel} priority.
-      </p>
-
-      <div className={cn(WELL, 'mx-auto mt-3.5 w-full max-w-md rounded-xl p-2.5')}>
-        <div className="grid grid-cols-3 gap-2" aria-hidden="true">
-          {ASSEMBLY_STEPS.map((step, index) => {
-            const StepIcon = step.icon;
-            const complete = index <= activeStep;
-            return (
-              <div key={step.shortLabel} className="flex flex-col items-center gap-1">
-                <m.span
-                  className={cn(
-                    'grid h-8 w-8 place-items-center rounded-lg border text-xs',
-                    complete
-                      ? 'border-[#5a63df]/30 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/12 dark:text-[#b8bdff]'
-                      : 'border-[#dedbea] bg-white/70 text-slate-400 dark:border-white/10 dark:bg-white/3 dark:text-slate-600'
-                  )}
-                  animate={
-                    reduceMotion || !complete ? undefined : { scale: [0.96, 1], opacity: [0.7, 1] }
-                  }
-                  transition={{ duration: 0.22, ease: 'easeOut' }}
-                >
-                  {complete ? (
-                    <Check className="h-3.5 w-3.5 stroke-2.5" />
-                  ) : (
-                    <StepIcon className="h-3.5 w-3.5" />
-                  )}
-                </m.span>
-                <span
-                  className={cn(
-                    MICRO,
-                    complete ? 'font-bold text-slate-800 dark:text-slate-200' : MUTED,
-                    'text-[9.5px]'
-                  )}
-                >
-                  {step.shortLabel}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-[#dedbea] dark:bg-white/8">
-          <m.div
-            className="h-full rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
-            initial={false}
-            animate={{ width: `${progress}%` }}
-            transition={reduceMotion ? { duration: 0 } : { duration: 0.28, ease: 'easeOut' }}
-          />
-        </div>
-        <p
-          role="status"
-          aria-live="polite"
-          className={cn('mt-2 text-[11px] font-semibold text-[#5a63df] dark:text-[#a9afff]')}
-        >
-          {ASSEMBLY_STEPS[activeStep].label}…
-        </p>
+      <OnboardingHeading
+        align="center"
+        eyebrow="Putting your answers together"
+        title={`Building your Band ${preview.targetBand.toFixed(1)} plan`}
+        description={`Matching ${preview.weeklyMinutes} weekly minutes to your ${preview.focusLabel} priority.`}
+      />
+      <ol className="onboarding-assembly-steps">
+        {ASSEMBLY_STEPS.map(({ label, icon: Icon }, index) => {
+          const state = index < done ? 'is-done' : index === done ? 'is-active' : '';
+          return (
+            <li key={label} className={state} data-rise style={{ '--i': index + 3 }}>
+              <span className="onboarding-assembly-steps__mark" aria-hidden="true">
+                {index < done ? (
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                ) : (
+                  <Icon className="h-3.5 w-3.5" />
+                )}
+              </span>
+              {label}
+            </li>
+          );
+        })}
+      </ol>
+      <div className="onboarding-assembly-meter" aria-hidden="true">
+        <span style={{ '--duration': `${ASSEMBLY_MS}ms` }} />
       </div>
     </div>
   );
 }
 
-function LockedScheduleGrid({ preview }) {
-  const daysHeader = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-  const studyDaysCount = Math.min(7, Math.max(1, preview.studyDays || 3));
-
-  const gridCells = useMemo(() => {
-    const cells = [];
-    for (let w = 0; w < 4; w++) {
-      for (let d = 0; d < 7; d++) {
-        const dayNumber = w * 7 + d + 1;
-        const isMockDay = dayNumber === 14 || dayNumber === 28;
-        const isStudyDay = !isMockDay && d < studyDaysCount;
-        cells.push({ dayNumber, isMockDay, isStudyDay });
-      }
-    }
-    return cells;
-  }, [studyDaysCount]);
-
-  return (
-    <section
-      className={cn(PANEL, 'flex flex-col justify-between overflow-hidden p-2.5 text-left')}
-      aria-label="Your adaptive schedule"
-    >
-      {/* Header bar matching instrument panel theme */}
-      <div className="flex items-center justify-between border-b border-[#e4e2f0] pb-1.5 dark:border-white/[0.07]">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="h-3 w-3 shrink-0 text-[#5a63df] dark:text-[#8f97ff]" />
-          <h3 className="text-[11px] font-black tracking-tight text-slate-900 dark:text-white">
-            Your {preview.timelineLabel || '8-Week'} Plan
-          </h3>
-        </div>
-        <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 bg-slate-100/90 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-600 dark:border-white/10 dark:bg-white/6 dark:text-slate-400">
-          <LockKeyhole className="h-2 w-2" />
-          Locked
-        </span>
-      </div>
-
-      {/* 28-day schedule matrix with compact plan preview overlay */}
-      <div className="relative my-1 overflow-hidden rounded-md">
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {daysHeader.map((d, i) => (
-            <span key={i} className={cn(MICRO, MUTED, 'text-[8px]')}>
-              {d}
-            </span>
-          ))}
-        </div>
-        <div className="mt-0.5 grid grid-cols-7 gap-1">
-          {gridCells.map(({ dayNumber, isMockDay, isStudyDay }) => {
-            if (isMockDay) {
-              return (
-                <div
-                  key={dayNumber}
-                  className="flex h-4.5 flex-col items-center justify-center rounded border border-[#5a63df]/25 bg-[#5a63df]/12 text-[#5a63df] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/15 dark:text-[#b8bdff]"
-                  title={`Day ${dayNumber}: Full Mock Test (Locked)`}
-                >
-                  <span className={cn(NUM, 'text-[7px] font-black leading-none')}>{dayNumber}</span>
-                  <Lock className="mt-px h-1.5 w-1.5 opacity-70" />
-                </div>
-              );
-            }
-            if (isStudyDay) {
-              return (
-                <div
-                  key={dayNumber}
-                  className="flex h-4.5 flex-col items-center justify-center rounded border border-slate-200/70 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/4 dark:text-slate-300"
-                  title={`Day ${dayNumber}: AI Practice Drill (Locked)`}
-                >
-                  <span className={cn(NUM, 'text-[7px] font-bold leading-none')}>{dayNumber}</span>
-                  <Lock className="mt-px h-1.5 w-1.5 opacity-60" />
-                </div>
-              );
-            }
-            return (
-              <div
-                key={dayNumber}
-                className="flex h-4.5 items-center justify-center rounded bg-slate-50/50 text-slate-300 dark:bg-white/2 dark:text-slate-600"
-                title={`Day ${dayNumber}: Rest Day`}
-              >
-                <span className={cn(NUM, 'text-[7px] font-medium leading-none')}>{dayNumber}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Subtle blur overlay with compact lock badge */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/55 dark:bg-[#100f15]/60">
-          <div className="flex items-center gap-1.5 rounded-full border border-[#5a63df]/30 bg-white/95 px-2.5 py-0.5 shadow-2xs dark:border-white/10 dark:bg-[#16151f]/95">
-            <LockKeyhole className="h-2.5 w-2.5 text-[#5a63df] dark:text-[#8f97ff]" />
-            <span className="text-[9px] font-black text-slate-900 dark:text-white">
-              Schedule Locked
-            </span>
-          </div>
-          <span className="mt-0.5 text-[8px] font-bold text-[#5a63df] dark:text-[#8f97ff]">
-            Unlocks with subscription
-          </span>
-        </div>
-      </div>
-
-      {/* Legend & Lock Notice */}
-      <div className="flex flex-wrap items-center justify-between gap-1 border-t border-[#e4e2f0] pt-1 text-[9px] dark:border-white/[0.07]">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-            Study ({studyDaysCount}d)
-          </span>
-          <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df]" />
-            Mock
-          </span>
-          <span className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-200 dark:bg-white/20" />
-            Rest
-          </span>
-        </div>
-        <span className="text-[8.5px] font-bold text-[#5a63df] dark:text-[#8f97ff]">
-          🔒 Unlocks with Pro
-        </span>
-      </div>
-    </section>
-  );
-}
-
-function PracticeFeedbackLoop({ preview }) {
-  return (
-    <section className={cn(PANEL, 'p-3 text-left')} aria-label="Your next practice steps">
-      <div className="flex items-center gap-2 border-b border-[#e4e2f0] pb-2 dark:border-white/[0.07]">
-        <IconChip icon={Target} tone="accent" size="sm" />
-        <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-          Practise. Review. Improve.
-        </h3>
-      </div>
-      <ol className="mt-2 space-y-2">
-        {[
-          [
-            'Start with a level check',
-            `Use your ${preview.focusLabel} priority to choose your first task.`,
-          ],
-          [
-            'Find what to work on',
-            'Review your result and choose one correction for your next attempt.',
-          ],
-          [
-            'Build a repeatable routine',
-            'Pro adds more AI feedback and an adaptive Learning Path.',
-          ],
-        ].map(([title, detail], index) => (
-          <li key={title} className="flex gap-2">
-            <span className={cn(NUM, 'text-[11px] font-bold text-[#5a63df]')}>0{index + 1}</span>
-            <div>
-              <p className="text-[11px] font-bold text-slate-900 dark:text-white">{title}</p>
-              <p className={cn(MUTED, 'text-[10px] leading-relaxed')}>{detail}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <p
-        className={cn(
-          MUTED,
-          'mt-2 border-t border-[#e4e2f0] pt-2 text-[10px] dark:border-white/[0.07]'
-        )}
-      >
-        Band {preview.targetBand.toFixed(1)} is your goal. Your first result establishes your
-        starting point.
-      </p>
-    </section>
-  );
-}
-
-function PlanOption({ tier, recommended, onSelect, pricing }) {
-  const option = PLAN_OPTIONS[tier];
-  const PlanIcon = option.icon;
-  const isPro = tier === 'pro';
-  const currentPrice = pricing?.price || '—';
-  const previousPrice = pricing?.oldPrice;
-
+function PlanOption({ tier, pricing, onSelect, isFree = false, index = 0 }) {
+  const option = isFree ? { name: 'Free', icon: null } : PLAN_OPTIONS[tier];
+  const recommended = tier === 'pro';
+  const features = isFree
+    ? ['Unlimited Reading & Listening tests', ...(pricing?.features || [])]
+    : [...(pricing?.features || []), option.extra];
+  const Icon = option.icon;
   return (
     <article
-      className={cn(
-        PANEL,
-        'relative flex min-w-0 flex-col justify-between rounded-xl transition-colors duration-200',
-        isPro ? 'border-[#5a63df]/30 dark:border-[#8f97ff]/30' : ''
-      )}
+      className={cn(PANEL, 'onboarding-plan', recommended && 'onboarding-plan--recommended')}
+      data-rise
+      style={{ '--i': index + 7 }}
     >
-      <div className="onboarding-plan-card__inner flex h-full flex-col justify-between p-2.5 sm:p-3 text-left">
-        <div>
-          {/* Header row: Plan Name + Reicon + Pill badge */}
-          <div className="flex items-center justify-between gap-1">
-            <div className="flex items-center gap-2">
-              <IconChip icon={PlanIcon} tone={option.tone} size="sm" />
-              <div>
-                <h3 className="text-[13px] font-black leading-tight text-slate-900 dark:text-white">
-                  {option.name}
-                </h3>
-                <p className={cn(MICRO, MUTED, 'text-[8.5px] leading-none')}>
-                  {pricing?.dailyPrice || 'Loading price…'}
-                </p>
-              </div>
-            </div>
-            {recommended ? (
-              <span
-                className={cn(
-                  'rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider',
-                  isPro
-                    ? 'border-[#5a63df]/25 bg-[#5a63df]/6 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/10 dark:text-[#b8bdff]'
-                    : 'border-amber-500/25 bg-amber-500/6 text-amber-600 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300'
-                )}
-              >
-                Start here
-              </span>
-            ) : (
-              <span className="rounded-full border border-slate-200/80 bg-slate-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/4 dark:text-slate-400">
-                More practice
-              </span>
-            )}
-          </div>
-
-          {/* Pricing with previous price (strikethrough) and current price */}
-          <div className="mt-2 flex items-baseline justify-between border-t border-[#e4e2f0] pt-1.5 dark:border-white/8">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span
-                className={cn(
-                  NUM,
-                  'text-base sm:text-lg font-black text-slate-900 dark:text-white'
-                )}
-              >
-                {currentPrice}
-              </span>
-              {previousPrice && (
-                <span
-                  className={cn(
-                    NUM,
-                    'text-[11px] font-semibold text-slate-400 line-through dark:text-slate-500'
-                  )}
-                >
-                  {previousPrice}
-                </span>
-              )}
-              <span className={cn(MICRO, MUTED, 'text-[9.5px]')}>
-                {pricing?.period || option.period}
-              </span>
-            </div>
-          </div>
-
-          <p className="mt-1 text-[11px] font-medium leading-snug text-slate-600 dark:text-slate-300">
-            {option.description}
-          </p>
-          <ul className="mt-2 space-y-1 text-[11px] text-slate-700 dark:text-slate-200">
-            {(pricing?.features || []).map((feature) => (
-              <li key={feature}>{feature}</li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Compact action button */}
-        <button
-          type="button"
-          onClick={() => onSelect(tier)}
-          disabled={!pricing?.price}
-          className={cn(
-            'relative z-1 mt-2.5 inline-flex min-h-11 w-full items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-bold transition-all duration-150 active:scale-[0.98] disabled:cursor-wait disabled:opacity-50',
-            recommended
-              ? isPro
-                ? 'bg-[#5a63df] text-white hover:bg-[#4a52c9]'
-                : 'bg-amber-500 text-white hover:bg-amber-600'
-              : 'border border-slate-200/90 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900 dark:border-white/10 dark:bg-white/3 dark:text-slate-200 dark:hover:border-white/20'
-          )}
-        >
-          Choose {option.name}
-          <ArrowRight className="h-3 w-3" />
-        </button>
+      <div className="onboarding-plan__top">
+        <h3 className="onboarding-plan__name">
+          {Icon && <Icon className="onboarding-plan__icon" />}
+          {option.name}
+        </h3>
+        {recommended && <span className="onboarding-plan__badge">Most popular</span>}
       </div>
+      <div className="onboarding-plan__price">
+        <span key={pricing?.price} className={cn(NUM, 'onboarding-plan__amount')}>
+          {pricing?.price || '—'}
+        </span>
+        <span className="onboarding-plan__period">/ month</span>
+      </div>
+      <p className={cn(NUM, 'onboarding-plan__note')}>
+        <span key={pricing?.note} className="onboarding-swap">
+          {pricing?.note || 'Loading your local price…'}
+        </span>
+        {pricing?.oldPrice && <s className="onboarding-plan__was">{pricing.oldPrice}</s>}
+      </p>
+      <ul className="onboarding-plan-features">
+        {features.map((feature) => (
+          <li key={feature}>
+            <span className="onboarding-plan-features__check" aria-hidden="true">
+              <Check className="h-3 w-3" strokeWidth={3} />
+            </span>
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => onSelect(tier)}
+        className={cn('onboarding-primary w-full', !recommended && 'onboarding-plan-secondary')}
+      >
+        {isFree ? 'Continue with free practice' : `Choose ${option.name}`}
+        <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+      </button>
     </article>
+  );
+}
+
+function IntervalToggle({ value, onChange }) {
+  return (
+    <div className="onboarding-interval" role="group" aria-label="Plan length">
+      {BILLING_INTERVALS.map((interval) => {
+        const active = value === interval;
+        return (
+          <button
+            key={interval}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(interval)}
+            className={cn('onboarding-interval__option', active && 'is-active')}
+          >
+            {active && (
+              <m.span
+                layoutId="onboarding-interval-thumb"
+                className="onboarding-interval__thumb"
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              />
+            )}
+            <span className="relative">
+              {interval === 'monthly' ? 'Monthly' : `${EXAM_PASS_MONTHS}-Month Pass`}
+            </span>
+            {interval === 'quarterly' && (
+              <span className="onboarding-interval__save">Save {EXAM_PASS_DISCOUNT_PERCENT}%</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -516,133 +327,96 @@ function ReadyPlan({
   planPricing,
   onPlanOfferViewed,
   signupOffer,
+  examPlan,
 }) {
-  const recommendedTier = 'pro';
-  const pricesReady = Boolean(planPricing.pro?.price && planPricing.premium?.price);
-
-  // Reported here rather than on entering the step: the offer only exists once
-  // the assembly animation has finished, so anyone who leaves during it never
-  // saw a price and must not count as having seen the offer.
+  // The exam date picks the default, exactly as /pricing does.
+  const [interval, setBillingInterval] = useState(examPlan?.recommendedInterval || 'monthly');
+  const pricing = planPricing[interval];
+  const coverage = describeExamCoverage(interval, examPlan);
+  const pricesReady = Boolean(pricing.pro?.price && pricing.premium?.price);
   useEffect(() => {
     if (hasPaidPlan || !pricesReady) return;
     onPlanOfferViewed?.();
   }, [hasPaidPlan, onPlanOfferViewed, pricesReady]);
 
   return (
-    <m.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="space-y-2.5"
-    >
-      {/* Centered Step Header consistent with Steps 1-5 */}
-      <header className="mb-2.5 sm:mb-3 text-center">
-        <div className="flex items-center justify-center gap-1.5">
-          <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white sm:text-xl">
-            Your study plan preview is ready
-          </h2>
-          <span className="rounded-full border border-[rgb(var(--signal-ok))/0.3] bg-[rgb(var(--signal-ok))/0.06] px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[rgb(var(--signal-ok))] dark:border-[rgb(var(--signal-ok))/0.25] dark:bg-[rgb(var(--signal-ok))/0.10]">
-            Personalized
-          </span>
-        </div>
-        <p className="mt-1 text-[11.5px] sm:text-[12px] font-medium text-slate-500 dark:text-slate-400">
-          Target:{' '}
-          <span className="font-bold text-slate-900 dark:text-white">
-            Band {preview.targetBand.toFixed(1)}
-          </span>{' '}
-          ·{' '}
-          <span className="font-semibold text-slate-800 dark:text-slate-200">
-            {preview.weeklyMinutes} min
-          </span>
-          /wk · Priority:{' '}
-          <span className="font-semibold text-[#5a63df] dark:text-[#a9afff]">
-            {preview.planItems[0].label}
-          </span>
-        </p>
-      </header>
-
-      {/* Side-by-side: Locked Schedule Grid (Left) + Practice Feedback Loop (Right) */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <LockedScheduleGrid preview={preview} />
-        <PracticeFeedbackLoop preview={preview} />
-      </div>
-
-      {/* Subscription Paywall or Active Learner Gate */}
-      {hasPaidPlan ? (
-        <button
-          type="button"
-          onClick={onOpenPlan}
-          className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[#5a63df] px-5 text-xs font-bold text-white transition-colors hover:bg-[#4a52c9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] active:scale-[0.96]"
-        >
-          Open my AI Learning Path
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      ) : (
-        <section className="pt-0.5" aria-labelledby="unlock-plan-title">
-          <div className="mb-1.5 flex items-center justify-between px-0.5">
-            <div className="flex items-center gap-1.5">
-              <LockKeyhole className="h-3 w-3 text-[#5a63df] dark:text-[#8f97ff]" />
-              <h3
-                id="unlock-plan-title"
-                className="text-[12px] font-black text-slate-900 dark:text-white"
-              >
-                Unlock your adaptive plan
-              </h3>
-            </div>
-            <span className={cn(MICRO, MUTED, 'text-[9px] tracking-wider font-semibold uppercase')}>
-              Cancel anytime
-            </span>
+    <div className="onboarding-ready">
+      <OnboardingHeading
+        align="center"
+        className="onboarding-ready-heading"
+        eyebrow="Made around your goals"
+        title="Your study plan"
+        accent="preview is ready"
+        description="A starting structure for your journey. Your practice results will guide what comes next."
+      />
+      <dl className="onboarding-summary">
+        {[
+          { label: 'Target', value: `Band ${preview.targetBand.toFixed(1)}`, num: true },
+          { label: 'Each week', value: `${preview.weeklyMinutes} min`, num: true },
+          { label: 'First focus', value: preview.focusLabel },
+          { label: 'Timeline', value: preview.timelineLabel },
+        ].map((item, index) => (
+          <div key={item.label} className={WELL} data-rise style={{ '--i': index + 3 }}>
+            <dt className={cn(MICRO, MUTED)}>{item.label}</dt>
+            <dd className={cn(item.num && NUM, 'onboarding-summary__value')}>{item.value}</dd>
           </div>
-
+        ))}
+      </dl>
+      {hasPaidPlan ? (
+        <div className="flex flex-col items-center gap-4 py-5" data-rise style={{ '--i': 7 }}>
+          <img src="/onboarding/study-plan-v1.webp" width="160" height="160" alt="" />
+          <button type="button" onClick={onOpenPlan} className="onboarding-primary">
+            Open my AI Learning Path <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <section aria-labelledby="unlock-plan-title">
+          <div className="onboarding-plans__head" data-rise style={{ '--i': 5 }}>
+            <h2 id="unlock-plan-title" className="onboarding-subheading">
+              Choose how you’ll practice
+            </h2>
+            <IntervalToggle value={interval} onChange={setBillingInterval} />
+            <p className={cn(MICRO, 'onboarding-plans__coverage')}>
+              <span key={`${interval}-${coverage}`} className="onboarding-swap">
+                {coverage ||
+                  (interval === 'quarterly'
+                    ? `One payment · ${EXAM_PASS_MONTHS} months · no auto-renewal`
+                    : 'Billed monthly · cancel anytime')}
+              </span>
+            </p>
+          </div>
           {signupOffer && (
-            <div className={cn(WELL, 'mb-2 rounded-lg p-2.5 text-xs')}>
+            <div className="onboarding-offer" data-rise style={{ '--i': 5 }}>
               <p className="font-bold">Your personal 20% signup offer</p>
-              <p className={cn(MUTED, 'mt-1')}>
+              <p className={cn(MUTED, 'mt-1 text-xs')}>
                 First payment only · expires {new Date(signupOffer.expires_at).toLocaleString()}.
               </p>
-              <p className={cn(NUM, 'mt-1 break-all text-[10px]')}>{signupOffer.code}</p>
+              <p className={cn(NUM, 'mt-2 break-all text-xs')}>{signupOffer.code}</p>
             </div>
           )}
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5">
-            {Object.keys(PLAN_OPTIONS).map((tier) => (
-              <PlanOption
-                key={tier}
-                tier={tier}
-                recommended={tier === recommendedTier}
-                onSelect={onUpgrade}
-                pricing={planPricing[tier]}
-              />
-            ))}
+          <div className="onboarding-plans">
+            <PlanOption tier="free" isFree pricing={pricing.free} onSelect={onContinue} />
+            <PlanOption
+              tier="pro"
+              index={1}
+              pricing={pricing.pro}
+              onSelect={(tier) => onUpgrade(tier, interval)}
+            />
+            <PlanOption
+              tier="premium"
+              index={2}
+              pricing={pricing.premium}
+              onSelect={(tier) => onUpgrade(tier, interval)}
+            />
           </div>
-
-          <div className={cn(WELL, 'mt-2 rounded-lg p-2.5 text-[11px]')}>
-            <p className="font-bold text-slate-900 dark:text-white">
-              Free is a useful starting point
-            </p>
-            <p className={cn(MUTED, 'mt-1')}>Reading &amp; Listening practice stays available.</p>
-            {(planPricing.free?.features || []).map((feature) => (
-              <p key={feature} className={cn(MUTED, 'mt-1')}>
-                {feature}
-              </p>
-            ))}
-          </div>
-          <p className={cn(MUTED, 'mt-2 text-center text-[10px]')}>
-            Monthly subscriptions renew until cancelled. Review payment terms at checkout.
+          <p className={cn(MUTED, 'mt-4 text-center text-xs leading-relaxed')}>
+            {interval === 'quarterly'
+              ? `The ${EXAM_PASS_MONTHS}-Month Pass is a single payment and never renews. Review payment terms at checkout.`
+              : 'Paid monthly subscriptions renew until cancelled. Review payment terms at checkout.'}
           </p>
-          <button
-            type="button"
-            onClick={onContinue}
-            className={cn(
-              MICRO,
-              'mt-2 inline-flex min-h-11 w-full items-center justify-center gap-1 rounded py-0.5 text-slate-500 transition-colors hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#5a63df] dark:text-slate-400 dark:hover:text-white text-[10.5px] font-semibold'
-            )}
-          >
-            Continue with free practice
-            <ChevronRight className="h-3 w-3" />
-          </button>
         </section>
       )}
-    </m.div>
+    </div>
   );
 }
 
@@ -673,13 +447,14 @@ export default function CompleteStep({
     };
   }, [hasPaidPlan, loadSignupOffer]);
   const planPricing = useOnboardingPlanPricing(signupOffer);
-  const selectPlan = (tier) => {
+  const examPlan = useMemo(() => getOnboardingExamPlan(formData), [formData]);
+  const selectPlan = (tier, interval) => {
     if (signupOffer?.code) capturePromoCode(signupOffer.code);
-    onUpgrade?.(tier);
+    onUpgrade?.(tier, interval);
   };
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsAssembling(false), reduceMotion ? 200 : 1750);
+    const timer = window.setTimeout(() => setIsAssembling(false), reduceMotion ? 200 : ASSEMBLY_MS);
     return () => window.clearTimeout(timer);
   }, [reduceMotion]);
 
@@ -695,6 +470,7 @@ export default function CompleteStep({
       planPricing={planPricing}
       signupOffer={signupOffer}
       onPlanOfferViewed={onPlanOfferViewed}
+      examPlan={examPlan}
     />
   );
 }

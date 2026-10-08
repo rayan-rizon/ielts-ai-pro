@@ -99,7 +99,7 @@ describe('onboarding plan-ready experience', () => {
     const onUpgrade = vi.fn();
     const onContinue = vi.fn();
 
-    const { container } = render(
+    render(
       <CompleteStep
         formData={formData}
         onUpgrade={onUpgrade}
@@ -122,14 +122,13 @@ describe('onboarding plan-ready experience', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Band 7.5')).toBeInTheDocument();
     expect(screen.getByText('195 min')).toBeInTheDocument();
-    expect(screen.getByText('Writing level check')).toBeInTheDocument();
-    expect(container.querySelectorAll('.lucide-lock-keyhole')).toHaveLength(3);
+    expect(screen.queryByText(/see your starting plan/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /choose pro/i }));
     fireEvent.click(screen.getByRole('button', { name: /choose premium/i }));
     fireEvent.click(screen.getByRole('button', { name: /continue with free practice/i }));
-    expect(onUpgrade).toHaveBeenNthCalledWith(1, 'pro');
-    expect(onUpgrade).toHaveBeenNthCalledWith(2, 'premium');
+    expect(onUpgrade).toHaveBeenNthCalledWith(1, 'pro', 'monthly');
+    expect(onUpgrade).toHaveBeenNthCalledWith(2, 'premium', 'monthly');
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
@@ -208,6 +207,47 @@ describe('onboarding plan-ready experience', () => {
   });
 });
 
+describe('3-Month Exam Pass on the paywall', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    getSignupOffer.mockResolvedValue(null);
+    loadPricingConfiguration.mockResolvedValue(bangladeshPricingConfig);
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('defaults to the pass when the exam is far off, and carries the chosen length to checkout', async () => {
+    vi.useFakeTimers();
+    const onUpgrade = vi.fn();
+    render(
+      <CompleteStep
+        formData={{ ...formData, timeline_type: 'estimated', estimated_weeks: 10 }}
+        onUpgrade={onUpgrade}
+        onContinue={vi.fn()}
+      />
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(screen.getByRole('button', { name: /3-Month Pass/ })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByText('\u09F3825')).toBeInTheDocument();
+    expect(screen.getByText('\u09F32,475 paid once for 3 months')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose Pro' }));
+    expect(onUpgrade).toHaveBeenCalledWith('pro', 'quarterly');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Monthly' }));
+    expect(screen.getByText('\u09F31100')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose Premium' }));
+    expect(onUpgrade).toHaveBeenLastCalledWith('premium', 'monthly');
+  });
+});
+
 describe('personal signup offer on the paywall', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -236,7 +276,7 @@ describe('personal signup offer on the paywall', () => {
     expect(screen.getByText('৳880')).toBeInTheDocument();
     expect(screen.getByText('৳1360')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Choose Pro' }));
-    expect(onUpgrade).toHaveBeenCalledWith('pro');
+    expect(onUpgrade).toHaveBeenCalledWith('pro', 'monthly');
     expect(window.localStorage.getItem('pending_promo_code')).toBe('START20-PERSONALTEST');
   });
   it('preserves an explicit campaign code instead of issuing a signup offer', async () => {
