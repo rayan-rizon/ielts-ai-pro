@@ -7,18 +7,20 @@ import ManualPayment from '@/features/subscription/components/ManualPayment';
 import NagadPaymentResult from '@/features/subscription/pages/NagadPaymentResult';
 import {
   fetchNagadPaymentStatus,
+  getNagadAvailability,
   startNagadCheckout,
 } from '@/features/subscription/services/nagadPayment';
 import { trackAuthenticatedAppEvent } from '@/lib/tracking';
 
 vi.mock('@/lib/publicEnv', () => ({
-  optionalPublicEnv: (name) => (name === 'VITE_NAGAD_PAYMENTS_ENABLED' ? 'true' : ''),
+  optionalPublicEnv: () => '',
   requirePublicEnv: () => 'https://project.supabase.co',
 }));
 vi.mock('@/lib/supabase', () => ({ supabase: { auth: {}, from: vi.fn() } }));
 vi.mock('@/features/subscription/services/nagadPayment', () => ({
   startNagadCheckout: vi.fn(),
   fetchNagadPaymentStatus: vi.fn(),
+  getNagadAvailability: vi.fn(),
 }));
 vi.mock('@/lib/tracking', () => ({
   trackAppEvent: vi.fn(),
@@ -44,19 +46,43 @@ describe('Nagad in the Bangladesh payment modal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
+    getNagadAvailability.mockResolvedValue({ available: true, testMode: false });
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: { ...window.location, assign: vi.fn() },
     });
   });
 
-  const openNagad = () => {
+  const openNagad = async () => {
     render(<ManualPayment isOpen onClose={vi.fn()} planData={planData} userId="usr-1" />);
-    fireEvent.click(screen.getByRole('button', { name: /Nagad/ }));
+    const tile = screen.getByRole('button', { name: /Nagad/ });
+    await waitFor(() => expect(tile).toBeEnabled());
+    fireEvent.click(tile);
   };
 
-  it('replaces the TrxID form with a redirect to Nagad', () => {
-    openNagad();
+  it('keeps Nagad as Coming Soon when the server says this learner cannot use it', async () => {
+    getNagadAvailability.mockResolvedValue({ available: false, testMode: false });
+    render(<ManualPayment isOpen onClose={vi.fn()} planData={planData} userId="usr-1" />);
+    await waitFor(() => expect(getNagadAvailability).toHaveBeenCalled());
+    expect(screen.getByRole('button', { name: /Nagad/ })).toBeDisabled();
+    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+  });
+
+  it('labels a sandbox gateway as test mode for admins', async () => {
+    getNagadAvailability.mockResolvedValue({ available: true, testMode: true });
+    await openNagad();
+    expect(screen.getByText('Test mode')).toBeInTheDocument();
+    expect(screen.getByText(/does not change your plan/)).toBeInTheDocument();
+  });
+
+  it('shows the policies in English only', () => {
+    render(<ManualPayment isOpen onClose={vi.fn()} planData={planData} userId="usr-1" />);
+    expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/bd/terms');
+    expect(document.querySelector('[lang="bn"]')).toBeNull();
+  });
+
+  it('replaces the TrxID form with a redirect to Nagad', async () => {
+    await openNagad();
     expect(screen.getByText('Pay with Nagad')).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('01XXXXXXXXX')).not.toBeInTheDocument();
     expect(screen.queryByText('01676663311')).not.toBeInTheDocument();
@@ -73,7 +99,7 @@ describe('Nagad in the Bangladesh payment modal', () => {
       amount: 699,
       currency: 'BDT',
     });
-    openNagad();
+    await openNagad();
     fireEvent.click(screen.getByLabelText('Accept Bangladesh payment policies'));
     fireEvent.click(screen.getByRole('button', { name: /Pay ৳699 with Nagad/ }));
 
@@ -92,7 +118,7 @@ describe('Nagad in the Bangladesh payment modal', () => {
       code: 'nagad_unavailable',
     });
     startNagadCheckout.mockRejectedValue(failure);
-    openNagad();
+    await openNagad();
     fireEvent.click(screen.getByLabelText('Accept Bangladesh payment policies'));
     fireEvent.click(screen.getByRole('button', { name: /Pay ৳699 with Nagad/ }));
 
@@ -150,6 +176,21 @@ describe('Nagad result page', () => {
       '/pricing'
     );
     expect(trackAuthenticatedAppEvent).not.toHaveBeenCalled();
+  });
+
+  it('marks a verified sandbox payment as a test, without tracking a purchase', async () => {
+    fetchNagadPaymentStatus.mockResolvedValue({
+      order_id: 'IAPTEST123',
+      status: 'paid',
+      test_mode: true,
+      tier: 'pro',
+      interval: 'monthly',
+      amount: 699,
+    });
+    renderAt('?order=IAPTEST123');
+    expect(await screen.findByText('Test payment verified')).toBeInTheDocument();
+    expect(trackAuthenticatedAppEvent).not.toHaveBeenCalled();
+    expect(refreshProfile).not.toHaveBeenCalled();
   });
 
   it('treats a missing or foreign order as not found', async () => {

@@ -1,5 +1,6 @@
 /**
- * The result page's view of one of the learner's own Nagad orders.
+ * The result page's view of one of the learner's own Nagad orders (admins
+ * may check any order, to re-verify it from the payments panel).
  *
  * While the order is open it re-verifies with Nagad (at most every few
  * seconds per order), so a learner whose callback was lost still gets their
@@ -54,14 +55,18 @@ serve(async (req: Request) => {
   }
   if (!isValidOrderId(orderId)) return errorResponse('Invalid order', 400, cors);
 
-  const { data: order } = await serviceClient
-    .from('nagad_payments')
-    .select(NAGAD_ORDER_COLUMNS)
-    .eq('order_id', orderId)
-    .eq('auth_id', user.id)
-    .maybeSingle();
+  const [{ data: order }, { data: profile }] = await Promise.all([
+    serviceClient
+      .from('nagad_payments')
+      .select(`${NAGAD_ORDER_COLUMNS}, environment`)
+      .eq('order_id', orderId)
+      .maybeSingle(),
+    serviceClient.from('users').select('role').eq('auth_id', user.id).maybeSingle(),
+  ]);
   // Someone else's order is indistinguishable from no order.
-  if (!order) return errorResponse('Order not found', 404, cors);
+  if (!order || (order.auth_id !== user.id && profile?.role !== 'admin')) {
+    return errorResponse('Order not found', 404, cors);
+  }
 
   let status = order.status;
   const lastChecked = order.last_checked_at ? Date.parse(order.last_checked_at) : 0;
@@ -82,6 +87,7 @@ serve(async (req: Request) => {
       interval: order.billing_interval,
       amount: Number(order.amount),
       currency: 'BDT',
+      test_mode: order.environment === 'sandbox',
     },
     cors
   );

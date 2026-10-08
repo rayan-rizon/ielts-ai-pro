@@ -4,7 +4,7 @@ import { OUTAGE_COPY } from '@/lib/serviceOutage';
 
 const SUPABASE_URL = requirePublicEnv('VITE_SUPABASE_URL');
 
-async function callFunction(name, body) {
+async function callFunction(name, body, method = 'POST') {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -15,13 +15,13 @@ async function callFunction(name, body) {
   }
 
   const response = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
-    method: 'POST',
+    method,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,
       'X-Requested-With': 'XMLHttpRequest',
     },
-    body: JSON.stringify(body),
+    body: method === 'GET' ? undefined : JSON.stringify(body),
   });
 
   // A downed gateway answers with an HTML page, not JSON.
@@ -42,6 +42,20 @@ async function callFunction(name, body) {
     throw error;
   }
   return data;
+}
+
+/**
+ * Whether this learner may pay with Nagad now, and whether it is a sandbox
+ * test. The server decides (rollout setting + admin role + credentials), so
+ * the modal and the checkout always agree. Any failure reads as unavailable.
+ */
+export async function getNagadAvailability() {
+  try {
+    const data = await callFunction('nagad-checkout', null, 'GET');
+    return { available: data.available === true, testMode: data.testMode === true };
+  } catch {
+    return { available: false, testMode: false };
+  }
 }
 
 /**

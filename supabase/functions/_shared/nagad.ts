@@ -24,6 +24,8 @@ export interface NagadConfig {
   merchantPrivateKey: string;
   pgPublicKey: string;
   apiVersion: string;
+  /** Which Nagad this talks to. Sandbox payments never grant a plan. */
+  environment: 'sandbox' | 'live';
 }
 
 export class NagadError extends Error {
@@ -64,7 +66,15 @@ export function loadNagadConfig(env: { get(name: string): string | undefined } =
     merchantPrivateKey: toPem(privateKey, 'PRIVATE KEY'),
     pgPublicKey: toPem(publicKey, 'PUBLIC KEY'),
     apiVersion: env.get('NAGAD_API_VERSION')?.trim() || 'v-0.2.0',
+    environment: nagadEnvironment(baseUrl, env.get('NAGAD_ENVIRONMENT')),
   } satisfies NagadConfig;
+}
+
+/** NAGAD_ENVIRONMENT wins; otherwise a sandbox base URL means sandbox. */
+export function nagadEnvironment(baseUrl: string, explicit?: string): 'sandbox' | 'live' {
+  const value = explicit?.trim().toLowerCase();
+  if (value === 'live' || value === 'sandbox') return value;
+  return /sandbox/i.test(baseUrl) ? 'sandbox' : 'live';
 }
 
 /** yyyyMMddHHmmss in Asia/Dhaka (UTC+6, no daylight saving). */

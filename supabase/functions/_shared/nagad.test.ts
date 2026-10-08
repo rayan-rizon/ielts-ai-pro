@@ -15,6 +15,7 @@ import {
   isValidOrderId,
   loadNagadConfig,
   nagadDateTime,
+  nagadEnvironment,
   newOrderId,
   signSensitive,
   toPem,
@@ -22,6 +23,7 @@ import {
   verifyPayment,
   type NagadConfig,
 } from './nagad.ts';
+import { nagadAvailability } from './nagadAvailability.ts';
 
 function keyPair() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -40,6 +42,7 @@ const ours: NagadConfig = {
   merchantPrivateKey: merchant.privatePem,
   pgPublicKey: gateway.publicPem,
   apiVersion: 'v-0.2.0',
+  environment: 'sandbox',
 };
 const theirs: NagadConfig = {
   ...ours,
@@ -196,6 +199,33 @@ Deno.test('Nagad error bodies surface their reason code', async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+Deno.test('environment: explicit setting wins, otherwise the base URL decides', () => {
+  assert.equal(nagadEnvironment('http://sandbox.mynagad.com:30001'), 'sandbox');
+  assert.equal(nagadEnvironment('https://api.mynagad.com'), 'live');
+  assert.equal(nagadEnvironment('https://api.mynagad.com', 'sandbox'), 'sandbox');
+  assert.equal(nagadEnvironment('http://sandbox.mynagad.com:30001', 'LIVE'), 'live');
+});
+
+Deno.test('availability: sandbox is admin-only, live follows the audience setting', () => {
+  const live = { ...ours, environment: 'live' as const };
+  // Sandbox credentials: only admins, and always flagged as a test.
+  assert.deepEqual(nagadAvailability(ours, 'everyone', false), {
+    available: false,
+    testMode: true,
+  });
+  assert.deepEqual(nagadAvailability(ours, 'admins', true), { available: true, testMode: true });
+  // Live credentials.
+  assert.deepEqual(nagadAvailability(live, 'everyone', false), {
+    available: true,
+    testMode: false,
+  });
+  assert.deepEqual(nagadAvailability(live, 'admins', false), { available: false, testMode: false });
+  assert.deepEqual(nagadAvailability(live, 'admins', true), { available: true, testMode: false });
+  // Off, or not configured: nobody.
+  assert.equal(nagadAvailability(live, 'off', true).available, false);
+  assert.equal(nagadAvailability(null, 'everyone', true).available, false);
 });
 
 const sandbox = loadNagadConfig();

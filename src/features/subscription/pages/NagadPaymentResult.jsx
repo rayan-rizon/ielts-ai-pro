@@ -40,6 +40,14 @@ const VIEW = {
     title: 'Payment received',
     body: 'Your plan is active. Thank you for choosing IELTS Ai Pro.',
   },
+  // Admin test on Nagad's sandbox: verified, but nothing is granted or billed.
+  test: {
+    icon: CheckCircle2,
+    tone: 'emerald',
+    pill: ['accent', 'Test mode'],
+    title: 'Test payment verified',
+    body: "Nagad's sandbox confirmed this payment. Test payments don't change your plan or count as revenue.",
+  },
   pending: {
     icon: Clock,
     tone: 'amber',
@@ -95,6 +103,10 @@ export default function NagadPaymentResult() {
         const result = await fetchNagadPaymentStatus(orderId);
         if (cancelled) return;
         setOrder(result);
+        if (result.status === 'paid' && result.test_mode) {
+          setState('test');
+          return;
+        }
         if (result.status === 'paid') {
           setState('paid');
           onPaid(result);
@@ -208,7 +220,7 @@ export default function NagadPaymentResult() {
         )}
 
         <div className="flex flex-col gap-2 pt-1">
-          {state === 'paid' && (
+          {['paid', 'test'].includes(state) && (
             <Button asChild className="w-full bg-[#5a63df] hover:bg-[#4a52c9] text-white">
               <Link to="/dashboard">Go to dashboard</Link>
             </Button>

@@ -20,8 +20,10 @@ import { savePendingManualPayment } from '@/features/subscription/services/pendi
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
-import { optionalPublicEnv } from '@/lib/publicEnv';
-import { startNagadCheckout } from '@/features/subscription/services/nagadPayment';
+import {
+  getNagadAvailability,
+  startNagadCheckout,
+} from '@/features/subscription/services/nagadPayment';
 import {
   PANEL,
   WELL,
@@ -33,9 +35,6 @@ import {
   Pill,
   IconChip,
 } from '@/features/dashboard/components/primitives';
-
-// Off until Nagad approves the merchant for live payments (after UAT).
-const NAGAD_ONLINE_ENABLED = optionalPublicEnv('VITE_NAGAD_PAYMENTS_ENABLED') === 'true';
 
 const PAYMENT_METHODS = [
   {
@@ -51,8 +50,8 @@ const PAYMENT_METHODS = [
     type: 'Instant',
     logo: '/nagad.webp',
     // Paid on Nagad's own page and verified automatically; no TrxID to type.
+    // Shown only when the server says this learner may use it (rollout).
     instant: true,
-    disabled: !NAGAD_ONLINE_ENABLED,
   },
 ];
 
@@ -68,7 +67,22 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
   const [mounted, setMounted] = useState(false);
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [nagad, setNagad] = useState({ available: false, testMode: false });
   const isInstant = Boolean(selectedMethod.instant);
+  const isUnavailable = (method) => method.instant && !nagad.available;
+
+  // The server decides who may pay with Nagad (rollout setting, admin role,
+  // sandbox or live credentials). Until it answers, Nagad reads Coming Soon.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    let cancelled = false;
+    getNagadAvailability().then((result) => {
+      if (!cancelled) setNagad(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     setMounted(true);
@@ -386,14 +400,14 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                       <button
                         key={method.id}
                         type="button"
-                        disabled={method.disabled}
-                        onClick={() => !method.disabled && setSelectedMethod(method)}
+                        disabled={isUnavailable(method)}
+                        onClick={() => !isUnavailable(method) && setSelectedMethod(method)}
                         className={cn(
                           'relative flex items-center gap-2 p-2 sm:p-2.5 rounded-lg border text-left transition-all duration-200 cursor-pointer',
                           isSelected
                             ? 'border-[#5a63df] bg-[#5a63df]/[0.05] dark:border-[#5a63df] dark:bg-[#5a63df]/[0.10] ring-1 ring-[#5a63df]/30'
                             : 'border-[#e4e2f0] dark:border-white/[0.07] bg-[#fbfbfe] dark:bg-white/[0.03] hover:border-slate-300 dark:hover:border-white/15',
-                          method.disabled &&
+                          isUnavailable(method) &&
                             'opacity-60 cursor-not-allowed grayscale-[0.6] hover:border-[#e4e2f0] dark:hover:border-white/[0.07]'
                         )}
                       >
@@ -409,11 +423,15 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                             {method.name}
                           </div>
                           <div className="text-[9px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                            {method.disabled ? 'Coming Soon' : method.type}
+                            {isUnavailable(method)
+                              ? 'Coming Soon'
+                              : method.instant && nagad.testMode
+                                ? 'Test mode'
+                                : method.type}
                           </div>
                         </div>
 
-                        {method.disabled ? (
+                        {isUnavailable(method) ? (
                           <Pill
                             tone="neutral"
                             className="absolute top-2 right-2 text-[7.5px] py-0 px-1"
@@ -448,6 +466,12 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                     <li>Enter your Nagad number, the OTP and your PIN there.</li>
                     <li>Your plan activates as soon as Nagad confirms the payment.</li>
                   </ol>
+                  {nagad.testMode && (
+                    <p className="rounded-md border border-amber-500/25 bg-amber-500/[0.07] p-2 text-[10px] leading-snug font-medium text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/[0.10] dark:text-amber-200">
+                      Test mode (admins only): this uses Nagad's sandbox. Only sandbox wallets can
+                      pay, and a test payment does not change your plan.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <>
@@ -592,36 +616,6 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                     className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
                   >
                     Refund &amp; Cancellation Policy
-                  </a>
-                  . <span lang="bn">বাংলায়:</span>{' '}
-                  <a
-                    href="/bn/terms"
-                    target="_blank"
-                    rel="noreferrer"
-                    lang="bn"
-                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
-                  >
-                    শর্তাবলি
-                  </a>{' '}
-                  ·{' '}
-                  <a
-                    href="/bn/privacy"
-                    target="_blank"
-                    rel="noreferrer"
-                    lang="bn"
-                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
-                  >
-                    গোপনীয়তা বিজ্ঞপ্তি
-                  </a>{' '}
-                  ·{' '}
-                  <a
-                    href="/bn/refund-cancellation"
-                    target="_blank"
-                    rel="noreferrer"
-                    lang="bn"
-                    className="font-semibold text-[#4a52c9] underline-offset-2 hover:underline dark:text-[#a9afff]"
-                  >
-                    রিফান্ড নীতি
                   </a>
                   .
                 </span>

@@ -1,6 +1,10 @@
 /**
  * Start a Nagad payment for a Bangladesh learner.
  *
+ * GET answers whether this learner may pay with Nagad right now (the payment
+ * modal uses it to show or hide the option); POST starts the payment and
+ * enforces the same rule.
+ *
  * Prices server-side from the BD admin price book (same maths as the card and
  * as Stripe), records the order, opens a Nagad session and returns the Nagad
  * page to redirect to. Access is granted later, only after nagad-callback,
@@ -22,6 +26,7 @@ import {
 } from '../_shared/security.ts';
 import { computePlanCharge, resolvePriceBook } from '../_shared/planPricing.ts';
 import { existingAccessError, validateAppliedPromo } from '../_shared/checkoutEligibility.ts';
+import { loadNagadAudience, nagadAvailability } from '../_shared/nagadAvailability.ts';
 import {
   clientIpv4,
   completePayment,
@@ -46,14 +51,8 @@ const callbackUrl = () =>
 serve(async (req: Request) => {
   const cors = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return handleCorsPrelight(req);
-  if (req.method !== 'POST') return errorResponse('Method not allowed', 405, cors);
-
-  const config = loadNagadConfig();
-  if (!config) {
-    console.error('[NagadCheckout] Nagad is not configured');
-    return errorResponse('Nagad payment is not available right now.', 503, cors, {
-      code: 'nagad_unavailable',
-    });
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    return errorResponse('Method not allowed', 405, cors);
   }
 
   const csrf = validateCsrfProtection(req);
@@ -66,6 +65,22 @@ serve(async (req: Request) => {
     error: authError,
   } = await serviceClient.auth.getUser(token);
   if (authError || !authUser) return errorResponse('Unauthorized', 401, cors);
+
+  const config = loadNagadConfig();
+  const [{ data: profile }, audience] = await Promise.all([
+    serviceClient.from('users').select('role').eq('auth_id', authUser.id).maybeSingle(),
+    loadNagadAudience(serviceClient),
+  ]);
+  const availability = nagadAvailability(config, audience, profile?.role === 'admin');
+
+  if (req.method === 'GET') return successResponse(availability, cors);
+
+  if (!config || !availability.available) {
+    if (!config) console.error('[NagadCheckout] Nagad is not configured');
+    return errorResponse('Nagad payment is not available right now.', 503, cors, {
+      code: 'nagad_unavailable',
+    });
+  }
 
   const rate = checkRateLimit(
     `nagad-checkout:${getRateLimitIdentifier(req, authUser.id)}`,
@@ -167,6 +182,7 @@ serve(async (req: Request) => {
       billing_interval: interval,
       amount: charge.amount,
       currency: 'BDT',
+      environment: config.environment,
       promo_code: discount?.code || null,
       marketing_campaign_id: campaignId,
       marketing_delivery_id: deliveryId,
@@ -227,22 +243,31 @@ serve(async (req: Request) => {
       });
     }
 
-    await serviceClient.from('marketing_checkout_intents').upsert(
-      {
-        user_id: user.id,
-        provider: 'nagad',
-        external_session_id: orderId,
-        plan_tier: tier,
-        billing_interval: interval,
-        status: 'initiated',
-        metadata: { currency: 'BDT', amount: charge.amount, priced_country: NAGAD_COUNTRY },
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'external_session_id' }
-    );
+    // Sandbox orders are admin tests: keep them out of the growth funnel.
+    if (config.environment === 'live') {
+      await serviceClient.from('marketing_checkout_intents').upsert(
+        {
+          user_id: user.id,
+          provider: 'nagad',
+          external_session_id: orderId,
+          plan_tier: tier,
+          billing_interval: interval,
+          status: 'initiated',
+          metadata: { currency: 'BDT', amount: charge.amount, priced_country: NAGAD_COUNTRY },
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'external_session_id' }
+      );
+    }
 
     return successResponse(
-      { url: redirectUrl, order_id: orderId, amount: charge.amount, currency: 'BDT' },
+      {
+        url: redirectUrl,
+        order_id: orderId,
+        amount: charge.amount,
+        currency: 'BDT',
+        test_mode: availability.testMode,
+      },
       cors
     );
   } catch (error) {

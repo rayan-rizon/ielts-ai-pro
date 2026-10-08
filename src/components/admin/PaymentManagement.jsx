@@ -22,6 +22,7 @@ import { cn } from '@/lib/cn';
 import { matchesPaymentSearch } from './paymentHistory';
 import CustomerBillingSheet from './billing/CustomerBillingSheet';
 import RefundLedgerPanel from './billing/RefundLedgerPanel';
+import NagadOrdersPanel from './billing/NagadOrdersPanel';
 import {
   NUM,
   MICRO,
@@ -491,6 +492,9 @@ export default function PaymentManagement() {
           </p>
         </div>
       )}
+      <m.div variants={FADE_UP}>
+        <NagadOrdersPanel />
+      </m.div>
       <m.div variants={FADE_UP}>
         <RefundLedgerPanel onOpenCustomer={setBillingUserId} refreshKey={ledgerKey} />
       </m.div>
