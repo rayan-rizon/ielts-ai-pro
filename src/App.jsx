@@ -204,6 +204,9 @@ const UnsubscribeConfirmation = lazyWithRetry(
 const SubscriptionSuccess = lazyWithRetry(
   () => import('@/features/subscription/pages/SubscriptionSuccess.jsx')
 );
+const NagadPaymentResult = lazyWithRetry(
+  () => import('@/features/subscription/pages/NagadPaymentResult.jsx')
+);
 const MotionProvider = lazyWithRetry(() => import('@/components/shared/MotionProvider.jsx'));
 const RouteProviders = lazyWithRetry(() => import('@/components/shared/RouteProviders.jsx'));
 
@@ -800,6 +803,18 @@ const router = createBrowserRouter(
           <Layout currentPageName="SubscriptionSuccess" data-oid="_cq__i4">
             <LazyPage data-oid="pd:s_zj">
               <SubscriptionSuccess data-oid="l-973to" />
+            </LazyPage>
+          </Layout>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/payment/nagad',
+      element: (
+        <ProtectedRoute>
+          <Layout currentPageName="NagadPaymentResult">
+            <LazyPage>
+              <NagadPaymentResult />
             </LazyPage>
           </Layout>
         </ProtectedRoute>

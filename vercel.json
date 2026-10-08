@@ -508,6 +508,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/payment/nagad",
+      "destination": "/index.html"
+    },
+    {
       "source": "/analytics",
       "destination": "/index.html"
     },

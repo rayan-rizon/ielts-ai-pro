@@ -401,3 +401,19 @@ verify_jwt = false
 # Public request submission only. Review operations stay in the authenticated institutions function.
 [functions.institution-applications]
 verify_jwt = false
+
+# Nagad Online Payment. Checkout and status are signed-in calls. The callback
+# is a browser redirect from Nagad and carries no token; it trusts nothing in
+# the query string and verifies with Nagad's API.
+# Reconcile is pg_cron, authenticated by NAGAD_RECONCILE_SECRET.
+[functions.nagad-checkout]
+verify_jwt = true
+
+[functions.nagad-payment-status]
+verify_jwt = true
+
+[functions.nagad-callback]
+verify_jwt = false
+
+[functions.nagad-reconcile]
+verify_jwt = false

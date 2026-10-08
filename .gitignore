@@ -107,3 +107,8 @@ launch-video-9x16/
 renders/
 *.mp4
 *.webm
+
+# --- Payment provider credentials (never commit) ---
+# Nagad sandbox keys and the NDA-confidential integration guide
+Nagad/
+*.pem

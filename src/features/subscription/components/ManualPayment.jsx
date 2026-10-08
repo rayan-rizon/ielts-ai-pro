@@ -20,6 +20,8 @@ import { savePendingManualPayment } from '@/features/subscription/services/pendi
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
 import { trackAppEvent } from '@/lib/tracking';
+import { optionalPublicEnv } from '@/lib/publicEnv';
+import { startNagadCheckout } from '@/features/subscription/services/nagadPayment';
 import {
   PANEL,
   WELL,
@@ -32,6 +34,9 @@ import {
   IconChip,
 } from '@/features/dashboard/components/primitives';
 
+// Off until Nagad approves the merchant for live payments (after UAT).
+const NAGAD_ONLINE_ENABLED = optionalPublicEnv('VITE_NAGAD_PAYMENTS_ENABLED') === 'true';
+
 const PAYMENT_METHODS = [
   {
     id: 'bkash',
@@ -43,10 +48,11 @@ const PAYMENT_METHODS = [
   {
     id: 'nagad',
     name: 'Nagad',
-    number: 'Coming Soon',
-    type: 'Personal',
+    type: 'Instant',
     logo: '/nagad.webp',
-    disabled: true,
+    // Paid on Nagad's own page and verified automatically; no TrxID to type.
+    instant: true,
+    disabled: !NAGAD_ONLINE_ENABLED,
   },
 ];
 
@@ -61,6 +67,8 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const isInstant = Boolean(selectedMethod.instant);
 
   useEffect(() => {
     setMounted(true);
@@ -219,6 +227,57 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
     }
   };
 
+  const handleNagadPay = async (e) => {
+    e.preventDefault();
+    if (!acceptedPolicies) {
+      toast.error('Please review and accept the Bangladesh payment policies');
+      return;
+    }
+    if (!data || data.price <= 0 || !['pro', 'premium'].includes(data.tier)) {
+      toast.error('Invalid payment data or tier detected');
+      return;
+    }
+
+    setIsRedirecting(true);
+    try {
+      const checkout = await startNagadCheckout({
+        tier: data.tier,
+        interval: data.interval,
+        expectedAmount: data.price,
+        attribution: {
+          campaignId: data.marketingCampaignId,
+          deliveryId: data.marketingDeliveryId,
+        },
+      });
+      trackAppEvent('checkout_redirected', {
+        path: '/pricing',
+        plan_tier: data.tier,
+        billing_interval: data.interval,
+        value: checkout.amount,
+        currency: 'BDT',
+        payment_method: 'nagad',
+        transaction_id: checkout.order_id,
+        policies_accepted: true,
+        policy_version: BANGLADESH_POLICY_VERSION,
+      });
+      window.location.assign(checkout.url);
+    } catch (err) {
+      setIsRedirecting(false);
+      const kind = trackServiceError(err, 'nagad.checkout');
+      trackAppEvent('checkout_failed', {
+        path: '/pricing',
+        plan_tier: data.tier,
+        billing_interval: data.interval,
+        payment_method: 'nagad',
+        reason: err?.code || err?.message || 'nagad_checkout_failed',
+        failure_kind: kind,
+      });
+      // Nothing was charged: the learner never reached Nagad.
+      toast.error(`${err.message} You have not been charged.`, { duration: 8000 });
+      if (err?.code === 'price_changed' || err?.code === 'offer_unavailable') onClose?.();
+    }
+  };
+
   if (!isOpen || !mounted || typeof document === 'undefined') return null;
 
   const modalContent = (
@@ -257,7 +316,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
             <IconChip icon={CreditCard} tone="accent" size="sm" />
             <div>
               <h3 id="manual-payment-title" className={TITLE}>
-                Manual Payment Portal
+                {isInstant ? 'Pay with Nagad' : 'Manual Payment Portal'}
               </h3>
               <p className={cn(MICRO, MUTED, 'text-[8.5px] mt-0.5')}>
                 Upgrade to {data?.planName || 'Pro'}
@@ -277,7 +336,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
         {/* Scrollable Body */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 sm:px-5 sm:py-3.5 space-y-3">
           {!isSuccess ? (
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={isInstant ? handleNagadPay : handleSubmit} className="space-y-3">
               {/* Plan Info Card */}
               <div
                 className={cn(
@@ -317,7 +376,7 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                 <div className="flex items-center justify-between">
                   <label className={cn(MICRO, MUTED, 'text-[8.5px]')}>Payment Method</label>
                   <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
-                    Personal bKash
+                    {isInstant ? 'Instant Nagad' : 'Personal bKash'}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -374,109 +433,129 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
                 </div>
               </div>
 
-              {/* Account Details & Instructions */}
-              <div className={cn(TILE, 'p-2.5 sm:p-3 space-y-2 rounded-lg')}>
-                <div className="flex items-center justify-between">
-                  <div className={cn(MICRO, MUTED, 'text-[8.5px]')}>Send Money Details</div>
-                  <Pill tone="neutral" className="text-[8px] py-0 px-1.5">
-                    {selectedMethod.type} Account
-                  </Pill>
+              {isInstant ? (
+                <div className={cn(TILE, 'p-2.5 sm:p-3 space-y-1.5 rounded-lg')}>
+                  <div className={cn(MICRO, MUTED, 'text-[8.5px]')}>How it works</div>
+                  <ol className="space-y-1 text-[10.5px] leading-snug text-slate-600 dark:text-slate-300 list-decimal pl-4">
+                    <li>
+                      You'll go to Nagad's secure page to pay{' '}
+                      <strong className={cn(NUM, 'font-bold text-slate-900 dark:text-white')}>
+                        {data?.currencySymbol || '৳'}
+                        {data?.price}
+                      </strong>
+                      .
+                    </li>
+                    <li>Enter your Nagad number, the OTP and your PIN there.</li>
+                    <li>Your plan activates as soon as Nagad confirms the payment.</li>
+                  </ol>
                 </div>
-
-                <div className="flex items-center justify-between gap-2 p-2 rounded-md bg-white dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07]">
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="text-[9px] font-semibold text-slate-400 dark:text-slate-500">
-                      Recipient Number
+              ) : (
+                <>
+                  {/* Account Details & Instructions */}
+                  <div className={cn(TILE, 'p-2.5 sm:p-3 space-y-2 rounded-lg')}>
+                    <div className="flex items-center justify-between">
+                      <div className={cn(MICRO, MUTED, 'text-[8.5px]')}>Send Money Details</div>
+                      <Pill tone="neutral" className="text-[8px] py-0 px-1.5">
+                        {selectedMethod.type} Account
+                      </Pill>
                     </div>
-                    <div
-                      className={cn(
-                        NUM,
-                        'text-sm sm:text-base font-black tracking-wider text-[#5a63df] dark:text-[#a9afff] select-all'
-                      )}
-                    >
-                      {selectedMethod.number}
+
+                    <div className="flex items-center justify-between gap-2 p-2 rounded-md bg-white dark:bg-white/[0.04] border border-[#e4e2f0] dark:border-white/[0.07]">
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="text-[9px] font-semibold text-slate-400 dark:text-slate-500">
+                          Recipient Number
+                        </div>
+                        <div
+                          className={cn(
+                            NUM,
+                            'text-sm sm:text-base font-black tracking-wider text-[#5a63df] dark:text-[#a9afff] select-all'
+                          )}
+                        >
+                          {selectedMethod.number}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(selectedMethod.number)}
+                        className={cn(
+                          'inline-flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 active:scale-95',
+                          copied
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                            : 'bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 border border-[#e4e2f0] dark:border-white/10'
+                        )}
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="flex items-start gap-1.5 p-2 rounded-md border border-amber-500/25 bg-amber-500/[0.07] dark:bg-amber-400/[0.10] dark:border-amber-400/30">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-[10px] leading-snug text-amber-900 dark:text-amber-200 font-medium">
+                        Send exact amount of{' '}
+                        <strong className={cn(NUM, 'font-bold')}>
+                          {data?.currencySymbol || '৳'}
+                          {data?.price}
+                        </strong>{' '}
+                        via bKash <u>Send Money</u>. Enter sender phone and Transaction ID below.
+                      </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(selectedMethod.number)}
-                    className={cn(
-                      'inline-flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 active:scale-95',
-                      copied
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
-                        : 'bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 border border-[#e4e2f0] dark:border-white/10'
-                    )}
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                        <span>Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3 h-3 text-slate-500 dark:text-slate-400" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                </div>
 
-                <div className="flex items-start gap-1.5 p-2 rounded-md border border-amber-500/25 bg-amber-500/[0.07] dark:bg-amber-400/[0.10] dark:border-amber-400/30">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  <p className="text-[10px] leading-snug text-amber-900 dark:text-amber-200 font-medium">
-                    Send exact amount of{' '}
-                    <strong className={cn(NUM, 'font-bold')}>
-                      {data?.currencySymbol || '৳'}
-                      {data?.price}
-                    </strong>{' '}
-                    via bKash <u>Send Money</u>. Enter sender phone and Transaction ID below.
-                  </p>
-                </div>
-              </div>
-
-              {/* Form Fields */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className={cn(MICRO, MUTED, 'text-[8.5px] block')}>
-                    Sender Phone Number
-                  </label>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    placeholder="01XXXXXXXXX"
-                    value={phone}
-                    maxLength={11}
-                    onChange={(e) => {
-                      let val = e.target.value.replace(/[^\d+]/g, '');
-                      if (val.startsWith('+880')) val = '0' + val.slice(4);
-                      else if (val.startsWith('880')) val = '0' + val.slice(3);
-                      setPhone(val);
-                    }}
-                    className={cn(
-                      NUM,
-                      'h-8.5 rounded-md border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-white/5 font-medium text-xs focus-visible:ring-2 focus-visible:ring-[#5a63df]'
-                    )}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className={cn(MICRO, MUTED, 'text-[8.5px] block')}>
-                    Transaction ID (TrxID)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="e.g. BL9A4K8..."
-                    value={txnId}
-                    maxLength={20}
-                    onChange={(e) =>
-                      setTxnId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
-                    }
-                    className={cn(
-                      NUM,
-                      'h-8.5 rounded-md border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-white/5 uppercase font-bold text-xs tracking-wider focus-visible:ring-2 focus-visible:ring-[#5a63df]'
-                    )}
-                  />
-                </div>
-              </div>
+                  {/* Form Fields */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className={cn(MICRO, MUTED, 'text-[8.5px] block')}>
+                        Sender Phone Number
+                      </label>
+                      <Input
+                        type="tel"
+                        inputMode="numeric"
+                        placeholder="01XXXXXXXXX"
+                        value={phone}
+                        maxLength={11}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/[^\d+]/g, '');
+                          if (val.startsWith('+880')) val = '0' + val.slice(4);
+                          else if (val.startsWith('880')) val = '0' + val.slice(3);
+                          setPhone(val);
+                        }}
+                        className={cn(
+                          NUM,
+                          'h-8.5 rounded-md border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-white/5 font-medium text-xs focus-visible:ring-2 focus-visible:ring-[#5a63df]'
+                        )}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className={cn(MICRO, MUTED, 'text-[8.5px] block')}>
+                        Transaction ID (TrxID)
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. BL9A4K8..."
+                        value={txnId}
+                        maxLength={20}
+                        onChange={(e) =>
+                          setTxnId(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+                        }
+                        className={cn(
+                          NUM,
+                          'h-8.5 rounded-md border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-white/5 uppercase font-bold text-xs tracking-wider focus-visible:ring-2 focus-visible:ring-[#5a63df]'
+                        )}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-[#e4e2f0] bg-[#fbfbfe] p-2.5 text-[10px] leading-relaxed text-slate-600 dark:border-white/[0.07] dark:bg-white/[0.03] dark:text-slate-300">
                 <input
@@ -552,10 +631,25 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
               <div className="space-y-1.5 pt-0.5">
                 <Button
                   type="submit"
-                  disabled={isSubmitting || !phone || !txnId || !acceptedPolicies}
+                  disabled={
+                    isInstant
+                      ? isRedirecting || !acceptedPolicies
+                      : isSubmitting || !phone || !txnId || !acceptedPolicies
+                  }
                   className="w-full h-9.5 rounded-lg bg-[#5a63df] hover:bg-[#4a52c9] text-white font-bold text-xs tracking-tight transition-all duration-150 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
                 >
-                  {isSubmitting ? (
+                  {isInstant && isRedirecting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                      Opening Nagad...
+                    </>
+                  ) : isInstant ? (
+                    <>
+                      Pay {data?.currencySymbol || '৳'}
+                      {data?.price} with Nagad
+                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </>
+                  ) : isSubmitting ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                       Submitting Request...
@@ -570,7 +664,11 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
 
                 <div className="flex items-center justify-center gap-1 text-[9px] text-slate-400 dark:text-slate-500 font-medium">
                   <ShieldCheck className="w-3 h-3 text-[#5a63df]" />
-                  <span>Manual verification completed within 2–4 hours</span>
+                  <span>
+                    {isInstant
+                      ? 'Verified with Nagad automatically'
+                      : 'Manual verification completed within 2–4 hours'}
+                  </span>
                 </div>
               </div>
             </form>
