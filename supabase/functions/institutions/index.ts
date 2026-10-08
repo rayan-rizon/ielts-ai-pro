@@ -9,6 +9,7 @@ import {
 import { quoteInstitutionSeats } from '../_shared/institutionPricing.ts';
 import { getInstitutionHistory } from '../_shared/institutionHistory.ts';
 import { sendEmail } from '../_shared/resend.ts';
+import { getInstitutionInvitationTemplate } from '../_shared/templates.ts';
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || 'unconfigured');
 const frontend = (Deno.env.get('FRONTEND_URL') || 'https://www.ieltsai.pro').replace(/\/$/, '');
@@ -17,11 +18,6 @@ const json = (value: unknown, status: number, headers: Record<string, string>) =
     status,
     headers: { ...headers, 'Content-Type': 'application/json' },
   });
-const esc = (s: string) =>
-  s.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
-  );
 export async function hashToken(token: string) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
   return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, '0')).join('');
@@ -40,14 +36,34 @@ async function createInvitation(actor: string, action: string, data: Record<stri
   const result = await rpc(actor, action, { ...data, token_hash: await hashToken(raw) });
   return deliverInvitation(result, raw);
 }
-async function deliverInvitation(result: { id: string; email: string }, raw: string) {
+async function deliverInvitation(
+  result: {
+    id: string;
+    email: string;
+    institution_id: string;
+    kind: 'owner' | 'student';
+    expires_at: string;
+  },
+  raw: string
+) {
   const url = `${frontend}/institution/accept?token=${encodeURIComponent(raw)}`;
+  const { data: institution, error: institutionError } = await db
+    .from('institutions')
+    .select('name')
+    .eq('id', result.institution_id)
+    .single();
+  if (institutionError || !institution) throw new Error('Could not load invitation institution');
+  const template = getInstitutionInvitationTemplate({
+    email: result.email,
+    invitationUrl: url,
+    kind: result.kind,
+    institutionName: institution.name,
+    expiresAt: result.expires_at,
+  });
   const email = await sendEmail({
     to: result.email,
     type: 'institution_invitation',
-    subject: 'Your IELTS Ai Pro institution invitation',
-    html: `<p>You have been invited to IELTS Ai Pro.</p><p><a href="${esc(url)}">Accept invitation</a></p><p>Sign in using ${esc(result.email)}.</p>`,
-    text: `Accept your IELTS Ai Pro institution invitation: ${url}\nSign in using ${result.email}.`,
+    ...template,
     idempotencyKey: `institution-invite:${result.id}`,
   });
   const deliveryError =

@@ -206,7 +206,12 @@ export const wrapTemplate = (
    * one-click URL that works without signing in; transactional mail falls back
    * to the Settings tab, where the same toggle lives for logged-in learners.
    */
-  unsubscribeUrl = `${baseUrl}/settings?tab=preferences`
+  unsubscribeUrl = `${baseUrl}/settings?tab=preferences`,
+  navigation = {
+    manageUrl: `${baseUrl}/settings?tab=subscription`,
+    manageLabel: 'Manage',
+    showUnsubscribe: true,
+  }
 ) => `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
@@ -274,13 +279,17 @@ export const wrapTemplate = (
           <tr>
             <td class="foot" align="center" style="padding:26px 40px 30px;background-color:${FOOTER_BG};border-top:1px solid ${RULE}">
               <p style="margin:0 0 14px;font-size:12px;line-height:1.6;text-align:center">
-                <a href="${baseUrl}/settings?tab=subscription" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:none;font-weight:600">Manage</a>
+                <a href="${navigation.manageUrl}" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:none;font-weight:600">${navigation.manageLabel}</a>
                 <span style="color:#c3c0bb">&middot;</span>
                 <a href="${baseUrl}/privacy" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:none;font-weight:600">Privacy</a>
                 <span style="color:#c3c0bb">&middot;</span>
                 <a href="${baseUrl}/terms" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:none;font-weight:600">Terms</a>
-                <span style="color:#c3c0bb">&middot;</span>
-                <a href="${unsubscribeUrl}" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:underline;font-weight:600">Unsubscribe</a>
+                ${
+                  navigation.showUnsubscribe
+                    ? `<span style="color:#c3c0bb">&middot;</span>
+                <a href="${unsubscribeUrl}" style="display:inline-block;margin:0 7px;font-size:12px;color:${BODY_TEXT};text-decoration:underline;font-weight:600">Unsubscribe</a>`
+                    : ''
+                }
               </p>
               <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:${MUTED_TEXT};text-align:center">${footerReason}</p>
               <p style="margin:0;font-size:11px;line-height:1.6;color:#a1a1aa;text-align:center">&copy; ${CURRENT_YEAR} ${BRAND_NAME} &middot; <a href="mailto:${SUPPORT_EMAIL}" style="color:#a1a1aa;text-decoration:none;font-weight:600">${SUPPORT_EMAIL}</a></p>
@@ -316,6 +325,76 @@ ${footerReason}
 /* ------------------------------------------------------------------ *
  * Templates
  * ------------------------------------------------------------------ */
+
+export function getInstitutionInvitationTemplate(input: {
+  email: string;
+  invitationUrl: string;
+  kind: 'owner' | 'student';
+  institutionName: string;
+  expiresAt: string;
+}): EmailTemplate {
+  const owner = input.kind === 'owner';
+  const institution = escapeHtml(input.institutionName);
+  const email = escapeHtml(input.email);
+  const url = escapeHtml(input.invitationUrl);
+  const expiry = new Date(input.expiresAt);
+  if (Number.isNaN(expiry.getTime())) throw new Error('Invalid invitation expiry');
+  const deadline =
+    expiry.toLocaleString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    }) + ' UTC';
+  const title = owner ? 'Your institution workspace is ready' : 'Your institution has invited you';
+  const intro = owner
+    ? `You have been invited to manage ${strong(institution)} on ${BRAND_NAME}.`
+    : `${strong(institution)} has invited you to join its IELTS learning programme on ${BRAND_NAME}.`;
+  const nextSteps = owner
+    ? [
+        'Select Accept invitation to open your invitation link.',
+        'Sign in with the invited email, or set up your password if this is your first visit.',
+        'Accept your invitation to open your institution workspace and manage students.',
+      ]
+    : [
+        'Select Accept invitation to open your invitation link.',
+        'Sign in with the invited email, or set up your password if this is your first visit.',
+        'Accept your invitation to view your institution access.',
+      ];
+  const reason =
+    'You received this email because an institution invitation was issued for this address.';
+  const content = `
+${eyebrow(owner ? 'Institution owner invitation' : 'Student invitation')}
+${heading(title)}
+${lead(intro)}
+${notice('info', 'Your invited email', `<span style="word-break:break-all">${email}</span>`)}
+${paragraph(owner ? 'Bring your IELTS preparation into one workspace. Review your seat balance, invite students, and follow their institution access.' : 'Accept the invitation to connect your account to your institution. Your available access will be shown after acceptance.')}
+${button(url, 'Accept invitation')}
+${secondaryLink(`Accept before ${strong(escapeHtml(deadline))}.`)}
+<h2 style="margin:28px 0 16px;font-size:16px;font-weight:700;color:${HEADING}">Getting started</h2>
+${steps(nextSteps)}
+${footnote(`If the button does not work, copy this link into your browser:<br /><a href="${url}" style="color:${ACCENT};word-break:break-all;overflow-wrap:anywhere">${url}</a><br /><br />This invitation is intended for ${strong(email)}. Keep the link private. If you were not expecting it, you can ignore this email. For an expired invitation, ask your institution administrator to send a new one.`)}`;
+  return {
+    subject: owner
+      ? `Your institution invitation | ${BRAND_NAME}`
+      : `Your student invitation | ${BRAND_NAME}`,
+    html: wrapTemplate(
+      content,
+      escapeHtml(`Accept your invitation to ${input.institutionName}.`),
+      BASE_URL,
+      reason,
+      '',
+      {
+        manageUrl: `${BASE_URL}/institution/login`,
+        manageLabel: 'Institution sign-in',
+        showUnsubscribe: false,
+      }
+    ),
+    text: `${title}\n\n${input.institutionName} has invited you ${owner ? 'to manage its institution workspace' : 'to join its IELTS learning programme'} on ${BRAND_NAME}.\n\nInvited email: ${input.email}\nAccept invitation: ${input.invitationUrl}\nAccept before ${deadline}.\n\nGetting started\n${nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}\n\nKeep this invitation link private. If you were not expecting it, you can ignore this email. For an expired invitation, ask your institution administrator to send a new one.\n\nInstitution sign-in: ${BASE_URL}/institution/login\nSupport: ${SUPPORT_EMAIL}\n\n${reason}\n© ${CURRENT_YEAR} ${BRAND_NAME}`,
+  };
+}
 
 export function getEmailTemplate(type: string, data: any): EmailTemplate {
   const baseUrl = BASE_URL;
