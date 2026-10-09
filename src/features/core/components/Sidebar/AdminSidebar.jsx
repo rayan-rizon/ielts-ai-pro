@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo, LogoIcon } from '@/components/shared/Logo';
-import { Plus, Crown, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import {
   SidebarHeader,
   SidebarContent,
@@ -121,59 +121,6 @@ const AdminSidebarHeader = memo(() => (
 ));
 AdminSidebarHeader.displayName = 'AdminSidebarHeader';
 
-const AdminSidebarQuickActions = memo(({ isMobile, setOpenMobile }) => {
-  const handleLinkClick = useCallback(() => {
-    if (isMobile) setOpenMobile(false);
-  }, [isMobile, setOpenMobile]);
-
-  return (
-    <SidebarGroup className="mt-1">
-      <SidebarGroupLabel
-        className={`${MICRO} h-5 px-2 text-stone-400 dark:text-stone-500 font-extrabold`}
-      >
-        Quick actions
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu className="gap-0.5">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="group w-full justify-start rounded-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors font-medium active:scale-[0.98]"
-              tooltip="Create Test"
-            >
-              <Link
-                to={createPageUrl('AdminPanel') + '?tab=tests&action=create'}
-                className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
-                onClick={handleLinkClick}
-              >
-                <Plus className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
-                <span className={`${COLLAPSIBLE_LABEL} text-xs`}>Create test</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="group w-full justify-start rounded-md text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 transition-colors font-medium active:scale-[0.98]"
-              tooltip="Add Promo"
-            >
-              <Link
-                to={createPageUrl('AdminPanel') + '?tab=promo&action=create'}
-                className="flex h-7.5 items-center gap-2.5 px-2.5 text-xs relative z-10"
-                onClick={handleLinkClick}
-              >
-                <Crown className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
-                <span className={`${COLLAPSIBLE_LABEL} text-xs`}>Add promo</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-});
-AdminSidebarQuickActions.displayName = 'AdminSidebarQuickActions';
-
 const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }) => {
   const onLogoutClick = useCallback(() => {
     if (isMobile) setOpenMobile(false);
@@ -210,15 +157,19 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
         </div>
       </div>
 
-      <SidebarMenuButton
-        onClick={onLogoutClick}
-        aria-label="Sign out"
-        tooltip="Sign out"
-        className="group w-full justify-start gap-2.5 px-2.5 h-7.5 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:px-2 text-xs"
-      >
-        <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
-        <span className={`${COLLAPSIBLE_LABEL} text-xs`}>Sign out</span>
-      </SidebarMenuButton>
+      <div className="flex justify-center">
+        <SidebarMenuButton
+          onClick={onLogoutClick}
+          aria-label="Sign out"
+          tooltip="Sign out"
+          className="group w-full justify-start gap-2.5 px-2.5 h-7.5 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0! group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:size-8 text-xs"
+        >
+          <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
+          <span className={`${COLLAPSIBLE_LABEL} text-xs group-data-[collapsible=icon]:hidden`}>
+            Sign out
+          </span>
+        </SidebarMenuButton>
+      </div>
     </SidebarFooter>
   );
 });
@@ -289,8 +240,6 @@ export const AdminSidebar = memo(({ user, location, handleLogout }) => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <AdminSidebarQuickActions isMobile={isMobile} setOpenMobile={setOpenMobile} />
       </SidebarContent>
 
       <AdminSidebarFooter

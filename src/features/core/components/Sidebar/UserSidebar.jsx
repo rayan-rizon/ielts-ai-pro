@@ -278,15 +278,25 @@ const UserSidebarFooter = ({ user, handleLogout, showUpgradeOffer }) => {
             </Link>
           </SidebarMenuButton>
         )}
-        <SidebarMenuButton
-          onClick={signOut}
-          aria-label="Sign out"
-          tooltip="Sign out"
-          className="w-full justify-start gap-2.5 rounded-lg px-2.5 h-7.5 text-xs text-slate-600 transition-all duration-150 ease-smooth-out hover:bg-red-50 hover:text-red-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-        >
-          <LogOut className="h-4 w-4" strokeWidth={2} />
-          <span className={cn('text-xs font-semibold', COLLAPSIBLE_LABEL)}>Sign out</span>
-        </SidebarMenuButton>
+        <div className="flex justify-center">
+          <SidebarMenuButton
+            onClick={signOut}
+            aria-label="Sign out"
+            tooltip="Sign out"
+            className="w-full justify-start gap-2.5 rounded-lg px-2.5 h-7.5 text-xs text-slate-600 transition-all duration-150 ease-smooth-out hover:bg-red-50 hover:text-red-600 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400 group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0! group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:size-8"
+          >
+            <LogOut className="h-4 w-4" strokeWidth={2} />
+            <span
+              className={cn(
+                'text-xs font-semibold',
+                COLLAPSIBLE_LABEL,
+                'group-data-[collapsible=icon]:hidden'
+              )}
+            >
+              Sign out
+            </span>
+          </SidebarMenuButton>
+        </div>
       </div>
     </SidebarFooter>
   );

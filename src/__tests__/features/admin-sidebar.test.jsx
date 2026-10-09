@@ -55,7 +55,8 @@ describe('AdminSidebar', () => {
     expect(screen.getByLabelText('5 unresolved test reports')).toHaveTextContent('5');
     expect(screen.getByLabelText('6 institution requests awaiting review')).toHaveTextContent('6');
     expect(screen.getByText('Communications')).toBeInTheDocument();
-    expect(screen.getByText('Create test')).toBeInTheDocument();
+    expect(screen.getByText('Test Management')).toBeInTheDocument();
+    expect(screen.queryByText('Create test')).not.toBeInTheDocument();
     expect(supabase.rpc).toHaveBeenCalledTimes(1);
     expect(supabase.rpc).toHaveBeenCalledWith('get_admin_sidebar_badges', {
       p_payment_seen_through: null,
