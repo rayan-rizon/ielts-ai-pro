@@ -101,12 +101,17 @@ skills/
 skills-lock.json
 
 # --- Hyperframes & Videos ---
+# Video projects, renders and loose video files stay local. The only videos
+# committed are the ones the site serves from public/videos/.
 launch-video/
 launch-video-9x16/
 *launch-video*/
+hero-loop/
 renders/
 *.mp4
 *.webm
+!public/videos/*.mp4
+!public/videos/*.webm
 
 # --- Payment provider credentials (never commit) ---
 # Nagad sandbox keys and the NDA-confidential integration guide

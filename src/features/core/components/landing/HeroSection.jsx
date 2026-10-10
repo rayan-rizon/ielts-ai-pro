@@ -1,210 +1,59 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Check from 'lucide-react/icons/check';
 import CirclePlay from 'lucide-react/icons/circle-play';
-import Mic from 'lucide-react/icons/mic';
-import Quote from 'lucide-react/icons/quote';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Star from 'lucide-react/icons/star';
 import { Button } from '@/components/ui/button';
 import { WordByWordTextCSS } from '@/components/ui/word-by-word-text-css';
-import { cn } from '@/lib/cn';
-import {
-  PANEL,
-  TILE,
-  WELL,
-  NUM,
-  MICRO,
-  TITLE,
-  MUTED,
-  IconChip,
-  Pill,
-  Bar,
-} from '@/features/dashboard/components/primitives';
 
-// Reserve the browser's highest image-priority lane for the likely LCP image.
-// The small learner portraits still load eagerly, but do not compete with the
-// main hero artwork for bandwidth.
-// React 18 forwards the HTML-standard lowercase attribute without a development
-// warning; React support for the camel-cased prop arrived later.
-const heroImagePriorityProps = { fetchpriority: 'high' };
+// The hero film is rendered with HyperFrames from the local hero-loop/ project
+// (gitignored, like launch-video/) and served from
+// /public/videos. It is muted and loops; visitors who ask for reduced motion
+// get the poster frame instead of autoplay.
+function HeroVideo() {
+  const videoRef = useRef(null);
 
-function FloatingCard({ className, delay = 0, children, label }) {
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      video.pause();
+      return;
+    }
+    video.play().catch(() => {});
+  }, []);
+
   return (
-    <div
-      aria-label={label}
-      style={{ '--hero-float-delay': `${delay}s` }}
-      data-hero-motion="float"
-      className={cn(
-        'hero-floating-card absolute z-30 p-3',
-        PANEL,
-        'animate-hero-drift motion-reduce:animate-none transition-shadow [transition-duration:300ms] hover:shadow-sm scale-[0.68] min-[400px]:scale-[0.78] sm:scale-100 transform-gpu',
-        className
-      )}
+    <video
+      ref={videoRef}
+      className="block h-full w-full object-cover"
+      width="1440"
+      height="810"
+      poster="/videos/hero-loop-poster.webp"
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      aria-label="IELTS Ai Pro product tour: Reading assistant, Listening review, Writing corrections and Speaking report"
+      data-oid="hero-video"
     >
-      {children}
-    </div>
-  );
-}
-
-function CardHeading({ icon, title, tone = 'accent' }) {
-  return (
-    <div className="flex items-center gap-2">
-      <IconChip icon={icon} tone={tone} size="sm" />
-      <p className={cn(TITLE, 'text-[11px]')}>{title}</p>
-    </div>
-  );
-}
-
-function PersonalizedAiCard() {
-  return (
-    <FloatingCard
-      label="Personalized AI study plan preview"
-      delay={0.72}
-      className="top-4 sm:top-5 right-[-6px] sm:right-2 w-[175px] sm:w-[195px] origin-top-right"
-    >
-      <CardHeading icon={Sparkles} title="Personalized AI Plan" tone="accent" />
-
-      <div className="mt-2.5 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className={cn(MICRO, MUTED)}>Daily Target</span>
-          <Pill tone="emerald">Band 7.5+</Pill>
-        </div>
-
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className={cn(MICRO, MUTED)}>Adaptive Progress</span>
-            <span
-              className={cn(NUM, 'text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]')}
-            >
-              85%
-            </span>
-          </div>
-          <Bar value={85} />
-        </div>
-
-        <div className="pt-0.5 space-y-1">
-          <div className="flex items-center gap-1.5">
-            <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--signal-ok))] text-white">
-              <Check className="h-2 w-2" />
-            </span>
-            <span className="truncate text-[9px] font-semibold text-slate-600 dark:text-slate-300">
-              Focus on Weak Gaps
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-[#5a63df] text-white">
-              <Check className="h-2 w-2" />
-            </span>
-            <span className="truncate text-[9px] font-semibold text-slate-600 dark:text-slate-300">
-              Real-Time Rubric
-            </span>
-          </div>
-        </div>
-      </div>
-    </FloatingCard>
-  );
-}
-
-function AiEvaluationCard() {
-  return (
-    <FloatingCard
-      label="AI Evaluation preview"
-      delay={0.55}
-      className="left-[-6px] sm:left-2 bottom-5 sm:bottom-8 w-[185px] sm:w-[205px] origin-bottom-left"
-    >
-      <CardHeading icon={Mic} title="Instant AI Evaluation" tone="sky" />
-
-      <div className="mt-2.5 space-y-2">
-        <div className={cn(WELL, 'flex items-center justify-between rounded-lg p-1.5')}>
-          <div>
-            {/*
-              MICRO is 9px bold, and on the light WELL fill slate-500 lands at
-              4.32:1 - just under the 4.5:1 WCAG AA threshold, which Lighthouse
-              flags. One step darker clears it at 6.88:1. Overridden here rather
-              than on the shared MUTED token so the dashboard's own palette is
-              left alone; dark mode already passes and is untouched.
-            */}
-            <p className={cn(MICRO, MUTED, 'text-slate-600')}>Estimated Band</p>
-            <p
-              className={cn(
-                NUM,
-                'mt-0.5 text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50 sm:text-xl'
-              )}
-            >
-              7.5
-            </p>
-          </div>
-          {/* sky-600 on the pill's tinted fill is 3.43:1 at 9px bold; sky-700 is 4.99:1. */}
-          <Pill tone="sky" className="text-sky-700">
-            Good
-          </Pill>
-        </div>
-
-        <div className="grid grid-cols-2 gap-1.5">
-          <div className={cn(TILE, 'flex items-center justify-between px-1.5 py-1')}>
-            <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">
-              Speaking
-            </span>
-            <b className={cn(NUM, 'text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]')}>
-              7.5
-            </b>
-          </div>
-          <div className={cn(TILE, 'flex items-center justify-between px-1.5 py-1')}>
-            <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">
-              Writing
-            </span>
-            <b className={cn(NUM, 'text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]')}>
-              7.0
-            </b>
-          </div>
-        </div>
-
-        <p className="text-[8.5px] font-semibold leading-tight text-slate-500 dark:text-slate-400">
-          Good fluency & task response
-        </p>
-      </div>
-    </FloatingCard>
+      <source src="/videos/hero-loop.mp4" type="video/mp4" />
+    </video>
   );
 }
 
 function StudentVisual() {
   return (
     <div
-      className="animate-hero-enter relative mx-auto min-h-[480px] w-full max-w-[720px] overflow-visible sm:min-h-[540px] lg:min-h-[580px] transform-gpu"
+      className="animate-hero-enter relative mx-auto w-full max-w-[760px] transform-gpu"
       style={{ '--hero-enter-delay': '120ms' }}
-      aria-label="IELTS AI Pro learning experience preview"
       data-motion-entry="hero-visual"
     >
-      <div className="absolute bottom-6 left-4 right-4 top-6 overflow-hidden rounded-4xl border border-violet-200/80 bg-[#eef2ff] shadow-[0_30px_75px_-20px_rgba(109,85,238,0.22)] dark:border-violet-500/30 dark:bg-slate-900 sm:bottom-6 sm:left-8 sm:right-8 sm:top-6 transform-gpu">
-        <picture className="block h-full w-full">
-          <source media="(max-width: 767px)" srcSet="/ielts-hero-student-640.webp" />
-          <source
-            media="(max-width: 1599px)"
-            srcSet="/ielts-hero-student-640.webp 640w, /ielts-hero-student-960.webp 960w"
-            sizes="45vw"
-          />
-          <img
-            src="/ielts-hero-student.webp"
-            alt="IELTS learner studying with a laptop"
-            className="h-full w-full object-cover object-[53%_center]"
-            width="1200"
-            height="900"
-            loading="eager"
-            decoding="async"
-            {...heroImagePriorityProps}
-            data-oid="hero-student-img"
-          />
-        </picture>
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-tr/srgb from-[#6c79ef]/10 via-transparent to-white/15" />
-        <div
-          aria-hidden
-          className="animate-hero-sheen pointer-events-none absolute inset-[-35%] w-1/3 skew-x-[-16deg] bg-linear-to-r/srgb from-transparent via-white/30 to-transparent"
-        />
+      <div className="relative aspect-video overflow-hidden rounded-2xl border border-[#e4e2f0] bg-[#f7f6fd] shadow-[0_24px_60px_-30px_rgba(90,99,223,0.35)] dark:border-white/10 dark:bg-slate-900">
+        <HeroVideo />
       </div>
-
-      <AiEvaluationCard />
-      <PersonalizedAiCard />
     </div>
   );
 }
@@ -244,15 +93,6 @@ function LearnerProof() {
           </div>
           <p className="text-xs font-bold text-[#536078] dark:text-slate-300">
             Built for focused IELTS learners worldwide
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-3 rounded-2xl border border-[#e2e8f3] bg-white/80 px-4 py-3 shadow-[0_18px_45px_-34px_rgba(31,52,106,.45)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5 transition-all hover:border-violet-300/60 dark:hover:border-white/20 text-left max-w-lg mx-auto lg:mx-0">
-        <Quote className="mt-0.5 h-5 w-5 shrink-0 fill-violet-100 text-[#7c3aed]" />
-        <div>
-          <p className="text-[11.5px] font-medium leading-5 text-[#526079] dark:text-slate-300">
-            Review focused feedback between practice sessions and choose a clear next step.
           </p>
         </div>
       </div>
