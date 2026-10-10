@@ -22,7 +22,7 @@ import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/compone
 // Grid Sub-components
 // ---------------------------------------------------------------------------
 
-export function GridStatusBadge({ isLocked, isResuming, isCompleted }) {
+export function GridStatusBadge({ isLocked, isResuming, isCompleted, needsRestart }) {
   if (isLocked) {
     return (
       <Pill tone="warn">
@@ -48,7 +48,11 @@ export function GridStatusBadge({ isLocked, isResuming, isCompleted }) {
       </Pill>
     );
   }
-  return <Pill tone="neutral">New Practice</Pill>;
+  if (needsRestart) {
+    // An unfinished session that ran past its resume window.
+    return <Pill tone="warn">Session expired</Pill>;
+  }
+  return <Pill tone="neutral">Not started</Pill>;
 }
 
 export function GridMetaBar({
@@ -98,7 +102,7 @@ export function GridMetaBar({
         </div>
       )}
 
-      {isCompleted && !hasScore && <p className={cn(MICRO, MUTED)}>No band assigned</p>}
+      {isCompleted && !hasScore && <p className={cn(MICRO, MUTED)}>Score not available</p>}
       {hasScore && (
         <div className="border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
           <div className="flex items-center justify-between">
@@ -194,7 +198,7 @@ export function GridActions({
           type="button"
           className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
         >
-          Restart Practice <RotateCcw className="h-3.5 w-3.5" />
+          Start again <RotateCcw className="h-3.5 w-3.5" />
         </button>
       </Link>
     );
@@ -205,7 +209,7 @@ export function GridActions({
         type="button"
         className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
       >
-        Start Practice <ChevronRight className="h-4 w-4" />
+        Start test <ChevronRight className="h-4 w-4" />
       </button>
     </Link>
   );
@@ -264,7 +268,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
       >
         {score != null && score !== '' && Number.isFinite(Number(score))
           ? `Band ${Number(score).toFixed(1)}`
-          : 'No band assigned'}
+          : 'Score not available'}
       </span>
     );
   }
@@ -341,7 +345,7 @@ export function TestRowAction({
             type="button"
             className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
           >
-            Restart <RotateCcw className="h-3 w-3" />
+            Start again <RotateCcw className="h-3 w-3" />
           </button>
         </Link>
         <div className="h-8 w-8 shrink-0" />

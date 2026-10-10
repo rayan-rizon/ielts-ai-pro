@@ -140,8 +140,11 @@ describe('speaking device readiness checks', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Exam' })).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(screen.getByRole('button', { name: /practice/i }));
+    expect(screen.getByRole('button', { name: /^Exam, 14 minutes/ })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Practice, 10 minutes/ }));
     expect(setSpeakingMode).toHaveBeenCalledWith('practice');
   });
 

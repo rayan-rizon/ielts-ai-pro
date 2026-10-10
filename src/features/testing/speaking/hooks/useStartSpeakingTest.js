@@ -170,6 +170,14 @@ async function createSpeakingSession({
   }
 }
 
+/** Roughly 2.5 words a second of speech, plus room for the voice to load. */
+export function greetingFallbackMs(greeting) {
+  const words = String(greeting || '')
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.round((words / 2.5) * 1000) + 6000;
+}
+
 /** Practice mode opens as a coach, not as an examiner. */
 function resolveGreeting(pending, speakingMode) {
   if (!pending) return undefined;
@@ -208,8 +216,20 @@ export async function playInitialGreeting({
   pendingGreetingRef.current = null;
 
   if (greeting) {
+    // If the greeting audio stalls (blocked autoplay, slow voice service), the
+    // learner would be left at "Your turn" with no question on screen. Show the
+    // question once the greeting has had a generous time to finish; it is still
+    // spoken in order after the greeting resolves.
+    let questionShown = false;
+    const showQuestion = () => {
+      if (questionShown || !questionEntry) return;
+      questionShown = true;
+      setConversation((prev) => [...prev, questionEntry]);
+    };
+    const fallback = setTimeout(showQuestion, greetingFallbackMs(greeting));
     await Promise.resolve(speakText(greeting)).catch(() => {});
-    if (questionEntry) setConversation((prev) => [...prev, questionEntry]);
+    clearTimeout(fallback);
+    showQuestion();
   }
   if (firstQuestion) {
     firstQuestionInsertedRef.current = true;

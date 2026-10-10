@@ -120,4 +120,20 @@ describe('speaking recording controls', () => {
     );
     expect(onAutoSubmitPausedChange).toHaveBeenLastCalledWith(false);
   });
+
+  it('never claims the microphone is ready while it is blocked, and offers a retry', () => {
+    const onStartListening = vi.fn();
+    render(
+      <RecordingControls
+        {...readyProps}
+        micError="Microphone blocked. Allow it from the icon at the left of the address bar, then select Try again."
+        onStartListening={onStartListening}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Microphone blocked');
+    expect(screen.queryByText('Microphone ready')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(onStartListening).toHaveBeenCalledOnce();
+  });
 });

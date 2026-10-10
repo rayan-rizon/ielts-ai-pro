@@ -629,12 +629,12 @@ function markRecordingStarted(runtime) {
 
 function microphoneErrorMessage(error) {
   if (error.name === 'NotAllowedError') {
-    return 'Microphone access denied. Please allow microphone access in your browser settings.';
+    return 'Microphone blocked. Allow it from the icon at the left of the address bar, then select Try again.';
   }
   if (error.name === 'NotFoundError') {
-    return 'No microphone found. Please connect a microphone and try again.';
+    return 'No microphone found. Connect one, then select Try again.';
   }
-  return `Could not access microphone: ${error.message}`;
+  return `The microphone could not start (${error.message}). Check it is not in use by another app, then select Try again.`;
 }
 
 function isCaptureBusy(refs) {

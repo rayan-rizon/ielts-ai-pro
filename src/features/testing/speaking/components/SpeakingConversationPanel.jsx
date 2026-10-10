@@ -148,7 +148,11 @@ export default function SpeakingConversationPanel({
   // so the observers attach the moment it exists. Driving it from the page
   // silently did nothing, because the page shows a loader until the session
   // has loaded and the ref was still null when its effect ran.
-  const { scrollToLatest } = useConversationAutoScroll(conversationContainerRef);
+  // Before the test starts the card holds the start screen, not a transcript,
+  // so it grows with its content instead of scrolling inside itself.
+  const { scrollToLatest } = useConversationAutoScroll(conversationContainerRef, {
+    enabled: testStarted,
+  });
 
   // Re-follow on a new message or a completed part, even if the learner had
   // scrolled back to reread something.
@@ -209,7 +213,10 @@ export default function SpeakingConversationPanel({
     <div
       className={cn(
         PANEL,
-        'isolate flex h-[calc(100dvh-11.5rem)] max-h-[760px] min-h-[360px] transform-gpu flex-col overflow-hidden rounded-xl sm:h-[calc(100dvh-11.25rem)] sm:min-h-[480px] xl:h-[calc(100vh-7.5rem)] xl:min-h-[540px]'
+        'isolate flex transform-gpu flex-col rounded-xl',
+        testStarted
+          ? 'h-[calc(100dvh-11.5rem)] max-h-[760px] min-h-[360px] overflow-hidden sm:h-[calc(100dvh-11.25rem)] sm:min-h-[480px] xl:h-[calc(100vh-7.5rem)] xl:min-h-[540px]'
+          : 'overflow-clip'
       )}
     >
       <div className="flex min-h-0 flex-1 flex-col">
@@ -258,7 +265,10 @@ export default function SpeakingConversationPanel({
 
         <div
           ref={conversationContainerRef}
-          className="custom-scrollbar flex-1 space-y-2.5 overflow-y-auto p-2.5 sm:space-y-3 sm:p-3.5 md:p-4"
+          className={cn(
+            'flex-1 space-y-2.5 p-2.5 sm:space-y-3 sm:p-3.5 md:p-4',
+            testStarted && 'custom-scrollbar overflow-y-auto'
+          )}
           aria-live="polite"
           aria-label={`Conversation with the ${speakingMode === 'practice' ? 'AI coach' : 'AI examiner'}`}
         >
@@ -335,7 +345,14 @@ export default function SpeakingConversationPanel({
         </div>
 
         {!isPartComplete && (
-          <div className="isolate shrink-0 transform-gpu border-t border-[#e4e2f0] px-2.5 py-2 dark:border-white/[0.07] sm:px-4">
+          <div
+            className={cn(
+              'isolate shrink-0 transform-gpu border-t border-[#e4e2f0] px-2.5 py-2 dark:border-white/[0.07] sm:px-4',
+              // Keep "Begin test" in reach while the start screen scrolls with the page.
+              !testStarted &&
+                'sticky bottom-0 z-10 rounded-b-xl bg-white max-sm:pb-[max(0.5rem,env(safe-area-inset-bottom))] dark:bg-[#131315]'
+            )}
+          >
             {timeExpired ? (
               <TimeUpTransition
                 currentPartNumber={currentPartNumber}

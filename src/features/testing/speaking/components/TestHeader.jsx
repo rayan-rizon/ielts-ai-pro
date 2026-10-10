@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/cn';
 
 import { getQuestionLines } from '../utils/speakingTestUtils';
+import { SPEAKING_MODE_MINUTES } from '../utils/speakingV2';
 
 const formatTime = (seconds) => {
   const safeSeconds = Math.max(0, Number(seconds) || 0);
@@ -33,18 +34,26 @@ const TestHeader = React.memo(
     isPartComplete,
     onShowExitDialog,
     speakingMode = 'practice',
+    testStarted = true,
   }) => {
     const prefersReducedMotion = useReducedMotion();
-    const partProgress = totalParts > 0 ? (currentPartNumber / totalParts) * 100 : 0;
+    // Progress counts finished parts, so a learner who has not answered
+    // anything yet is at 0%, not already a third of the way through.
+    const completedParts = !testStarted
+      ? 0
+      : Math.max(0, currentPartNumber - 1) + (isPartComplete ? 1 : 0);
+    const partProgress = totalParts > 0 ? (completedParts / totalParts) * 100 : 0;
     const questionCount = Math.max(getQuestionLines(currentPart?.questions).length, 1);
     const isLongTurn = currentPartNumber === 2;
-    const questionValue = isPartComplete
-      ? 'Complete'
-      : isPart2Prep
-        ? 'Preparing'
-        : isLongTurn
-          ? 'Long turn'
-          : `${Math.min(currentQuestionIndex + 1, questionCount)} of ${questionCount}`;
+    const questionValue = !testStarted
+      ? 'Not started'
+      : isPartComplete
+        ? 'Complete'
+        : isPart2Prep
+          ? 'Preparing'
+          : isLongTurn
+            ? 'Long turn'
+            : `${Math.min(currentQuestionIndex + 1, questionCount)} of ${questionCount}`;
     const progressLabel = `${Math.round(partProgress)}%`;
     const isExam = speakingMode === 'exam';
     const partTitle = currentPart?.title || `Speaking Part ${currentPartNumber}`;
@@ -109,21 +118,43 @@ const TestHeader = React.memo(
             </div>
 
             <div className="shrink-0 text-right">
-              <p className={cn(MICRO, MUTED, 'hidden sm:block')}>Time left</p>
-              <div
-                className={cn(
-                  NUM,
-                  'flex items-center gap-1 text-sm font-extrabold sm:text-base md:mt-0.5',
-                  timeLeft < 60 ? 'text-red-500' : 'text-rose-500'
-                )}
-                aria-label={`${formatTime(timeLeft)} remaining`}
-              >
-                <Clock3
-                  className={cn('h-3.5 w-3.5', timeLeft < 60 && 'motion-safe:animate-pulse')}
-                  aria-hidden="true"
-                />
-                {formatTime(timeLeft)}
-              </div>
+              {testStarted ? (
+                <>
+                  <p className={cn(MICRO, MUTED, 'hidden sm:block')}>Time left</p>
+                  <div
+                    className={cn(
+                      NUM,
+                      'flex items-center gap-1 text-sm font-extrabold sm:text-base md:mt-0.5',
+                      timeLeft < 60
+                        ? 'text-[rgb(var(--signal-fault))]'
+                        : 'text-slate-800 dark:text-slate-100'
+                    )}
+                    aria-label={`${formatTime(timeLeft)} remaining`}
+                  >
+                    <Clock3
+                      className={cn(
+                        'h-3.5 w-3.5',
+                        timeLeft < 60 ? 'motion-safe:animate-pulse' : 'text-slate-400'
+                      )}
+                      aria-hidden="true"
+                    />
+                    {formatTime(timeLeft)}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className={cn(MICRO, MUTED, 'hidden sm:block')}>Session length</p>
+                  <div
+                    className={cn(
+                      NUM,
+                      'flex items-center gap-1 text-sm font-extrabold text-slate-800 dark:text-slate-100 sm:text-base md:mt-0.5'
+                    )}
+                  >
+                    <Clock3 className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                    {SPEAKING_MODE_MINUTES[speakingMode] ?? SPEAKING_MODE_MINUTES.exam} min
+                  </div>
+                </>
+              )}
             </div>
 
             <Button
@@ -159,12 +190,17 @@ const TestHeader = React.memo(
                       ? { duration: 0 }
                       : { duration: 0.35, ease: [0.2, 0, 0, 1] }
                   }
-                  className="h-full rounded-full bg-rose-500"
+                  className="h-full rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
                 />
               </div>
             </div>
 
-            <span className={cn(NUM, 'shrink-0 text-[10px] font-bold text-rose-500')}>
+            <span
+              className={cn(
+                NUM,
+                'shrink-0 text-[10px] font-bold text-slate-600 dark:text-slate-300'
+              )}
+            >
               {progressLabel}
             </span>
 

@@ -3,6 +3,14 @@ export const SPEAKING_MODES = Object.freeze({
   PRACTICE: 'practice',
 });
 
+// Session length shown when a learner chooses a mode. Practice is labelled by
+// its typical length including the coach's replies (the server still budgets
+// 8 minutes of active speaking); exam is a fixed session, like the real test.
+export const SPEAKING_MODE_MINUTES = Object.freeze({
+  practice: 10,
+  exam: 14,
+});
+
 export function isSpeakingV2Available(user) {
   // Speaking V2 is now the production implementation for all new sessions.
   // Keep the parameter temporarily so existing callers remain source-compatible.
