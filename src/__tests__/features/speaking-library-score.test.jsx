@@ -10,13 +10,13 @@ describe('speaking library score states', () => {
         <TestRowBadge isCompleted score={null} />
       </>
     );
-    expect(screen.getAllByText('No band assigned')).toHaveLength(2);
+    expect(screen.getAllByText('Score not available')).toHaveLength(2);
     expect(screen.queryByText('/ 9.0')).not.toBeInTheDocument();
     expect(screen.queryByText('Your score')).not.toBeInTheDocument();
   });
   it('preserves an actual zero score', () => {
     render(<GridMetaBar duration={15} isCompleted displayScore={0} />);
     expect(screen.getByText('0.0')).toBeInTheDocument();
-    expect(screen.queryByText('No band assigned')).not.toBeInTheDocument();
+    expect(screen.queryByText('Score not available')).not.toBeInTheDocument();
   });
 });

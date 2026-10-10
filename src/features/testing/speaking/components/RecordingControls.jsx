@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 
-function MicrophoneError({ message }) {
+function MicrophoneError({ message, onRetry, canRetry }) {
   const prefersReducedMotion = useReducedMotion();
   if (!message) return null;
 
@@ -16,11 +16,25 @@ function MicrophoneError({ message }) {
       animate={{ opacity: 1, y: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
       transition={{ duration: 0.15, ease: 'easeOut' }}
-      className="flex w-full max-w-2xl items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900/50 dark:bg-red-950/30"
+      className="flex w-full max-w-2xl items-start gap-2.5 rounded-lg border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-3 py-2.5 dark:bg-[rgb(var(--signal-fault)/0.12)]"
       role="alert"
     >
-      <MicOff className="h-4 w-4 shrink-0 text-red-500" aria-hidden="true" />
-      <p className="text-xs leading-snug text-red-700 dark:text-red-300">{message}</p>
+      <MicOff
+        className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--signal-fault))]"
+        aria-hidden="true"
+      />
+      <p className="min-w-0 flex-1 text-[13px] leading-snug text-slate-800 dark:text-slate-100">
+        {message}
+      </p>
+      {canRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="shrink-0 cursor-pointer rounded-md border border-[#e4e2f0] bg-white px-3 py-1.5 text-xs font-bold text-slate-800 transition-colors hover:border-[#5a63df]/40 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
+        >
+          Try again
+        </button>
+      )}
     </motion.div>
   );
 }
@@ -77,7 +91,11 @@ const RecordingControls = React.memo(function RecordingControls({
   return (
     <div className="flex w-full flex-col items-center gap-2">
       <AnimatePresence initial={false}>
-        <MicrophoneError message={micError} />
+        <MicrophoneError
+          message={micError}
+          canRetry={testStarted && !isListening && !isProcessing}
+          onRetry={onStartListening}
+        />
       </AnimatePresence>
 
       {!testStarted && (
@@ -90,12 +108,14 @@ const RecordingControls = React.memo(function RecordingControls({
           <Button
             onClick={onStartTest}
             size="lg"
-            className="h-11 w-full gap-2 rounded-lg border border-rose-600/30 bg-rose-500 px-6 text-sm font-extrabold text-white transition-transform duration-150 hover:-translate-y-0.5 hover:bg-rose-600"
+            className="h-11 w-full gap-2 rounded-lg bg-[#5a63df] px-6 text-sm font-extrabold text-white transition-colors duration-150 hover:bg-[#4a52cc] focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 active:scale-[0.99] dark:focus-visible:ring-offset-[#08080a]"
           >
             <PlayCircle className="h-4 w-4" aria-hidden="true" />
             Begin test
           </Button>
-          <p className={cn(MUTED, 'text-[10px] leading-relaxed')}>Progress saves automatically.</p>
+          <p className={cn(MUTED, 'text-[11px] leading-relaxed')}>
+            Your progress saves automatically, so you can leave and come back.
+          </p>
         </motion.div>
       )}
 
@@ -109,7 +129,7 @@ const RecordingControls = React.memo(function RecordingControls({
                   Start talking any time to interrupt
                 </p>
               )}
-              {!isProcessing && !isTTSLoading && !isSpeaking && !isPlaybackActive && (
+              {!micError && !isProcessing && !isTTSLoading && !isSpeaking && !isPlaybackActive && (
                 <p className={cn(MICRO, MUTED, 'tracking-[0.14em]')}>
                   {handsFreeEnabled ? 'Microphone ready' : 'Ready for your answer'}
                 </p>
@@ -185,8 +205,8 @@ const RecordingControls = React.memo(function RecordingControls({
                 isUnavailable
                   ? 'cursor-not-allowed border-[#e4e2f0] bg-[#f4f3fb] text-slate-500 opacity-60 dark:border-white/[0.07] dark:bg-white/4 dark:text-slate-400'
                   : isListening
-                    ? 'border-rose-500 bg-rose-500 text-white hover:bg-rose-600'
-                    : 'border-rose-500/20 bg-white text-rose-600 hover:border-rose-500/35 hover:bg-rose-500/4 dark:bg-white/3 dark:text-rose-400'
+                    ? 'border-[rgb(var(--signal-fault))] bg-[rgb(var(--signal-fault))] text-white hover:opacity-90'
+                    : 'border-[#5a63df] bg-[#5a63df] text-white hover:bg-[#4a52cc] dark:border-[#8f97ff]/40'
               }`}
             >
               {isProcessing ? (

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { playInitialGreeting } from './useStartSpeakingTest';
+import { greetingFallbackMs, playInitialGreeting } from './useStartSpeakingTest';
 
 describe('playInitialGreeting', () => {
   it('plays the welcome announcement before the first question', async () => {
@@ -93,5 +93,38 @@ describe('playInitialGreeting', () => {
     finishGreeting();
     await playback;
     expect(conversation.map((entry) => entry.text)).toEqual(['Welcome.', 'Do you work or study?']);
+  });
+
+  it('shows the first question even when the greeting audio never finishes', async () => {
+    vi.useFakeTimers();
+    try {
+      let conversation = [];
+      const setConversation = vi.fn((valueOrUpdater) => {
+        conversation =
+          typeof valueOrUpdater === 'function' ? valueOrUpdater(conversation) : valueOrUpdater;
+      });
+      const greeting = "Hi! Let's practise Part 1 together. Here's your first question.";
+      // A greeting whose playback stalls forever (blocked autoplay, voice outage).
+      const speakText = vi.fn((text) => (text === greeting ? new Promise(() => {}) : undefined));
+
+      void playInitialGreeting({
+        allParts: { 1: { questions: 'Do you work or study?' } },
+        firstQuestionInsertedRef: { current: false },
+        pendingGreetingRef: { current: { greeting, partNumber: 1 } },
+        requestAutoStart: vi.fn(),
+        setConversation,
+        setCurrentQuestionIndex: vi.fn(),
+        setTestStarted: vi.fn(),
+        speakText,
+      });
+
+      await vi.advanceTimersByTimeAsync(greetingFallbackMs(greeting) - 1);
+      expect(conversation.map((entry) => entry.text)).toEqual([greeting]);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(conversation.map((entry) => entry.text)).toEqual([greeting, 'Do you work or study?']);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

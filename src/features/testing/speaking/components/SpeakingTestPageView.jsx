@@ -67,6 +67,7 @@ export default function SpeakingTestPageView({
           totalParts={totalParts}
           testTitle={testTitle}
           speakingMode={speakingMode}
+          testStarted={conversationPanelProps.testStarted}
           isPart2Prep={conversationPanelProps.isPart2Prep}
           isPartComplete={conversationPanelProps.isPartComplete}
           onShowExitDialog={() => {

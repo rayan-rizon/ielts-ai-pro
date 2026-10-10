@@ -33,7 +33,12 @@ function SpeakingCardView(props) {
       <div className="flex flex-1 flex-col">
         <div className="mb-3 flex items-start justify-between">
           <IconChip icon={Icon} tone="accent" size="md" />
-          <GridStatusBadge isLocked={isLocked} isResuming={isResuming} isCompleted={isCompleted} />
+          <GridStatusBadge
+            isLocked={isLocked}
+            isResuming={isResuming}
+            isCompleted={isCompleted}
+            needsRestart={needsRestart}
+          />
         </div>
 
         <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
@@ -48,7 +53,8 @@ function SpeakingCardView(props) {
             </h3>
           </ContainerLink>
           <p className={cn('line-clamp-2 text-xs font-medium leading-relaxed', MUTED)}>
-            {test.description || 'Authentic IELTS Speaking practice with interactive AI models.'}
+            {test.description ||
+              'Take it with a live coach, or as a timed exam with a full report.'}
           </p>
         </div>
 
