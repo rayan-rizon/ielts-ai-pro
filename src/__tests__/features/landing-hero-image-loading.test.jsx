@@ -5,13 +5,15 @@ import { describe, expect, it } from 'vitest';
 const readSource = (relativePath) => readFileSync(resolve('.', relativePath), 'utf8');
 
 describe('landing hero image loading', () => {
-  it('reserves high fetch priority for the main hero image', () => {
+  it('shows the muted product film where the hero photo used to be', () => {
     const hero = readSource('src/features/core/components/landing/HeroSection.jsx');
+    const indexHtml = readSource('index.html');
 
-    expect(hero).toContain("const heroImagePriorityProps = { fetchpriority: 'high' };");
-    expect(hero).toContain('{...heroImagePriorityProps}');
-    expect(hero).not.toContain('fetchPriority');
-    expect(hero).not.toContain('{...highPriorityImageProps}');
+    expect(hero).toContain('poster="/videos/hero-loop-poster.webp"');
+    expect(hero).toContain('muted');
+    expect(hero).toContain("'(prefers-reduced-motion: reduce)'");
+    expect(hero).not.toContain('ielts-hero-student');
+    expect(indexHtml).not.toContain('href="/ielts-hero-student-640.webp"');
   });
 
   it('keeps intrinsic dimensions on every raster logo variant', () => {

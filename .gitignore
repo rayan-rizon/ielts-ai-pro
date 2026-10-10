@@ -104,8 +104,11 @@ skills-lock.json
 launch-video/
 launch-video-9x16/
 *launch-video*/
+hero-loop/
 renders/
 *.mp4
+# The landing hero film is a shipped site asset, not a render output.
+!public/videos/hero-loop.mp4
 *.webm
 
 # --- Payment provider credentials (never commit) ---
