@@ -7,8 +7,8 @@ and rollback snapshots are intentionally excluded from Git.
 ## Automated checks
 
 - 2,969 frontend/unit tests across 382 files pass with Vitest 5.0.3.
-- Eleven Cloudflare route/profile/origin/cache policy tests pass.
-- Actual workerd fixtures verify eleven CAPI/boundary cases, eight GA/GTM cases,
+- Thirteen Cloudflare route/profile/origin/cache/release policy tests pass.
+- Actual workerd fixtures verify twelve CAPI/boundary cases, eight GA/GTM cases,
   anonymous cache hits, credential bypass and private API cache policy. Providers
   are mocked in these fixtures; no synthetic purchase reaches live measurement.
 - Cloudflare TypeScript checking and production build pass.
@@ -54,3 +54,31 @@ The earlier Supabase organization warning concerns previous-cycle egress; curren
 cycle usage was about 61% of the Free allowance. Keep its grace-period deadline
 and Worker Free-plan CPU/request limits under review. A clean functional audit is
 not a production load test or a comprehensive penetration test.
+
+## Git release and firewall completion
+
+On 11 October, Cloudflare Workers Builds connected the existing authorized
+`rayan-rizon/ielts-ai-pro` repository, branch `main`, with previews disabled.
+The remote build of commit `b5694a8b` succeeded and promoted version
+`5c52ac13-daea-4507-919f-046e41523087` to 100% traffic. GitHub CI passed lint,
+frontend types/unit tests, Cloudflare policy/workerd tests, Cloudflare types and build.
+Provider readback confirmed the preserved encrypted Meta secret, the 20/60 native
+rate-limit binding, disabled workers.dev/previews and both unchanged fail-open routes.
+The production live-check passed DNS, TLS, redirects, CDN HIT/304, credential cache
+bypass, API validation and all 93 sitemap pages. Invalid CAPI probes reached 429
+with Retry-After 60 and private/no-store; no test conversion was forwarded to Meta.
+
+The temporary `ielts-ai-cloudflare-staging` Worker had no routes or persistent
+bindings and was deleted with force=false after preserving recreation metadata.
+Account readback now lists only one IELTS Worker. Vercel remains the fallback origin.
+
+The Vercel firewall audit found one custom POST-prefix/IP rule at 20/minute.
+Cloudflare dashboard now shows active zone rule `b8b579f439934b45b2209e909dc10c19`,
+matching only the two production hosts and POST `/api/meta-capi` prefix: 20/10 seconds,
+Block for 10 seconds. This Free-plan burst rule complements the Worker minute limit.
+Cloudflare native counters are local/eventually consistent, not exact global quotas.
+
+A historical Listening attempt has question-ID drift: its stored card score and
+recomputed result differ without a stored question snapshot. This application issue
+is still unresolved and is separate from the hosting migration. The end-to-end
+Speaking grading and browser paid checkout limitations above still apply.

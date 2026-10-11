@@ -2,8 +2,8 @@
 
 Live: **https://www.ieltsai.pro**. The apex redirects to www with path and query preserved.
 The production Worker is `ielts-ai-cloudflare`; its workers.dev and version preview URLs
-are disabled. The temporary migration Worker can be removed independently; it has
-no production routes. Any future staging deployment requires an explicit profile.
+are disabled. The temporary migration Worker was removed after a successful remote Git release
+and live verification. Any future staging deployment requires an explicit profile.
 
 Cloudflare serves the frontend, public blog/SEO handlers, geo API and first-party
 Meta CAPI relay. Auth, AI, billing webhooks and database access continue through the
@@ -70,6 +70,12 @@ staging measurement are unaffected. A missing/failing binding fails closed.
 Cloudflare's native counters are local to a data center and eventually consistent;
 they are abuse protection, not an exact global accounting quota. See
 [Cloudflare's rate-limit semantics](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
+The domain firewall also has an active `Meta CAPI POST burst protection` rule,
+created through the Cloudflare dashboard: the same two hosts, POST and path prefix,
+20 requests per 10 seconds per IP/data center, Block for 10 seconds. The Free-plan
+dashboard only offers a 10-second period/duration, so this supplements rather than
+replaces the Worker minute limit. Rule ID: `b8b579f439934b45b2209e909dc10c19`.
+These zone settings persist independently of Git Worker deployments.
 Vercel's existing rule remains in place for the preserved fallback origin. Bot
 Protection was log-only, AI Bots allowed and OWASP disabled; those were not blocking
 protections to copy into broad bot challenges on Cloudflare.
