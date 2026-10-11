@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import { BarChart3, CalendarClock, Coffee, Zap } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MICRO, NUM } from '@/features/dashboard/components/primitives';
@@ -79,6 +80,17 @@ function WeekStrip({ days }) {
 
 export default function StudyTimeStep({ studyHoursGoal, studyAvailability, onChangeAvailability }) {
   const [customize, setCustomize] = useState(false);
+  const editorRef = useRef(null);
+  const reduceMotion = useReducedMotion();
+  // The editor opens below the fold of the fixed-height frame; bring it into
+  // view so opening it visibly does something.
+  useEffect(() => {
+    if (!customize) return;
+    editorRef.current?.scrollIntoView?.({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'nearest',
+    });
+  }, [customize, reduceMotion]);
   const days = studyAvailability?.days || {};
   const minutes = Object.values(days).reduce((sum, value) => sum + (Number(value) || 0), 0);
   return (
@@ -118,7 +130,7 @@ export default function StudyTimeStep({ studyHoursGoal, studyAvailability, onCha
         </button>
       </div>
       {customize && (
-        <div className="onboarding-study__editor">
+        <div ref={editorRef} className="onboarding-study__editor">
           <StudyAvailabilityEditor
             value={studyAvailability}
             legacyWeeklyHours={studyHoursGoal}

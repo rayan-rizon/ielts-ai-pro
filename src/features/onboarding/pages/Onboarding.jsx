@@ -95,7 +95,7 @@ const stepVariants = {
   exit: (dir) => ({
     x: dir > 0 ? -20 : 20,
     opacity: 0,
-    transition: { duration: 0.16, ease: 'easeIn' },
+    transition: { duration: 0.16, ease: EASE_OUT },
   }),
 };
 
@@ -232,10 +232,6 @@ export default function Onboarding() {
     navigate(createPageUrl('Dashboard'));
   };
 
-  const openLearningPath = () => {
-    navigate(createPageUrl('LearningPath'));
-  };
-
   const trackPlanOfferViewed = useCallback(() => {
     void recordOnboardingOffer('offer_seen');
     trackAuthenticatedAppEvent(
@@ -348,9 +344,9 @@ export default function Onboarding() {
           <CompleteStep
             formData={formData}
             hasPaidPlan={hasPaidAccess(user)}
+            currentTier={user?.subscription_tier || null}
             onUpgrade={openSubscriptionPlans}
             onContinue={finishOnboarding}
-            onOpenPlan={openLearningPath}
             onPlanOfferViewed={trackPlanOfferViewed}
           />
         );
@@ -361,8 +357,12 @@ export default function Onboarding() {
 
   const headingRef = useRef(null);
   const bodyRef = useRef(null);
+  const pageRef = useRef(null);
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0 });
+    // The plan screen grows past the viewport, so the app's own scroll
+    // container must start at the top too, not where the last step left it.
+    pageRef.current?.scrollIntoView?.({ block: 'start' });
     headingRef.current?.focus({ preventScroll: true });
   }, [currentStep]);
 
@@ -381,7 +381,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="onboarding-page">
+    <div className="onboarding-page" ref={pageRef}>
       <section
         className={cn(PANEL, 'onboarding-frame', `onboarding-frame--${stepConfig.id}`)}
         aria-label="Personalize your IELTS practice"

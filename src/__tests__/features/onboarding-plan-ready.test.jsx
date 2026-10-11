@@ -60,14 +60,7 @@ describe('onboarding plan-ready experience', () => {
 
   it("quotes the learner's regional price book instead of a hardcoded USD price", async () => {
     vi.useFakeTimers();
-    render(
-      <CompleteStep
-        formData={formData}
-        onUpgrade={vi.fn()}
-        onContinue={vi.fn()}
-        onOpenPlan={vi.fn()}
-      />
-    );
+    render(<CompleteStep formData={formData} onUpgrade={vi.fn()} onContinue={vi.fn()} />);
 
     await act(async () => {
       vi.advanceTimersByTime(2000);
@@ -99,14 +92,7 @@ describe('onboarding plan-ready experience', () => {
     const onUpgrade = vi.fn();
     const onContinue = vi.fn();
 
-    render(
-      <CompleteStep
-        formData={formData}
-        onUpgrade={onUpgrade}
-        onContinue={onContinue}
-        onOpenPlan={vi.fn()}
-      />
-    );
+    render(<CompleteStep formData={formData} onUpgrade={onUpgrade} onContinue={onContinue} />);
 
     expect(
       screen.getByRole('heading', { name: 'Building your Band 7.5 plan' })
@@ -141,7 +127,6 @@ describe('onboarding plan-ready experience', () => {
         formData={formData}
         onUpgrade={vi.fn()}
         onContinue={vi.fn()}
-        onOpenPlan={vi.fn()}
         onPlanOfferViewed={onPlanOfferViewed}
       />
     );
@@ -156,18 +141,19 @@ describe('onboarding plan-ready experience', () => {
     expect(onPlanOfferViewed).toHaveBeenCalledOnce();
   });
 
-  it('sends an existing paid learner straight to the real Learning Path', async () => {
+  it('shows a paid learner the prices with their own plan marked', async () => {
     vi.useFakeTimers();
-    const onOpenPlan = vi.fn();
+    const onContinue = vi.fn();
+    const onUpgrade = vi.fn();
     const onPlanOfferViewed = vi.fn();
 
     render(
       <CompleteStep
         formData={formData}
         hasPaidPlan
-        onUpgrade={vi.fn()}
-        onContinue={vi.fn()}
-        onOpenPlan={onOpenPlan}
+        currentTier="premium"
+        onUpgrade={onUpgrade}
+        onContinue={onContinue}
         onPlanOfferViewed={onPlanOfferViewed}
       />
     );
@@ -175,11 +161,17 @@ describe('onboarding plan-ready experience', () => {
       vi.advanceTimersByTime(2000);
     });
 
-    expect(screen.queryByRole('button', { name: /choose pro/i })).not.toBeInTheDocument();
+    expect(screen.getByText('\u09F31100')).toBeInTheDocument();
+    expect(screen.getByText('\u09F31700')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Current plan' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Included in your plan' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /switch to pro/i }));
+    expect(onUpgrade).toHaveBeenCalledWith('pro', 'monthly');
     // A subscriber is never shown the offer, so it must not count as viewed.
     expect(onPlanOfferViewed).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: /open my ai learning path/i }));
-    expect(onOpenPlan).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: /learning path/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Go to my dashboard' }));
+    expect(onContinue).toHaveBeenCalledOnce();
   });
 
   it('does not advance to the ready state after a failed profile save', () => {
@@ -256,7 +248,7 @@ describe('personal signup offer on the paywall', () => {
       available: true,
       code: 'START20-PERSONALTEST',
       discount_percent: 20,
-      expires_at: '2026-10-20T12:00:00Z',
+      expires_at: new Date(Date.now() + 2 * 86400000 + 3 * 3600000).toISOString(),
     });
   });
   afterEach(() => {
@@ -279,6 +271,29 @@ describe('personal signup offer on the paywall', () => {
     expect(onUpgrade).toHaveBeenCalledWith('pro', 'monthly');
     expect(window.localStorage.getItem('pending_promo_code')).toBe('START20-PERSONALTEST');
   });
+  it('counts the offer down and drops the discount the moment it expires', async () => {
+    vi.useFakeTimers();
+    getSignupOffer.mockResolvedValue({
+      available: true,
+      code: 'START20-PERSONALTEST',
+      discount_percent: 20,
+      expires_at: new Date(Date.now() + 5000).toISOString(),
+    });
+    render(<CompleteStep formData={formData} onUpgrade={vi.fn()} />);
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(screen.getByText('Limited time')).toBeInTheDocument();
+    expect(screen.getByRole('timer', { name: 'Offer ends in' })).toBeInTheDocument();
+    expect(screen.getByText('\u09F3880')).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(screen.queryByText('Limited time')).not.toBeInTheDocument();
+    expect(screen.getByText('\u09F31100')).toBeInTheDocument();
+  });
+
   it('preserves an explicit campaign code instead of issuing a signup offer', async () => {
     vi.useFakeTimers();
     window.localStorage.setItem('pending_promo_code', 'FIRST30');

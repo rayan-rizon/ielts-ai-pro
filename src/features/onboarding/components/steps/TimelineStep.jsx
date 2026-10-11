@@ -5,10 +5,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Crosshair,
-  Flame,
   Hourglass,
   Scale,
   Sprout,
+  TreeDeciduous,
 } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import {
@@ -29,9 +29,10 @@ import { cn } from '@/lib/cn';
 import { IconChip, MICRO, NUM, PANEL } from '@/features/dashboard/components/primitives';
 import OnboardingChoice from '../OnboardingChoice';
 
-// Each pace gets its own glyph so the four rows scan apart at a glance.
+// Each pace gets its own glyph so the rows scan apart at a glance, growing
+// from a sprint to a tree. Three months is flagged because it is the window
+// the Exam Pass is built around.
 const OPTIONS = [
-  { weeks: 2, title: 'Within 2 weeks', description: 'Intensive sprint', meta: '2 wk', icon: Flame },
   {
     weeks: 4,
     title: 'Within 1 month',
@@ -43,9 +44,17 @@ const OPTIONS = [
   {
     weeks: 12,
     title: 'Within 3 months',
-    description: 'Room to build',
+    description: 'Room to build every skill',
     meta: '12 wk',
     icon: Sprout,
+    badge: 'Recommended',
+  },
+  {
+    weeks: 16,
+    title: 'Within 4 months',
+    description: 'Steady, unhurried prep',
+    meta: '16 wk',
+    icon: TreeDeciduous,
   },
 ];
 
@@ -229,6 +238,7 @@ export default function TimelineStep({ timelineType, estimatedWeeks, testDate, o
               title={option.title}
               description={option.description}
               meta={option.meta}
+              badge={option.badge}
               index={index + 1}
               compact
               selected={isEstimate && estimatedWeeks === option.weeks}

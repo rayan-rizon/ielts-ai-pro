@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, CalendarDays, Check, Gauge, Target } from 'lucide-react';
 import { addWeeks } from 'date-fns';
 import { m, useReducedMotion } from 'framer-motion';
@@ -231,16 +231,31 @@ function PlanAssembly({ preview }) {
   );
 }
 
-function PlanOption({ tier, pricing, onSelect, isFree = false, index = 0 }) {
+function PlanOption({
+  tier,
+  pricing,
+  onSelect,
+  isFree = false,
+  index = 0,
+  currentTier = null,
+  discountPercent = null,
+}) {
   const option = isFree ? { name: 'Free', icon: null } : PLAN_OPTIONS[tier];
-  const recommended = tier === 'pro';
+  const isCurrent = currentTier === tier;
+  // A paid learner already has more than Free; that card is for comparison only.
+  const isBelowCurrent = isFree && Boolean(currentTier) && currentTier !== 'free';
+  const recommended = tier === 'pro' && !currentTier;
   const features = isFree
     ? ['Unlimited Reading & Listening tests', ...(pricing?.features || [])]
     : [...(pricing?.features || []), option.extra];
   const Icon = option.icon;
   return (
     <article
-      className={cn(PANEL, 'onboarding-plan', recommended && 'onboarding-plan--recommended')}
+      className={cn(
+        PANEL,
+        'onboarding-plan',
+        (recommended || isCurrent) && 'onboarding-plan--recommended'
+      )}
       data-rise
       style={{ '--i': index + 7 }}
     >
@@ -250,19 +265,34 @@ function PlanOption({ tier, pricing, onSelect, isFree = false, index = 0 }) {
           {option.name}
         </h3>
         {recommended && <span className="onboarding-plan__badge">Most popular</span>}
+        {isCurrent && <span className="onboarding-plan__badge">Your plan</span>}
       </div>
-      <div className="onboarding-plan__price">
-        <span key={pricing?.price} className={cn(NUM, 'onboarding-plan__amount')}>
-          {pricing?.price || '—'}
-        </span>
-        <span className="onboarding-plan__period">/ month</span>
-      </div>
-      <p className={cn(NUM, 'onboarding-plan__note')}>
-        <span key={pricing?.note} className="onboarding-swap">
-          {pricing?.note || 'Loading your local price…'}
-        </span>
-        {pricing?.oldPrice && <s className="onboarding-plan__was">{pricing.oldPrice}</s>}
-      </p>
+      {pricing?.price ? (
+        <>
+          <div className="onboarding-plan__price">
+            <span key={pricing.price} className={cn(NUM, 'onboarding-plan__amount')}>
+              {pricing.price}
+            </span>
+            <span className="onboarding-plan__period">/ month</span>
+            {discountPercent && (
+              <span className={cn(NUM, 'onboarding-plan__discount')}>−{discountPercent}%</span>
+            )}
+          </div>
+          <p className={cn(NUM, 'onboarding-plan__note')}>
+            <span key={pricing.note} className="onboarding-swap">
+              {pricing.note}
+            </span>
+            {pricing.oldPrice && <s className="onboarding-plan__was">{pricing.oldPrice}</s>}
+          </p>
+        </>
+      ) : (
+        // Same footprint as the price block, so the card doesn't jump when
+        // the regional price book arrives.
+        <div className="onboarding-plan__loading" role="status" aria-label="Loading price">
+          <span />
+          <span />
+        </div>
+      )}
       <ul className="onboarding-plan-features">
         {features.map((feature) => (
           <li key={feature}>
@@ -273,14 +303,28 @@ function PlanOption({ tier, pricing, onSelect, isFree = false, index = 0 }) {
           </li>
         ))}
       </ul>
-      <button
-        type="button"
-        onClick={() => onSelect(tier)}
-        className={cn('onboarding-primary w-full', !recommended && 'onboarding-plan-secondary')}
-      >
-        {isFree ? 'Continue with free practice' : `Choose ${option.name}`}
-        <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-      </button>
+      {isCurrent || isBelowCurrent ? (
+        <button
+          type="button"
+          disabled
+          className="onboarding-primary onboarding-plan-current w-full"
+        >
+          {isCurrent ? 'Current plan' : 'Included in your plan'}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onSelect(tier)}
+          className={cn('onboarding-primary w-full', !recommended && 'onboarding-plan-secondary')}
+        >
+          {isFree
+            ? 'Continue with free practice'
+            : currentTier
+              ? `Switch to ${option.name}`
+              : `Choose ${option.name}`}
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+        </button>
+      )}
     </article>
   );
 }
@@ -318,17 +362,73 @@ function IntervalToggle({ value, onChange }) {
   );
 }
 
+function splitRemaining(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return {
+    days: Math.floor(total / 86400),
+    hours: Math.floor((total % 86400) / 3600),
+    minutes: Math.floor((total % 3600) / 60),
+    seconds: total % 60,
+  };
+}
+
+/** Ticks once a second. When the offer lapses the parent drops it, so the
+ * cards fall back to full price instead of quoting a dead discount. */
+function OfferCountdown({ expiresAt, onExpire }) {
+  const end = useMemo(() => new Date(expiresAt).getTime(), [expiresAt]);
+  const [now, setNow] = useState(() => Date.now());
+  const remaining = end - now;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    if (remaining <= 0) onExpire?.();
+  }, [remaining, onExpire]);
+
+  const { days, hours, minutes, seconds } = splitRemaining(remaining);
+  // Over a day out, seconds are noise; inside the last day they create the urgency.
+  const units =
+    days > 0
+      ? [
+          [days, 'd'],
+          [hours, 'h'],
+          [minutes, 'm'],
+        ]
+      : [
+          [hours, 'h'],
+          [minutes, 'm'],
+          [seconds, 's'],
+        ];
+  return (
+    <div className="onboarding-countdown" role="timer" aria-label="Offer ends in">
+      <span className="onboarding-countdown__label">Ends in</span>
+      <span className="onboarding-countdown__units">
+        {units.map(([value, unit]) => (
+          <span key={unit} className="onboarding-countdown__unit">
+            <span className={NUM}>{String(value).padStart(2, '0')}</span>
+            <small>{unit}</small>
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
 function ReadyPlan({
   preview,
   hasPaidPlan,
+  currentTier,
   onUpgrade,
   onContinue,
-  onOpenPlan,
   planPricing,
   onPlanOfferViewed,
   signupOffer,
+  onOfferExpired,
   examPlan,
 }) {
+  const offerPercent = signupOffer?.discount_percent ?? 20;
   // The exam date picks the default, exactly as /pricing does.
   const [interval, setBillingInterval] = useState(examPlan?.recommendedInterval || 'monthly');
   const pricing = planPricing[interval];
@@ -341,6 +441,15 @@ function ReadyPlan({
 
   return (
     <div className="onboarding-ready">
+      <img
+        className="onboarding-ready__art"
+        src="/onboarding/study-plan-v1.webp"
+        width="320"
+        height="320"
+        alt=""
+        data-rise
+        style={{ '--i': 0 }}
+      />
       <OnboardingHeading
         align="center"
         className="onboarding-ready-heading"
@@ -362,60 +471,79 @@ function ReadyPlan({
           </div>
         ))}
       </dl>
-      {hasPaidPlan ? (
-        <div className="flex flex-col items-center gap-4 py-5" data-rise style={{ '--i': 7 }}>
-          <img src="/onboarding/study-plan-v1.webp" width="160" height="160" alt="" />
-          <button type="button" onClick={onOpenPlan} className="onboarding-primary">
-            Open my AI Learning Path <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-      ) : (
-        <section aria-labelledby="unlock-plan-title">
-          <div className="onboarding-plans__head" data-rise style={{ '--i': 5 }}>
-            <h2 id="unlock-plan-title" className="onboarding-subheading">
-              Choose how you’ll practice
-            </h2>
-            <IntervalToggle value={interval} onChange={setBillingInterval} />
-            <p className={cn(MICRO, 'onboarding-plans__coverage')}>
-              <span key={`${interval}-${coverage}`} className="onboarding-swap">
-                {coverage ||
-                  (interval === 'quarterly'
-                    ? `One payment · ${EXAM_PASS_MONTHS} months · no auto-renewal`
-                    : 'Billed monthly · cancel anytime')}
-              </span>
-            </p>
-          </div>
-          {signupOffer && (
-            <div className="onboarding-offer" data-rise style={{ '--i': 5 }}>
-              <p className="font-bold">Your personal 20% signup offer</p>
-              <p className={cn(MUTED, 'mt-1 text-xs')}>
-                First payment only · expires {new Date(signupOffer.expires_at).toLocaleString()}.
-              </p>
-              <p className={cn(NUM, 'mt-2 break-all text-xs')}>{signupOffer.code}</p>
-            </div>
-          )}
-          <div className="onboarding-plans">
-            <PlanOption tier="free" isFree pricing={pricing.free} onSelect={onContinue} />
-            <PlanOption
-              tier="pro"
-              index={1}
-              pricing={pricing.pro}
-              onSelect={(tier) => onUpgrade(tier, interval)}
-            />
-            <PlanOption
-              tier="premium"
-              index={2}
-              pricing={pricing.premium}
-              onSelect={(tier) => onUpgrade(tier, interval)}
-            />
-          </div>
-          <p className={cn(MUTED, 'mt-4 text-center text-xs leading-relaxed')}>
-            {interval === 'quarterly'
-              ? `The ${EXAM_PASS_MONTHS}-Month Pass is a single payment and never renews. Review payment terms at checkout.`
-              : 'Paid monthly subscriptions renew until cancelled. Review payment terms at checkout.'}
+      <section aria-labelledby="unlock-plan-title">
+        <div className="onboarding-plans__head" data-rise style={{ '--i': 5 }}>
+          <h2 id="unlock-plan-title" className="onboarding-subheading">
+            {hasPaidPlan ? 'Compare plans' : 'Choose how you’ll practice'}
+          </h2>
+          <IntervalToggle value={interval} onChange={setBillingInterval} />
+          <p className="onboarding-plans__coverage">
+            <span key={`${interval}-${coverage}`} className="onboarding-swap">
+              {coverage ||
+                (interval === 'quarterly'
+                  ? `One payment · ${EXAM_PASS_MONTHS} months · no auto-renewal`
+                  : 'Billed monthly · cancel anytime')}
+            </span>
           </p>
-        </section>
-      )}
+        </div>
+        {signupOffer && (
+          <div className="onboarding-offer" data-rise style={{ '--i': 6 }}>
+            <span className="onboarding-offer__percent" aria-hidden="true">
+              <span className={NUM}>{offerPercent}%</span>
+              <span>off</span>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="onboarding-offer__urgent">
+                <span className="onboarding-offer__pulse" aria-hidden="true" />
+                Limited time
+              </p>
+              <p className="onboarding-offer__title">Your personal {offerPercent}% signup offer</p>
+              <p className="onboarding-offer__detail">
+                Applied to the prices below, first payment only. Code{' '}
+                <span className={cn(NUM, 'onboarding-offer__code')}>{signupOffer.code}</span>
+              </p>
+            </div>
+            <OfferCountdown expiresAt={signupOffer.expires_at} onExpire={onOfferExpired} />
+          </div>
+        )}
+        <div className="onboarding-plans">
+          <PlanOption
+            tier="free"
+            isFree
+            currentTier={currentTier}
+            pricing={pricing.free}
+            onSelect={onContinue}
+          />
+          <PlanOption
+            tier="pro"
+            index={1}
+            currentTier={currentTier}
+            discountPercent={signupOffer ? offerPercent : null}
+            pricing={pricing.pro}
+            onSelect={(tier) => onUpgrade(tier, interval)}
+          />
+          <PlanOption
+            tier="premium"
+            index={2}
+            currentTier={currentTier}
+            discountPercent={signupOffer ? offerPercent : null}
+            pricing={pricing.premium}
+            onSelect={(tier) => onUpgrade(tier, interval)}
+          />
+        </div>
+        <p className={cn(MUTED, 'mt-4 text-center text-xs leading-relaxed')}>
+          {interval === 'quarterly'
+            ? `The ${EXAM_PASS_MONTHS}-Month Pass is a single payment and never renews. Review payment terms at checkout.`
+            : 'Paid monthly subscriptions renew until cancelled. Review payment terms at checkout.'}
+        </p>
+        {hasPaidPlan && (
+          <div className="mt-3 flex justify-center">
+            <button type="button" onClick={onContinue} className="onboarding-text-button">
+              Go to my dashboard
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -423,9 +551,9 @@ function ReadyPlan({
 export default function CompleteStep({
   formData,
   hasPaidPlan = false,
+  currentTier = null,
   onUpgrade,
   onContinue,
-  onOpenPlan,
   onPlanOfferViewed,
   loadSignupOffer = getSignupOffer,
 }) {
@@ -447,6 +575,7 @@ export default function CompleteStep({
     };
   }, [hasPaidPlan, loadSignupOffer]);
   const planPricing = useOnboardingPlanPricing(signupOffer);
+  const clearExpiredOffer = useCallback(() => setSignupOffer(null), []);
   const examPlan = useMemo(() => getOnboardingExamPlan(formData), [formData]);
   const selectPlan = (tier, interval) => {
     if (signupOffer?.code) capturePromoCode(signupOffer.code);
@@ -464,11 +593,12 @@ export default function CompleteStep({
     <ReadyPlan
       preview={preview}
       hasPaidPlan={hasPaidPlan}
+      currentTier={hasPaidPlan ? currentTier : null}
       onUpgrade={selectPlan}
       onContinue={onContinue}
-      onOpenPlan={onOpenPlan}
       planPricing={planPricing}
       signupOffer={signupOffer}
+      onOfferExpired={clearExpiredOffer}
       onPlanOfferViewed={onPlanOfferViewed}
       examPlan={examPlan}
     />

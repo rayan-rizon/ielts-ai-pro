@@ -10,6 +10,7 @@ export default function OnboardingChoice({
   title,
   description,
   meta,
+  badge,
   index = 0,
   compact = false,
   onClick,
@@ -30,7 +31,10 @@ export default function OnboardingChoice({
     >
       <IconChip icon={icon} tone="accent" size="md" className="onboarding-choice__icon" />
       <span className="onboarding-choice__text">
-        <span className="onboarding-choice__title">{title}</span>
+        <span className="onboarding-choice__title">
+          {title}
+          {badge && <span className="onboarding-choice__badge">{badge}</span>}
+        </span>
         {description && <span className="onboarding-choice__description">{description}</span>}
       </span>
       {meta && <span className={cn(NUM, 'onboarding-choice__meta')}>{meta}</span>}

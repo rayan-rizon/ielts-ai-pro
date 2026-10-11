@@ -209,7 +209,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 28px 20px;
+  padding: 10px 24px 12px;
   border-top: 1px solid var(--ob-line);
   flex-shrink: 0;
 }
@@ -438,8 +438,9 @@
   animation: ob-pop 280ms var(--ob-ease);
 }
 .onboarding-choice--compact {
-  min-height: 0;
-  height: 54px;
+  /* Grows instead of clipping when a badge has to wrap on a narrow column. */
+  min-height: 54px;
+  height: auto;
   gap: 12px;
   padding: 8px 40px 8px 10px;
   border-radius: 12px;
@@ -1058,6 +1059,7 @@
 }
 .onboarding-study__editor {
   margin-top: 14px;
+  scroll-margin-bottom: 16px;
   animation: ob-rise 320ms var(--ob-ease);
 }
 
@@ -1193,7 +1195,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  margin: 16px 0 20px;
+  margin: 14px 0 18px;
 }
 .onboarding-summary > div {
   padding: 10px 12px;
@@ -1209,16 +1211,37 @@
   text-overflow: ellipsis;
 }
 .onboarding-plans__head {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'title toggle'
+    'coverage toggle';
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  text-align: center;
+  column-gap: 16px;
+  margin-bottom: 14px;
+}
+.onboarding-plans__head .onboarding-subheading {
+  grid-area: title;
+}
+.onboarding-plans__head .onboarding-interval {
+  grid-area: toggle;
 }
 .onboarding-plans__coverage {
-  min-height: 14px;
+  grid-area: coverage;
+  min-height: 18px;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--ob-accent-text);
+}
+@container onboarding (max-width: 740px) {
+  .onboarding-plans__head {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'title' 'toggle' 'coverage';
+    justify-items: center;
+    row-gap: 8px;
+    text-align: center;
+  }
 }
 
 /* Monthly / Exam Pass segmented control; the thumb slides between options. */
@@ -1274,12 +1297,145 @@
 }
 
 .onboarding-offer {
-  margin-bottom: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px dashed var(--ob-accent);
-  background: var(--ob-accent-softer);
-  font-size: 14px;
+  --ob-urgent: rgb(var(--signal-fault, 201 60 52));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 10px 12px 10px 10px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--ob-urgent) 30%, transparent);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--ob-urgent) 8%, transparent),
+    var(--ob-accent-softer)
+  );
+}
+/* The discount itself, set like a stamp. */
+.onboarding-offer__percent {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: var(--ob-urgent);
+  color: white;
+  line-height: 1;
+  transform: rotate(-4deg);
+}
+.onboarding-offer__percent > span:first-child {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.onboarding-offer__percent > span:last-child {
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.onboarding-offer__urgent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  padding: 2px 8px 2px 7px;
+  border-radius: 999px;
+  background: var(--ob-urgent);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+@keyframes ob-urgent-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 255 255 / 0.7);
+  }
+  60% {
+    box-shadow: 0 0 0 4px rgb(255 255 255 / 0);
+  }
+}
+.onboarding-offer__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
+  animation: ob-urgent-pulse 1.6s ease-out infinite;
+}
+.onboarding-offer__title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+.onboarding-offer__detail {
+  margin-top: 1px;
+  font-size: 12px;
+  color: var(--ob-muted);
+}
+.onboarding-offer__code {
+  font-weight: 700;
+  color: var(--ob-ink);
+  user-select: all;
+}
+.onboarding-countdown {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.onboarding-countdown__label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ob-urgent);
+}
+.onboarding-countdown__units {
+  display: flex;
+  gap: 4px;
+}
+.onboarding-countdown__unit {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  min-width: 42px;
+  justify-content: center;
+  padding: 6px 7px;
+  border-radius: 9px;
+  background: var(--ob-surface);
+  border: 1px solid var(--ob-line);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ob-ink);
+}
+.onboarding-countdown__unit small {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ob-muted);
+}
+.onboarding-plan__discount {
+  align-self: center;
+  margin-left: auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgb(var(--signal-fault, 201 60 52));
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+/* Plan illustration crowning the ready screen. */
+.onboarding-ready__art {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 2px;
+  animation:
+    ob-rise 460ms var(--ob-ease) backwards,
+    ob-float 6s ease-in-out 1s infinite;
 }
 .onboarding-plans {
   display: grid;
@@ -1441,7 +1597,7 @@
     padding: 16px 22px 20px;
   }
   .onboarding-footer {
-    padding: 12px 20px 16px;
+    padding: 8px 16px 10px;
   }
   .onboarding-heading {
     font-size: 27px;
@@ -1569,4 +1725,153 @@
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Footer buttons: compact bar so the step content keeps the room. */
+.onboarding-footer .onboarding-primary {
+  min-height: 42px;
+  padding: 10px 22px;
+}
+.onboarding-footer .onboarding-back {
+  min-height: 40px;
+}
+
+/* Recommended flag inside a choice title. */
+.onboarding-choice__badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 1px 7px;
+  line-height: 16px;
+  white-space: nowrap;
+  border-radius: 999px;
+  background: var(--ob-accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  vertical-align: 2px;
+}
+.onboarding-choice__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+}
+
+/*
+ * The plan screen holds a summary, a toggle and three priced cards; squeezing
+ * that into the fixed questionnaire frame clipped the cards. Here the frame
+ * grows with its content and the page scrolls instead.
+ */
+.onboarding-frame--complete {
+  height: auto;
+  min-height: min(660px, calc(100dvh - 48px));
+  overflow: visible;
+}
+.onboarding-frame--complete .onboarding-body {
+  overflow: visible;
+  padding-bottom: 20px;
+}
+.onboarding-frame--complete .onboarding-footer {
+  border-top: 0;
+  padding-top: 0;
+}
+@media (max-width: 767px) {
+  .onboarding-frame--complete {
+    height: auto;
+    min-height: calc(100dvh - 80px);
+  }
+}
+@container onboarding (max-width: 560px) {
+  .onboarding-offer {
+    flex-wrap: wrap;
+  }
+  .onboarding-offer .min-w-0 {
+    flex-basis: calc(100% - 80px);
+  }
+  .onboarding-countdown {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px dashed color-mix(in srgb, var(--ob-urgent) 30%, transparent);
+  }
+}
+
+/* Price placeholder while the regional price book loads. */
+@keyframes ob-shimmer {
+  50% {
+    opacity: 0.45;
+  }
+}
+.onboarding-plan__loading {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.onboarding-plan__loading span {
+  display: block;
+  height: 36px;
+  width: 58%;
+  border-radius: 8px;
+  background: var(--ob-track);
+  animation: ob-shimmer 1.4s ease-in-out infinite;
+}
+.onboarding-plan__loading span + span {
+  height: 12px;
+  width: 82%;
+  margin-bottom: 6px;
+}
+
+/*
+ * Plan screen density: the prices are the point of this screen, so the
+ * recap above them stays to one short band and the reveal is quicker.
+ */
+.onboarding-ready {
+  --ob-rise-step: 28ms;
+}
+.onboarding-ready-heading .onboarding-eyebrow {
+  margin-bottom: 6px;
+}
+.onboarding-ready-heading .onboarding-heading {
+  font-size: 26px;
+}
+.onboarding-ready-heading .onboarding-description {
+  margin-top: 6px;
+  font-size: 13px;
+}
+.onboarding-ready .onboarding-summary {
+  margin: 12px 0 16px;
+}
+.onboarding-ready .onboarding-summary > div {
+  padding: 8px 12px;
+}
+.onboarding-ready .onboarding-summary__value {
+  margin-top: 2px;
+  font-size: 14px;
+}
+.onboarding-ready .onboarding-plan {
+  padding: 18px 18px 18px;
+}
+.onboarding-ready .onboarding-plan__price {
+  margin-top: 12px;
+}
+.onboarding-ready .onboarding-plan-features {
+  margin: 14px 0 16px;
+  padding-top: 14px;
+  gap: 8px;
+}
+.onboarding-frame--complete .onboarding-body {
+  padding-top: 4px;
+}
+
+.onboarding-plan-current,
+.onboarding-plan-current:disabled {
+  background: transparent;
+  border: 1px solid var(--ob-line-strong);
+  color: var(--ob-muted);
+  opacity: 1;
+  cursor: default;
 }
