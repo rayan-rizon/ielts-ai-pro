@@ -8,7 +8,6 @@ import DocumentHead from '@/components/shared/DocumentHead';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
-import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 // pt-16 on mobile, not pt-14: the floating sidebar toggle Layout renders at
 // top-4 is 40px tall, so it ended exactly on the old padding edge and sat on
@@ -84,9 +83,6 @@ export default function LearningPath() {
           ) : (
             <TooltipProvider delayDuration={150}>
               <div>
-                <div className="mb-2 flex justify-end">
-                  <AskAiCoachButton draft="Explain why these activities are in my learning path and which one I should do first." />
-                </div>
                 <LearningPathDashboard
                   user={user}
                   learningPath={learningPath}

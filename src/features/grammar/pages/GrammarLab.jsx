@@ -25,7 +25,6 @@ import {
   PANEL,
   Pill,
 } from '@/features/dashboard/components/primitives';
-import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 
 function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled = false }) {
   const content = (
@@ -221,10 +220,6 @@ export default function GrammarLab() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <AskAiCoachButton
-                  compact
-                  draft="Explain my Grammar Lab progress and give me one short practice question."
-                />
                 <GrammarHeaderStats
                   dashboard={grammar.dashboard}
                   isStarting={grammar.isStarting}
