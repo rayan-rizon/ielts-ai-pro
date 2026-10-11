@@ -43,5 +43,11 @@ jobs:
       - name: Unit Tests
         run: npm run test:unit -- --run
 
+      - name: Cloudflare routing, tracking, rate limit and release guards
+        run: npm --prefix cloudflare test
+
+      - name: Cloudflare Type Check
+        run: npm --prefix cloudflare run typecheck
+
       - name: Build
         run: npm run build

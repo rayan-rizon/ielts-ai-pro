@@ -32,7 +32,9 @@
     "edge:local": "deno run --node-modules-dir=none --config supabase/functions/deno.json --import-map=scripts/local-edge/import_map.json --allow-net --allow-env --allow-read --env-file=.env --env-file=supabase/functions/.env scripts/local-edge/server.ts",
     "tts:bench": "deno run --node-modules-dir=none --config supabase/functions/deno.json --allow-net --allow-env --allow-read --allow-write --env-file=supabase/functions/.env scripts/bench-practice-tts.ts",
     "prepare": "if [ -d .git ]; then husky; fi",
-    "data:universities": "node scripts/check-university-data.mjs"
+    "data:universities": "node scripts/check-university-data.mjs",
+    "cf:build": "npm --prefix cloudflare test && npm --prefix cloudflare run typecheck && node cloudflare/build.mjs --profile=production",
+    "cf:deploy": "node cloudflare/release.mjs --auto"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.2",

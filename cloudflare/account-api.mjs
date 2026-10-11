@@ -4,6 +4,9 @@ import { wrangler } from './wrangler-cli.mjs';
 let token;
 export async function cloudflareApi(resource, method = 'GET', body) {
   if (!token) {
+    token = process.env.CLOUDFLARE_API_TOKEN;
+  }
+  if (!token) {
     const result = wrangler(['auth','token','--json'], {encoding:'utf8'});
     if (result.status !== 0) throw Error('Wrangler authentication unavailable; credential output withheld');
     const auth = JSON.parse(result.stdout);

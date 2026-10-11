@@ -30,7 +30,7 @@ test('only exact HTTPS production hosts can enable measurement and indexing', ()
 });
 
 test('build outputs and unknown profiles cannot be confused', () => {
-  assert.equal(selectProfile([]), 'staging');
+  assert.equal(selectProfile([]), 'production');
   assert.equal(buildOutput(selectProfile(['--profile=production'])), 'cloudflare/dist-production');
   assert.throws(() => selectProfile(['--profile=prod']), /Unknown/);
 });

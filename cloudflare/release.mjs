@@ -3,26 +3,23 @@ import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { cloudflareApi } from './account-api.mjs';
 import { wrangler } from './wrangler-cli.mjs';
+import { validateReleaseTarget, uploadedVersion } from './release-policy.mjs';
 
 const directory = fileURLToPath(new URL('./', import.meta.url));
 const name = 'ielts-ai-cloudflare';
 const account = '8814fe480ca632794b5f4fa007b4b166';
-const zone = 'a0f923f4119e50e011eadaba1fcf48d5';
 const args = process.argv.slice(2);
 const version = args.find(arg => arg.startsWith('--deploy='))?.slice(9);
-if (!args.includes('--upload') && !version) throw Error('Use --upload, then --deploy=<version UUID> after reviewing the uploaded version');
+const automatic = args.includes('--auto');
+if (!args.includes('--upload') && !version && !automatic) throw Error('Use --upload, --deploy=<version UUID>, or --auto');
+if (automatic && (version || args.includes('--upload'))) throw Error('--auto cannot be combined with manual version operations');
 if (version && !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(version)) throw Error('Invalid version UUID');
-const routes = await cloudflareApi(`/zones/${zone}/workers/routes`);
-for (const pattern of ['ieltsai.pro/*', 'www.ieltsai.pro/*']) {
-  if (!routes.some(route => route.pattern === pattern && route.script === name && route.request_limit_fail_open === true)) {
-    throw Error(`Live route or quota fallback differs: ${pattern}. Review routing before release.`);
-  }
-}
+// Workers Builds tokens can inspect script routes without zone-edit permissions.
+const scripts = await cloudflareApi(`/accounts/${account}/workers/scripts`);
 const subdomain = await cloudflareApi(`/accounts/${account}/workers/scripts/${name}/subdomain`);
-if (subdomain.enabled || subdomain.previews_enabled) throw Error('Production workers.dev or preview URLs are enabled; review before release');
 const base = JSON.parse(readFileSync(new URL('./wrangler.jsonc', import.meta.url)));
 const manifest = JSON.parse(readFileSync(new URL('./.generated/build-production.json', import.meta.url)));
-if (manifest.profile !== 'production' || manifest.output !== 'cloudflare/dist-production') throw Error('Rebuild the production profile before release');
+validateReleaseTarget(scripts, subdomain, manifest, process.env);
 const bindings = dotenv.parse(readFileSync(new URL('./.dev.vars', import.meta.url)));
 for (const key of ['SUPABASE_URL', 'SUPABASE_ANON_KEY']) if (!bindings[key]) throw Error(`Missing public runtime binding: ${key}`);
 const config = {
@@ -40,7 +37,26 @@ if (version) await cloudflareApi(`/accounts/${account}/workers/scripts/${name}/v
 const command = version
   ? ['versions', 'deploy', `${version}@100%`, '--yes']
   : ['versions', 'upload', '--keep-vars'];
+if (automatic) writeFileSync(new URL('./.generated/production-upload.ndjson', import.meta.url), '', { mode: 0o600 });
 const result = wrangler([...command, '--config', configPath, '--message', 'Cloudflare public-cache hardening and portable release tooling'], {
-  cwd: directory, stdio: 'inherit', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
+  cwd: directory, stdio: 'inherit', env: { ...process.env, WRANGLER_SEND_METRICS: 'false',
+    ...(automatic ? { WRANGLER_OUTPUT_FILE_PATH: fileURLToPath(new URL('./.generated/production-upload.ndjson', import.meta.url)) } : {}),
+  },
 });
 process.exitCode = result.status ?? 1;
+if (automatic && process.exitCode === 0) {
+  const uploaded = uploadedVersion(readFileSync(new URL('./.generated/production-upload.ndjson', import.meta.url), 'utf8'));
+  await cloudflareApi(`/accounts/${account}/workers/scripts/${name}/versions/${uploaded}`);
+  const promote = wrangler(['versions', 'deploy', `${uploaded}@100%`, '--yes', '--config', configPath], {
+    cwd: directory, stdio: 'inherit', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
+  });
+  process.exitCode = promote.status ?? 1;
+  if (process.exitCode === 0) {
+    const deployed = await cloudflareApi(`/accounts/${account}/workers/scripts/${name}/deployments`);
+    const active = deployed.deployments[0];
+    if (active?.versions?.length !== 1 || active.versions[0].version_id !== uploaded || active.versions[0].percentage !== 100) {
+      throw Error('Uploaded production version is not serving 100% traffic');
+    }
+    console.log(`Verified production deployment: ${uploaded}`);
+  }
+}

@@ -2,7 +2,8 @@
 
 Live: **https://www.ieltsai.pro**. The apex redirects to www with path and query preserved.
 The production Worker is `ielts-ai-cloudflare`; its workers.dev and version preview URLs
-are disabled. Staging is a separate Worker, excluded from indexing and measurement.
+are disabled. The temporary migration Worker can be removed independently; it has
+no production routes. Any future staging deployment requires an explicit profile.
 
 Cloudflare serves the frontend, public blog/SEO handlers, geo API and first-party
 Meta CAPI relay. Auth, AI, billing webhooks and database access continue through the
@@ -24,7 +25,25 @@ node cloudflare/release.mjs --deploy=<version-uuid>
 node cloudflare/live-check.mjs
 ```
 
-For isolated staging, omit the production profile and run `node cloudflare/deploy.mjs`.
+## Git deployments
+
+Workers Builds connects `rayan-rizon/ielts-ai-pro`, production branch `main`, root `/`.
+Build command: `npm run cf:build`. Deploy command: `npm run cf:deploy`.
+Preview builds are disabled. Public `VITE_` values and `NODE_VERSION=24` belong in
+Build variables, not merely runtime variables. `META_CAPI_ACCESS_TOKEN` stays only
+in the deployed Worker's secret store and is preserved across versions.
+
+`cf:build` runs Cloudflare policy tests, actual workerd tracking/cache/rate-limit
+fixtures, types and the production frontend/SEO build. `cf:deploy` verifies the
+existing Worker identity, live routes, quota fallback and disabled preview URLs;
+uploads a version; reads the exact version ID from Wrangler structured output;
+promotes only that version; and confirms it serves 100% traffic. It never rewrites
+routes or DNS. An error fails the build instead of promoting an arbitrary version.
+The existing GitHub CI also checks Cloudflare policy and types.
+
+For a deliberately recreated isolated staging environment, run
+`node cloudflare/build.mjs --profile=staging`, then
+`node cloudflare/deploy.mjs --profile=staging`.
 The candidate deployment command refuses to deploy a production Worker with live routes.
 The production release command uses version operations, requires the existing two
 fail-open routes and disabled preview URLs, preserves secrets, and requires the
@@ -41,6 +60,19 @@ Types, generated configuration, build output and raw verification reports are ig
 
 The existing CSP and Permissions Policy are preserved. Meta Open Bridge endpoints
 remain blocked as documented in `../docs/meta-conversions-api.md`.
+
+The Vercel firewall audit found one active custom rule: POST paths starting with
+`/api/meta-capi`, 20 requests per 60 seconds per IP, with HTTP 429. The Cloudflare
+Worker preserves its path/method/IP scope through `META_CAPI_RATE_LIMITER`, using
+only `CF-Connecting-IP`; caller-supplied forwarding headers cannot reset the limit.
+Rejected requests have `Retry-After: 60` and private/no-store. GET, other APIs and
+staging measurement are unaffected. A missing/failing binding fails closed.
+Cloudflare's native counters are local to a data center and eventually consistent;
+they are abuse protection, not an exact global accounting quota. See
+[Cloudflare's rate-limit semantics](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
+Vercel's existing rule remains in place for the preserved fallback origin. Bot
+Protection was log-only, AI Bots allowed and OWASP disabled; those were not blocking
+protections to copy into broad bot challenges on Cloudflare.
 
 Public blog, feed, sitemap and llms responses use a five-minute edge freshness window
 and stale-while-revalidate. The Worker caches only anonymous GET requests whose

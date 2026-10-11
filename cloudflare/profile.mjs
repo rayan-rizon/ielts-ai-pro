@@ -8,7 +8,7 @@ export const PUBLIC_BUILD_SETTINGS = [
 
 export function selectProfile(args) {
   const option = args.find(arg => arg.startsWith('--profile='));
-  const profile = option?.slice('--profile='.length) || 'staging';
+  const profile = option?.slice('--profile='.length) || 'production';
   if (!['staging', 'production'].includes(profile)) throw new Error('Unknown Cloudflare build profile');
   return profile;
 }

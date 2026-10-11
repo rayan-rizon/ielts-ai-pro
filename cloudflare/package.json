@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node prepare-tests.mjs && node --test worker.test.mjs profile.test.mjs public-cache.test.mjs backend-origin.test.mjs && node worker-measurement.test.mjs && node worker-analytics.test.mjs && node worker-cache.test.mjs",
+    "test": "node prepare-tests.mjs && node --test worker.test.mjs profile.test.mjs public-cache.test.mjs backend-origin.test.mjs release-policy.test.mjs && node worker-measurement.test.mjs && node worker-analytics.test.mjs && node worker-cache.test.mjs",
     "dev": "../node_modules/.bin/wrangler dev --config wrangler.jsonc --port 8787",
     "deploy": "node deploy.mjs",
     "types": "../node_modules/.bin/wrangler types worker-configuration.d.ts --config wrangler.jsonc",

@@ -177,6 +177,32 @@ async function publicHtml(
 
 async function route(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
+  // Preserve Vercel's existing path-prefix + POST rule using trusted edge IPs.
+  // The native counter is local to each Cloudflare location, not a global quota.
+  if (
+    isMeasuredRequest(url, env.DEPLOYMENT_STAGE) &&
+    request.method === 'POST' &&
+    url.pathname.startsWith('/api/meta-capi')
+  ) {
+    const ip = request.headers.get('cf-connecting-ip');
+    if (!ip)
+      return Response.json(
+        { error: 'Client address unavailable' },
+        {
+          status: 400,
+          headers: { 'Cache-Control': 'private, no-store' },
+        }
+      );
+    const { success } = await env.META_CAPI_RATE_LIMITER.limit({ key: `meta-capi:${ip}` });
+    if (!success)
+      return Response.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: { 'Retry-After': '60', 'Cache-Control': 'private, no-store' },
+        }
+      );
+  }
   // Vercel's project domain redirect is outside vercel.json. Preserve it when
   // both production domains eventually route here, including path/query data.
   if (isMeasuredRequest(url, env.DEPLOYMENT_STAGE) && url.hostname === 'ieltsai.pro') {

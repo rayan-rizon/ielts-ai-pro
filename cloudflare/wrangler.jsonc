@@ -1,17 +1,17 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "ielts-ai-cloudflare-staging",
+  "name": "ielts-ai-cloudflare",
   "account_id": "8814fe480ca632794b5f4fa007b4b166",
   "main": "worker.ts",
   "compatibility_date": "2026-10-08",
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "workers_dev": true,
+  "workers_dev": false,
   "preview_urls": false,
   "routes": [],
   "assets": {
-    "directory": "./dist",
+    "directory": "./dist-production",
     "binding": "ASSETS",
     "html_handling": "none",
     "not_found_handling": "none",
@@ -23,8 +23,15 @@
     ]
   },
   "vars": {
-    "DEPLOYMENT_STAGE": "staging"
+    "DEPLOYMENT_STAGE": "production"
   },
+  "ratelimits": [
+    {
+      "name": "META_CAPI_RATE_LIMITER",
+      "namespace_id": "991226963",
+      "simple": { "limit": 20, "period": 60 }
+    }
+  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 0.1
