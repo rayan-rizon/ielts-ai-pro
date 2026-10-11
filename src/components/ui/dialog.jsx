@@ -18,7 +18,7 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] transition-all duration-200 ease-smooth-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      'fixed inset-0 z-50 bg-black/75 backdrop-blur-[2px] duration-200 ease-smooth-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       className
     )}
     {...props}
@@ -42,7 +42,7 @@ const DialogContent = React.forwardRef(({ className, children, hideClose, ...pro
       {children}
       {!hideClose && (
         <DialogPrimitive.Close
-          className="absolute right-3 top-3 z-50 grid h-7 w-7 place-items-center rounded-md border border-stone-200/80 bg-white/95 text-stone-500 shadow-sm ring-offset-background backdrop-blur-sm transition-all duration-150 ease-smooth-out hover:bg-stone-50 hover:text-stone-800 active:scale-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none dark:border-white/10 dark:bg-[#1b1b1e]/95 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-stone-200 data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          className="absolute right-3 top-3 z-50 grid h-7 w-7 place-items-center rounded-md border border-stone-200/80 bg-white/95 text-stone-500 shadow-sm ring-offset-background backdrop-blur-sm transition duration-150 ease-smooth-out hover:bg-stone-50 hover:text-stone-800 active:scale-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none dark:border-white/10 dark:bg-[#1b1b1e]/95 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-stone-200 data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
           data-oid="ajg6br_"
         >
           <X className="h-3.5 w-3.5" data-oid="kf3-s8e" />

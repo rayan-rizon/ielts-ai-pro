@@ -51,16 +51,16 @@ const AdminNavItem = memo(({ item, isActive, badges = {} }) => {
     if (isMobile) setOpenMobile(false);
   }, [isMobile, setOpenMobile]);
 
-  const btnClasses = `group transition-all duration-quick ease-smooth-out rounded-md relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
+  const btnClasses = `group/admin-item transition-all duration-quick ease-smooth-out rounded-md relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] active:scale-[0.98] ${
     isActive
       ? 'bg-stone-900 hover:bg-stone-800 text-white hover:text-white dark:bg-white/10 dark:hover:bg-white/15 dark:text-stone-50 dark:hover:text-stone-50 font-bold'
       : 'text-stone-700 dark:text-stone-200 font-medium hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'
   }`;
 
-  const iconClasses = `w-4 h-4 shrink-0 transition-transform duration-quick ease-smooth-out group-hover:scale-105 ${
+  const iconClasses = `w-4 h-4 shrink-0 transition-transform duration-quick ease-smooth-out group-hover/admin-item:scale-105 ${
     isActive
       ? 'text-white dark:text-stone-50'
-      : 'text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100'
+      : 'text-stone-500 dark:text-stone-400 group-hover/admin-item:text-stone-900 dark:group-hover/admin-item:text-stone-100'
   }`;
 
   return (
@@ -162,9 +162,9 @@ const AdminSidebarFooter = memo(({ user, isMobile, setOpenMobile, handleLogout }
           onClick={onLogoutClick}
           aria-label="Sign out"
           tooltip="Sign out"
-          className="group w-full justify-start gap-2.5 px-2.5 h-7.5 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0! group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:size-8 text-xs"
+          className="group/admin-item w-full justify-start gap-2.5 px-2.5 h-7.5 text-stone-700 dark:text-stone-200 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5 rounded-md transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0! group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:size-8 text-xs"
         >
-          <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors shrink-0" />
+          <LogOut className="w-4 h-4 text-stone-500 dark:text-stone-400 group-hover/admin-item:text-stone-900 dark:group-hover/admin-item:text-stone-100 transition-colors shrink-0" />
           <span className={`${COLLAPSIBLE_LABEL} text-xs group-data-[collapsible=icon]:hidden`}>
             Sign out
           </span>

@@ -28,7 +28,7 @@ const SheetOverlay = React.forwardRef(({ className, ...props }, ref) => (
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  'fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out',
+  'fixed z-50 gap-4 bg-background p-6 shadow-lg ease-drawer data-[state=closed]:duration-200 data-[state=open]:duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out',
   {
     variants: {
       side: {
@@ -58,7 +58,7 @@ const SheetContent = React.forwardRef(
       >
         {!hideClose && (
           <SheetPrimitive.Close
-            className="absolute right-3.5 top-3.5 z-50 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200/80 bg-white/95 text-stone-500 shadow-2xs backdrop-blur-xs transition-all duration-150 ease-smooth-out hover:bg-stone-100 hover:text-stone-900 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:pointer-events-none dark:border-white/10 dark:bg-[#1b1b1e]/95 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
+            className="absolute right-3.5 top-3.5 z-50 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200/80 bg-white/95 text-stone-500 shadow-2xs backdrop-blur-xs transition duration-150 ease-smooth-out hover:bg-stone-100 hover:text-stone-900 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:pointer-events-none dark:border-white/10 dark:bg-[#1b1b1e]/95 dark:text-stone-400 dark:hover:bg-white/10 dark:hover:text-stone-100"
             data-oid="ihsc-sr"
           >
             <X className="h-4 w-4" data-oid="4t35tws" />

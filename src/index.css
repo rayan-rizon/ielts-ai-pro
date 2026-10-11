@@ -70,6 +70,8 @@
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
   --ease-bounce-strong: cubic-bezier(0.34, 3.85, 0.64, 1);
+  /* iOS-style sheet curve: leaves fast, settles long. Used by edge sheets. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   --duration-stagger: 40ms;
   --duration-micro: 80ms;
@@ -112,6 +114,15 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* tailwindcss-animate leaves enter/exit on the browser's weak `ease`, so
+     any popover, select, tooltip or overlay without an explicit `ease-*`
+     class eased in sluggishly. Default them to the app's expo-out curve;
+     an `ease-*` utility on the element still overrides this. */
+  .animate-in,
+  .animate-out {
+    animation-timing-function: var(--ease-sidebar);
   }
 
   button:not(:disabled),
@@ -448,7 +459,11 @@
 }
 
 @utility animate-fade-in {
-  animation: fade-in 0.5s ease-out 0.2s both;
+  /* `backwards`, not `both`: the end frame equals the element's natural
+     state, so nothing needs to persist — and a persisted transform would
+     make this element the containing block for every `position: fixed`
+     descendant. */
+  animation: fade-in 0.5s ease-out 0.2s backwards;
   @media (prefers-reduced-motion: reduce) {
     animation: none !important;
   }
@@ -463,7 +478,21 @@
    * this class rather than `.animate-fade-in`, which is tuned for hero/CTA
    * reveals and reads as sluggish on a state swap.
    */
-  animation: panel-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: panel-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+@utility animate-route-in {
+  /*
+   * Route-change cross-in for the learner/admin page wrapper. Navigation is
+   * the most frequent action in the app, so this is opacity only and short:
+   * it hides the content swap without reading as an animation. No transform
+   * or filter — on a full-page wrapper those repaint the whole page each
+   * frame, and a lingering transform would trap `position: fixed` children.
+   */
+  animation: route-in 150ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
   @media (prefers-reduced-motion: reduce) {
     animation: none !important;
   }
@@ -1013,6 +1042,11 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  @keyframes route-in {
+    from {
+      opacity: 0;
     }
   }
   @keyframes panel-in {

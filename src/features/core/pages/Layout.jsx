@@ -271,7 +271,7 @@ function MainContentArea({
         >
           <div className="pointer-events-auto rounded-xl border border-border bg-background p-1">
             <SidebarTrigger
-              className="h-11 w-11 text-foreground/80 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+              className="h-11 w-11 text-foreground/80 hover:text-primary hover:bg-primary/5 transition duration-150"
               aria-label="Open mobile menu"
               data-oid="u0ntjik"
             />
@@ -292,7 +292,7 @@ function MainContentArea({
         ) : (
           <div
             key={locationPathname}
-            className="animate-panel-in min-h-full"
+            className="animate-route-in min-h-full"
             data-oid="page-transition"
           >
             {!isAdminView && learnerChromeReady && isDashboardPage && (

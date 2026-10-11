@@ -155,7 +155,10 @@ export default function Dashboard() {
             key="dashboard-skeleton"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, filter: 'blur(2px)' }}
+            // mode="wait" holds the real dashboard back until this exit
+            // finishes, so the skeleton leaves instantly: once data is here,
+            // nothing should stand between the learner and it.
+            exit={{ opacity: 0, transition: { duration: 0 } }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
           >
             <DashboardSkeleton data-oid=":binn6-" />
@@ -163,10 +166,13 @@ export default function Dashboard() {
         ) : (
           <m.main
             key="dashboard-content"
-            initial={{ opacity: 0, filter: 'blur(2px)' }}
-            animate={{ opacity: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, filter: 'blur(1px)' }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            // Opacity only: the grid items below already clear a 2px blur as
+            // they stagger in, and blurring this full-page element as well
+            // repaints the whole viewport every frame.
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
             className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5"
           >
             {/* Subtle dot grid runs the full page with zero heavy blur or neon washes */}
