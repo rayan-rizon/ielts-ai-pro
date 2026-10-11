@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -43,7 +43,9 @@ const FALLBACK_THEMES = [THEMES.indigo, THEMES.emerald, THEMES.sky, THEMES.viole
 
 const WordGroupList = memo(({ allVocabulary = [], user }) => {
   const viewportRef = useRef(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const hoverRef = useRef(false);
+  const focusRef = useRef(false);
+  const pauseUntilRef = useRef(0);
   const displayKits = [
     ...FEATURED_VOCABULARY_KITS,
     ...VOCABULARY_KITS.filter(
@@ -60,59 +62,64 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
   });
   const scrollingKits = [...displayKits, ...displayKits];
 
-  const scrollTimeoutRef = useRef(null);
+  const getLoopPoint = (viewport) => {
+    const first = viewport.children[0];
+    const clone = viewport.children[displayKits.length];
+    return first && clone ? clone.offsetLeft - first.offsetLeft : 0;
+  };
 
   useEffect(() => {
     const viewport = viewportRef.current;
-    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    if (
-      !viewport ||
-      isPaused ||
-      !canHover ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      return undefined;
-    }
+    if (!viewport) return undefined;
+    const pointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let position = viewport.scrollLeft;
+    let previousTime;
+    let frame;
 
-    const interval = window.setInterval(() => {
-      const loopPoint = viewport.scrollWidth / 2;
-      if (viewport.scrollLeft >= loopPoint - 1) {
-        viewport.scrollLeft = 0;
+    const tick = (time) => {
+      const elapsed = previousTime === undefined ? 0 : Math.min(time - previousTime, 64);
+      previousTime = time;
+      const first = viewport.children[0];
+      const clone = viewport.children[displayKits.length];
+      const loopPoint = first && clone ? clone.offsetLeft - first.offsetLeft : 0;
+      if (
+        document.hidden ||
+        !pointer.matches ||
+        reducedMotion.matches ||
+        hoverRef.current ||
+        focusRef.current ||
+        time < pauseUntilRef.current ||
+        loopPoint <= 0
+      ) {
+        position = viewport.scrollLeft;
       } else {
-        viewport.scrollLeft += 0.45;
+        // Keep subpixel progress independently of browsers that round scrollLeft.
+        position = (position + elapsed * 0.014) % loopPoint;
+        viewport.scrollTo({ left: position, behavior: 'instant' });
       }
-    }, 32);
-
-    return () => window.clearInterval(interval);
-  }, [isPaused]);
-
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      frame = window.requestAnimationFrame(tick);
     };
-  }, []);
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [displayKits.length]);
 
   const scrollCarousel = (direction) => {
     const viewport = viewportRef.current;
     if (!viewport) return;
-
-    setIsPaused(true);
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-
-    const step = 230;
-    const loopPoint = viewport.scrollWidth / 2;
-
+    pauseUntilRef.current = performance.now() + 1500;
+    const loopPoint = getLoopPoint(viewport);
     if (direction < 0 && viewport.scrollLeft <= 10) {
-      viewport.scrollLeft = loopPoint;
-    } else if (direction > 0 && viewport.scrollLeft >= loopPoint - 10) {
-      viewport.scrollLeft = 0;
+      viewport.scrollTo({ left: loopPoint, behavior: 'instant' });
+    } else if (direction > 0 && viewport.scrollLeft >= loopPoint) {
+      viewport.scrollTo({ left: viewport.scrollLeft % loopPoint, behavior: 'instant' });
     }
-
-    viewport.scrollBy({ left: direction * step, behavior: 'smooth' });
-
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsPaused(false);
-    }, 1500);
+    viewport.scrollBy({
+      left: direction * 230,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
+    });
   };
 
   return (
@@ -163,13 +170,19 @@ const WordGroupList = memo(({ allVocabulary = [], user }) => {
         ref={viewportRef}
         role="region"
         aria-label="Slow-moving Vocabulary Kits carousel"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onFocusCapture={() => setIsPaused(true)}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+        onMouseEnter={() => {
+          hoverRef.current = true;
         }}
-        className="-mx-1 flex gap-2.5 overflow-x-auto scroll-smooth px-1 pb-2 pt-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
+        onMouseLeave={() => {
+          hoverRef.current = false;
+        }}
+        onFocusCapture={() => {
+          focusRef.current = true;
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) focusRef.current = false;
+        }}
+        className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-2 pt-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
       >
         {scrollingKits.map((kit, index) => {
           const theme = kit.theme || FALLBACK_THEMES[0];
