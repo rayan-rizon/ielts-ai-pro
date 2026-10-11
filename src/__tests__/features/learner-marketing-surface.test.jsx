@@ -6,10 +6,8 @@ import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 vi.mock('@/features/marketing/services/MarketingDelivery', () => ({
   default: {
     listActive: vi.fn(),
-    getPreferences: vi.fn(),
     record: vi.fn(),
     feedback: vi.fn(),
-    savePreferences: vi.fn(),
     linkFor: vi.fn(() => '/learning-path'),
   },
 }));
@@ -21,48 +19,25 @@ class TestIntersectionObserver {
   disconnect() {}
 }
 
-const deferred = () => {
-  let resolve;
-  const promise = new Promise((nextResolve) => {
-    resolve = nextResolve;
-  });
-  return { promise, resolve };
-};
-
 describe('Learner marketing surface', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.IntersectionObserver = TestIntersectionObserver;
   });
 
-  it('does not flash the optional check-in while learner data is loading', async () => {
-    const deliveries = deferred();
-    const preferences = deferred();
-    MarketingDelivery.listActive.mockReturnValue(deliveries.promise);
-    MarketingDelivery.getPreferences.mockReturnValue(preferences.promise);
-
-    render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
-
-    expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument();
-
-    deliveries.resolve([]);
-    preferences.resolve({ feeling_recorded_at: new Date().toISOString() });
-    await waitFor(() =>
-      expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
-    );
-  });
-
-  it('shows the optional check-in when no learner guidance is active', async () => {
+  it('renders nothing when no learner guidance is active', async () => {
     MarketingDelivery.listActive.mockResolvedValue([]);
-    MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
 
-    render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
+    const { container } = render(
+      <LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />
+    );
 
-    expect(await screen.findByText('How is your practice going?')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /reminders/i })).not.toBeInTheDocument();
+    await waitFor(() => expect(MarketingDelivery.listActive).toHaveBeenCalledWith('learner-1'));
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument();
   });
 
-  it('does not stack an optional check-in with an active in-app suggestion', async () => {
+  it('renders an active in-app suggestion and records its click', async () => {
     const delivery = {
       id: 'delivery-1',
       campaign_id: 'campaign-1',
@@ -80,7 +55,6 @@ describe('Learner marketing surface', () => {
       },
     };
     MarketingDelivery.listActive.mockResolvedValue([delivery]);
-    MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
 
     render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
 
@@ -104,9 +78,6 @@ describe('Learner marketing surface', () => {
         metadata: { destination: '/learning-path' },
       });
     });
-    await waitFor(() =>
-      expect(screen.queryByText('How is your practice going?')).not.toBeInTheDocument()
-    );
   });
 
   it('renders announcement banner and allows dismissing it', async () => {
@@ -121,7 +92,6 @@ describe('Learner marketing surface', () => {
       },
     };
     MarketingDelivery.listActive.mockResolvedValue([bannerDelivery]);
-    MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
 
     render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
 
@@ -135,26 +105,6 @@ describe('Learner marketing surface', () => {
       expect(MarketingDelivery.feedback).toHaveBeenCalledWith(bannerDelivery, 'dismissed', {
         snoozedUntil: null,
       });
-    });
-  });
-
-  it('saves practice feeling when clicking a check-in option', async () => {
-    MarketingDelivery.listActive.mockResolvedValue([]);
-    MarketingDelivery.getPreferences.mockResolvedValue({ feeling_recorded_at: null });
-    MarketingDelivery.savePreferences.mockResolvedValue({ ok: true });
-
-    render(<LearnerMarketingSurface user={{ id: 'learner-1' }} dashboardOnly />);
-
-    const goingWellBtn = await screen.findByRole('button', { name: 'Going well' });
-    await act(async () => {
-      fireEvent.click(goingWellBtn);
-    });
-
-    await waitFor(() => {
-      expect(MarketingDelivery.savePreferences).toHaveBeenCalledWith(
-        'learner-1',
-        expect.objectContaining({ feeling: 'going_well' })
-      );
     });
   });
 });

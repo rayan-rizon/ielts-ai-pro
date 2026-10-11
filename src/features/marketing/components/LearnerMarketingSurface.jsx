@@ -1,28 +1,12 @@
 import useLearnerMarketing from '@/features/marketing/hooks/useLearnerMarketing';
 import LearnerBanner from './LearnerBanner';
-import LearnerCheckIn from './LearnerCheckIn';
 import LearnerInAppNotification from './LearnerInAppNotification';
 
-function hasActiveSurface(banner, notification, showCheckIn) {
-  if (banner) return true;
-  if (notification) return true;
-  return Boolean(showCheckIn);
-}
-
 export default function LearnerMarketingSurface({ user, dashboardOnly = false }) {
-  const {
-    banner,
-    notification,
-    showCheckIn,
-    cardRef,
-    bannerRef,
-    working,
-    handleFeedback,
-    handleClick,
-    handleSaveFeeling,
-  } = useLearnerMarketing({ user, dashboardOnly });
+  const { banner, notification, cardRef, bannerRef, working, handleFeedback, handleClick } =
+    useLearnerMarketing({ user, dashboardOnly });
 
-  if (!hasActiveSurface(banner, notification, showCheckIn)) {
+  if (!banner && !notification) {
     return null;
   }
 
@@ -30,7 +14,6 @@ export default function LearnerMarketingSurface({ user, dashboardOnly = false })
     <>
       <div className="mx-auto w-full max-w-[1600px] space-y-2 px-4 pt-4 md:px-6">
         <LearnerBanner banner={banner} bannerRef={bannerRef} onDismiss={handleFeedback} />
-        {showCheckIn && <LearnerCheckIn working={working} onSaveFeeling={handleSaveFeeling} />}
       </div>
       <LearnerInAppNotification
         notification={notification}

@@ -1,27 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import MarketingDelivery from '@/features/marketing/services/MarketingDelivery';
 import useVisibleImpression from './useVisibleImpression';
-
-function loadLearnerData(userId) {
-  return Promise.all([
-    MarketingDelivery.listActive(userId),
-    MarketingDelivery.getPreferences(userId),
-  ]);
-}
-
-function saveLearnerFeeling(userId, feeling) {
-  const pauseExtension =
-    feeling === 'taking_a_break'
-      ? { proactive_paused_until: new Date(Date.now() + 30 * 86_400_000).toISOString() }
-      : {};
-
-  return MarketingDelivery.savePreferences(userId, {
-    feeling,
-    feeling_recorded_at: new Date().toISOString(),
-    ...pauseExtension,
-  });
-}
 
 function recordClick(delivery) {
   const destination = delivery?.content?.cta_url;
@@ -51,49 +31,25 @@ function extractActiveSurfaces(deliveries, dashboardOnly) {
   };
 }
 
-function isCheckInDue(recordedAt) {
-  if (!recordedAt) return true;
-  const recordedTime = new Date(recordedAt).getTime();
-  const elapsed = Date.now() - recordedTime;
-  return elapsed > 7 * 86_400_000;
-}
-
-function shouldShowCheckIn({ loadedUserId, userId, checkInDue, banner, notification }) {
-  if (!userId) return false;
-  if (loadedUserId !== userId) return false;
-  if (!checkInDue) return false;
-  if (banner) return false;
-  if (notification) return false;
-  return true;
-}
-
 function useLearnerMarketingData(userId) {
   const [deliveries, setDeliveries] = useState([]);
-  const [preferences, setPreferences] = useState(null);
-  const [loadedUserId, setLoadedUserId] = useState(null);
 
   const reload = useCallback(async () => {
     if (!userId) return;
-    const [nextDeliveries, nextPreferences] = await loadLearnerData(userId);
-    setDeliveries(nextDeliveries);
-    setPreferences(nextPreferences);
+    setDeliveries(await MarketingDelivery.listActive(userId));
   }, [userId]);
 
   useEffect(() => {
     let active = true;
-    setLoadedUserId(null);
     if (!userId) {
       return () => {
         active = false;
       };
     }
 
-    loadLearnerData(userId)
-      .then(([nextDeliveries, nextPreferences]) => {
-        if (!active) return;
-        setDeliveries(nextDeliveries);
-        setPreferences(nextPreferences);
-        setLoadedUserId(userId);
+    MarketingDelivery.listActive(userId)
+      .then((nextDeliveries) => {
+        if (active) setDeliveries(nextDeliveries);
       })
       .catch((error) => console.warn('[marketing] Could not load learner guidance:', error));
 
@@ -102,10 +58,10 @@ function useLearnerMarketingData(userId) {
     };
   }, [userId]);
 
-  return { deliveries, preferences, loadedUserId, reload };
+  return { deliveries, reload };
 }
 
-function useMarketingActions(userId, load) {
+function useMarketingActions(load) {
   const [working, setWorking] = useState('');
 
   const act = useCallback(
@@ -138,22 +94,9 @@ function useMarketingActions(userId, load) {
     [act]
   );
 
-  const handleSaveFeeling = useCallback(
-    (feeling) => {
-      if (!userId) return;
-      act(
-        `feeling-${feeling}`,
-        () => saveLearnerFeeling(userId, feeling),
-        'Practice preference saved'
-      );
-    },
-    [act, userId]
-  );
-
   return {
     working,
     handleFeedback,
-    handleSaveFeeling,
   };
 }
 
@@ -162,29 +105,17 @@ export default function useLearnerMarketing({ user, dashboardOnly = false }) {
   const cardRef = useRef(null);
   const bannerRef = useRef(null);
 
-  const { deliveries, preferences, loadedUserId, reload } = useLearnerMarketingData(userId);
+  const { deliveries, reload } = useLearnerMarketingData(userId);
   const { banner, notification } = extractActiveSurfaces(deliveries, dashboardOnly);
 
   useVisibleImpression(cardRef, notification);
   useVisibleImpression(bannerRef, banner);
 
-  const recordedAt = preferences ? preferences.feeling_recorded_at : null;
-  const checkInDue = useMemo(() => isCheckInDue(recordedAt), [recordedAt]);
-
-  const showCheckIn = shouldShowCheckIn({
-    loadedUserId,
-    userId,
-    checkInDue,
-    banner,
-    notification,
-  });
-
-  const actions = useMarketingActions(userId, reload);
+  const actions = useMarketingActions(reload);
 
   return {
     banner,
     notification,
-    showCheckIn,
     cardRef,
     bannerRef,
     handleClick: recordClick,
