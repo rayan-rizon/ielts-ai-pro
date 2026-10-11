@@ -80,31 +80,36 @@ function externalCitationUrls(value = '') {
   return [...new Set(citations)];
 }
 
+// Reuse the fixed locale formatters across cards and requests. Constructing one
+// for every view count/date adds avoidable CPU to the database-backed archive.
+const articleDateFormatter = new Intl.DateTimeFormat('en', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const cardDateFormatter = new Intl.DateTimeFormat('en', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const readCountFormatter = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
 function formatDate(value) {
-  if (!value) return '';
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(value));
+  return value ? articleDateFormatter.format(new Date(value)) : '';
 }
 
 function formatShortDate(value) {
-  if (!value) return '';
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(value));
+  return value ? cardDateFormatter.format(new Date(value)) : '';
 }
 
 function formatReadCount(value) {
   const count = Math.max(0, Number(value) || 0);
-  return `${new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(
-    count
-  )} ${count === 1 ? 'read' : 'reads'}`;
+  return `${readCountFormatter.format(count)} ${count === 1 ? 'read' : 'reads'}`;
 }
 
 function practicePath(category) {

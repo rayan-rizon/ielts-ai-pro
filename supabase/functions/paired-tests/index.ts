@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { parseBuffer } from 'npm:music-metadata@11.15.0';
 import { isAllowedOrigin } from '../_shared/originValidation.ts';
+import { isAllowedPairedRequestOrigin } from '../_shared/pairedRequestOrigin.ts';
 import { publicRoom } from '../_shared/objective-scoring/publicRoom.js';
 import {
   prepareSnapshot,
@@ -84,7 +85,8 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return reply({ error: 'Method not allowed' }, 405);
   if (Deno.env.get('PAIRED_TESTS_ENABLED') !== 'true')
     return reply({ error: 'Paired practice is not available yet' }, 503);
-  if (!isAllowedOrigin(origin)) return reply({ error: 'Invalid request origin' }, 403);
+  if (!isAllowedPairedRequestOrigin(req.headers))
+    return reply({ error: 'Invalid request origin' }, 403);
   const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
   if (!token) return reply({ error: 'Sign in to continue' }, 401);
   const auth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);

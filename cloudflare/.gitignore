@@ -1,0 +1,7 @@
+dist/
+dist-production/
+.wrangler/
+.generated/
+.dev.vars
+verification/
+worker-configuration.d.ts

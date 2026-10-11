@@ -19,6 +19,7 @@ import useSpeakingSessionPersistence from '../hooks/useSpeakingSessionPersistenc
 import useSpeakingTestInitialization from '../hooks/useSpeakingTestInitialization';
 import useSpeakingTestState from '../hooks/useSpeakingTestState';
 import useSpeakingTimers from '../hooks/useSpeakingTimers';
+import useSpeakingPracticeClock from '../hooks/useSpeakingPracticeClock';
 import useExaminerVoiceSelection from '../hooks/useExaminerVoiceSelection';
 import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
@@ -166,22 +167,6 @@ export default function SpeakingTest() {
   // All active Speaking sessions now run through the server-authoritative flow.
   // Legacy sessions are intentionally not resumed; initialization starts a clean V2 attempt.
   const useSpeakingV2 = speakingV2Available;
-
-  useEffect(() => {
-    if (!useSpeakingV2 || speakingMode !== 'practice' || !testStarted || !session?.id) return;
-    const sendHeartbeat = () => {
-      callEdgeFunction('processSpeakingSessionV2', {
-        action: 'heartbeat',
-        sessionId: session.id,
-      })
-        .then((result) => setSpeakingV2State(result.state))
-        .catch((heartbeatError) =>
-          console.warn('Speaking Practice heartbeat failed:', heartbeatError?.message)
-        );
-    };
-    const heartbeat = window.setInterval(sendHeartbeat, 15_000);
-    return () => window.clearInterval(heartbeat);
-  }, [session?.id, setSpeakingV2State, speakingMode, testStarted, useSpeakingV2]);
 
   useEffect(() => {
     if (!useSpeakingV2 || speakingMode !== 'exam' || !speakingV2State?.expiresAt) return;
@@ -418,6 +403,23 @@ export default function SpeakingTest() {
     setIsProcessing: setRecorderProcessing,
     startListening,
   } = recorder;
+
+  useSpeakingPracticeClock({
+    enabled: useSpeakingV2 && speakingMode === 'practice' && testStarted && !isTestComplete,
+    sessionId: session?.id,
+    isPaused: recorder.autoSubmitPaused,
+    setState: setSpeakingV2State,
+    onError: (clockError, action, paused) => {
+      if (action === 'heartbeat') {
+        console.warn('Speaking Practice heartbeat failed:', clockError?.message);
+        return;
+      }
+      recorder.setAutoSubmitPaused(!paused);
+      toast.warning(
+        `Could not ${paused ? 'pause' : 'resume'} the practice timer. Please try again.`
+      );
+    },
+  });
 
   // Keep recorder hook aware of processing state
   useEffect(() => {
