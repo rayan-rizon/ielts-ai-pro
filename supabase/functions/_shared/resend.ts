@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import { isUndeliverableEmail } from './emailAddress.ts';
 
 export type EmailType =
   | 'institution_invitation'
@@ -118,6 +119,12 @@ export async function sendEmail({
   type,
   idempotencyKey,
 }: SendEmailParams) {
+  if (isUndeliverableEmail(to)) {
+    console.log(`Skipping '${type}' email: recipient uses a reserved test domain.`);
+    await recordDispatch({ to, type, status: 'skipped', errorMessage: 'undeliverable_address' });
+    return { success: true, skipped: true, reason: 'undeliverable_address' };
+  }
+
   if (!resendApiKey) {
     console.error('Missing RESEND_API_KEY');
     await recordDispatch({ to, type, status: 'failed', errorMessage: 'RESEND_API_KEY is missing' });
@@ -143,7 +150,7 @@ export async function sendEmail({
       if (preferences[type] === false) {
         console.log(`Email '${type}' is disabled via Admin Settings. Skipping send to ${to}.`);
         await recordDispatch({ to, type, status: 'skipped' });
-        return { success: true, skipped: true };
+        return { success: true, skipped: true, reason: 'email_preference_disabled' };
       }
     }
 

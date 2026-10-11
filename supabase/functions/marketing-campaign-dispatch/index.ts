@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { sendEmail, unsubscribeHeaders } from '../_shared/resend.ts';
+import { isUndeliverableEmail } from '../_shared/emailAddress.ts';
 import { getCampaignTemplate } from '../_shared/templates.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import {
@@ -359,6 +360,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         (['in_app', 'banner'].includes(channel) && preference?.in_app_enabled === false);
       const outsideContactWindow =
         channel === 'email' && !externalContactWindowOpen(preference, now);
+      const undeliverableAddress = channel === 'email' && isUndeliverableEmail(member.email);
       const attempt = nextMarketingAttempt(allCampaignRows);
       const content = {
         title: campaign.title,
@@ -378,25 +380,28 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         lacksConsent ||
         learnerPaused ||
         channelDisabled ||
-        outsideContactWindow
+        outsideContactWindow ||
+        undeliverableAddress
       ) {
-        const reason = learnerPaused
-          ? 'learner_paused'
-          : channelDisabled
-            ? 'channel_disabled'
-            : outsideContactWindow
-              ? 'outside_contact_window'
-              : lacksConsent
-                ? 'marketing_consent_required'
-                : overCap
-                  ? 'frequency_cap'
-                  : upgradePromotionCapReached
-                    ? 'upgrade_promotion_cap'
-                    : contactCapReached
-                      ? 'cross_channel_contact_cap'
-                      : crossChannelCooldownOpen
-                        ? 'cross_channel_cooldown'
-                        : 'cooldown';
+        const reason = undeliverableAddress
+          ? 'undeliverable_address'
+          : learnerPaused
+            ? 'learner_paused'
+            : channelDisabled
+              ? 'channel_disabled'
+              : outsideContactWindow
+                ? 'outside_contact_window'
+                : lacksConsent
+                  ? 'marketing_consent_required'
+                  : overCap
+                    ? 'frequency_cap'
+                    : upgradePromotionCapReached
+                      ? 'upgrade_promotion_cap'
+                      : contactCapReached
+                        ? 'cross_channel_contact_cap'
+                        : crossChannelCooldownOpen
+                          ? 'cross_channel_cooldown'
+                          : 'cooldown';
         const alreadyRecorded = allCampaignRows.some(
           (row) => row.status === 'skipped' && row.failure_reason === reason
         );
@@ -634,7 +639,10 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         stats.skipped += 1;
         await admin
           .from('marketing_deliveries')
-          .update({ status: 'skipped', failure_reason: 'email_preference_disabled' })
+          .update({
+            status: 'skipped',
+            failure_reason: ('reason' in result && result.reason) || 'email_preference_disabled',
+          })
           .eq('id', delivery.id);
       } else {
         stats.accepted += 1;
