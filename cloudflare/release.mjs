@@ -6,7 +6,7 @@ import { wrangler } from './wrangler-cli.mjs';
 import { validateReleaseTarget, uploadedVersion } from './release-policy.mjs';
 
 const directory = fileURLToPath(new URL('./', import.meta.url));
-const name = 'ielts-ai-cloudflare';
+const name = 'ielts-ai-pro';
 const account = '8814fe480ca632794b5f4fa007b4b166';
 const args = process.argv.slice(2);
 const version = args.find(arg => arg.startsWith('--deploy='))?.slice(9);

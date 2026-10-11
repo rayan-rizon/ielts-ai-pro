@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 const prod = 'https://www.ieltsai.pro';
-const preview = 'https://ielts-ai-cloudflare-staging.rayan-rizon.workers.dev';
+const preview = 'https://ielts-ai-pro-staging.rayan-rizon.workers.dev';
 const get = async (url, options = {}) => {
   const r = await fetch(url, { signal: AbortSignal.timeout(30000), redirect: 'manual', ...options });
   return { status: r.status, headers: Object.fromEntries(r.headers), body: await r.text() };

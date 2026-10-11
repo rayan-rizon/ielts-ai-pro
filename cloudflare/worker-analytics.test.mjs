@@ -49,7 +49,7 @@ try {
   assert.equal(apex.headers.get('location'), 'https://www.ieltsai.pro/blog?qa=domain-parity');
   checks.push({ name: 'apex canonical redirect preserves path and query', status: apex.status });
   const forwardedCount = forwards.length;
-  for (const host of ['ielts-ai-cloudflare.rayan-rizon.workers.dev', 'ielts-ai-cloudflare-staging.rayan-rizon.workers.dev', 'www.ieltsai.pro.evil.test']) {
+  for (const host of ['ielts-ai-pro.rayan-rizon.workers.dev', 'ielts-ai-pro-staging.rayan-rizon.workers.dev', 'www.ieltsai.pro.evil.test']) {
     const r = await mf.dispatchFetch('https://' + host + '/mx/g/collect?v=2', { method: 'POST', body: 'en=page_view' });
     assert.equal(r.status, 204);
     checks.push({ name: host + ' suppresses measurement', status: r.status });

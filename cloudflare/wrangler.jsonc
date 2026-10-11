@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "ielts-ai-cloudflare",
+  "name": "ielts-ai-pro",
   "account_id": "8814fe480ca632794b5f4fa007b4b166",
   "main": "worker.ts",
   "compatibility_date": "2026-10-08",

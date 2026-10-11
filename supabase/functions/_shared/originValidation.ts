@@ -10,8 +10,6 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5174',
   'https://ieltsai.pro',
   'https://www.ieltsai.pro',
-  'https://ielts-ai-cloudflare.rayan-rizon.workers.dev',
-  'https://ielts-ai-cloudflare-staging.rayan-rizon.workers.dev',
 ];
 
 // Vercel deployment hostnames are scoped by team. This project has both the

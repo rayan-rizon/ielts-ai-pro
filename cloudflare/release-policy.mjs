@@ -1,4 +1,4 @@
-export const PRODUCTION_WORKER = 'ielts-ai-cloudflare';
+export const PRODUCTION_WORKER = 'ielts-ai-pro';
 export const PRODUCTION_TAG = '9940a4902ec34bddbf4d8bb9ffeab491';
 
 export function validateReleaseTarget(scripts, subdomain, manifest, env = {}) {

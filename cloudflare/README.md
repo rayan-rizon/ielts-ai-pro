@@ -1,7 +1,7 @@
 # Cloudflare hosting
 
 Live: **https://www.ieltsai.pro**. The apex redirects to www with path and query preserved.
-The production Worker is `ielts-ai-cloudflare`; its workers.dev and version preview URLs
+The production Worker is `ielts-ai-pro`; its workers.dev and version preview URLs
 are disabled. The temporary migration Worker was removed after a successful remote Git release
 and live verification. Any future staging deployment requires an explicit profile.
 

@@ -31,9 +31,9 @@ try {
   const beforeBoundaryChecks = upstream.length;
   for (const [name, url, status, noindex] of [
     ['production indexing restored', 'https://www.ieltsai.pro/api/geo', 200, false],
-    ['candidate indexing suppressed', 'https://ielts-ai-cloudflare.rayan-rizon.workers.dev/api/geo', 200, true],
-    ['candidate robots blocked', 'https://ielts-ai-cloudflare.rayan-rizon.workers.dev/robots.txt', 200, true],
-    ['candidate GTM proxy suppressed', 'https://ielts-ai-cloudflare.rayan-rizon.workers.dev/mx/gtm.js?id=fixture', 200, true],
+    ['candidate indexing suppressed', 'https://ielts-ai-pro.rayan-rizon.workers.dev/api/geo', 200, true],
+    ['candidate robots blocked', 'https://ielts-ai-pro.rayan-rizon.workers.dev/robots.txt', 200, true],
+    ['candidate GTM proxy suppressed', 'https://ielts-ai-pro.rayan-rizon.workers.dev/mx/gtm.js?id=fixture', 200, true],
   ]) {
     const r = await mf.dispatchFetch(url);
     assert.equal(r.status, status, name);

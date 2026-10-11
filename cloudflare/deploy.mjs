@@ -12,10 +12,10 @@ if (!args.includes('--profile=staging')) {
 }
 const profile = selectProfile(args);
 const config = JSON.parse(readFileSync(path.join(directory, 'wrangler.jsonc'), 'utf8'));
-config.name = 'ielts-ai-cloudflare-staging';
+config.name = 'ielts-ai-pro-staging';
 config.workers_dev = true;
 config.vars.DEPLOYMENT_STAGE = 'staging';
-if (config.name !== 'ielts-ai-cloudflare-staging' || config.routes.length || !config.workers_dev || config.vars.DEPLOYMENT_STAGE !== 'staging') {
+if (config.name !== 'ielts-ai-pro-staging' || config.routes.length || !config.workers_dev || config.vars.DEPLOYMENT_STAGE !== 'staging') {
   throw new Error('Deployment must remain isolated on the staging workers.dev URL');
 }
 // This command can only create an isolated stage, never modify live routing.

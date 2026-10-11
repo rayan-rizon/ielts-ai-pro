@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolveRule } from './routing.mjs';
 
-const candidate = process.argv[2] || 'https://ielts-ai-cloudflare-staging.rayan-rizon.workers.dev';
+const candidate = process.argv[2] || 'https://ielts-ai-pro-staging.rayan-rizon.workers.dev';
 const production = 'https://www.ieltsai.pro';
 const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url)));
 const results = [];

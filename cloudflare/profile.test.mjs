@@ -24,7 +24,7 @@ test('only exact HTTPS production hosts can enable measurement and indexing', ()
     assert.equal(isMeasuredRequest(new URL(`https://${host}/`), 'production'), true);
     assert.equal(isMeasuredRequest(new URL(`https://${host}/`), 'staging'), false);
   }
-  for (const url of ['https://ielts-ai-cloudflare.rayan-rizon.workers.dev/', 'https://ieltsai.pro.evil.test/', 'http://ieltsai.pro/', 'https://ieltsai.pro:444/']) {
+  for (const url of ['https://ielts-ai-pro.rayan-rizon.workers.dev/', 'https://ieltsai.pro.evil.test/', 'http://ieltsai.pro/', 'https://ieltsai.pro:444/']) {
     assert.equal(isMeasuredRequest(new URL(url), 'production'), false);
   }
 });
