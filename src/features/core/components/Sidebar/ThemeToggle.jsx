@@ -10,7 +10,7 @@ export const ThemeToggle = memo(() => {
   return (
     <SidebarMenuButton
       onClick={() => setTheme(nextTheme)}
-      className="group/theme-toggle w-full justify-start gap-2.5 px-2.5 h-7.5 text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/8 rounded-md transition-colors group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0!"
+      className="group/theme-toggle w-full justify-start gap-2.5 px-2.5 h-8.5 text-xs text-slate-700 dark:text-slate-300 font-medium hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/8 rounded-md transition-colors group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0!"
       aria-label={`Switch to ${nextTheme} theme`}
       aria-pressed={theme === 'dark'}
     >
