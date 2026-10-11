@@ -44,8 +44,8 @@ describe('pricing plan configuration', () => {
     );
     expect(catalog).toContain('AI Study Plan Made for You');
     expect(catalog).toContain('Grammar Units 1–3 + 5 Questions/Day');
-    expect(catalog).toContain('5 Vocabulary Starter Kits');
-    expect(catalog).toContain('All Topic Kits + Band 8 & 9');
+    // Vocabulary is not a plan differentiator on the pricing table.
+    expect(catalog).not.toMatch(/Vocabulary|Kits/);
     expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'free').features).toContain(
       'Basic 30-Day Progress Analytics'
     );

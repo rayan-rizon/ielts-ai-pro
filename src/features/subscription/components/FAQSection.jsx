@@ -1,12 +1,11 @@
 import React from 'react';
-import { HelpCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { IconChip, MICRO, PANEL } from '@/features/dashboard/components/primitives';
+import { PANEL } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 import { EXAM_PASS_DISCOUNT_PERCENT, EXAM_PASS_MONTHS } from '@/lib/pricingUtils';
 
@@ -44,25 +43,17 @@ const faqs = [
 
 export default function FAQSection() {
   return (
-    <section className="mx-auto mb-16 max-w-3xl">
-      <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <p
-          className={cn(MICRO, 'inline-flex items-center gap-2 text-slate-500 dark:text-slate-400')}
-        >
-          <IconChip icon={HelpCircle} size="sm" />
-          Before you choose
-        </p>
-        <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-slate-900 dark:text-white sm:text-[28px]">
-          Frequently asked <span className="text-[#5a63df] dark:text-[#a9afff]">questions</span>
-        </h2>
-      </div>
-      <div className={cn(PANEL, 'p-5 sm:p-7')}>
+    <section className="mx-auto max-w-3xl pt-8">
+      <h2 className="mb-4 text-center text-2xl font-extrabold tracking-[-0.02em] text-slate-900 dark:text-white">
+        Frequently asked questions
+      </h2>
+      <div className={cn(PANEL, 'px-5 py-3 sm:px-7')}>
         <Accordion type="single" collapsible className="w-full">
           {faqs.map((faq, i) => (
             <AccordionItem
               key={i}
               value={`item-${i}`}
-              className="border-b-[#eeedf7] last:border-0 dark:border-b-white/[0.07]"
+              className="border-b-[#eeedf7] dark:border-b-white/[0.07]"
             >
               <AccordionTrigger className="text-left text-sm font-bold text-slate-800 transition-colors hover:text-[#5a63df] dark:text-slate-100 dark:hover:text-[#a9afff] sm:text-base">
                 {faq.question}
@@ -73,7 +64,7 @@ export default function FAQSection() {
             </AccordionItem>
           ))}
         </Accordion>
-        <div className="mt-6 text-center">
+        <div className="border-t border-[#eeedf7] py-4 text-center dark:border-white/[0.07]">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             Still have questions?{' '}
             <a

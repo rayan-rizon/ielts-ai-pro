@@ -306,7 +306,7 @@ function PricingPlansGrid({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="mx-auto mb-16 grid max-w-6xl grid-cols-1 items-stretch gap-4 md:grid-cols-3 lg:gap-5"
+      className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3 lg:gap-5"
     >
       {plans.map((plan) => {
         const displayPrice = calculatePrice(
@@ -750,17 +750,12 @@ export default function Pricing() {
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
-      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] pb-16 transition-colors duration-500 dark:bg-[#08080a]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[560px] bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.1] [mask-image:radial-gradient(70%_100%_at_50%_0%,black,transparent)] dark:opacity-[0.14]"
-        />
-
+      <div className="relative min-h-screen bg-[#f8f8fb] transition-colors duration-500 dark:bg-[#08080a]">
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative z-10 mx-auto max-w-7xl space-y-8 px-4 pb-12 pt-6 sm:pt-8 md:px-8 md:pt-10"
+          className="relative mx-auto max-w-7xl space-y-6 px-4 pb-14 pt-6 md:px-8 md:pt-8"
         >
           <PricingHeaderSection
             billingInterval={billingInterval}
