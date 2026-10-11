@@ -63,6 +63,7 @@ export type SpeakingEntry = {
   text?: string;
   error?: boolean;
   isLoading?: boolean;
+  durationMs?: number;
 };
 
 export type SpeakingPartStats = {
@@ -661,7 +662,8 @@ function normalizePartContext(value: unknown): string {
 
 export function buildSpeakingTranscript(
   allPartsConversation: Record<string | number, SpeakingEntry[]>,
-  partContexts: Record<string | number, unknown> = {}
+  partContexts: Record<string | number, unknown> = {},
+  { includeDurations = false }: { includeDurations?: boolean } = {}
 ) {
   let transcript = '';
   const partStats: Record<string, SpeakingPartStats> = {};
@@ -692,7 +694,14 @@ export function buildSpeakingTranscript(
           candidateWordCount += countWords(text);
           validResponseCount += 1;
           candidateResponses.push(text);
-          lines.push(`<utterance role="candidate">${escapePromptXml(text)}</utterance>`);
+          const seconds = Math.round(Number(entry.durationMs) / 1000);
+          const lengthAttribute =
+            includeDurations && Number.isFinite(seconds) && seconds > 0 && seconds <= 300
+              ? ` seconds="${seconds}"`
+              : '';
+          lines.push(
+            `<utterance role="candidate"${lengthAttribute}>${escapePromptXml(text)}</utterance>`
+          );
         } else {
           unintelligibleResponseCount += 1;
           lines.push('Candidate: [No intelligible response]');
@@ -1106,8 +1115,23 @@ function processDetailedSpeakingItem(item: any, candidateSource: Record<string, 
     topicDrift: getStringOrDefault(item.topicDrift, 'null'),
     suggestedAnswer: getStringOrDefault(item.suggestedAnswer),
     feedback: getStringOrDefault(item.feedback),
+    focus: SPEAKING_FOCUS_CRITERIA.has(item.focus) ? item.focus : null,
+    issue: SPEAKING_ANSWER_ISSUES.has(item.issue) ? item.issue : null,
+    why: compactFeedbackText(getStringOrDefault(item.why), 1, 180) || null,
   };
 }
+
+/** Closed vocabularies for the deep dive's per-answer tags; anything else is dropped. */
+export const SPEAKING_FOCUS_CRITERIA = new Set(['fluency', 'lexical', 'grammar', 'pronunciation']);
+export const SPEAKING_ANSWER_ISSUES = new Set([
+  'too_short',
+  'no_reason',
+  'no_example',
+  'off_topic',
+  'grammar',
+  'vocabulary',
+  'none',
+]);
 
 /**
  * Contractions written without their apostrophe, which is what an ASR

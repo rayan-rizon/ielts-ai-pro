@@ -147,6 +147,13 @@ export default function useSpeakingRecordingProcessor({
         return;
       }
 
+      // Keep the answer's length with its transcript so the report can measure
+      // answer length against each part's target without re-deriving it.
+      const answerDurationMs = Number(metadata.duration);
+      if (Number.isFinite(answerDurationMs) && answerDurationMs > 0) {
+        setConversation((prev) => tagPendingAnswerDuration(prev, answerDurationMs));
+      }
+
       setIsProcessing(true);
       setProcessingStatus('Processing your answer...');
 
@@ -439,6 +446,16 @@ async function processSpeakingTurn({
   }
 }
 
+function tagPendingAnswerDuration(conversation, durationMs) {
+  const loadingIndex = conversation.findLastIndex(
+    (entry) => entry.isLoading && entry.speaker === 'user'
+  );
+  if (loadingIndex === -1) return conversation;
+  const updated = [...conversation];
+  updated[loadingIndex] = { ...updated[loadingIndex], durationMs };
+  return updated;
+}
+
 function replaceLoadingUserTranscript(conversation, transcript) {
   const updated = [...conversation];
   const loadingIndex = updated.findLastIndex(
@@ -446,12 +463,14 @@ function replaceLoadingUserTranscript(conversation, transcript) {
   );
 
   if (loadingIndex !== -1) {
+    const { durationMs } = updated[loadingIndex];
     updated[loadingIndex] = {
       speaker: 'user',
       text: transcript || '(Unable to transcribe - please try again)',
       isLoading: false,
       isTranscript: !isTranscriptError(transcript),
       error: isTranscriptError(transcript),
+      ...(Number.isFinite(durationMs) ? { durationMs } : {}),
     };
   } else {
     updated.push({

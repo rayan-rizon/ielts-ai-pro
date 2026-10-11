@@ -45,18 +45,20 @@ function deduplicateWordIssues(wordIssues) {
   });
 }
 
+export function buildPronunciationBreakdown(allPartsPronunciation) {
+  if (!allPartsPronunciation) return null;
+
+  const { sounds, wordIssues, clarityNotes } = collectPronunciationData(allPartsPronunciation);
+
+  if (sounds.size === 0 && wordIssues.length === 0) return null;
+
+  return {
+    problematicSounds: [...sounds],
+    wordIssues: deduplicateWordIssues(wordIssues),
+    clarityNotes,
+  };
+}
+
 export default function usePronunciationBreakdown(allPartsPronunciation) {
-  return useMemo(() => {
-    if (!allPartsPronunciation) return null;
-
-    const { sounds, wordIssues, clarityNotes } = collectPronunciationData(allPartsPronunciation);
-
-    if (sounds.size === 0 && wordIssues.length === 0) return null;
-
-    return {
-      problematicSounds: [...sounds],
-      wordIssues: deduplicateWordIssues(wordIssues),
-      clarityNotes,
-    };
-  }, [allPartsPronunciation]);
+  return useMemo(() => buildPronunciationBreakdown(allPartsPronunciation), [allPartsPronunciation]);
 }

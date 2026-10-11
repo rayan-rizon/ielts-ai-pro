@@ -198,7 +198,9 @@ export const WRITING_PRIMARY_MODEL = 'openai/gpt-6-luna';
 export const WRITING_DIRECT_GEMINI_MODEL = 'gemini-2.5-flash';
 export const SPEAKING_DETAILED_FEEDBACK_PRIMARY_MODEL = 'openai/gpt-6-luna';
 export const SPEAKING_DETAILED_FEEDBACK_FALLBACK_MODEL = 'gemini-2.5-flash';
-export const SPEAKING_DETAILED_FEEDBACK_MAX_OUTPUT_TOKENS = 6144;
+// 7168 leaves room for the per-answer issue/focus/why tags (about 40 tokens
+// each) on a full three-part test without truncating the JSON array.
+export const SPEAKING_DETAILED_FEEDBACK_MAX_OUTPUT_TOKENS = 7168;
 export const SPEAKING_DETAILED_FEEDBACK_TIMEOUT_MS = 25000;
 
 // --- Routes -----------------------------------------------------------------

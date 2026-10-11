@@ -100,9 +100,44 @@ describe('speaking report summary', () => {
     const pdfBytes = new Uint8Array(doc.output('arraybuffer'));
 
     expect(new TextDecoder().decode(pdfBytes.slice(0, 8))).toContain('%PDF-');
-    expect(doc.getNumberOfPages()).toBe(1);
+    expect(doc.getNumberOfPages()).toBeGreaterThanOrEqual(1);
     expect(filename).toBe('speaking-report-6.5.pdf');
     expect(summary).not.toHaveProperty('detailedFeedback');
+  });
+
+  it('exports the full report, answers included, across as many pages as it needs', () => {
+    const conversation = { 1: [], 2: [], 3: [] };
+    const questions = [];
+    [1, 2, 3].forEach((part) => {
+      for (let index = 1; index <= 5; index += 1) {
+        const answer = `Part ${part} answer ${index}: I think it is good because it helps people a lot in their daily lives.`;
+        conversation[part].push({ speaker: 'ai', text: `Question ${index} for part ${part}?` });
+        conversation[part].push({ speaker: 'user', text: answer, durationMs: 9000 });
+        questions.push({
+          part,
+          question: `Question ${index} for part ${part}?`,
+          candidateAnswer: answer,
+          grammaticalErrors: [
+            { incorrect: 'it is good', correct: "it's useful", explanation: 'More exact word.' },
+          ],
+          topicDrift: 'null',
+          suggestedAnswer: 'A longer, natural answer with a reason and an example from daily life.',
+          feedback: 'Add a reason.',
+          why: 'It adds a reason and an example.',
+        });
+      }
+    });
+
+    const { doc, filename } = createSpeakingReportPdf({
+      finalEvaluation: completeEvaluation,
+      testTitle: 'Cambridge 21 – Speaking Test 1',
+      allPartsConversation: conversation,
+      detailedFeedback: questions,
+      generatedAt: new Date('2026-10-11T00:00:00.000Z'),
+    });
+
+    expect(doc.getNumberOfPages()).toBeGreaterThan(2);
+    expect(filename).toBe('speaking-report-6.5.pdf');
   });
 
   it('preserves full multi-sentence feedback without mid-sentence truncation', () => {
