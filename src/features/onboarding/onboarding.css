@@ -1875,3 +1875,19 @@
   opacity: 1;
   cursor: default;
 }
+
+/* Feature list: "Everything in X, plus" leads paid cards; Free shows what it lacks. */
+.onboarding-plan-features__includes {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ob-muted);
+}
+.onboarding-plan-features li.is-missing {
+  color: var(--ob-faint);
+  font-weight: 500;
+}
+.onboarding-plan-features li.is-missing .onboarding-plan-features__check {
+  background: transparent;
+  border: 1px dashed var(--ob-line-strong);
+  color: var(--ob-faint);
+}

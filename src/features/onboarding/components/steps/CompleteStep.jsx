@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowRight, CalendarDays, Check, Gauge, Target } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Gauge, Minus, Target } from 'lucide-react';
 import { addWeeks } from 'date-fns';
 import { m, useReducedMotion } from 'framer-motion';
 import OnboardingHeading from '../OnboardingHeading';
@@ -70,13 +70,28 @@ function ReiconCrown({ className }) {
   );
 }
 
+// `extra` is the one thing the tier adds that the price book has no limit for;
+// it sits after the AI marking, ahead of the daily drills.
 const PLAN_OPTIONS = {
-  pro: { name: 'Pro', icon: ReiconSparkle, extra: 'Adaptive AI Learning Path' },
-  premium: { name: 'Premium', icon: ReiconCrown, extra: 'Band 8–9 vocabulary kits' },
+  pro: {
+    name: 'Pro',
+    icon: ReiconSparkle,
+    includes: 'Everything in Free, plus',
+    extra: 'Adaptive AI Learning Path',
+  },
+  premium: {
+    name: 'Premium',
+    icon: ReiconCrown,
+    includes: 'Everything in Pro, plus',
+    extra: 'Band 8–9 vocabulary kits',
+  },
 };
 const BILLING_INTERVALS = ['monthly', 'quarterly'];
-// The few price-book lines that actually separate the tiers.
-const FEATURE_PICK = /AI Writing Evaluation|AI Speaking Session|Practice Lab AI Test/;
+// The few price-book lines that actually separate the tiers, in the order a
+// card lists them: the AI marking learners pay for first, daily drills last.
+const FEATURE_ORDER = [/AI Writing Evaluation/, /AI Speaking Session/, /Practice Lab AI Test/];
+const pickFeatures = (features = []) =>
+  FEATURE_ORDER.map((pattern) => features.find((feature) => pattern.test(feature))).filter(Boolean);
 
 /** Onboarding must never quote a different price than the pricing page. Both
  * read the same admin price book through the same regional resolution, so a
@@ -115,7 +130,13 @@ function useOnboardingPlanPricing(offer) {
       ['free', ...Object.keys(PLAN_OPTIONS)].forEach((tier) => {
         const plan = configuredPlans?.find((entry) => entry.tier === tier);
         if (!plan) {
-          pricing[tier] = { price: null, oldPrice: null, note: null, features: [] };
+          pricing[tier] = {
+            price: null,
+            oldPrice: null,
+            note: null,
+            features: [],
+            limitations: [],
+          };
           return;
         }
         const symbol = plan.currencySymbol || '$';
@@ -137,7 +158,8 @@ function useOnboardingPlanPricing(offer) {
             : interval === 'quarterly'
               ? formatExamPassCharge(plan, discount)
               : `${symbol}${formatDailyRate(calculateCheckoutAmount(plan.basePrice, 'monthly', discount, plan.currency))}/day`,
-          features: plan.features.filter((feature) => FEATURE_PICK.test(feature)),
+          features: pickFeatures(plan.features),
+          limitations: plan.limitations || [],
         };
       });
       byInterval[interval] = pricing;
@@ -245,9 +267,13 @@ function PlanOption({
   // A paid learner already has more than Free; that card is for comparison only.
   const isBelowCurrent = isFree && Boolean(currentTier) && currentTier !== 'free';
   const recommended = tier === 'pro' && !currentTier;
+  const picked = pricing?.features || [];
+  // Free is the baseline: its AI allowances lead, then what it leaves out, so
+  // the cheapest card reads as a starting point rather than the best deal.
   const features = isFree
-    ? ['Unlimited Reading & Listening tests', ...(pricing?.features || [])]
-    : [...(pricing?.features || []), option.extra];
+    ? [...picked, 'Reading & Listening practice tests']
+    : [...picked.slice(0, 2), option.extra, ...picked.slice(2)];
+  const missing = isFree ? pricing?.limitations || [] : [];
   const Icon = option.icon;
   return (
     <article
@@ -294,12 +320,26 @@ function PlanOption({
         </div>
       )}
       <ul className="onboarding-plan-features">
+        {option.includes && (
+          <li className="onboarding-plan-features__includes">{option.includes}</li>
+        )}
         {features.map((feature) => (
           <li key={feature}>
             <span className="onboarding-plan-features__check" aria-hidden="true">
               <Check className="h-3 w-3" strokeWidth={3} />
             </span>
             <span>{feature}</span>
+          </li>
+        ))}
+        {missing.map((feature) => (
+          <li key={feature} className="is-missing">
+            <span className="onboarding-plan-features__check" aria-hidden="true">
+              <Minus className="h-3 w-3" strokeWidth={3} />
+            </span>
+            <span>
+              <span className="sr-only">Not included: </span>
+              {feature}
+            </span>
           </li>
         ))}
       </ul>

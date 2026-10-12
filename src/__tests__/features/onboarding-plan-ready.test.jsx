@@ -118,6 +118,26 @@ describe('onboarding plan-ready experience', () => {
     expect(onContinue).toHaveBeenCalledOnce();
   });
 
+  it('leads paid cards with AI marking and shows Free as the limited baseline', async () => {
+    vi.useFakeTimers();
+    render(<CompleteStep formData={formData} onUpgrade={vi.fn()} onContinue={vi.fn()} />);
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    const card = (name) => screen.getByRole('heading', { name }).closest('article');
+    const items = (name) =>
+      [...card(name).querySelectorAll('li:not(.onboarding-plan-features__includes)')].map(
+        (li) => li.textContent
+      );
+
+    expect(items('Pro')[0]).toMatch(/AI Writing Evaluation/);
+    expect(items('Premium')[0]).toMatch(/AI Writing Evaluation/);
+    expect(items('Pro').at(-1)).toMatch(/Practice Lab|Learning Path/);
+    expect(card('Pro')).toHaveTextContent('Everything in Free, plus');
+    expect(card('Free')).not.toHaveTextContent(/Unlimited/);
+    expect(card('Free')).toHaveTextContent('Not included: AI Study Plan Made for You');
+  });
+
   it('reports the plan offer only once the learner can actually see a price', async () => {
     vi.useFakeTimers();
     const onPlanOfferViewed = vi.fn();
