@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { m } from 'framer-motion';
 import { toast } from 'sonner';
@@ -67,46 +67,13 @@ const FIELD_LABEL = cn(MICRO, 'text-stone-500 dark:text-stone-400 mb-1.5 block')
 
 const TIER_TONE = { pro: 'accent', premium: 'accent', free: 'neutral' };
 
-const calculatePerformanceData = (sessions) => {
-  const completedSessions = sessions.filter((session) => session.is_completed && session.score);
-  if (completedSessions.length === 0) {
-    return { overallAverage: 0, totalCompleted: 0, moduleBreakdown: {}, recentTrend: [] };
-  }
-
-  const overallAverage =
-    completedSessions.reduce((total, session) => total + session.score, 0) /
-    completedSessions.length;
-  const moduleBreakdown = completedSessions.reduce((breakdown, session) => {
-    const module = session.test_type;
-    if (!breakdown[module]) breakdown[module] = { scores: [], total: 0, best: 0 };
-    breakdown[module].scores.push(session.score);
-    breakdown[module].total += 1;
-    breakdown[module].best = Math.max(breakdown[module].best, session.score);
-    return breakdown;
-  }, {});
-
-  Object.values(moduleBreakdown).forEach((module) => {
-    module.average =
-      module.scores.reduce((total, score) => total + score, 0) / module.scores.length;
-  });
-  const recentTrend = [...completedSessions]
-    .sort((left, right) => new Date(right.completed_at) - new Date(left.completed_at))
-    .slice(0, 10)
-    .reverse()
-    .map((session, index) => ({
-      session: index + 1,
-      score: session.score,
-      date: new Date(session.completed_at).toLocaleDateString(),
-      module: session.test_type,
-    }));
-
-  return {
-    overallAverage: overallAverage.toFixed(1),
-    totalCompleted: completedSessions.length,
-    moduleBreakdown,
-    recentTrend,
-  };
-};
+const normalizePerformanceData = (stats) => ({
+  ...stats,
+  recentTrend: (stats.recentTrend || []).map((item) => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString(),
+  })),
+});
 
 const getModuleIcon = (module) => {
   switch (module?.toLowerCase()) {
@@ -138,11 +105,16 @@ export default function AdminUserDetails() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const userId = searchParams.get('userId');
+  const currentUserIdRef = useRef(userId);
+  currentUserIdRef.current = userId;
+  const historyRequestRef = useRef(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [testSessions, setTestSessions] = useState([]);
   const [performanceData, setPerformanceData] = useState({});
+  const [historyCursor, setHistoryCursor] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
@@ -153,6 +125,7 @@ export default function AdminUserDetails() {
     try {
       setIsLoading(true);
       const userData = await User.getById(userId);
+      if (currentUserIdRef.current !== userId) return;
 
       if (!userData) {
         setUser(null);
@@ -166,19 +139,43 @@ export default function AdminUserDetails() {
       } catch {
         /* Additive rollout may not be enabled yet. */
       }
+      if (currentUserIdRef.current !== userId) return;
       setUser({ ...userData, institution_access: institutionAccess?.institution_access });
 
-      const sessions = await TestSession.list({ user_id: userData.id });
-      setTestSessions(sessions);
-
-      setPerformanceData(calculatePerformanceData(sessions));
+      const history = await TestSession.adminHistory(userData.id);
+      if (currentUserIdRef.current !== userId) return;
+      setTestSessions(history.sessions);
+      setHistoryCursor(history.nextCursor);
+      setPerformanceData(normalizePerformanceData(history.stats));
     } catch (error) {
+      if (currentUserIdRef.current !== userId) return;
       console.error('Error loading user data:', error);
       setUser(null);
     } finally {
-      setIsLoading(false);
+      if (currentUserIdRef.current === userId) setIsLoading(false);
     }
   }, [userId]);
+
+  const loadMoreHistory = async () => {
+    if (!historyCursor || historyRequestRef.current) return;
+    historyRequestRef.current = true;
+    setHistoryLoading(true);
+    try {
+      const history = await TestSession.adminHistory(userId, historyCursor);
+      if (currentUserIdRef.current !== userId) return;
+      setTestSessions((current) => {
+        const existingIds = new Set(current.map((session) => session.id));
+        return [...current, ...history.sessions.filter((session) => !existingIds.has(session.id))];
+      });
+      setHistoryCursor(history.nextCursor);
+    } catch (error) {
+      if (currentUserIdRef.current !== userId) return;
+      toast.error('Could not load more test history', { description: error.message });
+    } finally {
+      historyRequestRef.current = false;
+      setHistoryLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!userId) {
@@ -560,6 +557,13 @@ export default function AdminUserDetails() {
             </tbody>
           </table>
         </div>
+        {historyCursor && (
+          <div className="p-4 border-t border-stone-200 dark:border-white/[0.07]">
+            <AdminButton onClick={loadMoreHistory} disabled={historyLoading}>
+              {historyLoading ? 'Loading history…' : 'Load more tests'}
+            </AdminButton>
+          </div>
+        )}
       </m.div>
     </m.div>
   );

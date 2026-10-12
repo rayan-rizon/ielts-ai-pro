@@ -173,6 +173,18 @@ const hasChanges = (current: Answers | null, previous: Answers | null): boolean 
   return JSON.stringify(normalizedCurrent) !== JSON.stringify(normalizedPrevious);
 };
 
+const stableSnapshot = (value: unknown): string =>
+  JSON.stringify(value, (_key, item) => {
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      return Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b)));
+    }
+    return item;
+  });
+const saveSnapshot = (answers: Answers, contentData: ContentData): string => {
+  const { last_saved_at: _savedAt, ...metadata } = contentData;
+  return stableSnapshot({ answers, metadata });
+};
+
 /**
  * useAutosave Hook
  *
@@ -196,6 +208,7 @@ export function useAutosave({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const lastSavedRef = useRef<Answers>({});
+  const lastSavedSnapshotRef = useRef<string | null>(null);
   const lastSaveTimeRef = useRef<number>(0);
   const retryQueueRef = useRef<QueuedSave[]>([]);
   const isSavingRef = useRef<boolean>(false);
@@ -219,6 +232,10 @@ export function useAutosave({
 
   // Initialize lastSaved from session
   useEffect(() => {
+    lastSavedSnapshotRef.current = null;
+    lastSaveTimeRef.current = 0;
+    retryQueueRef.current = [];
+    lastSavedRef.current = {};
     if (session?.content_data?.last_saved_at && !lastSaved) {
       setLastSaved(new Date(session.content_data.last_saved_at));
     }
@@ -247,6 +264,8 @@ export function useAutosave({
       skipThrottle: boolean = false
     ): Promise<boolean> => {
       if (!session?.id || isFinishedRef.current) return false;
+      const snapshot = saveSnapshot(answers, contentData);
+      if (snapshot === lastSavedSnapshotRef.current) return true;
 
       // Throttle: Check if we saved recently
       const now = Date.now();
@@ -280,6 +299,7 @@ export function useAutosave({
         }
 
         lastSavedRef.current = Array.isArray(answers) ? [...answers] : { ...answers };
+        lastSavedSnapshotRef.current = snapshot;
         lastSaveTimeRef.current = Date.now();
         setLastSaved(new Date());
         onSaveSuccess?.();
@@ -330,12 +350,29 @@ export function useAutosave({
 
   const processQueue = useCallback(async (): Promise<void> => {
     if (!session?.id || isFinishedRef.current || retryQueueRef.current.length === 0) return;
-    const latestQueued = retryQueueRef.current.pop();
-    retryQueueRef.current = [];
-    if (latestQueued) {
-      await saveWithRetry(latestQueued.answers, latestQueued.contentData, 0, true);
-    }
-  }, [session?.id, saveWithRetry]);
+    // Retry through the manual queue and read current state after any active
+    // write. Replaying an offline snapshot can overwrite newer edits.
+    const retry = manualSaveQueueRef.current
+      .catch(() => false)
+      .then(async () => {
+        if (activeSavePromiseRef.current) await activeSavePromiseRef.current.catch(() => false);
+        if (isFinishedRef.current) return false;
+        const answers = getAnswersRef.current();
+        if (!answers) return false;
+        retryQueueRef.current = [];
+        return runSave(
+          answers,
+          {
+            ...session.content_data,
+            ...getExtraDataRef.current?.(),
+            last_saved_at: new Date().toISOString(),
+          },
+          true
+        );
+      });
+    manualSaveQueueRef.current = retry;
+    await retry;
+  }, [session, runSave]);
 
   /**
    * Main logic for performing a save check
@@ -375,22 +412,24 @@ export function useAutosave({
         return false;
       }
 
-      // When forced (tab switch, navigate away), bypass the changes check - just save
-      if (!forced) {
-        const changed = hasChanges(currentAnswers, lastSavedRef.current);
-
-        if (!changed) {
-          return false;
-        }
-      } else {
-      }
-
       const extraData = getExtraDataRef.current?.() || {};
       const contentData: ContentData = {
         ...(session.content_data || {}),
         ...extraData,
         last_saved_at: new Date().toISOString(),
       };
+
+      if (lastSavedSnapshotRef.current === saveSnapshot(currentAnswers, contentData)) return true;
+      // A resumed session has no acknowledged snapshot yet. Preserve the first
+      // checkpoint when metadata (timer/notes/highlights) is present.
+      if (
+        !forced &&
+        lastSavedSnapshotRef.current === null &&
+        !hasChanges(currentAnswers, lastSavedRef.current) &&
+        Object.keys(extraData).length === 0
+      ) {
+        return false;
+      }
 
       return runSave(currentAnswers, contentData, forced);
     },

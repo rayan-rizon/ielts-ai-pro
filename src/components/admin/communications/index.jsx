@@ -5,6 +5,7 @@ import { Bell, Megaphone, RefreshCcw, Wrench } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import useMaintenanceClock from '@/hooks/useMaintenanceClock';
 import { SystemSetting } from '@/features/admin/services/SystemSetting';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import {
@@ -112,9 +113,11 @@ export default function CommunicationsCenter() {
       // waiting for the periodic settings poll.
       refreshGlobalSettings?.();
       toast.success('Saved');
+      return true;
     } catch (error) {
       console.error('Error saving setting:', error);
       toast.error(error.message || 'Failed to save');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -132,11 +135,12 @@ export default function CommunicationsCenter() {
   };
 
   const maintenance = normalizeMaintenance(settings.maintenance_mode);
+  const now = useMaintenanceClock(maintenance);
   const announcement = normalizeAnnouncement(settings.public_announcement);
 
-  const maintenanceStatus = isMaintenanceActive(maintenance)
+  const maintenanceStatus = isMaintenanceActive(maintenance, now)
     ? { tone: 'fault', label: 'Maintenance on' }
-    : isMaintenanceScheduled(maintenance)
+    : isMaintenanceScheduled(maintenance, now)
       ? { tone: 'warn', label: 'Maintenance scheduled' }
       : null;
   const bannerLive = isAnnouncementLive(announcement, { isAuthenticated: true, tier: 'free' });

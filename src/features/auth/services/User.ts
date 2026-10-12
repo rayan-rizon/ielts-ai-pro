@@ -6,6 +6,7 @@ import { getCsrfHeaders } from '@/lib/csrf';
 import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
 import { getMissingSignupProfileFields, getSignupAttribution } from '@/lib/attribution';
 import { resolveSignupCountry } from '@/lib/geo';
+import { recordActivityHeartbeat } from './activityHeartbeat';
 
 // Signup and session listeners can create the profile concurrently.
 // Ignore an existing email without updating its owner, tier or referral data.
@@ -109,22 +110,27 @@ export const User = {
   },
 
   // Update latest activity and the private daily activity history atomically.
-  async updateLastActive(): Promise<boolean> {
+  async updateLastActive({ force = false } = {}): Promise<boolean> {
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) return false;
 
-      const { error } = await supabase.rpc('update_user_last_active', {
-        user_auth_id: session.user.id,
-      });
-
-      if (error) {
-        console.warn('Failed to record user activity:', error.message);
-        return false;
-      }
-      return true;
+      return await recordActivityHeartbeat(
+        session.user.id,
+        async () => {
+          const { error } = await supabase.rpc('update_user_last_active', {
+            user_auth_id: session.user.id,
+          });
+          if (error) {
+            console.warn('Failed to record user activity:', error.message);
+            return false;
+          }
+          return true;
+        },
+        { force }
+      );
     } catch (error) {
       console.warn('Error recording user activity:', error);
       return false;

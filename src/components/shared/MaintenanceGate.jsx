@@ -1,4 +1,7 @@
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { Outlet, useLocation } from 'react-router-dom';
+import useMaintenanceClock from '@/hooks/useMaintenanceClock';
+import PremiumLoading from '@/components/ui/PremiumLoading';
 import { canBypassMaintenance, isMaintenanceActive } from '@/lib/communications';
 import MaintenanceScreen from './MaintenanceScreen';
 
@@ -16,24 +19,28 @@ const isEscapeHatch = (pathname) => {
 /**
  * Site-wide maintenance gate.
  *
- * This deliberately wraps the *router*, not the app shell. The gate used to
+ * This is a root route layout, outside the app shell. The gate used to
  * live inside `Layout`, which only wraps authenticated and auth-form routes —
  * so the landing page, the SEO pages, the blog, the calculators and every
  * other public route stayed fully open while maintenance mode was "on". Those
  * are exactly the pages a maintenance window most needs to cover.
  */
 export default function MaintenanceGate({ children }) {
-  const { maintenance, settingsLoading, isAdmin, adminCheckComplete, user } = useAuth();
+  const { maintenance, settingsLoading, isAdmin, authCheckComplete, adminCheckComplete, user } =
+    useAuth();
+  const { pathname } = useLocation();
+  const now = useMaintenanceClock(maintenance);
+  const content = children ?? <Outlet />;
 
-  const active = isMaintenanceActive(maintenance);
+  const active = isMaintenanceActive(maintenance, now);
 
-  // Never gate on a value we have not read yet, and never gate before we know
-  // whether this person is an admin — otherwise every admin gets the
-  // maintenance screen flashed at them on each cold load.
-  if (settingsLoading || !active) return children;
-  if (typeof window !== 'undefined' && isEscapeHatch(window.location.pathname)) return children;
-  if (user && !adminCheckComplete) return children;
-  if (canBypassMaintenance(maintenance, { isAdmin, email: user?.email })) return children;
+  if (isEscapeHatch(pathname)) return content;
+  // Hold the route while checking fresh settings and bypass eligibility;
+  // rendering it first briefly exposes the site during maintenance.
+  if (settingsLoading || (active && (!authCheckComplete || (user && !adminCheckComplete))))
+    return <PremiumLoading message="Checking site availability..." fullScreen />;
+  if (!active) return content;
+  if (canBypassMaintenance(maintenance, { isAdmin, email: user?.email })) return content;
 
   return <MaintenanceScreen config={maintenance} />;
 }

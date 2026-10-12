@@ -25,6 +25,17 @@ export interface TestSession {
 }
 
 export const TestSession = {
+  /** Admin history has a bounded projection and separate lifetime aggregates. */
+  async adminHistory(userId: string, cursor: { created_at: string; id: string } | null = null) {
+    const { data, error } = await supabase.rpc('admin_user_session_history', {
+      p_user_id: userId,
+      p_before_date: cursor?.created_at || null,
+      p_before_id: cursor?.id || null,
+      p_limit: 25,
+    });
+    if (error) throw error;
+    return data;
+  },
   async getCountsByPassageIds(passageIds: string[]): Promise<Record<string, number>> {
     if (!passageIds || passageIds.length === 0) return {};
 

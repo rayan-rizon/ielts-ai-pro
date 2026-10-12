@@ -69,7 +69,8 @@ const fallbackAuthContext = Object.freeze({
  * has no effect on anyone already sitting on a page. Re-read it periodically
  * and whenever the tab regains focus. The query is three rows.
  */
-const GLOBAL_SETTINGS_POLL_MS = 120_000;
+const GLOBAL_SETTINGS_POLL_MS = 30_000;
+const GLOBAL_SETTINGS_REFRESH_GAP_MS = 5_000;
 const settingsAreEqual = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
 let hasWarnedMissingAuthProvider = false;
@@ -168,7 +169,10 @@ const getCachedGlobalSettings = () => {
 const setCachedGlobalSettings = (settings) => {
   if (typeof window === 'undefined' || !settings) return;
   try {
-    window.localStorage.setItem(GLOBAL_SETTINGS_CACHE_KEY, JSON.stringify(settings));
+    const serialized = JSON.stringify(settings);
+    if (window.localStorage.getItem(GLOBAL_SETTINGS_CACHE_KEY) !== serialized) {
+      window.localStorage.setItem(GLOBAL_SETTINGS_CACHE_KEY, serialized);
+    }
   } catch {
     // Storage quota exceeded or disabled
   }
@@ -219,7 +223,10 @@ const triggerPendingPaymentReplay = (supabase) => {
 
 const fetchFreshUserProfile = async (User) => {
   const refCode = getStoredReferralCode();
-  const [profile] = await Promise.all([User.me(refCode), User.updateLastActive()]);
+  const profile = await User.me(refCode);
+  // Authentication can briefly precede profile creation. Retry after the
+  // profile exists even if the earlier no-op RPC received a successful status.
+  void User.updateLastActive({ force: true });
   return profile;
 };
 
@@ -249,7 +256,7 @@ export const AuthProvider = ({ children }) => {
   const [adminCheckComplete, setAdminCheckComplete] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [globalSettings, setGlobalSettings] = useState(() => getCachedGlobalSettings());
-  const [settingsLoading, setSettingsLoading] = useState(() => !getCachedGlobalSettings());
+  const [settingsLoading, setSettingsLoading] = useState(true);
   const isFetchingProfile = React.useRef(false);
   const isMountedRef = useRef(true);
 
@@ -265,23 +272,49 @@ export const AuthProvider = ({ children }) => {
    * apply a maintenance/banner change to its own session immediately after
    * saving instead of waiting for the poll.
    */
-  const refreshGlobalSettings = useCallback(async () => {
-    try {
-      const SystemSetting = await loadSystemSettingService();
-      const settings = await SystemSetting.getAll();
-      if (settings && typeof settings === 'object') {
-        setCachedGlobalSettings(settings);
-      }
-      if (isMountedRef.current) {
-        setGlobalSettings((current) => (settingsAreEqual(current, settings) ? current : settings));
-      }
-      return settings;
-    } catch (error) {
-      console.error('AuthContext: Failed to load system settings', error);
-      return null;
-    } finally {
-      if (isMountedRef.current) setSettingsLoading(false);
+  const settingsRequestRef = useRef(null);
+  const forcedSettingsRequestRef = useRef(null);
+  const settingsFetchedAtRef = useRef(0);
+  const latestSettingsRef = useRef(null);
+  const refreshGlobalSettings = useCallback(function readSettings({ force = true } = {}) {
+    if (settingsRequestRef.current) {
+      if (!force) return settingsRequestRef.current;
+      // An admin save must not receive a pre-save response already in flight.
+      forcedSettingsRequestRef.current ||= settingsRequestRef.current
+        .then(() => readSettings({ force: true }))
+        .finally(() => {
+          forcedSettingsRequestRef.current = null;
+        });
+      return forcedSettingsRequestRef.current;
     }
+    if (!force && Date.now() - settingsFetchedAtRef.current < GLOBAL_SETTINGS_REFRESH_GAP_MS) {
+      return Promise.resolve(latestSettingsRef.current);
+    }
+    const request = (async () => {
+      try {
+        const SystemSetting = await loadSystemSettingService();
+        const settings = await SystemSetting.getAll();
+        if (settings && typeof settings === 'object') {
+          latestSettingsRef.current = settings;
+          settingsFetchedAtRef.current = Date.now();
+          setCachedGlobalSettings(settings);
+        }
+        if (isMountedRef.current) {
+          setGlobalSettings((current) =>
+            settingsAreEqual(current, settings) ? current : settings
+          );
+        }
+        return settings;
+      } catch (error) {
+        console.error('AuthContext: Failed to load system settings', error);
+        return null;
+      } finally {
+        if (isMountedRef.current) setSettingsLoading(false);
+        settingsRequestRef.current = null;
+      }
+    })();
+    settingsRequestRef.current = request;
+    return request;
   }, []);
   useEffect(() => {
     let isMounted = true;
@@ -535,8 +568,11 @@ export const AuthProvider = ({ children }) => {
       setupAuthListener().catch((error) => {
         console.warn('Auth listener setup failed:', error);
       });
-      refreshGlobalSettings();
     };
+
+    // Maintenance must be checked before public routes render, even when auth
+    // initialization is deferred for an anonymous landing-page visitor.
+    refreshGlobalSettings({ force: false });
 
     const isAnonymousLanding =
       typeof window !== 'undefined' && window.location.pathname === '/' && !hasLocalSession;
@@ -578,17 +614,35 @@ export const AuthProvider = ({ children }) => {
     if (typeof window === 'undefined') return undefined;
 
     const interval = window.setInterval(() => {
-      if (document.visibilityState === 'visible') refreshGlobalSettings();
+      if (document.visibilityState === 'visible') refreshGlobalSettings({ force: false });
     }, GLOBAL_SETTINGS_POLL_MS);
 
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refreshGlobalSettings();
+      if (document.visibilityState === 'visible') refreshGlobalSettings({ force: false });
     };
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    const onStorage = (event) => {
+      if (event.key !== GLOBAL_SETTINGS_CACHE_KEY || !event.newValue) return;
+      try {
+        const settings = JSON.parse(event.newValue);
+        if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return;
+        // Adopt the other tab's result. Refetching here fans one poll out into
+        // a request from every open tab. Initial availability still waits for
+        // this tab's fresh request; storage is never allowed to unblock it.
+        latestSettingsRef.current = settings;
+        setGlobalSettings((current) => (settingsAreEqual(current, settings) ? current : settings));
+      } catch {
+        // Ignore malformed cache values; the next visible poll repairs them.
+      }
+    };
+    window.addEventListener('storage', onStorage);
 
     return () => {
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+      window.removeEventListener('storage', onStorage);
     };
   }, [refreshGlobalSettings]);
 

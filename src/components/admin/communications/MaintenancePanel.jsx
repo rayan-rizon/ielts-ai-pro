@@ -3,6 +3,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { Clock, LifeBuoy, Save, ShieldCheck, Users, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import useMaintenanceClock from '@/hooks/useMaintenanceClock';
 import {
   AdminButton,
   COLLAPSE,
@@ -21,20 +22,22 @@ import {
   relativeTime,
 } from '@/lib/communications';
 
-const statusOf = (config) => {
+const statusOf = (config, now) => {
   if (!config.enabled)
     return { tone: 'ok', label: 'Site online', detail: 'All users have access.' };
-  if (isMaintenanceScheduled(config))
+  if (isMaintenanceScheduled(config, now))
     return {
       tone: 'warn',
       label: 'Scheduled',
       detail: `Maintenance begins ${relativeTime(config.starts_at)}.`,
     };
-  if (isMaintenanceActive(config))
+  if (isMaintenanceActive(config, now))
     return {
       tone: 'fault',
       label: 'Site offline',
-      detail: 'Everyone except admins and allowlisted emails sees the maintenance page.',
+      detail: config.allow_admins
+        ? 'Visitors and learners see maintenance. Your admin account can still access the site. Open sessions update within 30 seconds.'
+        : 'Visitors and learners see maintenance unless their email is allowlisted. The admin panel stays reachable. Open sessions update within 30 seconds.',
     };
   return {
     tone: 'warn',
@@ -67,7 +70,8 @@ export default function MaintenancePanel({ value, saving, onSave }) {
   const set = (patch) => setDraft((prev) => ({ ...prev, ...patch }));
 
   const saved = useMemo(() => normalizeMaintenance(value), [value]);
-  const status = statusOf(saved);
+  const now = useMaintenanceClock(saved);
+  const status = statusOf(saved, now);
 
   const dirty = useMemo(
     () =>
@@ -76,7 +80,7 @@ export default function MaintenancePanel({ value, saving, onSave }) {
     [draft, allowlistText, saved]
   );
 
-  const persist = (override) => {
+  const persist = async (override) => {
     const next = normalizeMaintenance({
       ...draft,
       ...override,
@@ -86,8 +90,8 @@ export default function MaintenancePanel({ value, saving, onSave }) {
       toast.error('The maintenance window must end after it starts');
       return;
     }
-    setDraft(next);
-    onSave('maintenance_mode', next);
+    const success = await onSave('maintenance_mode', next);
+    if (success) setDraft(next);
   };
 
   return (
@@ -214,7 +218,7 @@ export default function MaintenancePanel({ value, saving, onSave }) {
             <LifeBuoy className="mt-px h-3 w-3 shrink-0" />
             <span>
               <strong className="font-bold">/admin</strong> and{' '}
-              <strong className="font-bold">/admin-login</strong> stay reachable no matter what, so
+              <strong className="font-bold">/admin/login</strong> stay reachable no matter what, so
               turning this on from another device can never lock you out.
             </span>
           </p>

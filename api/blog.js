@@ -33,6 +33,9 @@ const ARTICLE_FIELDS = [
   'featured',
   'view_count',
 ].join(',');
+const INDEX_FIELDS = ARTICLE_FIELDS.split(',')
+  .filter((field) => field !== 'content')
+  .join(',');
 const RELATED_ARTICLE_FIELDS = [
   'id',
   'title',
@@ -1046,6 +1049,7 @@ async function fetchPosts({ slug, select = ARTICLE_FIELDS, limit } = {}) {
 
   const response = await fetch(`${supabaseUrl}/rest/v1/resources?${params}`, {
     headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+    signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok) throw new Error(`Supabase returned ${response.status}`);
   return response.json();
@@ -1120,7 +1124,11 @@ export default async function handler(request, response) {
     const query = request.query || {};
     const slug = Array.isArray(query.slug) ? query.slug[0] : query.slug;
     const [posts, allPosts] = await Promise.all([
-      fetchPosts({ slug, limit: slug ? 1 : undefined }),
+      fetchPosts({
+        slug,
+        select: slug ? ARTICLE_FIELDS : INDEX_FIELDS,
+        limit: slug ? 1 : undefined,
+      }),
       slug ? fetchPosts({ select: RELATED_ARTICLE_FIELDS, limit: 4 }) : Promise.resolve(null),
     ]);
     if (slug && posts.length === 0) return sendNotFound(response);
@@ -1131,6 +1139,7 @@ export default async function handler(request, response) {
     response.status(200).send(index);
   } catch (error) {
     console.error('[blog-render]', error);
+    response.setHeader('Cache-Control', 'no-store');
     try {
       sendError(response);
     } catch (renderError) {

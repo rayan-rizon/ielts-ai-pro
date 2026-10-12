@@ -109,4 +109,36 @@ describe('autosave serialization', () => {
       { response: 'third' },
     ]);
   });
+
+  it('skips acknowledged unchanged flushes but preserves timer and annotation changes', async () => {
+    let metadata = { time_remaining: 120, notes: { q1: 'first note' } };
+    const { result } = renderHook(() =>
+      useAutosave({
+        session: { id: 'session-1', content_data: {} },
+        getAnswers: () => ({ q1: 'TRUE' }),
+        getExtraData: () => metadata,
+        isFinished: false,
+      })
+    );
+    const flush = async () => {
+      let pending!: Promise<boolean>;
+      act(() => {
+        pending = result.current.saveNow();
+      });
+      await waitFor(() => expect(database.completions).toHaveLength(1));
+      await act(async () => {
+        database.completions.shift()?.();
+        await pending;
+      });
+    };
+    await flush();
+    await act(async () => expect(await result.current.saveNow()).toBe(true));
+    expect(database.payloads).toHaveLength(1);
+    metadata = { ...metadata, time_remaining: 100 };
+    await flush();
+    metadata = { ...metadata, notes: { q1: 'edited note' } };
+    await flush();
+    expect(database.payloads).toHaveLength(3);
+    expect(database.payloads[2].content_data).toMatchObject(metadata);
+  });
 });

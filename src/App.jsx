@@ -244,7 +244,7 @@ const LazyPage = ({ children, className }) => {
   );
 };
 
-const router = createBrowserRouter(
+const getRoutes = () =>
   withGlobalRouteErrors([
     {
       path: '/',
@@ -1002,18 +1002,18 @@ const router = createBrowserRouter(
         </LazyPage>
       ),
     },
-  ]),
+  ]);
 
-  {
-    future: {
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-      v7_fetcherPersist: true,
-      v7_normalizeFormMethod: true,
-      v7_skipActionErrorRevalidation: true,
-    },
-  }
-);
+// Observe navigation while covering public and learner routes.
+const router = createBrowserRouter([{ element: <MaintenanceGate />, children: getRoutes() }], {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+    v7_fetcherPersist: true,
+    v7_normalizeFormMethod: true,
+    v7_skipActionErrorRevalidation: true,
+  },
+});
 
 function App() {
   React.useEffect(() => {
@@ -1087,16 +1087,11 @@ function App() {
 
   return (
     <ErrorBoundary data-oid="wz-jyt7">
-      {/* Wraps the router, not the app shell: public routes (landing, SEO
-          pages, blog, calculators) never render Layout, so a gate inside
-          Layout left them open during a maintenance window. */}
-      <MaintenanceGate>
-        <Suspense
-          fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
-        >
-          <RouterProvider router={router} data-oid="m-t-6xh" />
-        </Suspense>
-      </MaintenanceGate>
+      <Suspense
+        fallback={<RouteLoading message="Starting up..." fullScreen data-oid="router-fallback" />}
+      >
+        <RouterProvider router={router} data-oid="m-t-6xh" />
+      </Suspense>
       <IdleToaster />
     </ErrorBoundary>
   );

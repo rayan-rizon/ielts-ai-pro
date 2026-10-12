@@ -59,6 +59,10 @@ describe('server-rendered IELTS blog', () => {
 
     await blogHandler({ query: {} }, response);
 
+    const request = new URL(fetch.mock.calls[0][0]);
+    expect(request.searchParams.get('select').split(',')).not.toContain('content');
+    expect(fetch.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain(`<script>${signupAttributionScript}</script>`);
     expect(response.headers['Content-Type']).toContain('text/html');
@@ -113,6 +117,19 @@ describe('server-rendered IELTS blog', () => {
     ]) {
       expect(BLOG_CSS).toContain(rule);
     }
+  });
+
+  it('keeps article content for detail pages and prevents caching upstream failures', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [article] }));
+    await blogHandler({ query: { slug: article.slug } }, createResponse());
+    expect(new URL(fetch.mock.calls[0][0]).searchParams.get('select').split(',')).toContain(
+      'content'
+    );
+    fetch.mockRejectedValueOnce(new Error('Upstream unavailable'));
+    const response = createResponse();
+    await blogHandler({ query: {} }, response);
+    expect(response.statusCode).toBe(503);
+    expect(response.headers['Cache-Control']).toBe('no-store');
   });
 
   it('returns a branded 404 instead of canonicalising out-of-range archive pages', async () => {

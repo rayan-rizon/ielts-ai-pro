@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { readFileSync } from 'node:fs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { toast } from 'sonner';
 import ManualPayment from '@/features/subscription/components/ManualPayment';
 import NagadPaymentResult from '@/features/subscription/pages/NagadPaymentResult';
@@ -133,6 +133,10 @@ describe('Nagad in the Bangladesh payment modal', () => {
 });
 
 describe('Nagad result page', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
@@ -144,6 +148,28 @@ describe('Nagad result page', () => {
         <NagadPaymentResult />
       </MemoryRouter>
     );
+
+  it('backs off, pauses hidden tabs and reconciles immediately on return', async () => {
+    vi.useFakeTimers();
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+    fetchNagadPaymentStatus.mockResolvedValue({ order_id: 'IAPTEST123', status: 'pending' });
+    renderAt('?order=IAPTEST123');
+    await act(async () => {});
+    expect(fetchNagadPaymentStatus).toHaveBeenCalledTimes(1);
+    await act(async () => vi.advanceTimersByTimeAsync(3000));
+    expect(fetchNagadPaymentStatus).toHaveBeenCalledTimes(2);
+    await act(async () => vi.advanceTimersByTimeAsync(4499));
+    expect(fetchNagadPaymentStatus).toHaveBeenCalledTimes(2);
+    await act(async () => vi.advanceTimersByTimeAsync(1));
+    expect(fetchNagadPaymentStatus).toHaveBeenCalledTimes(3);
+    visibility.mockReturnValue('hidden');
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    await act(async () => vi.advanceTimersByTimeAsync(20000));
+    expect(fetchNagadPaymentStatus).toHaveBeenCalledTimes(3);
+    visibility.mockReturnValue('visible');
+    await act(async () => document.dispatchEvent(new Event('visibilitychange')));
+    expect(fetchNagadPaymentStatus).toHaveBeenCalledTimes(4);
+  });
 
   it('confirms a paid order, refreshes the profile and tracks the purchase once', async () => {
     fetchNagadPaymentStatus.mockResolvedValue({

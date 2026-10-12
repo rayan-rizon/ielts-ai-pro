@@ -23,6 +23,7 @@ const POLL_MS = 3000;
 // Nagad usually confirms within seconds; after this the page stops asking and
 // the reconcile job finishes the order in the background.
 const POLL_LIMIT = 40;
+const POLL_WINDOW_MS = 120_000;
 const ORDER_ID = /^[A-Za-z0-9]{5,20}$/;
 
 const VIEW = {
@@ -129,38 +130,58 @@ export default function NagadPaymentResult() {
     if (!ORDER_ID.test(orderId || '')) return undefined;
     let cancelled = false;
     let timer = null;
+    let inFlight = false;
+    let finished = false;
+    let attempts = 0;
+    const startedAt = Date.now();
+    tracked.current = false;
+    setState('checking');
+    setOrder(null);
 
-    const poll = async (attempt) => {
+    const poll = async () => {
+      if (cancelled || finished || inFlight || document.visibilityState === 'hidden') return;
+      inFlight = true;
+      attempts += 1;
       try {
         const result = await fetchNagadPaymentStatus(orderId);
         if (cancelled) return;
         setOrder(result);
         if (result.status === 'paid' && result.test_mode) {
+          finished = true;
           setState('test');
           return;
         }
         if (result.status === 'paid') {
+          finished = true;
           setState('paid');
           onPaid(result);
           return;
         }
         if (['failed', 'expired', 'review'].includes(result.status)) {
+          finished = true;
           setState(result.status);
           return;
         }
       } catch (error) {
         if (cancelled) return;
         if (error.status === 404 || error.status === 400) {
+          finished = true;
           setState('invalid');
           return;
         }
         // Network blips: keep polling; the order is safe either way.
+      } finally {
+        inFlight = false;
       }
-      if (attempt + 1 >= POLL_LIMIT) {
+      if (attempts >= POLL_LIMIT || Date.now() - startedAt >= POLL_WINDOW_MS) {
+        finished = true;
         setState('pending');
         return;
       }
-      timer = setTimeout(() => poll(attempt + 1), POLL_MS);
+      timer = setTimeout(
+        poll,
+        Math.min(POLL_MS * 1.5 ** (attempts - 1), 15_000, POLL_WINDOW_MS - (Date.now() - startedAt))
+      );
     };
 
     const onPaid = async (result) => {
@@ -193,10 +214,17 @@ export default function NagadPaymentResult() {
       clearMarketingAttribution();
     };
 
-    poll(0);
+    const onVisible = () => {
+      if (timer) clearTimeout(timer);
+      // Always reconcile once on return, including after the window elapsed.
+      if (document.visibilityState === 'visible') void poll();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    void poll();
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [orderId, refreshProfile]);
 

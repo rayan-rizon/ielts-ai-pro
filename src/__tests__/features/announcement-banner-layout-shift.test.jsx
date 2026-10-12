@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AnnouncementBanner from '@/components/shared/AnnouncementBanner';
 import { AuthProvider, useAuth } from '@/features/auth/context/AuthContext';
 import { announcementSignature, normalizeAnnouncement } from '@/lib/communications';
+import { SystemSetting } from '@/features/admin/services/SystemSetting';
 
 // Mock dependencies that AuthProvider imports
 vi.mock('@/lib/supabase', () => ({
@@ -100,6 +101,7 @@ describe('AuthContext synchronous settings caching', () => {
     window.localStorage.clear();
     window.sessionStorage.clear();
     vi.clearAllMocks();
+    SystemSetting.getAll.mockResolvedValue({});
   });
 
   it('restores cached globalSettings synchronously on the very first frame to prevent layout shift', () => {
@@ -132,5 +134,84 @@ describe('AuthContext synchronous settings caching', () => {
     expect(initialSettings).toEqual(cachedSettings);
     expect(initialAnnouncement.enabled).toBe(true);
     expect(initialAnnouncement.title).toBe('All-new IELTS AI Pro');
+  });
+
+  it('coalesces focus events and adopts cross-tab settings without a request fan-out', async () => {
+    let complete;
+    SystemSetting.getAll.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        })
+    );
+    let current;
+    function Consumer() {
+      current = useAuth();
+      return <div>{current.settingsLoading ? 'loading' : 'ready'}</div>;
+    }
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(SystemSetting.getAll).toHaveBeenCalledTimes(1));
+    act(() => {
+      window.dispatchEvent(new Event('focus'));
+      document.dispatchEvent(new Event('visibilitychange'));
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'cached_global_settings',
+          newValue: JSON.stringify({ maintenance_mode: true }),
+        })
+      );
+    });
+    expect(current.settingsLoading).toBe(true);
+    expect(SystemSetting.getAll).toHaveBeenCalledTimes(1);
+    await act(async () => complete({ maintenance_mode: false }));
+    act(() => window.dispatchEvent(new Event('focus')));
+    expect(SystemSetting.getAll).toHaveBeenCalledTimes(1);
+    act(() =>
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'cached_global_settings',
+          newValue: JSON.stringify({ maintenance_mode: true }),
+        })
+      )
+    );
+    expect(current.maintenance.enabled).toBe(true);
+    expect(SystemSetting.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('forces a fresh post-save read after an older request is already running', async () => {
+    let complete;
+    SystemSetting.getAll
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            complete = resolve;
+          })
+      )
+      .mockResolvedValueOnce({ maintenance_mode: true });
+    let current;
+    function Consumer() {
+      current = useAuth();
+      return null;
+    }
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(SystemSetting.getAll).toHaveBeenCalledTimes(1));
+    let refresh;
+    act(() => {
+      refresh = current.refreshGlobalSettings();
+    });
+    await act(async () => {
+      complete({ maintenance_mode: false });
+      await refresh;
+    });
+    expect(SystemSetting.getAll).toHaveBeenCalledTimes(2);
+    expect(current.maintenance.enabled).toBe(true);
   });
 });
