@@ -23,6 +23,7 @@ import { useWritingInitialization } from './useWritingInitialization';
 import { useWritingFeedback } from './useWritingFeedback';
 import { useWritingGamification } from './useWritingGamification';
 import { useWritingStatus } from './useWritingStatus';
+import { flushPendingWritingDrafts } from '@/features/testing/writing/writingDraftFlush';
 
 /**
  * useWritingTaskLogic
@@ -140,6 +141,7 @@ export function useWritingTaskLogic(passedUser = null) {
 
   // 4. Manual Submission Handler
   const handleSubmit = async () => {
+    flushPendingWritingDrafts();
     const store = useWritingTestStore.getState();
     if (!store.session || !store.task) return;
     if (submittingRef.current) return;

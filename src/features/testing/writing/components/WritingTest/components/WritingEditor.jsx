@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Loader2, Type } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { NUM } from '@/features/dashboard/components/primitives';
+import { registerWritingDraftFlusher } from '@/features/testing/writing/writingDraftFlush';
 
 // Hoisted so the <ReactQuill> `modules` prop keeps a stable identity across
 // renders instead of being rebuilt on every keystroke-driven re-render.
@@ -79,7 +80,13 @@ export function WritingEditor({
     setWriting(lastWritingRef.current);
   }, [setWriting]);
 
-  React.useEffect(() => () => flushWriting(), [flushWriting]);
+  React.useEffect(() => {
+    const unregister = registerWritingDraftFlusher(flushWriting);
+    return () => {
+      unregister();
+      flushWriting();
+    };
+  }, [flushWriting]);
 
   // Sync local state when external writing changes (e.g. task switch, session load)
   React.useEffect(() => {

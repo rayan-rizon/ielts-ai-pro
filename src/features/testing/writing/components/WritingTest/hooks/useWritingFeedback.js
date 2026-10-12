@@ -8,6 +8,7 @@ import { removeFromCache } from '@/hooks/useDataQuery';
 import { trackAppEvent } from '@/lib/tracking';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
+import { flushPendingWritingDrafts } from '@/features/testing/writing/writingDraftFlush';
 import {
   aggregateWritingCriteria,
   calculateWeightedWritingBand,
@@ -136,6 +137,7 @@ export function useWritingFeedback(awardXP) {
 
   const handleGetFeedback = useCallback(async () => {
     if (analyzingRef.current) return;
+    flushPendingWritingDrafts();
     const store = useWritingTestStore.getState();
     if (store.session?.evaluation_status === 'legacy') {
       store.setFeedbackError(

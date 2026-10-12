@@ -14,6 +14,7 @@ import React, { createContext, useContext, useEffect, useCallback, useMemo, useR
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { useAutosave } from '@/hooks/useAutosave';
 import { getSessionTestMode } from '@/features/testing/shared/testMode';
+import { flushPendingWritingDrafts } from '@/features/testing/writing/writingDraftFlush';
 
 // ============ ACTIONS CONSTANT (for dispatch compatibility) ============
 const ACTIONS = {
@@ -160,6 +161,10 @@ export function WritingTestProvider({ children }) {
     onSaveSuccess,
     onSaveError,
   });
+  const flushAndSaveNow = useCallback(() => {
+    flushPendingWritingDrafts();
+    return saveNow();
+  }, [saveNow]);
 
   // Sync internal autosave state to store
   useEffect(() => {
@@ -281,8 +286,8 @@ export function WritingTestProvider({ children }) {
   );
 
   const dispatchContextValue = useMemo(
-    () => ({ dispatch, getLatestState, saveNow, ACTIONS }),
-    [dispatch, getLatestState, saveNow]
+    () => ({ dispatch, getLatestState, saveNow: flushAndSaveNow, ACTIONS }),
+    [dispatch, getLatestState, flushAndSaveNow]
   );
 
   // For backward compatibility, provide context values

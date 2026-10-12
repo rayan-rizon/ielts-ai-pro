@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
+import { registerWritingDraftFlusher } from '@/features/testing/writing/writingDraftFlush';
 
 const recovery = vi.hoisted(() => ({
   session: null,
@@ -122,5 +123,26 @@ describe('main Writing pending recovery', () => {
       showUpgradeDialog: false,
     });
     expect(awardXP).toHaveBeenCalledTimes(1);
+  });
+
+  it('includes the newly typed Task 2 even when its debounced store update has not run', async () => {
+    const latestEssay = 'last words '.repeat(140);
+    useWritingTestStore.getState().setDraft('Task 2', '');
+    const unregister = registerWritingDraftFlusher(() =>
+      useWritingTestStore.getState().setDraft('Task 2', latestEssay)
+    );
+    try {
+      const { result } = renderHook(() => useWritingFeedback(vi.fn()));
+      await act(async () => result.current.handleGetFeedback());
+      const task2Call = recovery.evaluate.mock.calls.find(
+        ([payload]) => payload.taskType === 'Task 2'
+      );
+      expect(task2Call?.[0].writingText).toBe(latestEssay.trim());
+      expect(recovery.writes.find((value) => value.evaluation_status === 'complete')).toMatchObject(
+        { content_data: { task1Band: 8, task2Band: 7 } }
+      );
+    } finally {
+      unregister();
+    }
   });
 });
