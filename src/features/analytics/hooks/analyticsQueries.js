@@ -24,24 +24,24 @@ export const fetchSessions = async (userId, selectedTimeframe = '30d', now = Dat
   const sessions = [];
   const cutoff = getSessionFetchCutoff(selectedTimeframe, now);
 
-  for (let from = 0; ; from += ANALYTICS_SESSION_PAGE_SIZE) {
-    let query = supabase
-      .from('test_sessions')
-      .select(
-        'id, passage_id, created_at, completed_at, score, duration_minutes, actual_duration_seconds, test_type, test_mode, is_completed, evaluation_status, evaluation_version, evaluated_at, content_data, passage:passages(title, cambridge_title, test_format)'
-      )
-      .eq('user_id', userId)
-      .eq('is_completed', true)
-      .order('completed_at', { ascending: false })
-      .order('id', { ascending: false });
-    if (cutoff) query = query.gte('completed_at', cutoff);
-
-    const { data, error } = await query.range(from, from + ANALYTICS_SESSION_PAGE_SIZE - 1);
+  let cursor = null;
+  for (;;) {
+    const { data, error } = await supabase.rpc('get_learner_analytics_page', {
+      p_user_id: userId,
+      p_cutoff: cutoff,
+      p_before_date: cursor?.cursor_date ?? null,
+      p_before_id: cursor?.id ?? null,
+      p_limit: ANALYTICS_SESSION_PAGE_SIZE,
+    });
     if (error) throw error;
-
     const page = data ?? [];
     sessions.push(...page);
     if (page.length < ANALYTICS_SESSION_PAGE_SIZE) break;
+    const next = page.at(-1);
+    if (!next?.id || !next?.cursor_date || next.id === cursor?.id) {
+      throw new Error('Analytics history returned an invalid cursor.');
+    }
+    cursor = next;
   }
 
   return sessions;
@@ -59,15 +59,15 @@ const fetchLearningPathEvidence = async (userId) => {
   return buildLearningPathAnalytics(data?.path_data);
 };
 
-const fetchGrammarAttempts = async (userId) => {
-  const { data, error } = await supabase
-    .from('grammar_attempts')
-    .select('id, mode, correct_count, total_questions, completed_at')
-    .eq('user_id', userId)
-    .eq('completion_state', 'completed')
-    .order('completed_at', { ascending: false });
+export const fetchGrammarAttempts = async (userId, selectedTimeframe = '30d', now = Date.now()) => {
+  const days = { '7d': 7, '30d': 30, '90d': 90, all: null }[selectedTimeframe];
+  const cutoff = days == null ? null : new Date(now - days * 86400000).toISOString();
+  const { data, error } = await supabase.rpc('get_learner_grammar_summary', {
+    p_user_id: userId,
+    p_cutoff: cutoff,
+  });
   if (error) throw error;
-  return data ?? [];
+  return data;
 };
 
 const fetchSkillProficiency = async (userId) => {
@@ -105,10 +105,10 @@ const useLearningPathEvidenceQuery = (userId, includeAdvancedInsights) =>
     staleTime: STALE_TIME,
   });
 
-const useGrammarQuery = (userId, includeAdvancedInsights) =>
+const useGrammarQuery = (userId, includeAdvancedInsights, selectedTimeframe) =>
   useQuery({
-    queryKey: ['analytics', 'grammarAttempts', userId],
-    queryFn: () => fetchGrammarAttempts(userId),
+    queryKey: ['analytics', 'grammarAttempts', userId, selectedTimeframe],
+    queryFn: () => fetchGrammarAttempts(userId, selectedTimeframe),
     enabled: enabledFor(userId) && includeAdvancedInsights,
     staleTime: STALE_TIME,
   });
@@ -131,7 +131,7 @@ export function useAnalyticsQueries(
   const sessions = useSessionsQuery(userId, selectedTimeframe);
   const vocabulary = useVocabularyQuery(userId);
   const learningPath = useLearningPathEvidenceQuery(userId, includeAdvancedInsights);
-  const grammar = useGrammarQuery(userId, includeAdvancedInsights);
+  const grammar = useGrammarQuery(userId, includeAdvancedInsights, selectedTimeframe);
   const skills = useSkillQuery(userId, includeAdvancedInsights);
   const core = [sessions, vocabulary];
   const advanced = includeAdvancedInsights ? [learningPath, grammar, skills] : [];

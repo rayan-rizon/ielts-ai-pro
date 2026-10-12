@@ -1,3 +1,8 @@
+import {
+  checkSharedRateLimit,
+  getAdmittedUser,
+  withTextAiAdmission,
+} from '../_shared/aiAdmission.ts';
 import { AI_ROUTES } from '../_shared/aiModelRegistry.ts';
 import {
   COACH_RESPONSE_SCHEMA,
@@ -28,7 +33,6 @@ import {
   summarizeVocabularyEvidence,
 } from '../_shared/learningPathV2.ts';
 import {
-  checkRateLimit,
   errorResponse,
   finalizeApiUsage,
   getFinalizedReservationResult,
@@ -459,7 +463,7 @@ ${JSON.stringify({
   }
 }
 
-serve(async (req: Request) => {
+const handleRequest = async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return handleCorsPrelight(req);
 
@@ -484,12 +488,13 @@ serve(async (req: Request) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: authData, error: authError } = await supabase.auth.getUser(
-      authHeader.replace(/^Bearer\s+/i, '')
-    );
+    const { data: authData, error: authError } = getAdmittedUser(req)
+      ? { data: { user: getAdmittedUser(req) }, error: null }
+      : await supabase.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''));
     if (authError || !authData.user) return errorResponse('Unauthorized', 401, corsHeaders);
 
-    const rateLimit = checkRateLimit(
+    const rateLimit = await checkSharedRateLimit(
+      supabase,
       getRateLimitIdentifier(req, authData.user.id),
       RATE_LIMITS.AI_FUNCTION
     );
@@ -890,4 +895,6 @@ serve(async (req: Request) => {
   } catch (error: any) {
     return errorResponse(error?.message || 'Unknown learning path error', 500, getCorsHeaders(req));
   }
-});
+};
+
+serve(withTextAiAdmission('generateAdaptiveLearningPath', handleRequest));

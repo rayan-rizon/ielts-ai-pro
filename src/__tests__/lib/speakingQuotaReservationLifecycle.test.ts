@@ -3,7 +3,15 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const readFunction = (name: string) =>
-  readFileSync(resolve(process.cwd(), `supabase/functions/${name}/index.ts`), 'utf8');
+  readFileSync(
+    resolve(
+      process.cwd(),
+      name === 'generateDetailedFeedback'
+        ? 'supabase/functions/_shared/writingEvaluation.ts'
+        : `supabase/functions/${name}/index.ts`
+    ),
+    'utf8'
+  );
 
 describe('speaking quota reservation lifecycle', () => {
   it('finalizes the session-start reservation before per-turn provider work', () => {

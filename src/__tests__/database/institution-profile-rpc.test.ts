@@ -32,6 +32,11 @@ describe('institution-aware profile lookups', () => {
 
   it('never reads the mutating profile view through GET in any Edge Function', () => {
     let callers = 0;
+    const sharedWriting = read('supabase/functions/_shared/writingEvaluation.ts');
+    expect(sharedWriting).not.toMatch(/\.from\(['"]institution_learner_profiles['"]\)/);
+    callers += (
+      sharedWriting.match(/\.rpc\('get_institution_learner_profile', \{ p_auth: [\w.]+ \}\)/g) || []
+    ).length;
     for (const directory of readdirSync(resolve('supabase/functions'), { withFileTypes: true })) {
       if (!directory.isDirectory() || directory.name === '_shared') continue;
       let source: string;

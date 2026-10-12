@@ -47,20 +47,12 @@ async function fetchTakenCounts() {
 async function fetchUserSessions(user, passageIds) {
   if (!user || passageIds.length === 0) return [];
 
-  const { data, error } = await supabase
-    .from('test_sessions')
-    .select(
-      'id, passage_id, is_completed, score, paired_room_id, content_data, created_at, completed_at, user_responses'
-    )
-    .eq('user_id', user.id)
-    .eq('test_type', 'listening')
-    .in('passage_id', passageIds)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching sessions:', error);
-    return [];
-  }
+  const { data, error } = await supabase.rpc('get_learner_latest_sessions', {
+    p_user_id: user.id,
+    p_test_type: 'listening',
+    p_passage_ids: passageIds,
+  });
+  if (error) throw error;
   return data || [];
 }
 
@@ -86,7 +78,9 @@ function buildSessionsByPassage(sessionsData) {
       progress: 0,
       content_data: s.content_data || { passage_id: pId },
       user_responses: s.user_responses || {},
-      completed_questions: s.is_completed ? 40 : countResponses(s.user_responses),
+      completed_questions: s.is_completed
+        ? 40
+        : (s.completed_questions ?? countResponses(s.user_responses)),
       created_at: s.created_at,
       completed_at: s.completed_at,
     };

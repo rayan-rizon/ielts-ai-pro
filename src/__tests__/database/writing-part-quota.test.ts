@@ -7,7 +7,7 @@ const migration = readFileSync(
   'utf8'
 );
 const functionSource = readFileSync(
-  resolve(process.cwd(), 'supabase/functions/generateDetailedFeedback/index.ts'),
+  resolve(process.cwd(), 'supabase/functions/_shared/writingEvaluation.ts'),
   'utf8'
 );
 const correctionMigration = readFileSync(

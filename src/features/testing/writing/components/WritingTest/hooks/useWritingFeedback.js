@@ -286,6 +286,9 @@ export function useWritingFeedback(awardXP) {
 
         const payload = {
           writingText: item.text,
+          sessionId: store.session?.id,
+          evaluationRequestedAt:
+            useWritingTestStore.getState().session?.content_data?.evaluationRequestedAt,
           taskPrompt: item.prompt,
           taskType: item.type,
           imageUrl: item.imageUrl,

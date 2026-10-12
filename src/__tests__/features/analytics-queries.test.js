@@ -1,63 +1,61 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-const { from } = vi.hoisted(() => ({ from: vi.fn() }));
-
-vi.mock('@/lib/supabase', () => ({ supabase: { from } }));
-
+const { rpc } = vi.hoisted(() => ({ rpc: vi.fn() }));
+vi.mock('@/lib/supabase', () => ({ supabase: { rpc } }));
 import {
   ANALYTICS_SESSION_PAGE_SIZE,
   fetchSessions,
+  fetchGrammarAttempts,
   getSessionFetchCutoff,
 } from '@/features/analytics/hooks/analyticsQueries';
+import { buildGrammarEvidence } from '@/features/analytics/hooks/analyticsDataModel';
 
-describe('Analytics session query', () => {
-  beforeEach(() => from.mockReset());
-
-  it('paginates completed sessions so All time is not silently capped', async () => {
-    const firstPage = Array.from({ length: ANALYTICS_SESSION_PAGE_SIZE }, (_, index) => ({
-      id: `session-${index}`,
+describe('Analytics evidence queries', () => {
+  beforeEach(() => rpc.mockReset());
+  it('keeps every All time attempt with a stable date/id cursor instead of offsets', async () => {
+    const page = Array.from({ length: ANALYTICS_SESSION_PAGE_SIZE }, (_, i) => ({
+      id: `session-${i}`,
+      cursor_date: '2026-08-01T00:00:00Z',
     }));
-    const secondPage = [{ id: 'session-1000' }];
-    const range = vi
-      .fn()
-      .mockResolvedValueOnce({ data: firstPage, error: null })
-      .mockResolvedValueOnce({ data: secondPage, error: null });
-    const query = {
-      select: vi.fn(() => query),
-      eq: vi.fn(() => query),
-      order: vi.fn(() => query),
-      gte: vi.fn(() => query),
-      range,
-    };
-    from.mockReturnValue(query);
-
+    rpc.mockResolvedValueOnce({ data: page }).mockResolvedValueOnce({ data: [{ id: 'last' }] });
     const sessions = await fetchSessions('user-1', 'all');
-
     expect(sessions).toHaveLength(ANALYTICS_SESSION_PAGE_SIZE + 1);
-    expect(range).toHaveBeenNthCalledWith(1, 0, ANALYTICS_SESSION_PAGE_SIZE - 1);
-    expect(range).toHaveBeenNthCalledWith(
+    expect(rpc).toHaveBeenNthCalledWith(
       2,
-      ANALYTICS_SESSION_PAGE_SIZE,
-      ANALYTICS_SESSION_PAGE_SIZE * 2 - 1
+      'get_learner_analytics_page',
+      expect.objectContaining({
+        p_before_id: 'session-499',
+        p_before_date: page[499].cursor_date,
+        p_cutoff: null,
+      })
     );
-    expect(query.order).toHaveBeenCalledWith('id', { ascending: false });
-    expect(query.gte).not.toHaveBeenCalled();
   });
-
-  it('fetches only the current and comparison windows for bounded timeframes', async () => {
-    const range = vi.fn().mockResolvedValue({ data: [{ id: 'session-1' }], error: null });
-    const query = {
-      select: vi.fn(() => query),
-      eq: vi.fn(() => query),
-      order: vi.fn(() => query),
-      gte: vi.fn(() => query),
-      range,
-    };
-    from.mockReturnValue(query);
-
+  it('keeps both the current and comparison windows for bounded timeframes', async () => {
+    rpc.mockResolvedValue({ data: [{ id: 'first' }] });
     const now = Date.UTC(2026, 7, 8);
-    await expect(fetchSessions('user-1', '30d', now)).resolves.toEqual([{ id: 'session-1' }]);
-    expect(range).toHaveBeenCalledTimes(1);
-    expect(query.gte).toHaveBeenCalledWith('completed_at', getSessionFetchCutoff('30d', now));
+    expect(await fetchSessions('user-1', '30d', now)).toEqual([{ id: 'first' }]);
+    expect(rpc).toHaveBeenCalledWith(
+      'get_learner_analytics_page',
+      expect.objectContaining({ p_cutoff: getSessionFetchCutoff('30d', now) })
+    );
+  });
+  it('fails rather than silently duplicating history when a cursor is absent', async () => {
+    rpc.mockResolvedValue({ data: Array.from({ length: 500 }, () => ({ id: 'no-date' })) });
+    await expect(fetchSessions('user-1', 'all')).rejects.toThrow('invalid cursor');
+  });
+  it('calculates Grammar accuracy from exact database totals and the requested window', async () => {
+    rpc.mockResolvedValue({
+      data: { completedAttempts: 1200, correct: 10000, questions: 12000, transferAttempts: 15 },
+    });
+    const now = Date.UTC(2026, 7, 8);
+    const evidence = await fetchGrammarAttempts('user-1', '7d', now);
+    expect(rpc).toHaveBeenCalledWith('get_learner_grammar_summary', {
+      p_user_id: 'user-1',
+      p_cutoff: new Date(now - 7 * 86400000).toISOString(),
+    });
+    expect(buildGrammarEvidence(evidence, '7d')).toEqual({
+      completedAttempts: 1200,
+      accuracy: 83,
+      transferAttempts: 15,
+    });
   });
 });

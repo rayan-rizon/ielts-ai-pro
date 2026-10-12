@@ -1,3 +1,4 @@
+import { waitForWritingJob } from './writingJobClient';
 import { getSupabaseClient } from '@/lib/supabase';
 import { checkRateLimit, RATE_LIMITS, getRemainingRequests } from '@/lib/rateLimiter';
 import {
@@ -276,9 +277,36 @@ export async function generateAdaptiveLearningPath(payload = { trigger: 'manual_
  * @returns {Promise<object>} - Feedback data
  */
 export async function generateDetailedFeedback(payload) {
-  return callEdgeFunction('generateDetailedFeedback', payload, {
-    rateLimit: RATE_LIMITS.AI_OPERATION,
-    // No cache - each feedback is unique
+  const client = await getSupabaseClient();
+  const { data: auth } = await client.auth.getSession();
+  if (!auth?.session?.user?.id) throw new Error('Please sign in to review your writing.');
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const fingerprint = Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0')
+  ).join('');
+  let storage;
+  try {
+    storage = window.sessionStorage;
+  } catch {
+    /* Browser storage is optional. */
+  }
+  return waitForWritingJob({
+    key: `writing-job:${auth.session.user.id}:${fingerprint}`,
+    storage,
+    start: () =>
+      callEdgeFunction(
+        'generateDetailedFeedback',
+        { ...payload, async: true },
+        {
+          rateLimit: RATE_LIMITS.AI_OPERATION,
+        }
+      ),
+    getStatus: async (jobId) => {
+      const { data, error } = await client.rpc('get_writing_feedback_job', { p_job_id: jobId });
+      if (error) throw error;
+      return data;
+    },
   });
 }
 

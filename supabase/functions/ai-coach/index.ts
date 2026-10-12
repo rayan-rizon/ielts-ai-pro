@@ -1,3 +1,4 @@
+import { getAdmittedUser, withTextAiAdmission } from '../_shared/aiAdmission.ts';
 // @ts-ignore Deno runtime imports
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { getCorsHeaders, handleCorsPrelight, validateCsrfProtection } from '../_shared/security.ts';
@@ -447,7 +448,7 @@ async function handleConfirm(admin: any, authId: string, body: any) {
   return { status: 'confirmed', action: proposal.action_type, payload };
 }
 
-Deno.serve(async (req: Request) => {
+const handleRequest = async (req: Request) => {
   const headers = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return handleCorsPrelight(req);
   if (req.method !== 'POST') return response({ error: 'Use POST' }, 405, headers);
@@ -465,7 +466,9 @@ Deno.serve(async (req: Request) => {
   const {
     data: { user: authUser },
     error: authError,
-  } = await admin.auth.getUser(token);
+  } = getAdmittedUser(req)
+    ? { data: { user: getAdmittedUser(req) }, error: null }
+    : await admin.auth.getUser(token);
   if (authError || !authUser) return response({ error: 'Please sign in' }, 401, headers);
   let body: any;
   try {
@@ -813,4 +816,14 @@ Deno.serve(async (req: Request) => {
       headers
     );
   }
-});
+};
+
+Deno.serve(
+  withTextAiAdmission('ai-coach', handleRequest, [
+    'bootstrap',
+    'history',
+    'confirm_action',
+    'check_exercise',
+    'save_preferences',
+  ])
+);

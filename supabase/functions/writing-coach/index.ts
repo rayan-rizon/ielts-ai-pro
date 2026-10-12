@@ -1,3 +1,4 @@
+import { getAdmittedUser, withTextAiAdmission } from '../_shared/aiAdmission.ts';
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 // @ts-ignore
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -30,7 +31,7 @@ function respond(data: unknown, status: number, headers: Record<string, string>)
   });
 }
 
-serve(async (req: Request) => {
+const handleRequest = async (req: Request) => {
   if (req.method === 'OPTIONS') return handleCorsPrelight(req);
   const headers = getCorsHeaders(req);
   if (req.method !== 'POST') return errorResponse('Method not allowed', 405, headers);
@@ -44,7 +45,9 @@ serve(async (req: Request) => {
   const db = createClient(supabaseUrl, serviceKey);
   const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   const { data: auth, error: authError } = token
-    ? await db.auth.getUser(token)
+    ? getAdmittedUser(req)
+      ? { data: { user: getAdmittedUser(req) }, error: null }
+      : await db.auth.getUser(token)
     : { data: null, error: true };
   if (authError || !auth?.user) return errorResponse('Sign in to continue', 401, headers);
   const { data: profile } = await db
@@ -386,4 +389,6 @@ serve(async (req: Request) => {
       headers
     );
   }
-});
+};
+
+serve(withTextAiAdmission('writing-coach', handleRequest, ['status']));

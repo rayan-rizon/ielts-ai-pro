@@ -1,4 +1,6 @@
-import React, { Suspense, useMemo } from 'react';
+import { supabase } from '@/lib/supabase';
+import { reconcileObjectiveResultEvidence } from '@/features/testing/shared/utils/resultEvidence';
+import React, { Suspense, useMemo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -247,7 +249,7 @@ function SummaryResultDialog({ session, onClose }) {
   );
 }
 
-export default function PracticeResultDialog({ session, user, onClose }) {
+function LoadedPracticeResultDialog({ session, user, onClose }) {
   const navigate = useNavigate();
   if (!session) return null;
 
@@ -298,5 +300,68 @@ export default function PracticeResultDialog({ session, user, onClose }) {
         }}
       />
     </Suspense>
+  );
+}
+
+// A compact analytics row contains evidence, not the full scored report.
+export default function PracticeResultDialog({ session, user, onClose }) {
+  const [loaded, setLoaded] = useState(null);
+  const [error, setError] = useState(null);
+  const [retry, setRetry] = useState(0);
+  const needsDetail = Boolean(session?.resultData?.analyticsMetadataOnly);
+  useEffect(() => {
+    let cancelled = false;
+    setLoaded(null);
+    setError(null);
+    if (!needsDetail || !session?.id) return;
+    supabase
+      .from('test_sessions')
+      .select('content_data')
+      .eq('id', session.id)
+      .single()
+      .then(({ data, error: queryError }) => {
+        if (cancelled) return;
+        if (queryError || !data) {
+          setError('The result could not be loaded. Please try again.');
+          return;
+        }
+        setLoaded({
+          ...session,
+          resultData: {
+            ...reconcileObjectiveResultEvidence(data.content_data || {}, session.type),
+            bandScore: session.score,
+            score: session.score,
+            durationMinutes: session.durationMinutes,
+          },
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setError('The result could not be loaded. Please try again.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, needsDetail, retry]);
+  if (!session) return null;
+  if (needsDetail && loaded?.id !== session.id)
+    return (
+      <Dialog open onOpenChange={(open) => !open && onClose()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{error ? 'Result unavailable' : 'Loading result…'}</DialogTitle>
+            <DialogDescription>
+              {error || 'Opening your complete practice result.'}
+            </DialogDescription>
+          </DialogHeader>
+          {error && <Button onClick={() => setRetry((value) => value + 1)}>Try again</Button>}
+        </DialogContent>
+      </Dialog>
+    );
+  return (
+    <LoadedPracticeResultDialog
+      session={needsDetail ? loaded : session}
+      user={user}
+      onClose={onClose}
+    />
   );
 }

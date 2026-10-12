@@ -25,13 +25,12 @@ async function fetchPassages(page, pageSize) {
 
 async function fetchUserSessions(user, passageIds) {
   if (!user || passageIds.length === 0) return [];
-  const { data } = await supabase
-    .from('test_sessions')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('test_type', 'reading')
-    .in('passage_id', passageIds)
-    .order('created_at', { ascending: false });
+  const { data, error } = await supabase.rpc('get_learner_latest_sessions', {
+    p_user_id: user.id,
+    p_test_type: 'reading',
+    p_passage_ids: passageIds,
+  });
+  if (error) throw error;
   return data || [];
 }
 
@@ -51,6 +50,9 @@ function countResponses(userResponses) {
 /** Computes the progress percentage for a raw session row. */
 function computeSessionProgress(s) {
   if (s.progress_percentage) return s.progress_percentage;
+  if (s.completed_questions != null) {
+    return Math.round((s.completed_questions / (s.content_data?.total_questions || 40)) * 100);
+  }
   if (!s.user_responses) return 0;
   const total = s.content_data?.total_questions || 40;
   return Math.round((Object.keys(s.user_responses).length / total) * 100);
@@ -68,7 +70,9 @@ function normaliseSession(s) {
     progress: computeSessionProgress(s),
     content_data: s.content_data || { passage_id: pId },
     user_responses: s.user_responses || {},
-    completed_questions: s.is_completed ? 40 : countResponses(s.user_responses),
+    completed_questions: s.is_completed
+      ? 40
+      : (s.completed_questions ?? countResponses(s.user_responses)),
     created_at: s.created_at,
     completed_at: s.completed_at,
   };

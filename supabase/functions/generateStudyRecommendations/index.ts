@@ -1,10 +1,14 @@
+import {
+  checkSharedRateLimit,
+  getAdmittedUser,
+  withTextAiAdmission,
+} from '../_shared/aiAdmission.ts';
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // @ts-ignore
 import {
   getCorsHeaders,
   handleCorsPrelight,
-  checkRateLimit,
   getRateLimitIdentifier,
   rateLimitedResponse,
   validateCsrfProtection,
@@ -44,7 +48,7 @@ const FALLBACK_RECOMMENDATIONS = {
   },
 };
 
-serve(async (req) => {
+const handleRequest = async (req: Request) => {
   // Get dynamic CORS headers based on request origin
   const corsHeaders = getCorsHeaders(req);
   let quotaReservationId: string | undefined;
@@ -73,7 +77,9 @@ serve(async (req) => {
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser(authHeader?.split(' ')[1]);
+    } = getAdmittedUser(req)
+      ? { data: { user: getAdmittedUser(req) }, error: null }
+      : await supabase.auth.getUser(authHeader?.split(' ')[1]);
     if (authError || !user) {
       return errorResponse('Unauthorized', 401, corsHeaders);
     }
@@ -106,7 +112,7 @@ serve(async (req) => {
     // Hybrid Rate Limiting: In-memory burst protection
     const rateLimitId = getRateLimitIdentifier(req, user.id);
     const burstConfig = getBurstLimitConfig(tier);
-    const burstCheck = checkRateLimit(rateLimitId, burstConfig);
+    const burstCheck = await checkSharedRateLimit(supabase, rateLimitId, burstConfig);
 
     if (!burstCheck.allowed) {
       return rateLimitedResponse(burstCheck.resetIn, corsHeaders);
@@ -344,4 +350,6 @@ Respond ONLY with a valid JSON object in the following format:
       }
     );
   }
-});
+};
+
+serve(withTextAiAdmission('generateStudyRecommendations', handleRequest));

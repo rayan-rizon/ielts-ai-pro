@@ -47,12 +47,15 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
   });
 
   it('uses direct Google Gemini for Writing fallback and DeepSeek fallback for Speaking', () => {
-    const writing = readFunction('generateDetailedFeedback');
+    const writing = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/_shared/writingEvaluation.ts'),
+      'utf8'
+    );
     const speaking = readFunction('evaluateSpeakingTest');
     expect(writing).toContain('WRITING_DIRECT_GEMINI_MODEL');
     expect(writing).not.toContain('WRITING_OPENROUTER_VISION_FALLBACK_MODEL');
     expect(writing).toContain('requestOpenRouterWritingFeedback');
-    expect(writing).toContain('../_shared/writingProvider.ts');
+    expect(writing).toContain('./writingProvider.ts');
     expect(writing).not.toContain('MARKING_TEMPERATURE');
     expect(writing).not.toContain("'openrouter-gemini'");
     expect(writing).toContain("'x-goog-api-key': GEMINI_API_KEY");
@@ -76,7 +79,10 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
       resolve(process.cwd(), 'supabase/functions/_shared/writingProvider.ts'),
       'utf8'
     );
-    const writing = readFunction('generateDetailedFeedback');
+    const writing = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/_shared/writingEvaluation.ts'),
+      'utf8'
+    );
 
     expect(provider).toContain("provider: { sort: 'throughput', require_parameters: true }");
     expect(provider).not.toContain('temperature:');
@@ -88,7 +94,10 @@ describe('OpenRouter DeepSeek-first text AI Edge Function integration', () => {
   });
 
   it('requires grounded Task 1 visual evidence and uses the public Band 3 mismatch boundary', () => {
-    const writing = readFunction('generateDetailedFeedback');
+    const writing = readFileSync(
+      resolve(process.cwd(), 'supabase/functions/_shared/writingEvaluation.ts'),
+      'utf8'
+    );
     expect(writing).toContain('taskAnalysis');
     expect(writing).toContain('TaskAchievement cannot exceed 3.0');
     expect(writing).toContain("['image/png', 'image/jpeg', 'image/webp']");

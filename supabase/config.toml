@@ -417,3 +417,7 @@ verify_jwt = false
 
 [functions.nagad-reconcile]
 verify_jwt = false
+
+# Private Vault token is checked before any job/learner data access.
+[functions.writing-feedback-worker]
+verify_jwt = false

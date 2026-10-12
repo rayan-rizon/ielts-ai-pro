@@ -32,7 +32,7 @@ const recoveredProviderQueueMigration = readMigrationSource(
   '20260819135225_reconcile_recovered_ai_provider_action_queue.sql'
 );
 const writingFeedbackSource = readFileSync(
-  resolve(process.cwd(), 'supabase/functions/generateDetailedFeedback/index.ts'),
+  resolve(process.cwd(), 'supabase/functions/_shared/writingEvaluation.ts'),
   'utf8'
 );
 const synthesizeSpeechSource = readFileSync(

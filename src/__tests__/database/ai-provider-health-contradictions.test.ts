@@ -26,7 +26,15 @@ const standardizedHealthMigration = readFileSync(
 );
 
 const readFunction = (name: string) =>
-  readFileSync(resolve(process.cwd(), `supabase/functions/${name}/index.ts`), 'utf8');
+  readFileSync(
+    resolve(
+      process.cwd(),
+      name === 'generateDetailedFeedback'
+        ? 'supabase/functions/_shared/writingEvaluation.ts'
+        : `supabase/functions/${name}/index.ts`
+    ),
+    'utf8'
+  );
 
 describe('get_ai_provider_health contradictions', () => {
   it('routes every recovery-pressure decision through two named gates', () => {

@@ -86,7 +86,7 @@ describe('2026-08-27 audit follow-up contracts', () => {
   });
 
   it('deletes temporary Task 1 images after evaluation and validates the user prefix', () => {
-    const feedback = readProjectFile('supabase/functions/generateDetailedFeedback/index.ts');
+    const feedback = readProjectFile('supabase/functions/_shared/writingEvaluation.ts');
 
     expect(feedback).toContain('DeleteObjectCommand');
     expect(feedback).toContain('writing-checker/${userId}/');

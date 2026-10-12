@@ -19,6 +19,16 @@ const timeframeCutoff = (selectedTimeframe, now) => {
 };
 
 export function buildGrammarEvidence(grammarAttempts, selectedTimeframe, now = Date.now()) {
+  if (grammarAttempts && !Array.isArray(grammarAttempts)) {
+    return {
+      completedAttempts: Number(grammarAttempts.completedAttempts) || 0,
+      accuracy:
+        Number(grammarAttempts.questions) > 0
+          ? percentOf(Number(grammarAttempts.correct) || 0, Number(grammarAttempts.questions))
+          : null,
+      transferAttempts: Number(grammarAttempts.transferAttempts) || 0,
+    };
+  }
   const cutoff = timeframeCutoff(selectedTimeframe, now);
   const completed = (Array.isArray(grammarAttempts) ? grammarAttempts : []).filter((attempt) => {
     const timestamp = new Date(attempt.completed_at).getTime();
