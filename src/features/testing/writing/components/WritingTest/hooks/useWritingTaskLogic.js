@@ -83,6 +83,15 @@ export function useWritingTaskLogic(passedUser = null) {
 
   const { handleGetFeedback } = useWritingFeedback(awardXP);
   const { loadingMessage } = useWritingStatus();
+  const recoveredGenerationRef = useRef(null);
+
+  useEffect(() => {
+    if (isLoading || !session?.id || session.evaluation_status !== 'pending') return;
+    const generation = `${session.id}:${session.content_data?.evaluationRequestedAt || ''}`;
+    if (recoveredGenerationRef.current === generation) return;
+    recoveredGenerationRef.current = generation;
+    void handleGetFeedback();
+  }, [isLoading, session, handleGetFeedback]);
 
   useEffect(() => {
     if (!task || !currentUser) return;

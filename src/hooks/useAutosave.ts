@@ -286,7 +286,7 @@ export function useAutosave({
             metadata: objectiveMetadata(contentData),
           });
         } else {
-          const { error } = await supabase
+          let saveQuery = supabase
             .from('test_sessions')
             .update({
               user_responses: answers,
@@ -294,6 +294,13 @@ export function useAutosave({
             })
             .eq('id', session.id)
             .eq('is_completed', false);
+
+          // Fence saves already in flight in another Writing tab when the
+          // evaluation claim hands session evidence over to queue workers.
+          if (session.test_type === 'writing') {
+            saveQuery = saveQuery.neq('evaluation_status', 'pending');
+          }
+          const { error } = await saveQuery;
 
           if (error) throw error;
         }

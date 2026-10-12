@@ -156,7 +156,7 @@ export function WritingTestProvider({ children }) {
     session,
     getAnswers,
     getExtraData,
-    isFinished: isCompleted,
+    isFinished: isCompleted || session?.evaluation_status === 'pending',
     onSaveSuccess,
     onSaveError,
   });

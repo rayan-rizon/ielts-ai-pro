@@ -233,7 +233,7 @@ function restoreWritingSessionState(store, existingSession, initialActiveType) {
   // Failed evaluations can contain a recoverable Task 1 or Task 2 response.
   // Keep those sessions active so retry only evaluates the missing task.
   store.setCompleted(
-    existingSession.evaluation_status !== 'failed' &&
+    !['failed', 'pending'].includes(existingSession.evaluation_status) &&
       (existingSession.is_completed || Boolean(hasValidFeedback))
   );
 

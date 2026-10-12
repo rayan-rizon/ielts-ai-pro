@@ -104,6 +104,16 @@ export function useWritingFeedback(awardXP) {
 
       if (restoreSavedFeedback(store, latestSession)) return false;
 
+      // Rejoin the existing generation after refresh. Server job fingerprints
+      // and quota reservations prevent another provider call for either part.
+      if (
+        latestSession?.evaluation_status === 'pending' &&
+        !isStalePendingWritingEvaluation(latestSession)
+      ) {
+        store.setSession({ ...store.session, ...latestSession });
+        return true;
+      }
+
       if (isStalePendingWritingEvaluation(latestSession)) {
         const { data: recovered, error: recoveryError } = await supabase
           .from('test_sessions')
@@ -207,6 +217,7 @@ export function useWritingFeedback(awardXP) {
     });
     const requiredPartReviews = analysisPlan.filter((item) => !item.cached).length;
     const isRetryingFailedEvaluation = store.session?.evaluation_status === 'failed';
+    const isRecoveringPendingEvaluation = store.session?.evaluation_status === 'pending';
 
     // Claim the in-memory mutex before the asynchronous quota preflight. The
     // database claim below remains the cross-tab/process safeguard, while this
@@ -244,6 +255,7 @@ export function useWritingFeedback(awardXP) {
           if (
             requiredPartReviews > 0 &&
             !isRetryingFailedEvaluation &&
+            !isRecoveringPendingEvaluation &&
             quota &&
             (quota.allowed === false || !hasEnoughPartReviews)
           ) {
@@ -266,7 +278,9 @@ export function useWritingFeedback(awardXP) {
     try {
       // Ensure content is saved before starting feedback
       console.info('[WritingTest] Starting AI feedback, saving content first...');
-      await saveNow();
+      // The worker owns pending results; a stale draft save must not replace
+      // its generation marker or partially completed reports.
+      if (!isRecoveringPendingEvaluation) await saveNow();
 
       store.setAnalyzing(true);
       store.setFeedbackError(null);

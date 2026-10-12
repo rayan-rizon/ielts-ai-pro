@@ -5,6 +5,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { Passage } from '@/features/testing/shared/services/Passage';
 import { useWritingInitialization } from '@/features/testing/writing/components/WritingTest/hooks/useWritingInitialization';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
+import { supabase } from '@/lib/supabase';
+
+vi.mock('@/lib/supabase', () => ({ supabase: { rpc: vi.fn() } }));
 
 vi.mock('@/features/testing/shared/services/Passage', () => ({
   Passage: { getById: vi.fn() },
@@ -79,6 +82,30 @@ describe('Writing task initialization', () => {
       activeType: 'Task 2',
       prompt: 'Task 2 prompt',
       sample_answer: 'Task 2 sample',
+    });
+  });
+
+  it('restores partial pending reports without claiming the whole test is complete', async () => {
+    window.history.replaceState({}, '', '/writing-task?sessionId=pending-session');
+    vi.mocked(supabase.rpc).mockResolvedValue({
+      data: {
+        task: selectedTask,
+        session: {
+          id: 'pending-session',
+          evaluation_status: 'pending',
+          is_completed: false,
+          content_data: { ai_feedbacks: { 'Task 1': { overallBand: 8 } } },
+          user_responses: [{ task1_response: 'saved report', task2_response: 'saved essay' }],
+        },
+      },
+      error: null,
+    });
+    const { result } = renderHook(() => useWritingInitialization(), { wrapper: RouterWrapper });
+    await act(async () => result.current.initialize({ id: 'learner-1' }));
+    expect(useWritingTestStore.getState()).toMatchObject({
+      isCompleted: false,
+      drafts: { 'Task 1': 'saved report', 'Task 2': 'saved essay' },
+      feedbacks: { 'Task 1': { overallBand: 8 } },
     });
   });
 });
