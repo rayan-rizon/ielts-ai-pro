@@ -102,19 +102,66 @@ The Deno suite includes a real sandbox round trip when the `NAGAD_*` sandbox
 secrets are present. A completed sandbox payment needs a test wallet that Nagad
 registers on request.
 
+## Verification checks (Nagad UAT, 12 Oct 2026)
+
+Nagad passed our sandbox UAT with one requirement: before showing success, check
+`merchant`, `paymentRefId`, `amount`, `statusCode` and `status` in the verify
+response, and show an error on any mismatch. `verificationMismatch` in
+`_shared/nagad.ts` does this on every verify:
+
+| Check                                                 | Success response | Failed / pending response |
+| ----------------------------------------------------- | ---------------- | ------------------------- |
+| `merchantId` equals `NAGAD_MERCHANT_ID`               | required         | must match if present     |
+| `paymentRefId` equals the order's reference           | required         | must match if present     |
+| `orderId` equals the order                            | required         | must match if present     |
+| `amount` equals the order amount (to the paisa)       | required         | not checked               |
+| `statusCode` is a success code (`000` or `00_000_00`) | required         | not checked               |
+
+Any mismatch puts the order in `review` with a reason such as
+`amount_mismatch: paid 10, expected 699.00`. No plan is granted and the order is
+not closed as failed. The result page shows _We could not confirm this payment_
+with the reason in plain words; `nagad-payment-status` returns only the reason's
+code (`review_reason`), never the detail. Failed orders show Nagad's code, and
+`Aborted`/`Cancelled` read as _Payment cancelled_.
+
+Status codes seen in the sandbox: `000` success, `50_0026_106` wrong PIN or OTP,
+`50_0026_851` wallet balance too low, `9999` with status `Aborted` when the
+customer clicks Close. `16_0006_077` at Complete is an amount limit on the
+merchant (it refused ৳2,248+ for part of 11 Oct, then accepted it again).
+
+**Reconciliation report.** Admin → Payments → Nagad → _Reconciliation CSV_
+exports every order in the current environment (live once live keys are
+installed) with `order_id`, `payment_ref_id`, `issuer_payment_ref` (Nagad's
+TrxID), statuses, amounts and times. It has no customer contact details, so it
+can be sent to Nagad as is.
+
 ## Go-live checklist
 
-1. Complete a sandbox payment as an admin (sandbox wallet 01776662444 is
-   registered). The order should end `paid` with the sandbox pill. A first
-   attempt on 2026-10-08 ended `Failed` with code `50_0026_851`, which is not in
-   the guide (likely a wrong PIN or OTP, or no test balance).
-2. Ask Nagad whether live requires whitelisting a server IP. Supabase Edge
-   Functions have no fixed outbound IP; if Nagad insists, calls need to go
-   through a fixed-IP proxy.
-3. UAT session with Nagad, then live credentials: live base URL, live
-   merchant id, our own key pair (upload the public key in the portal).
-4. Set the live secrets (`NAGAD_BASE_URL`, merchant id, keys; optionally
-   `NAGAD_ENVIRONMENT=live`), redeploy the four `nagad-*` functions, test once as
-   an admin with a real wallet, then switch _Available to_ → `everyone`.
-5. Refunds: there is no refund API. Refund in the Nagad merchant portal, then
+Sandbox UAT passed on 12 Oct 2026 (all five checklist cases, first Success:
+`IAPMV3OS8EOA3C0201C1`, TrxID `00061L74`).
+
+1. Log in to the Nagad Merchant Portal
+   (`https://auth.mynagad.com:10900/authentication-service-provider-1.0/login`,
+   login ID `MC…` from Nagad's SMS/email). If the menus below are missing, ask
+   the Key Account Manager to enable online payment.
+2. Merchant Management → _Merchant Integration Details_: note the live
+   Merchant ID, click _Key Generate_ and download `merchant…pri.pem` and
+   `merchant…pub.pem` (every click makes a new pair; use the latest). Download
+   the Nagad Gateway Server Public Key from the same page.
+3. Merchant Management → _Merchant Integration_: enter the callback URL
+   `https://zvrmvycajimjxghrnpgy.supabase.co/functions/v1/nagad-callback`,
+   upload `merchant…pub.pem`, add, submit.
+4. Email Nagad the callback URL for whitelisting. They also whitelist the
+   server IP when the server is outside Bangladesh, which ours is: Nagad calls
+   go out from Supabase Edge Functions, which have no fixed outbound IP. Ask
+   whether they can whitelist the callback URL alone; if they need an IP,
+   route the three Nagad calls through a fixed-IP proxy first. (The frontend
+   moved to Cloudflare; it never calls Nagad, so this does not change.)
+5. Set the live secrets: `NAGAD_BASE_URL=https://api.mynagad.com` (the code
+   adds `/api/dfs/...`), `NAGAD_MERCHANT_ID`, `NAGAD_MERCHANT_PRIVATE_KEY`
+   (`…pri.pem`), `NAGAD_PG_PUBLIC_KEY` (gateway key), optionally
+   `NAGAD_ENVIRONMENT=live`. Redeploy the four `nagad-*` functions.
+6. Pay once as an admin with a real wallet, check the order and TrxID in the
+   admin panel, then switch _Available to_ → `everyone`.
+7. Refunds: there is no refund API. Refund in the Nagad merchant portal, then
    record it in the admin refund ledger as for bKash.

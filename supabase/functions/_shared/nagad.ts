@@ -343,3 +343,67 @@ export function classifyNagadStatus(status: string | null | undefined): NagadOut
   if (FAILED_STATUSES.has(key)) return 'failed';
   return 'pending';
 }
+
+// Success result codes: "00_000_00" in the guide, "000" from the gateway.
+const SUCCESS_STATUS_CODE = /^[0_]+$/;
+
+export function isSuccessStatusCode(code: string | null | undefined): boolean {
+  return SUCCESS_STATUS_CODE.test(String(code || '').trim());
+}
+
+export type NagadMismatchCode =
+  | 'merchant_mismatch'
+  | 'reference_mismatch'
+  | 'order_mismatch'
+  | 'amount_mismatch'
+  | 'status_code_mismatch';
+
+export interface NagadMismatch {
+  code: NagadMismatchCode;
+  detail: string;
+}
+
+/**
+ * Nagad's UAT rule: before telling a customer they paid, the verify response
+ * must name our merchant, this payment reference and order, the exact amount,
+ * a success status and a success status code. Any difference is a mismatch;
+ * the order is held for review and the customer sees an error, never success.
+ *
+ * Non-success responses still have to be about this merchant and reference,
+ * otherwise we would close an order on someone else's answer.
+ */
+export function verificationMismatch(
+  config: Pick<NagadConfig, 'merchantId'>,
+  order: { order_id: string; payment_ref_id: string | null; amount: number | string },
+  verified: VerifiedPayment
+): NagadMismatch | null {
+  const success = classifyNagadStatus(verified.status) === 'paid';
+  const differs = (got: string | null, want: string | null) =>
+    success ? got !== want : got != null && got !== want;
+
+  if (differs(verified.merchantId, config.merchantId)) {
+    return { code: 'merchant_mismatch', detail: `merchant ${verified.merchantId ?? 'missing'}` };
+  }
+  if (differs(verified.paymentRefId, order.payment_ref_id)) {
+    return { code: 'reference_mismatch', detail: 'payment reference differs from this order' };
+  }
+  if (differs(verified.orderId, order.order_id)) {
+    return { code: 'order_mismatch', detail: `order ${verified.orderId ?? 'missing'}` };
+  }
+  if (!success) return null;
+
+  const expected = Math.round(Number(order.amount) * 100);
+  if (verified.amount == null || Math.round(verified.amount * 100) !== expected) {
+    return {
+      code: 'amount_mismatch',
+      detail: `paid ${verified.amount ?? 'unknown'}, expected ${Number(order.amount)}`,
+    };
+  }
+  if (!isSuccessStatusCode(verified.statusCode)) {
+    return {
+      code: 'status_code_mismatch',
+      detail: `status Success with code ${verified.statusCode ?? 'missing'}`,
+    };
+  }
+  return null;
+}

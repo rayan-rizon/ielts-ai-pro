@@ -7,7 +7,12 @@
  * once.
  */
 
-import { classifyNagadStatus, NagadError, verifyPayment, type NagadConfig } from './nagad.ts';
+import {
+  classifyNagadStatus,
+  verificationMismatch,
+  verifyPayment,
+  type NagadConfig,
+} from './nagad.ts';
 
 export interface NagadOrderRow {
   order_id: string;
@@ -50,9 +55,9 @@ export async function syncNagadOrder(
   }
 
   const verified = await verifyPayment(config, order.payment_ref_id);
-  if (verified.merchantId && verified.merchantId !== config.merchantId) {
-    throw new NagadError('Verify response belongs to a different merchant');
-  }
+  // A response that does not match this order never becomes a success or a
+  // failure on its own: the order is held for review with the reason.
+  const mismatch = verificationMismatch(config, order, verified);
 
   const outcome = classifyNagadStatus(verified.status);
   const { data, error } = await serviceClient.rpc('service_finalize_nagad_payment', {
@@ -65,6 +70,7 @@ export async function syncNagadOrder(
     p_verified_amount: verified.amount,
     p_issuer_payment_ref: verified.issuerPaymentRefNo,
     p_payer_mobile: verified.clientMobileNo,
+    p_mismatch: mismatch ? `${mismatch.code}: ${mismatch.detail}` : null,
   });
   if (error) throw new Error(`Could not record Nagad outcome: ${error.message}`);
 

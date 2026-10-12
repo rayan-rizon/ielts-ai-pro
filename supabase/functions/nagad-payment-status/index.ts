@@ -58,7 +58,9 @@ serve(async (req: Request) => {
   const [{ data: order }, { data: profile }] = await Promise.all([
     serviceClient
       .from('nagad_payments')
-      .select(`${NAGAD_ORDER_COLUMNS}, environment`)
+      .select(
+        `${NAGAD_ORDER_COLUMNS}, environment, nagad_status, nagad_status_code, failure_reason`
+      )
       .eq('order_id', orderId)
       .maybeSingle(),
     serviceClient.from('users').select('role').eq('auth_id', user.id).maybeSingle(),
@@ -68,16 +70,27 @@ serve(async (req: Request) => {
     return errorResponse('Order not found', 404, cors);
   }
 
-  let status = order.status;
+  let current = order;
   const lastChecked = order.last_checked_at ? Date.parse(order.last_checked_at) : 0;
   const config = loadNagadConfig();
-  if (config && OPEN_STATUSES.has(status) && Date.now() - lastChecked >= MIN_RECHECK_MS) {
+  if (config && OPEN_STATUSES.has(order.status) && Date.now() - lastChecked >= MIN_RECHECK_MS) {
     try {
-      status = (await syncNagadOrder(serviceClient, config, order)).status;
+      const synced = await syncNagadOrder(serviceClient, config, order);
+      if (synced.status !== order.status) {
+        const { data: fresh } = await serviceClient
+          .from('nagad_payments')
+          .select(
+            `${NAGAD_ORDER_COLUMNS}, environment, nagad_status, nagad_status_code, failure_reason`
+          )
+          .eq('order_id', order.order_id)
+          .maybeSingle();
+        current = fresh || { ...order, status: synced.status };
+      }
     } catch (error) {
       console.error(`[NagadStatus] Could not verify order ${order.order_id}:`, error);
     }
   }
+  const status = current.status;
 
   return successResponse(
     {
@@ -88,7 +101,19 @@ serve(async (req: Request) => {
       amount: Number(order.amount),
       currency: 'BDT',
       test_mode: order.environment === 'sandbox',
+      // What Nagad said, so the page can explain a failure. A review reason is
+      // only its code (amount_mismatch, ...); the detail stays with admins.
+      nagad_status: status === 'paid' ? null : current.nagad_status || null,
+      nagad_status_code: status === 'paid' ? null : current.nagad_status_code || null,
+      review_reason: status === 'review' ? reviewCode(current.failure_reason) : null,
     },
     cors
   );
 });
+
+function reviewCode(reason: string | null): string {
+  const code = String(reason || '')
+    .split(':')[0]
+    .trim();
+  return /^[a-z_]{3,40}$/.test(code) ? code : 'unmatched';
+}

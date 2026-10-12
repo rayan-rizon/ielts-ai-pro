@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshCcw, Wallet } from 'lucide-react';
+import { Download, RefreshCcw, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,11 @@ import {
   Pill,
 } from '../ui/primitives';
 import { formatDateTime } from './billingFormat';
+import {
+  buildNagadReconciliationCsv,
+  NAGAD_REPORT_SELECT,
+  nagadReportFilename,
+} from './nagadReconciliation';
 
 const STATUS_TONE = {
   initiated: 'neutral',
@@ -45,6 +50,26 @@ const VIEWS = [
 ];
 
 const OPEN = new Set(['initiated', 'pending']);
+const REPORT_PAGE = 1000;
+const REPORT_LIMIT = 20000;
+
+/** Every order in one environment, newest first, for the reconciliation CSV. */
+async function fetchReportRows(environment) {
+  const rows = [];
+  for (let from = 0; from < REPORT_LIMIT; from += REPORT_PAGE) {
+    let query = supabase
+      .from('nagad_payments')
+      .select(NAGAD_REPORT_SELECT)
+      .order('created_at', { ascending: false })
+      .range(from, from + REPORT_PAGE - 1);
+    if (environment) query = query.eq('environment', environment);
+    const { data, error } = await query;
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < REPORT_PAGE) break;
+  }
+  return rows;
+}
 
 /**
  * Nagad's own ledger: who can pay with it, and every checkout, including the
@@ -59,6 +84,7 @@ export default function NagadOrdersPanel() {
   const [loading, setLoading] = useState(true);
   const [savingAudience, setSavingAudience] = useState(false);
   const [checking, setChecking] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -122,6 +148,31 @@ export default function NagadOrdersPanel() {
     }
   };
 
+  // Live orders once live keys are installed; sandbox orders while testing.
+  const exportReport = async () => {
+    const environment = testMode ? 'sandbox' : 'live';
+    setExporting(true);
+    try {
+      const rows = await fetchReportRows(environment);
+      const blob = new Blob([buildNagadReconciliationCsv(rows)], {
+        type: 'text/csv;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nagadReportFilename(environment);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${rows.length} ${environment} Nagad orders`);
+    } catch {
+      toast.error('Could not export the Nagad report');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const counts = useMemo(() => {
     const byView = {};
     for (const v of VIEWS) {
@@ -142,6 +193,9 @@ export default function NagadOrdersPanel() {
         title="Nagad online payments"
         description="Who can pay with Nagad, and every checkout, including the ones that did not complete."
       >
+        <AdminButton variant="outline" size="sm" onClick={exportReport} loading={exporting}>
+          <Download className="h-3 w-3" /> Reconciliation CSV
+        </AdminButton>
         <AdminButton variant="outline" size="sm" onClick={load} loading={loading}>
           <RefreshCcw className="h-3 w-3" /> Refresh
         </AdminButton>

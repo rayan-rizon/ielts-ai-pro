@@ -12,6 +12,7 @@ import {
   encryptSensitive,
   formatNagadAmount,
   initializePayment,
+  isSuccessStatusCode,
   isValidOrderId,
   loadNagadConfig,
   nagadDateTime,
@@ -20,8 +21,10 @@ import {
   signSensitive,
   toPem,
   verifyGatewaySignature,
+  verificationMismatch,
   verifyPayment,
   type NagadConfig,
+  type VerifiedPayment,
 } from './nagad.ts';
 import { nagadAvailability } from './nagadAvailability.ts';
 
@@ -226,6 +229,87 @@ Deno.test('availability: sandbox is admin-only, live follows the audience settin
   // Off, or not configured: nobody.
   assert.equal(nagadAvailability(live, 'off', true).available, false);
   assert.equal(nagadAvailability(null, 'everyone', true).available, false);
+});
+
+Deno.test('environment: the live API host is live', () => {
+  assert.equal(nagadEnvironment('https://api.mynagad.com'), 'live');
+  assert.equal(nagadEnvironment('http://sandbox.mynagad.com:30001'), 'sandbox');
+});
+
+Deno.test("success status codes: the guide's and the gateway's forms", () => {
+  for (const code of ['000', '00_000_00', '00_0000_000'])
+    assert.ok(isSuccessStatusCode(code), code);
+  for (const code of [null, '', '50_0026_851', '9999', '001']) {
+    assert.equal(isSuccessStatusCode(code), false, String(code));
+  }
+});
+
+// Nagad UAT: merchant, paymentRefId, amount, status code and status must all
+// match before a customer sees success.
+const order = { order_id: 'IAPMTEST0001', payment_ref_id: 'REF-1', amount: '699.00' };
+const success: VerifiedPayment = {
+  merchantId: ours.merchantId,
+  orderId: 'IAPMTEST0001',
+  paymentRefId: 'REF-1',
+  amount: 699,
+  status: 'Success',
+  statusCode: '000',
+  issuerPaymentRefNo: '00061L74',
+  clientMobileNo: null,
+  issuerPaymentDateTime: null,
+};
+
+Deno.test('verification: a matching Success has no mismatch', () => {
+  assert.equal(verificationMismatch(ours, order, success), null);
+  assert.equal(
+    verificationMismatch(ours, order, { ...success, amount: 699.0, statusCode: '00_000_00' }),
+    null
+  );
+});
+
+Deno.test('verification: each field that differs on a Success is caught', () => {
+  const cases: [Partial<VerifiedPayment>, string][] = [
+    [{ merchantId: '683002007104225' }, 'merchant_mismatch'],
+    [{ merchantId: null }, 'merchant_mismatch'],
+    [{ paymentRefId: 'REF-2' }, 'reference_mismatch'],
+    [{ paymentRefId: null }, 'reference_mismatch'],
+    [{ orderId: 'IAPMOTHER0001' }, 'order_mismatch'],
+    [{ amount: 10 }, 'amount_mismatch'],
+    [{ amount: 699.5 }, 'amount_mismatch'],
+    [{ amount: null }, 'amount_mismatch'],
+    [{ statusCode: '50_0026_851' }, 'status_code_mismatch'],
+    [{ statusCode: null }, 'status_code_mismatch'],
+  ];
+  for (const [change, code] of cases) {
+    assert.equal(
+      verificationMismatch(ours, order, { ...success, ...change })?.code,
+      code,
+      JSON.stringify(change)
+    );
+  }
+});
+
+Deno.test('verification: failures may omit fields but must not name another payment', () => {
+  const failed = {
+    ...success,
+    status: 'Failed',
+    statusCode: '50_0026_106',
+    amount: null,
+    issuerPaymentRefNo: null,
+  };
+  assert.equal(verificationMismatch(ours, order, failed), null);
+  assert.equal(
+    verificationMismatch(ours, order, { ...failed, merchantId: null, paymentRefId: null }),
+    null
+  );
+  assert.equal(
+    verificationMismatch(ours, order, { ...failed, merchantId: '999' })?.code,
+    'merchant_mismatch'
+  );
+  assert.equal(
+    verificationMismatch(ours, order, { ...failed, paymentRefId: 'REF-2' })?.code,
+    'reference_mismatch'
+  );
 });
 
 const sandbox = loadNagadConfig();

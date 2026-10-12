@@ -69,12 +69,13 @@ const VIEW = {
     title: 'This payment was not completed',
     body: 'The Nagad session ended before payment. You can start a new one.',
   },
+  // Nagad's confirmation did not match the order. Never shown as success.
   review: {
     icon: AlertTriangle,
-    tone: 'amber',
-    pill: ['warn', 'Under review'],
-    title: 'We are checking this payment',
-    body: 'Nagad reported a payment we need to match by hand. Our team will sort it out and email you; you do not need to pay again.',
+    tone: 'rose',
+    pill: ['fault', 'Payment error'],
+    title: 'We could not confirm this payment',
+    body: "Nagad's confirmation did not match this order, so your plan has not been activated. Our team will check it with Nagad and email you within one working day. Please do not pay again.",
   },
   invalid: {
     icon: AlertTriangle,
@@ -84,6 +85,37 @@ const VIEW = {
     body: 'We could not find this Nagad payment on your account.',
   },
 };
+
+// Why an order is held, as returned by nagad-payment-status. Each states what
+// did not match; the shared ending says what happens next.
+const REVIEW_REASONS = {
+  amount_mismatch: 'Nagad confirmed a payment, but the amount does not match this order.',
+  merchant_mismatch: "Nagad's confirmation was not issued for IELTS Ai Pro.",
+  reference_mismatch: "Nagad's confirmation refers to a different payment.",
+  order_mismatch: "Nagad's confirmation refers to a different order.",
+  status_code_mismatch: "Nagad's confirmation was incomplete.",
+  success_after_failure: 'Nagad reported this payment as failed and later as successful.',
+};
+const REVIEW_NEXT =
+  'Your plan has not been activated. Our team will check it with Nagad and email you within one working day. Please do not pay again.';
+
+// Nagad statuses where the customer chose not to pay.
+const LEFT_NAGAD = new Set(['aborted', 'cancelled']);
+
+function viewFor(state, order) {
+  const base = VIEW[state];
+  if (state === 'review' && REVIEW_REASONS[order?.review_reason]) {
+    return { ...base, body: `${REVIEW_REASONS[order.review_reason]} ${REVIEW_NEXT}` };
+  }
+  if (state === 'failed' && LEFT_NAGAD.has(String(order?.nagad_status || '').toLowerCase())) {
+    return {
+      ...base,
+      title: 'Payment cancelled',
+      body: 'You left the Nagad page before paying, so no money was taken. You can try again.',
+    };
+  }
+  return base;
+}
 
 export default function NagadPaymentResult() {
   const [searchParams] = useSearchParams();
@@ -168,7 +200,7 @@ export default function NagadPaymentResult() {
     };
   }, [orderId, refreshProfile]);
 
-  const view = VIEW[state];
+  const view = viewFor(state, order);
   const Icon = view.icon;
 
   return (
@@ -216,6 +248,9 @@ export default function NagadPaymentResult() {
             </Row>
             <Row label="Amount">৳{order.amount}</Row>
             <Row label="Order">{order.order_id}</Row>
+            {['failed', 'review'].includes(state) && order.nagad_status_code && (
+              <Row label="Nagad code">{order.nagad_status_code}</Row>
+            )}
           </dl>
         )}
 
