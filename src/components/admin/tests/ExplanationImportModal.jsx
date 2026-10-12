@@ -31,6 +31,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { clearCache } from '@/lib/apiCache';
+import {
+  flattenExplanationImport,
+  validateReadingExplanation,
+} from '@/features/testing/reading/utils/readingExplanations';
 
 const GEMINI_PROMPT_TEMPLATE = `I have 3 IELTS Reading passages and their questions (usually 40 questions in total). For each question, generate a JSON explanation object.
 
@@ -73,6 +77,11 @@ Rules:
 - Process all 40 questions across all 3 passages at once.
 - "passage_highlight" must be the EXACT text from the passages.
 - "why_wrong" should explain why decoy options are incorrect based on the passage.
+- Never put any accepted correct choice in "why_wrong", including the other correct choice in a multi-select question.
+- If the actual passage or the correct answer is missing, stop and request it. Never invent or simulate evidence.
+- Explain the decisive link in plain English: usually 15–30 words for a simple blank, 25–45 for a statement or match, and 35–60 for a complex MCQ. Do not cut necessary reasoning to meet a word limit.
+- NOT GIVEN must identify the specific information the passage does not provide. Do not output "N/A" or only repeat the answer.
+- Use one or two useful keyword pairs. Omit generic connections such as "direct match" and "synonym".
 - Output ONLY valid JSON.
 
 Here are the 3 passages:
@@ -105,6 +114,7 @@ const ExplanationImportModal = ({
   const [importResults, setImportResults] = useState(null);
   const [dbQuestions, setDbQuestions] = useState(null); // Real questions from DB
   const [loadingDb, setLoadingDb] = useState(false);
+  const [passageSections, setPassageSections] = useState([]);
   const [activeTab, setActiveTab] = useState('import'); // 'import' | 'manage'
   const [deletingId, setDeletingId] = useState(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
@@ -203,14 +213,23 @@ const ExplanationImportModal = ({
   React.useEffect(() => {
     if (!isOpen || !passageId) return;
     let cancelled = false;
+    setDbQuestions(null);
+    setPassageSections([]);
     const fetchQuestions = async () => {
       setLoadingDb(true);
       try {
-        const { data, error } = await supabase
-          .from('questions')
-          .select('*')
-          .eq('passage_id', passageId)
-          .order('question_number', { ascending: true });
+        const [{ data, error }, passageResult] = await Promise.all([
+          supabase
+            .from('questions')
+            .select('*')
+            .eq('passage_id', passageId)
+            .order('question_number', { ascending: true }),
+          supabase.from('passages').select('content').eq('id', passageId).single(),
+        ]);
+        if (!cancelled && !passageResult.error && passageResult.data?.content) {
+          const content = JSON.parse(passageResult.data.content);
+          setPassageSections(Array.isArray(content) ? content : content.sections || []);
+        }
         if (!cancelled && !error && data) {
           setDbQuestions(data);
         }
@@ -228,6 +247,7 @@ const ExplanationImportModal = ({
 
   // Helper: count sub-questions for a question (mirrors getQuestionCount in the editor)
   const getQuestionCount = (q) => {
+    if (Number.isInteger(q.question_count) && q.question_count > 0) return q.question_count;
     if (
       q.type === 'notes_completion' ||
       q.type === 'note_completion' ||
@@ -344,7 +364,7 @@ const ExplanationImportModal = ({
       // Remove trailing commas before closing braces (common in AI output)
       jsonStr = jsonStr.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
 
-      const parsed = JSON.parse(jsonStr);
+      const parsed = flattenExplanationImport(JSON.parse(jsonStr));
 
       if (typeof parsed !== 'object' || Array.isArray(parsed)) {
         throw new Error(
@@ -367,6 +387,16 @@ const ExplanationImportModal = ({
         if (!questionMap[key]) {
           warnings.push(`Question #${key} not found in this test`);
           warningCount++;
+        }
+        if (questionMap[key]) {
+          if (!passageSections.length) {
+            throw new Error(
+              'Load the saved passage before importing explanations. Save the test first if it is new.'
+            );
+          }
+          const question = questionMap[key].question;
+          const section = passageSections.find((s) => s.section_number === question.section);
+          parsed[key] = validateReadingExplanation(value, question, key, section?.content);
         }
         // Check if it's a blank-based or regular entry
         if (value.blanks) {
@@ -396,7 +426,7 @@ const ExplanationImportModal = ({
     } catch (err) {
       setParseError(err.message);
     }
-  }, [rawJson, questionMap]);
+  }, [rawJson, questionMap, passageSections]);
 
   const handleImport = useCallback(async () => {
     if (!parsedData) return;
@@ -460,7 +490,13 @@ const ExplanationImportModal = ({
               question,
               data:
                 existingData && existingData.blanks
-                  ? JSON.parse(JSON.stringify(existingData)) // deep clone
+                  ? {
+                      blanks: Object.fromEntries(
+                        Object.entries(existingData.blanks).filter(
+                          ([number]) => questionMap[number]?.question.id === dbId
+                        )
+                      ),
+                    }
                   : { blanks: {} },
             });
           }

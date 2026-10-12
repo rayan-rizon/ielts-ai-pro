@@ -13,7 +13,7 @@ export default function InlineDeepDive({
 }) {
   if (!isFinished || !explanationData) return null;
   const actualKey = explanationData.blanks?.[keyNumber] ? keyNumber : null;
-  if (!actualKey) return null;
+  if (!actualKey && explanationData.blanks) return null;
 
   return (
     <DeepDivePopover
@@ -23,6 +23,7 @@ export default function InlineDeepDive({
       onToggle={() => setOpenDeepDive?.(openDeepDive === itemKey ? null : itemKey)}
       questionType={questionType}
       blankKey={actualKey}
+      questionNumber={keyNumber}
       inline={true}
     />
   );

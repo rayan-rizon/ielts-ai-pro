@@ -126,15 +126,17 @@ export function useReadingTestLogic(
           const passageIdForExplanations = passage?.id || passage?.passage_id;
           if (passageIdForExplanations) {
             // Fetch ALL passage IDs (multi-section tests have multiple passages)
-            const allPassageIds = passage.sections
-              ? passage.sections.map((s) => s.id).filter(Boolean)
-              : [passageIdForExplanations];
+            const allPassageIds = [
+              ...new Set([
+                passageIdForExplanations,
+                ...(passage.sections || []).map((s) => s.id).filter(Boolean),
+              ]),
+            ];
 
             const { data: explanationRows } = await supabase
               .from('questions')
               .select('id, explanation_data')
-              .in('passage_id', allPassageIds)
-              .not('explanation_data', 'is', null);
+              .in('passage_id', allPassageIds);
 
             if (explanationRows && explanationRows.length > 0) {
               const explanationMap = new Map(
@@ -142,7 +144,7 @@ export function useReadingTestLogic(
               );
               const hydrated = questions.map((q) => {
                 const freshExplanation = explanationMap.get(q.id);
-                if (freshExplanation && !q.explanation_data) {
+                if (explanationMap.has(q.id)) {
                   return { ...q, explanation_data: freshExplanation };
                 }
                 return q;
