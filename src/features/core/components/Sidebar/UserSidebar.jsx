@@ -52,7 +52,7 @@ const NavItem = memo(({ item, isActive }) => {
         <Link
           to={item.url}
           data-tour={item.tourKey}
-          className="flex h-8.5 items-center gap-2.5 px-2.5 text-xs"
+          className="flex h-8.5 items-center gap-2.5 px-2.5 text-xs group-data-[collapsible=icon]:mx-auto! group-data-[collapsible=icon]:justify-center! group-data-[collapsible=icon]:gap-0! group-data-[collapsible=icon]:px-0!"
           onClick={() => {
             if (isMobile) setOpenMobile(false);
           }}
@@ -72,7 +72,10 @@ const NavItem = memo(({ item, isActive }) => {
           <span className={cn('truncate font-semibold', COLLAPSIBLE_LABEL)}>{item.title}</span>
 
           {hasAiBadge ? (
-            <AiBadge active={isActive} className={cn('ml-auto', COLLAPSIBLE_LABEL)} />
+            <AiBadge
+              active={isActive}
+              className={cn('ml-auto group-data-[collapsible=icon]:hidden!', COLLAPSIBLE_LABEL)}
+            />
           ) : null}
 
           {item.title === 'Study Groups' && (
