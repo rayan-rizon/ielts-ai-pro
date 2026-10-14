@@ -777,23 +777,49 @@ export function getCampaignTemplate(input: {
     ? `${offer.discountPercent ? `${offer.discountPercent}% off` : 'Your discount applies to'} the first payment of your subscription. Once per account. Future renewals use the regular plan price.`
     : '';
 
+  // Mirrors the in-app offer strip: a red percent stamp, a red "Limited time"
+  // pill and red "Ends in" tiles. Email has no live clock or transforms, so the
+  // tiles are a snapshot at send time and the exact deadline is printed below.
+  const OFFER_RED = '#c93c34';
+  const stampValue = offer?.discountPercent ? `${escapeHtml(offer.discountPercent)}%` : '%';
+  const offerTitle = offer?.discountPercent
+    ? `Your personal ${escapeHtml(offer.discountPercent)}% offer`
+    : 'Your personal offer';
+  const offerSubline = offer?.firstPaymentOnly
+    ? 'First subscription payment, once per account'
+    : 'Applied when you choose your plan';
   const offerBlock = offer
     ? `
-<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:26px 0 0;border-collapse:separate;background:#faf9ff;border:1px solid #e4e2f0;border-radius:20px;table-layout:fixed">
-  <tr><td align="center" style="padding:20px 16px;text-align:center">
-    <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#5a63df">Your personal offer</p>
-    <p style="margin:8px 0 18px;font-size:28px;font-weight:800;line-height:1.1;color:#262438">${offer.discountPercent ? `${escapeHtml(offer.discountPercent)}% off` : 'Your discount'}<span style="display:block;margin-top:6px;font-size:13px;font-weight:500;color:#68657a">${offer.firstPaymentOnly ? 'First subscription payment' : ''}</span></p>
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:22px 0 0;border-collapse:separate;background:#fdf5f4;border:1px solid #f1cfcb;border-radius:20px;table-layout:fixed">
+  <tr><td style="padding:14px 16px 16px">
+    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+      <tr>
+        <td width="58" valign="middle" style="width:58px">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:separate;background:${OFFER_RED};border-radius:14px"><tr>
+            <td align="center" valign="middle" width="54" height="54" style="width:54px;height:54px;text-align:center;color:#ffffff;line-height:1">
+              <span style="display:block;font-size:19px;font-weight:800;letter-spacing:-.03em;color:#ffffff">${stampValue}</span>
+              <span style="display:block;margin-top:2px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#ffffff">Off</span>
+            </td>
+          </tr></table>
+        </td>
+        <td valign="middle" style="padding-left:12px">
+          <span style="display:inline-block;padding:2px 8px;background:${OFFER_RED};border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#ffffff;line-height:1.4">&#9679;&nbsp;Limited time</span>
+          <p style="margin:4px 0 0;font-size:17px;font-weight:800;line-height:1.2;letter-spacing:-.01em;color:#262438">${offerTitle}</p>
+          <p style="margin:2px 0 0;font-size:12px;line-height:1.4;color:#68657a">${escapeHtml(offerSubline)}</p>
+        </td>
+      </tr>
+    </table>
     ${
       countdown
         ? `
-    <p style="margin:0 0 8px;font-size:11px;color:#68657a">Time remaining when sent${remainingMinutes === 0 ? ' · less than 1 minute' : ''}</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;border-spacing:0"><tr>${countdown.map(({ value, label }) => `<td align="center" style="padding:12px 4px;background:#ffffff;border:1px solid #e4e2f0;border-radius:4px"><span style="display:block;font-family:Consolas,Menlo,Monaco,monospace;font-size:28px;font-weight:700;line-height:1.2;color:#262438">${String(value).padStart(2, '0')}</span><span style="display:block;margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#68657a">${label}</span></td>`).join('<td width="8" style="width:8px"></td>')}</tr></table>
-    <p style="margin:10px 0 18px;font-size:12px;line-height:1.5;color:#68657a">${escapeHtml(offerWindow)}</p>`
+    <p style="margin:12px 0 6px;font-size:12px;font-weight:700;color:${OFFER_RED}">Ends in${remainingMinutes === 0 ? ' less than 1 minute' : ''} <span style="font-weight:500;color:#68657a">· time remaining when sent</span></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;border-spacing:0"><tr>${countdown.map(({ value, label }) => `<td align="center" style="padding:7px 4px;background:#ffffff;border:1px solid #efe1df;border-radius:10px;text-align:center"><span style="display:block;font-family:Consolas,Menlo,Monaco,monospace;font-size:21px;font-weight:700;line-height:1.15;color:#262438">${String(value).padStart(2, '0')}</span><span style="display:block;margin-top:1px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#68657a">${label}</span></td>`).join('<td width="6" style="width:6px"></td>')}</tr></table>
+    <p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#68657a">${escapeHtml(offerWindow)}</p>`
         : ''
     }
-    <p style="margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#68657a">Copy the code below</p>
-    <p style="margin:0;padding:12px;background:#ffffff;border:1px solid #e4e2f0;border-radius:4px;font-family:Consolas,Menlo,Monaco,'Courier New',monospace;font-size:18px;font-weight:700;letter-spacing:.03em;word-break:break-all;overflow-wrap:anywhere;color:#4c43a8;line-height:1.7">${escapeHtml(offer.code)}</p>
-    ${offerTerms ? `<p style="margin:14px 0 0;font-size:12px;line-height:1.6;color:${BODY_TEXT}">${escapeHtml(offerTerms)}</p>` : ''}
+    <p style="margin:12px 0 5px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#68657a;text-align:center">Copy the code below</p>
+    <p style="margin:0;padding:8px 12px;background:#ffffff;border:1px dashed ${OFFER_RED};border-radius:10px;font-family:Consolas,Menlo,Monaco,'Courier New',monospace;font-size:17px;font-weight:700;letter-spacing:.03em;word-break:break-all;overflow-wrap:anywhere;color:#262438;line-height:1.5;text-align:center">${escapeHtml(offer.code)}</p>
+    ${offerTerms ? `<p style="margin:10px 0 0;font-size:12px;line-height:1.5;color:${BODY_TEXT};text-align:center">${escapeHtml(offerTerms)}</p>` : ''}
   </td></tr>
 </table>`
     : '';

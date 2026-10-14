@@ -31,6 +31,9 @@ describe('personal offer email', () => {
       },
     });
     expect(result.text).toContain('Time remaining when sent: 3 days, 2 hours, 45 minutes.');
+    expect(result.html).toContain('Limited time');
+    expect(result.html).toContain('Your personal 20% offer');
+    expect(result.html).toContain('Ends in');
     expect(result.html).toContain(code);
     expect(result.html).toContain('word-break:break-all');
     expect(result.html).not.toContain('<script');
