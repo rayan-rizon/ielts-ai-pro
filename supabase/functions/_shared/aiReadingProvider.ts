@@ -15,7 +15,7 @@ type ReadingInput = {
   answerText: string;
   expectedQuestions: number;
   suppliedAnswers: Record<string, string>;
-  images: Array<{ role: string; dataUrl: string; sectionNumber?: number }>;
+  images: Array<{ role: string; dataUrl: string; sectionNumber?: number | null }>;
 };
 type Usage = { tokensUsed: number; estimatedProviderCostUsd: number };
 export class AiReadingGenerationError extends Error {

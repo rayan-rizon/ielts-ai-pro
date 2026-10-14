@@ -10,6 +10,7 @@ export const AI_READING_LIMITS = {
 // Require a numbered answer on each line. Do not silently truncate alternatives,
 // dates or numeric answers, or skip repeated/out-of-order question numbers.
 export function parseAiReadingAnswers(text) {
+  /** @type {Record<string, string>} */
   const answers = {};
   for (const line of String(text || '').split(/\r?\n/)) {
     if (!line.trim()) continue;
@@ -33,6 +34,7 @@ export function validateAiReadingInput(body) {
   if (!Number.isInteger(expectedQuestions) || expectedQuestions < 1 || expectedQuestions > 40) {
     throw new Error('Expected questions must be between 1 and 40.');
   }
+  /** @type {{ passageText: string, questionText: string, answerText: string }} */
   const texts = {};
   for (const field of ['passageText', 'questionText', 'answerText']) {
     if (body[field] != null && typeof body[field] !== 'string') {

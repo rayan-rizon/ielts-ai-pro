@@ -7,6 +7,12 @@ import { validateAiReadingInput } from '../../../supabase/functions/_shared/aiRe
 import { createAiReadingHandler } from '../../../supabase/functions/admin-reading-draft/handler';
 import { aiReadingFixture, aiReadingInput } from '../helpers/aiReadingFixture';
 
+const draftInput = () => {
+  const input = validateAiReadingInput(aiReadingInput());
+  if (!('sectionCounts' in input)) throw new Error('Expected a Reading draft input.');
+  return input;
+};
+
 const response = (draft = aiReadingFixture()) =>
   new Response(
     JSON.stringify({
@@ -22,7 +28,7 @@ describe('cheap Reading model route', () => {
       return Promise.resolve(response());
     });
     const input = {
-      ...validateAiReadingInput(aiReadingInput()),
+      ...draftInput(),
       images: [{ role: 'questions', dataUrl: 'data:image/jpeg;base64,/9j/AAAA' }],
     };
     const result = await generateAiReadingDraft(input, 'test-secret', fetcher);
@@ -40,11 +46,7 @@ describe('cheap Reading model route', () => {
       .fn()
       .mockResolvedValueOnce(response(invalid))
       .mockResolvedValueOnce(response());
-    const result = await generateAiReadingDraft(
-      validateAiReadingInput(aiReadingInput()),
-      'secret',
-      fetcher
-    );
+    const result = await generateAiReadingDraft(draftInput(), 'secret', fetcher);
     expect(JSON.parse(fetcher.mock.calls[1][1].body).model).toBe('z-ai/glm-5.3-flash');
     expect(result.fallbackUsed).toBe(true);
     expect(result.usage.tokensUsed).toBe(600);
@@ -52,9 +54,9 @@ describe('cheap Reading model route', () => {
   });
   it('rejects two bad responses without more paid retries', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response('{}'));
-    await expect(
-      generateAiReadingDraft(validateAiReadingInput(aiReadingInput()), 'secret', fetcher)
-    ).rejects.toBeInstanceOf(AiReadingGenerationError);
+    await expect(generateAiReadingDraft(draftInput(), 'secret', fetcher)).rejects.toBeInstanceOf(
+      AiReadingGenerationError
+    );
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });
