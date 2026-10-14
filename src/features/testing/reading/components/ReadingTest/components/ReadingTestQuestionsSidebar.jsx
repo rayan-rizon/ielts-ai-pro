@@ -17,6 +17,7 @@ import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import QuestionInput from './QuestionInput';
 import { calculateTotalQuestions, calculateGlobalQuestionNumber } from '../utils/helpers';
 import DeepDivePopover from '../../DeepDivePopover';
+import { withReadingTraps } from '../../../utils/readingTraps';
 
 // Direct imports for question renderers (no lazy loading to avoid blank states)
 import TableCompletionRenderer from './QuestionRenderers/TableCompletionRenderer';
@@ -64,6 +65,18 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
 }) {
   const scrollContainerRef = useRef(null);
   const [openDeepDive, setOpenDeepDive] = useState(null);
+  const reviewedQuestions = useMemo(
+    () =>
+      isFinished
+        ? Object.fromEntries(
+            Object.entries(currentPassageQuestions).map(([group, questions]) => [
+              group,
+              questions.map((q) => withReadingTraps(q, testData)),
+            ])
+          )
+        : currentPassageQuestions,
+    [currentPassageQuestions, isFinished, testData]
+  );
 
   // Scroll to top when passage changes
   useEffect(() => {
@@ -99,7 +112,7 @@ const ReadingTestQuestionsSidebar = memo(function ReadingTestQuestionsSidebar({
         data-oid="-j6tz9w"
       >
         <div className="space-y-1.5" key={currentPassageIndex} data-oid="p:gq8r_">
-          {Object.entries(currentPassageQuestions).map(([instruction, qList]) => {
+          {Object.entries(reviewedQuestions).map(([instruction, qList]) => {
             // Prevent duplicate tables: If we have a table_completion question,
             // strip any HTML table tags from the instruction text (legacy data issue).
             const hasTableQuestion = qList.some((q) => q.type === 'table_completion');

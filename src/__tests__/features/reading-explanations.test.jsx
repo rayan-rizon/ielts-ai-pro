@@ -7,6 +7,7 @@ import {
   readingAnswer,
   flattenExplanationImport,
   validateReadingExplanation,
+  temptingAnswer,
 } from '@/features/testing/reading/utils/readingExplanations';
 
 const passage = 'Only one successful breeding attempt occurred in 1899.';
@@ -53,6 +54,7 @@ describe('reading explanation integrity', () => {
   });
   it('recognises both accepted MCQ letters but not the first letter of a word', () => {
     expect(answerChoices('B/C')).toEqual(['B', 'C']);
+    expect(answerChoices('["B. First answer","C. Second answer"]')).toEqual(['B', 'C']);
     expect(answerChoices('A. It leads the public to mistrust AI.')).toEqual(['A']);
     expect(answerChoices('carnivorous')).toEqual([]);
   });
@@ -117,6 +119,78 @@ describe('reading explanation integrity', () => {
 });
 
 describe('learner explanation display', () => {
+  it('shows a tempting wrong answer alongside a short trap', () => {
+    render(
+      <ExplanationBody
+        entries={[
+          {
+            key: '7',
+            data: {
+              ...explanation,
+              trap: 'Check “several” against “only one”.',
+              tempting_answer: 'TRUE',
+            },
+          },
+        ]}
+      />
+    );
+    expect(screen.getByText('Tempting answer:')).toBeInTheDocument();
+    expect(screen.getByText('Tempting answer:').parentElement).toHaveTextContent('TRUE');
+  });
+  it('rejects accepted, unavailable and unsupported tempting answers', () => {
+    expect(temptingAnswer({ ...explanation, tempting_answer: 'FALSE' })).toBeNull();
+    expect(temptingAnswer({ correct_answer: 'B/C', tempting_answer: 'C' })).toBeNull();
+    for (const tempting_answer of ['FALSE', 'A'])
+      expect(() =>
+        validateReadingExplanation(
+          { ...explanation, trap: 'Watch the quantity.', tempting_answer },
+          question,
+          7,
+          passage
+        )
+      ).toThrow('available wrong choice');
+    expect(() =>
+      validateReadingExplanation({ ...explanation, tempting_answer: 'TRUE' }, question, 7, passage)
+    ).toThrow('short trap');
+    expect(
+      validateReadingExplanation(
+        { ...explanation, trap: 'Watch the quantity.', tempting_answer: 'TRUE' },
+        question,
+        7,
+        passage
+      ).tempting_answer
+    ).toBe('TRUE');
+  });
+  it('uses scoring aliases to hide accepted words and only imports source-grounded distractor words', () => {
+    expect(
+      temptingAnswer({ correct_answer: '(sumatran) orangutan', tempting_answer: 'orangutan' })
+    ).toBeNull();
+    const q = { question_number: 1, type: 'short_answer', correct_answer: 'pouch' };
+    const e = {
+      correct_answer: 'pouch',
+      why_correct: 'Young live in the pouch.',
+      passage_highlight: 'Young live in a pouch, then a lair.',
+      trap: 'The gap asks where newborns stay, not where older young hide.',
+      tempting_answer: 'lair',
+    };
+    expect(validateReadingExplanation(e, q, 1, e.passage_highlight).tempting_answer).toBe('lair');
+    expect(() =>
+      validateReadingExplanation({ ...e, tempting_answer: 'air' }, q, 1, e.passage_highlight)
+    ).toThrow('available wrong choice');
+  });
+  it('shows a short optional trap without changing legacy explanations', () => {
+    const trap = 'A proposal does not tell you whether it worked.';
+    const { rerender } = render(
+      <ExplanationBody entries={[{ key: '10', data: { ...explanation, trap } }]} />
+    );
+    expect(screen.getByText('Common trap:')).toBeInTheDocument();
+    expect(screen.getByText(trap, { exact: false })).toBeInTheDocument();
+    rerender(<ExplanationBody entries={[{ key: '10', data: explanation }]} />);
+    expect(screen.queryByText('Common trap:')).not.toBeInTheDocument();
+    expect(() =>
+      validateReadingExplanation({ ...explanation, trap: 'x'.repeat(181) }, question, 7, passage)
+    ).toThrow('180 characters');
+  });
   it('shows the reason first and keeps supporting details expandable', () => {
     const { container } = render(<ExplanationBody entries={[{ key: '7', data: explanation }]} />);
     expect(screen.getByText('Answer: FALSE')).toBeInTheDocument();

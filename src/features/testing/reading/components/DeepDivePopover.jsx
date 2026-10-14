@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight, Lightbulb, AlertTriangle, Target } from 'lucide-r
 import { cn } from '@/lib/cn';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { IconChip, MICRO, TILE, PANEL, Pill } from '@/features/dashboard/components/primitives.jsx';
-import { answerChoices, wrongOptions } from '../utils/readingExplanations';
+import { answerChoices, wrongOptions, temptingAnswer } from '../utils/readingExplanations';
 
 export function ExplanationBody({ entries, userAnswer }) {
   const chosen = answerChoices(userAnswer);
@@ -21,6 +21,7 @@ export function ExplanationBody({ entries, userAnswer }) {
         const mappings = data.synonym_map || [];
         const correct = answerChoices(data.correct_answer);
         const answerLabel = correct.length ? correct.join(' / ') : data.correct_answer;
+        const tempting = temptingAnswer(data);
         return (
           <section
             key={key ?? index}
@@ -48,6 +49,26 @@ export function ExplanationBody({ entries, userAnswer }) {
                 {data.why_correct}
               </p>
             </div>
+            {typeof data.trap === 'string' && data.trap.trim() && (
+              <div className="flex items-start gap-2 rounded-md bg-[rgb(var(--signal-warn)/0.07)] px-2.5 py-2">
+                <AlertTriangle
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-warn))]"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0 text-[12px] leading-relaxed text-slate-700 dark:text-slate-200 break-words">
+                  {tempting && (
+                    <p className="mb-1">
+                      <span className="font-bold">Tempting answer: </span>
+                      {tempting}
+                    </p>
+                  )}
+                  <p>
+                    <span className="font-bold">Common trap: </span>
+                    {data.trap}
+                  </p>
+                </div>
+              </div>
+            )}
             {chosenWrong.map(([option, reason]) => (
               <div key={option} className={cn(TILE, 'p-3 border-[rgb(var(--signal-warn)/0.3)]')}>
                 <div className="flex items-center gap-1.5 mb-1.5">

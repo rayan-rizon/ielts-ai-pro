@@ -1,3 +1,5 @@
+import { isAnswerCorrect } from '../../../../lib/ieltsAnswerValidation.js';
+
 // A question row can own several scored numbers; each explanation still belongs
 // to exactly one of those numbers. Keep that boundary when importing content.
 export function readingAnswer(question, number = question.question_number) {
@@ -25,6 +27,14 @@ export function readingAnswer(question, number = question.question_number) {
 export function answerChoices(answer) {
   if (Array.isArray(answer)) return answer.flatMap(answerChoices);
   const text = String(answer || '').trim();
+  if (text.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) return answerChoices(parsed);
+    } catch {
+      /* Old answer strings can contain ordinary square brackets. */
+    }
+  }
   if (/^(TRUE|FALSE|YES|NO|NOT GIVEN)$/i.test(text)) return [text.toUpperCase()];
   // Do not interpret the first letter of a normal word as an MCQ answer.
   return text.split(/\s*[/,&]\s*/).flatMap((part) => {
@@ -40,6 +50,17 @@ export function wrongOptions(explanation) {
       ([key]) => !correct.includes(key.trim().toUpperCase())
     )
   );
+}
+
+// A tempting answer must never be an accepted choice, including multi-select.
+export function temptingAnswer(explanation) {
+  const candidate = explanation?.tempting_answer;
+  if (typeof candidate !== 'string' || !candidate.trim() || candidate.length > 80) return null;
+  const normalized = candidate.trim().toUpperCase();
+  const correct = answerChoices(explanation.correct_answer);
+  if (correct.includes(normalized) || isAnswerCorrect(candidate, explanation.correct_answer || ''))
+    return null;
+  return candidate.trim();
 }
 
 export function flattenExplanationImport(parsed) {
@@ -87,6 +108,14 @@ export function plainReadingPassage(text) {
 export function validateReadingExplanation(explanation, question, number, passage) {
   const prefix = `Q${number}: `;
   if (
+    explanation.trap != null &&
+    (typeof explanation.trap !== 'string' ||
+      !explanation.trap.trim() ||
+      explanation.trap.trim().length > 180)
+  ) {
+    throw new Error(prefix + 'Keep the trap to a short, clear note (180 characters maximum).');
+  }
+  if (
     /simulated passage|passage(?: text)?(?: (?:was|is))? (?:not provided|missing)|hypothetical passage/i.test(
       JSON.stringify(explanation)
     )
@@ -110,6 +139,53 @@ export function validateReadingExplanation(explanation, question, number, passag
   }
   const answer = readingAnswer(question, number);
   if (!answer) throw new Error(prefix + 'Save a correct answer before importing its explanation.');
+  if (explanation.tempting_answer != null) {
+    const candidate = temptingAnswer({ ...explanation, correct_answer: answer });
+    const options = question.matching_features?.options || question.options || [];
+    const allowed =
+      question.type === 'true_false_not_given'
+        ? ['TRUE', 'FALSE', 'NOT GIVEN']
+        : question.type === 'yes_no_not_given'
+          ? ['YES', 'NO', 'NOT GIVEN']
+          : ['multiple_choice', 'matching_features'].includes(question.type)
+            ? options.map((_, index) =>
+                question.matching_features?.style === 'ROMAN'
+                  ? [
+                      'I',
+                      'II',
+                      'III',
+                      'IV',
+                      'V',
+                      'VI',
+                      'VII',
+                      'VIII',
+                      'IX',
+                      'X',
+                      'XI',
+                      'XII',
+                      'XIII',
+                      'XIV',
+                      'XV',
+                    ][index]
+                  : String.fromCharCode(65 + index)
+              )
+            : [];
+    const sourceTokens = plainReadingPassage(passage)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const candidateTokens = candidate
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const sourceWord = candidateTokens && ` ${sourceTokens} `.includes(` ${candidateTokens} `);
+    const available = allowed.length ? allowed.includes(candidate?.toUpperCase()) : sourceWord;
+    if (!candidate || !explanation.trap || !available) {
+      throw new Error(
+        prefix + 'Tempting answer must be an available wrong choice with a short trap note.'
+      );
+    }
+  }
   if (
     explanation.synonym_map != null &&
     (!Array.isArray(explanation.synonym_map) ||
