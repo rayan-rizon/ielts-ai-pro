@@ -103,7 +103,7 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
               and measure practice or paid conversion against a holdout.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2">
             <Pill tone="ok">
               <span className={NUM}>{currentSubscriptions?.total ?? 0}</span> current paying
             </Pill>
@@ -116,9 +116,14 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
       </div>
 
       <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-        <div className="p-4 lg:border-r lg:border-stone-200/80 dark:lg:border-white/[0.07]">
-          <p className={cn(MICRO, 'mb-2 text-stone-500 dark:text-stone-400')}>Account lifecycle</p>
-          <div className="flex min-w-0 items-stretch gap-1 overflow-x-auto pb-1">
+        <div className="border-b lg:border-b-0 lg:border-r border-stone-200/80 p-4 dark:border-white/[0.07]">
+          <div className="flex items-center justify-between mb-2">
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Account lifecycle</p>
+            <span className="text-[9px] font-medium text-stone-400 dark:text-stone-500 sm:hidden">
+              Swipe for all 6 stages →
+            </span>
+          </div>
+          <div className="no-scrollbar touch-pan-x flex min-w-0 items-stretch gap-1.5 overflow-x-auto pb-1.5 pt-0.5">
             {stages.map((stage, index) => {
               const previous = stages[index - 1];
               const rate = previous?.value
@@ -126,18 +131,32 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
                 : null;
               const stageLabel = stage.key === 'paid' ? 'New paid' : stage.label;
               return (
-                <div key={stage.key} className="contents">
+                <div key={stage.key} className="flex shrink-0 items-center gap-1.5">
                   {index > 0 && (
-                    <div className="flex shrink-0 flex-col items-center justify-center gap-0.5">
+                    <div className="flex shrink-0 flex-col items-center justify-center gap-0.5 px-0.5">
                       <ArrowRight className="h-3 w-3 text-stone-300 dark:text-stone-600" />
-                      <span className={cn(NUM, 'text-[8px] text-stone-400')}>{rate}%</span>
+                      <span
+                        className={cn(
+                          NUM,
+                          'text-[8px] font-bold text-stone-400 dark:text-stone-500'
+                        )}
+                      >
+                        {rate}%
+                      </span>
                     </div>
                   )}
-                  <div className="min-w-[86px] flex-1 rounded-lg border border-stone-200/80 bg-stone-50/70 p-2 dark:border-white/[0.08] dark:bg-white/[0.035]">
-                    <p className={cn(NUM, 'text-base font-bold text-stone-900 dark:text-stone-50')}>
+                  <div className="w-[92px] sm:w-[102px] shrink-0 rounded-lg border border-stone-200/80 bg-stone-50/70 p-2.5 dark:border-white/[0.08] dark:bg-white/[0.035] transition-all">
+                    <p
+                      className={cn(
+                        NUM,
+                        'text-base font-bold text-stone-900 dark:text-stone-50 leading-tight'
+                      )}
+                    >
                       {stage.value ?? 0}
                     </p>
-                    <p className={cn(MICRO, 'mt-0.5 text-stone-500 dark:text-stone-400')}>
+                    <p
+                      className={cn(MICRO, 'mt-1 text-stone-500 dark:text-stone-400 line-clamp-1')}
+                    >
                       {stageLabel}
                     </p>
                   </div>

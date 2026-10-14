@@ -111,7 +111,7 @@ export default function RefundLedgerPanel({ onOpenCustomer, refreshKey = 0 }) {
           list.
         </Empty>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="no-scrollbar overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
             <thead>
               <tr className="border-b border-stone-200 dark:border-white/[0.07]">

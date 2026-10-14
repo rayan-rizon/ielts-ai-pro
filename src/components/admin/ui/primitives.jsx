@@ -651,6 +651,8 @@ export const DualValue = ({ primary, primaryLabel, secondary, secondaryLabel }) 
 const ADMIN_BUTTON_VARIANTS = {
   primary:
     'bg-stone-600 dark:bg-stone-600 text-white dark:text-white hover:bg-stone-700 dark:hover:bg-stone-500',
+  default: 'bg-[#5a63df] hover:bg-[#4d56d1] text-white shadow-xs focus-visible:ring-[#5a63df]',
+  accent: 'bg-[#5a63df] hover:bg-[#4d56d1] text-white shadow-xs focus-visible:ring-[#5a63df]',
   outline:
     'border border-stone-300 dark:border-white/15 bg-white dark:bg-[#131315] text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5',
   ghost:

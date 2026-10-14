@@ -206,25 +206,30 @@ const TestTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[820px] text-left border-collapse">
+      <table className="w-full min-w-[800px] text-left border-collapse">
         <thead>
           <tr className="border-b border-stone-200 dark:border-white/[0.07]">
-            <th className="w-10 px-4 py-2.5">
+            <th className="w-10 px-4 py-2">
               <Checkbox
                 checked={tests.length > 0 && selectedIds.length === tests.length}
                 onCheckedChange={toggleAll}
               />
             </th>
-            <SortHeader column="title" label="Test" className="w-[360px]" />
+            <SortHeader column="title" label="Test" className="w-[340px]" />
             <SortHeader column="is_active" label="Status" className="text-center" />
             <SortHeader column="access_tier" label="Tier" className="text-center" />
-            <th className={cn(MICRO, 'px-3 py-2.5 text-stone-500 dark:text-stone-400 text-center')}>
+            <th
+              className={cn(
+                MICRO,
+                'px-3 py-2 text-stone-500 dark:text-stone-400 text-center whitespace-nowrap min-w-[130px]'
+              )}
+            >
               Content
             </th>
             <th
               className={cn(
                 MICRO,
-                'px-3 py-2.5 text-stone-500 dark:text-stone-400 text-right pr-4'
+                'px-3 py-2 text-stone-500 dark:text-stone-400 text-right pr-4 min-w-[140px]'
               )}
             >
               Actions
@@ -246,13 +251,13 @@ const TestTable = ({
                     selectedIds.includes(test.id) && 'bg-stone-50 dark:bg-white/2'
                   )}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-2.5">
                     <Checkbox
                       checked={selectedIds.includes(test.id)}
                       onCheckedChange={() => toggleOne(test.id)}
                     />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
                       <div
                         className={cn(
@@ -291,49 +296,60 @@ const TestTable = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     <span className={cn(PILL_BASE, pillTone(test.is_active ? 'ok' : 'neutral'))}>
                       {test.is_active ? 'Active' : 'Draft'}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     <span className={cn(PILL_BASE, tierTone(test.access_tier), 'capitalize')}>
                       {test.access_tier || 'free'}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-center">
-                    <div className="flex flex-col items-center gap-0.5">
+                  <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                    <div className="flex flex-col items-center justify-center">
                       <span
                         className={cn(
                           NUM,
-                          'text-[11px] font-bold text-stone-700 dark:text-stone-200 flex items-center gap-1'
+                          'text-[11px] font-bold text-stone-900 dark:text-stone-100 tracking-tight'
                         )}
                       >
-                        <CheckCircle2 className="w-3 h-3 text-[rgb(var(--signal-ok))]" />
-                        {totalQuestions}Q
+                        {totalQuestions} {totalQuestions === 1 ? 'Question' : 'Questions'}
                       </span>
-                      {answerCount > 0 ? (
-                        <span className={cn(MICRO, 'text-[rgb(var(--signal-ok))]')}>
-                          {answerCount} answered
-                        </span>
-                      ) : (
-                        <span className={cn(MICRO, 'text-[rgb(var(--signal-warn))]')}>
-                          no answers
-                        </span>
-                      )}
-                      {testHasExplanations && (
-                        <span
-                          className={cn(
-                            MICRO,
-                            'inline-flex items-center gap-1 text-indigo-500 mt-0.5'
-                          )}
-                        >
-                          <Sparkles className="w-2.5 h-2.5" /> explained
-                        </span>
-                      )}
+                      <div className="inline-flex items-center gap-1.5 mt-0.5 text-[10px] leading-tight">
+                        {totalQuestions === 0 ? (
+                          <span className="text-stone-400 dark:text-stone-500 font-medium">
+                            Empty
+                          </span>
+                        ) : answerCount === totalQuestions ? (
+                          <span className="inline-flex items-center gap-1 font-semibold text-[rgb(var(--signal-ok))]">
+                            <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />
+                            Answered
+                          </span>
+                        ) : answerCount > 0 ? (
+                          <span className="font-semibold text-[rgb(var(--signal-warn))]">
+                            {answerCount}/{totalQuestions} ans
+                          </span>
+                        ) : (
+                          <span className="font-medium text-stone-400 dark:text-stone-500">
+                            No answers
+                          </span>
+                        )}
+                        {testHasExplanations && (
+                          <>
+                            <span className="text-stone-300 dark:text-stone-700 select-none">
+                              ·
+                            </span>
+                            <span className="inline-flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400">
+                              <Sparkles className="w-2.5 h-2.5 shrink-0" />
+                              Explained
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-right">
+                  <td className="px-3 py-2.5 text-right">
                     <div className="flex justify-end items-center gap-0.5 opacity-100 transition-opacity">
                       {[
                         {

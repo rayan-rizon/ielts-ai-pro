@@ -263,13 +263,14 @@ export default function PaymentManagement() {
           label="Loaded records"
           value={requests.length}
           sub={hasMore ? 'more history available' : 'manual + Stripe'}
+          className="col-span-2 lg:col-span-1"
         />
       </m.div>
 
       {/* Filter row */}
       <m.div
         variants={FADE_UP}
-        className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/4 rounded-lg border border-stone-200/80 dark:border-white/[0.07] w-fit"
+        className="no-scrollbar flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border border-stone-200/80 bg-stone-100 p-1 dark:border-white/[0.07] dark:bg-white/4 w-full sm:w-fit"
       >
         {FILTERS.map((f) => {
           const isActive = filter === f.value;
@@ -279,7 +280,7 @@ export default function PaymentManagement() {
               key={f.value}
               onClick={() => setFilter(f.value)}
               className={cn(
-                'relative h-7 px-3 rounded-md font-bold text-xs transition-colors active:scale-95',
+                'relative h-7 px-3 rounded-md font-bold text-xs transition-colors active:scale-95 shrink-0',
                 isActive
                   ? 'text-stone-900 dark:text-stone-50'
                   : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
@@ -482,8 +483,13 @@ export default function PaymentManagement() {
       </m.div>
 
       {hasMore && (
-        <div className="flex items-center gap-3">
-          <AdminButton variant="outline" onClick={loadMore} loading={busy}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+          <AdminButton
+            variant="outline"
+            onClick={loadMore}
+            loading={busy}
+            className="w-full sm:w-auto shrink-0"
+          >
             Load older payments
           </AdminButton>
           <p className="text-xs text-stone-500">

@@ -161,7 +161,7 @@ const CheckCard = ({ item, onNavigate, wide = false }) => (
       // A single check has a whole row to itself, so it lies down: severity and
       // sentence on the left, the action parked on the right. Stacking it into
       // a narrow column left most of the row empty and the card looking clipped.
-      wide ? 'flex items-center gap-4 sm:pr-4' : 'flex flex-col'
+      wide ? 'flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 sm:pr-4' : 'flex flex-col'
     )}
   >
     <span className={cn('absolute inset-y-0 left-0 w-[3px]', SIGNAL_BG[item.tone])} />

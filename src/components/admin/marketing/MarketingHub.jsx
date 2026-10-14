@@ -220,7 +220,7 @@ export default function MarketingHub() {
           className="space-y-4 border-t border-stone-200/80 pt-4 dark:border-white/[0.07]"
         >
           <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-            <div className="overflow-x-auto pb-1 no-scrollbar">
+            <div className="no-scrollbar touch-pan-x overflow-x-auto pb-1 w-full sm:w-auto">
               <TabsList className={ADMIN_TABS_LIST}>
                 {TABS.map(([value, label, Icon]) => {
                   const isActive = tab === value;

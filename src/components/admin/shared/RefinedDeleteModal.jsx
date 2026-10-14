@@ -65,23 +65,21 @@ const RefinedDeleteModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 sm:max-w-md rounded-lg p-4 sm:p-5">
-        <DialogHeader className="space-y-0.5">
+        <DialogHeader className="space-y-1">
           <DialogTitle
             className={cn(
               'flex items-center gap-2 text-base font-extrabold',
-              destructive ? 'text-[rgb(var(--signal-fault))]' : 'text-[#5a63df]'
+              destructive ? 'text-[rgb(var(--signal-fault))]' : 'text-stone-900 dark:text-stone-50'
             )}
           >
             {destructive ? (
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="h-4 w-4 text-[rgb(var(--signal-fault))]" />
             ) : (
-              <LockKeyhole className="h-4 w-4" />
+              <LockKeyhole className="h-4 w-4 text-[#5a63df]" />
             )}
             {title}
           </DialogTitle>
-          <DialogDescription
-            className={cn(MICRO, 'text-stone-500 dark:text-stone-400 normal-case')}
-          >
+          <DialogDescription className="text-xs leading-relaxed text-stone-500 dark:text-stone-400">
             {description}
           </DialogDescription>
         </DialogHeader>
@@ -109,7 +107,10 @@ const RefinedDeleteModal = ({
             autoComplete="off"
             className={cn(
               NUM,
-              'h-10 rounded-md border-[rgb(var(--signal-fault)/0.3)] bg-white dark:bg-[#131315] text-xs font-medium focus-visible:ring-[rgb(var(--signal-fault)/0.4)]'
+              'h-10 rounded-md bg-white dark:bg-[#131315] text-xs font-medium',
+              destructive
+                ? 'border-[rgb(var(--signal-fault)/0.3)] focus-visible:ring-[rgb(var(--signal-fault)/0.4)]'
+                : 'border-stone-300 dark:border-white/15 focus-visible:ring-[#5a63df]/30 focus-visible:border-[#5a63df]'
             )}
           />
         </div>
