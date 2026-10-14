@@ -58,7 +58,7 @@ export function ExplanationBody({ entries, userAnswer }) {
                 <div className="min-w-0 text-[12px] leading-relaxed text-slate-700 dark:text-slate-200 break-words">
                   {tempting && (
                     <p className="mb-1">
-                      <span className="font-bold">Tempting answer: </span>
+                      <span className="font-bold">Easy to confuse: </span>
                       {tempting}
                     </p>
                   )}

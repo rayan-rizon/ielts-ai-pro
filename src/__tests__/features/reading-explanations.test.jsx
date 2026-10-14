@@ -134,8 +134,8 @@ describe('learner explanation display', () => {
         ]}
       />
     );
-    expect(screen.getByText('Tempting answer:')).toBeInTheDocument();
-    expect(screen.getByText('Tempting answer:').parentElement).toHaveTextContent('TRUE');
+    expect(screen.getByText('Easy to confuse:')).toBeInTheDocument();
+    expect(screen.getByText('Easy to confuse:').parentElement).toHaveTextContent('TRUE');
   });
   it('rejects accepted, unavailable and unsupported tempting answers', () => {
     expect(temptingAnswer({ ...explanation, tempting_answer: 'FALSE' })).toBeNull();
