@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -144,16 +145,21 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
               onValueChange={(val) => updateField('answer_mode', val)}
               data-oid="zune::w"
             >
-              <SelectTrigger className="bg-background" data-oid="hso6jao">
+              <SelectTrigger className="shadow-none bg-background" data-oid="hso6jao">
                 <SelectValue data-oid="boozj4h" />
               </SelectTrigger>
-              <SelectContent data-oid="3cgw4yq">
-                <SelectItem value="dropdown" data-oid="_ssy6rj">
-                  Selection Box (Matching)
-                </SelectItem>
-                <SelectItem value="input" data-oid=".hgrf6o">
-                  Fill in the blank
-                </SelectItem>
+              <SelectContent
+                data-oid="3cgw4yq"
+                className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+              >
+                <SelectGroup>
+                  <SelectItem value="dropdown" data-oid="_ssy6rj">
+                    Selection Box (Matching)
+                  </SelectItem>
+                  <SelectItem value="input" data-oid=".hgrf6o">
+                    Fill in the blank
+                  </SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -341,19 +347,28 @@ const FlowchartBuilder = ({ initialData, onChange, theme }) => {
                         }
                         data-oid="0gn5urc"
                       >
-                        <SelectTrigger className="w-32 h-8" data-oid="m0h7yws">
+                        <SelectTrigger className="shadow-none w-32 h-8" data-oid="m0h7yws">
                           <SelectValue placeholder="Select" data-oid="lfvsjxu" />
                         </SelectTrigger>
-                        <SelectContent data-oid="3jd25h_">
-                          {data.options.map((opt, oIdx) => (
-                            <SelectItem key={oIdx} value={getOptionLabel(oIdx)} data-oid="q1av522">
-                              <span className="font-bold mr-2" data-oid="7019ndh">
-                                {getOptionLabel(oIdx)}
-                              </span>{' '}
-                              {opt.substring(0, 15)}
-                              {opt.length > 15 && '...'}
-                            </SelectItem>
-                          ))}
+                        <SelectContent
+                          data-oid="3jd25h_"
+                          className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+                        >
+                          <SelectGroup>
+                            {data.options.map((opt, oIdx) => (
+                              <SelectItem
+                                key={oIdx}
+                                value={getOptionLabel(oIdx)}
+                                data-oid="q1av522"
+                              >
+                                <span className="font-bold mr-2" data-oid="7019ndh">
+                                  {getOptionLabel(oIdx)}
+                                </span>{' '}
+                                {opt.substring(0, 15)}
+                                {opt.length > 15 && '...'}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     ) : (

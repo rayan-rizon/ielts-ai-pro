@@ -5,6 +5,8 @@ import {
   CheckCircle2,
   Copy,
   Edit,
+  Eye,
+  LockKeyhole,
   FileText,
   GraduationCap,
   Sparkles,
@@ -22,6 +24,8 @@ const TestTable = ({
   tests,
   questions,
   onEdit,
+  onPreview,
+  changesLocked = true,
   onDelete,
   onDuplicate,
   selectedIds,
@@ -263,7 +267,7 @@ const TestTable = ({
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() => onEdit(test)}
+                            onClick={() => onPreview?.(test)}
                             className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 hover:underline underline-offset-2 truncate text-left"
                           >
                             {formatTestTitle(test)}
@@ -330,13 +334,25 @@ const TestTable = ({
                     </div>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <div className="flex justify-end items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex justify-end items-center gap-0.5 opacity-100 transition-opacity">
                       {[
-                        { icon: Edit, title: 'Edit', onClick: () => onEdit(test), tone: 'default' },
+                        {
+                          icon: Eye,
+                          title: 'Full preview',
+                          onClick: () => onPreview?.(test),
+                          tone: 'default',
+                        },
+                        {
+                          icon: changesLocked ? LockKeyhole : Edit,
+                          title: changesLocked ? 'Edit locked — unlock changes first' : 'Edit',
+                          onClick: () => onEdit(test),
+                          disabled: changesLocked,
+                          tone: 'default',
+                        },
                         {
                           icon: Copy,
                           title: 'Duplicate',
-                          onClick: () => onDuplicate(test.id),
+                          onClick: () => onDuplicate(test),
                           tone: 'default',
                         },
                         {
@@ -347,17 +363,20 @@ const TestTable = ({
                         },
                         {
                           icon: Trash2,
-                          title: 'Delete',
+                          title: changesLocked ? 'Delete locked — unlock changes first' : 'Delete',
+                          disabled: changesLocked,
                           onClick: () => onDelete(test),
                           tone: 'fault',
                         },
-                      ].map(({ icon: Icon, title, onClick, tone }) => (
+                      ].map(({ icon: Icon, title, onClick, tone, disabled }) => (
                         <button
                           key={title}
                           onClick={onClick}
                           title={title}
+                          aria-label={title}
+                          disabled={disabled}
                           className={cn(
-                            'h-7 w-7 grid place-items-center rounded-md transition-all duration-150 active:scale-90',
+                            'h-7 w-7 grid place-items-center rounded-md transition-colors duration-150 disabled:opacity-35 disabled:cursor-not-allowed active:scale-90',
                             tone === 'fault'
                               ? 'text-stone-500 dark:text-stone-400 hover:text-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.08)]'
                               : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-white/5'

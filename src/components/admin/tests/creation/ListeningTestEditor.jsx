@@ -1,4 +1,9 @@
+import { useEditorHistory } from '@/hooks/admin/useEditorHistory';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+const ListeningStudentPreview = React.lazy(() => import('../preview/ListeningStudentPreview'));
+const AiListeningExplanationModal = React.lazy(() => import('../ai/AiReadingExplanationModal'));
+import { applyListeningExplanations } from '../preview/listeningExplanationData';
+import ReadingEditorSelect from '../ReadingEditorSelect';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,7 +22,6 @@ import {
   Bold,
   Italic,
   Link2,
-  Edit3,
   Eye,
   Music,
   Upload,
@@ -236,7 +240,7 @@ const AudioUploader = ({ url, onUrlChange }) => {
 const InstructionEditor = ({ value, onChange, placeholder }) => {
   const [showImageUrlModal, setShowImageUrlModal] = useState(false);
   const [imageUrlInput, setImageUrlInput] = useState('');
-  const [isPreview, setIsPreview] = useState(false);
+  const isPreview = false;
   const textareaRef = useRef(null);
 
   // Auto-resize textarea
@@ -394,25 +398,6 @@ const InstructionEditor = ({ value, onChange, placeholder }) => {
             </div>
           )}
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsPreview(!isPreview)}
-          className={`text-[10px] h-7 px-3 rounded-lg font-black uppercase tracking-widest transition-all ${
-            isPreview
-              ? 'bg-stone-600 text-white hover:bg-stone-700 shadow-md'
-              : 'bg-white dark:bg-[#18181b] text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-white/8 border border-stone-200 dark:border-white/10 shadow-sm'
-          }`}
-          data-oid="n1_hor9"
-        >
-          {isPreview ? (
-            <Edit3 className="w-3 h-3 mr-1.5" data-oid="-4pmivu" />
-          ) : (
-            <Eye className="w-3 h-3 mr-1.5" data-oid="q89fiqn" />
-          )}
-          {isPreview ? 'Edit' : 'Preview'}
-        </Button>
       </div>
       <div className="relative" data-oid="xnciqeo">
         {isPreview ? (
@@ -554,38 +539,6 @@ const getQuestionCount = (q) => {
 
 const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   const effectiveTheme = theme || { icon: Headphones };
-  // --- History Hook ---
-  const useHistory = (initialState) => {
-    const [state, setState] = useState(initialState);
-    const [history, setHistory] = useState([initialState]);
-    const [pointer, setPointer] = useState(0);
-
-    const set = (newState) => {
-      const next = typeof newState === 'function' ? newState(state) : newState;
-      const newHistory = history.slice(0, pointer + 1);
-      newHistory.push(next);
-      setHistory(newHistory);
-      setPointer(newHistory.length - 1);
-      setState(next);
-    };
-
-    const undo = () => {
-      if (pointer > 0) {
-        setPointer(pointer - 1);
-        setState(history[pointer - 1]);
-      }
-    };
-
-    const redo = () => {
-      if (pointer < history.length - 1) {
-        setPointer(pointer + 1);
-        setState(history[pointer + 1]);
-      }
-    };
-
-    return [state, set, undo, redo, pointer > 0, pointer < history.length - 1];
-  };
-
   const initialSectionsState = () => {
     if (initialData?.content) {
       try {
@@ -620,7 +573,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       }));
   };
 
-  const [sections, setSections] = useHistory(initialSectionsState());
+  const [sections, setSections] = useState(initialSectionsState);
 
   const [activeTab, setActiveTab] = useState('0');
   const [meta, setMeta] = useState(() => {
@@ -629,12 +582,18 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     /* if (!initialData && typeof localStorage !== 'undefined') { ... } */
     return {
       title: initialData?.title || '',
-      tier: initialData?.access_tier || 'free',
+      access_tier: initialData?.access_tier || 'free',
       is_official_cambridge: initialData?.is_official_cambridge || false,
       cambridge_year: initialData?.cambridge_year || new Date().getFullYear(),
       cambridge_test_number: initialData?.cambridge_test_number || 1,
     };
   });
+  const editorHistory = useEditorHistory({ sections, meta }, (snapshot) => {
+    setSections(snapshot.sections);
+    setMeta(snapshot.meta);
+  });
+  const [showFullPreview, setShowFullPreview] = useState(false);
+  const [showAiExplanations, setShowAiExplanations] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showQuestions, setShowQuestions] = useState(true);
@@ -651,8 +610,16 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     setShowQuestions((visible) => !visible);
   };
 
+  const titleInputs = JSON.stringify([
+    meta.is_official_cambridge,
+    meta.cambridge_year,
+    meta.cambridge_test_number,
+  ]);
+  const previousTitleInputs = useRef(titleInputs);
   // Auto-title: Book number = year - 2005 (e.g., 2015 = IELTS 10)
   useEffect(() => {
+    if (previousTitleInputs.current === titleInputs) return;
+    previousTitleInputs.current = titleInputs;
     if (meta.is_official_cambridge) {
       const bookNumber = meta.cambridge_year - 2005;
       setMeta((prev) => ({
@@ -660,11 +627,11 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         title: `IELTS ${bookNumber} Listening ${meta.cambridge_year} Test ${meta.cambridge_test_number}`,
       }));
     }
-  }, [meta.is_official_cambridge, meta.cambridge_year, meta.cambridge_test_number]);
+  }, [titleInputs, meta.is_official_cambridge, meta.cambridge_year, meta.cambridge_test_number]);
 
   // Auto-save Effect
   useEffect(() => {
-    if (!initialData) {
+    if (!initialData && !showFullPreview && !showAiExplanations) {
       // Only auto-save for new tests to avoid overwriting existing data with local draft issues
       const timer = setTimeout(() => {
         localStorage.setItem(
@@ -674,7 +641,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [sections, meta, initialData]);
+  }, [sections, meta, initialData, showFullPreview, showAiExplanations]);
 
   const startNumbers = useMemo(() => {
     const map = {};
@@ -758,7 +725,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           title: meta.title,
           test_format: 'listening', // Required by DB (NOT NULL)
           topic: 'general', // Required by DB (NOT NULL)
-          access_tier: meta.tier,
+          access_tier: meta.access_tier,
           is_official_cambridge: meta.is_official_cambridge,
           cambridge_year: meta.is_official_cambridge ? parseInt(meta.cambridge_year) : null,
           cambridge_test_number: meta.is_official_cambridge
@@ -1083,6 +1050,7 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   return (
     <div className="flex flex-col h-full bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 rounded-2xl border border-stone-200/80 dark:border-white/[0.07] overflow-hidden">
       <TestEditorHeader
+        history={editorHistory}
         title={meta.title}
         theme={effectiveTheme}
         metadata={meta}
@@ -1093,6 +1061,14 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         isSaving={saving}
         lastSaved={null}
       >
+        <Button variant="outline" size="sm" onClick={() => setShowFullPreview(true)}>
+          <Eye className="size-3.5 mr-1.5" />
+          Full preview
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => setShowAiExplanations(true)}>
+          <Sparkles className="size-3.5 mr-1.5" />
+          AI explanations
+        </Button>
         <div className="ml-auto hidden items-center gap-1.5 md:flex">
           <Button
             variant="outline"
@@ -1125,6 +1101,29 @@ const ListeningTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         </div>
       </TestEditorHeader>
 
+      {showFullPreview && (
+        <React.Suspense fallback={<p role="status">Opening preview…</p>}>
+          <ListeningStudentPreview
+            sections={sections}
+            title={meta.title}
+            onClose={() => setShowFullPreview(false)}
+          />
+        </React.Suspense>
+      )}
+      {showAiExplanations && (
+        <React.Suspense fallback={<p role="status">Opening explanations…</p>}>
+          <AiListeningExplanationModal
+            testType="listening"
+            sections={sections}
+            selectedSection={Number(activeTab)}
+            onClose={() => setShowAiExplanations(false)}
+            onApply={(explanations) => {
+              setSections(applyListeningExplanations(sections, explanations));
+              toast.success('AI explanations applied to the editor. Save to keep them.');
+            }}
+          />
+        </React.Suspense>
+      )}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {/* Left Sidebar (Audio & Transcript) */}
         <AnimatePresence mode="wait">
@@ -1686,33 +1685,6 @@ const QuestionGroupEditor = ({
                                 className="flex gap-2 items-center group/option"
                                 data-oid="u6ptw27"
                               >
-                                <button
-                                  onClick={() => {
-                                    if (q.allow_multiple) {
-                                      let current = Array.isArray(q.correct_answer)
-                                        ? q.correct_answer
-                                        : [];
-                                      if (current.includes(opt))
-                                        current = current.filter((x) => x !== opt);
-                                      else current = [...current, opt];
-                                      updateQuestion(qIdx, 'correct_answer', current);
-                                    } else {
-                                      updateQuestion(qIdx, 'correct_answer', opt);
-                                    }
-                                  }}
-                                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all shadow-sm border ${
-                                    (
-                                      Array.isArray(q.correct_answer)
-                                        ? q.correct_answer.includes(opt)
-                                        : q.correct_answer === opt
-                                    )
-                                      ? `${theme.primary} text-white dark:text-stone-900 border-transparent`
-                                      : 'bg-white dark:bg-[#18181b] border-stone-200 dark:border-white/12 text-stone-600 dark:text-stone-300 hover:border-stone-400 dark:hover:border-white/25'
-                                  }`}
-                                  data-oid="vul97u0"
-                                >
-                                  {String.fromCharCode(65 + oI)}
-                                </button>
                                 <div className="relative flex-1" data-oid="eyjlqv.">
                                   <Input
                                     value={opt}
@@ -1816,6 +1788,7 @@ const QuestionGroupEditor = ({
                       )}
                       {q.type === 'table_completion' && (
                         <TableBuilder
+                          allowPreview={false}
                           initialData={q.table_data}
                           onChange={(d) => updateQuestion(qIdx, 'table_data', d)}
                           data-oid="u09g_nu"
@@ -1946,34 +1919,21 @@ const QuestionGroupEditor = ({
                     className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5 border dark:border-stone-700"
                     data-oid="ffe:rz8"
                   >
-                    <select
-                      className="h-7 bg-transparent text-xs border-0 focus:ring-0 text-stone-600 dark:text-stone-300 font-medium max-w-[120px]"
+                    <ReadingEditorSelect
+                      label="Bulk question type"
                       value={addType}
-                      onChange={(e) => setAddType(e.target.value)}
-                      data-oid="5unr8ea"
-                    >
-                      <option value="multiple_choice" data-oid="c.:e37-">
-                        Multiple Choice
-                      </option>
-                      <option value="short_answer" data-oid="cwgc2-2">
-                        Short Answer
-                      </option>
-                      <option value="gap_fill" data-oid="cnpdub5">
-                        Form / Note
-                      </option>
-                      <option value="table_completion" data-oid="cermdjv">
-                        Table Compl.
-                      </option>
-                      <option value="map_labeling" data-oid="ydj:aim">
-                        Map Labeling
-                      </option>
-                      <option value="flowchart" data-oid="_kb_sy6">
-                        Flowchart
-                      </option>
-                      <option value="matching_features" data-oid="phbolx_">
-                        Matching Feat.
-                      </option>
-                    </select>
+                      onValueChange={setAddType}
+                      className="h-7 w-36 border-0"
+                      options={[
+                        { value: 'multiple_choice', label: 'Multiple Choice' },
+                        { value: 'short_answer', label: 'Short Answer' },
+                        { value: 'gap_fill', label: 'Form / Note' },
+                        { value: 'table_completion', label: 'Table Completion' },
+                        { value: 'map_labeling', label: 'Map Labeling' },
+                        { value: 'flowchart', label: 'Flowchart' },
+                        { value: 'matching_features', label: 'Matching Features' },
+                      ]}
+                    />
                     <div
                       className="w-px h-4 bg-stone-300 dark:bg-stone-600 mx-1"
                       data-oid="rp45:fz"

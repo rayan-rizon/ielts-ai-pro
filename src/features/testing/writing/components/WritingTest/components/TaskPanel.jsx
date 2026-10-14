@@ -107,7 +107,7 @@ function ImageDisplay({ imageUrl: rawImageUrl }) {
   );
 }
 
-export function TaskPanel({
+function TaskPanelView({
   task,
   showSample,
   setShowSample,
@@ -115,12 +115,8 @@ export function TaskPanel({
   allowSample = true,
   onSwitchToEditor,
 }) {
-  const activeType = useWritingTestStore((state) => state.activeType) || 'Task 1';
-  const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
-  const activeTask = useMemo(() => {
-    const activeTaskData = compositeTasks?.[activeType];
-    return activeTaskData ? { ...task, ...activeTaskData, activeType } : task;
-  }, [activeType, compositeTasks, task]);
+  const activeType = task?.activeType || 'Task 1';
+  const activeTask = task;
 
   if (!activeTask) return null;
 
@@ -317,3 +313,19 @@ export function TaskPanel({
     </motion.div>
   );
 }
+
+export function TaskPanel(props) {
+  const activeType = useWritingTestStore((state) => state.activeType) || 'Task 1';
+  const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
+  const activeTask = useMemo(
+    () =>
+      !props.task && !compositeTasks?.[activeType]
+        ? null
+        : compositeTasks?.[activeType]
+          ? { ...props.task, ...compositeTasks[activeType], activeType }
+          : { ...props.task, activeType },
+    [activeType, compositeTasks, props.task]
+  );
+  return <TaskPanelView {...props} task={activeTask} />;
+}
+export { TaskPanelView };

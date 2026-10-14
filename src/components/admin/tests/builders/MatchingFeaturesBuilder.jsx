@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -178,16 +179,21 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
             onValueChange={(val) => updateField('style', val)}
             data-oid="i1fw582"
           >
-            <SelectTrigger className="bg-background" data-oid="7hwpm1e">
+            <SelectTrigger className="shadow-none bg-background" data-oid="7hwpm1e">
               <SelectValue data-oid="eo1u-wp" />
             </SelectTrigger>
-            <SelectContent data-oid="wnrdc9o">
-              <SelectItem value="ABC" data-oid="1m5f65m">
-                A, B, C...
-              </SelectItem>
-              <SelectItem value="ROMAN" data-oid="8nm8c0w">
-                i, ii, iii...
-              </SelectItem>
+            <SelectContent
+              data-oid="wnrdc9o"
+              className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+            >
+              <SelectGroup>
+                <SelectItem value="ABC" data-oid="1m5f65m">
+                  A, B, C...
+                </SelectItem>
+                <SelectItem value="ROMAN" data-oid="8nm8c0w">
+                  i, ii, iii...
+                </SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -203,16 +209,21 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
             onValueChange={(val) => updateField('mode', val)}
             data-oid="z3:3p7_"
           >
-            <SelectTrigger className="bg-background" data-oid="4qws-m2">
+            <SelectTrigger className="shadow-none bg-background" data-oid="4qws-m2">
               <SelectValue data-oid="edzz-5n" />
             </SelectTrigger>
-            <SelectContent data-oid="_5:o4bj">
-              <SelectItem value="list" data-oid="v20437e">
-                List of Statements
-              </SelectItem>
-              <SelectItem value="paragraph" data-oid="_562dul">
-                Paragraph Text
-              </SelectItem>
+            <SelectContent
+              data-oid="_5:o4bj"
+              className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+            >
+              <SelectGroup>
+                <SelectItem value="list" data-oid="v20437e">
+                  List of Statements
+                </SelectItem>
+                <SelectItem value="paragraph" data-oid="_562dul">
+                  Paragraph Text
+                </SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -363,19 +374,24 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
                         }}
                         data-oid="5i8w42h"
                       >
-                        <SelectTrigger className="h-8 bg-background" data-oid="auw6ig3">
+                        <SelectTrigger className="shadow-none h-8 bg-background" data-oid="auw6ig3">
                           <SelectValue placeholder="?" data-oid="r2ksz_u" />
                         </SelectTrigger>
-                        <SelectContent data-oid="r1elpu4">
-                          {data.options.map((_, optIdx) => (
-                            <SelectItem
-                              key={optIdx}
-                              value={getOptionLabel(optIdx)}
-                              data-oid="_n130w:"
-                            >
-                              {getOptionLabel(optIdx)}
-                            </SelectItem>
-                          ))}
+                        <SelectContent
+                          data-oid="r1elpu4"
+                          className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+                        >
+                          <SelectGroup>
+                            {data.options.map((_, optIdx) => (
+                              <SelectItem
+                                key={optIdx}
+                                value={getOptionLabel(optIdx)}
+                                data-oid="_n130w:"
+                              >
+                                {getOptionLabel(optIdx)}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>
@@ -430,16 +446,21 @@ const MatchingFeaturesBuilder = ({ initialData, onChange, theme, startNum }) => 
                         <SelectTrigger data-oid="zs2sgro">
                           <SelectValue placeholder="Ans" data-oid="dc.9r34" />
                         </SelectTrigger>
-                        <SelectContent data-oid="z2:12aa">
-                          {data.options.map((_, optIdx) => (
-                            <SelectItem
-                              key={optIdx}
-                              value={getOptionLabel(optIdx)}
-                              data-oid="x0-4qcy"
-                            >
-                              {getOptionLabel(optIdx)}
-                            </SelectItem>
-                          ))}
+                        <SelectContent
+                          data-oid="z2:12aa"
+                          className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+                        >
+                          <SelectGroup>
+                            {data.options.map((_, optIdx) => (
+                              <SelectItem
+                                key={optIdx}
+                                value={getOptionLabel(optIdx)}
+                                data-oid="x0-4qcy"
+                              >
+                                {getOptionLabel(optIdx)}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>

@@ -1,9 +1,11 @@
+import { useEditorHistory } from '@/hooks/admin/useEditorHistory';
 import { m, AnimatePresence } from 'framer-motion';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+const SpeakingStudentPreview = React.lazy(() => import('../preview/SpeakingStudentPreview'));
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Mic, Plus, Trash2, Clock, Undo2, Redo2, Info, AlertTriangle } from 'lucide-react';
+import { Eye, Mic, Plus, Trash2, Clock, Info, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
@@ -13,14 +15,12 @@ import { AdminButton, PANEL, MICRO, PILL_BASE, pillTone, SectionLabel } from '..
 const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   const effectiveTheme = theme || { icon: Mic };
 
+  const [showFullPreview, setShowFullPreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
 
-  // Undo/Redo
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const isUndoRedoAction = useRef(false);
+  const [historyReady, setHistoryReady] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -48,16 +48,34 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
 
   useEffect(() => {
     if (initialData) {
+      previousTitleInputs.current = JSON.stringify([
+        initialData.is_official_cambridge,
+        initialData.cambridge_year,
+        initialData.cambridge_test_number,
+      ]);
       setFormData(initialData);
       loadParts(initialData.id);
     } else {
-      setHistory([{ formData, parts }]);
-      setHistoryIndex(0);
+      setHistoryReady(true);
     }
   }, [initialData]);
 
+  const titleInputs = JSON.stringify([
+    formData.is_official_cambridge,
+    formData.cambridge_year,
+    formData.cambridge_test_number,
+  ]);
+  const previousTitleInputs = useRef(titleInputs);
+  const titleHydrating = useRef(!!initialData);
   // Auto-title for official Cambridge tests: Book number = year - 2005 (e.g., 2015 = IELTS 10)
   useEffect(() => {
+    if (titleHydrating.current) {
+      previousTitleInputs.current = titleInputs;
+      if (formData.title === (initialData?.title || '')) titleHydrating.current = false;
+      return;
+    }
+    if (previousTitleInputs.current === titleInputs) return;
+    previousTitleInputs.current = titleInputs;
     if (formData.is_official_cambridge) {
       const bookNumber = formData.cambridge_year - 2005;
       setFormData((prev) => ({
@@ -65,48 +83,27 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         title: `IELTS ${bookNumber} Speaking ${formData.cambridge_year} Test ${formData.cambridge_test_number}`,
       }));
     }
-  }, [formData.is_official_cambridge, formData.cambridge_year, formData.cambridge_test_number]);
+  }, [
+    titleInputs,
+    initialData?.title,
+    formData.title,
+    formData.is_official_cambridge,
+    formData.cambridge_year,
+    formData.cambridge_test_number,
+  ]);
 
-  const addToHistory = useCallback(
-    (newFormData, newParts) => {
-      if (isUndoRedoAction.current) {
-        isUndoRedoAction.current = false;
-        return;
-      }
-      const newEntry = { formData: newFormData, parts: newParts };
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(newEntry);
-      if (newHistory.length > 20) newHistory.shift();
-      setHistory(newHistory);
-      setHistoryIndex(newHistory.length - 1);
+  const editorHistory = useEditorHistory(
+    { formData, parts },
+    (snapshot) => {
+      setFormData(snapshot.formData);
+      setParts(snapshot.parts);
     },
-    [history, historyIndex]
+    historyReady
   );
-
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      isUndoRedoAction.current = true;
-      const prev = history[historyIndex - 1];
-      setFormData(prev.formData);
-      setParts(prev.parts);
-      setHistoryIndex(historyIndex - 1);
-    }
-  };
-
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      isUndoRedoAction.current = true;
-      const next = history[historyIndex + 1];
-      setFormData(next.formData);
-      setParts(next.parts);
-      setHistoryIndex(historyIndex + 1);
-    }
-  };
 
   const updateFormData = (field, value) => {
     const newData = { ...formData, [field]: value };
     setFormData(newData);
-    addToHistory(newData, parts);
   };
 
   const loadParts = async (testId) => {
@@ -127,11 +124,11 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           duration_minutes: q.table_data?.duration_minutes || 5,
         }));
         setParts(loadedParts);
-        setHistory([{ formData: initialData, parts: loadedParts }]);
-        setHistoryIndex(0);
       }
     } catch (err) {
       console.error('Error loading parts:', err);
+    } finally {
+      setHistoryReady(true);
     }
   };
 
@@ -139,7 +136,6 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     const newParts = [...parts];
     newParts[index][field] = value;
     setParts(newParts);
-    addToHistory(formData, newParts);
   };
 
   const addPart = () => {
@@ -155,7 +151,6 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     ];
 
     setParts(newParts);
-    addToHistory(formData, newParts);
   };
 
   const removePart = (index) => {
@@ -163,7 +158,6 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       .filter((_, i) => i !== index)
       .map((part, i) => ({ ...part, part_number: i + 1 }));
     setParts(newParts);
-    addToHistory(formData, newParts);
   };
 
   const handleSave = async (silent = false) => {
@@ -227,27 +221,22 @@ const SpeakingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         isSaving={loading}
         lastSaved={lastSaved}
         showActiveToggle={true}
-        leftActions={
-          <>
-            <button
-              type="button"
-              onClick={handleUndo}
-              disabled={historyIndex <= 0}
-              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-            >
-              <Undo2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleRedo}
-              disabled={historyIndex >= history.length - 1}
-              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-            >
-              <Redo2 className="w-3.5 h-3.5" />
-            </button>
-          </>
-        }
-      />
+        history={editorHistory}
+      >
+        <AdminButton variant="outline" onClick={() => setShowFullPreview(true)}>
+          <Eye className="size-3.5" />
+          Full preview
+        </AdminButton>
+      </TestEditorHeader>
+      {showFullPreview && (
+        <React.Suspense fallback={<p role="status">Opening preview…</p>}>
+          <SpeakingStudentPreview
+            parts={parts}
+            title={formData.title}
+            onClose={() => setShowFullPreview(false)}
+          />
+        </React.Suspense>
+      )}
 
       {error && (
         <div className="mx-4 sm:mx-6 mt-4 flex items-center gap-2 rounded-lg border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-3 py-2 text-xs font-semibold text-[rgb(var(--signal-fault))]">

@@ -312,3 +312,20 @@ describe('findActiveSegment', () => {
     expect(findActiveSegment(segments, 4.2)).toBe(1);
   });
 });
+
+describe('plain imported Listening transcripts', () => {
+  it('preserves mixed-case speaker labels and unlabeled text without inventing timestamps', () => {
+    expect(parsePlainTranscript('Guide: Welcome to the library.')[0]).toMatchObject({
+      speaker: 'Guide',
+      text: 'Welcome to the library.',
+      start: null,
+      end: null,
+    });
+    expect(parsePlainTranscript('The library opened in 1999.')[0]).toMatchObject({
+      speaker: null,
+      text: 'The library opened in 1999.',
+      start: null,
+      end: null,
+    });
+  });
+});

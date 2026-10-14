@@ -1,17 +1,14 @@
+import { useEditorHistory } from '@/hooks/admin/useEditorHistory';
 import { m } from 'framer-motion';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+const WritingStudentPreview = React.lazy(() => import('../preview/WritingStudentPreview'));
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import ReadingEditorSelect from '../ReadingEditorSelect';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Eye,
   Loader2,
   PenTool,
   FileText,
@@ -19,8 +16,6 @@ import {
   ImageIcon,
   Trash2,
   Info,
-  Undo2,
-  Redo2,
   ShieldCheck,
   Link2,
   Upload,
@@ -518,10 +513,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
   const [error, setError] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
 
-  // Undo/Redo State
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const isUndoRedoAction = useRef(false);
+  const [historyReady, setHistoryReady] = useState(false);
 
   const [meta, setMeta] = useState({
     title: '',
@@ -549,6 +541,8 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     },
   });
 
+  const [showFullPreview, setShowFullPreview] = useState(false);
+  const savedEditorSnapshot = useRef('');
   const [activeTask, setActiveTask] = useState('Task 1');
 
   // Initialize
@@ -560,8 +554,8 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         const jsonContent = JSON.parse(content);
         if (jsonContent['Task 1'] || jsonContent['Task 2']) {
           parsedTasks = {
-            'Task 1': jsonContent['Task 1'] || tasks['Task 1'],
-            'Task 2': jsonContent['Task 2'] || tasks['Task 2'],
+            'Task 1': { ...tasks['Task 1'], ...jsonContent['Task 1'] },
+            'Task 2': { ...tasks['Task 2'], ...jsonContent['Task 2'] },
           };
         } else if (typeof jsonContent === 'object' && jsonContent !== null) {
           const taskType = initialData.task_type || 'Task 1';
@@ -606,61 +600,38 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           cambridge_test_number: initialData.cambridge_test_number || 1,
         },
       };
-      setHistory([initialState]);
-      setHistoryIndex(0);
+      savedEditorSnapshot.current = JSON.stringify({
+        tasks: initialState.tasks,
+        meta: initialState.meta,
+      });
+      previousTitleInputs.current = JSON.stringify([
+        initialState.meta.is_official_cambridge,
+        initialState.meta.cambridge_year,
+        initialState.meta.cambridge_test_number,
+      ]);
     } else {
-      setHistory([{ tasks, meta }]);
-      setHistoryIndex(0);
+      savedEditorSnapshot.current = JSON.stringify({ tasks, meta });
     }
+    setHistoryReady(true);
   }, [initialData]);
 
-  // History Tracking
-  const addToHistory = useCallback(
-    (newTasks, newMeta) => {
-      if (isUndoRedoAction.current) {
-        isUndoRedoAction.current = false;
-        return;
-      }
-      const newEntry = { tasks: newTasks, meta: newMeta };
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push(newEntry);
-      if (newHistory.length > 20) newHistory.shift();
-      setHistory(newHistory);
-      setHistoryIndex(newHistory.length - 1);
+  const editorHistory = useEditorHistory(
+    { tasks, meta },
+    (snapshot) => {
+      setTasks(snapshot.tasks);
+      setMeta(snapshot.meta);
     },
-    [history, historyIndex]
+    historyReady
   );
-
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      isUndoRedoAction.current = true;
-      const prev = history[historyIndex - 1];
-      setTasks(prev.tasks);
-      setMeta(prev.meta);
-      setHistoryIndex(historyIndex - 1);
-    }
-  };
-
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      isUndoRedoAction.current = true;
-      const next = history[historyIndex + 1];
-      setTasks(next.tasks);
-      setMeta(next.meta);
-      setHistoryIndex(historyIndex + 1);
-    }
-  };
 
   const updateTaskField = (taskType, field, value) => {
     const newTasks = { ...tasks, [taskType]: { ...tasks[taskType], [field]: value } };
     setTasks(newTasks);
-    addToHistory(newTasks, meta);
   };
 
   const updateMeta = (field, value) => {
     const newMeta = { ...meta, [field]: value };
     setMeta(newMeta);
-    addToHistory(tasks, newMeta);
   };
 
   const handleSave = async (silent = false) => {
@@ -684,7 +655,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         task_type: activeTask,
         content: JSON.stringify(tasks),
         access_tier: meta.access_tier,
-        is_active: !silent, // Only set active on explicit save
+        is_active: typeof initialData?.is_active === 'boolean' ? initialData.is_active : !silent,
         is_official_cambridge: meta.is_official_cambridge,
         cambridge_year: meta.is_official_cambridge ? meta.cambridge_year : null,
         cambridge_test_number: meta.is_official_cambridge ? meta.cambridge_test_number : null,
@@ -702,8 +673,11 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       if (initialData?.id) dataToSave.id = initialData.id;
 
       // Pass isDraft=true for silent saves to prevent parent from closing the editor
-      await onSave(dataToSave, silent);
-      setLastSaved(new Date());
+      const result = await onSave(dataToSave, silent);
+      if (result?.id) {
+        savedEditorSnapshot.current = JSON.stringify({ tasks, meta });
+        setLastSaved(new Date());
+      }
     } catch (err) {
       console.error('Error saving writing test:', err);
       if (!silent) {
@@ -715,8 +689,22 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     }
   };
 
+  const titleInputs = JSON.stringify([
+    meta.is_official_cambridge,
+    meta.cambridge_year,
+    meta.cambridge_test_number,
+  ]);
+  const previousTitleInputs = useRef(titleInputs);
+  const titleHydrating = useRef(!!initialData);
   // Auto-title for official Cambridge tests: Book number = year - 2005 (e.g., 2015 = IELTS 10)
   useEffect(() => {
+    if (titleHydrating.current) {
+      previousTitleInputs.current = titleInputs;
+      if (meta.title === (initialData?.title || '')) titleHydrating.current = false;
+      return;
+    }
+    if (previousTitleInputs.current === titleInputs) return;
+    previousTitleInputs.current = titleInputs;
     if (meta.is_official_cambridge) {
       const bookNumber = meta.cambridge_year - 2005;
       setMeta((prev) => ({
@@ -724,15 +712,25 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         title: `IELTS ${bookNumber} Writing ${meta.cambridge_year} Test ${meta.cambridge_test_number}`,
       }));
     }
-  }, [meta.is_official_cambridge, meta.cambridge_year, meta.cambridge_test_number]);
+  }, [
+    titleInputs,
+    meta.is_official_cambridge,
+    meta.cambridge_year,
+    meta.cambridge_test_number,
+    meta.title,
+    initialData?.title,
+  ]);
 
+  const saveRef = useRef(handleSave);
+  saveRef.current = handleSave;
   // Auto-save
   useEffect(() => {
+    if (showFullPreview || JSON.stringify({ tasks, meta }) === savedEditorSnapshot.current) return;
     const timer = setTimeout(() => {
-      if (meta.title && initialData?.id) handleSave(true);
+      if (meta.title && initialData?.id) saveRef.current(true);
     }, 10000);
     return () => clearTimeout(timer);
-  }, [tasks, meta]);
+  }, [tasks, meta, showFullPreview, initialData?.id]);
 
   return (
     <div className="flex flex-col h-screen bg-stone-100 dark:bg-[#08080a] text-stone-900 dark:text-stone-50 overflow-hidden">
@@ -746,45 +744,37 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         onCancel={onCancel}
         isSaving={loading}
         lastSaved={lastSaved}
-        leftActions={
-          <>
-            <button
-              type="button"
-              onClick={handleUndo}
-              disabled={historyIndex <= 0}
-              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-            >
-              <Undo2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleRedo}
-              disabled={historyIndex >= history.length - 1}
-              className="h-6 w-6 grid place-items-center rounded text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-            >
-              <Redo2 className="w-3.5 h-3.5" />
-            </button>
-          </>
-        }
+        history={editorHistory}
       >
+        <AdminButton variant="outline" onClick={() => setShowFullPreview(true)}>
+          <Eye className="size-3.5" />
+          Full preview
+        </AdminButton>
         {/* Format Pill */}
         <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 shrink-0">
           <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Format</span>
-          <Select
+          <ReadingEditorSelect
+            label="Test format"
             value={meta.test_format}
-            onValueChange={(v) => setMeta({ ...meta, test_format: v })}
-          >
-            <SelectTrigger className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-[11px] font-bold focus:ring-0 text-stone-900 dark:text-stone-100">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Academic">Academic</SelectItem>
-              <SelectItem value="General">General</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => setMeta({ ...meta, test_format: value })}
+            className="h-5 w-auto border-0 p-0 font-bold"
+            options={[
+              { value: 'Academic', label: 'Academic' },
+              { value: 'General', label: 'General Training' },
+            ]}
+          />
         </div>
       </TestEditorHeader>
 
+      {showFullPreview && (
+        <React.Suspense fallback={<p role="status">Opening preview…</p>}>
+          <WritingStudentPreview
+            tasks={tasks}
+            title={meta.title}
+            onClose={() => setShowFullPreview(false)}
+          />
+        </React.Suspense>
+      )}
       {error && (
         <div className="mx-4 sm:mx-6 mt-4 flex items-center gap-2 rounded-lg border border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.06)] px-3 py-2 text-xs font-semibold text-[rgb(var(--signal-fault))]">
           {error}
@@ -916,7 +906,7 @@ const WritingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                         <div className="flex gap-2 mb-3">
                           <Input
                             placeholder="Paste Image URL here..."
-                            value={tasks[taskType].image_url}
+                            value={tasks[taskType].image_url || ''}
                             onChange={(e) => updateTaskField(taskType, 'image_url', e.target.value)}
                           />
                           <div className="relative shrink-0">

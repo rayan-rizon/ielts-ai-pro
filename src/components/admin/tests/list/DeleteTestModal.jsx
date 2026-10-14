@@ -12,7 +12,8 @@ const DeleteTestModal = ({ test, isOpen, onClose, onConfirm }) => {
       title="Delete Test Module"
       description="Are you sure you want to delete this test? This action cannot be undone and will delete all associated questions and student data."
       itemIdentifier={test.title}
-      confirmText="DELETE"
+      confirmText={test.title || test.id}
+      confirmationKey={test.id}
       data-oid="4z9k3h7"
     />
   );

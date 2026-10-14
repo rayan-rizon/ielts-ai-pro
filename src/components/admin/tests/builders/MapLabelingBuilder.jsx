@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -198,16 +199,21 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
                 onValueChange={(val) => updateField('mode', val)}
                 data-oid="hglw2_y"
               >
-                <SelectTrigger className="bg-background" data-oid="mef4o5t">
+                <SelectTrigger className="shadow-none bg-background" data-oid="mef4o5t">
                   <SelectValue data-oid="uerwotk" />
                 </SelectTrigger>
-                <SelectContent data-oid="kxg6b98">
-                  <SelectItem value="dropdown" data-oid="ur6.307">
-                    Selection List (Matching)
-                  </SelectItem>
-                  <SelectItem value="text" data-oid="d3xi8f1">
-                    Direct Input (Short Answer)
-                  </SelectItem>
+                <SelectContent
+                  data-oid="kxg6b98"
+                  className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+                >
+                  <SelectGroup>
+                    <SelectItem value="dropdown" data-oid="ur6.307">
+                      Selection List (Matching)
+                    </SelectItem>
+                    <SelectItem value="text" data-oid="d3xi8f1">
+                      Direct Input (Short Answer)
+                    </SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
@@ -272,12 +278,17 @@ const MapLabelingBuilder = ({ initialData, onChange, theme }) => {
                       >
                         <SelectValue placeholder="Select Answer" data-oid="vd3enib" />
                       </SelectTrigger>
-                      <SelectContent data-oid="suw7vo6">
-                        {data.options.map((opt, oIdx) => (
-                          <SelectItem key={oIdx} value={opt || `opt-${oIdx}`} data-oid=":et.k6f">
-                            {opt || '(Empty)'}
-                          </SelectItem>
-                        ))}
+                      <SelectContent
+                        data-oid="suw7vo6"
+                        className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64"
+                      >
+                        <SelectGroup>
+                          {data.options.map((opt, oIdx) => (
+                            <SelectItem key={oIdx} value={opt || `opt-${oIdx}`} data-oid=":et.k6f">
+                              {opt || '(Empty)'}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   ) : (

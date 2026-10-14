@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,10 +13,14 @@ import {
   Download,
   MoreVertical,
   Trash2,
+  Sparkles,
+  LockKeyhole,
+  UnlockKeyhole,
 } from 'lucide-react';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -35,6 +39,8 @@ import TestCreator from './creation/TestCreator';
 import TestTable from './list/TestTable';
 import DeleteTestModal from './list/DeleteTestModal';
 import BulkDeleteModal from './list/BulkDeleteModal';
+import TestUnlockModal from './list/TestUnlockModal';
+const SavedTestPreview = lazy(() => import('./preview/SavedTestPreview'));
 import PaginationControls from '../shared/PaginationControls';
 import {
   MICRO,
@@ -48,6 +54,9 @@ import {
 } from '../ui/primitives';
 
 import { useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+
+const AiReadingDraftModal = lazy(() => import('./ai/AiReadingDraftModal'));
 
 const TEST_STRUCTURES = [
   { key: 'reading', name: 'Reading', icon: BookOpen, accent: 'text-sky-600 dark:text-sky-400' },
@@ -80,6 +89,30 @@ const TestManagement = () => {
   const [testToDelete, setTestToDelete] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [showAiCreator, setShowAiCreator] = useState(false);
+  const [changesUnlocked, setChangesUnlocked] = useState(false);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [previewTest, setPreviewTest] = useState(null);
+  const [showUnlockNotice, setShowUnlockNotice] = useState(false);
+  useEffect(() => {
+    if (!editingTest) {
+      setShowUnlockNotice(false);
+      return;
+    }
+    setShowUnlockNotice(true);
+    const timeout = setTimeout(() => setShowUnlockNotice(false), 4500);
+    return () => clearTimeout(timeout);
+  }, [editingTest]);
+  const changesAllowed = useRef(false);
+  const lockChanges = () => {
+    changesAllowed.current = false;
+    setChangesUnlocked(false);
+  };
+  const unlockChanges = () => {
+    changesAllowed.current = true;
+    setChangesUnlocked(true);
+    setShowUnlockModal(false);
+  };
 
   const [statusFilter, setStatusFilter] = useState('all');
   const [tierFilter, setTierFilter] = useState('all');
@@ -111,6 +144,7 @@ const TestManagement = () => {
   const { saveTest } = useTestSaving(() => {
     setIsCreatingTest(false);
     setEditingTest(null);
+    lockChanges();
     fetchAllData(getApiFilters(), pagination.page, pagination.pageSize);
   });
 
@@ -137,16 +171,23 @@ const TestManagement = () => {
     totalUsage: passages.reduce((sum, p) => sum + (p.usage_count || 0), 0),
   };
 
-  const onSaveTest = async (testData, isDraft = false) => saveTest(testData, isDraft);
+  const onSaveTest = async (testData, isDraft = false) => {
+    const existingId = testData?.passage?.id || testData?.id;
+    if (existingId && !changesAllowed.current) return null;
+    return saveTest(testData, isDraft);
+  };
 
   const confirmDelete = async () => {
-    if (testToDelete) {
+    if (testToDelete && changesAllowed.current) {
       await deleteTest(testToDelete.id, getApiFilters());
       setTestToDelete(null);
+      lockChanges();
     }
   };
 
   const handleTestTypeChange = (type) => {
+    lockChanges();
+    setSelectedIds([]);
     setSelectedTestType(type);
     setSearchParams((prev) => {
       const newParams = new URLSearchParams(prev);
@@ -178,8 +219,10 @@ const TestManagement = () => {
   };
 
   const handleBulkDeleteConfirm = async () => {
+    if (!changesAllowed.current) return;
     await bulkDeleteTests(selectedIds, getApiFilters());
     setShowBulkDeleteModal(false);
+    lockChanges();
     setSelectedIds([]);
   };
 
@@ -207,6 +250,15 @@ const TestManagement = () => {
           exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
+          {editingTest && showUnlockNotice && (
+            <div
+              role="status"
+              className="flex items-center gap-2 px-4 py-2 text-xs border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg mb-3"
+            >
+              <UnlockKeyhole className="h-3.5 w-3.5" />
+              Editing unlocked · Saving or leaving this editor locks changes again.
+            </div>
+          )}
           <TestCreator
             initialData={editingTest}
             onSave={onSaveTest}
@@ -214,6 +266,7 @@ const TestManagement = () => {
               const wasCreating = isCreatingTest;
               setIsCreatingTest(false);
               setEditingTest(null);
+              lockChanges();
               fetchAllData(getApiFilters(), wasCreating ? 1 : pagination.page, pagination.pageSize);
             }}
             testType={editingTest ? editingTest.test_type : selectedTestType}
@@ -233,16 +286,37 @@ const TestManagement = () => {
           }}
           className="space-y-4 pb-6 pt-12 md:pt-0"
         >
+          <TestUnlockModal
+            isOpen={showUnlockModal}
+            onClose={() => setShowUnlockModal(false)}
+            onConfirm={unlockChanges}
+          />
+          {previewTest && (
+            <Suspense fallback={<p role="status">Loading full preview…</p>}>
+              <SavedTestPreview
+                test={previewTest}
+                questions={questions.filter((q) => q.passage_id === previewTest.id)}
+                onClose={() => setPreviewTest(null)}
+              />
+            </Suspense>
+          )}
           <DeleteTestModal
             test={testToDelete}
             isOpen={!!testToDelete}
-            onClose={() => setTestToDelete(null)}
+            onClose={() => {
+              setTestToDelete(null);
+              lockChanges();
+            }}
             onConfirm={confirmDelete}
           />
           <BulkDeleteModal
             count={selectedIds.length}
             isOpen={showBulkDeleteModal}
-            onClose={() => setShowBulkDeleteModal(false)}
+            confirmationKey={selectedIds.slice().sort().join(',')}
+            onClose={() => {
+              setShowBulkDeleteModal(false);
+              lockChanges();
+            }}
             onConfirm={handleBulkDeleteConfirm}
           />
 
@@ -252,6 +326,17 @@ const TestManagement = () => {
               description="Create, filter, and manage your IELTS test content library"
               tip="All tests, filterable by module."
             >
+              <AdminButton
+                variant="outline"
+                onClick={() => (changesUnlocked ? lockChanges() : setShowUnlockModal(true))}
+              >
+                {changesUnlocked ? (
+                  <UnlockKeyhole className="h-3.5 w-3.5" />
+                ) : (
+                  <LockKeyhole className="h-3.5 w-3.5" />
+                )}
+                {changesUnlocked ? 'Lock changes' : 'Unlock changes'}
+              </AdminButton>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <AdminButton variant="outline">
@@ -275,11 +360,41 @@ const TestManagement = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              {['reading', 'listening'].includes(selectedTestType) && (
+                <AdminButton variant="outline" onClick={() => setShowAiCreator(true)}>
+                  <Sparkles className="w-3.5 h-3.5" /> Create with AI
+                </AdminButton>
+              )}
               <AdminButton onClick={() => setIsCreatingTest(true)}>
                 <Plus className="w-3.5 h-3.5" />
                 Create test
               </AdminButton>
             </AdminPageHeader>
+            {showAiCreator && (
+              <Suspense
+                fallback={
+                  <p role="status" className="text-xs py-3">
+                    Opening AI creator…
+                  </p>
+                }
+              >
+                <AiReadingDraftModal
+                  testType={selectedTestType}
+                  onClose={() => setShowAiCreator(false)}
+                  onSaved={() => {
+                    setShowAiCreator(false);
+                    toast.success(
+                      `${selectedTestType === 'listening' ? 'Listening' : 'Reading'} draft saved`,
+                      {
+                        description:
+                          'It is inactive. Review it before publishing from Test Management.',
+                      }
+                    );
+                    fetchAllData(getApiFilters(), pagination.page, pagination.pageSize);
+                  }}
+                />
+              </Suspense>
+            )}
           </m.div>
 
           <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -346,37 +461,43 @@ const TestManagement = () => {
 
               <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className={cn(FIELD_INPUT, 'w-[110px]')}>
+                  <SelectTrigger className={cn(FIELD_INPUT, 'shadow-none w-[110px]')}>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
+                  <SelectContent className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64">
+                    <SelectGroup>
+                      <SelectItem value="all">All status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
 
                 <Select value={tierFilter} onValueChange={setTierFilter}>
-                  <SelectTrigger className={cn(FIELD_INPUT, 'w-[110px]')}>
+                  <SelectTrigger className={cn(FIELD_INPUT, 'shadow-none w-[110px]')}>
                     <SelectValue placeholder="Tier" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All tiers</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
+                  <SelectContent className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64">
+                    <SelectGroup>
+                      <SelectItem value="all">All tiers</SelectItem>
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
 
                 <Select value={cambridgeFilter} onValueChange={setCambridgeFilter}>
-                  <SelectTrigger className={cn(FIELD_INPUT, 'w-[130px]')}>
+                  <SelectTrigger className={cn(FIELD_INPUT, 'shadow-none w-[130px]')}>
                     <GraduationCap className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 mr-1" />
                     <SelectValue placeholder="Source" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All sources</SelectItem>
-                    <SelectItem value="cambridge">Cambridge only</SelectItem>
-                    <SelectItem value="standard">Standard tests</SelectItem>
+                  <SelectContent className="shadow-none rounded-lg border-[#e4e2f0] dark:border-white/10 bg-white dark:bg-[#19181f] max-h-64">
+                    <SelectGroup>
+                      <SelectItem value="all">All sources</SelectItem>
+                      <SelectItem value="cambridge">Cambridge only</SelectItem>
+                      <SelectItem value="standard">Standard tests</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
 
@@ -423,30 +544,39 @@ const TestManagement = () => {
                       </button>
                       <button
                         onClick={async () => {
+                          if (!changesAllowed.current) return;
                           await bulkUpdateStatus(selectedIds, true, getApiFilters());
+                          lockChanges();
                           setSelectedIds([]);
                         }}
                         className={cn(
                           MICRO,
                           'px-1.5 py-1 rounded text-[rgb(var(--signal-ok))] hover:bg-white/60 dark:hover:bg-white/5'
                         )}
+                        disabled={!changesUnlocked}
                       >
                         Activate
                       </button>
                       <button
                         onClick={async () => {
+                          if (!changesAllowed.current) return;
                           await bulkUpdateStatus(selectedIds, false, getApiFilters());
+                          lockChanges();
                           setSelectedIds([]);
                         }}
                         className={cn(
                           MICRO,
                           'px-1.5 py-1 rounded text-stone-500 hover:bg-white/60 dark:hover:bg-white/5'
                         )}
+                        disabled={!changesUnlocked}
                       >
                         Draft
                       </button>
                       <button
-                        onClick={() => setShowBulkDeleteModal(true)}
+                        disabled={!changesUnlocked}
+                        onClick={() => {
+                          if (changesAllowed.current) setShowBulkDeleteModal(true);
+                        }}
                         className={cn(
                           MICRO,
                           'inline-flex items-center gap-1 px-1.5 py-1 rounded text-[rgb(var(--signal-fault))] hover:bg-white/60 dark:hover:bg-white/5'
@@ -472,8 +602,14 @@ const TestManagement = () => {
                 <TestTable
                   tests={filteredTests}
                   questions={questions}
-                  onEdit={setEditingTest}
-                  onDelete={setTestToDelete}
+                  changesLocked={!changesUnlocked}
+                  onPreview={setPreviewTest}
+                  onEdit={(test) => {
+                    if (changesAllowed.current) setEditingTest(test);
+                  }}
+                  onDelete={(test) => {
+                    if (changesAllowed.current) setTestToDelete(test);
+                  }}
                   onDuplicate={handleDuplicate}
                   selectedIds={selectedIds}
                   onSelectionChange={setSelectedIds}

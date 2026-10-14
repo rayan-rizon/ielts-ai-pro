@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, LockKeyhole } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { MICRO, NUM, AdminButton } from '@/components/admin/ui/primitives';
 
@@ -21,19 +21,41 @@ const RefinedDeleteModal = ({
   itemIdentifier = null,
   confirmText = 'DELETE',
   isLoading = false,
+  confirmationKey,
+  actionLabel = 'Delete',
+  pendingLabel = 'Deleting…',
+  destructive = true,
 }) => {
   const [confirmInput, setConfirmInput] = useState('');
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const inFlight = useRef(false);
+  const busy = isLoading || pending;
+  useEffect(() => {
+    setConfirmInput('');
+    setError('');
+  }, [isOpen, confirmText, itemIdentifier, confirmationKey]);
 
-  const handleConfirm = () => {
-    if (confirmInput === confirmText) {
-      onConfirm();
-      setConfirmInput('');
+  const handleConfirm = async () => {
+    if (confirmInput !== confirmText || busy || inFlight.current) return;
+    inFlight.current = true;
+    setPending(true);
+    setError('');
+    try {
+      const result = await onConfirm();
+      if (result !== false) setConfirmInput('');
+    } catch {
+      setError('The action could not be completed. Please try again.');
+    } finally {
+      inFlight.current = false;
+      setPending(false);
     }
   };
 
   const handleClose = () => {
-    if (!isLoading) {
+    if (!busy && !inFlight.current) {
       setConfirmInput('');
+      setError('');
       onClose();
     }
   };
@@ -44,8 +66,17 @@ const RefinedDeleteModal = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white dark:bg-[#131315] border border-stone-200/90 dark:border-white/10 sm:max-w-md rounded-lg p-4 sm:p-5">
         <DialogHeader className="space-y-0.5">
-          <DialogTitle className="flex items-center gap-2 text-base font-extrabold text-[rgb(var(--signal-fault))]">
-            <AlertTriangle className="h-4 w-4" />
+          <DialogTitle
+            className={cn(
+              'flex items-center gap-2 text-base font-extrabold',
+              destructive ? 'text-[rgb(var(--signal-fault))]' : 'text-[#5a63df]'
+            )}
+          >
+            {destructive ? (
+              <AlertTriangle className="h-4 w-4" />
+            ) : (
+              <LockKeyhole className="h-4 w-4" />
+            )}
             {title}
           </DialogTitle>
           <DialogDescription
@@ -70,6 +101,8 @@ const RefinedDeleteModal = ({
             below:
           </p>
           <Input
+            aria-label="Confirmation text"
+            disabled={busy}
             value={confirmInput}
             onChange={(e) => setConfirmInput(e.target.value)}
             placeholder={confirmText}
@@ -81,18 +114,23 @@ const RefinedDeleteModal = ({
           />
         </div>
 
+        {error && (
+          <p role="alert" className="text-xs text-[rgb(var(--signal-fault))]">
+            {error}
+          </p>
+        )}
         <DialogFooter className="sm:justify-between gap-2">
-          <AdminButton variant="ghost" onClick={handleClose} disabled={isLoading}>
+          <AdminButton variant="ghost" onClick={handleClose} disabled={busy}>
             Cancel
           </AdminButton>
           <AdminButton
-            variant="destructive"
+            variant={destructive ? 'destructive' : 'default'}
             onClick={handleConfirm}
-            disabled={!isConfirmed || isLoading}
-            loading={isLoading}
+            disabled={!isConfirmed || busy}
+            loading={busy}
             className="min-w-[100px] justify-center"
           >
-            {isLoading ? 'Deleting…' : 'Delete'}
+            {busy ? pendingLabel : actionLabel}
           </AdminButton>
         </DialogFooter>
       </DialogContent>

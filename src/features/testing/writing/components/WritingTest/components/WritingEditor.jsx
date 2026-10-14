@@ -62,6 +62,7 @@ export function WritingEditor({
   testMode = 'practice',
   title,
   subtitle,
+  previewMode = false,
 }) {
   const [localValue, setLocalValue] = React.useState(writing);
   const [localWordCount, setLocalWordCount] = React.useState(globalWordCount);
@@ -81,12 +82,16 @@ export function WritingEditor({
   }, [setWriting]);
 
   React.useEffect(() => {
+    if (previewMode)
+      return () => {
+        flushWriting();
+      };
     const unregister = registerWritingDraftFlusher(flushWriting);
     return () => {
       unregister();
       flushWriting();
     };
-  }, [flushWriting]);
+  }, [flushWriting, previewMode]);
 
   // Sync local state when external writing changes (e.g. task switch, session load)
   React.useEffect(() => {
@@ -268,7 +273,7 @@ export function WritingEditor({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="text-[11px] text-slate-500 dark:text-slate-300">
-              Auto-saved to cloud
+              {previewMode ? 'Local preview only' : 'Auto-saved to cloud'}
             </span>
           </div>
 

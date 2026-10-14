@@ -60,9 +60,9 @@ export const MODELS: Record<string, ModelEntry> = {
     id: 'z-ai/glm-5.3-flash',
     vendor: 'Z.ai',
     access: 'openrouter',
-    pricing: { inputPerMillion: 0.15, cachedInputPerMillion: 0.05, outputPerMillion: 0.5 },
+    pricing: { inputPerMillion: 0.036, cachedInputPerMillion: 0.0108, outputPerMillion: 0.9 },
     pricingSource:
-      'OpenRouter catalog price, verified 2026-09-22. Billed usage.cost wins when returned.',
+      'OpenRouter catalog price, verified 2026-10-14. Billed usage.cost wins when returned.',
   },
   'deepseek/deepseek-v4-flash-0731': {
     id: 'deepseek/deepseek-v4-flash-0731',
@@ -206,6 +206,50 @@ export const SPEAKING_DETAILED_FEEDBACK_TIMEOUT_MS = 25000;
 // --- Routes -----------------------------------------------------------------
 
 export const AI_ROUTES: AiRoute[] = [
+  {
+    id: 'admin-reading-draft',
+    surface:
+      'Admin: import Reading passages, questions and grounded explanations from text/screenshots',
+    file: 'supabase/functions/admin-reading-draft/index.ts',
+    maxOutputTokens: 14000,
+    timeoutMs: 60000,
+    steps: [
+      {
+        model: 'openai/gpt-6-luna',
+        role: 'primary',
+        when: 'Admin-only preview generation; supports text and screenshots.',
+      },
+      {
+        model: 'z-ai/glm-5.3-flash',
+        role: 'fallback',
+        when: 'Luna fails or its output fails passage, answer-key or schema checks; one attempt only.',
+      },
+    ],
+    notes:
+      'No test writes during generation. Expected count 1–40, output budget 2,000 + 300 tokens per scored question, at most eight compressed images. Saving uses a separate insert-only, inactive-draft transaction.',
+  },
+  {
+    id: 'admin-listening-draft',
+    surface:
+      'Admin: import Listening audioscripts, questions and grounded explanations from text/screenshots',
+    file: 'supabase/functions/admin-listening-draft/index.ts',
+    maxOutputTokens: 14000,
+    timeoutMs: 60000,
+    steps: [
+      {
+        model: 'openai/gpt-6-luna',
+        role: 'primary',
+        when: 'Admin-only preview generation; supports text and screenshots.',
+      },
+      {
+        model: 'z-ai/glm-5.3-flash',
+        role: 'fallback',
+        when: 'Luna fails or its output fails transcript, answer-key or schema checks; one attempt only.',
+      },
+    ],
+    notes:
+      'No test writes during generation. Expected count 1–40, output budget 2,000 + 300 tokens per scored question, at most eight compressed images. Saving uses a separate insert-only, inactive-draft transaction.',
+  },
   {
     id: 'personalized-ai-coach',
     surface: 'Learner panel: personalized IELTS AI Coach',

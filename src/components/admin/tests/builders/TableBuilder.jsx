@@ -6,7 +6,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Minus, RotateCcw, Eye, EyeOff, Type } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }) => {
+const TableBuilder = ({
+  initialData,
+  onChange,
+  className = '',
+  theme,
+  startNum,
+  allowPreview = true,
+}) => {
   const t = theme || {
     primary: 'bg-primary',
     text: 'text-primary',
@@ -312,20 +319,22 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
           </Button>
         </div>
         <div className="flex items-center gap-2 shrink-0" data-oid="1y45o1f">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPreview(!showPreview)}
-            className={`${t.text} ${t.hover} transition-all duration-200 whitespace-nowrap`}
-            data-oid="ck02ylo"
-          >
-            {showPreview ? (
-              <EyeOff className="w-3 h-3 mr-1" data-oid="3o.:qiw" />
-            ) : (
-              <Eye className="w-3 h-3 mr-1" data-oid="mcbay7_" />
-            )}{' '}
-            {showPreview ? 'Hide' : 'Show'} Preview
-          </Button>
+          {allowPreview && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+              className={`${t.text} ${t.hover} transition-all duration-200 whitespace-nowrap`}
+              data-oid="ck02ylo"
+            >
+              {showPreview ? (
+                <EyeOff className="w-3 h-3 mr-1" data-oid="3o.:qiw" />
+              ) : (
+                <Eye className="w-3 h-3 mr-1" data-oid="mcbay7_" />
+              )}{' '}
+              {showPreview ? 'Hide' : 'Show'} Preview
+            </Button>
+          )}
         </div>
       </div>
 
@@ -446,7 +455,7 @@ const TableBuilder = ({ initialData, onChange, className = '', theme, startNum }
 
       {/* Live Preview */}
       <AnimatePresence data-oid="betwhw:">
-        {showPreview && (
+        {allowPreview && showPreview && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}

@@ -392,8 +392,19 @@ export function parsePlainTranscript(transcript) {
   if (!transcript || typeof transcript !== 'string') return [];
 
   const content = transcript.replace(/\r\n?/g, '\n').trim();
-  const labelPattern = /(?:^|\n)\s*[‘'"“]?([A-Z][A-Z0-9 .&'’-]{1,48}):\s*/g;
+  const labelPattern = /(?:^|\n)\s*[‘'"“]?([A-Z][A-Za-z0-9 .&'’-]{1,48}):\s*/g;
   const matches = [...content.matchAll(labelPattern)];
+  if (!matches.length)
+    return content
+      .split(/\n+/)
+      .map((text, index) => ({
+        id: index + 1,
+        start: null,
+        end: null,
+        speaker: null,
+        text: text.trim(),
+      }))
+      .filter((segment) => segment.text && !isSilenceSegment(segment));
 
   return matches
     .map((match, index) => {

@@ -41,7 +41,9 @@ export const useTestSaving = (onSuccess?: (passage: PassageType) => void): UseTe
         cambridge_test_number: passageData.cambridge_test_number,
         access_tier: passageData.access_tier,
         audio_url: passageData.audio_url,
-        is_active: !silent, // Default to active if not saving silently/background
+        // Preserve an existing published/draft status during edits and autosave.
+        // New manual tests keep the original default; AI drafts stay inactive.
+        is_active: typeof passageData.is_active === 'boolean' ? passageData.is_active : !silent,
         updated_at: new Date().toISOString(),
       };
 

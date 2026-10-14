@@ -421,3 +421,10 @@ verify_jwt = false
 # Private Vault token is checked before any job/learner data access.
 [functions.writing-feedback-worker]
 verify_jwt = false
+
+# Generation is admin-only and cannot save or publish content.
+[functions.admin-reading-draft]
+verify_jwt = true
+
+[functions.admin-listening-draft]
+verify_jwt = true

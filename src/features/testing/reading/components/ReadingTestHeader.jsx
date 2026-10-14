@@ -68,6 +68,7 @@ const ReadingTestHeader = ({
   examEligibility = { eligible: true, reason: '' },
   onStart,
   isStarting = false,
+  previewMode = false,
 }) => {
   // Calculate progress and stats per section
   const stats = React.useMemo(() => {
@@ -361,6 +362,7 @@ const ReadingTestHeader = ({
 
           {/* Pacing Assistant */}
           {testMode !== 'exam' &&
+            !previewMode &&
             !isFinished &&
             (testData?.sections || testData?.passages || []).length > 0 && (
               <PacingIndicator
@@ -404,13 +406,15 @@ const ReadingTestHeader = ({
                   {isSaving ? 'Saving' : lastSaved ? 'Saved' : 'Ready'}
                 </span>
               </div>
-              <TestIssueReportDialog
-                testType="reading"
-                testId={testData?.id || testData?.test_id}
-                testTitle={testData?.title}
-                sectionLabel={`Passage ${currentPassageIndex + 1}`}
-                testMode={testMode}
-              />
+              {!previewMode && (
+                <TestIssueReportDialog
+                  testType="reading"
+                  testId={testData?.id || testData?.test_id}
+                  testTitle={testData?.title}
+                  sectionLabel={`Passage ${currentPassageIndex + 1}`}
+                  testMode={testMode}
+                />
+              )}
               <div className={TEST_HEADER_TOOL_GROUP} data-oid="zjhsbll">
                 {/* Answer Toggle */}
                 {testMode !== 'exam' ? (
@@ -508,7 +512,11 @@ const ReadingTestHeader = ({
                 </Button>
               </div>
               {/* Timer Component - Extracted for Performance */}
-              <ReadingTestClock formatTime={formatTime} data-oid="ei063wj" />
+              {previewMode ? (
+                <ReadingTestClockDisplay formatTime={formatTime} timeRemaining={3600} />
+              ) : (
+                <ReadingTestClock formatTime={formatTime} />
+              )}
             </>
           )}
         </div>
@@ -520,7 +528,10 @@ const ReadingTestHeader = ({
 // Isolated Clock Component that consumes the high-frequency timer context
 const ReadingTestClock = ({ formatTime }) => {
   const timeRemaining = useReadingTestTimer();
+  return <ReadingTestClockDisplay formatTime={formatTime} timeRemaining={timeRemaining} />;
+};
 
+const ReadingTestClockDisplay = ({ formatTime, timeRemaining }) => {
   return (
     <motion.div
       animate={timeRemaining < 300 ? { scale: [1, 1.02, 1] } : {}}

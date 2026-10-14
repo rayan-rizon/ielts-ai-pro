@@ -1,15 +1,10 @@
+import { useEditorHistory } from '@/hooks/admin/useEditorHistory';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import ReadingEditorSelect from '../ReadingEditorSelect';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
@@ -26,7 +21,6 @@ import {
   List,
   Image as ImageIcon,
   Link2,
-  Edit3,
   Eye,
   EyeOff,
   Hash,
@@ -55,7 +49,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import TestEditorHeader from './TestEditorHeader';
 import BulkImportModal from '../BulkImportModal';
-import ExplanationImportModal from '../ExplanationImportModal';
+import { buildReadingPreview } from '../preview/readingPreviewData';
+import { readingExplanationItems } from '../../../../../supabase/functions/_shared/aiReadingExplanations';
+const AiReadingExplanationModal = React.lazy(() => import('../ai/AiReadingExplanationModal'));
+const ReadingStudentPreview = React.lazy(() => import('../preview/ReadingStudentPreview'));
 
 // --- Rich Text Editor ---
 const RichTextEditor = ({
@@ -68,7 +65,7 @@ const RichTextEditor = ({
 }) => {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [isPreview, setIsPreview] = useState(false);
+  const isPreview = false;
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showAnswers, setShowAnswers] = useState(true);
   const [showImageUrlModal, setShowImageUrlModal] = useState(false);
@@ -252,21 +249,6 @@ const RichTextEditor = ({
               </div>
             )}
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsPreview(!isPreview)}
-            className="text-xs h-6 px-2 dark:text-stone-300 dark:hover:bg-stone-700"
-            data-oid="0gdr8g:"
-          >
-            {isPreview ? (
-              <Edit3 className="w-3 h-3 mr-1" data-oid="vk-8t4s" />
-            ) : (
-              <Eye className="w-3 h-3 mr-1" data-oid="iquyztl" />
-            )}
-            {isPreview ? 'Edit' : 'Preview'}
-          </Button>
         </div>
         <div className="relative" data-oid="1t0qn8:">
           {isPreview ? (
@@ -724,21 +706,6 @@ const RichTextEditor = ({
               </span>
             </Button>
           )}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsPreview(!isPreview)}
-            className="text-xs h-7 px-2 dark:text-stone-300 dark:hover:bg-stone-700"
-            data-oid="ouw1xs."
-          >
-            {isPreview ? (
-              <Edit3 className="w-4 h-4 mr-1.5" data-oid="tc__hd_" />
-            ) : (
-              <Eye className="w-4 h-4 mr-1.5" data-oid="yeyso90" />
-            )}
-            {isPreview ? 'Edit' : 'Preview'}
-          </Button>
         </div>
       </div>
       <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden" data-oid="1t0qn8:">
@@ -1084,13 +1051,19 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     cambridge_test_number: initialData?.cambridge_test_number || 1,
     access_tier: initialData?.access_tier || 'free',
   });
+  const editorHistory = useEditorHistory({ sections, passageMetadata }, (snapshot) => {
+    setSections(snapshot.sections);
+    setPassageMetadata(snapshot.passageMetadata);
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [isPassageVisible, setIsPassageVisible] = useState(true);
   const [bulkImportConfig, setBulkImportConfig] = useState({ isOpen: false, mode: 'full' });
   const [showExplanationImport, setShowExplanationImport] = useState(false);
+  const [showFullPreview, setShowFullPreview] = useState(false);
   // Track the saved passage ID to prevent creating multiple drafts on auto-save
   const [savedPassageId, setSavedPassageId] = useState(initialData?.id || null);
+  const savedEditorSnapshot = useRef(JSON.stringify({ sections, passageMetadata }));
 
   // Resizable Layout State
   const [passageWidth, setPassageWidth] = useState(50);
@@ -1126,8 +1099,17 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     };
   }, [isResizing]);
 
+  const titleInputs = JSON.stringify([
+    passageMetadata.is_official_cambridge,
+    passageMetadata.cambridge_year,
+    passageMetadata.cambridge_test_number,
+    passageMetadata.test_format,
+  ]);
+  const previousTitleInputs = useRef(titleInputs);
   // Auto-title: Book number = year - 2005 (e.g., 2015 = IELTS 10)
   useEffect(() => {
+    if (previousTitleInputs.current === titleInputs) return;
+    previousTitleInputs.current = titleInputs;
     if (passageMetadata.is_official_cambridge) {
       const bookNumber = passageMetadata.cambridge_year - 2005;
       setPassageMetadata((prev) => ({
@@ -1136,21 +1118,12 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
       }));
     }
   }, [
+    titleInputs,
     passageMetadata.is_official_cambridge,
     passageMetadata.cambridge_year,
     passageMetadata.cambridge_test_number,
     passageMetadata.test_format,
   ]);
-
-  // Auto-Save Logic
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (passageMetadata.title) {
-        handleSave(true); // Silent save
-      }
-    }, 5000); // Autosave every 5 seconds
-    return () => clearTimeout(timer);
-  }, [sections, passageMetadata]);
 
   const startNumbers = useMemo(() => {
     const map = {};
@@ -1408,7 +1381,10 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         if (result?.id && !savedPassageId) {
           setSavedPassageId(result.id);
         }
-        setLastSaved(new Date());
+        if (result?.id) {
+          savedEditorSnapshot.current = JSON.stringify({ sections, passageMetadata });
+          setLastSaved(new Date());
+        }
       } catch (error) {
         console.error('Save failed:', error);
         if (!silent) toast.error('Save failed');
@@ -1418,6 +1394,18 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     },
     [passageMetadata, sections, savedPassageId, initialData, onSave]
   );
+
+  // Auto-Save Logic
+  useEffect(() => {
+    if (showFullPreview || showExplanationImport) return;
+    if (JSON.stringify({ sections, passageMetadata }) === savedEditorSnapshot.current) return;
+    const timer = setTimeout(() => {
+      if (passageMetadata.title) {
+        handleSave(true); // Silent save
+      }
+    }, 5000); // Autosave every 5 seconds
+    return () => clearTimeout(timer);
+  }, [sections, passageMetadata, showFullPreview, showExplanationImport, handleSave]);
 
   // Memoize the flattened questions for input-only mode to prevent Modal state resets
   const flattenedQuestionsForImport = React.useMemo(() => {
@@ -1478,6 +1466,7 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
     >
       {/* Premium Header */}
       <TestEditorHeader
+        history={editorHistory}
         title={passageMetadata.title}
         theme={effectiveTheme}
         metadata={passageMetadata}
@@ -1490,28 +1479,21 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
         data-oid="_y45go4"
       >
         {/* Format Pill (Reading/Writing Specific) */}
+        <AdminButton variant="outline" onClick={() => setShowFullPreview(true)}>
+          <Eye className="w-3.5 h-3.5" /> Full preview
+        </AdminButton>
         <div className="flex items-center gap-1.5 px-2.5 h-7 rounded-md border border-stone-200/80 dark:border-white/[0.07] bg-stone-50 dark:bg-white/3 shrink-0">
           <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>Format</span>
-          <Select
+          <ReadingEditorSelect
+            label="Test format"
             value={passageMetadata.test_format}
             onValueChange={(val) => setPassageMetadata((prev) => ({ ...prev, test_format: val }))}
-            data-oid="i2wjt:r"
-          >
-            <SelectTrigger
-              className="h-4 w-auto gap-1 border-0 bg-transparent p-0 text-[11px] font-bold focus:ring-0 text-stone-900 dark:text-stone-100"
-              data-oid="-xztmsw"
-            >
-              <SelectValue data-oid="tlpqd7p" />
-            </SelectTrigger>
-            <SelectContent data-oid="f8rp174">
-              <SelectItem value="Academic" data-oid="_ncqus3">
-                Academic
-              </SelectItem>
-              <SelectItem value="General" data-oid="zkw80pz">
-                General
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            options={[
+              { value: 'Academic', label: 'Academic' },
+              { value: 'General', label: 'General Training' },
+            ]}
+            className="h-5 w-auto gap-2 border-0 p-0 text-[11px] font-bold"
+          />
         </div>
 
         <button
@@ -1699,10 +1681,10 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
                 <AdminButton
                   onClick={() => setShowExplanationImport(true)}
                   variant="outline"
-                  title="Import Paraphrase Detective Explanations"
+                  title="Generate explanations with AI"
                   data-oid="explanation-import-btn"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Explanations
+                  <Sparkles className="w-3.5 h-3.5" /> AI explanations
                 </AdminButton>
                 <AdminButton onClick={addGroup} data-oid="rsx-6m7">
                   <Plus className="w-3.5 h-3.5" data-oid="-p.y91_" /> Add Group
@@ -1777,6 +1759,15 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
             )}
           </div>
         </div>
+        {showFullPreview && (
+          <React.Suspense fallback={<p role="status">Opening student preview…</p>}>
+            <ReadingStudentPreview
+              sections={sections}
+              title={passageMetadata.title || 'Reading test preview'}
+              onClose={() => setShowFullPreview(false)}
+            />
+          </React.Suspense>
+        )}
         <BulkImportModal
           isOpen={bulkImportConfig.isOpen}
           onClose={() => setBulkImportConfig({ ...bulkImportConfig, isOpen: false })}
@@ -1789,33 +1780,52 @@ const ReadingTestEditor = ({ initialData, onSave, onCancel, theme }) => {
           existingQuestions={flattenedQuestionsForImport}
           data-oid="-9d44fw"
         />
-        <ExplanationImportModal
-          isOpen={showExplanationImport}
-          onClose={() => setShowExplanationImport(false)}
-          questions={sections[activeSectionIndex]?.groups?.flatMap((g) => g.questions) || []}
-          passageId={savedPassageId}
-          startNum={startNumbers[`${activeSectionIndex}-0`] || 1}
-          onExplanationsUpdated={(updates) => {
-            // updates is an array of { id, data }
-            setSections((prev) => {
-              const newSections = [...prev];
-              const section = newSections[activeSectionIndex];
-              if (!section) return prev;
-
-              section.groups = section.groups.map((group) => ({
-                ...group,
-                questions: group.questions.map((q) => {
-                  const update = updates.find((u) => u.id === q.id);
-                  if (update) {
-                    return { ...q, explanation_data: update.data };
-                  }
-                  return q;
-                }),
-              }));
-              return newSections;
-            });
-          }}
-        />
+        {showExplanationImport && (
+          <React.Suspense fallback={<p role="status">Opening AI explanations…</p>}>
+            <AiReadingExplanationModal
+              sections={sections}
+              selectedSection={activeSectionIndex}
+              onClose={() => setShowExplanationImport(false)}
+              onApply={(explanations) => {
+                const snapshot = buildReadingPreview(sections);
+                const numbers = new Map(
+                  snapshot.allQuestions.map((q) => [
+                    q.id,
+                    readingExplanationItems(q).map((item) => item.number),
+                  ])
+                );
+                setSections((previous) =>
+                  previous.map((section) => ({
+                    ...section,
+                    groups: section.groups.map((group) => ({
+                      ...group,
+                      questions: group.questions.map((q) => {
+                        const owned = numbers.get(q.id) || [];
+                        const changes = owned.filter((number) => explanations[number]);
+                        if (!changes.length) return q;
+                        const data =
+                          owned.length === 1
+                            ? explanations[owned[0]]
+                            : {
+                                blanks: {
+                                  ...(q.explanation_data?.blanks || {}),
+                                  ...Object.fromEntries(
+                                    changes.map((number) => [number, explanations[number]])
+                                  ),
+                                },
+                              };
+                        return { ...q, explanation_data: data };
+                      }),
+                    })),
+                  }))
+                );
+                toast.success('AI explanations applied', {
+                  description: 'Existing questions and answers were kept.',
+                });
+              }}
+            />
+          </React.Suspense>
+        )}
       </div>
     </div>
   );
@@ -2464,6 +2474,7 @@ const QuestionGroupEditor = ({
                       )}
                       {q.type === 'table_completion' && (
                         <TableBuilder
+                          allowPreview={false}
                           initialData={q.table_data}
                           startNum={(() => {
                             let off = 0;
@@ -2560,25 +2571,18 @@ const QuestionGroupEditor = ({
                     className="flex items-center bg-stone-100 dark:bg-stone-800 rounded-lg p-0.5 border dark:border-stone-700"
                     data-oid=":3i5i5p"
                   >
-                    <select
-                      className="h-7 bg-transparent text-xs border-0 focus:ring-0 text-stone-600 dark:text-stone-300 font-medium"
+                    <ReadingEditorSelect
+                      label="Bulk question type"
                       value={addType}
-                      onChange={(e) => setAddType(e.target.value)}
-                      data-oid="5lu7z-s"
-                    >
-                      <option value="multiple_choice" data-oid="7urlsqx">
-                        Multiple Choice
-                      </option>
-                      <option value="true_false_not_given" data-oid="75y-e-v">
-                        T/F/NG
-                      </option>
-                      <option value="short_answer" data-oid=".m.ulsg">
-                        Short Answer
-                      </option>
-                      <option value="notes_completion" data-oid="1e4fodl">
-                        Notes Completion
-                      </option>
-                    </select>
+                      onValueChange={setAddType}
+                      options={[
+                        { value: 'multiple_choice', label: 'Multiple Choice' },
+                        { value: 'true_false_not_given', label: 'T/F/NG' },
+                        { value: 'short_answer', label: 'Short Answer' },
+                        { value: 'notes_completion', label: 'Notes Completion' },
+                      ]}
+                      className="h-7 w-40 border-0"
+                    />
                     <div
                       className="w-px h-4 bg-stone-300 dark:bg-stone-600 mx-1"
                       data-oid="dlm6neq"
