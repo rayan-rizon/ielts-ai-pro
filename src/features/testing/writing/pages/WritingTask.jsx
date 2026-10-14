@@ -60,6 +60,7 @@ function WritingFeedbackDrawer({
   handleGetFeedback,
   loadingMessage,
   onShowInEssay,
+  onRevise,
   coachSession,
   coachTaskType,
   originalHtml,
@@ -84,6 +85,7 @@ function WritingFeedbackDrawer({
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
           onShowInEssay={onShowInEssay}
+          onRevise={onRevise}
           coachSession={coachSession}
           coachTaskType={coachTaskType}
           originalHtml={originalHtml}
@@ -211,6 +213,11 @@ function WritingTaskContent() {
     setViewMode('review');
     setFocusAnnotation({ ...annotation, requestId: Date.now() });
   }, []);
+  const [reviseRequest, setReviseRequest] = useState(0);
+  const handleRevise = useCallback(() => {
+    setViewMode('edit');
+    setReviseRequest(Date.now());
+  }, []);
 
   useEffect(() => {
     if (hasFeedbackPane && isMobile) {
@@ -302,6 +309,8 @@ function WritingTaskContent() {
             setShowSample={setShowSample}
             isMobile={isMobile}
             handleShowInEssay={handleShowInEssay}
+            handleRevise={handleRevise}
+            reviseRequest={reviseRequest}
             handleGetFeedback={handleGetFeedback}
             loadingMessage={loadingMessage}
             coachSession={testMode !== 'exam' ? logic.session : null}
@@ -322,6 +331,7 @@ function WritingTaskContent() {
             handleGetFeedback={handleGetFeedback}
             loadingMessage={loadingMessage}
             onShowInEssay={handleShowInEssay}
+            onRevise={handleRevise}
             coachSession={testMode !== 'exam' ? logic.session : null}
             coachTaskType={activeType}
             originalHtml={
@@ -358,14 +368,14 @@ function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
   const tabs = isMobile
     ? [
         { id: 'feedback', label: 'Report' },
-        { id: 'review', label: 'Annotation' },
+        { id: 'review', label: 'My essay' },
         { id: 'question', label: 'Question' },
-        { id: 'edit', label: 'Draft' },
+        { id: 'edit', label: 'Edit' },
       ]
     : [
-        { id: 'review', label: 'Annotation' },
+        { id: 'review', label: 'My essay' },
         { id: 'question', label: 'Question' },
-        { id: 'edit', label: 'Editor' },
+        { id: 'edit', label: 'Edit' },
       ];
 
   return (
@@ -431,6 +441,19 @@ function AnnotatedReviewPane({
         text={feedback.originalSource || writing}
         annotations={feedback.annotations || []}
         vocabularyEnhancements={feedback.vocabularyEnhancements || []}
+        paragraphNotes={feedback.paragraphNotes || []}
+        isVisualTask={feedback.taskType === 'Task 1'}
+        chartText={
+          feedback.taskType === 'Task 1'
+            ? [
+                feedback.taskAnalysis?.visualType,
+                ...(feedback.taskAnalysis?.observedFeatures || []),
+                feedback.taskAnalysis?.limitations,
+              ]
+                .filter(Boolean)
+                .join(' ')
+            : ''
+        }
         writingAnalysis={analysis}
         onSaveVocabularyWord={onSaveVocabularyWord}
         savedVocabularyTerms={savedVocabularyTerms}
@@ -476,6 +499,8 @@ function WritingPaneBody({
   focusAnnotation,
   isMobile,
   handleShowInEssay,
+  handleRevise,
+  reviseRequest,
   handleGetFeedback,
   loadingMessage,
   coachSession,
@@ -486,6 +511,11 @@ function WritingPaneBody({
 }) {
   const [showRevision, setShowRevision] = useState(false);
   useEffect(() => setShowRevision(false), [activeType, viewMode]);
+  // Declared after the reset above so a "Revise" request from the report wins
+  // when it switches the view to the editor in the same render.
+  useEffect(() => {
+    if (reviseRequest) setShowRevision(true);
+  }, [reviseRequest]);
 
   const isFeedbackMode = isMobile && hasFeedback && viewMode === 'feedback';
   const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
@@ -516,6 +546,7 @@ function WritingPaneBody({
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
           onShowInEssay={handleShowInEssay}
+          onRevise={handleRevise}
           coachSession={coachSession}
           coachTaskType={coachTaskType}
           originalHtml={currentFeedback?.originalSource || writing}
@@ -612,6 +643,8 @@ function WritingEditorPane({
   setShowSample,
   isMobile,
   handleShowInEssay,
+  handleRevise,
+  reviseRequest,
   handleGetFeedback,
   loadingMessage,
   coachSession,
@@ -669,6 +702,8 @@ function WritingEditorPane({
           focusAnnotation={focusAnnotation}
           isMobile={isMobile}
           handleShowInEssay={handleShowInEssay}
+          handleRevise={handleRevise}
+          reviseRequest={reviseRequest}
           handleGetFeedback={handleGetFeedback}
           loadingMessage={loadingMessage}
           coachSession={coachSession}

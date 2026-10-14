@@ -46,12 +46,60 @@ describe('Writing practice coaching interface', () => {
         (_, element) => element.tagName === 'P' && element.textContent === 'The figure increased.'
       )
     ).toBeInTheDocument();
+    expect(screen.getByText('1 of 1 sentences changed')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Read complete Band 8.0 example' }));
     expect(
       screen.getAllByText(
         (_, element) => element.tagName === 'P' && element.textContent === 'The figure increased.'
       )
     ).toHaveLength(2);
+  });
+
+  it('hides Task 1 sentences the coach kept unchanged until the learner asks for them', () => {
+    render(
+      <BandComparison
+        taskType="Task 1"
+        original="The chart shows sales. Sales rose to 40% in 2020. The trend was clear."
+        generate={vi.fn()}
+        transformation={{
+          sourceSentences: [
+            { id: 1, paragraph: 0, source: 'The chart shows sales.' },
+            { id: 2, paragraph: 0, source: 'Sales rose to 40% in 2020.' },
+            { id: 3, paragraph: 0, source: 'The trend was clear.' },
+          ],
+          segments: [
+            {
+              sourceSentenceIds: [1],
+              revisedText: 'The chart shows sales.',
+              changeTags: [],
+              shortReason: '',
+            },
+            {
+              sourceSentenceIds: [2],
+              revisedText: 'Sales climbed to 40% in 2020.',
+              changeTags: ['Vocabulary'],
+              shortReason: 'Data kept.',
+            },
+            {
+              sourceSentenceIds: [3],
+              revisedText: 'The overall trend was unmistakable.',
+              changeTags: ['Vocabulary'],
+              shortReason: 'More precise.',
+            },
+          ],
+          languageNotes: [],
+          limitations: [],
+        }}
+      />
+    );
+
+    // Sentence 2 carries a number, so the Task 1 guard keeps it verbatim too.
+    expect(screen.getByText('1 of 3 sentences changed')).toBeInTheDocument();
+    expect(screen.queryByText('Your sentence 1')).not.toBeInTheDocument();
+    expect(screen.getByText('Your sentence 3')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show the 2 unchanged sentences too' }));
+    expect(screen.getByText('Your sentence 1')).toBeInTheDocument();
+    expect(screen.queryAllByText(/Kept as you wrote it/)).toHaveLength(0);
   });
 
   it('requests the example only when the student asks for it', () => {

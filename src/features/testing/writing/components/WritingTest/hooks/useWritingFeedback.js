@@ -15,6 +15,7 @@ import {
   isCurrentWritingFeedbackCache,
   normalizeTaskPrompt,
   normalizeWritingSource,
+  writingSourceForMarking,
 } from '@/features/testing/writing/utils/evaluationEvidence';
 import {
   getWritingFeedbacks,
@@ -301,7 +302,7 @@ export function useWritingFeedback(awardXP) {
         }
 
         const payload = {
-          writingText: item.text,
+          writingText: writingSourceForMarking(store.drafts[item.type]) || item.text,
           sessionId: store.session?.id,
           evaluationRequestedAt:
             useWritingTestStore.getState().session?.content_data?.evaluationRequestedAt,

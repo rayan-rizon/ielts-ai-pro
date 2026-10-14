@@ -12,14 +12,28 @@ export function cleanFeedbackText(value, { dropHeading = false } = {}) {
     text = text.replace(/^\s*\*\*[^*\n:]{2,64}:\*\*\s*/u, '');
   }
 
-  return text
-    .replace(/\*\*([^*]+)\*\*/gu, '$1')
-    .replace(/__([^_]+)__/gu, '$1')
-    .replace(/`([^`]+)`/gu, '$1')
-    .replace(/~~([^~]+)~~/gu, '$1')
-    .replace(/^\s*[-*•]\s+/u, '')
-    .replace(/\s+/gu, ' ')
-    .trim();
+  return tidyServerCut(
+    text
+      .replace(/\*\*([^*]+)\*\*/gu, '$1')
+      .replace(/__([^_]+)__/gu, '$1')
+      .replace(/`([^`]+)`/gu, '$1')
+      .replace(/~~([^~]+)~~/gu, '$1')
+      .replace(/^\s*[-*•]\s+/u, '')
+      .replace(/\s+/gu, ' ')
+      .trim()
+  );
+}
+
+/**
+ * Older saved reports were cut at a fixed length on the server, sometimes in
+ * the middle of a word ("inferring a recommendat..."). The full text is gone,
+ * so end it at the last whole word instead of a broken one. Short notes that
+ * genuinely end in "..." are left alone.
+ */
+export function tidyServerCut(value) {
+  const text = String(value || '');
+  if (text.length < 80 || !/[\p{L}\p{N}](?:\.\.\.|…)$/u.test(text)) return text;
+  return text.replace(/\s+\S*(?:\.\.\.|…)$/u, '…');
 }
 
 /**

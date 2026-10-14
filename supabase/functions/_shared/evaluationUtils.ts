@@ -342,9 +342,14 @@ function stringArray(value: unknown, maxItems: number): string[] {
 
 function compactFeedbackText(value: unknown, maxSentences = 1, maxChars = 160): string {
   if (typeof value !== 'string') return '';
-  const normalized = value
-    .trim()
-    .replace(/^[`"'“”]+|[`"'“”]+$/g, '')
+  const trimmed = value.trim();
+  // Strip quotes only when they wrap the whole note. A note that merely opens
+  // with a quotation ("“Only 45%…” makes a useful comparison") keeps it.
+  const unwrapped =
+    /^[`"'“”]/.test(trimmed) && /[`"'“”]$/.test(trimmed)
+      ? trimmed.replace(/^[`"'“”]+|[`"'“”]+$/g, '')
+      : trimmed;
+  const normalized = unwrapped
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/__([^_]+)__/g, '$1')
     .replace(/`([^`]+)`/g, '$1')
@@ -451,7 +456,7 @@ export function normalizeWritingEvaluation(
         .map((annotation: any) => ({
           originalText: annotation.originalText,
           type: annotation.type,
-          suggestion: compactFeedbackText(annotation.suggestion, 1, 90),
+          suggestion: compactFeedbackText(annotation.suggestion, 1, 170),
           replacementText:
             annotation.severity === 'error' &&
             ['grammar', 'spelling'].includes(annotation.type) &&
@@ -464,7 +469,7 @@ export function normalizeWritingEvaluation(
             )
               ? compactFeedbackText(annotation.replacementText, 1, 90)
               : '',
-          explanation: compactFeedbackText(annotation.explanation, 1, 105),
+          explanation: compactFeedbackText(annotation.explanation, 1, 170),
           severity: annotation.severity,
         }))
         .slice(0, 10)
@@ -549,8 +554,8 @@ export function normalizeWritingEvaluation(
 
           return {
             criterion: priority.criterion,
-            issue: compactFeedbackText(priority.issue, 1, 90),
-            action: compactFeedbackText(priority.action, 1, 105),
+            issue: compactFeedbackText(priority.issue, 1, 150),
+            action: compactFeedbackText(priority.action, 1, 170),
             ...(evidenceText ? { evidenceText } : {}),
           };
         })
@@ -615,8 +620,10 @@ export function normalizeWritingEvaluation(
     ]),
     criteriaScores,
     annotations,
-    summary: compactFeedbackText(raw.summary, 1, 140),
-    strengths: compactFeedbackList(raw.strengths, 3, 100),
+    summary: compactFeedbackText(raw.summary, 1, 220),
+    criterionNotes: normalizeWritingCriterionNotes(raw.criterionNotes, taskCriterionKey),
+    paragraphNotes: normalizeWritingParagraphNotes(raw.paragraphNotes, sourceText),
+    strengths: compactFeedbackList(raw.strengths, 3, 170),
     priorities,
     weaknesses,
     suggestions: compactFeedbackList(raw.suggestions, 4, 140),
@@ -629,6 +636,60 @@ export function normalizeWritingEvaluation(
     writingCalibrationRevision: WRITING_CALIBRATION_REVISION,
     evaluationVersion: FEEDBACK_EVALUATOR_VERSION,
   };
+}
+
+/**
+ * One plain sentence per criterion explaining what decided its score. Absent
+ * on reports written before the field existed; the UI then shows scores alone.
+ */
+function normalizeWritingCriterionNotes(raw: unknown, taskCriterionKey: string) {
+  if (!isPlainObject(raw)) return null;
+  const notes: Record<string, string> = {};
+  for (const key of [
+    taskCriterionKey,
+    'CoherenceAndCohesion',
+    'LexicalResource',
+    'GrammaticalRangeAndAccuracy',
+  ]) {
+    const note = compactFeedbackText((raw as Record<string, unknown>)[key], 1, 150);
+    if (note) notes[key] = note;
+  }
+  return Object.keys(notes).length > 0 ? notes : null;
+}
+
+/**
+ * Paragraph-by-paragraph margin notes. Each note is anchored by the paragraph's
+ * opening words, and is kept only when those words really start a paragraph
+ * of the response, so a note can never attach to text the learner didn't write.
+ */
+function normalizeWritingParagraphNotes(raw: unknown, sourceText: string) {
+  if (!Array.isArray(raw)) return [];
+  const key = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const paragraphStarts = sourceText
+    .split(/\n+/)
+    .map((paragraph) => key(paragraph))
+    .filter(Boolean);
+  return raw
+    .filter(
+      (item: any) =>
+        isPlainObject(item) && typeof item.opening === 'string' && typeof item.note === 'string'
+    )
+    .map((item: any) => ({
+      opening: item.opening.trim().slice(0, 80),
+      note: compactFeedbackText(item.note, 1, 120),
+    }))
+    .filter(
+      (item) =>
+        item.note &&
+        key(item.opening).length >= 3 &&
+        paragraphStarts.some((start) => start.startsWith(key(item.opening)))
+    )
+    .slice(0, 6);
 }
 
 function isValidUserEntry(entry: SpeakingEntry): boolean {

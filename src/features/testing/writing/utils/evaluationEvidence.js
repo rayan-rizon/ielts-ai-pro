@@ -10,6 +10,27 @@ export function normalizeWritingSource(value) {
     .trim();
 }
 
+const HTML_ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", apos: "'" };
+
+/**
+ * The essay as the marker should read it: plain text with paragraph breaks
+ * kept. normalizeWritingSource flattens everything to one line, which is right
+ * for cache keys and comparisons but hid the learner's paragraphing from the
+ * examiner, and paragraphing is part of Coherence and Cohesion. The server
+ * still hashes the flattened form, so cached reports keep matching.
+ */
+export function writingSourceForMarking(value) {
+  return String(value || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:p|div|li|h[1-6])>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&(nbsp|amp|lt|gt|quot|#39|apos);/g, (_, name) => HTML_ENTITIES[name])
+    .split(/\n+/)
+    .map((paragraph) => paragraph.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n\n');
+}
+
 /**
  * Task prompts are stored as rich text by the test runner and as plain text by
  * the writing checker. Compare and transmit them in one canonical shape so the

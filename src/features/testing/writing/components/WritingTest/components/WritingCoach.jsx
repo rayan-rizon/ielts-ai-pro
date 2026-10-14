@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { callEdgeFunction } from '@/utils/api';
-import { PANEL, WELL, MICRO, NUM } from '@/features/dashboard/components/primitives';
+import { PANEL, WELL, NUM } from '@/features/dashboard/components/primitives';
 import {
   plainWritingText,
   sourceForFeedback,
@@ -158,6 +158,7 @@ export function BandComparison({
   disabledReason,
 }) {
   const [showFull, setShowFull] = useState(false);
+  const [showKept, setShowKept] = useState(false);
   const isVisualTask = taskType === 'Task 1';
   const exampleTitle = isVisualTask ? 'Language ideas for Task 1' : 'Band 8.0 example';
   if (!transformation)
@@ -169,8 +170,8 @@ export function BandComparison({
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {isVisualTask
-            ? 'Review language ideas. Data-bearing statements are retained when the visual is not rechecked.'
-            : 'Compare your sentences with an AI example aiming for Band 8.0 features.'}
+            ? 'See how some of your sentences could be worded better. The coach cannot see the chart, so it leaves your facts and numbers as you wrote them.'
+            : 'Compare your sentences with an example written to Band 8.0 level, with a reason for each change.'}
         </p>
         <p className="text-xs text-slate-500">
           This is a learning example, not an examiner-certified score. Each saved answer can request
@@ -221,70 +222,100 @@ export function BandComparison({
   const sentences = transformation.sourceSentences || splitCoachSentences(original);
   const safeTransformation =
     taskType === 'Task 1' ? guardTask1Transformation(transformation, sentences) : transformation;
+  const rows = safeTransformation.segments.map((segment) => {
+    const sourceSentence =
+      segment.sourceSentenceIds
+        .map((id) => sentences[id - 1]?.source)
+        .filter(Boolean)
+        .join(' ') || original;
+    const unchanged =
+      sourceSentence.replace(/\s+/g, ' ').trim() ===
+      segment.revisedText.replace(/\s+/g, ' ').trim();
+    return { segment, sourceSentence, unchanged };
+  });
+  // Showing a sentence beside an identical copy of itself teaches nothing, and
+  // for Task 1 most sentences are kept because the coach can't see the chart.
+  const changedRows = rows.filter((row) => !row.unchanged);
+  const keptRows = rows.filter((row) => row.unchanged);
+  const visibleRows = showKept ? rows : changedRows;
+  const exampleLabel = isVisualTask ? 'Better wording' : 'Band 8.0 example';
   return (
     <section className="mx-auto max-w-6xl space-y-3">
       <div className={`${PANEL} p-4`}>
-        <h2 className="text-base font-bold">
-          {isVisualTask ? 'Your answer and language ideas' : 'Your answer and Band 8.0 example'}
+        <h2 className="text-[15px] font-extrabold tracking-tight">
+          {isVisualTask ? 'Better wording for your sentences' : 'Your answer and Band 8.0 example'}
         </h2>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
           {isVisualTask
-            ? 'Compare language choices. Check every data claim against the visual before using it.'
+            ? 'The coach cannot see the chart, so it only changes wording. Check every fact against the visual before you use it.'
             : 'Compare your sentence with the Band 8.0 example. Each change has a reason.'}
         </p>
-        {isVisualTask && (
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            The visual was not available for this language example. Check factual details against
-            it.
-          </p>
-        )}
         {!isVisualTask && safeTransformation.limitations?.length > 0 && (
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             {safeTransformation.limitations.map(conciseLimitation).join(' ')}
           </p>
         )}
+        <p className={`${NUM} mt-2 text-xs text-slate-500 dark:text-slate-400`}>
+          {changedRows.length} of {rows.length} sentences changed
+        </p>
       </div>
+      {changedRows.length === 0 && !showKept && (
+        <p className={`${WELL} rounded-lg px-4 py-3 text-xs text-slate-600 dark:text-slate-300`}>
+          The coach kept every sentence as you wrote it.
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className={`${WELL} hidden px-4 py-2 text-xs font-bold md:block`}>Your answer</div>
-        <div className={`${WELL} hidden px-4 py-2 text-xs font-bold md:block`}>
-          {isVisualTask ? 'Language idea' : 'Band 8.0 example'}
-        </div>
-        {safeTransformation.segments.map((segment, index) => {
-          const sourceSentence =
-            segment.sourceSentenceIds
-              .map((id) => sentences[id - 1]?.source)
-              .filter(Boolean)
-              .join(' ') || original;
+        {visibleRows.length > 0 && (
+          <>
+            <div className={`${WELL} hidden px-4 py-2 text-xs font-bold md:block`}>Your answer</div>
+            <div className={`${WELL} hidden px-4 py-2 text-xs font-bold md:block`}>
+              {exampleLabel}
+            </div>
+          </>
+        )}
+        {visibleRows.map(({ segment, sourceSentence, unchanged }, index) => {
           const highlights = highlightChanges(sourceSentence, segment.revisedText);
-          const tag =
-            segment.changeTags?.join(' · ') ||
-            (segment.shortReason?.includes('visual was not rechecked')
-              ? 'Visual detail unverified'
-              : sourceSentence === segment.revisedText
-                ? 'Already effective'
-                : 'Suggested change');
+          const tag = segment.changeTags?.join(', ') || 'Suggested change';
           return (
             <React.Fragment key={index}>
               <div className={`${PANEL} min-w-0 p-4 md:rounded-r-none`}>
-                <p className={MICRO}>Your answer · {segment.sourceSentenceIds.join(', ')}</p>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  Your sentence {segment.sourceSentenceIds.join(', ')}
+                </p>
                 <p className="mt-2 whitespace-pre-wrap break-words font-serif text-sm leading-6">
                   {highlights.original}
                 </p>
               </div>
               <div className={`${PANEL} min-w-0 p-4 md:rounded-l-none`}>
-                <p className={MICRO}>{isVisualTask ? 'Language idea' : 'Band 8.0 example'}</p>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  {exampleLabel}
+                </p>
                 <p className="mt-2 whitespace-pre-wrap break-words font-serif text-sm leading-6">
                   {highlights.example}
                 </p>
-                <p className="mt-3 border-t border-[#e4e2f0] pt-2 text-xs text-slate-600 dark:border-white/[0.07] dark:text-slate-300">
-                  <span className="font-bold text-[#5a63df] dark:text-indigo-300">{tag}</span>
-                  {segment.shortReason ? ` — ${segment.shortReason}` : ''}
-                </p>
+                {!unchanged && (
+                  <p className="mt-3 border-t border-[#e4e2f0] pt-2 text-xs text-slate-600 dark:border-white/[0.07] dark:text-slate-300">
+                    <span className="font-bold text-[#5a63df] dark:text-indigo-300">{tag}.</span>
+                    {segment.shortReason ? ` ${segment.shortReason}` : ''}
+                  </p>
+                )}
               </div>
             </React.Fragment>
           );
         })}
       </div>
+      {keptRows.length > 0 && (
+        <button
+          type="button"
+          className={buttonClass}
+          aria-expanded={showKept}
+          onClick={() => setShowKept((value) => !value)}
+        >
+          {showKept
+            ? 'Show only changed sentences'
+            : `Show the ${keptRows.length} unchanged ${keptRows.length === 1 ? 'sentence' : 'sentences'} too`}
+        </button>
+      )}
       <div className={`${PANEL} p-4`}>
         <button
           type="button"

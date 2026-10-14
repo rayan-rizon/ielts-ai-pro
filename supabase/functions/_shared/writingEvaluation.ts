@@ -349,6 +349,32 @@ export async function handleWritingFeedback(
           ],
         },
         summary: { type: 'STRING' },
+        criterionNotes: {
+          type: 'OBJECT',
+          properties: {
+            [taskCriterionKey]: { type: 'STRING' },
+            CoherenceAndCohesion: { type: 'STRING' },
+            LexicalResource: { type: 'STRING' },
+            GrammaticalRangeAndAccuracy: { type: 'STRING' },
+          },
+          required: [
+            taskCriterionKey,
+            'CoherenceAndCohesion',
+            'LexicalResource',
+            'GrammaticalRangeAndAccuracy',
+          ],
+        },
+        paragraphNotes: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              opening: { type: 'STRING' },
+              note: { type: 'STRING' },
+            },
+            required: ['opening', 'note'],
+          },
+        },
         annotations: {
           type: 'ARRAY',
           items: {
@@ -461,6 +487,8 @@ export async function handleWritingFeedback(
         'criteriaScores',
         'bandSecurity',
         'summary',
+        'criterionNotes',
+        'paragraphNotes',
         'annotations',
         'strengths',
         'priorities',
@@ -483,6 +511,8 @@ SCORING
 
 COMPACT FEEDBACK CONTRACT
 - summary: 1 direct sentence, maximum 18 words, stating the clearest success and main limiter.
+- criterionNotes: for each of the four criteria, 1 sentence, maximum 18 words, saying what in THIS response decided that score. Describe evidence, never state a band number. Write for a Band 5–6 learner: simple everyday English (CEFR B1), no examiner jargon such as "lexical resource", "cohesive devices" or "complex structures"; say "linking words", "word choice", "longer sentences" instead.
+- paragraphNotes: one item per paragraph of the response, in order, maximum 6. opening is the paragraph's first 5 words copied exactly. note is 1 sentence, maximum 12 words, saying what the paragraph does well or the one thing to fix in it, in the same simple English. Do not repeat a priority word for word.
 - strengths: 1–3 items, maximum 14 words each. Cite an exact phrase or observable structural feature. No generic praise.
 - priorities: 0–3 genuine band-gain issues, ordered by impact. Do not fill a quota of three for a strong answer. A repeated question term or an accurate chart label is not by itself a lexical weakness. issue is maximum 12 words; action is maximum 14 words and must be concrete. Use only the allowed criterion labels.
 - priorities evidenceText: only when a priority is supported by an annotation, include that annotation's originalText exactly. Otherwise omit evidenceText; never invent an anchor.
@@ -833,6 +863,8 @@ REQUIRED JSON SHAPE (all keys required):
   "criteriaScores": {"${taskCriterionKey}": number, "CoherenceAndCohesion": number, "LexicalResource": number, "GrammaticalRangeAndAccuracy": number},
   "bandSecurity": {"${taskCriterionKey}": "secure"|"borderline", "CoherenceAndCohesion": "secure"|"borderline", "LexicalResource": "secure"|"borderline", "GrammaticalRangeAndAccuracy": "secure"|"borderline"},
   "summary": string,
+  "criterionNotes": {"${taskCriterionKey}": string, "CoherenceAndCohesion": string, "LexicalResource": string, "GrammaticalRangeAndAccuracy": string},
+  "paragraphNotes": [{"opening": string, "note": string}],
   "annotations": [{"originalText": string, "type": "grammar"|"spelling"|"style"|"vocabulary"|"clarity"|"positive", "suggestion": string, "replacementText": string, "explanation": string, "severity": "error"|"warning"|"suggestion"|"positive"}],
   "strengths": [string],
   "priorities": [{"criterion": "${taskCriterionLabel}"|"Coherence & Cohesion"|"Lexical Resource"|"Grammar", "issue": string, "action": string, "evidenceText": string}],

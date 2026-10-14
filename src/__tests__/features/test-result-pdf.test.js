@@ -62,4 +62,52 @@ describe('downloadable test result PDFs', () => {
     ).toContain('%PDF-');
     expect(filename).toBe('writing-report.pdf');
   });
+
+  it('never invents a score and keeps long advice and the essay inside the page', () => {
+    const { doc } = createWritingReportPdf({
+      generatedAt: new Date('2026-10-13T00:00:00.000Z'),
+      feedbacks: {
+        'Task 1': {
+          taskType: 'Task 1',
+          overallBand: 7,
+          summary: 'Clearly sequenced, but a few unsupported details.',
+          criteriaScores: { TaskAchievement: 7, CoherenceAndCohesion: 7 },
+          annotations: [
+            {
+              originalText: 'saturating the atmosphere',
+              type: 'clarity',
+              severity: 'warning',
+              suggestion:
+                'Describe the rainfall without claiming the atmosphere becomes saturated.',
+              replacementText: '',
+              explanation: 'The diagram shows rain but not saturation.',
+            },
+          ],
+          taskAnalysis: {
+            visualType: 'process diagram',
+            responseVisualType: 'process diagram',
+            alignment: 'aligned',
+            visualReadable: true,
+            observedFeatures: ['Seven numbered stages'],
+            limitations: '',
+          },
+          paragraphNotes: [{ opening: 'The diagram illustrates the', note: 'Clear introduction.' }],
+          originalSource: `<p>The diagram illustrates the process. ${'Moist air rises and cools. '.repeat(300)}</p><p>Overall, there are seven stages.</p>`,
+        },
+      },
+    });
+
+    const text = doc.internal.pages
+      .slice(1)
+      .map((page) => (Array.isArray(page) ? page.join('\n') : ''))
+      .join('\n');
+    // Only the two criteria that were scored appear; nothing is filled in.
+    expect(text).toContain('(Task Achievement)');
+    expect(text).toContain('(Coherence and Cohesion)');
+    expect(text).not.toContain('(Lexical Resource)');
+    // Advice is printed as advice, and the paragraph note follows the essay.
+    expect(text).toContain('Suggestion: Describe the rainfall');
+    expect(text).toContain('Note: Clear introduction.');
+    expect(doc.getNumberOfPages()).toBeGreaterThan(1);
+  });
 });

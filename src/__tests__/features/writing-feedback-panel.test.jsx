@@ -70,35 +70,47 @@ describe('Writing feedback panel', () => {
     });
   });
 
-  it('presents the compact score-first hierarchy', () => {
+  it('leads with the band, the reason for it, the scores and one next step', () => {
     render(<FeedbackPanel feedback={feedback} />);
 
-    expect(screen.getByText('Writing assessment')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Band 6 out of 9')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Solid Task 2 response' })).toBeInTheDocument();
-    expect(screen.getByText(/Priority · Grammar/)).toBeInTheDocument();
-    expect(screen.getAllByText('Task Response')).toHaveLength(2);
-    expect(screen.getByText('Key strengths')).toBeInTheDocument();
-    expect(screen.getByText('Main priorities')).toBeInTheDocument();
-    expect(screen.getByText('Agreement errors recur in key sentences.')).toBeInTheDocument();
-    expect(screen.queryByText('Areas to Improve')).not.toBeInTheDocument();
-    expect(screen.queryByText('Tips for Next Time')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Task 2 result' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Band 6.0 out of 9' })).toBeInTheDocument();
+    expect(screen.getAllByText('6.0').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /PDF/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Why you got 6.0' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Your position is clear, but sentence accuracy is the main score limiter.')
+    ).toBeInTheDocument();
+    // Plain names, with the lowest area flagged.
+    expect(screen.getAllByText('Task Response').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Coherence and Cohesion').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Lexical Resource').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Grammatical Range and Accuracy').length).toBeGreaterThan(0);
+    expect(screen.getByText('Lowest area')).toBeInTheDocument();
+    expect(screen.queryByText('TR/TA')).not.toBeInTheDocument();
+    // The first priority is the next step, in full; the rest follow.
+    expect(
+      screen.getByRole('heading', { name: 'Agreement errors recur in key sentences.' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Also work on')).toBeInTheDocument();
+    expect(screen.getByText('The second idea needs fuller support.')).toBeInTheDocument();
+    expect(screen.queryByText('Solid Task 2 response')).not.toBeInTheDocument();
   });
 
   it('links grammar feedback to Grammar Lab without sending writing issues to Practice Lab', () => {
     render(<FeedbackPanel feedback={feedback} />);
-    expect(screen.getAllByRole('link', { name: 'Open Grammar Lab' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Practise grammar' }).length).toBeGreaterThan(0);
     screen
-      .getAllByRole('link', { name: 'Open Grammar Lab' })
+      .getAllByRole('link', { name: 'Practise grammar' })
       .forEach((link) => expect(link).toHaveAttribute('href', '/grammar'));
     expect(screen.queryByRole('link', { name: /Practise this skill/ })).not.toBeInTheDocument();
   });
 
-  it('shows why each correction matters without another click', () => {
+  it('shows every fix in full with the reason for it', () => {
     render(<FeedbackPanel feedback={feedback} />);
 
-    expect(screen.getByText('Why it matters:')).toBeInTheDocument();
+    expect(screen.getByText('Fix these')).toBeInTheDocument();
+    expect(screen.getByText('Grammar and spelling')).toBeInTheDocument();
     expect(screen.getByText('A plural subject needs a plural verb.')).toBeInTheDocument();
   });
 
@@ -134,18 +146,77 @@ describe('Writing feedback panel', () => {
     expect(screen.queryByText('Review interrupted')).not.toBeInTheDocument();
   });
 
-  it('opens the exact annotated evidence for a grounded priority', () => {
+  it('opens the exact essay passage for the next step', () => {
     const onShowInEssay = vi.fn();
     render(<FeedbackPanel feedback={feedback} onShowInEssay={onShowInEssay} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Show in my essay' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Show in my essay|in my essay/ })[0]);
 
     expect(onShowInEssay).toHaveBeenCalledWith(
-      expect.objectContaining({ originalText: 'people is', suggestion: 'people are' })
+      expect.objectContaining({ originalText: 'people is' })
     );
   });
 
-  it('shows annotation-based improvements when there are no direct corrections', () => {
+  it('puts the word limit first when the essay is too short', () => {
+    render(
+      <FeedbackPanel feedback={{ ...feedback, isBelowMinimumWordCount: true, wordCount: 196 }} />
+    );
+
+    expect(screen.getByRole('heading', { name: 'Write at least 250 words' })).toBeInTheDocument();
+    expect(screen.getByText(/Your essay has 196 words/)).toBeInTheDocument();
+    // All three priorities move to "Also work on".
+    expect(screen.getByText('Agreement errors recur in key sentences.')).toBeInTheDocument();
+  });
+
+  it('offers to revise only when revision practice is available', () => {
+    const onRevise = vi.fn();
+    const { rerender } = render(<FeedbackPanel feedback={feedback} onRevise={onRevise} />);
+    expect(screen.queryByRole('button', { name: 'Revise your answer' })).not.toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <FeedbackPanel
+          feedback={feedback}
+          onRevise={onRevise}
+          coachSession={{ id: 's1' }}
+          coachTaskType="Task 2"
+        />
+      </MemoryRouter>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Revise your answer' }));
+    expect(onRevise).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains Task 1 chart matching in plain words', () => {
+    render(
+      <FeedbackPanel
+        feedback={{
+          ...feedback,
+          taskType: 'Task 1',
+          criteriaScores: {
+            ...feedback.criteriaScores,
+            TaskAchievement: 5,
+            TaskResponse: undefined,
+          },
+          taskAnalysis: {
+            visualType: 'line graph',
+            responseVisualType: 'bar chart',
+            alignment: 'mismatched',
+            visualReadable: true,
+            observedFeatures: ['Sales rise steadily'],
+            limitations: '',
+          },
+        }}
+      />
+    );
+    expect(screen.getByText('Chart check')).toBeInTheDocument();
+    expect(
+      screen.getByText(/The task shows a line graph, but your answer describes a bar chart/)
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Task Achievement').length).toBeGreaterThan(0);
+  });
+
+  it('shows advice as advice, never as text to paste in', () => {
     const suggestionOnlyFeedback = {
       ...feedback,
       corrections: [],
@@ -162,21 +233,20 @@ describe('Writing feedback panel', () => {
 
     render(<FeedbackPanel feedback={suggestionOnlyFeedback} />);
 
-    expect(screen.getByText('Feedback on your wording')).toBeInTheDocument();
-    expect(screen.getByText('Consider')).toBeInTheDocument();
+    expect(screen.getByText('Word choice')).toBeInTheDocument();
     expect(
-      screen.getByText('Use a more precise transport term where the context allows.')
+      screen.getByText(/Use a more precise transport term where the context allows/)
     ).toBeInTheDocument();
   });
 
-  it('keeps the improvements section visible when no sentence-level change is needed', () => {
+  it('says plainly when no sentence needed a fix', () => {
     render(<FeedbackPanel feedback={{ ...feedback, corrections: [], annotations: [] }} />);
 
-    expect(screen.getByText('Feedback on your wording')).toBeInTheDocument();
-    expect(screen.getByText(/No sentence-level change was needed/)).toBeInTheDocument();
+    expect(screen.getByText('Fix these')).toBeInTheDocument();
+    expect(screen.getByText(/No sentence needed a correction/)).toBeInTheDocument();
   });
 
-  it('cleans markdown and compacts verbose legacy feedback', () => {
+  it('cleans markdown from older saved reports and shows them in full', () => {
     const legacyFeedback = {
       ...feedback,
       summary: '',
@@ -195,14 +265,13 @@ describe('Writing feedback panel', () => {
     const { container } = render(<FeedbackPanel feedback={legacyFeedback} />);
 
     expect(container.textContent).not.toContain('**');
-    expect(screen.getByRole('heading', { name: 'Solid Task 2 response' })).toBeInTheDocument();
+    expect(container.textContent).toContain('accurately reporting every minor feature');
     expect(
-      screen.getByText(/The response provides a clear and comprehensive description/)
+      screen.getByRole('heading', { name: /presenting the entire detailed description/ })
     ).toBeInTheDocument();
-    expect(container.textContent).not.toContain('accurately reporting every minor feature');
   });
 
-  it('lets learners expand only the feedback item that was shortened', () => {
+  it('never cuts long feedback short', () => {
     const verboseFeedback = {
       ...feedback,
       strengths: [
@@ -219,26 +288,10 @@ describe('Writing feedback panel', () => {
       ],
     };
 
-    render(<FeedbackPanel feedback={verboseFeedback} />);
+    const { container } = render(<FeedbackPanel feedback={verboseFeedback} />);
 
-    expect(screen.getByRole('button', { name: 'Show full strength 1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Show full priority 1' })).toBeInTheDocument();
-    expect(screen.queryByText(/relevant support throughout the essay/)).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Show full priority 1' }));
-
-    expect(
-      screen.getByText(
-        'The second body paragraph needs a fuller explanation of how the proposed policy would affect families in practice.'
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Show less priority 1' })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    );
-    expect(screen.getByRole('button', { name: 'Show full strength 1' })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    );
+    expect(container.textContent).not.toContain('…');
+    expect(screen.getByText(/relevant support throughout the essay/)).toBeInTheDocument();
+    expect(screen.getByText(/connect it clearly to your main position/)).toBeInTheDocument();
   });
 });

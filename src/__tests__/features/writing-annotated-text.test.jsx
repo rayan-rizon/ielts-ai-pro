@@ -36,9 +36,9 @@ describe('AnnotatedText focus', () => {
       />
     );
 
-    expect(screen.getByText('Correction')).toBeInTheDocument();
+    expect(screen.getByText('Change to')).toBeInTheDocument();
     expect(screen.getByText('transport reduces')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Apply Correction' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Use in my draft' })).toBeInTheDocument();
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'center',
@@ -62,8 +62,8 @@ describe('AnnotatedText focus', () => {
         onApplyCorrection={vi.fn()}
       />
     );
-    expect(screen.getByText('Writing advice')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Apply Correction' })).not.toBeInTheDocument();
+    expect(screen.getByText('Suggestion')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Use in my draft' })).not.toBeInTheDocument();
   });
 
   it('groups vocabulary suggestions with word and linking patterns in the annotation panel', () => {
@@ -112,21 +112,21 @@ describe('AnnotatedText focus', () => {
       />
     );
 
-    expect(screen.getByText('Vocabulary & cohesion ideas')).toBeInTheDocument();
-    expect(screen.getByText('Vocabulary ideas')).toBeInTheDocument();
+    expect(screen.getByText('Words and linking')).toBeInTheDocument();
+    expect(screen.getByText('Better words for this essay')).toBeInTheDocument();
     expect(screen.getByText('essential')).toBeInTheDocument();
     expect(screen.getByText('a central factor')).toBeInTheDocument();
     expect(
       screen.getByText('Shows significance without exaggeration.', { exact: false })
     ).toBeInTheDocument();
-    expect(screen.getByText('Repeated words')).toBeInTheDocument();
-    expect(screen.getByText('How your ideas connect')).toBeInTheDocument();
+    // "rural" is a word from the question, so it is not listed as overused.
+    expect(screen.queryByText('Words you used a lot')).not.toBeInTheDocument();
+    expect(screen.getByText('Linking words you used')).toBeInTheDocument();
+    expect(screen.getByText('Adds a point')).toBeInTheDocument();
+    expect(screen.getByText('also')).toBeInTheDocument();
     expect(screen.getByText('Paragraph flow')).toBeInTheDocument();
     expect(screen.getByText('1 paragraph')).toBeInTheDocument();
-    expect(screen.getByText('3 occurrences')).toBeInTheDocument();
-    expect(screen.getByText('1 use')).toBeInTheDocument();
-    expect(screen.getByText('Why it fits:')).toBeInTheDocument();
-    expect(screen.getByText('Full sentence')).toBeInTheDocument();
+    expect(screen.getByText('Why it is better:', { exact: false })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Add “essential” to your vocabulary list' })
     ).toBeInTheDocument();
@@ -140,10 +140,115 @@ describe('AnnotatedText focus', () => {
       context: 'Shows significance without exaggeration.',
       example: '',
     });
-    fireEvent.click(screen.getByText('View sentence'));
-    expect(screen.getByText('Previous idea:')).toBeInTheDocument();
-    expect(screen.getByText('Rural businesses create income.')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Paragraph flow'));
     expect(screen.getByLabelText('Paragraph 1')).toBeInTheDocument();
+  });
+
+  it("keeps the learner's paragraphs instead of joining the essay into one block", () => {
+    const { container } = render(
+      <AnnotatedText
+        text="<p>First paragraph about transport.</p><p>Second paragraph with people is wrong.</p>"
+        annotations={[
+          {
+            originalText: 'people is',
+            type: 'grammar',
+            suggestion: 'people are',
+            replacementText: 'people are',
+            explanation: 'Plural subject.',
+            severity: 'error',
+          },
+        ]}
+      />
+    );
+    const paragraphs = container.querySelectorAll('p.font-serif');
+    expect(paragraphs).toHaveLength(2);
+    expect(paragraphs[0].textContent).toBe('First paragraph about transport.');
+    expect(paragraphs[1].textContent).toBe('Second paragraph with people is wrong.');
+    // No margin column: paragraphs keep their full width.
+    expect(screen.queryByText('1 thing to fix')).not.toBeInTheDocument();
+  });
+
+  it('keeps a mistake that sits inside a longer highlight reachable in the same popover', () => {
+    const inner = {
+      originalText: 'people is',
+      type: 'grammar',
+      suggestion: 'people are',
+      replacementText: 'people are',
+      explanation: 'A plural subject needs a plural verb.',
+      severity: 'error',
+    };
+    const outer = {
+      originalText: 'When people is not paying for buses they drive',
+      type: 'clarity',
+      suggestion: 'Split the cause and the result.',
+      replacementText: '',
+      explanation: 'One idea per sentence is easier to follow.',
+      severity: 'warning',
+    };
+    render(
+      <AnnotatedText
+        text="When people is not paying for buses they drive less."
+        annotations={[outer, inner]}
+        focusAnnotation={{ ...outer, requestId: 3 }}
+      />
+    );
+    // The more specific mistake is the highlight; the clarity note is listed with it.
+    expect(screen.getByText('people are')).toBeInTheDocument();
+    expect(screen.getByText('Also in this part')).toBeInTheDocument();
+    expect(screen.getByText(/Split the cause and the result/)).toBeInTheDocument();
+  });
+
+  it('marks a passage the report points to even when it has no note of its own', () => {
+    const { container } = render(
+      <AnnotatedText
+        text="The government can take money from other things."
+        annotations={[]}
+        focusAnnotation={{ originalText: 'take money from other things', requestId: 4 }}
+      />
+    );
+    expect(container.querySelector('mark')?.textContent).toBe('take money from other things');
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it("shows the marker's note directly under the paragraph it describes", () => {
+    render(
+      <AnnotatedText
+        text="<p>Nowadays many people agree with this.</p><p>Firstly free transport reduces traffic.</p>"
+        annotations={[]}
+        paragraphNotes={[
+          { opening: 'Firstly free transport reduces', note: 'Good reason; add an example.' },
+        ]}
+      />
+    );
+    const note = screen.getByText('Good reason; add an example.');
+    expect(note.previousElementSibling?.textContent).toBe(
+      'Firstly free transport reduces traffic.'
+    );
+  });
+
+  it('leaves chart labels out of overused words in Task 1', () => {
+    render(
+      <AnnotatedText
+        text="Users were very satisfied with staff. People praised staff and people stayed."
+        annotations={[]}
+        isVisualTask
+        chartText="Staff helpfulness has the highest very-satisfied percentage."
+        writingAnalysis={{
+          repeated: [
+            { word: 'satisfied', count: 8, inPrompt: false, examples: [] },
+            { word: 'staff', count: 5, inPrompt: false, examples: [] },
+            { word: 'people', count: 4, inPrompt: false, examples: [] },
+          ],
+          linking: [],
+          paragraphCount: 1,
+          paragraphOpenings: [],
+        }}
+      />
+    );
+    expect(screen.queryByText('satisfied')).not.toBeInTheDocument();
+    expect(screen.queryByText('staff')).not.toBeInTheDocument();
+    expect(screen.getByText('people')).toBeInTheDocument();
+    expect(screen.getByText('individuals')).toBeInTheDocument();
+    expect(screen.getByText(/labels from the chart are left out/)).toBeInTheDocument();
   });
 });
