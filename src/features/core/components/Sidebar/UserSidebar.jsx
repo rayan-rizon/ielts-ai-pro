@@ -20,6 +20,7 @@ import { userNavigationItems, learningToolsItems } from './navigationItems';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/cn';
 import { AiBadge, TierBadge } from '@/features/dashboard/components/primitives';
+import InstitutionBrand from '@/features/institution/components/InstitutionBrand';
 
 const ACCENT_ACTIVE =
   'bg-[#5a63df]/9 text-[#4a52c9] border-[#5a63df]/15 dark:bg-[#5a63df]/22 dark:text-[#c3c7ff] dark:border-[#5a63df]/25';
@@ -104,21 +105,42 @@ const resolveMainNavigation = (user) =>
     return { ...item, url: createPageUrl('Upgrade') };
   });
 
-const UserSidebarHeader = () => (
-  <SidebarHeader className="border-b border-slate-100 px-3.5 py-3 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 dark:border-white/6">
-    <Link
-      to="/dashboard"
-      className="relative flex h-8 w-full items-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto"
-    >
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center scale-95 opacity-0 transition-[opacity,transform] duration-150 ease-sidebar group-data-[collapsible=icon]:scale-100 group-data-[collapsible=icon]:opacity-100">
-        <LogoIcon className="h-8 w-8" />
-      </div>
-      <div className="flex max-w-[12rem] items-center overflow-hidden opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden">
-        <Logo size="md" />
-      </div>
-    </Link>
-  </SidebarHeader>
-);
+const UserSidebarHeader = ({ institution }) => {
+  const { state, isMobile } = useSidebar();
+  if (institution?.name) {
+    return (
+      <SidebarHeader className="border-b border-slate-100 px-3.5 py-3 group-data-[collapsible=icon]:p-2 dark:border-white/6">
+        <Link
+          to="/dashboard"
+          aria-label={`${institution.name} dashboard — Powered by IELTS AI Pro`}
+          title={`${institution.name} · Powered by IELTS AI Pro`}
+          className="flex min-h-9 w-full items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+        >
+          <InstitutionBrand
+            institution={institution}
+            variant="sidebar"
+            compact={state === 'collapsed' && !isMobile}
+          />
+        </Link>
+      </SidebarHeader>
+    );
+  }
+  return (
+    <SidebarHeader className="border-b border-slate-100 px-3.5 py-3 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 dark:border-white/6">
+      <Link
+        to="/dashboard"
+        className="relative flex h-8 w-full items-center group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mx-auto"
+      >
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center scale-95 opacity-0 transition-[opacity,transform] duration-150 ease-sidebar group-data-[collapsible=icon]:scale-100 group-data-[collapsible=icon]:opacity-100">
+          <LogoIcon className="h-8 w-8" />
+        </div>
+        <div className="flex max-w-[12rem] items-center overflow-hidden opacity-100 transition-[max-width,opacity] duration-150 ease-sidebar group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden">
+          <Logo size="md" />
+        </div>
+      </Link>
+    </SidebarHeader>
+  );
+};
 
 const NavigationSection = ({ label, items, currentPath, className }) => (
   <SidebarGroup className={cn('p-0', className)}>
@@ -309,7 +331,7 @@ export const UserSidebar = memo(({ user, location, handleLogout, showUpgradeOffe
   const currentPath = location.pathname;
   return (
     <>
-      <UserSidebarHeader />
+      <UserSidebarHeader institution={user?.institution_branding} />
       <LearnerNavigation user={user} currentPath={currentPath} />
       <UserSidebarFooter
         user={user}

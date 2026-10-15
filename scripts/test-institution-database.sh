@@ -30,7 +30,10 @@ PYCODE
  -f "$repo_root/supabase/migrations/20261002214310_institution_subscriptions.sql" \
  -f "$repo_root/supabase/migrations/20261002215002_institution_foreign_key_indexes.sql" \
  -f "$repo_root/supabase/migrations/20261003000022_institution_applications.sql" \
+ -f "$repo_root/supabase/tests/institution/storage-bootstrap.sql" \
+ -f "$repo_root/supabase/migrations/20261015130423_institution_dashboard_branding.sql" \
  -f "$repo_root/supabase/tests/institution/lifecycle.sql" \
+ -f "$repo_root/supabase/tests/institution/branding.sql" \
  -f "$repo_root/supabase/tests/institution/applications.sql"
 python3 "$repo_root/supabase/tests/institution/concurrency.py" "$pg_bin/psql" "$scratch/socket"
 echo 'Institution database integration checks passed.'
