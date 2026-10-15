@@ -12,6 +12,7 @@ import {
   validateAiReadingDraft,
 } from '../../../supabase/functions/_shared/aiReadingDraft';
 import { useReadingTestStore } from '@/features/testing/reading/store/useReadingTestStore';
+import QuestionInput from '@/features/testing/reading/components/ReadingTest/components/QuestionInput';
 const dbCalls = vi.hoisted(() =>
   vi.fn(() => {
     throw new Error('Preview must not access a database.');
@@ -37,6 +38,44 @@ const sections = () =>
   aiReadingDraftSections(validateAiReadingDraft(aiReadingFixture(), { expectedQuestions: 13 }));
 
 describe('full Reading student preview', () => {
+  it('shows the explanation and trap for a flat short-answer row after finishing', () => {
+    const trap = 'The original name was Tyrian Purple; the later name was mauve.';
+    render(
+      <QuestionInput
+        text="What was the final name? _____"
+        questionId="short-answer"
+        globalNum={10}
+        answers={{ 'short-answer': 'mauve' }}
+        disabled
+        explanationData={{
+          correct_answer: 'mauve',
+          why_correct: 'The passage says the dye later became commonly known as mauve.',
+          passage_highlight: 'It later became commonly known as mauve.',
+          trap,
+          synonym_map: [],
+          why_wrong: {},
+        }}
+        openDeepDive="short-answer"
+        setOpenDeepDive={vi.fn()}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Explain question 10' })).toBeInTheDocument();
+    expect(screen.getByText('Common trap:')).toBeInTheDocument();
+    expect(screen.getByText(trap, { exact: false })).toBeInTheDocument();
+  });
+  it('preserves AI-generated traps in the learner explanation contract', () => {
+    const raw = aiReadingFixture();
+    const note = 'Separate what the passage states from an assumption in the question.';
+    raw.sections[0].groups[0].items[0].explanation.trap = note;
+    raw.sections[0].groups[0].items[0].explanation.tempting_answer = 'FALSE';
+    const snapshot = buildReadingPreview(
+      aiReadingDraftSections(validateAiReadingDraft(raw, { expectedQuestions: 13 }))
+    );
+    expect(snapshot.allQuestions[0].explanation_data).toMatchObject({
+      trap: note,
+      tempting_answer: 'FALSE',
+    });
+  });
   it('keeps screenshot evidence visible on opening full preview', () => {
     const raw = aiReadingFixture();
     raw.sections[0].highlights = [{ text: 'Ada planted roses in spring.', question_numbers: [1] }];

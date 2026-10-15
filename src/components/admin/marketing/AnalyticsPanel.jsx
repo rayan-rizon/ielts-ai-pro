@@ -146,7 +146,7 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
   const funnelStart = funnel[0]?.value || 0;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 min-w-0 max-w-full">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-2 dark:border-white/[0.07]">
         <SectionLabel accent="accent">Measured outcomes</SectionLabel>
         <p className={cn(MICRO, MUTED)}>Server-confirmed attribution · last 30 days</p>
@@ -156,7 +156,7 @@ const AnalyticsPanel = ({ dashboard, intelligence, breakdowns, recovery }) => {
           under two different labels. Overview starts at the funnel. */}
 
       {/* Funnel + recovery */}
-      <div className="grid gap-3 xl:grid-cols-[1.5fr_1fr]">
+      <div className="grid gap-3 min-w-0 max-w-full xl:grid-cols-[1.5fr_1fr]">
         <div className={cn(PANEL, 'flex flex-col')}>
           <PanelHeader label="30-day funnel" title="From delivery to paid learner" accent="accent">
             <span className={cn(NUM, 'text-[11px] font-bold', MUTED)}>

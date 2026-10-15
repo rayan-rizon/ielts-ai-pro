@@ -2,12 +2,14 @@
 
 In Test Management, Reading and Listening both offer **Create with AI**.
 Provide all source material together: all three Reading passages or all four
-Listening audioscripts, all questions, and one complete numbered answer key.
+Listening audioscripts and all questions. A complete numbered answer key is optional.
 Text and screenshots can be combined. The question count follows a pasted key;
 set it manually when the key is supplied as an image.
 
 AI transcribes and arranges the supplied material and creates grounded
-explanations. It must retain the answer key and exact quoted evidence. Coloured
+explanations. With no key, it solves from the passage/transcript; the review labels
+these as AI-inferred answers and lets the admin correct them. A supplied key is
+preserved and must be complete. Every explanation quotes actual source evidence. Coloured
 answer highlights in source images are mapped to the relevant scored questions.
 Unreadable, unsupported, contradictory, or incomplete sources return an error
 and keep the input for correction.
@@ -19,10 +21,19 @@ Maps and diagrams needing missing coordinates are rejected rather than silently
 converted to a different question type.
 
 Review the generated content and open **Student preview** to inspect the complete
-layout. After checking the review box, **Save inactive draft** atomically inserts
+layout. **Save inactive draft** atomically inserts
 a new passage and question rows. It cannot replace an existing test. Retrying a
 lost response uses the same request ID and does not duplicate the draft. Publish
 separately in Test Management.
+
+Reading imports preserve separate instruction paragraphs and actual box headings.
+Paragraph matching keeps A–E in the answer dropdowns without a redundant letter
+list; Roman heading lists use their source heading or **List of Headings**.
+Summary headings such as **Facial Vision** stay above the continuous inline-gap
+text. The student renderer also repairs question-range-only box titles and flat
+plain-text instructions in older drafts, without rewriting saved test records,
+question numbers, or answers. Legacy rich-text instructions keep their markup
+and pass through the existing HTML sanitizer.
 
 The existing Reading and Listening editors offer **AI explanations**. Select one
 passage/part or all, generate, review the quoted evidence, then apply to the
@@ -43,7 +54,9 @@ open. Listening retains its existing local-only autosave for new tests.
 ## Backend and limits
 
 - Routes: `admin-reading-draft`, `admin-listening-draft`.
-- Registry: Luna primary, GLM-5.3 Flash once on failure; bounded output and timeout.
+- Registry: Luna primary with reasoning off; GLM-5.3 Flash once on failure with
+  low reasoning (the model requires reasoning). Up to 28,000 output tokens
+  accommodates full source transcription and explanations; timeout stays bounded.
 - Authentication: verified user, admin profile, and existing `is_admin` MFA/recovery gate.
 - Generation writes usage telemetry only; it cannot save or publish tests.
 - Save RPCs use SECURITY INVOKER, insert-only transactions and inactive status.
@@ -87,3 +100,26 @@ metadata and preview controls wrapping below. On narrow screens the action row
 moves below the title. Undo/Redo buttons have accessible names and disabled states.
 The Editing unlocked notice disappears after 4.5 seconds; dismissing the notice
 never changes editing authorization. Session locking behavior is unchanged.
+
+## Explanation style and traps
+
+The existing 1,920 Cambridge explanations average 33 words for the main reason,
+with a median of 32 and a 90th percentile of 49 (read-only audit on 14 October
+2026). Both AI creation and AI explanation generation share a style prompt:
+simple, familiar English, normally 25–45 words, pointing directly to the
+decisive source detail. Supporting quotes and keyword pairs remain separate.
+Generated reasons above 70 words are rejected rather than silently clipped.
+
+Grounded Common trap notes stay within 180 characters and are preserved in
+`explanation_data`, including composite blanks. Optional tempting choices must
+be actual incorrect labels and can never be an accepted multi-select choice.
+The current learner explanation component displays these notes; the AI review
+shows them before saving. Existing explanations and reviewed trap annotations
+are not rewritten.
+
+The checklist has been removed from both AI creation and AI explanations.
+Creation shows grouped completeness warnings for missing source text, question
+numbers/text, answers, reasons/evidence and answer highlights. Missing required
+content blocks saving; absent highlights are advisory. NOT GIVEN questions do
+not require a highlighted answer phrase. Schema, source-evidence validation,
+inactive saving and stale-source checks remain in force.

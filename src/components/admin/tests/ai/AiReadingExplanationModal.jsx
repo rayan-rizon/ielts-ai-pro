@@ -22,7 +22,6 @@ export default function AiReadingExplanationModal({
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [reviewed, setReviewed] = useState(false);
   const version = useRef(0);
   const original = useRef(JSON.stringify(sections));
   useEffect(
@@ -36,7 +35,6 @@ export default function AiReadingExplanationModal({
     setBusy(true);
     setError('');
     setResult(null);
-    setReviewed(false);
     const current = ++version.current;
     const source = JSON.stringify(sections);
     try {
@@ -103,7 +101,6 @@ export default function AiReadingExplanationModal({
                 onValueChange={(value) => {
                   setScope(value);
                   setResult(null);
-                  setReviewed(false);
                 }}
                 options={[
                   ...(listening ? [0, 1, 2, 3] : [0, 1, 2]).map((i) => ({
@@ -170,17 +167,8 @@ export default function AiReadingExplanationModal({
             </Button>
             {result && (
               <>
-                <label className="text-xs flex gap-2 items-center">
-                  <input
-                    type="checkbox"
-                    className="accent-[#5a63df]"
-                    checked={reviewed}
-                    onChange={(e) => setReviewed(e.target.checked)}
-                  />
-                  I reviewed the answers and passage evidence.
-                </label>
                 <Button
-                  disabled={!reviewed || busy}
+                  disabled={busy}
                   onClick={apply}
                   className="bg-[#5a63df] hover:bg-[#4d56cb] text-white shadow-none"
                 >

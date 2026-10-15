@@ -1,5 +1,10 @@
 export { validateAiReadingDraft } from './aiReadingValidation.js';
 import { markReadingSourceHighlights } from './readingSourceHighlights.js';
+import {
+  readingBoxTitle,
+  readingNotesPresentation,
+  readingInstructionParagraphs,
+} from './readingQuestionPresentation.js';
 
 const explanations = (items) =>
   items.length === 1
@@ -11,7 +16,7 @@ const rangeInstructions = (group) => {
   const first = group.items[0].number,
     last = group.items.at(-1).number;
   const label = first === last ? `Question ${first}` : `Questions ${first}–${last}`;
-  return `${label}\n${group.instructions.replace(/^Questions?\s+\d+(?:\s*[–—-]\s*\d+)?[.:]?\s*/i, '')}`;
+  return `${label}\n${readingInstructionParagraphs(group.instructions.replace(/^Questions?\s+\d+(?:\s*[–—-]\s*\d+)?[.:]?\s*/i, ''))}`;
 };
 const baseQuestion = (group, item) => ({
   question_number: item.number,
@@ -36,7 +41,10 @@ function matchingQuestion(group) {
     matching_features: {
       style: group.style || 'ABC',
       mode: group.text ? 'paragraph' : 'list',
-      box_title: group.title,
+      box_title: readingBoxTitle(
+        group.title,
+        group.type === 'matching_headings' ? 'List of Headings' : ''
+      ),
       options: group.options,
       ...(group.text
         ? {
@@ -116,16 +124,17 @@ function groupQuestions(group) {
     group.type === 'notes_completion' ||
     (group.type === 'summary_completion' && group.items.length > 1)
   ) {
+    const notes = readingNotesPresentation(group.title, group.text);
     return [
       {
         ...baseQuestion(group, group.items[0]),
         type: 'notes_completion',
         correct_answer: '',
-        question_text: group.text,
+        question_text: notes.text,
         explanation_data: explanations(group.items),
         gap_fill: {
-          title: group.title,
-          structured_text: group.text,
+          title: notes.title,
+          structured_text: notes.text,
           gap_count: group.items.length,
           answers: Object.fromEntries(group.items.map((i) => [i.number, i.answer])),
         },

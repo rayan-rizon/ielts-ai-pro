@@ -2,7 +2,17 @@ import { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '@/components/ui/button';
 import { PANEL, MICRO, MUTED, NUM } from '@/features/dashboard/components/primitives.jsx';
-import { Sparkles, Loader2, X, ArrowLeft, Save, ChevronRight, Check, Eye } from 'lucide-react';
+import {
+  Sparkles,
+  Loader2,
+  X,
+  ArrowLeft,
+  Save,
+  ChevronRight,
+  Check,
+  Eye,
+  AlertTriangle,
+} from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   validateAiReadingDraft,
@@ -26,6 +36,7 @@ import {
 } from '../../../../../supabase/functions/_shared/aiListeningDraft';
 import AiReadingDraftInput from './AiReadingDraftInput';
 import AiReadingDraftPreview from './AiReadingDraftPreview';
+import { aiDraftCompleteness } from './aiDraftCompleteness';
 
 const EMPTY_INPUT = {
   passageText: '',
@@ -53,15 +64,15 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
   const [error, setError] = useState('');
   const [busy, setBusy] = useState('');
   const [preparing, setPreparing] = useState(false);
-  const [reviewed, setReviewed] = useState(false);
   const [showStudentPreview, setShowStudentPreview] = useState(false);
   const readySources = [
     ['passageText', 'passage'],
     ['questionText', 'questions'],
-    ['answerText', 'answers'],
   ].filter(
     ([field, role]) => input[field].trim() || input.images.some((image) => image.role === role)
   ).length;
+  const inferredAnswers =
+    !input.answerText.trim() && !input.images.some((image) => image.role === 'answers');
   const request = useRef(0);
   const saveRequest = useRef(null);
   const locked = useRef(false);
@@ -100,6 +111,11 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
       return err.message;
     }
   }, [result, input, validateDraft, validateInput]);
+  const completenessWarnings = useMemo(
+    () => (result ? aiDraftCompleteness(result.draft, input.expectedQuestions) : []),
+    [result, input.expectedQuestions]
+  );
+  const incomplete = completenessWarnings.some((warning) => warning.blocking);
 
   const addImages = async (files, role) => {
     if (preparing || busy) return;
@@ -138,7 +154,6 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
     const current = ++request.current;
     setBusy('generating');
     setError('');
-    setReviewed(false);
     try {
       const next = await generateDraft(input);
       if (request.current === current) {
@@ -156,7 +171,7 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
   };
 
   const save = async () => {
-    if (locked.current || !reviewed || validationError || !result) return;
+    if (locked.current || incomplete || validationError || !result) return;
     locked.current = true;
     setBusy('saving');
     setError('');
@@ -258,10 +273,10 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
                 testType={testType}
                 model={result.model}
                 cost={result.usage?.estimatedProviderCostUsd}
+                inferredAnswers={inferredAnswers}
                 onChange={(draft) => {
                   if (!busy) {
                     setResult((prev) => ({ ...prev, draft }));
-                    setReviewed(false);
                     setError('');
                   }
                 }}
@@ -282,6 +297,23 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
                 }
               />
             )}
+            {completenessWarnings.length > 0 && (
+              <section
+                role="status"
+                aria-label="Completeness warnings"
+                className="mt-4 rounded-lg border border-[rgb(var(--signal-warn)/0.25)] bg-[rgb(var(--signal-warn)/0.06)] p-3 text-xs leading-relaxed"
+              >
+                <p className="flex items-center gap-2 font-semibold">
+                  <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                  Missing test content
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  {completenessWarnings.map((warning) => (
+                    <li key={warning.code}>{warning.message}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
             {(error || validationError) && (
               <p role="alert" className="mt-4 text-sm text-[rgb(var(--signal-fault))]">
                 {error || validationError}
@@ -298,16 +330,6 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
             {result ? (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="flex items-start gap-2 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={reviewed}
-                      disabled={!!busy || !!validationError}
-                      onChange={(e) => setReviewed(e.target.checked)}
-                      className="mt-0.5 accent-[#5a63df]"
-                    />
-                    I checked the passages, question layout, answers and explanations.
-                  </label>
                   <span className={cn(MUTED, 'text-[11px]')}>
                     Saved drafts need publishing in Test Management.
                   </span>
@@ -320,7 +342,6 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
                     onClick={() => {
                       setResult(null);
                       setError('');
-                      setReviewed(false);
                     }}
                   >
                     <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
@@ -338,7 +359,7 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
                     </Button>
                     <Button
                       size="sm"
-                      disabled={!!busy || !reviewed || !!validationError}
+                      disabled={!!busy || incomplete || !!validationError}
                       onClick={save}
                       className="bg-[#5a63df] hover:bg-[#4d56cb] text-white shadow-none"
                     >
@@ -356,9 +377,9 @@ export default function AiReadingDraftModal({ onClose, onSaved, testType = 'read
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium">
-                    {readySources === 3
+                    {readySources === 2
                       ? 'All material ready to review'
-                      : 'Add a passage, questions and answer key'}
+                      : 'Add passages and questions · answer key is optional'}
                   </p>
                   <p className={cn(MUTED, 'text-[10px] mt-0.5')}>
                     AI explanations included · review before saving

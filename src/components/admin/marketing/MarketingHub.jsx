@@ -179,7 +179,7 @@ export default function MarketingHub() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-5 pb-10 pt-12 md:pt-0"
+      className="space-y-5 pb-10 pt-12 md:pt-0 min-w-0 max-w-full"
     >
       <m.div variants={FADE_UP}>
         <AdminPageHeader
@@ -217,9 +217,9 @@ export default function MarketingHub() {
         <Tabs
           value={tab}
           onValueChange={navigateToTab}
-          className="space-y-4 border-t border-stone-200/80 pt-4 dark:border-white/[0.07]"
+          className="space-y-4 border-t border-stone-200/80 pt-4 dark:border-white/[0.07] min-w-0 max-w-full"
         >
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 min-w-0 max-w-full">
             <div className="no-scrollbar touch-pan-x overflow-x-auto pb-1 w-full sm:w-auto">
               <TabsList className={ADMIN_TABS_LIST}>
                 {TABS.map(([value, label, Icon]) => {
@@ -266,7 +266,7 @@ export default function MarketingHub() {
                 })}
               </TabsList>
             </div>
-            <p className="shrink-0 text-[11px] font-medium text-stone-500 dark:text-stone-400">
+            <p className="text-[11px] font-medium text-stone-500 dark:text-stone-400 break-words">
               {TABS.find(([value]) => value === tab)?.[3]}
             </p>
           </div>
@@ -274,14 +274,14 @@ export default function MarketingHub() {
           <TabsContent
             value="copilot"
             id="marketing-tabpanel-copilot"
-            className="mt-0 space-y-4 outline-none"
+            className="mt-0 space-y-4 outline-none min-w-0 max-w-full"
           >
             {ready ? (
               <m.div
                 initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="space-y-4"
+                className="space-y-4 min-w-0 max-w-full"
               >
                 <GrowthDecisionPanel
                   growth={data.growth}
@@ -304,14 +304,14 @@ export default function MarketingHub() {
           <TabsContent
             value="performance"
             id="marketing-tabpanel-performance"
-            className="mt-0 space-y-4 outline-none"
+            className="mt-0 space-y-4 outline-none min-w-0 max-w-full"
           >
             {ready ? (
               <m.div
                 initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="space-y-4"
+                className="space-y-4 min-w-0 max-w-full"
               >
                 <GrowthDecisionPanel
                   growth={data.growth}
@@ -334,13 +334,14 @@ export default function MarketingHub() {
           <TabsContent
             value="campaigns"
             id="marketing-tabpanel-campaigns"
-            className="mt-0 outline-none"
+            className="mt-0 outline-none min-w-0 max-w-full"
           >
             {ready ? (
               <m.div
                 initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="min-w-0 max-w-full"
               >
                 <CampaignsPanel
                   campaigns={data.campaigns}
@@ -359,13 +360,14 @@ export default function MarketingHub() {
           <TabsContent
             value="audiences"
             id="marketing-tabpanel-audiences"
-            className="mt-0 outline-none"
+            className="mt-0 outline-none min-w-0 max-w-full"
           >
             {ready ? (
               <m.div
                 initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="min-w-0 max-w-full"
               >
                 <SegmentsPanel segments={data.segments} onRefresh={load} />
               </m.div>
@@ -378,13 +380,14 @@ export default function MarketingHub() {
           <TabsContent
             value="templates"
             id="marketing-tabpanel-templates"
-            className="mt-0 outline-none"
+            className="mt-0 outline-none min-w-0 max-w-full"
           >
             {ready ? (
               <m.div
                 initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="min-w-0 max-w-full"
               >
                 <TemplatesPanel templates={data.templates} onRefresh={load} />
               </m.div>
@@ -397,13 +400,14 @@ export default function MarketingHub() {
           <TabsContent
             value="journeys"
             id="marketing-tabpanel-journeys"
-            className="mt-0 outline-none"
+            className="mt-0 outline-none min-w-0 max-w-full"
           >
             {ready ? (
               <m.div
                 initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="min-w-0 max-w-full"
               >
                 <JourneysPanel
                   journeys={data.journeys}

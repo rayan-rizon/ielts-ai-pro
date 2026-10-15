@@ -55,8 +55,14 @@ function FeatureQuestionRowItem({
         />
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center justify-start gap-8" data-oid="vvpxgdr">
-        <div className="text-foreground text-[15px] leading-relaxed" data-oid="ofvjdev">
+      <div
+        className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-center gap-3"
+        data-oid="vvpxgdr"
+      >
+        <div
+          className="flex-1 min-w-0 break-words text-foreground text-[15px] leading-relaxed"
+          data-oid="ofvjdev"
+        >
           {q.text}
         </div>
 
@@ -68,7 +74,7 @@ function FeatureQuestionRowItem({
         >
           <SelectTrigger
             className={cn(
-              'h-7 w-[100px] shrink-0 text-sm transition-all border-slate-300/50 dark:border-white/8',
+              'h-8 w-[100px] shrink-0 text-sm transition-colors border-slate-300/50 dark:border-white/8',
               selectStyle,
               !value && 'text-slate-400'
             )}

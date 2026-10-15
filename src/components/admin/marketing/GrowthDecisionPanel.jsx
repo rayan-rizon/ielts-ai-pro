@@ -88,17 +88,20 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
   }
 
   return (
-    <section className={cn(PANEL, 'overflow-hidden')} aria-labelledby="growth-decision-title">
-      <div className="border-b border-stone-200/80 p-4 dark:border-white/[0.07]">
+    <section
+      className={cn(PANEL, 'overflow-hidden min-w-0 max-w-full')}
+      aria-labelledby="growth-decision-title"
+    >
+      <div className="border-b border-stone-200/80 p-3.5 sm:p-4 dark:border-white/[0.07]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <Pill tone="accent">Measured</Pill>
               <h3 id="growth-decision-title" className={TITLE}>
                 Subscription decision loop
               </h3>
             </div>
-            <p className={cn(BODY, 'mt-1 max-w-2xl')}>
+            <p className={cn(BODY, 'mt-1 max-w-2xl text-xs')}>
               Find the largest verified loss, choose a relevant learner cohort, review one action,
               and measure practice or paid conversion against a holdout.
             </p>
@@ -108,22 +111,24 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
               <span className={NUM}>{currentSubscriptions?.total ?? 0}</span> current paying
             </Pill>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold text-stone-500 dark:text-stone-400">
-              <ShieldCheck className="h-3.5 w-3.5 text-[rgb(var(--signal-ok))]" />
-              AI proposes · an admin approves · outcomes are measured
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-ok))]" />
+              <span className="leading-tight">
+                AI proposes · an admin approves · outcomes are measured
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-        <div className="border-b lg:border-b-0 lg:border-r border-stone-200/80 p-4 dark:border-white/[0.07]">
+      <div className="grid gap-0 min-w-0 max-w-full lg:grid-cols-[1.25fr_0.75fr]">
+        <div className="min-w-0 max-w-full overflow-hidden border-b lg:border-b-0 lg:border-r border-stone-200/80 p-3.5 sm:p-4 dark:border-white/[0.07]">
           <div className="flex items-center justify-between mb-2">
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Account lifecycle</p>
             <span className="text-[9px] font-medium text-stone-400 dark:text-stone-500 sm:hidden">
-              Swipe for all 6 stages →
+              Swipe stages →
             </span>
           </div>
-          <div className="no-scrollbar touch-pan-x flex min-w-0 items-stretch gap-1.5 overflow-x-auto pb-1.5 pt-0.5">
+          <div className="no-scrollbar touch-pan-x flex min-w-0 max-w-full items-stretch gap-1.5 overflow-x-auto pb-1.5 pt-0.5 overscroll-x-contain">
             {stages.map((stage, index) => {
               const previous = stages[index - 1];
               const rate = previous?.value
@@ -145,7 +150,7 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
                       </span>
                     </div>
                   )}
-                  <div className="w-[92px] sm:w-[102px] shrink-0 rounded-lg border border-stone-200/80 bg-stone-50/70 p-2.5 dark:border-white/[0.08] dark:bg-white/[0.035] transition-all">
+                  <div className="w-[88px] sm:w-[100px] shrink-0 rounded-lg border border-stone-200/80 bg-stone-50/70 p-2 sm:p-2.5 dark:border-white/[0.08] dark:bg-white/[0.035] transition-all">
                     <p
                       className={cn(
                         NUM,
@@ -154,9 +159,7 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
                     >
                       {stage.value ?? 0}
                     </p>
-                    <p
-                      className={cn(MICRO, 'mt-1 text-stone-500 dark:text-stone-400 line-clamp-1')}
-                    >
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-stone-500 dark:text-stone-400 line-clamp-2 leading-tight">
                       {stageLabel}
                     </p>
                   </div>
@@ -168,7 +171,7 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
           {loss && (
             <div className="mt-3 flex items-start gap-2 rounded-lg border border-[rgb(var(--signal-warn)/0.25)] bg-[rgb(var(--signal-warn)/0.05)] p-2.5">
               <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-warn))]" />
-              <p className="text-[11px] font-medium leading-relaxed text-stone-700 dark:text-stone-200">
+              <p className="text-[11px] font-medium leading-relaxed text-stone-700 dark:text-stone-200 break-words">
                 <span className="font-extrabold">Largest measured loss:</span> {loss.from.label} →{' '}
                 {loss.to.label}. <span className={NUM}>{loss.lost}</span> learners,{' '}
                 <span className={NUM}>{loss.lossRate}%</span> of the prior stage. Diagnose this step
@@ -178,11 +181,11 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
           )}
           {pricingInterest && (
             <div className="mt-2 rounded-lg bg-stone-100/70 p-2.5 dark:bg-white/[0.045]">
-              <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50">
+              <p className="text-[11px] font-extrabold text-stone-900 dark:text-stone-50 break-words">
                 Pricing follow-up · <span className={NUM}>{pricingWithoutCheckout}</span> did not
                 start checkout
               </p>
-              <p className="mt-1 text-[10px] font-medium leading-relaxed text-stone-500 dark:text-stone-400">
+              <p className="mt-1 text-[10px] font-medium leading-relaxed text-stone-500 dark:text-stone-400 break-words">
                 Copilot considers recent free learners only after they select a plan or visit
                 pricing at least twice within 48 hours. It prepares a helpful comparison for admin
                 review; it does not send automatically or offer an invented discount.
@@ -191,7 +194,7 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
           )}
         </div>
 
-        <div className="p-4">
+        <div className="min-w-0 max-w-full p-3.5 sm:p-4">
           <p className={cn(MICRO, 'mb-2 text-stone-500 dark:text-stone-400')}>Best review queues</p>
           <div className="space-y-2">
             {cohorts.map((cohort) => (
@@ -223,7 +226,7 @@ export default function GrowthDecisionPanel({ growth, currentSubscriptions, comp
       </div>
 
       {growth.coverage?.note && (
-        <p className="border-t border-stone-200/80 px-4 py-2 text-[10px] font-medium text-stone-500 dark:border-white/[0.07] dark:text-stone-400">
+        <p className="border-t border-stone-200/80 px-4 py-2 text-[10px] font-medium text-stone-500 dark:border-white/[0.07] dark:text-stone-400 break-words">
           Coverage · {growth.coverage.note}
         </p>
       )}

@@ -34,7 +34,7 @@ describe('cheap Reading model route', () => {
     const result = await generateAiReadingDraft(input, 'test-secret', fetcher);
     const sent = JSON.parse(fetcher.mock.calls[0][1].body);
     expect(sent.model).toBe('openai/gpt-6-luna');
-    expect(sent.max_tokens).toBe(5900);
+    expect(sent.max_tokens).toBe(28000);
     expect(sent.messages[1].content.at(-1).image_url.url).toBe(input.images[0].dataUrl);
     expect(result.usage.estimatedProviderCostUsd).toBe(0.002);
     expect(result.fallbackUsed).toBe(false);
@@ -48,6 +48,7 @@ describe('cheap Reading model route', () => {
       .mockResolvedValueOnce(response());
     const result = await generateAiReadingDraft(draftInput(), 'secret', fetcher);
     expect(JSON.parse(fetcher.mock.calls[1][1].body).model).toBe('z-ai/glm-5.3-flash');
+    expect(JSON.parse(fetcher.mock.calls[1][1].body).reasoning.effort).toBe('low');
     expect(result.fallbackUsed).toBe(true);
     expect(result.usage.tokensUsed).toBe(600);
     expect(result.usage.estimatedProviderCostUsd).toBe(0.004);
@@ -58,6 +59,17 @@ describe('cheap Reading model route', () => {
       AiReadingGenerationError
     );
     expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+  it('keeps the first failure visible and redacts a key echoed by a provider', async () => {
+    const fetcher = vi.fn().mockImplementation(
+      () =>
+        new Response(JSON.stringify({ error: { message: 'Rejected test-secret parameter' } }), {
+          status: 400,
+        })
+    );
+    await expect(generateAiReadingDraft(draftInput(), 'test-secret', fetcher)).rejects.toThrow(
+      'openai/gpt-6-luna: Provider returned HTTP 400: Rejected [redacted] parameter; z-ai/glm-5.3-flash:'
+    );
   });
 });
 

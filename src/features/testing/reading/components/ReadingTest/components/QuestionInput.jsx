@@ -111,7 +111,10 @@ const QuestionInput = memo(function QuestionInput({
                     : explanationData.blanks?.[displayNum]
                       ? displayNum
                       : null;
-                  if (!actualKey) return null;
+                  // A single scored answer owns a flat explanation; composite
+                  // rows own numbered blanks. Do not hide flat AI explanations.
+                  if (explanationData.blanks && actualKey == null) return null;
+                  if (!explanationData.blanks && !explanationData.why_correct) return null;
 
                   return (
                     <DeepDivePopover
@@ -123,6 +126,7 @@ const QuestionInput = memo(function QuestionInput({
                       }
                       questionType="short_answer"
                       blankKey={actualKey}
+                      questionNumber={displayNum}
                       inline={true}
                     />
                   );

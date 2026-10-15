@@ -21,7 +21,7 @@ const explanations = {
   },
 };
 describe('AI explanation review flow', () => {
-  it('requires review before applying explanations to the editor', async () => {
+  it('applies generated explanations without a checklist', async () => {
     generateReadingExplanations.mockResolvedValue({ explanations, model: 'openai/gpt-6-luna' });
     const onApply = vi.fn(),
       onClose = vi.fn(),
@@ -37,9 +37,9 @@ describe('AI explanation review flow', () => {
     expect(screen.getByRole('combobox', { name: 'Generate for' })).toHaveTextContent('Passage 1');
     fireEvent.click(screen.getByRole('button', { name: 'Generate explanations' }));
     const apply = await screen.findByRole('button', { name: 'Apply explanations' });
-    expect(apply).toBeDisabled();
+    expect(apply).toBeEnabled();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(onApply).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('checkbox', { name: /I reviewed/ }));
     fireEvent.click(apply);
     expect(onApply).toHaveBeenCalledWith(explanations);
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -62,7 +62,6 @@ describe('AI explanation review flow', () => {
         sections={[{ ...sections[0], content: 'Edited passage' }]}
       />
     );
-    fireEvent.click(screen.getByRole('checkbox', { name: /I reviewed/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Apply explanations' }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('test changed'));
     expect(onApply).not.toHaveBeenCalled();

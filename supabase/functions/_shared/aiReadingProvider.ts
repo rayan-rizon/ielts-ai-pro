@@ -49,7 +49,8 @@ async function attempt(
   apiKey: string,
   fetchImpl: typeof fetch,
   route: any,
-  adapter: any
+  adapter: any,
+  reasoningEffort: 'none' | 'low'
 ) {
   const content: any[] = [
     {
@@ -93,14 +94,25 @@ async function attempt(
           { role: 'user', content },
         ],
         response_format: { type: 'json_object' },
-        reasoning: { effort: 'none', exclude: true },
         provider: { sort: 'throughput', require_parameters: true },
-        max_tokens: Math.min(route.maxOutputTokens, 2000 + input.expectedQuestions * 300),
         usage: { include: true },
+        reasoning: { effort: reasoningEffort, exclude: true },
+        // The completion includes entire passages, not just question answers.
+        max_tokens: route.maxOutputTokens,
         stream: false,
       }),
     });
-    if (!response.ok) throw new Error(`Provider returned HTTP ${response.status}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      const detail =
+        typeof error.error?.message === 'string'
+          ? error.error.message
+              .replaceAll(apiKey, '[redacted]')
+              .replace(/data:image[^\s]+/g, '[image]')
+              .slice(0, 240)
+          : '';
+      throw new Error(`Provider returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+    }
     const data = await response.json();
     const usage = usageFor(data, model);
     try {
@@ -153,15 +165,29 @@ export async function generateAiReadingDraft(
   const route = AI_ROUTES.find((value) => value.id === adapter.routeId);
   if (!route || !apiKey) throw new Error('Admin test AI is not configured.');
   const totals = { tokensUsed: 0, estimatedProviderCostUsd: 0 };
-  let lastError = 'Generation failed.';
+  const failures: string[] = [];
   for (const [index, step] of route.steps.entries()) {
     try {
-      const result = await attempt(input, step.model, apiKey, fetchImpl, route, adapter);
+      const result = await attempt(
+        input,
+        step.model,
+        apiKey,
+        fetchImpl,
+        route,
+        adapter,
+        step.reasoningEffort || 'none'
+      );
       return {
         ...(input.action === 'explanations'
           ? { explanations: result.explanations }
           : { draft: result.draft }),
         model: step.model,
+        answerSource:
+          input.action === 'explanations'
+            ? 'supplied'
+            : input.answerText || input.images.some((image) => image.role === 'answers')
+              ? 'supplied'
+              : 'inferred',
         fallbackUsed: index > 0,
         usage: {
           tokensUsed: totals.tokensUsed + result.usage.tokensUsed,
@@ -170,7 +196,9 @@ export async function generateAiReadingDraft(
         },
       };
     } catch (error) {
-      lastError = error instanceof Error ? error.message : 'Generation failed.';
+      failures.push(
+        `${step.model}: ${error instanceof Error ? error.message : 'Generation failed.'}`
+      );
       if (error instanceof AiReadingGenerationError) {
         totals.tokensUsed += error.usage.tokensUsed;
         totals.estimatedProviderCostUsd += error.usage.estimatedProviderCostUsd;
@@ -178,7 +206,7 @@ export async function generateAiReadingDraft(
     }
   }
   throw new AiReadingGenerationError(
-    `Could not create a complete, validated draft. ${lastError}`,
+    `Could not create a complete, validated draft. ${failures.join('; ')}`,
     totals
   );
 }

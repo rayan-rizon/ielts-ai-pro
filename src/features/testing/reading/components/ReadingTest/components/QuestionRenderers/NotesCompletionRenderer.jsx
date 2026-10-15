@@ -1,8 +1,8 @@
 import React from 'react';
-import { Input } from '@/components/ui/input';
 import DebouncedInput from '@/components/ui/debounced-input';
 import QuestionNumberCircle from '@/components/test/QuestionNumberCircle';
 import DeepDivePopover from '@/features/testing/reading/components/DeepDivePopover';
+import { readingNotesPresentation } from '../../../../utils/readingQuestionPresentation';
 
 /**
  * Renders structured notes completion with title, bold headers, bullets, and inline gaps.
@@ -22,8 +22,10 @@ const NotesCompletionRenderer = React.memo(
     setOpenDeepDive,
   }) => {
     const { gap_fill } = question;
-    const title = gap_fill?.title || '';
-    const structuredText = gap_fill?.structured_text || '';
+    const { title, text: structuredText } = readingNotesPresentation(
+      gap_fill?.title,
+      gap_fill?.structured_text
+    );
 
     // Helper for input styles
     const getInputStyles = (isCorrect, value) => {
@@ -173,7 +175,7 @@ const NotesCompletionRenderer = React.memo(
             }
 
             // Detect bold headers (lines ending with : that aren't bullets)
-            if (trimmedLine.endsWith(':') && !trimmedLine.match(/^[●•–\-]/)) {
+            if (trimmedLine.endsWith(':') && !trimmedLine.match(/^[●•–-]/)) {
               return (
                 <p key={idx} className="font-bold text-[15px] mt-3 mb-1" data-oid="nskbdnl">
                   {renderLineWithGaps(trimmedLine, idx)}

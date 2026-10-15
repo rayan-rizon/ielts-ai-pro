@@ -40,6 +40,7 @@ export type RouteStep = {
   role: 'primary' | 'fallback' | 'repair';
   /** Why this step exists / when it is reached. */
   when: string;
+  reasoningEffort?: 'none' | 'low';
 };
 
 export type AiRoute = {
@@ -211,44 +212,48 @@ export const AI_ROUTES: AiRoute[] = [
     surface:
       'Admin: import Reading passages, questions and grounded explanations from text/screenshots',
     file: 'supabase/functions/admin-reading-draft/index.ts',
-    maxOutputTokens: 14000,
+    maxOutputTokens: 28000,
     timeoutMs: 60000,
     steps: [
       {
         model: 'openai/gpt-6-luna',
         role: 'primary',
+        reasoningEffort: 'none',
         when: 'Admin-only preview generation; supports text and screenshots.',
       },
       {
         model: 'z-ai/glm-5.3-flash',
         role: 'fallback',
+        reasoningEffort: 'low',
         when: 'Luna fails or its output fails passage, answer-key or schema checks; one attempt only.',
       },
     ],
     notes:
-      'No test writes during generation. Expected count 1–40, output budget 2,000 + 300 tokens per scored question, at most eight compressed images. Saving uses a separate insert-only, inactive-draft transaction.',
+      'Optional key: infer answers from passage when absent, review before saving. At most 28,000 output tokens for full source transcription plus explanations; no test writes. Luna disables reasoning; GLM requires low reasoning. OpenRouter transport. At most eight compressed images; insert-only inactive draft save.',
   },
   {
     id: 'admin-listening-draft',
     surface:
       'Admin: import Listening audioscripts, questions and grounded explanations from text/screenshots',
     file: 'supabase/functions/admin-listening-draft/index.ts',
-    maxOutputTokens: 14000,
+    maxOutputTokens: 28000,
     timeoutMs: 60000,
     steps: [
       {
         model: 'openai/gpt-6-luna',
         role: 'primary',
+        reasoningEffort: 'none',
         when: 'Admin-only preview generation; supports text and screenshots.',
       },
       {
         model: 'z-ai/glm-5.3-flash',
         role: 'fallback',
+        reasoningEffort: 'low',
         when: 'Luna fails or its output fails transcript, answer-key or schema checks; one attempt only.',
       },
     ],
     notes:
-      'No test writes during generation. Expected count 1–40, output budget 2,000 + 300 tokens per scored question, at most eight compressed images. Saving uses a separate insert-only, inactive-draft transaction.',
+      'Optional key: infer answers from transcript when absent, review before saving. At most 28,000 output tokens for full transcription plus explanations; no test writes. Luna disables reasoning; GLM requires low reasoning. OpenRouter transport. At most eight compressed images; insert-only inactive draft save.',
   },
   {
     id: 'personalized-ai-coach',

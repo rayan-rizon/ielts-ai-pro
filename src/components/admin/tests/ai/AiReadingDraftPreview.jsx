@@ -11,13 +11,23 @@ import {
 } from '@/features/dashboard/components/primitives.jsx';
 import { cn } from '@/lib/cn';
 
-function ItemPreview({ item, options, onChange }) {
+function ItemPreview({ item, options, onChange, editableAnswer }) {
   return (
     <div className="space-y-3 border-t border-[#e4e2f0] dark:border-white/[0.07] pt-3">
       <div className="flex items-center gap-2">
         <span className={cn(NUM, 'text-xs font-bold')}>Q{item.number}</span>
         <Pill tone="accent">{item.answer}</Pill>
       </div>
+      {editableAnswer && (
+        <label className="block text-xs space-y-1">
+          Correct answer · Q{item.number}
+          <Input
+            value={item.answer}
+            className="shadow-none text-xs"
+            onChange={(e) => onChange({ ...item, answer: e.target.value })}
+          />
+        </label>
+      )}
       <label className="block text-xs space-y-1">
         Question
         <Textarea
@@ -59,6 +69,20 @@ function ItemPreview({ item, options, onChange }) {
           }
         />
       </label>
+      {item.explanation.trap && (
+        <label className="block text-xs space-y-1">
+          Common trap
+          <Textarea
+            value={item.explanation.trap}
+            rows={2}
+            maxLength={180}
+            className="shadow-none text-xs leading-relaxed"
+            onChange={(e) =>
+              onChange({ ...item, explanation: { ...item.explanation, trap: e.target.value } })
+            }
+          />
+        </label>
+      )}
       <details className="text-xs">
         <summary className="cursor-pointer font-medium">Keywords and other options</summary>
         <div className="mt-2 space-y-1">
@@ -131,6 +155,7 @@ export default function AiReadingDraftPreview({
   model,
   cost,
   testType = 'reading',
+  inferredAnswers = false,
 }) {
   const listening = testType === 'listening';
   const sectionLabel = listening ? 'Part' : 'Passage';
@@ -166,6 +191,12 @@ export default function AiReadingDraftPreview({
           })}
         </span>
       </div>
+      {inferredAnswers && (
+        <p role="note" className={cn(TILE, 'p-3 text-xs leading-relaxed')}>
+          AI-inferred answers · No answer key was supplied. Check each answer and its passage
+          evidence before saving. You can correct answers below.
+        </p>
+      )}
       <label className="block text-xs space-y-1">
         Test title
         <Input
@@ -227,8 +258,9 @@ export default function AiReadingDraftPreview({
         <section className="space-y-3 min-w-0">
           <h3 className={TITLE}>Questions and explanations</h3>
           <p className={cn(MUTED, 'text-xs')}>
-            Answers follow your supplied key. To correct the key or a question layout, return to the
-            source and regenerate.
+            {inferredAnswers
+              ? 'Answers were inferred from your material. Check the evidence and correct any answer below; update its explanation if needed.'
+              : 'Answers follow your supplied key. To correct the key or question layout, return to the source and regenerate.'}
           </p>
           {section.groups.map((group, g) => (
             <details key={g} open={g === 0} className={cn(TILE, 'p-3')}>
@@ -245,6 +277,7 @@ export default function AiReadingDraftPreview({
                     key={item.number}
                     item={item}
                     options={group.options}
+                    editableAnswer={inferredAnswers}
                     onChange={(next) => changeItem(g, n, next)}
                   />
                 ))}

@@ -18,6 +18,7 @@ import QuestionInput from './QuestionInput';
 import { calculateTotalQuestions, calculateGlobalQuestionNumber } from '../utils/helpers';
 import DeepDivePopover from '../../DeepDivePopover';
 import { withReadingTraps } from '../../../utils/readingTraps';
+import { readingInstructionParagraphs } from '../../../utils/readingQuestionPresentation';
 
 // Direct imports for question renderers (no lazy loading to avoid blank states)
 import TableCompletionRenderer from './QuestionRenderers/TableCompletionRenderer';
@@ -32,9 +33,9 @@ const renderInstructionText = (text) => {
 
   return (
     <div
-      className="text-[15px] font-medium text-slate-700 dark:text-slate-300 leading-snug"
+      className="text-[15px] font-medium text-slate-700 dark:text-slate-300 leading-relaxed"
       dangerouslySetInnerHTML={{
-        __html: formatInstructionHTML(text),
+        __html: formatInstructionHTML(readingInstructionParagraphs(text)),
       }}
       data-oid="ei8tuot"
     />

@@ -41,6 +41,32 @@ const preview = async () => {
 };
 
 describe('AI Reading creator review and save flow', () => {
+  it('generates with no key and replaces the checklist with missing-answer warnings', async () => {
+    generateReadingDraft.mockResolvedValue({
+      draft: aiReadingFixture(),
+      model: 'openai/gpt-6-luna',
+      answerSource: 'inferred',
+    });
+    render(<AiReadingDraftModal onClose={vi.fn()} onSaved={vi.fn()} />);
+    fillSources();
+    fireEvent.change(screen.getByLabelText('Answer key'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate test and explanations' }));
+    expect(await screen.findByRole('note')).toHaveTextContent('No answer key was supplied');
+    expect(generateReadingDraft.mock.calls[0][0].answerText).toBe('');
+    const save = screen.getByRole('button', { name: 'Save inactive draft' });
+    expect(save).toBeEnabled();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Correct answer · Q1'), {
+      target: { value: '' },
+    });
+    expect(save).toBeDisabled();
+    expect(screen.getByRole('status', { name: 'Completeness warnings' })).toHaveTextContent(
+      'Missing answers: Q1'
+    );
+    fireEvent.change(screen.getByLabelText('Correct answer · Q1'), { target: { value: 'TRUE' } });
+    expect(save).toBeEnabled();
+    expect(saveReadingAiDraft).not.toHaveBeenCalled();
+  });
   it('imports all four Listening parts in one request and saves only a new inactive draft', async () => {
     generateListeningDraft.mockResolvedValue({
       draft: aiListeningFixture(),
@@ -60,7 +86,6 @@ describe('AI Reading creator review and save flow', () => {
     expect(screen.getByRole('button', { name: 'Part 4 · 2 questions' })).toBeInTheDocument();
     expect(generateReadingDraft).not.toHaveBeenCalled();
     expect(saveListeningAiDraft).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('checkbox', { name: /I checked/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Save inactive draft' }));
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith('new-listening-draft'));
     expect(saveListeningAiDraft.mock.calls[0][0]).toMatchObject({
@@ -119,15 +144,15 @@ describe('AI Reading creator review and save flow', () => {
     expect(generateReadingDraft).not.toHaveBeenCalled();
     expect(saveReadingAiDraft).not.toHaveBeenCalled();
   });
-  it('generates a preview without writes and requires review before an inactive draft save', async () => {
+  it('generates a validated preview without writes and saves an inactive draft without a checklist', async () => {
     const onSaved = vi.fn();
     saveReadingAiDraft.mockResolvedValue('new-draft-id');
     render(<AiReadingDraftModal onClose={vi.fn()} onSaved={onSaved} />);
     await preview();
     expect(saveReadingAiDraft).not.toHaveBeenCalled();
     const save = screen.getByRole('button', { name: 'Save inactive draft' });
-    expect(save).toBeDisabled();
-    fireEvent.click(screen.getByRole('checkbox', { name: /I checked/ }));
+    expect(save).toBeEnabled();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     fireEvent.click(save);
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith('new-draft-id'));
     const payload = saveReadingAiDraft.mock.calls[0][0];
@@ -146,7 +171,6 @@ describe('AI Reading creator review and save flow', () => {
       .mockResolvedValueOnce('draft');
     render(<AiReadingDraftModal onClose={vi.fn()} onSaved={vi.fn()} />);
     await preview();
-    fireEvent.click(screen.getByRole('checkbox', { name: /I checked/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Save inactive draft' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not save.');
     fireEvent.click(screen.getByRole('button', { name: 'Save inactive draft' }));
@@ -156,14 +180,12 @@ describe('AI Reading creator review and save flow', () => {
     );
     expect(screen.getByText('Review your Reading draft')).toBeInTheDocument();
   });
-  it('revokes review after edits and blocks evidence that no longer matches the passage', async () => {
+  it('blocks evidence that no longer matches the passage after edits', async () => {
     render(<AiReadingDraftModal onClose={vi.fn()} onSaved={vi.fn()} />);
     await preview();
-    fireEvent.click(screen.getByRole('checkbox', { name: /I checked/ }));
     fireEvent.change(screen.getByLabelText('Passage text'), {
       target: { value: 'Changed source with no matching evidence.' },
     });
-    expect(screen.getByRole('checkbox', { name: /I checked/ })).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Save inactive draft' })).toBeDisabled();
     expect(screen.getByRole('alert')).toHaveTextContent('actual passage');
   });

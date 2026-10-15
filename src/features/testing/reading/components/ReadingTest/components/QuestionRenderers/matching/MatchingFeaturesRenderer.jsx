@@ -2,12 +2,26 @@ import React, { memo } from 'react';
 import MatchingFeaturesParagraphMode from './MatchingFeaturesParagraphMode';
 import MatchingFeaturesQuestionsMode from './MatchingFeaturesQuestionsMode';
 import { getFeatureLabel } from './helpers';
+import { readingBoxTitle } from '../../../../../utils/readingQuestionPresentation';
 
 function FeaturesBox({ matchingFeatures }) {
   const options = matchingFeatures?.options;
   if (!options?.some((opt) => opt?.trim())) return null;
-  const boxTitle = matchingFeatures.box_title;
   const style = matchingFeatures.style;
+  const labelsOnly = options.every(
+    (opt, idx) =>
+      opt
+        .trim()
+        .replace(/^Paragraph\s+/i, '')
+        .replace(/[.)]$/, '')
+        .toUpperCase() === getFeatureLabel(idx, style).toUpperCase()
+  );
+  if (labelsOnly) return null;
+  const boxTitle =
+    readingBoxTitle(
+      matchingFeatures.box_title,
+      style === 'ROMAN' ? 'List of Headings' : 'List of Features'
+    ) || (style === 'ROMAN' ? 'List of Headings' : '');
 
   return (
     <div
@@ -16,7 +30,7 @@ function FeaturesBox({ matchingFeatures }) {
     >
       {boxTitle !== '' && (
         <h4
-          className="font-bold text-center mb-2.5 text-foreground text-sm tracking-tight border-b border-[#ebeaf7] dark:border-white/8 pb-2 uppercase"
+          className="font-bold text-center mb-2.5 text-foreground text-[15px] border-b border-[#ebeaf7] dark:border-white/8 pb-2"
           data-oid="tk5xf46"
         >
           {boxTitle || 'List of Features'}

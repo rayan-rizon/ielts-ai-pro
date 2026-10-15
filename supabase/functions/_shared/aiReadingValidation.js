@@ -1,3 +1,4 @@
+import { exactSourceExcerpt } from './aiReadingEvidence.js';
 const TYPES = new Set([
   'multiple_choice',
   'true_false_not_given',
@@ -101,17 +102,39 @@ function wrongNotes(value, accepted, number) {
 function explanation(value, item, passage, accepted) {
   const raw = record(value, `Q${item.number} explanation`);
   const reason = text(raw.why_correct, `Q${item.number} explanation`, 1800);
-  const evidence = text(raw.passage_highlight, `Q${item.number} passage evidence`, 3000);
-  if (!plain(passage).includes(plain(evidence)))
-    throw new Error(`Q${item.number}: evidence must quote its actual passage.`);
+  if (reason.split(/\s+/).length > 70)
+    throw new Error(`Q${item.number}: keep the main explanation concise (70 words maximum).`);
+  const requestedEvidence = text(raw.passage_highlight, `Q${item.number} passage evidence`, 3000);
+  const evidence =
+    exactSourceExcerpt(passage, requestedEvidence) ||
+    item.sourceEvidence?.map((quote) => exactSourceExcerpt(passage, quote)).find(Boolean);
+  if (!evidence) throw new Error(`Q${item.number}: evidence must quote its actual passage.`);
   if (/^N\/A\b|simulated passage|hypothetical passage/i.test(reason))
     throw new Error(`Q${item.number}: explain the answer using the actual passage.`);
+  const trap = raw.trap == null ? null : text(raw.trap, `Q${item.number} trap`, 180);
+  let tempting;
+  if (raw.tempting_answer != null) {
+    tempting = text(raw.tempting_answer, `Q${item.number} tempting answer`, 80);
+    const allowed =
+      BOOLEANS[item.type] ||
+      (CHOICE_TYPES.has(item.type) ? optionsFor(item.options, item.style).labels : []);
+    if (
+      !trap ||
+      !allowed.map(answerIdentity).includes(answerIdentity(tempting)) ||
+      accepted.map(answerIdentity).includes(answerIdentity(tempting))
+    )
+      throw new Error(
+        `Q${item.number}: tempting answer must be an available wrong choice with a trap.`
+      );
+  }
   return {
     correct_answer: item.answer,
     why_correct: reason,
     passage_highlight: evidence,
     synonym_map: synonymMap(raw.synonym_map),
     why_wrong: wrongNotes(raw.why_wrong, accepted, item.number),
+    ...(trap ? { trap } : {}),
+    ...(tempting ? { tempting_answer: tempting } : {}),
   };
 }
 function validateAnswerKey(item, context) {
@@ -135,7 +158,20 @@ function normalizeItem(raw, group, passage, context) {
   validateAnswerKey(item, context);
   if (raw.options) item.options = optionsFor(raw.options).options;
   const accepted = group.select_count > 1 ? group.items.map((i) => i.answer) : [item.answer];
-  item.explanation = explanation(raw.explanation, item, passage, accepted);
+  item.explanation = explanation(
+    raw.explanation,
+    {
+      ...item,
+      type: group.type,
+      options: raw.options || group.options,
+      style: group.style,
+      sourceEvidence: context.sourceHighlights
+        ?.filter((highlight) => highlight.question_numbers.includes(raw.number))
+        .map((highlight) => highlight.text),
+    },
+    passage,
+    accepted
+  );
   return item;
 }
 function validateChoices(group) {
@@ -234,19 +270,57 @@ function normalizeGroup(value, passage, context) {
   if (group.type === 'summary_completion' && group.options) group.type = 'matching_features';
   validateChoices(group);
   SHAPES[group.type]?.(raw, group);
+  if (
+    context.answerSource === 'inferred' &&
+    !CHOICE_TYPES.has(group.type) &&
+    !BOOLEANS[group.type]
+  ) {
+    const wordNumbers = { ONE: 1, TWO: 2, THREE: 3 };
+    const limit = group.instructions
+      .toUpperCase()
+      .match(/(?:NO MORE THAN\s+)?(ONE|TWO|THREE|\d+)\s+WORDS?/);
+    for (const item of group.items) {
+      if (!plain(passage).toLowerCase().includes(plain(item.answer).toLowerCase()))
+        throw new Error(`Q${item.number}: inferred answer must come from the actual passage.`);
+      const maxWords = limit && (wordNumbers[limit[1]] || Number(limit[1]));
+      const words = item.answer
+        .split(/\s+/)
+        .filter(
+          (word) =>
+            !/AND\s*\/\s*OR A NUMBER/i.test(group.instructions) || !/^\d+(?:[.,]\d+)*$/.test(word)
+        );
+      if (maxWords && words.length > maxWords)
+        throw new Error(`Q${item.number}: inferred answer exceeds the question's word limit.`);
+    }
+  }
   return group;
 }
 function normalizeSection(value, context) {
   const raw = record(value, 'Passage section');
   const content = text(raw.content, 'Passage');
   const first = context.nextNumber;
-  const groups = list(raw.groups, 'question groups', 1, 40).map((group) =>
-    normalizeGroup(group, content, context)
+  const sourceHighlights = list(raw.highlights ?? [], 'source highlights', 0, 40).map(
+    (highlight) => {
+      const excerpt = exactSourceExcerpt(
+        content,
+        text(highlight.text, 'Highlighted source excerpt', 3000)
+      );
+      if (!excerpt) throw new Error('A detected highlight is not an exact passage excerpt.');
+      return {
+        text: excerpt,
+        question_numbers: list(highlight.question_numbers, 'highlight question numbers', 1, 40).map(
+          (number) => integer(number, 'Highlight question number', 1, 40)
+        ),
+      };
+    }
   );
-  const highlights = list(raw.highlights ?? [], 'source highlights', 0, 40).map((highlight) => {
-    const excerpt = text(highlight.text, 'Highlighted source excerpt', 3000);
-    if (!content.includes(excerpt))
-      throw new Error('A detected highlight is not an exact passage excerpt.');
+  const sectionContext = { ...context, sourceHighlights };
+  const groups = list(raw.groups, 'question groups', 1, 40).map((group) =>
+    normalizeGroup(group, content, sectionContext)
+  );
+  context.nextNumber = sectionContext.nextNumber;
+  const highlights = sourceHighlights.map((highlight) => {
+    const excerpt = highlight.text;
     const question_numbers = list(
       highlight.question_numbers,
       'highlight question numbers',
@@ -264,13 +338,19 @@ function normalizeSection(value, context) {
 }
 export function validateAiReadingDraft(
   value,
-  { expectedQuestions, suppliedAnswers = {}, sectionCounts = [], maxSections = 3 } = {}
+  {
+    expectedQuestions,
+    suppliedAnswers = {},
+    sectionCounts = [],
+    maxSections = 3,
+    answerSource,
+  } = {}
 ) {
   const raw = record(value, 'Reading draft');
   if (raw.version !== 1) throw new Error('Unsupported Reading draft version.');
   const issues = list(raw.issues ?? [], 'source issues');
   if (issues.length) throw new Error(`Source needs attention: ${issues.slice(0, 4).join('; ')}`);
-  const context = { nextNumber: 1, suppliedAnswers };
+  const context = { nextNumber: 1, suppliedAnswers, answerSource };
   const sections = list(raw.sections, 'passages', 1, maxSections).map((section) =>
     normalizeSection(section, context)
   );

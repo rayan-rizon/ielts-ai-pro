@@ -76,7 +76,6 @@ export function validateAiReadingInput(body) {
   for (const [field, role] of [
     ['passageText', 'passage'],
     ['questionText', 'questions'],
-    ['answerText', 'answers'],
   ]) {
     if (!texts[field] && !cleanImages.some((image) => image.role === role)) {
       throw new Error(`Provide ${role} as text or screenshots.`);
@@ -100,5 +99,16 @@ export function validateAiReadingInput(body) {
     if (sectionCounts.reduce((sum, count) => sum + count, 0) !== expectedQuestions)
       throw new Error('Passage counts do not match total questions.');
   }
-  return { ...texts, expectedQuestions, images: cleanImages, suppliedAnswers, sectionCounts };
+  const answerSource =
+    texts.answerText || cleanImages.some((image) => image.role === 'answers')
+      ? 'supplied'
+      : 'inferred';
+  return {
+    ...texts,
+    expectedQuestions,
+    images: cleanImages,
+    suppliedAnswers,
+    sectionCounts,
+    answerSource,
+  };
 }

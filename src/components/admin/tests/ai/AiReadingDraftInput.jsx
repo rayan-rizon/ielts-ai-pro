@@ -27,8 +27,8 @@ const SOURCES = [
     field: 'answerText',
     role: 'answers',
     label: 'Answer key',
-    title: 'Answer key',
-    hint: 'One complete key, with one numbered answer per line.',
+    title: 'Answer key · optional',
+    hint: 'Leave empty for AI to solve from the passage. If provided, include every numbered answer.',
     placeholder: '1. TRUE\n2. NOT GIVEN\n3. B\n4. migration',
   },
 ];

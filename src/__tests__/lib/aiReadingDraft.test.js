@@ -25,7 +25,7 @@ describe('AI Reading import boundaries', () => {
     expect(() => parseAiReadingAnswers('1. A\n1. B')).toThrow('repeated');
     expect(() => parseAiReadingAnswers('A, B, C')).toThrow('numbered');
   });
-  it('requires a complete answer key and source for every part', () => {
+  it('requires a complete supplied key and source for every part', () => {
     expect(validateAiReadingInput(aiReadingInput()).suppliedAnswers[12]).toBe('1999');
     expect(() => validateAiReadingInput({ ...aiReadingInput(), answerText: '1. TRUE' })).toThrow(
       'every'
@@ -39,6 +39,56 @@ describe('AI Reading import boundaries', () => {
         images: [{ role: 'passage', dataUrl: 'https://evil.test/image' }],
       })
     ).toThrow('screenshots');
+  });
+  it('accepts no key and grounds inferred free answers within the word limit', () => {
+    const input = validateAiReadingInput({ ...aiReadingInput(), answerText: '' });
+    expect(input.answerSource).toBe('inferred');
+    const draft = aiReadingFixture();
+    expect(validateAiReadingDraft(draft, input).sections).toHaveLength(1);
+    draft.sections[0].groups[6].items[0].answer = 'invention';
+    expect(() => validateAiReadingDraft(draft, input)).toThrow('actual passage');
+    draft.sections[0].groups[6].items[0].answer = 'glass jars';
+    expect(() => validateAiReadingDraft(draft, input)).toThrow('word limit');
+  });
+  it('retains short traps but rejects accepted or invented distractors and long explanations', () => {
+    const draft = aiReadingFixture();
+    const explanation = draft.sections[0].groups[0].items[0].explanation;
+    explanation.trap =
+      'Separate what the passage actually states from details mentioned only in the question.';
+    explanation.tempting_answer = 'FALSE';
+    expect(
+      validateAiReadingDraft(draft, { expectedQuestions: 13 }).sections[0].groups[0].items[0]
+        .explanation
+    ).toMatchObject({ trap: explanation.trap, tempting_answer: 'FALSE' });
+    explanation.tempting_answer = 'TRUE';
+    expect(() => validateAiReadingDraft(draft, { expectedQuestions: 13 })).toThrow(
+      'available wrong choice'
+    );
+    delete explanation.tempting_answer;
+    explanation.why_correct = 'word '.repeat(71);
+    expect(() => validateAiReadingDraft(draft, { expectedQuestions: 13 })).toThrow('concise');
+  });
+  it('grounds typography and only repairs a quote using an exact same-question highlight', () => {
+    const draft = aiReadingFixture();
+    const item = draft.sections[0].groups[0].items[0];
+    item.explanation.passage_highlight = 'the garden opened in 1999.';
+    expect(
+      validateAiReadingDraft(draft, { expectedQuestions: 13 }).sections[0].groups[0].items[0]
+        .explanation.passage_highlight
+    ).toBe('The garden opened in 1999.');
+    item.explanation.passage_highlight = 'Invented source words';
+    expect(() => validateAiReadingDraft(draft, { expectedQuestions: 13 })).toThrow(
+      'actual passage'
+    );
+    draft.sections[0].highlights = [{ text: 'The garden opened in 1999.', question_numbers: [1] }];
+    expect(
+      validateAiReadingDraft(draft, { expectedQuestions: 13 }).sections[0].groups[0].items[0]
+        .explanation.passage_highlight
+    ).toBe('The garden opened in 1999.');
+    draft.sections[0].highlights[0].question_numbers = [2];
+    expect(() => validateAiReadingDraft(draft, { expectedQuestions: 13 })).toThrow(
+      'actual passage'
+    );
   });
   it.each(['question_number', 'passage_id', 'is_active'])(
     'does not accept model-controlled %s on output',
