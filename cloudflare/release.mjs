@@ -14,12 +14,13 @@ const automatic = args.includes('--auto');
 if (!args.includes('--upload') && !version && !automatic) throw Error('Use --upload, --deploy=<version UUID>, or --auto');
 if (automatic && (version || args.includes('--upload'))) throw Error('--auto cannot be combined with manual version operations');
 if (version && !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(version)) throw Error('Invalid version UUID');
-// Workers Builds tokens can inspect script routes without zone-edit permissions.
+// Workers Builds tokens can inspect Worker domains without zone-edit permissions.
 const scripts = await cloudflareApi(`/accounts/${account}/workers/scripts`);
+const domains = await cloudflareApi(`/accounts/${account}/workers/domains`);
 const subdomain = await cloudflareApi(`/accounts/${account}/workers/scripts/${name}/subdomain`);
 const base = JSON.parse(readFileSync(new URL('./wrangler.jsonc', import.meta.url)));
 const manifest = JSON.parse(readFileSync(new URL('./.generated/build-production.json', import.meta.url)));
-validateReleaseTarget(scripts, subdomain, manifest, process.env);
+validateReleaseTarget(scripts, subdomain, manifest, process.env, domains);
 const bindings = dotenv.parse(readFileSync(new URL('./.dev.vars', import.meta.url)));
 for (const key of ['SUPABASE_URL', 'SUPABASE_ANON_KEY']) if (!bindings[key]) throw Error(`Missing public runtime binding: ${key}`);
 const config = {
@@ -29,7 +30,7 @@ const config = {
   vars: { ...bindings, DEPLOYMENT_STAGE: 'production' },
   secrets: { required: ['META_CAPI_ACCESS_TOKEN'] },
 };
-// Versions operations leave live routes, fail-open flags and DNS unchanged.
+// Versions operations leave custom domains and DNS unchanged.
 delete config.routes;
 const configPath = fileURLToPath(new URL('./.generated/release.json', import.meta.url));
 writeFileSync(configPath, JSON.stringify(config, null, 2), { mode: 0o600 });

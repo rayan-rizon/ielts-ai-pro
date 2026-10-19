@@ -35,7 +35,7 @@ in the deployed Worker's secret store and is preserved across versions.
 
 `cf:build` runs Cloudflare policy tests, actual workerd tracking/cache/rate-limit
 fixtures, types and the production frontend/SEO build. `cf:deploy` verifies the
-existing Worker identity, live routes, quota fallback and disabled preview URLs;
+existing Worker identity, both enabled custom domains and disabled preview URLs;
 uploads a version; reads the exact version ID from Wrangler structured output;
 promotes only that version; and confirms it serves 100% traffic. It never rewrites
 routes or DNS. An error fails the build instead of promoting an arbitrary version.
@@ -45,8 +45,8 @@ For a deliberately recreated isolated staging environment, run
 `node cloudflare/build.mjs --profile=staging`, then
 `node cloudflare/deploy.mjs --profile=staging`.
 The candidate deployment command refuses to deploy a production Worker with live routes.
-The production release command uses version operations, requires the existing two
-fail-open routes and disabled preview URLs, preserves secrets, and requires the
+The production release command uses version operations, requires both production
+custom domains and disabled preview URLs, preserves secrets, and requires the
 `META_CAPI_ACCESS_TOKEN` secret. It does not edit DNS or Worker routes.
 
 Production builds validate all public settings listed in `profile.mjs`, including
@@ -76,9 +76,9 @@ created through the Cloudflare dashboard: the same two hosts, POST and path pref
 dashboard only offers a 10-second period/duration, so this supplements rather than
 replaces the Worker minute limit. Rule ID: `b8b579f439934b45b2209e909dc10c19`.
 These zone settings persist independently of Git Worker deployments.
-Vercel's existing rule remains in place for the preserved fallback origin. Bot
-Protection was log-only, AI Bots allowed and OWASP disabled; those were not blocking
-protections to copy into broad bot challenges on Cloudflare.
+The retired Vercel firewall had Bot Protection in log-only mode, AI Bots allowed
+and OWASP disabled; those were not blocking protections to copy into broad bot
+challenges on Cloudflare.
 
 Public blog, feed, sitemap and llms responses use a five-minute edge freshness window
 and stale-while-revalidate. The Worker caches only anonymous GET requests whose
@@ -96,14 +96,16 @@ rule applies to auth or APIs. See [verification boundaries](VERIFICATION.md).
 
 ## Routing and rollback
 
-Both `ieltsai.pro/*` and `www.ieltsai.pro/*` execute the production Worker and have
-`request_limit_fail_open=true`. DNS CNAME targets still point at the proxied Vercel
-origin. This retains fallback on the Free plan's daily request quota; it does not
-protect against CPU-limit failures or establish load capacity.
+Both `ieltsai.pro` and `www.ieltsai.pro` are enabled Custom Domains on
+`ielts-ai-pro`, with previews disabled. Cloudflare manages their Worker DNS records;
+the former Vercel CNAMEs and fail-open routes were removed on 20 October 2026.
+The Worker is now the origin and has no Vercel fallback. The Free-plan request/CPU
+limits still apply; reaching them can interrupt service rather than falling back
+to Vercel. No paid plan was enabled by this change.
 
-**Before removing Vercel**, replace this fallback design and confirm domain/origin
-behavior. The user will remove Vercel separately; this release does not delete it.
 To roll back Worker code, use `wrangler versions deploy <previous-version>@100%`
-with the production release configuration. To return routing to Vercel, remove only
-the two application Worker routes, leaving proxied DNS and mail/R2 records intact.
-Retain the local cutover and backend snapshots until that rollback window closes.
+with the production release configuration. This preserves the custom domains.
+A rollback to another hosting provider requires explicitly recreating that origin
+and changing domain routing; deleting a Worker route no longer restores Vercel.
+The ignored `verification/vercel-removal-routing-before.json` records the previous
+routing configuration for reference.

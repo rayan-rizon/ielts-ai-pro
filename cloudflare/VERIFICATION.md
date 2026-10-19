@@ -82,3 +82,23 @@ A historical Listening attempt has question-ID drift: its stored card score and
 recomputed result differ without a stored question snapshot. This application issue
 is still unresolved and is separate from the hosting migration. The end-to-end
 Speaking grading and browser paid checkout limitations above still apply.
+
+## Vercel retirement preparation — 20 October 2026
+
+Both production hostnames now attach directly to `ielts-ai-pro` as enabled Custom
+Domains, with domain previews disabled. Provider readback shows Cloudflare-managed
+AAAA `100::` records and no zone Worker routes. The two former Vercel CNAMEs and
+fail-open routes are removed. Meta secret and native rate-limit binding remain.
+The active code version at cutover was `b74d59d2-f1c0-4034-b43c-819fffaaf0ca` at 100%.
+
+After cutover, live DNS on Cloudflare/Google DNS-over-HTTPS, TLS 1.2/1.3, canonical
+redirects, static CDN HIT/304, credential cache bypass, API validation and all 93
+sitemap pages passed. DNS-over-HTTPS was used because direct resolver port 53
+was unreachable from this machine. Thirteen policy tests, workerd measurement,
+analytics/cache fixtures and Cloudflare typechecking passed. The updated release
+guard was also checked against the actual production Worker and both domains.
+
+This verifies hosting independence; it does not upgrade the earlier incomplete
+real-payment or full Speaking exam checks into end-to-end proof. Supabase remains
+the backend. Vercel project deletion is a separate irreversible final action;
+its completion must be recorded only after provider confirmation.

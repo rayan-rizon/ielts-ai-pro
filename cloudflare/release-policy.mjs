@@ -1,13 +1,14 @@
 export const PRODUCTION_WORKER = 'ielts-ai-pro';
 export const PRODUCTION_TAG = '9940a4902ec34bddbf4d8bb9ffeab491';
 
-export function validateReleaseTarget(scripts, subdomain, manifest, env = {}) {
+export function validateReleaseTarget(scripts, subdomain, manifest, env = {}, domains = []) {
   const script = scripts.find(item => item.id === PRODUCTION_WORKER);
   if (!script || script.tag !== PRODUCTION_TAG) throw Error('Production Worker identity changed');
-  for (const pattern of ['ieltsai.pro/*', 'www.ieltsai.pro/*']) {
-    if (!script.routes?.some(route => route.pattern === pattern &&
-        route.script === PRODUCTION_WORKER && route.request_limit_fail_open === true)) {
-      throw Error(`Live route or quota fallback differs: ${pattern}`);
+  for (const hostname of ['ieltsai.pro', 'www.ieltsai.pro']) {
+    if (!domains.some(domain => domain.hostname === hostname &&
+        domain.service === PRODUCTION_WORKER && domain.zone_id === 'a0f923f4119e50e011eadaba1fcf48d5' &&
+        domain.enabled === true && domain.previews_enabled === false)) {
+      throw Error(`Production custom domain differs: ${hostname}`);
     }
   }
   if (subdomain.enabled || subdomain.previews_enabled) throw Error('Production preview URLs must remain disabled');
