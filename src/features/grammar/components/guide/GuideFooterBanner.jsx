@@ -2,15 +2,16 @@ import React from 'react';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { skillLabel } from '../../constants';
 
 function getFooterBannerSubtitle(guideProgressUnavailable, isCompleted) {
   if (guideProgressUnavailable) {
     return 'Your guide progress is temporarily unavailable. You can still read and practise.';
   }
   if (isCompleted) {
-    return 'Great progress! Reinforce this rule in practice, or advance to the next unit.';
+    return 'Great progress! Reinforce this rule in practice, or move on to the next guide.';
   }
-  return 'Mark it complete to record your progress in Grammar Lab.';
+  return 'Mark it complete in the sidebar to keep your place in the course.';
 }
 
 function UnitNavigationLinks({ previousGuide, nextGuide }) {
@@ -28,7 +29,7 @@ function UnitNavigationLinks({ previousGuide, nextGuide }) {
             <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
               Previous
             </span>
-            Unit {previousGuide.unit_number}: {previousGuide.title}
+            {previousGuide.label}: {previousGuide.title}
           </span>
         </Link>
       ) : (
@@ -42,9 +43,9 @@ function UnitNavigationLinks({ previousGuide, nextGuide }) {
         >
           <span>
             <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
-              Next Unit
+              Next
             </span>
-            Unit {nextGuide.unit_number}: {nextGuide.title}
+            {nextGuide.label}: {nextGuide.title}
           </span>
           <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
         </Link>
@@ -53,8 +54,17 @@ function UnitNavigationLinks({ previousGuide, nextGuide }) {
   );
 }
 
+function practiceScope(skillCode, relatedUnits) {
+  if (!skillCode) return 'Five mixed questions from all six grammar skills.';
+  const units = relatedUnits.map((guide) => guide.unit_number).join(', ');
+  return relatedUnits.length > 1
+    ? `Five questions on ${skillLabel(skillCode).toLowerCase()}, which Units ${units} all build.`
+    : `Five questions on ${skillLabel(skillCode).toLowerCase()}.`;
+}
+
 export function GuideFooterBanner({
   skillCode,
+  relatedUnits = [],
   isCompleted,
   guideProgressUnavailable,
   isStarting,
@@ -72,10 +82,13 @@ export function GuideFooterBanner({
             <Sparkles className="h-3.5 w-3.5" /> {isCompleted ? 'Guide completed' : 'End of guide'}
           </div>
           <h3 className="mt-0.5 text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-            {isCompleted ? 'You completed this unit!' : 'Finished reading this guide?'}
+            {isCompleted ? 'You completed this guide' : 'Finished? Practise it now.'}
           </h3>
           <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
             {subtitle}
+          </p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+            {practiceScope(skillCode, relatedUnits)}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -85,7 +98,8 @@ export function GuideFooterBanner({
             disabled={isStarting}
             className="rounded-xl bg-[#5a63df] text-xs font-extrabold text-white shadow-xs transition hover:bg-[#4a52c9] active:scale-[0.99]"
           >
-            Start practice set <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            {skillCode ? `Practise ${skillLabel(skillCode).toLowerCase()}` : 'Start mixed practice'}{' '}
+            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

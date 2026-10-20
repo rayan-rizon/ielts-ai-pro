@@ -54,14 +54,14 @@ export default function GrammarSkillsPanel({
   const subtitleCopy = () => {
     if (shouldDiagnose) {
       if (noAllowance) {
-        return 'Start with the 24-question baseline diagnostic above, or unlock unlimited individual practice with Pro.';
+        return 'Start with the 24-question level check above, or unlock unlimited practice with Pro.';
       }
-      return 'Complete your baseline diagnostic first, or practice individual skills below.';
+      return 'Take the level check first, or tap any skill below for five practice questions.';
     }
     if (noAllowance) {
       return 'Daily free practice limit reached (5/5). Resets at midnight, or upgrade to Pro for unlimited practice.';
     }
-    return 'Each result shows how much practice it is based on.';
+    return 'Tap a skill for five practice questions. The badge shows how many answers the result is based on.';
   };
 
   return (
@@ -113,7 +113,7 @@ export default function GrammarSkillsPanel({
           disabled={isStarting || !dueReviews}
           className="cursor-pointer rounded-lg border border-[#e2e5f2] px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#c9cdf3] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
         >
-          Review due items
+          Review missed items
         </button>
       </div>
 
@@ -190,7 +190,7 @@ export default function GrammarSkillsPanel({
                 </div>
                 {accuracy === null ? (
                   <div className="mt-2 text-[10px] font-semibold leading-4 text-slate-400 dark:text-slate-500">
-                    Start with a short baseline
+                    Not practised yet
                   </div>
                 ) : (
                   <>
@@ -203,7 +203,7 @@ export default function GrammarSkillsPanel({
                       }
                     />
                     <div className="mt-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                      {accuracy}% · {skill.correctCount} of {skill.observations} correct
+                      {skill.correctCount} of {skill.observations} correct ({accuracy}%)
                     </div>
                   </>
                 )}

@@ -71,20 +71,20 @@ export const QUESTION_FORMAT_META = {
 
 export const EVIDENCE_META = {
   diagnostic: {
-    label: 'Level check',
-    description: 'Not enough observations to identify a pattern.',
+    label: 'Not enough answers',
+    description: 'Answer a few more questions to see a reliable result.',
     className:
       'border-slate-200 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300',
   },
   early: {
-    label: 'Needs more results',
-    description: 'A practice suggestion based on only a few answers.',
+    label: 'Early result',
+    description: 'Based on only a few answers, so treat it as a first guide.',
     className:
       'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200',
   },
   measured: {
-    label: 'Confirmed focus',
-    description: 'A recurring pattern supported by sufficient observations.',
+    label: 'Reliable result',
+    description: 'A steady pattern across enough answers.',
     className:
       'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200',
   },

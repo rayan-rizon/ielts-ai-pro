@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { cn } from '@/lib/cn';
+import { buildRecommendationMap, getCourseSummary, getNextGuide } from '../data/courseProgress';
 import { PANEL } from '@/features/dashboard/components/primitives';
 import { useGrammarDashboard } from '../hooks/useGrammarDashboard';
 import GrammarHeroPanel from './GrammarHeroPanel';
@@ -6,7 +8,6 @@ import GrammarLearningPathCard from './GrammarLearningPathCard';
 import GrammarSkillsPanel from './GrammarSkillsPanel';
 import GrammarEvidencePanel from './GrammarEvidencePanel';
 import GrammarGuidesPanel from './GrammarGuidesPanel';
-import GrammarPracticeKitsPanel from './GrammarPracticeKitsPanel';
 
 const surface = PANEL;
 
@@ -53,6 +54,25 @@ export default function GrammarDashboard({
     onResume,
   });
 
+  const completedGuideSlugs = useMemo(
+    () => dashboard?.completedGuideSlugs ?? [],
+    [dashboard?.completedGuideSlugs]
+  );
+  const nextGuide = useMemo(
+    () =>
+      getNextGuide(
+        completedGuideSlugs,
+        user,
+        buildRecommendationMap({
+          recommendations: resultRecommendations?.grammar ?? [],
+          recommendedSkill: recommended,
+          completedGuideSlugs,
+        })
+      ),
+    [completedGuideSlugs, recommended, resultRecommendations?.grammar, user]
+  );
+  const hasStartedCourse = getCourseSummary(completedGuideSlugs).hasStarted;
+
   return (
     <div className="space-y-4">
       {/* Hero + Learning Path */}
@@ -70,6 +90,8 @@ export default function GrammarDashboard({
             dueReviews={dashboard?.dueReviews}
             dueSkillLabels={dueSkillLabels}
             retestTarget={retestTarget}
+            nextGuide={nextGuide}
+            hasStartedCourse={hasStartedCourse}
             onStart={startPrimary}
             onStartReview={startReview}
           />
@@ -87,14 +109,18 @@ export default function GrammarDashboard({
         />
       </section>
 
-      {/* Guided kits */}
+      {/* Course: lessons grouped by part, with progress and a clear next step */}
       <div className={cn(surface, 'scroll-mt-6')}>
-        <GrammarPracticeKitsPanel
-          access={access}
+        <GrammarGuidesPanel
+          guideProgressUnavailable={dashboard?.guideProgressUnavailable}
           user={user}
-          completedPracticeSkillSets={dashboard?.completedPracticeSkillSets}
+          access={access}
           isStarting={isStarting}
           onStart={onStart}
+          completedGuideSlugs={completedGuideSlugs}
+          recommendedSkill={recommended}
+          recommendations={resultRecommendations?.grammar}
+          resultEvidenceCount={resultRecommendations?.evidence?.resultCount}
         />
       </div>
 
@@ -124,20 +150,6 @@ export default function GrammarDashboard({
           />
         </div>
       </section>
-
-      {/* Guides */}
-      <div className={cn(surface, 'scroll-mt-6')}>
-        <GrammarGuidesPanel
-          resources={dashboard?.resources}
-          resourcesUnavailable={dashboard?.resourcesUnavailable}
-          guideProgressUnavailable={dashboard?.guideProgressUnavailable}
-          user={user}
-          completedGuideSlugs={dashboard?.completedGuideSlugs}
-          recommendedSkill={recommended}
-          recommendations={resultRecommendations?.grammar}
-          resultEvidenceCount={resultRecommendations?.evidence?.resultCount}
-        />
-      </div>
     </div>
   );
 }

@@ -1,15 +1,30 @@
 import { useMemo, useState } from 'react';
-import { LayoutGroup, motion } from 'framer-motion';
-import { ArrowRight, BookOpenText, ChevronRight, Clock3, Search } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpenText,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  FileText,
+  RefreshCw,
+  Search,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/cn';
-import { GRAMMAR_GUIDES, GRAMMAR_GUIDE_CATEGORIES } from '../data/grammarGuideCatalog';
+import { GRAMMAR_GUIDES, GRAMMAR_GUIDE_KITS } from '../data/grammarGuideCatalog';
+import {
+  buildRecommendationMap,
+  getCourseSummary,
+  getNextGuide,
+  getPartProgress,
+} from '../data/courseProgress';
 import SkillVisual from './SkillVisual';
 import { skillLabel } from '../constants';
 import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import ContentStatusBadge from '@/features/subscription/components/ContentStatusBadge';
-import { MUTED } from '@/features/dashboard/components/primitives';
+import { IconChip, MUTED } from '@/features/dashboard/components/primitives';
 import RecommendationBadge from '@/features/recommendations/RecommendationBadge';
 
 const SKILL_VISUALS = {
@@ -38,78 +53,200 @@ const SKILL_VISUALS = {
     cardClass: 'hover:border-pink-200',
   },
 };
+const REFERENCE_VISUAL = {
+  panelClass: 'from-[#fdfdff] to-[#f4f5fb]',
+  cardClass: 'hover:border-indigo-200',
+};
+
+function panelSubtitle({
+  recommendations,
+  recommendationMap,
+  hasObservedRecommendedSkill,
+  resultEvidenceCount,
+  recommendedSkill,
+}) {
+  if (recommendations.length) {
+    return `${recommendations.length} guide${recommendations.length === 1 ? ' is' : 's are'} tagged Recommended, based on ${resultEvidenceCount || 'your'} completed result${resultEvidenceCount === 1 ? '' : 's'} and Grammar Lab answers.`;
+  }
+  if (recommendationMap.size && hasObservedRecommendedSkill) {
+    return `The guide tagged Recommended covers ${skillLabel(recommendedSkill.skillCode).toLowerCase()}, based on your saved answers.`;
+  }
+  if (recommendationMap.size) {
+    return 'Start with the guide tagged Recommended, then take the level check for a result-based plan.';
+  }
+  return 'Short lessons with an exercise in each. Go in order, or jump to the rule you need.';
+}
+
+function NextUp({ nextGuide, recommendation }) {
+  if (!nextGuide) return null;
+  return (
+    <Link
+      to={`/grammar/guides/${nextGuide.slug}`}
+      className="group mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#5a63df]/30 bg-[#5a63df]/[0.05] p-3.5 transition hover:border-[#5a63df]/55 hover:bg-[#5a63df]/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-indigo-400/30 dark:bg-indigo-500/10"
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <IconChip icon={BookOpenText} size="lg" />
+        <div className="min-w-0">
+          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[#5a63df] dark:text-indigo-300">
+            Up next
+          </div>
+          <div className="mt-0.5 text-sm font-extrabold leading-tight text-slate-900 dark:text-white">
+            {nextGuide.label}: {nextGuide.title}
+          </div>
+          <div className={cn('mt-0.5 text-xs font-medium', MUTED)}>
+            {recommendation?.reason || `${nextGuide.estimated_minutes} min · ${nextGuide.summary}`}
+          </div>
+        </div>
+      </div>
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#5a63df] px-3.5 py-2 text-xs font-extrabold text-white transition group-hover:bg-[#4a52c9]">
+        Open <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+      </span>
+    </Link>
+  );
+}
+
+function GuideCard({ guide, user, isCompleted, recommendation }) {
+  const visual = SKILL_VISUALS[guide.skill_code] || REFERENCE_VISUAL;
+  const isLocked = !hasContentAccess(user, guide.access_tier);
+  return (
+    <Link
+      to={`/grammar/guides/${guide.slug}`}
+      className={cn(
+        'group flex min-h-[168px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
+        recommendation
+          ? 'border-[#5a63df]/40 shadow-xs dark:border-[#8f97ff]/40'
+          : 'border-[#eceafa] dark:border-white/10',
+        visual.panelClass,
+        visual.cardClass
+      )}
+    >
+      <div>
+        <div className="flex items-start justify-between gap-2">
+          {guide.unit_number ? (
+            <SkillVisual
+              skillCode={guide.skill_code}
+              unitNumber={guide.unit_number}
+              slug={guide.slug}
+              compact
+            />
+          ) : (
+            <IconChip icon={FileText} size="lg" />
+          )}
+          <ContentStatusBadge
+            user={user}
+            requiredTier={guide.access_tier}
+            completed={isCompleted}
+            className="shrink-0"
+          />
+        </div>
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          {recommendation && <RecommendationBadge recommendation={recommendation} />}
+          <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
+            {guide.skill_code ? skillLabel(guide.skill_code) : guide.label}
+          </span>
+        </div>
+        <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">
+          {guide.unit_number ? `${guide.unit_number}. ` : ''}
+          {guide.title}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 text-[10px] font-medium leading-4 text-slate-500 dark:text-slate-400">
+          {guide.summary}
+        </p>
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+        <span className="inline-flex items-center gap-1">
+          <Clock3 className="h-3 w-3" /> {guide.estimated_minutes} min
+        </span>
+        <span className="inline-flex items-center gap-0.5 text-[#5a63df]">
+          {isLocked ? 'Unlock' : isCompleted ? 'Review' : 'Open'}
+          <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function PartHeader({ kit, progress, canPractise, noAllowance, isStarting, onStart }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#5a63df] dark:text-indigo-300">
+          {kit.eyebrow}
+          <span className="font-bold tracking-normal text-slate-400">
+            {progress.completed}/{progress.total} done
+          </span>
+        </div>
+        <h3 className="mt-0.5 text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
+          {kit.title}
+        </h3>
+        <p className={cn('mt-0.5 max-w-2xl text-xs font-medium leading-5', MUTED)}>
+          {kit.description}
+        </p>
+      </div>
+      {canPractise && (
+        <button
+          type="button"
+          aria-label={`Practise ${kit.title}`}
+          onClick={() => onStart({ mode: 'practice', targetSkills: kit.skills, questionCount: 5 })}
+          disabled={isStarting || noAllowance}
+          title={
+            noAllowance
+              ? 'Your free questions for today are used. They reset tomorrow.'
+              : 'Five questions on the skills in this part'
+          }
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-white px-3 text-[11px] font-bold text-[#5a63df] transition hover:bg-[#5a63df]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 dark:border-indigo-400/30 dark:bg-white/5 dark:text-indigo-300"
+        >
+          {isStarting ? (
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
+          )}
+          Practise this part
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function GrammarGuidesPanel({
-  resources,
-  resourcesUnavailable,
   guideProgressUnavailable,
   user,
+  access,
+  isStarting = false,
+  onStart,
   completedGuideSlugs = [],
   recommendedSkill,
   recommendations = [],
   resultEvidenceCount = 0,
 }) {
-  const [category, setCategory] = useState('All guides');
   const [query, setQuery] = useState('');
-  const recommendationMap = useMemo(() => {
-    const map = new Map(
-      recommendations.map((item, index) => [item.slug, { ...item, rank: index }])
-    );
-
-    // Cross-test recommendations are more specific, so they always win. When one is
-    // unavailable, the dashboard's existing selected Grammar skill must still have a
-    // visible, actionable destination instead of only changing the sort order.
-    if (map.size || !recommendedSkill?.skillCode) return map;
-
-    const nextGuide = GRAMMAR_GUIDES.find(
-      (guide) =>
-        guide.skill_code === recommendedSkill.skillCode && !completedGuideSlugs.includes(guide.slug)
-    );
-    if (!nextGuide) return map;
-
-    const mastery = Number(recommendedSkill.mastery);
-    const observations = Number(recommendedSkill.observations || 0);
-    const hasObservedResult = observations > 0 && Number.isFinite(mastery);
-    map.set(nextGuide.slug, {
-      slug: nextGuide.slug,
-      rank: 0,
-      reason: hasObservedResult
-        ? `Your Grammar Lab result shows ${Math.round(mastery * 100)}% mastery in ${String(recommendedSkill.label || nextGuide.kit).toLowerCase()}.`
-        : 'Start here, then complete the Grammar Lab diagnostic for a result-based recommendation.',
-      sources: [hasObservedResult ? 'grammar-lab' : 'grammar-lab-diagnostic'],
-    });
-    return map;
-  }, [completedGuideSlugs, recommendations, recommendedSkill]);
+  const recommendationMap = useMemo(
+    () => buildRecommendationMap({ recommendations, recommendedSkill, completedGuideSlugs }),
+    [completedGuideSlugs, recommendations, recommendedSkill]
+  );
   const hasObservedRecommendedSkill =
     Number(recommendedSkill?.observations || 0) > 0 &&
     Number.isFinite(Number(recommendedSkill?.mastery));
-  const visibleGuides = useMemo(() => {
-    const sourceGuides = GRAMMAR_GUIDES.length ? GRAMMAR_GUIDES : resources || [];
-    const normalizedQuery = query.trim().toLowerCase();
-    const filtered = sourceGuides.filter((resource) => {
-      const categoryMatches = category === 'All guides' || resource.kit === category;
-      const queryMatches =
-        !normalizedQuery ||
-        `${resource.title} ${resource.summary} ${skillLabel(resource.skill_code)}`
-          .toLowerCase()
-          .includes(normalizedQuery);
-      return categoryMatches && queryMatches;
-    });
-    if (category !== 'All guides' || normalizedQuery) {
-      return filtered;
-    }
-    return [...filtered].sort((a, b) => {
-      const aRank = recommendationMap.get(a.slug)?.rank;
-      const bRank = recommendationMap.get(b.slug)?.rank;
-      if (aRank !== undefined || bRank !== undefined) {
-        return (aRank ?? Number.MAX_SAFE_INTEGER) - (bRank ?? Number.MAX_SAFE_INTEGER);
-      }
-      return (
-        Number(b.skill_code === recommendedSkill?.skillCode) -
-        Number(a.skill_code === recommendedSkill?.skillCode)
-      );
-    });
-  }, [category, query, recommendationMap, recommendedSkill?.skillCode, resources]);
+  const noAllowance = Boolean(access) && !access.isPaid && Number(access.dailyRemaining || 0) <= 0;
+  const summary = getCourseSummary(completedGuideSlugs);
+  const nextGuide = getNextGuide(completedGuideSlugs, user, recommendationMap);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const parts = useMemo(
+    () =>
+      GRAMMAR_GUIDE_KITS.map((kit) => ({
+        kit,
+        guides: GRAMMAR_GUIDES.filter(
+          (guide) =>
+            guide.kit === kit.title &&
+            (!normalizedQuery ||
+              `${guide.title} ${guide.summary} ${guide.skill_code ? skillLabel(guide.skill_code) : ''}`
+                .toLowerCase()
+                .includes(normalizedQuery))
+        ),
+      })).filter((part) => part.guides.length),
+    [normalizedQuery]
+  );
 
   return (
     <section id="grammar-guides" className="scroll-mt-6 p-4 sm:p-5">
@@ -117,146 +254,91 @@ export default function GrammarGuidesPanel({
         <div>
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#5a63df]">
             <BookOpenText className="h-3.5 w-3.5" />
-            Complete workbook
+            Grammar course
           </div>
           <h2 className="mt-1 text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-            IELTS grammar guides
+            Learn it, then practise it
           </h2>
           <p className={cn('mt-1 max-w-2xl text-xs font-medium leading-5', MUTED)}>
-            {recommendations.length
-              ? `${recommendations.length} focused guides appear first, based on ${resultEvidenceCount || 'your'} completed result${resultEvidenceCount === 1 ? '' : 's'} and Grammar Lab evidence.`
-              : recommendationMap.size && hasObservedRecommendedSkill
-                ? `Guides for ${skillLabel(recommendedSkill.skillCode).toLowerCase()} appear first, based on your saved evidence.`
-                : recommendationMap.size
-                  ? 'Start with the tagged foundation, then complete a Grammar Lab diagnostic for a result-based recommendation.'
-                  : 'Follow all 18 units in order, or choose the exact rule you need before a practice set.'}
+            {panelSubtitle({
+              recommendations,
+              recommendationMap,
+              hasObservedRecommendedSkill,
+              resultEvidenceCount,
+              recommendedSkill,
+            })}
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-xl font-black tabular-nums text-slate-900 dark:text-white">
-            {GRAMMAR_GUIDES.length}
+        <div className="w-full max-w-[220px] sm:text-right">
+          <div className="flex items-baseline gap-1 sm:justify-end">
+            <span className="text-xl font-black tabular-nums text-slate-900 dark:text-white">
+              {summary.completedUnits}
+            </span>
+            <span className="text-xs font-bold text-slate-400">
+              of {summary.totalUnits} units done
+            </span>
           </div>
-          <div className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">
-            focused units
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-3 dark:border-white/10 dark:bg-white/2.5 xl:flex-row xl:items-center">
-        <div className="relative xl:w-64">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search grammar guides..."
-            aria-label="Search grammar guides"
-            className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#10131f]"
+          <Progress
+            aria-label="Units completed"
+            value={(summary.completedUnits / summary.totalUnits) * 100}
+            className="mt-1.5 h-1.5 bg-[#eceef8] dark:bg-white/10"
+            indicatorClassName="bg-emerald-500"
           />
-        </div>
-        <LayoutGroup id="grammar-guide-category-tabs">
-          <div className="flex gap-1.5 overflow-x-auto pb-1 xl:pb-0">
-            {GRAMMAR_GUIDE_CATEGORIES.map((item) => {
-              const isActive = category === item;
-              return (
-                <motion.button
-                  key={item}
-                  type="button"
-                  onClick={() => setCategory(item)}
-                  whileTap={{ scale: 0.97 }}
-                  className={cn(
-                    'relative whitespace-nowrap rounded-lg px-3 py-2 text-[10px] font-extrabold transition-colors',
-                    isActive
-                      ? 'text-white'
-                      : 'bg-white text-slate-500 hover:bg-[#f0f1fd] hover:text-[#5a63df] dark:bg-white/5 dark:text-slate-300'
-                  )}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="grammar-guide-active-category"
-                      className="absolute inset-0 rounded-lg bg-[#5a63df]"
-                      transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-                    />
-                  )}
-                  <span className="relative">{item}</span>
-                </motion.button>
-              );
-            })}
+          <div className="mt-1 text-[10px] font-semibold text-slate-400">
+            Start guide, Units 1–3 and the study plan are free.
           </div>
-        </LayoutGroup>
+        </div>
       </div>
 
-      {resourcesUnavailable && (
-        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200">
-          Your 18 essential guides are ready. Supplementary online guides are temporarily
-          unavailable.
-        </div>
+      {!normalizedQuery && (
+        <NextUp
+          nextGuide={nextGuide}
+          recommendation={nextGuide ? recommendationMap.get(nextGuide.slug) : null}
+        />
       )}
+
       {guideProgressUnavailable && (
         <p role="status" className="mt-3 text-xs font-medium text-amber-700 dark:text-amber-300">
           Guide completion is temporarily unavailable. You can still read and practise.
         </p>
       )}
 
-      {visibleGuides.length ? (
-        <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
-          {visibleGuides.map((resource) => {
-            const visual = SKILL_VISUALS[resource.skill_code] || SKILL_VISUALS.grammar_word_forms;
-            const isLocked = !hasContentAccess(user, resource.access_tier);
-            const isCompleted = completedGuideSlugs.includes(resource.slug);
-            const recommendation = recommendationMap.get(resource.slug);
-            return (
-              <Link
-                key={resource.id}
-                to={`/grammar/guides/${resource.slug}`}
-                className={cn(
-                  'group flex min-h-[174px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
-                  recommendation
-                    ? 'border-[#5a63df]/40 shadow-xs dark:border-[#8f97ff]/40'
-                    : 'border-[#eceafa] dark:border-white/10',
-                  visual.panelClass,
-                  visual.cardClass
-                )}
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <SkillVisual
-                      skillCode={resource.skill_code}
-                      unitNumber={resource.unit_number}
-                      slug={resource.slug}
-                      compact
-                    />
-                    <ContentStatusBadge
-                      user={user}
-                      requiredTier={resource.access_tier}
-                      completed={isCompleted}
-                      className="shrink-0"
-                    />
-                  </div>
-                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                    {recommendation && <RecommendationBadge recommendation={recommendation} />}
-                    <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
-                      {skillLabel(resource.skill_code)}
-                    </span>
-                  </div>
-                  <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">
-                    {resource.title}
-                  </h3>
-                  <p className="mt-1.5 line-clamp-2 text-[10px] font-medium leading-4 text-slate-500 dark:text-slate-400">
-                    {resource.summary}
-                  </p>
-                </div>
-                <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                  <span className="inline-flex items-center gap-1">
-                    <Clock3 className="h-3 w-3" /> {resource.estimated_minutes} min
-                  </span>
-                  <span className="inline-flex items-center gap-0.5 text-[#5a63df]">
-                    {isLocked ? 'Preview' : 'Open'}{' '}
-                    <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+      <div className="relative mt-4 sm:max-w-xs">
+        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search for a rule, e.g. articles"
+          aria-label="Search grammar guides"
+          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#10131f]"
+        />
+      </div>
+
+      {parts.length ? (
+        <div className="mt-5 space-y-6">
+          {parts.map(({ kit, guides }) => (
+            <div key={kit.slug}>
+              <PartHeader
+                kit={kit}
+                progress={getPartProgress(kit, completedGuideSlugs)}
+                canPractise={kit.kind === 'practice' && Boolean(onStart)}
+                noAllowance={noAllowance}
+                isStarting={isStarting}
+                onStart={onStart}
+              />
+              <div className="mt-3 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {guides.map((guide) => (
+                  <GuideCard
+                    key={guide.id}
+                    guide={guide}
+                    user={user}
+                    isCompleted={completedGuideSlugs.includes(guide.slug)}
+                    recommendation={recommendationMap.get(guide.slug)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="mt-4 rounded-xl border border-dashed border-[#e2e5f2] px-5 py-10 text-center">
@@ -266,15 +348,19 @@ export default function GrammarGuidesPanel({
           </div>
           <button
             type="button"
-            onClick={() => {
-              setQuery('');
-              setCategory('All guides');
-            }}
+            onClick={() => setQuery('')}
             className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-[#5a63df]"
           >
             Show all guides <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
+      )}
+
+      {summary.completedUnits === summary.totalUnits && (
+        <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+          <CheckCircle2 className="h-4 w-4" /> You have finished every unit. Keep practising to lock
+          it in.
+        </p>
       )}
     </section>
   );

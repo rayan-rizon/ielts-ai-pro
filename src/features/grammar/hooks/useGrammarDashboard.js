@@ -5,21 +5,21 @@ import { skillLabel } from '../constants';
 // ---------------------------------------------------------------------------
 function derivePrimaryTitle({ inProgressAttempt, primaryMode, shouldDiagnose, recommended }) {
   if (inProgressAttempt) return `Continue your ${String(inProgressAttempt.mode).toLowerCase()}`;
-  if (primaryMode === 'review') return 'Review what needs another look';
-  if (primaryMode === 'retest') return 'Check your progress in a real IELTS response';
-  if (shouldDiagnose) return 'Build your six-skill baseline';
+  if (primaryMode === 'review') return 'Review the questions you missed';
+  if (primaryMode === 'retest') return 'Test your progress in a real IELTS response';
+  if (shouldDiagnose) return 'Find out where to start';
   return `Strengthen ${String(recommended?.label || skillLabel(recommended?.skillCode)).toLowerCase()}`;
 }
 
-function derivePrimaryDescription({ inProgressAttempt, primaryMode, shouldDiagnose, recommended }) {
+function derivePrimaryDescription({ inProgressAttempt, primaryMode, shouldDiagnose }) {
   if (inProgressAttempt) {
-    return `${inProgressAttempt.totalQuestions} IELTS-focused questions are waiting in this attempt. Pick up where you stopped without using another allowance.`;
+    return `${inProgressAttempt.totalQuestions} questions are waiting in this set. Pick up where you stopped; it does not use another free question.`;
   }
   if (primaryMode === 'retest')
-    return 'Your next scored Writing or Speaking response will update Grammar evidence and refresh your AI Learning Path automatically.';
+    return 'You have practised enough to check it for real. Take one scored Writing or Speaking test; your Grammar results and Learning Path update automatically.';
   if (shouldDiagnose)
-    return 'Answer 24 short questions across six grammar skills. Each one uses a realistic Writing or Speaking sentence.';
-  return `Practise one useful pattern from ${recommended?.observations || 0} saved observations, then apply it in Writing or Speaking.`;
+    return 'Answer 24 short questions (about 10 minutes). Nothing is held against you; your answers show which grammar skill to practise first.';
+  return 'Answer five short questions on this skill, then use it in your next Writing or Speaking answer.';
 }
 
 function deriveActivePathStage(mode) {
@@ -29,10 +29,10 @@ function deriveActivePathStage(mode) {
 }
 
 function derivePathStatus(activePathStage, inProgressAttempt) {
-  if (activePathStage === 'diagnose') return 'Now: build your six-skill baseline';
-  if (activePathStage === 'retest') return 'Now: take one scored test to measure progress';
-  if (inProgressAttempt) return 'Now: finish your active practice set';
-  return 'Now: repair one useful grammar pattern';
+  if (activePathStage === 'diagnose') return 'Now: find your starting point';
+  if (activePathStage === 'retest') return 'Now: take one scored test to see your progress';
+  if (inProgressAttempt) return 'Now: finish your practice set';
+  return 'Now: practise one grammar skill';
 }
 
 // ---------------------------------------------------------------------------
@@ -99,7 +99,6 @@ export function useGrammarDashboard({
     inProgressAttempt,
     primaryMode,
     shouldDiagnose,
-    recommended,
   });
 
   const effectiveMode = inProgressAttempt?.mode || primaryMode;

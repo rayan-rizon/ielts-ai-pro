@@ -68,7 +68,8 @@ function GuideNextStepCard({ outcomeText, skillCode, isStarting, onPractice }) {
         disabled={isStarting}
         className="mt-3.5 w-full rounded-xl bg-[#5a63df] text-xs font-extrabold text-white shadow-xs transition hover:bg-[#4a52c9] active:scale-[0.99]"
       >
-        Practise this skill <ArrowRight className="ml-2 h-4 w-4" />
+        {skillCode ? 'Practise this skill' : 'Start mixed practice'}{' '}
+        <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
     </section>
   );
@@ -134,7 +135,7 @@ function GuideWorkbookUnitsNav({ previousGuide, nextGuide }) {
   if (!previousGuide && !nextGuide) return null;
 
   return (
-    <nav aria-label="Workbook units" className={cn(PANEL, 'grid grid-cols-2 gap-2 p-2.5')}>
+    <nav aria-label="Guide navigation" className={cn(PANEL, 'grid grid-cols-2 gap-2 p-2.5')}>
       {previousGuide ? (
         <Link
           to={`/grammar/guides/${previousGuide.slug}`}
@@ -143,7 +144,7 @@ function GuideWorkbookUnitsNav({ previousGuide, nextGuide }) {
           <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
             Previous
           </span>
-          ← Unit {previousGuide.unit_number}
+          ← {previousGuide.label}
         </Link>
       ) : (
         <span />
@@ -156,7 +157,7 @@ function GuideWorkbookUnitsNav({ previousGuide, nextGuide }) {
           <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400">
             Next
           </span>
-          Unit {nextGuide.unit_number} →
+          {nextGuide.label} →
         </Link>
       )}
     </nav>

@@ -3,6 +3,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { grammarContextPresentation, grammarQuestionPresentation, skillLabel } from '../constants';
 import { MUTED, PANEL, TILE } from '@/features/dashboard/components/primitives';
+import ReviewLessons from './ReviewLessons';
+
+function headline(accuracy, missed) {
+  if (!missed) return 'Every answer correct';
+  if (accuracy >= 80) return 'Strong set. Check the few you missed';
+  if (accuracy >= 50) return 'Good progress. Fix these next';
+  return 'A useful start. Here is what to fix';
+}
 
 export default function GrammarResults({ result, onDashboard, onPracticeAgain }) {
   if (!result) return null;
@@ -19,6 +27,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
       return map;
     }, {})
   );
+  const skillsToReview = bySkill.filter((skill) => skill.correct < skill.total);
 
   return (
     <div className="mx-auto max-w-5xl space-y-3">
@@ -27,7 +36,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
           <div className={cn(TILE, 'p-5 text-center')}>
             <div className="text-4xl font-black tracking-tighter text-[#5a63df]">{accuracy}%</div>
             <div className="mt-1 text-xs font-extrabold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
-              Practice accuracy
+              Your score
             </div>
             <div className={cn('mt-3 text-xs font-semibold', MUTED)}>
               {result.correctCount} of {result.totalQuestions} correct
@@ -38,13 +47,15 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
               Grammar Lab result
             </div>
             <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {incorrect.length ? 'Review the evidence, then repair' : 'Accurate across this set'}
+              {headline(accuracy, incorrect.length)}
             </h1>
             <p className={cn('mt-2 text-sm font-medium leading-6', MUTED)}>
-              Use the repairs below in your next Writing or Speaking response.
+              {incorrect.length
+                ? 'Read each correct answer below, review the lesson, then use the pattern in your next Writing or Speaking answer.'
+                : 'Use these patterns in your next Writing or Speaking answer, or try another set.'}
             </p>
             <p className="mt-2 text-[11px] font-semibold text-slate-400">
-              Practice accuracy is evidence for your study plan, not an IELTS Grammar band.
+              This score is for practice. It is not your IELTS Grammar band.
             </p>
           </div>
         </div>
@@ -52,7 +63,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
 
       <section className={cn(PANEL, 'p-5')}>
         <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-          Evidence by grammar family
+          How you did by skill
         </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {bySkill.map((skill) => (
@@ -61,7 +72,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
                 {skillLabel(skill.skillCode)}
               </div>
               <div className={cn('mt-1 text-xs font-semibold', MUTED)}>
-                {skill.correct} correct · {skill.total} observations
+                {skill.correct} of {skill.total} correct
               </div>
             </div>
           ))}
@@ -71,7 +82,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
       {incorrect.length > 0 && (
         <section className={cn(PANEL, 'p-5')}>
           <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
-            Answers to repair
+            Questions to review
           </h2>
           <div className="mt-4 space-y-3">
             {incorrect.map((item) => {
@@ -106,7 +117,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
                     </div>
                     <div className="rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200">
                       <span className="block text-[10px] font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-300">
-                        Better answer
+                        Correct answer
                       </span>
                       {item.correctAnswer}
                     </div>
@@ -121,6 +132,22 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
         </section>
       )}
 
+      {skillsToReview.length > 0 && (
+        <section className={cn(PANEL, 'p-5')}>
+          <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
+            Review the lesson
+          </h2>
+          <p className={cn('mt-1 text-xs font-medium', MUTED)}>
+            Each unit teaches the rule behind the questions you missed.
+          </p>
+          <div className="mt-3 space-y-3">
+            {skillsToReview.map((skill) => (
+              <ReviewLessons key={skill.skillCode} skillCode={skill.skillCode} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="flex flex-wrap gap-3">
         <Button onClick={onDashboard} variant="outline" className="rounded-lg font-bold">
           Back to Grammar Lab
@@ -129,7 +156,7 @@ export default function GrammarResults({ result, onDashboard, onPracticeAgain })
           onClick={onPracticeAgain}
           className="rounded-lg bg-[#5a63df] font-bold text-white hover:bg-[#4a52c9]"
         >
-          <RefreshCw className="mr-2 h-4 w-4" /> Practice again
+          <RefreshCw className="mr-2 h-4 w-4" /> Practise again
         </Button>
       </div>
     </div>

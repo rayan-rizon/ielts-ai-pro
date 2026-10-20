@@ -78,7 +78,7 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
       <HeaderMetric
         icon={Target}
         value={observations}
-        label="Practised"
+        label="Answered"
         tone="accent"
         href="#grammar-skills"
       />
@@ -92,7 +92,7 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
       <HeaderMetric
         icon={RotateCcw}
         value={reviews}
-        label="Reviews due"
+        label="To review"
         tone="amber"
         onClick={onReview}
         disabled={reviewUnavailable}
@@ -216,7 +216,7 @@ export default function GrammarLab() {
                   Grammar Lab
                 </h1>
                 <p className={cn('mt-1 text-sm font-medium', MUTED)}>
-                  Build accurate grammar for Academic IELTS Writing and Speaking
+                  Learn the grammar that IELTS Writing and Speaking reward, then practise it
                 </p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
@@ -281,7 +281,7 @@ export default function GrammarLab() {
               onPractice={(skillCode) =>
                 startAttempt({
                   mode: 'practice',
-                  targetSkills: [skillCode],
+                  targetSkills: skillCode ? [skillCode] : null,
                   questionCount: 5,
                 })
               }

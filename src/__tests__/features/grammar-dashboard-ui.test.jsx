@@ -92,7 +92,7 @@ describe('GrammarDashboard', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Grammar Learning Path' })).toBeInTheDocument();
-    expect(screen.getByText('Now: finish your active practice set')).toBeInTheDocument();
+    expect(screen.getByText('Now: finish your practice set')).toBeInTheDocument();
     expect(
       screen.getByText(
         /Finish this practice set\. Your next step is one normal scored Speaking test/i
@@ -103,15 +103,15 @@ describe('GrammarDashboard', () => {
       'aria-current',
       'step'
     );
-    expect(screen.getByRole('button', { name: 'Check' })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('button', { name: 'Check' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Level check' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Level check' })).toBeDisabled();
     expect(screen.queryByText(/completed/i)).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /View full AI Learning Path/i })).toHaveAttribute(
       'href',
       '/learning-path'
     );
 
-    expect(screen.getByRole('button', { name: 'Retest' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Real test' })).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Practise' }));
     expect(onResume).toHaveBeenCalledWith('attempt-in-progress');
@@ -165,7 +165,10 @@ describe('GrammarDashboard', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('button', { name: 'Retest' })).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByRole('button', { name: 'Real test' })).toHaveAttribute(
+      'aria-current',
+      'step'
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Take a Speaking test' }));
     expect(onRetest).toHaveBeenCalledWith('speaking');
   });
@@ -190,7 +193,7 @@ describe('GrammarDashboard', () => {
       </MemoryRouter>
     );
 
-    const chip = screen.getByRole('button', { name: /Start a review of 1 review due/i });
+    const chip = screen.getByRole('button', { name: /Start a review of 1 missed question/i });
     fireEvent.click(chip);
     expect(onStart).toHaveBeenCalledWith({ mode: 'review', targetSkills: null, questionCount: 5 });
   });
@@ -220,9 +223,11 @@ describe('GrammarDashboard', () => {
     );
 
     expect(
-      screen.queryByRole('button', { name: /Start a review of 1 review due/i })
+      screen.queryByRole('button', { name: /Start a review of 1 missed question/i })
     ).not.toBeInTheDocument();
-    expect(screen.getByTitle(/free questions for today are used/i)).toBeInTheDocument();
+    expect(
+      screen.getByTitle(/1 to review.*free questions for today are used/i)
+    ).toBeInTheDocument();
   });
 
   it('renders quota-exhausted states on skill cards and prompts upgrade on click', () => {

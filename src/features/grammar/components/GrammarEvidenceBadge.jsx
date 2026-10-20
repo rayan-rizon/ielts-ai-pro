@@ -13,8 +13,10 @@ export default function GrammarEvidenceBadge({ evidenceClass, observations, comp
       title={meta.description}
     >
       {meta.label}
-      {Number.isFinite(Number(observations)) && (
-        <span className="font-extrabold">· {Number(observations)}</span>
+      {Number(observations) > 0 && (
+        <span className="font-extrabold">
+          · {Number(observations)} {Number(observations) === 1 ? 'answer' : 'answers'}
+        </span>
       )}
     </span>
   );

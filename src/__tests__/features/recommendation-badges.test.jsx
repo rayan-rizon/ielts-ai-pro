@@ -92,9 +92,10 @@ describe('result recommendation badges', () => {
       </MemoryRouter>
     );
 
-    const recommendedGuideLink = screen.getByRole('link', {
-      name: /complete sentences and clauses/i,
-    });
+    // The "Up next" card also points at the recommended guide, so pick the guide card.
+    const recommendedGuideLink = screen
+      .getAllByRole('link', { name: /complete sentences and clauses/i })
+      .find((link) => link.textContent.includes('Recommended'));
     expect(recommendedGuideLink).toBeInTheDocument();
 
     // Both badges are present inside the card

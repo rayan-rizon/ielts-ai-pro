@@ -84,33 +84,51 @@ function handleSubheadingLine(value, current) {
   });
 }
 
-function attachPracticeContext(answerSection, targetSection, pIdx) {
-  const pSubheading = targetSection.blocks[pIdx];
-  const after = targetSection.blocks.slice(pIdx + 1);
-  const promptBlock = after.find((b) => b.type === 'paragraph');
-  const questionBlocks = after.filter((b) => b.type === 'numbered');
+const PRACTICE_HEADING = /^Practice\b/i;
+const ANSWER_TITLE = /answer/i;
 
-  answerSection.practiceContext = {
-    title: pSubheading.value,
-    id: pSubheading.id,
-    prompt: promptBlock?.value || '',
-    questions: questionBlocks,
-  };
-
-  targetSection.blocks = targetSection.blocks.slice(0, pIdx);
+export function isAnswerSection(section) {
+  return ANSWER_TITLE.test(section?.title || '');
 }
 
-function linkPracticeContext(sections) {
-  const answerSection = sections.find((s) => /answer|suggested answer/i.test(s.title));
-  if (!answerSection) return;
-
-  for (const s of sections) {
-    const pIdx = s.blocks.findIndex((b) => b.type === 'subheading' && /^Practice\b/i.test(b.value));
-    if (pIdx !== -1) {
-      attachPracticeContext(answerSection, s, pIdx);
-      break;
-    }
+// Lifts a "### Practice N" heading, its instruction line and its numbered
+// questions out of the lesson body so they can be rendered as one interactive
+// card next to the answers. Anything after the questions stays in the lesson.
+function takePracticeBlocks(section, index) {
+  const { blocks } = section;
+  const heading = blocks[index];
+  let end = index + 1;
+  let prompt = '';
+  if (blocks[end]?.type === 'paragraph') {
+    prompt = blocks[end].value;
+    end += 1;
   }
+  const questions = [];
+  while (blocks[end]?.type === 'numbered') {
+    questions.push(blocks[end]);
+    end += 1;
+  }
+  section.blocks = [...blocks.slice(0, index), ...blocks.slice(end)];
+  return { title: heading.value, id: heading.id, prompt, questions };
+}
+
+function takeNextPractice(sections) {
+  for (const section of sections) {
+    const index = section.blocks.findIndex(
+      (block) => block.type === 'subheading' && PRACTICE_HEADING.test(block.value)
+    );
+    if (index !== -1) return takePracticeBlocks(section, index);
+  }
+  return null;
+}
+
+// Every answer section is paired, in reading order, with the next practice
+// heading, so a guide can hold several exercises (for example Mixed review).
+function linkPracticeContext(sections) {
+  sections.filter(isAnswerSection).forEach((answerSection) => {
+    const context = takeNextPractice(sections);
+    if (context) answerSection.practiceContext = context;
+  });
 }
 
 export function parseGrammarGuide(content) {
@@ -207,29 +225,55 @@ export function matchesChoice(selected, answer) {
   return normalize(selected) === normalize(answer);
 }
 
-function parseNumberedAnswers(rawAnswer) {
-  const matches = Array.from(rawAnswer.matchAll(/(?:^|;\s*)(\d+)\s+([\s\S]*?)(?=;\s*\d+\s+|$)/g));
-  return matches.map((match) => ({
-    number: Number(match[1]),
-    answer: match[2].trim().replace(/[.;]$/, ''),
+// Workbook keys come in two shapes: "1 has; 2 argue; 3 needs" and
+// "1 _A sentence._ 2 _Another sentence._". Numbers are searched in order so a
+// digit inside an answer (a year, a percentage) is never mistaken for a marker.
+function parseSequentialAnswers(text) {
+  const markers = [];
+  let from = 0;
+  for (let number = 1; number <= 40; number += 1) {
+    const pattern = new RegExp(`(?<=^|;\\s|[._*)\\]”"]\\s)${number}\\s+(?=\\S)`, 'g');
+    pattern.lastIndex = from;
+    const match = pattern.exec(text);
+    if (!match) break;
+    markers.push({ number, start: match.index, answerStart: match.index + match[0].length });
+    from = match.index + match[0].length;
+  }
+  if (!markers.length) return [];
+  return markers.map((marker, index) => {
+    const answerEnd = markers[index + 1]?.start ?? text.length;
+    return {
+      number: marker.number,
+      answer: text.slice(marker.answerStart, answerEnd).trim().replace(/[.;]$/, ''),
+    };
+  });
+}
+
+const isNote = (block) => block.type === 'bullet' || block.type === 'paragraph';
+
+function getBaseAnswerItems(section) {
+  const numberedBlocks = section.blocks.filter((block) => block.type === 'numbered');
+  if (numberedBlocks.length) {
+    return numberedBlocks.map((block) => ({ number: block.number, answer: block.value }));
+  }
+  const text = section.blocks
+    .filter(isNote)
+    .map((block) => block.value)
+    .join(' ')
+    .trim();
+  const sequential = parseSequentialAnswers(text);
+  if (sequential.length > 0) return sequential;
+  return section.blocks.filter(isNote).map((block, index) => ({
+    number: index + 1,
+    answer: block.value,
   }));
 }
 
-function getBaseAnswerItems(section) {
-  const contentBlocks = section.blocks.filter((b) =>
-    ['paragraph', 'bullet', 'numbered'].includes(b.type)
-  );
-  const rawAnswer = contentBlocks
-    .map((b) => b.value)
-    .join(' ')
-    .trim();
-  const numbered = parseNumberedAnswers(rawAnswer);
-  if (numbered.length > 0) {
-    return numbered;
-  }
-  return section.blocks
-    .filter((b) => ['bullet', 'paragraph'].includes(b.type))
-    .map((b, index) => ({ number: index + 1, answer: b.value }));
+// When a key is a numbered list, any bullets or paragraphs beside it are
+// teaching notes (score guides, why-it-works tips), not answers.
+export function answerNotes(section) {
+  const hasNumbered = section.blocks.some((block) => block.type === 'numbered');
+  return hasNumbered ? section.blocks.filter(isNote) : [];
 }
 
 function resolveQuestionForAnswer(questions, itemNumber) {
@@ -266,7 +310,11 @@ function getSectionTocItems(section) {
   if (section.title) {
     items.push({
       id: section.id,
-      title: /answer|suggested answer/i.test(section.title) ? 'Check your practice' : section.title,
+      title: isAnswerSection(section)
+        ? section.practiceContext?.title
+          ? `Check: ${section.practiceContext.title}`
+          : 'Check your practice'
+        : section.title,
     });
   }
 

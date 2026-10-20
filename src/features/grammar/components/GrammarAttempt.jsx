@@ -25,6 +25,7 @@ import {
   skillMeta,
 } from '../constants';
 import { MUTED, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
+import ReviewLessons from './ReviewLessons';
 
 function cleanPunctuation(str) {
   return String(str || '')
@@ -49,17 +50,14 @@ function Sentence({ value }) {
 }
 
 function getQuestionGuidance(format, hasOptions) {
-  if (hasOptions) {
-    return 'Select the option that makes this academic sentence grammatically accurate.';
+  if (hasOptions) return 'Read the whole sentence first, then pick the option that fits.';
+  if (format === 'error_correction') {
+    return 'The sentence is already in the box. Edit it, then check the whole corrected sentence.';
   }
-  switch (format) {
-    case 'error_correction':
-      return 'Find the fragment or grammatical error in the sentence below and write the corrected version. You can use "Copy to edit" to start with the original text.';
-    case 'sentence_completion':
-      return 'Type the missing word or phrase to complete the sentence grammatically.';
-    default:
-      return 'Review the sentence carefully and supply the accurate grammatical form.';
+  if (format === 'sentence_completion') {
+    return 'Read the whole sentence first. The missing word must fit the grammar around it.';
   }
+  return 'Read the sentence carefully, then write the accurate form.';
 }
 
 function statusClasses({ current, submitted, isCorrect, diagnostic }) {
@@ -218,6 +216,12 @@ export default function GrammarAttempt({
               ? skillLabel(familyProgress[0].skillCode)
               : 'Mixed grammar practice'}
         </h1>
+        {diagnostic && (
+          <p className="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-slate-400">
+            Answer as you would in a real IELTS response. Right and wrong answers are shown at the
+            end, so you can move through quickly.
+          </p>
+        )}
       </header>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
@@ -271,7 +275,7 @@ export default function GrammarAttempt({
                     <MessageSquareQuote className="h-4 w-4" />
                     <span>Sentence to check</span>
                   </div>
-                  {!hasOptions && (
+                  {!hasOptions && item.questionFormat === 'error_correction' && (
                     <button
                       type="button"
                       onClick={handleCopySentence}
@@ -300,7 +304,9 @@ export default function GrammarAttempt({
 
                 <div className="flex items-center justify-between border-t border-[#ebeaf7] bg-[#fbfbfe]/70 px-4 py-2 text-[11px] font-semibold text-slate-400 dark:border-white/5 dark:bg-white/2">
                   <span>No specialist topic knowledge is needed.</span>
-                  <span className="hidden sm:inline">Change only what is necessary</span>
+                  {item.questionFormat === 'error_correction' && (
+                    <span className="hidden sm:inline">Change only what is necessary</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -423,6 +429,9 @@ export default function GrammarAttempt({
                   <p className="mt-2 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">
                     {currentFeedback.feedback?.explanation}
                   </p>
+                  {!currentFeedback.isCorrect && (
+                    <ReviewLessons skillCode={item.skillCode} newTab className="mt-3" />
+                  )}
                 </div>
               )}
 
@@ -502,10 +511,10 @@ export default function GrammarAttempt({
               </div>
               <div className="p-3.5 text-center">
                 <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                  Difficulty
+                  Band focus
                 </div>
                 <div className="mt-0.5 text-base font-extrabold text-slate-900 dark:text-white">
-                  Level {item.difficulty}
+                  Band {item.difficulty}
                 </div>
               </div>
             </div>
