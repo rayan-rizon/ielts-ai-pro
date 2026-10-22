@@ -107,6 +107,10 @@ import { getPassageBody, rangeToOffsets } from '../components/ReadingTest/utils/
 import { isReadingAssistantAvailable } from '../services/readingAiService';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useReadingTestStore } from '../store/useReadingTestStore';
+import ObjectiveLimitPaywall from '@/features/testing/shared/components/ObjectiveLimitPaywall';
+import { ObjectiveStartNote } from '@/features/testing/shared/components/ObjectiveQuotaControls';
+import { summariseObjectiveQuota } from '@/features/testing/shared/quota/objectiveQuota';
+import { useObjectiveTestQuota } from '@/features/testing/shared/quota/useObjectiveTestQuota';
 
 // HighlightMenu component moved to ./ReadingTest/components/HighlightMenu.jsx
 
@@ -169,7 +173,9 @@ function ReadingTestContent() {
     handleExit,
     resetBlocker,
     isExiting,
+    limitQuota,
   } = useReadingTestLogic(null, { awardXP, user, flaggedQuestions });
+  const liveQuota = useObjectiveTestQuota('reading');
 
   const location = useLocation();
   const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
@@ -897,6 +903,20 @@ function ReadingTestContent() {
     return <PremiumLoading message="Initializing test..." />;
   }
 
+  // A refused start carries the server's numbers; otherwise the live allowance
+  // lets us show the paywall before the learner spends a click on Start.
+  const paywallQuota = limitQuota ? summariseObjectiveQuota(limitQuota) : liveQuota;
+  if (!paired && isAwaitingStart && paywallQuota.exhausted) {
+    return (
+      <ObjectiveLimitPaywall
+        testType="reading"
+        quota={paywallQuota}
+        testTitle={testData?.title}
+        surface={limitQuota ? 'start_refused' : 'start_screen'}
+      />
+    );
+  }
+
   if (!testData || !testData.sections || testData.sections.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen bg-background" data-oid="xvtf1og">
@@ -972,6 +992,7 @@ function ReadingTestContent() {
           </div>
         }
       >
+        {isAwaitingStart && !paired && <ObjectiveStartNote testType="reading" />}
         {isAwaitingStart && examEligibility.eligible && (
           <div className="px-4 pb-2">
             <TakeWithFriend test={testData} />

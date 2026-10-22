@@ -10,6 +10,10 @@ import { filterReadingTests } from '@/features/testing/reading/readingFilterUtil
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
+import {
+  ObjectiveLimitDialog,
+  ObjectiveQuotaStrip,
+} from '@/features/testing/shared/components/ObjectiveQuotaControls';
 
 export default function Reading() {
   const { userProfile: userData, isAdmin, loading: authLoading } = useAuth();
@@ -58,6 +62,8 @@ export default function Reading() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
+
+        <ObjectiveQuotaStrip testType="reading" />
 
         <PairedPracticeSpotlight type="reading" />
 
@@ -109,6 +115,7 @@ export default function Reading() {
           </p>
         )}
       </div>
+      <ObjectiveLimitDialog testType="reading" />
     </main>
   );
 }

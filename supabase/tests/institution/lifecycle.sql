@@ -43,7 +43,7 @@ begin
  if (select subscription_tier from public.institution_learner_profiles where auth_id=student)<>'pro' then raise exception 'Effective view lacks Pro access';end if;
  select id into student_id from public.users where auth_id=student;
  if skill_lab_private.tier(student_id)<>'pro' then raise exception 'Practice Lab tier did not resolve Pro';end if;
- if (objective_private.test_start_status((select u from public.users u where id=student_id),'reading')->>'daily_limit')::int<>-1 then raise exception 'Reading did not recognise paid access';end if;
+ if (objective_private.test_start_status((select u from public.users u where id=student_id),'reading')->>'limit')::int<>-1 then raise exception 'Reading did not recognise paid access';end if;
  select * into quota from public.check_user_rate_limit(student_id,'free','writing');
  if quota.daily_remaining<>20 then raise exception 'Institution did not receive the Pro writing allowance: %',quota.daily_remaining; end if;
  select * into quota from public.reserve_ai_api_usage(student,'generateDetailedFeedback','writing','institution-writing-one');

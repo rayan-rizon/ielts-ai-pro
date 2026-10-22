@@ -72,10 +72,8 @@ const QUOTA_FIELDS = [
   'writing_monthly_limit',
   'speaking_daily_limit',
   'speaking_monthly_limit',
-  'reading_daily_limit',
-  'reading_monthly_limit',
-  'listening_daily_limit',
-  'listening_monthly_limit',
+  'reading_test_limit',
+  'listening_test_limit',
 ];
 
 const DEFAULT_QUOTAS = {
@@ -86,10 +84,8 @@ const DEFAULT_QUOTAS = {
   writing_monthly_limit: 5,
   speaking_daily_limit: 5,
   speaking_monthly_limit: 5,
-  reading_daily_limit: -1,
-  reading_monthly_limit: -1,
-  listening_daily_limit: -1,
-  listening_monthly_limit: -1,
+  reading_test_limit: -1,
+  listening_test_limit: -1,
 };
 
 const limitKey = (tier, currency) => `${tier}_${currency || 'ALL'}`;
@@ -164,7 +160,7 @@ const CompactTestLimitInput = ({ label, value, onChange }) => {
           type="number"
           min="0"
           step="1"
-          aria-label={`${label} test starts`}
+          aria-label={`${label} limit`}
           value={isUnlimited ? '' : value}
           placeholder="No limit"
           disabled={isUnlimited}
@@ -360,10 +356,11 @@ const TierBody = ({
             )}
           >
             <GraduationCap className="w-3 h-3 text-stone-400 shrink-0" />
-            Reading &amp; Listening test starts
+            Reading &amp; Listening free tests
           </span>
           <p className="text-[10px] leading-snug text-stone-500 dark:text-stone-400">
-            New individual Practice or Exam tests count. Paired tests and resumed tests do not.
+            Total new Practice or Exam tests a free learner can start per skill, for the life of the
+            account. Paired tests and resumed tests do not count.
           </p>
 
           {tierName === 'free' ? (
@@ -381,14 +378,9 @@ const TierBody = ({
                 </div>
                 <div className="space-y-1">
                   <CompactTestLimitInput
-                    label="Daily"
-                    value={getVal('reading_daily_limit') ?? -1}
-                    onChange={(v) => onValueChange('reading_daily_limit', v)}
-                  />
-                  <CompactTestLimitInput
-                    label="Monthly"
-                    value={getVal('reading_monthly_limit') ?? -1}
-                    onChange={(v) => onValueChange('reading_monthly_limit', v)}
+                    label="Free tests"
+                    value={getVal('reading_test_limit') ?? -1}
+                    onChange={(v) => onValueChange('reading_test_limit', v)}
                   />
                 </div>
               </div>
@@ -406,14 +398,9 @@ const TierBody = ({
                 </div>
                 <div className="space-y-1">
                   <CompactTestLimitInput
-                    label="Daily"
-                    value={getVal('listening_daily_limit') ?? -1}
-                    onChange={(v) => onValueChange('listening_daily_limit', v)}
-                  />
-                  <CompactTestLimitInput
-                    label="Monthly"
-                    value={getVal('listening_monthly_limit') ?? -1}
-                    onChange={(v) => onValueChange('listening_monthly_limit', v)}
+                    label="Free tests"
+                    value={getVal('listening_test_limit') ?? -1}
+                    onChange={(v) => onValueChange('listening_test_limit', v)}
                   />
                 </div>
               </div>

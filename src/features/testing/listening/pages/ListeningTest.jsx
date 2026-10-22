@@ -21,6 +21,10 @@ import { useListeningTestNavigation } from '../components/ListeningTest/hooks/us
 import ListeningTestMainContent from '../components/ListeningTest/components/ListeningTestMainContent';
 import ListeningTestOverlays from '../components/ListeningTest/components/ListeningTestOverlays';
 import ListeningTestSheet from '../components/ListeningTestSheet';
+import ObjectiveLimitPaywall from '@/features/testing/shared/components/ObjectiveLimitPaywall';
+import { ObjectiveStartNote } from '@/features/testing/shared/components/ObjectiveQuotaControls';
+import { summariseObjectiveQuota } from '@/features/testing/shared/quota/objectiveQuota';
+import { useObjectiveTestQuota } from '@/features/testing/shared/quota/useObjectiveTestQuota';
 
 export function hasListeningTestEntry(location, routeId = '') {
   const params = new URLSearchParams(location?.search || '');
@@ -64,6 +68,7 @@ function ListeningTestInner() {
     isAwaitingStart,
     isStarting,
     examReview,
+    limitQuota,
   } = useListeningTestLogic({
     awardXP,
     onResumeExpired: () => setShowTimeUpDialog(true),
@@ -97,8 +102,24 @@ function ListeningTestInner() {
     exitPath: '/listening',
   });
 
+  const liveQuota = useObjectiveTestQuota('listening');
+
   if (state.isLoading) {
     return <PremiumLoading message="Initializing listening test..." />;
+  }
+
+  // A refused start carries the server's numbers; otherwise the live allowance
+  // lets us show the paywall before the learner spends a click on Start.
+  const paywallQuota = limitQuota ? summariseObjectiveQuota(limitQuota) : liveQuota;
+  if (isAwaitingStart && paywallQuota.exhausted) {
+    return (
+      <ObjectiveLimitPaywall
+        testType="listening"
+        quota={paywallQuota}
+        testTitle={state.testData?.title}
+        surface={limitQuota ? 'start_refused' : 'start_screen'}
+      />
+    );
   }
 
   return (
@@ -106,6 +127,7 @@ function ListeningTestInner() {
       className="h-full w-full flex flex-col flex-1 min-h-0 bg-background overflow-hidden font-sans antialiased text-foreground relative"
       data-oid="ocjmio6"
     >
+      {isAwaitingStart && <ObjectiveStartNote testType="listening" />}
       {isAwaitingStart && examEligibility.eligible && (
         <div className="px-4 pb-2">
           <TakeWithFriend test={state.testData} />

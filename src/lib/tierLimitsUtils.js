@@ -25,40 +25,32 @@ const DEFAULT_LIMITS = {
     speaking_monthly_limit: 0,
     writing_daily_limit: 1,
     speaking_daily_limit: 0,
-    reading_daily_limit: -1,
-    reading_monthly_limit: -1,
-    listening_daily_limit: -1,
-    listening_monthly_limit: -1,
+    reading_test_limit: -1,
+    listening_test_limit: -1,
   },
   pro: {
     writing_monthly_limit: 100,
     speaking_monthly_limit: 50,
     writing_daily_limit: 10,
     speaking_daily_limit: 5,
-    reading_daily_limit: -1,
-    reading_monthly_limit: -1,
-    listening_daily_limit: -1,
-    listening_monthly_limit: -1,
+    reading_test_limit: -1,
+    listening_test_limit: -1,
   },
   premium: {
     writing_monthly_limit: 200,
     speaking_monthly_limit: 100,
     writing_daily_limit: 20,
     speaking_daily_limit: 10,
-    reading_daily_limit: -1,
-    reading_monthly_limit: -1,
-    listening_daily_limit: -1,
-    listening_monthly_limit: -1,
+    reading_test_limit: -1,
+    listening_test_limit: -1,
   },
   admin: {
     writing_monthly_limit: 1000,
     speaking_monthly_limit: 1000,
     writing_daily_limit: 100,
     speaking_daily_limit: 100,
-    reading_daily_limit: -1,
-    reading_monthly_limit: -1,
-    listening_daily_limit: -1,
-    listening_monthly_limit: -1,
+    reading_test_limit: -1,
+    listening_test_limit: -1,
   },
 };
 
@@ -85,7 +77,7 @@ export async function fetchAllTierLimits(currency = 'ALL') {
     const { data, error } = await supabase
       .from('tier_rate_limits')
       .select(
-        'tier, currency, writing_monthly_limit, speaking_monthly_limit, writing_daily_limit, speaking_daily_limit, reading_daily_limit, reading_monthly_limit, listening_daily_limit, listening_monthly_limit'
+        'tier, currency, writing_monthly_limit, speaking_monthly_limit, writing_daily_limit, speaking_daily_limit, reading_test_limit, listening_test_limit'
       )
       .in('currency', [cacheKey, 'ALL']);
 
@@ -103,10 +95,8 @@ export async function fetchAllTierLimits(currency = 'ALL') {
         speaking_monthly_limit: row.speaking_monthly_limit,
         writing_daily_limit: row.writing_daily_limit,
         speaking_daily_limit: row.speaking_daily_limit,
-        reading_daily_limit: row.reading_daily_limit,
-        reading_monthly_limit: row.reading_monthly_limit,
-        listening_daily_limit: row.listening_daily_limit,
-        listening_monthly_limit: row.listening_monthly_limit,
+        reading_test_limit: row.reading_test_limit,
+        listening_test_limit: row.listening_test_limit,
       };
     });
 
@@ -117,10 +107,8 @@ export async function fetchAllTierLimits(currency = 'ALL') {
         speaking_monthly_limit: row.speaking_monthly_limit,
         writing_daily_limit: row.writing_daily_limit,
         speaking_daily_limit: row.speaking_daily_limit,
-        reading_daily_limit: row.reading_daily_limit,
-        reading_monthly_limit: row.reading_monthly_limit,
-        listening_daily_limit: row.listening_daily_limit,
-        listening_monthly_limit: row.listening_monthly_limit,
+        reading_test_limit: row.reading_test_limit,
+        listening_test_limit: row.listening_test_limit,
       };
     });
 
@@ -164,13 +152,9 @@ export function generateFeatureStrings(tier, limits) {
 
   const formatTestStarts = (type) => {
     if (tier !== 'free') return `Unlimited ${type} tests`;
-    const daily = limits?.[`${type.toLowerCase()}_daily_limit`] ?? -1;
-    const monthly = limits?.[`${type.toLowerCase()}_monthly_limit`] ?? -1;
-    if (daily === -1 && monthly === -1) return `Unlimited ${type} tests`;
-    const parts = [];
-    if (daily !== -1) parts.push(`${daily}/day`);
-    if (monthly !== -1) parts.push(`${monthly}/month`);
-    return `${type} tests: ${parts.join(', ')}`;
+    const total = limits?.[`${type.toLowerCase()}_test_limit`] ?? -1;
+    if (total === -1) return `Unlimited ${type} tests`;
+    return `${total} free ${type} ${Number(total) === 1 ? 'test' : 'tests'}`;
   };
 
   return {

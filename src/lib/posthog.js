@@ -25,6 +25,10 @@ const PRODUCT_EVENTS = new Set([
   'speaking_submitted',
   'subscription_purchase',
   'test_completed',
+  // The free Reading/Listening allowance paywall: who saw it, who went on to
+  // pricing. Without the pair there is no way to judge the limit's conversion.
+  'test_limit_paywall_viewed',
+  'test_limit_upgrade_clicked',
   'test_started',
   'writing_checker_feedback_revealed',
   'writing_checker_signup_gate_viewed',

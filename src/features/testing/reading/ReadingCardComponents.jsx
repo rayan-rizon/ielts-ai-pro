@@ -6,7 +6,6 @@ import {
   HelpCircle,
   ArrowRight,
   Play,
-  RotateCcw,
   CheckCircle2,
   Users,
   Lock,
@@ -16,6 +15,11 @@ import {
 import { createPageUrl } from '@/utils';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
+import {
+  LimitReachedButton,
+  RetakeLink,
+} from '@/features/testing/shared/components/ObjectiveQuotaControls';
+import { useQuotaLock } from '@/features/testing/shared/quota/useObjectiveTestQuota';
 
 // ---------------------------------------------------------------------------
 // Grid Sub-components
@@ -136,6 +140,7 @@ export function GridActions({
   session,
   completedSession,
 }) {
+  const quotaLock = useQuotaLock('reading');
   if (isLocked) {
     return (
       <Link to={createPageUrl('Pricing')} className="block">
@@ -159,11 +164,13 @@ export function GridActions({
             Resume Test <Play className="h-3.5 w-3.5 fill-current" />
           </button>
         </Link>
-        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </Link>
+        <RetakeLink
+          test={test}
+          path="/reading-test"
+          quotaLock={quotaLock}
+          buttonClass={OUTLINE_ICON_BTN}
+          iconClass="h-4 w-4"
+        />
       </div>
     );
   }
@@ -186,12 +193,19 @@ export function GridActions({
             {pairedRoomId ? <Users className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </button>
         </Link>
-        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </Link>
+        <RetakeLink
+          test={test}
+          path="/reading-test"
+          quotaLock={quotaLock}
+          buttonClass={OUTLINE_ICON_BTN}
+          iconClass="h-4 w-4"
+        />
       </div>
+    );
+  }
+  if (quotaLock.locked) {
+    return (
+      <LimitReachedButton test={test} quotaLock={quotaLock} className={cn(PRIMARY_BTN, 'w-full')} />
     );
   }
   return (
@@ -289,6 +303,7 @@ const ROW_ICON_BTN = cn(
 );
 
 export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, test }) {
+  const quotaLock = useQuotaLock('reading');
   if (isLocked) {
     return (
       <>
@@ -315,11 +330,13 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Resume <Play className="h-3 w-3 fill-current" />
           </button>
         </Link>
-        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </Link>
+        <RetakeLink
+          test={test}
+          path="/reading-test"
+          quotaLock={quotaLock}
+          buttonClass={ROW_ICON_BTN}
+          iconClass="h-3.5 w-3.5"
+        />
       </>
     );
   }
@@ -337,11 +354,21 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
             Results <ArrowRight className="h-3 w-3" />
           </button>
         </Link>
-        <Link to={withLearningActivity(`/reading-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </Link>
+        <RetakeLink
+          test={test}
+          path="/reading-test"
+          quotaLock={quotaLock}
+          buttonClass={ROW_ICON_BTN}
+          iconClass="h-3.5 w-3.5"
+        />
+      </>
+    );
+  }
+  if (quotaLock.locked) {
+    return (
+      <>
+        <LimitReachedButton compact test={test} quotaLock={quotaLock} className={ROW_PRIMARY_BTN} />
+        <div className="h-8 w-8 shrink-0" />
       </>
     );
   }

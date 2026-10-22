@@ -19,8 +19,8 @@ for name in ['check_user_rate_limit','reserve_ai_api_usage','current_subscriptio
     start=source.index('CREATE OR REPLACE FUNCTION public.'+name+'(')
     end=source.index('$$;', start)+3
     parts.append(source[start:end])
-objective=(root/'supabase/migrations/20260923111404_reading_listening_start_limits.sql').read_text()
-start=objective.index('create function objective_private.test_start_status('); end=objective.index('end $$;',start)+8
+objective=(root/'supabase/migrations/20261022050520_reading_listening_free_test_totals.sql').read_text()
+start=objective.index('create or replace function objective_private.test_start_status('); end=objective.index('end $$;',start)+8
 parts.append(objective[start:end])
 pathlib.Path(sys.argv[2]).write_text('\n'.join(parts))
 PYCODE

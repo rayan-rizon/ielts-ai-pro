@@ -1122,10 +1122,8 @@ export type Database = {
           daily_limit: number;
           id: string;
           monthly_limit: number;
-          reading_daily_limit: number;
-          reading_monthly_limit: number;
-          listening_daily_limit: number;
-          listening_monthly_limit: number;
+          reading_test_limit: number;
+          listening_test_limit: number;
           speaking_daily_limit: number;
           speaking_monthly_limit: number;
           tier: string;
@@ -1139,10 +1137,8 @@ export type Database = {
           daily_limit?: number;
           id?: string;
           monthly_limit?: number;
-          reading_daily_limit?: number;
-          reading_monthly_limit?: number;
-          listening_daily_limit?: number;
-          listening_monthly_limit?: number;
+          reading_test_limit?: number;
+          listening_test_limit?: number;
           speaking_daily_limit?: number;
           speaking_monthly_limit?: number;
           tier: string;
@@ -1156,10 +1152,8 @@ export type Database = {
           daily_limit?: number;
           id?: string;
           monthly_limit?: number;
-          reading_daily_limit?: number;
-          reading_monthly_limit?: number;
-          listening_daily_limit?: number;
-          listening_monthly_limit?: number;
+          reading_test_limit?: number;
+          listening_test_limit?: number;
           speaking_daily_limit?: number;
           speaking_monthly_limit?: number;
           tier?: string;

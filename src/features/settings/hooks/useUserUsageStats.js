@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/features/auth/hooks/useUserProfile';
 import { getWritingQuotaUsage } from '@/lib/tierLimitsUtils';
+import { objectiveQuotaQuery } from '@/features/testing/shared/quota/useObjectiveTestQuota';
 
 // Conservative fallback limits used only if the DB call fails
 const FALLBACK_LIMITS = {
@@ -50,16 +51,7 @@ export function useUserUsageStats() {
   const tier = user?.role === 'admin' ? 'admin' : rawTier;
 
   const { data: dbLimits, isLoading: isLoadingLimits } = useTierLimits(tier);
-  const objectiveQuota = useQuery({
-    queryKey: ['objective-test-quotas', user?.id],
-    enabled: !!user?.id,
-    staleTime: 30 * 1000,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_objective_test_quotas');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const objectiveQuota = useQuery(objectiveQuotaQuery(user?.id));
   const baseLimits =
     dbLimits || FALLBACK_LIMITS[tier] || FALLBACK_LIMITS[rawTier] || FALLBACK_LIMITS.free;
 
