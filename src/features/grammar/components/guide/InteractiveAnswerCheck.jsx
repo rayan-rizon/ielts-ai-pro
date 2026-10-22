@@ -1,16 +1,55 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RotateCcw, Sparkles } from 'lucide-react';
-import { answerItems } from './grammarGuideParser';
+import { cn } from '@/lib/cn';
+import { answerItems, answerNotes, matchesChoice } from './grammarGuideParser';
+import {
+  checkTypedAnswer,
+  isLongAnswer,
+  isSuccess,
+  shouldPrefill,
+  stripMarkdown,
+} from './practiceCheck';
 import { renderInline } from './renderInline';
 import { AnswerQuestionCard } from './AnswerQuestionCard';
+import { GuideBlock } from './GuideBlock';
+
+const STORAGE_PREFIX = 'grammar-guide-practice:v1:';
+const STATUSES = new Set(['correct', 'incorrect', 'compare', 'got', 'review', 'revealed']);
+
+// Saved on this device only, so a learner who leaves mid-exercise can pick up again.
+function readSaved(storageKey, items) {
+  if (!storageKey) return {};
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(`${STORAGE_PREFIX}${storageKey}`) || '{}');
+    const numbers = new Set(items.map((item) => item.number));
+    return Object.fromEntries(
+      Object.entries(raw).filter(
+        ([number, value]) => numbers.has(Number(number)) && STATUSES.has(value?.status)
+      )
+    );
+  } catch {
+    return {};
+  }
+}
+
+function writeSaved(storageKey, results) {
+  if (!storageKey) return;
+  try {
+    const key = `${STORAGE_PREFIX}${storageKey}`;
+    if (Object.keys(results).length) window.localStorage.setItem(key, JSON.stringify(results));
+    else window.localStorage.removeItem(key);
+  } catch {
+    // Private windows and blocked storage simply do not remember progress.
+  }
+}
 
 function InteractiveHeader({
   title,
-  prompt,
   checkedCount,
   totalCount,
-  allRevealed,
-  onRevealAll,
+  successCount,
+  hasUnchecked,
+  onShowAll,
   onReset,
 }) {
   return (
@@ -18,37 +57,40 @@ function InteractiveHeader({
       <div>
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#5a63df] dark:text-indigo-300">
           <Sparkles className="h-3 w-3" />
-          {title || 'Practice Exercise'}
+          {title || 'Practice exercise'}
         </div>
         <h2 className="mt-0.5 text-base font-extrabold text-slate-900 dark:text-white">
           Check your practice
         </h2>
         <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-          {prompt
-            ? 'Work through each sentence, test yourself, and compare with the suggested answer.'
-            : 'Try every item first. Reveal the model only when you are ready to compare.'}
+          Try each item yourself first, check it, then compare with the model answer.
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="rounded-full bg-[#f0effe] px-2.5 py-0.5 text-[11px] font-black text-[#5a63df] dark:bg-indigo-500/20 dark:text-indigo-200">
-          {checkedCount}/{totalCount} reviewed
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          aria-live="polite"
+          className="rounded-full bg-[#f0effe] px-2.5 py-0.5 text-[11px] font-black text-[#5a63df] dark:bg-indigo-500/20 dark:text-indigo-200"
+        >
+          {checkedCount}/{totalCount} checked
+          {checkedCount > 0 && ` · ${successCount} correct`}
         </span>
-        {!allRevealed ? (
+        {hasUnchecked && (
           <button
             type="button"
-            onClick={onRevealAll}
+            onClick={onShowAll}
             className="rounded-lg border border-[#e2e5f2] bg-white px-2 py-0.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
           >
-            Reveal all
+            Show all answers
           </button>
-        ) : (
+        )}
+        {checkedCount > 0 && (
           <button
             type="button"
             onClick={onReset}
             className="inline-flex items-center gap-1 rounded-lg border border-[#e2e5f2] bg-white px-2 py-0.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
           >
-            <RotateCcw className="h-3 w-3" /> Reset
+            <RotateCcw className="h-3 w-3" /> Start over
           </button>
         )}
       </div>
@@ -69,56 +111,129 @@ function PracticeInstructionBanner({ prompt }) {
   );
 }
 
-function ReviewCompletionBanner({ totalCount, confidentCount }) {
-  const reviewCount = totalCount - confidentCount;
-  const isMastered = confidentCount === totalCount;
-
+function CompletionBanner({ totalCount, successCount, onRetryMissed }) {
+  const missed = totalCount - successCount;
   return (
-    <div className="mt-3 rounded-lg bg-emerald-100/80 px-3 py-2 text-xs font-bold text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-100">
-      {isMastered
-        ? '✓ Strong check! All items mastered. Ready for IELTS practice.'
-        : `Completed! ${reviewCount} item${reviewCount === 1 ? '' : 's'} marked for review.`}
+    <div
+      role="status"
+      className={cn(
+        'mt-3 rounded-lg px-3 py-2.5 text-xs font-bold',
+        missed === 0
+          ? 'bg-emerald-100/80 text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-100'
+          : 'bg-amber-100/80 text-amber-950 dark:bg-amber-400/15 dark:text-amber-100'
+      )}
+    >
+      {missed === 0 ? (
+        <>All {totalCount} correct. You are ready for a practice set.</>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span>
+            {successCount} of {totalCount} correct. Re-read the lesson above, then try the other
+            {missed === 1 ? '' : 's'} again.
+          </span>
+          <button
+            type="button"
+            onClick={onRetryMissed}
+            className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-1 text-[11px] font-extrabold text-amber-900 transition hover:bg-amber-50 dark:border-amber-400/30 dark:bg-white/5 dark:text-amber-100"
+          >
+            <RotateCcw className="h-3 w-3" /> Try {missed === 1 ? 'it' : 'them'} again
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-export function InteractiveAnswerCheck({ section }) {
-  const items = answerItems(section);
-  const [revealed, setRevealed] = useState(() => new Set());
-  const [checked, setChecked] = useState(() => new Set());
-  const [confident, setConfident] = useState(() => new Set());
-  const [selectedAnswers, setSelectedAnswers] = useState(() => ({}));
+export function InteractiveAnswerCheck({ section, storageKey }) {
+  const items = useMemo(() => answerItems(section), [section]);
+  const notes = useMemo(() => answerNotes(section), [section]);
+  const prompt = section.practiceContext?.prompt || '';
 
-  const reveal = (number) => {
-    setRevealed((current) => new Set(current).add(number));
-  };
+  const initialDraft = useCallback(
+    (item) => (shouldPrefill(item, prompt) ? stripMarkdown(item.question) : ''),
+    [prompt]
+  );
+  const [results, setResults] = useState(() => readSaved(storageKey, items));
+  const [nudges, setNudges] = useState({});
+  const [drafts, setDrafts] = useState(() =>
+    Object.fromEntries(items.map((item) => [item.number, initialDraft(item)]))
+  );
 
-  const revealAll = () => {
-    setRevealed(new Set(items.map((it) => it.number)));
-  };
+  useEffect(() => {
+    writeSaved(storageKey, results);
+  }, [storageKey, results]);
 
-  const selfMark = (number, isConfident) => {
-    setChecked((current) => new Set(current).add(number));
-    setConfident((current) => {
-      const next = new Set(current);
-      if (isConfident) next.add(number);
-      else next.delete(number);
+  const find = (number) => items.find((item) => item.number === number);
+  const setResult = (number, value) => setResults((current) => ({ ...current, [number]: value }));
+  const clearResults = (numbers) =>
+    setResults((current) => {
+      const next = { ...current };
+      numbers.forEach((number) => delete next[number]);
       return next;
+    });
+
+  const handleDraft = (number, value) => {
+    setDrafts((current) => ({ ...current, [number]: value }));
+    setNudges((current) => (current[number] ? { ...current, [number]: '' } : current));
+  };
+
+  const handleCheck = (number) => {
+    const item = find(number);
+    const typed = String(drafts[number] || '').trim();
+    if (!item || !typed) return;
+    if (initialDraft(item) && typed === initialDraft(item)) {
+      setNudges((current) => ({
+        ...current,
+        [number]: 'This is still the original sentence. Edit it to fix the error, then check.',
+      }));
+      return;
+    }
+    const verdict = checkTypedAnswer(typed, item.answer);
+    setResult(number, { status: verdict === 'match' ? 'correct' : 'compare', response: typed });
+  };
+
+  const handleChoose = (number, option) => {
+    const item = find(number);
+    if (!item || results[number]) return;
+    setResult(number, {
+      status: matchesChoice(option, item.answer) ? 'correct' : 'incorrect',
+      response: option,
     });
   };
 
-  const selectOption = (number, opt) => {
-    setSelectedAnswers((current) => ({ ...current, [number]: opt }));
+  const handleReveal = (number) => setResult(number, { status: 'revealed', response: '' });
+
+  const handleSelfMark = (number, isCorrect) =>
+    setResult(number, { ...results[number], status: isCorrect ? 'got' : 'review' });
+
+  const handleRetry = (number) => {
+    const item = find(number);
+    clearResults([number]);
+    if (item) handleDraft(number, initialDraft(item));
   };
 
-  const reset = () => {
-    setRevealed(new Set());
-    setChecked(new Set());
-    setConfident(new Set());
-    setSelectedAnswers({});
+  const handleShowAll = () =>
+    items.forEach((item) => {
+      if (!results[item.number]) handleReveal(item.number);
+    });
+
+  const handleReset = () => {
+    setResults({});
+    setDrafts(Object.fromEntries(items.map((item) => [item.number, initialDraft(item)])));
   };
 
-  const allReviewed = checked.size === items.length && items.length > 0;
+  const handleRetryMissed = () => {
+    const missed = items.filter((item) => !isSuccess(results[item.number]));
+    clearResults(missed.map((item) => item.number));
+    setDrafts((current) => ({
+      ...current,
+      ...Object.fromEntries(missed.map((item) => [item.number, initialDraft(item)])),
+    }));
+  };
+
+  const checkedCount = items.filter((item) => results[item.number]).length;
+  const successCount = items.filter((item) => isSuccess(results[item.number])).length;
+  const allChecked = items.length > 0 && checkedCount === items.length;
 
   return (
     <div
@@ -127,34 +242,50 @@ export function InteractiveAnswerCheck({ section }) {
     >
       <InteractiveHeader
         title={section.practiceContext?.title}
-        prompt={section.practiceContext?.prompt}
-        checkedCount={checked.size}
+        checkedCount={checkedCount}
         totalCount={items.length}
-        allRevealed={revealed.size >= items.length}
-        onRevealAll={revealAll}
-        onReset={reset}
+        successCount={successCount}
+        hasUnchecked={checkedCount < items.length}
+        onShowAll={handleShowAll}
+        onReset={handleReset}
       />
 
-      <PracticeInstructionBanner prompt={section.practiceContext?.prompt} />
+      <PracticeInstructionBanner prompt={prompt} />
 
       <div className="mt-3 space-y-2">
         {items.map((item) => (
           <AnswerQuestionCard
             key={item.number}
             item={item}
-            isRevealed={revealed.has(item.number)}
-            isChecked={checked.has(item.number)}
-            isConfident={confident.has(item.number)}
-            userChoice={selectedAnswers[item.number]}
-            onReveal={reveal}
-            onSelectOption={selectOption}
-            onSelfMark={selfMark}
+            draft={drafts[item.number]}
+            nudge={nudges[item.number]}
+            result={results[item.number]}
+            long={isLongAnswer(item)}
+            onDraft={handleDraft}
+            onCheck={handleCheck}
+            onChoose={handleChoose}
+            onReveal={handleReveal}
+            onSelfMark={handleSelfMark}
+            onRetry={handleRetry}
           />
         ))}
       </div>
 
-      {allReviewed && (
-        <ReviewCompletionBanner totalCount={items.length} confidentCount={confident.size} />
+      {allChecked && (
+        <>
+          <CompletionBanner
+            totalCount={items.length}
+            successCount={successCount}
+            onRetryMissed={handleRetryMissed}
+          />
+          {notes.length > 0 && (
+            <div className="mt-3 space-y-2 rounded-lg border border-[#e2e5f2] bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+              {notes.map((block, index) => (
+                <GuideBlock key={`note-${index}`} block={block} index={index} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

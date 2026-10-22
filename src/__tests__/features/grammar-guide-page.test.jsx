@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import GrammarGuidePage from '@/features/grammar/components/GrammarGuidePage';
@@ -92,7 +92,7 @@ describe('GrammarGuidePage', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders workbook tables, subsection navigation, and interactive answer checking', () => {
+  it('renders workbook tables, subsection navigation, and an interactive exercise', () => {
     render(
       <MemoryRouter>
         <GrammarGuidePage
@@ -112,14 +112,93 @@ describe('GrammarGuidePage', () => {
     );
     expect(screen.getByRole('heading', { name: 'Check your practice' })).toBeInTheDocument();
     expect(screen.queryByText('Answer key')).not.toBeInTheDocument();
-    expect(screen.queryByText('Suggested answer 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Model answer')).not.toBeInTheDocument();
+    expect(screen.getByText('0/5 checked')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Compare answer for question 1' }));
-    expect(screen.getByText('Suggested answer 1')).toBeInTheDocument();
+    // A multiple-choice item is checked the moment it is chosen.
+    const group = screen.getByRole('radiogroup', { name: 'Choices for question 1' });
+    fireEvent.click(within(group).getByRole('radio', { name: 'built' }));
+    expect(screen.getByText('Not quite')).toBeInTheDocument();
+    expect(screen.getByText('Model answer')).toBeInTheDocument();
+    expect(screen.getByText('1/5 checked · 0 correct')).toBeInTheDocument();
 
-    const selfMark = screen.getByRole('button', { name: 'I got this' });
-    fireEvent.click(selfMark);
-    expect(selfMark).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /Try again/ }));
+    fireEvent.click(
+      within(screen.getByRole('radiogroup', { name: 'Choices for question 1' })).getByRole(
+        'radio',
+        { name: 'has built' }
+      )
+    );
+    expect(screen.getByText('Correct')).toBeInTheDocument();
+    expect(screen.getByText('1/5 checked · 1 correct')).toBeInTheDocument();
+  });
+
+  it('checks a typed correction fairly: exact models pass, other answers are compared', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('nouns-countability-and-quantity')}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    // Pressing Check on an untouched sentence asks the learner to edit it first.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Check answer' })[0]);
+    expect(screen.getByRole('alert')).toHaveTextContent(/still the original sentence/);
+    expect(screen.getByText('0/5 checked')).toBeInTheDocument();
+
+    const first = screen.getByRole('textbox', { name: 'Your answer to question 1' });
+    // Correction items start from the learner's own copy of the sentence.
+    expect(first).toHaveValue('The report provides several useful advices.');
+    fireEvent.change(first, { target: { value: 'the report provides useful advice' } });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Check answer' })[0]);
+    expect(screen.getByText('Correct')).toBeInTheDocument();
+
+    // Not an exact model: never called "wrong", the learner compares and decides.
+    fireEvent.change(screen.getByRole('textbox', { name: 'Your answer to question 2' }), {
+      target: { value: 'There were less accidents.' },
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Check answer' })[0]);
+    expect(screen.getByText('Compare with the model')).toBeInTheDocument();
+    expect(screen.queryByText('Not quite')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Mine is also correct/ }));
+    expect(screen.getByText('Marked as correct')).toBeInTheDocument();
+  });
+
+  it('lets a learner reveal an answer without attempting it, and remembers progress on this device', () => {
+    window.localStorage.clear();
+    const view = (
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('subject-verb-agreement')}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+    const { unmount } = render(view);
+
+    fireEvent.click(
+      within(screen.getByRole('radiogroup', { name: 'Choices for question 1' })).getByRole(
+        'radio',
+        { name: 'has' }
+      )
+    );
+    expect(screen.getByText('1/5 checked · 1 correct')).toBeInTheDocument();
+    unmount();
+
+    render(view);
+    expect(screen.getByText('1/5 checked · 1 correct')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Show all answers' }));
+    expect(screen.getByText('5/5 checked · 1 correct')).toBeInTheDocument();
+    expect(screen.getByText(/1 of 5 correct/)).toBeInTheDocument();
+    window.localStorage.clear();
   });
 
   it('shows an upgrade gate instead of a locked workbook unit', () => {
@@ -183,7 +262,8 @@ describe('GrammarGuidePage', () => {
     expect(secondItalic.tagName).toBe('EM');
   });
 
-  it('renders unified practice cards with sentence prompts, option chips, and clean 1-based numbering', () => {
+  it('renders unified practice cards with sentence prompts, choices, and clean 1-based numbering', () => {
+    window.localStorage.clear();
     render(
       <MemoryRouter>
         <GrammarGuidePage
@@ -196,25 +276,110 @@ describe('GrammarGuidePage', () => {
       </MemoryRouter>
     );
 
-    // Verify 01 question badge and sentence text are rendered
     expect(screen.getByText('01')).toBeInTheDocument();
     expect(screen.getByText('Renewable energy creates jobs.')).toBeInTheDocument();
-
-    // Verify the question numbers are NOT shifted by earlier block counts (not 24, 25, etc.)
     expect(screen.queryByText('24')).not.toBeInTheDocument();
-    expect(screen.queryByText('25')).not.toBeInTheDocument();
 
-    // Verify clickable choice options are available
-    const simpleChoice = screen.getAllByRole('button', { name: 'simple' })[0];
-    expect(simpleChoice).toBeInTheDocument();
+    const choices = within(screen.getByRole('radiogroup', { name: 'Choices for question 1' }));
+    fireEvent.click(choices.getByRole('radio', { name: 'simple' }));
+    expect(screen.getByText('Correct')).toBeInTheDocument();
+    expect(choices.getByRole('radio', { name: 'simple' })).toBeDisabled();
+    window.localStorage.clear();
+  });
 
-    // Select an option
-    fireEvent.click(simpleChoice);
-    expect(simpleChoice).toHaveClass('bg-[#5a63df]');
+  it('shows every question in practices whose workbook key is written as one run of answers', () => {
+    window.localStorage.clear();
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('subordination-and-logical-relationships')}
+          user={{ subscription_tier: 'pro' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
 
-    // Compare answer
-    fireEvent.click(screen.getByRole('button', { name: 'Compare answer for question 1' }));
-    expect(screen.getByText('Suggested answer 1')).toBeInTheDocument();
-    expect(screen.getByText(/Matches your choice/i)).toBeInTheDocument();
+    expect(screen.getByText('0/4 checked')).toBeInTheDocument();
+    expect(screen.getAllByRole('textbox')).toHaveLength(4);
+  });
+
+  it('tells a learner which units a practice set draws on, and uses plain step labels', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('conditionals')}
+          user={{ subscription_tier: 'pro' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('list', { name: 'How to use this unit' })).toBeInTheDocument();
+    expect(screen.getByText(/Units 5, 10, 11, 12, 16, 17 all build/)).toBeInTheDocument();
+  });
+
+  it('renders the orientation guide for a brand-new learner, free of charge', () => {
+    window.localStorage.clear();
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('start-here-how-grammar-lab-works')}
+          user={{ subscription_tier: 'free' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'How Grammar Lab works' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('0/12 checked')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Start mixed practice/ })).toHaveLength(2);
+  });
+
+  it('renders every exercise of the mixed review, each with its own check card', () => {
+    window.localStorage.clear();
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('mixed-ielts-review')}
+          user={{ subscription_tier: 'pro' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getAllByRole('heading', { name: 'Check your practice' })).toHaveLength(4);
+    expect(screen.getByText('0/12 checked')).toBeInTheDocument();
+    expect(screen.getAllByText('0/6 checked')).toHaveLength(2);
+    expect(screen.getByText('0/1 checked')).toBeInTheDocument();
+  });
+
+  it('lets wide tables scroll inside the guide instead of widening the phone layout', () => {
+    render(
+      <MemoryRouter>
+        <GrammarGuidePage
+          resource={getGrammarGuide('essential-tense-control')}
+          user={{ subscription_tier: 'pro' }}
+          isStarting={false}
+          onBack={vi.fn()}
+          onPractice={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    const article = screen.getByRole('table').closest('article');
+    // A bare grid track grows to a table's min-width (556px inside a 351px phone).
+    expect(article).toHaveClass('min-w-0');
+    expect(article.parentElement).toHaveClass('grid-cols-[minmax(0,1fr)]');
+    expect(screen.getByRole('table').parentElement).toHaveClass('overflow-x-auto');
   });
 });

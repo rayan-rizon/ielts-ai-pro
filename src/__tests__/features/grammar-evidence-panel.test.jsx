@@ -14,7 +14,7 @@ const writingEvidence = {
 };
 
 describe('GrammarEvidencePanel', () => {
-  it('shows both evidence sources and converts broad evidence into a Grammar level check', () => {
+  it('shows both test sources and offers a level check when the learner is unsure what to practise', () => {
     const onStartDiagnostic = vi.fn();
     render(
       <MemoryRouter>
@@ -29,10 +29,10 @@ describe('GrammarEvidencePanel', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('1/2 connected')).toBeInTheDocument();
+    expect(screen.getByText('1/2 tests counted')).toBeInTheDocument();
     expect(screen.getByText('68%')).toBeInTheDocument();
     expect(
-      screen.getByRole('progressbar', { name: 'Writing grammar estimated grammar control' })
+      screen.getByRole('progressbar', { name: 'Writing grammar estimated grammar accuracy' })
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Take a Writing test' })).toHaveAttribute(
       'href',
@@ -40,7 +40,7 @@ describe('GrammarEvidencePanel', () => {
     );
 
     fireEvent.click(screen.getByRole('tab', { name: 'Speaking' }));
-    expect(screen.getByText('Not connected')).toBeInTheDocument();
+    expect(screen.getByText('No test yet')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Take a Speaking test' })).toHaveAttribute(
       'href',
       '/speaking'

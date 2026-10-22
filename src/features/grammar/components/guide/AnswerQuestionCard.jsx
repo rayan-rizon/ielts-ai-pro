@@ -1,32 +1,38 @@
 import React from 'react';
-import { Check, Eye } from 'lucide-react';
+import { Check, CheckCircle2, CircleAlert, Eye, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/cn';
+import { isSuccess } from './practiceCheck';
 import { renderInline } from './renderInline';
-import { matchesChoice } from './grammarGuideParser';
 
-function QuestionChoices({ itemNumber, options, userChoice, onSelectOption }) {
-  if (!options || options.length === 0) return null;
-
+function QuestionChoices({ item, locked, response, onChoose }) {
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-0.5">
-        Choice:
-      </span>
-      {options.map((opt) => {
-        const isSelected = userChoice === opt;
+    <div
+      role="radiogroup"
+      aria-label={`Choices for question ${item.number}`}
+      className="mt-2.5 flex flex-wrap gap-2"
+    >
+      {item.options.map((option) => {
+        const selected = response === option;
         return (
           <button
-            key={opt}
+            key={option}
             type="button"
-            onClick={() => onSelectOption(itemNumber, opt)}
+            role="radio"
+            aria-checked={selected}
+            disabled={locked}
+            onClick={() => onChoose(item.number, option)}
             className={cn(
-              'rounded-md px-2 py-0.5 text-[11px] font-bold transition-all duration-150 active:scale-95',
-              isSelected
-                ? 'bg-[#5a63df] text-white shadow-2xs ring-1 ring-[#5a63df]'
-                : 'border border-[#e2e5f2] bg-slate-50/80 text-slate-700 hover:border-[#5a63df]/40 hover:bg-[#5a63df]/5 dark:border-white/10 dark:bg-white/5 dark:text-slate-300'
+              'min-h-9 rounded-lg border px-3.5 py-1.5 text-sm font-bold transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+              selected
+                ? 'border-[#5a63df] bg-[#5a63df] text-white'
+                : 'border-[#e2e5f2] bg-white text-slate-700 hover:border-[#5a63df]/40 hover:bg-[#5a63df]/5 dark:border-white/10 dark:bg-white/5 dark:text-slate-200',
+              locked && !selected && 'opacity-60'
             )}
           >
-            {opt}
+            {option}
           </button>
         );
       })}
@@ -34,73 +40,149 @@ function QuestionChoices({ itemNumber, options, userChoice, onSelectOption }) {
   );
 }
 
-function ChoiceFeedbackBadge({ userChoice, answer }) {
-  if (!userChoice) return null;
-  const isMatch = matchesChoice(userChoice, answer);
-
+function TypedAnswer({ item, draft, long, nudge, onDraft, onCheck, onReveal }) {
+  const label = `Your answer to question ${item.number}`;
+  const shared = {
+    id: `practice-answer-${item.number}`,
+    'aria-label': label,
+    value: draft,
+    onChange: (event) => onDraft(item.number, event.target.value),
+    placeholder: long ? 'Write your version here…' : 'Type your answer…',
+    className:
+      'rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-sm font-semibold text-slate-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-white',
+  };
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black',
-        isMatch
-          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-200'
-          : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'
-      )}
-    >
-      {isMatch ? (
-        <>
-          <Check className="h-3 w-3" strokeWidth={3} /> Matches your choice!
-        </>
+    <div className="mt-2.5">
+      {long ? (
+        <Textarea {...shared} rows={4} />
       ) : (
-        `You chose: ${userChoice}`
+        <Input
+          {...shared}
+          className={cn(shared.className, 'h-10')}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              onCheck(item.number);
+            }
+          }}
+        />
       )}
-    </span>
+      {nudge && (
+        <p role="alert" className="mt-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+          {nudge}
+        </p>
+      )}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => onCheck(item.number)}
+          disabled={!String(draft || '').trim()}
+          className="h-8 rounded-lg bg-[#5a63df] px-3 text-xs font-extrabold text-white hover:bg-[#4a52c9]"
+        >
+          Check answer
+        </Button>
+        <button
+          type="button"
+          onClick={() => onReveal(item.number)}
+          className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-500 transition hover:text-[#5a63df] dark:text-slate-400"
+        >
+          <Eye className="h-3.5 w-3.5" /> Show the answer
+        </button>
+      </div>
+    </div>
   );
 }
 
-function RevealedAnswerSection({ item, isChecked, isConfident, userChoice, onSelfMark }) {
+function ModelAnswer({ item }) {
   return (
-    <div className="mt-2.5 rounded-lg border border-emerald-200/80 bg-emerald-50/50 p-2.5 dark:border-emerald-500/20 dark:bg-emerald-950/20">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-          Suggested answer {item.number}
-        </span>
-        <ChoiceFeedbackBadge userChoice={userChoice} answer={item.answer} />
+    <div className="mt-2 rounded-lg bg-white/70 px-3 py-2 dark:bg-white/5">
+      <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        Model answer
       </div>
-
-      <p className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">
+      <p className="mt-0.5 text-sm font-bold leading-snug text-slate-900 dark:text-slate-100">
         {renderInline(item.answer, `answer-${item.number}`)}
       </p>
+    </div>
+  );
+}
 
-      <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-emerald-200/50 pt-2 dark:border-emerald-500/20">
-        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-          Self-assessment:
-        </span>
+function ResultPanel({ item, result, onSelfMark, onRetry }) {
+  const { status, response } = result;
+
+  if (isSuccess(result)) {
+    return (
+      <div
+        role="status"
+        className="mt-2.5 rounded-lg border border-emerald-200/80 bg-emerald-50/70 p-3 dark:border-emerald-500/20 dark:bg-emerald-500/10"
+      >
+        <div className="flex items-center gap-1.5 text-sm font-extrabold text-emerald-800 dark:text-emerald-200">
+          <CheckCircle2 className="h-4 w-4" />
+          {status === 'got' ? 'Marked as correct' : 'Correct'}
+        </div>
+        <ModelAnswer item={item} />
+      </div>
+    );
+  }
+
+  const heading =
+    status === 'incorrect'
+      ? 'Not quite'
+      : status === 'compare'
+        ? 'Compare with the model'
+        : status === 'revealed'
+          ? 'Here is the answer'
+          : 'Marked for review';
+
+  return (
+    <div
+      role="status"
+      className="mt-2.5 rounded-lg border border-amber-200/80 bg-amber-50/70 p-3 dark:border-amber-500/20 dark:bg-amber-500/10"
+    >
+      <div className="flex items-center gap-1.5 text-sm font-extrabold text-amber-900 dark:text-amber-200">
+        <CircleAlert className="h-4 w-4" />
+        {heading}
+      </div>
+      {response && status !== 'revealed' && (
+        <p className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+          Your answer: <span className="font-bold text-slate-900 dark:text-white">{response}</span>
+        </p>
+      )}
+      <ModelAnswer item={item} />
+      {status === 'compare' && (
+        <p className="mt-2 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">
+          More than one sentence can be correct. If yours is accurate and keeps the meaning, mark it
+          as correct.
+        </p>
+      )}
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        {status === 'compare' && (
+          <>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => onSelfMark(item.number, true)}
+              className="h-8 rounded-lg bg-emerald-600 px-3 text-xs font-extrabold text-white hover:bg-emerald-700"
+            >
+              <Check className="mr-1 h-3.5 w-3.5" /> Mine is also correct
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onSelfMark(item.number, false)}
+              className="h-8 rounded-lg px-3 text-xs font-extrabold"
+            >
+              I need to review this
+            </Button>
+          </>
+        )}
         <button
           type="button"
-          aria-pressed={isChecked && isConfident}
-          onClick={() => onSelfMark(item.number, true)}
-          className={cn(
-            'rounded-md border px-2.5 py-0.5 text-[10px] font-extrabold transition',
-            isChecked && isConfident
-              ? 'border-emerald-600 bg-emerald-600 text-white'
-              : 'border-emerald-200 bg-white text-emerald-800 hover:border-emerald-400 dark:border-emerald-400/20 dark:bg-white/5 dark:text-emerald-200'
-          )}
+          onClick={() => onRetry(item.number)}
+          className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-bold text-[#5a63df] transition hover:underline dark:text-indigo-300"
         >
-          I got this
-        </button>
-        <button
-          type="button"
-          aria-pressed={isChecked && !isConfident}
-          onClick={() => onSelfMark(item.number, false)}
-          className={cn(
-            'rounded-md border px-2.5 py-0.5 text-[10px] font-extrabold transition',
-            isChecked && !isConfident
-              ? 'border-amber-500 bg-amber-500 text-white'
-              : 'border-amber-200 bg-white text-amber-800 hover:border-amber-400 dark:border-amber-400/20 dark:bg-white/5 dark:text-amber-200'
-          )}
-        >
-          Review again
+          <RotateCcw className="h-3.5 w-3.5" /> Try again
         </button>
       </div>
     </div>
@@ -109,70 +191,68 @@ function RevealedAnswerSection({ item, isChecked, isConfident, userChoice, onSel
 
 export function AnswerQuestionCard({
   item,
-  isRevealed,
-  isChecked,
-  isConfident,
-  userChoice,
+  draft,
+  nudge,
+  result,
+  long,
+  onDraft,
+  onCheck,
+  onChoose,
   onReveal,
-  onSelectOption,
   onSelfMark,
+  onRetry,
 }) {
+  const checked = Boolean(result);
+  const hasOptions = Boolean(item.options?.length);
+
   return (
     <div
       className={cn(
-        'rounded-lg border p-3 transition-all duration-150',
-        isChecked
+        'rounded-lg border p-3 transition-colors duration-150',
+        isSuccess(result)
           ? 'border-emerald-200/80 bg-emerald-50/20 dark:border-emerald-500/20 dark:bg-emerald-950/10'
           : 'border-[#e2e5f2] bg-white dark:border-white/10 dark:bg-[#121118]'
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-2.5 min-w-0 flex-1">
-          <span className="mt-0.5 flex h-5 w-6 shrink-0 items-center justify-center rounded-md border border-[#e2e5f2] bg-[#f8f9fe] text-[10px] font-black text-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300">
-            {String(item.number).padStart(2, '0')}
-          </span>
-          <div className="min-w-0 flex-1">
-            {item.question ? (
-              <div className="text-sm font-bold leading-snug text-slate-900 dark:text-slate-100">
-                {renderInline(item.question, `q-${item.number}`)}
-              </div>
-            ) : (
-              <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
-                Question {item.number}
-              </div>
-            )}
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 flex h-5 w-6 shrink-0 items-center justify-center rounded-md border border-[#e2e5f2] bg-[#f8f9fe] text-[10px] font-black text-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300">
+          {String(item.number).padStart(2, '0')}
+        </span>
+        <div className="min-w-0 flex-1">
+          {item.question ? (
+            <div className="text-sm font-bold leading-snug text-slate-900 dark:text-slate-100">
+              {renderInline(item.question, `q-${item.number}`)}
+            </div>
+          ) : (
+            <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
+              Question {item.number}
+            </div>
+          )}
 
+          {hasOptions && (
             <QuestionChoices
-              itemNumber={item.number}
-              options={item.options}
-              userChoice={userChoice}
-              onSelectOption={onSelectOption}
+              item={item}
+              locked={checked}
+              response={result?.response ?? draft}
+              onChoose={onChoose}
             />
-          </div>
+          )}
+          {!hasOptions && !checked && (
+            <TypedAnswer
+              item={item}
+              draft={draft ?? ''}
+              long={long}
+              nudge={nudge}
+              onDraft={onDraft}
+              onCheck={onCheck}
+              onReveal={onReveal}
+            />
+          )}
+          {checked && (
+            <ResultPanel item={item} result={result} onSelfMark={onSelfMark} onRetry={onRetry} />
+          )}
         </div>
-
-        {!isRevealed && (
-          <button
-            type="button"
-            aria-label={`Compare answer for question ${item.number}`}
-            onClick={() => onReveal(item.number)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#e2e5f2] bg-white px-2.5 py-1 text-xs font-extrabold text-[#5a63df] shadow-2xs transition hover:border-[#5a63df]/40 hover:bg-[#5a63df]/5 active:scale-[0.99] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            <span>Compare answer</span>
-          </button>
-        )}
       </div>
-
-      {isRevealed && (
-        <RevealedAnswerSection
-          item={item}
-          isChecked={isChecked}
-          isConfident={isConfident}
-          userChoice={userChoice}
-          onSelfMark={onSelfMark}
-        />
-      )}
     </div>
   );
 }

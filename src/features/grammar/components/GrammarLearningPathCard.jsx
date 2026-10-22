@@ -60,15 +60,15 @@ function getCurrentStepDescription({ activePathStage, inProgressAttempt, retestT
   const testName = retestTarget === 'speaking' ? 'Speaking' : 'Writing';
 
   if (activePathStage === 'diagnose') {
-    return 'Take the short level check. It identifies the grammar skill to practise first.';
+    return 'Take the 24-question level check. It shows which grammar skill to practise first.';
   }
   if (activePathStage === 'retest') {
-    return `Take one normal scored ${testName} test. Its result updates your Grammar evidence and AI Learning Path automatically.`;
+    return `Take one normal scored ${testName} test. Your Grammar results and AI Learning Path update from it automatically.`;
   }
   if (inProgressAttempt) {
-    return `Finish this practice set. Your next step is one normal scored ${testName} test — no separate grammar submission.`;
+    return `Finish this practice set. Your next step is one normal scored ${testName} test; there is nothing extra to submit.`;
   }
-  return 'Practise the suggested grammar skill. After focused practice, confirm progress in a normal scored test.';
+  return 'Practise the suggested grammar skill. After a few sets, take a normal scored test to see the difference.';
 }
 
 // ---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ export default function GrammarLearningPathCard({
             Grammar Learning Path
           </h2>
           <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-            Build accuracy, then use it in IELTS.
+            Three steps: find your level, practise, then prove it.
           </p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function GrammarLearningPathCard({
       <div className="mt-5 flex items-start">
         <PathStage
           icon={ClipboardCheck}
-          label="Check"
+          label="Level check"
           active={activePathStage === 'diagnose'}
           onClick={() => onStartPathStage('diagnose')}
           disabled={
@@ -160,7 +160,7 @@ export default function GrammarLearningPathCard({
         />
         <PathStage
           icon={Send}
-          label="Retest"
+          label="Real test"
           active={activePathStage === 'retest'}
           onClick={() => onStartPathStage('retest')}
           disabled={isStarting || isResuming || Boolean(inProgressAttempt)}

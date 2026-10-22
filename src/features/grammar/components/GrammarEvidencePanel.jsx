@@ -19,7 +19,7 @@ const SOURCES = [
   {
     source: 'writing',
     title: 'Writing grammar',
-    description: 'From your scored Writing responses.',
+    description: 'Taken from your scored Writing tests.',
     route: '/writing',
     action: 'Take a Writing test',
     icon: FilePenLine,
@@ -28,7 +28,7 @@ const SOURCES = [
   {
     source: 'speaking',
     title: 'Speaking grammar',
-    description: 'From your scored Speaking transcripts.',
+    description: 'Taken from your scored Speaking tests.',
     route: '/speaking',
     action: 'Take a Speaking test',
     icon: Mic2,
@@ -37,7 +37,7 @@ const SOURCES = [
 ];
 
 function formattedDate(value) {
-  if (!value) return 'No evaluated result yet';
+  if (!value) return 'No test result yet';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'Evidence saved';
   return `Updated ${new Intl.DateTimeFormat('en', {
@@ -92,7 +92,7 @@ function EvidenceSourceCard({ source, signal }) {
               />
             ) : (
               <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[9px] font-extrabold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-                Not connected
+                No test yet
               </span>
             )}
           </div>
@@ -100,12 +100,12 @@ function EvidenceSourceCard({ source, signal }) {
           {hasEvidence ? (
             <div className="mt-2.5">
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                <span>Grammar control</span>
+                <span>Grammar accuracy</span>
                 <span className="font-black text-slate-800 dark:text-white">{control}%</span>
               </div>
               <Progress
                 value={control}
-                aria-label={`${source.title} estimated grammar control`}
+                aria-label={`${source.title} estimated grammar accuracy`}
                 className="mt-1.5 h-1.5 bg-slate-100 dark:bg-white/10"
                 indicatorClassName={isSpeaking ? 'bg-emerald-500' : 'bg-indigo-500'}
               />
@@ -134,7 +134,7 @@ function EvidenceSourceCard({ source, signal }) {
                 {source.description}
               </p>
               <p className="mt-1 text-[10px] font-semibold text-slate-400">
-                Complete one scored practice to connect it.
+                Take one scored test and your result will appear here.
               </p>
               <Link
                 to={source.route}
@@ -176,7 +176,7 @@ export default function GrammarEvidencePanel({
     ? 'Resume active grammar practice'
     : diagnosticAvailable
       ? 'Find what to practise'
-      : 'Level check already used';
+      : 'Level check used this month';
   const [activeSourceIndex, setActiveSourceIndex] = useState(0);
   const activeSource = SOURCES[activeSourceIndex];
 
@@ -191,14 +191,14 @@ export default function GrammarEvidencePanel({
           <IconChip icon={ShieldCheck} size="lg" />
           <div>
             <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Grammar from your tests
+              Your grammar in real tests
             </h2>
             <p className={cn('mt-0.5 text-[11px] font-medium leading-4', MUTED)}>
-              Evaluated Writing and Speaking tests update this automatically.
+              Your scored Writing and Speaking tests fill this in automatically.
             </p>
           </div>
         </div>
-        <Pill tone="accent">{evidenceCount}/2 connected</Pill>
+        <Pill tone="accent">{evidenceCount}/2 tests counted</Pill>
       </div>
 
       <LayoutGroup id="grammar-evidence-source-tabs">
@@ -261,10 +261,10 @@ export default function GrammarEvidencePanel({
           <ScanSearch className="h-4.5 w-4.5 shrink-0 text-[#5a63df]" />
           <div>
             <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-              Find the exact skill to practise
+              Not sure what to practise?
             </div>
             <p className={cn('mt-0.5 text-[11px] font-medium leading-4', MUTED)}>
-              If test evidence is broad, one level check selects the right practice and guides.
+              Take the 24-question level check and we will pick the skills and guides for you.
             </p>
           </div>
         </div>

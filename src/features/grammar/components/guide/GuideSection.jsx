@@ -3,6 +3,7 @@ import { BookOpenText } from 'lucide-react';
 import { IconChip } from '@/features/dashboard/components/primitives';
 import { GuideBlock } from './GuideBlock';
 import { InteractiveAnswerCheck } from './InteractiveAnswerCheck';
+import { isAnswerSection } from './grammarGuideParser';
 
 function SectionHeader({ title }) {
   if (!title) return null;
@@ -11,9 +12,6 @@ function SectionHeader({ title }) {
     <div className="mb-3 flex items-start gap-2.5">
       <IconChip icon={BookOpenText} size="md" />
       <div>
-        <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[#5a63df] dark:text-indigo-300">
-          Workbook Unit
-        </div>
         <h2 className="mt-0.5 text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
           {title}
         </h2>
@@ -22,13 +20,14 @@ function SectionHeader({ title }) {
   );
 }
 
-export function GuideSection({ section }) {
-  const isAnswerKey = /answer|suggested answer/i.test(section.title);
-
-  if (isAnswerKey) {
+export function GuideSection({ section, guideSlug }) {
+  if (isAnswerSection(section)) {
     return (
       <section id={section.id} className="scroll-mt-24 pb-1">
-        <InteractiveAnswerCheck section={section} />
+        <InteractiveAnswerCheck
+          section={section}
+          storageKey={`${guideSlug}:${section.practiceContext?.id || section.id}`}
+        />
       </section>
     );
   }

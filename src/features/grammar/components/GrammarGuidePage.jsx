@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn';
 import { PANEL } from '@/features/dashboard/components/primitives';
 import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import { skillMeta } from '../constants';
-import { getGrammarGuide } from '../data/grammarGuideCatalog';
+import { getGrammarGuide, getGuidesForSkill } from '../data/grammarGuideCatalog';
 import { buildTableOfContents, parseGrammarGuide } from './guide/grammarGuideParser';
 import { useActiveHeading } from './guide/useActiveHeading';
 import { GuideNotFoundState } from './guide/GuideNotFoundState';
@@ -43,6 +43,7 @@ export default function GrammarGuidePage({
   }
 
   const meta = skillMeta(resource.skill_code);
+  const relatedUnits = getGuidesForSkill(resource.skill_code);
   const previousGuide = getGrammarGuide(resource.previous_slug);
   const nextGuide = getGrammarGuide(resource.next_slug);
 
@@ -58,14 +59,15 @@ export default function GrammarGuidePage({
 
       <GuideHero resource={resource} isCompleted={isCompleted} />
 
-      <div className="mt-3.5 grid gap-3.5 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-        <article className={cn(PANEL, 'space-y-5 px-4 py-5 sm:px-6 sm:py-6')}>
+      <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)] gap-3.5 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+        <article className={cn(PANEL, 'min-w-0 space-y-5 px-4 py-5 sm:px-6 sm:py-6')}>
           {sections.map((section) => (
-            <GuideSection key={section.id} section={section} />
+            <GuideSection key={section.id} section={section} guideSlug={resource.slug} />
           ))}
 
           <GuideFooterBanner
             skillCode={resource.skill_code}
+            relatedUnits={relatedUnits}
             isCompleted={isCompleted}
             guideProgressUnavailable={guideProgressUnavailable}
             isStarting={isStarting}
@@ -78,7 +80,11 @@ export default function GrammarGuidePage({
         <GuideSidebar
           tableOfContents={tableOfContents}
           activeHeadingId={activeHeadingId}
-          outcomeText={meta.guideOutcome || meta.transferHint}
+          outcomeText={
+            meta.guideOutcome ||
+            meta.transferHint ||
+            'Put the rules to work in a short mixed practice set.'
+          }
           skillCode={resource.skill_code}
           isStarting={isStarting}
           isCompleted={isCompleted}

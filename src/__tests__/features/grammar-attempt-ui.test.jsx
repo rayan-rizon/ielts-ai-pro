@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import GrammarAttempt from '@/features/grammar/components/GrammarAttempt';
+
+const renderInRouter = (ui) => render(<MemoryRouter>{ui}</MemoryRouter>);
 
 const diagnosticAttempt = {
   attempt: {
@@ -47,7 +50,7 @@ describe('GrammarAttempt', () => {
       isCorrect: null,
       feedback: null,
     });
-    render(
+    renderInRouter(
       <GrammarAttempt
         attemptData={diagnosticAttempt}
         isSubmitting={false}
@@ -93,7 +96,7 @@ describe('GrammarAttempt', () => {
         explanation: 'A finished period requires the past simple.',
       },
     });
-    render(
+    renderInRouter(
       <GrammarAttempt
         attemptData={{
           attempt: { id: 'practice-1', mode: 'practice', totalQuestions: 1 },
@@ -116,7 +119,7 @@ describe('GrammarAttempt', () => {
   });
 
   it('hydrates a resumed attempt without asking the learner to answer again', () => {
-    render(
+    renderInRouter(
       <GrammarAttempt
         attemptData={{
           attempt: { id: 'resume-1', mode: 'diagnostic', totalQuestions: 1 },
@@ -149,7 +152,7 @@ describe('GrammarAttempt', () => {
       feedback: { explanation: 'Well done.' },
     });
 
-    render(
+    renderInRouter(
       <GrammarAttempt
         attemptData={{
           attempt: { id: 'practice-error-correction', mode: 'practice', totalQuestions: 1 },

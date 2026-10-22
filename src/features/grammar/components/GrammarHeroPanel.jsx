@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  BookOpenText,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
@@ -8,6 +9,7 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PILL_BASE, Pill, pillTone } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
@@ -29,7 +31,7 @@ function allowanceCopy(access) {
  * start already in flight) instead of just dimming.
  */
 function DueReviewsChip({ dueReviews, dueSkillLabels, disabledReason, onStartReview }) {
-  const label = `${dueReviews} review${dueReviews === 1 ? '' : 's'} due`;
+  const label = `${dueReviews} to review`;
   const skillHint = dueSkillLabels?.length ? ` · ${dueSkillLabels.join(', ')}` : '';
 
   if (disabledReason) {
@@ -49,7 +51,7 @@ function DueReviewsChip({ dueReviews, dueSkillLabels, disabledReason, onStartRev
       type="button"
       onClick={onStartReview}
       title={`Start a 5-question review${skillHint}`}
-      aria-label={`Start a review of ${label}`}
+      aria-label={`Start a review of ${dueReviews} missed question${dueReviews === 1 ? '' : 's'}`}
       className={cn(
         PILL_BASE,
         pillTone('amber'),
@@ -73,6 +75,13 @@ function DueReviewsChip({ dueReviews, dueSkillLabels, disabledReason, onStartRev
   );
 }
 
+function nextGuideLabel(nextGuide, hasStartedCourse) {
+  if (nextGuide.slug === 'start-here-how-grammar-lab-works') {
+    return 'New here? Read the 6-minute start guide first';
+  }
+  return `${hasStartedCourse ? 'Keep learning' : 'Start learning'}: ${nextGuide.label}, ${nextGuide.title}`;
+}
+
 /**
  * The hero panel at the top of the grammar dashboard — shows the primary CTA
  * with title, description, and start/resume button.
@@ -89,6 +98,8 @@ export default function GrammarHeroPanel({
   dueReviews,
   dueSkillLabels,
   retestTarget,
+  nextGuide,
+  hasStartedCourse,
   onStart,
   onStartReview,
 }) {
@@ -99,7 +110,7 @@ export default function GrammarHeroPanel({
     : isResuming
       ? 'Resuming your attempt.'
       : noAllowance
-        ? 'Your free questions for today are used — reviews unlock again tomorrow, or with a paid plan.'
+        ? 'Your free questions for today are used. Reviews unlock again tomorrow, or with a paid plan.'
         : null;
 
   return (
@@ -164,7 +175,7 @@ export default function GrammarHeroPanel({
                       ? 'Start review'
                       : 'Start 5-question practice'}
           </Button>
-          <div className="flex items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+          <div className="flex items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
             {access.isPaid ? (
               <CheckCircle2 className="h-4 w-4 text-[rgb(var(--signal-ok))]" />
             ) : (
@@ -173,6 +184,16 @@ export default function GrammarHeroPanel({
             {allowanceCopy(access)}
           </div>
         </div>
+        {nextGuide && (
+          <Link
+            to={`/grammar/guides/${nextGuide.slug}`}
+            className="group mt-3 inline-flex max-w-full items-center gap-1.5 text-xs font-extrabold text-[#5a63df] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-indigo-300"
+          >
+            <BookOpenText className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{nextGuideLabel(nextGuide, hasStartedCourse)}</span>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 transition group-hover:translate-x-0.5" />
+          </Link>
+        )}
       </div>
     </div>
   );
