@@ -47,6 +47,35 @@ export function getPartProgress(kit, completedSlugs = []) {
   };
 }
 
+function findNextUnitGuide(skillCode, completedGuideSlugs) {
+  return GRAMMAR_GUIDES.find(
+    (guide) =>
+      guide.unit_number &&
+      guide.skill_code === skillCode &&
+      !completedGuideSlugs.includes(guide.slug)
+  );
+}
+
+// A result-based reason once the learner has answered questions in this skill;
+// otherwise a nudge to take the diagnostic, which must not jump the queue.
+function describeSkillRecommendation(recommendedSkill, guide) {
+  const mastery = Number(recommendedSkill.mastery);
+  const hasObservedResult =
+    Number(recommendedSkill.observations || 0) > 0 && Number.isFinite(mastery);
+  if (!hasObservedResult) {
+    return {
+      reason:
+        'Start here, then complete the Grammar Lab diagnostic for a result-based recommendation.',
+      source: 'grammar-lab-diagnostic',
+    };
+  }
+  const skillName = String(recommendedSkill.label || guide.kit).toLowerCase();
+  return {
+    reason: `Your Grammar Lab result shows ${Math.round(mastery * 100)}% mastery in ${skillName}.`,
+    source: 'grammar-lab',
+  };
+}
+
 export function buildRecommendationMap({ recommendations, recommendedSkill, completedGuideSlugs }) {
   const map = new Map(recommendations.map((item, index) => [item.slug, { ...item, rank: index }]));
 
@@ -55,24 +84,10 @@ export function buildRecommendationMap({ recommendations, recommendedSkill, comp
   // actionable destination instead of only changing the sort order.
   if (map.size || !recommendedSkill?.skillCode) return map;
 
-  const nextGuide = GRAMMAR_GUIDES.find(
-    (guide) =>
-      guide.unit_number &&
-      guide.skill_code === recommendedSkill.skillCode &&
-      !completedGuideSlugs.includes(guide.slug)
-  );
+  const nextGuide = findNextUnitGuide(recommendedSkill.skillCode, completedGuideSlugs);
   if (!nextGuide) return map;
 
-  const mastery = Number(recommendedSkill.mastery);
-  const observations = Number(recommendedSkill.observations || 0);
-  const hasObservedResult = observations > 0 && Number.isFinite(mastery);
-  map.set(nextGuide.slug, {
-    slug: nextGuide.slug,
-    rank: 0,
-    reason: hasObservedResult
-      ? `Your Grammar Lab result shows ${Math.round(mastery * 100)}% mastery in ${String(recommendedSkill.label || nextGuide.kit).toLowerCase()}.`
-      : 'Start here, then complete the Grammar Lab diagnostic for a result-based recommendation.',
-    sources: [hasObservedResult ? 'grammar-lab' : 'grammar-lab-diagnostic'],
-  });
+  const { reason, source } = describeSkillRecommendation(recommendedSkill, nextGuide);
+  map.set(nextGuide.slug, { slug: nextGuide.slug, rank: 0, reason, sources: [source] });
   return map;
 }
