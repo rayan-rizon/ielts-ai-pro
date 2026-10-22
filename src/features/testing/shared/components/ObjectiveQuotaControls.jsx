@@ -27,6 +27,57 @@ const UPGRADE_PATH = '/pricing?plan=pro';
 const WARN_BUTTON =
   'border border-[rgb(var(--signal-warn)/0.35)] bg-[rgb(var(--signal-warn)/0.08)] text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.14)] dark:bg-[rgb(var(--signal-warn)/0.14)]';
 
+// What the strip says for each state: nothing left to start, the last one,
+// plenty, or a plan with no free tests at all.
+function describeStrip(quota, label) {
+  const { exhausted, remaining, limit } = quota;
+  const lastOne = !exhausted && remaining === 1;
+  let title = `${freeTestsPhrase(remaining, label)} left`;
+  if (limit === 0) title = `${label} tests need Pro`;
+  else if (exhausted) title = `Free ${label} tests used`;
+  else if (lastOne) title = `Last free ${label} test`;
+  return {
+    title,
+    detail: limit === 0 ? 'Included with Pro' : 'Resuming a test never uses one',
+    tone: exhausted || lastOne ? 'warn' : 'accent',
+  };
+}
+
+const ACTION_CLASS =
+  'inline-flex h-9 shrink-0 items-center justify-center gap-1.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]';
+
+/** Opens the paywall once the free tests are used; otherwise a quiet link to Pro. */
+function StripAction({ exhausted, onOpen }) {
+  if (exhausted) {
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-haspopup="dialog"
+        className={cn(
+          ACTION_CLASS,
+          'rounded-lg bg-[#5a63df] px-4 text-white transition-all hover:bg-[#4a52c9] active:scale-[0.98] cursor-pointer focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]'
+        )}
+      >
+        Go unlimited
+        <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+    );
+  }
+  return (
+    <Link
+      to={UPGRADE_PATH}
+      className={cn(
+        ACTION_CLASS,
+        'rounded-lg px-1 text-[#5a63df] transition-colors hover:text-[#4a52c9] dark:text-[#afb5ff] dark:hover:text-white'
+      )}
+    >
+      Go unlimited
+      <ArrowRight className="h-3.5 w-3.5" />
+    </Link>
+  );
+}
+
 /**
  * The allowance, stated where the learner chooses a test. Silent for anyone who
  * is not limited, so paid learners and Free plans without a cap see nothing.
@@ -37,17 +88,7 @@ export function ObjectiveQuotaStrip({ testType }) {
   if (!quota.limited) return null;
 
   const label = TEST_TYPE_LABEL[testType];
-  const { exhausted, remaining } = quota;
-  const lastOne = !exhausted && remaining === 1;
-
-  let title;
-  if (quota.limit === 0) title = `${label} tests need Pro`;
-  else if (exhausted) title = `Free ${label} tests used`;
-  else if (lastOne) title = `Last free ${label} test`;
-  else title = `${freeTestsPhrase(remaining, label)} left`;
-
-  const detail = quota.limit === 0 ? 'Included with Pro' : 'Resuming a test never uses one';
-  const tone = exhausted || lastOne ? 'warn' : 'accent';
+  const { title, detail, tone } = describeStrip(quota, label);
 
   return (
     <section
@@ -55,12 +96,12 @@ export function ObjectiveQuotaStrip({ testType }) {
       className={cn(
         PANEL,
         'flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-5 sm:px-4',
-        exhausted && 'border-[rgb(var(--signal-warn)/0.35)]'
+        quota.exhausted && 'border-[rgb(var(--signal-warn)/0.35)]'
       )}
     >
       <div className="flex min-w-0 items-center gap-2.5 sm:w-[260px] sm:shrink-0">
         <IconChip
-          icon={exhausted ? Lock : Ticket}
+          icon={quota.exhausted ? Lock : Ticket}
           tone={tone === 'warn' ? 'amber' : 'accent'}
           size="md"
         />
@@ -77,25 +118,7 @@ export function ObjectiveQuotaStrip({ testType }) {
         )}
       </div>
 
-      {exhausted ? (
-        <button
-          type="button"
-          onClick={() => openPaywall(testType)}
-          aria-haspopup="dialog"
-          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
-        >
-          Go unlimited
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      ) : (
-        <Link
-          to={UPGRADE_PATH}
-          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-1 text-xs font-bold text-[#5a63df] transition-colors hover:text-[#4a52c9] dark:text-[#afb5ff] dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-        >
-          Go unlimited
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      )}
+      <StripAction exhausted={quota.exhausted} onOpen={() => openPaywall(testType)} />
     </section>
   );
 }
