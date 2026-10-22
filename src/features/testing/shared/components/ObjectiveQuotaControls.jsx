@@ -14,8 +14,10 @@ import { withLearningActivity } from '@/features/testing/shared/activityContext'
 import ObjectiveLimitPaywall, { AllowanceGauge } from './ObjectiveLimitPaywall';
 import {
   TEST_TYPE_LABEL,
+  describeAllowance,
   describeUsage,
   freeTestsPhrase,
+  isPaywallRequested,
 } from '@/features/testing/shared/quota/objectiveQuota';
 import {
   useObjectiveTestQuota,
@@ -26,22 +28,6 @@ const UPGRADE_PATH = '/pricing?plan=pro';
 
 const WARN_BUTTON =
   'border border-[rgb(var(--signal-warn)/0.35)] bg-[rgb(var(--signal-warn)/0.08)] text-[rgb(var(--signal-warn))] hover:bg-[rgb(var(--signal-warn)/0.14)] dark:bg-[rgb(var(--signal-warn)/0.14)]';
-
-// What the strip says for each state: nothing left to start, the last one,
-// plenty, or a plan with no free tests at all.
-function describeStrip(quota, label) {
-  const { exhausted, remaining, limit } = quota;
-  const lastOne = !exhausted && remaining === 1;
-  let title = `${freeTestsPhrase(remaining, label)} left`;
-  if (limit === 0) title = `${label} tests need Pro`;
-  else if (exhausted) title = `Free ${label} tests used`;
-  else if (lastOne) title = `Last free ${label} test`;
-  return {
-    title,
-    detail: limit === 0 ? 'Included with Pro' : 'Resuming a test never uses one',
-    tone: exhausted || lastOne ? 'warn' : 'accent',
-  };
-}
 
 const ACTION_CLASS =
   'inline-flex h-9 shrink-0 items-center justify-center gap-1.5 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]';
@@ -88,7 +74,7 @@ export function ObjectiveQuotaStrip({ testType }) {
   if (!quota.limited) return null;
 
   const label = TEST_TYPE_LABEL[testType];
-  const { title, detail, tone } = describeStrip(quota, label);
+  const { title, detail, tone } = describeAllowance(quota, label);
 
   return (
     <section
@@ -158,7 +144,7 @@ export function ObjectiveLimitDialog({ testType }) {
   const closePaywall = useQuotaPaywallStore((state) => state.closePaywall);
   // The store is global, so leaving the library must not leave a dialog queued.
   useEffect(() => closePaywall, [closePaywall]);
-  if (!request || request.testType !== testType || !quota.exhausted) return null;
+  if (!isPaywallRequested(request, testType, quota)) return null;
 
   return (
     <ObjectiveLimitPaywall

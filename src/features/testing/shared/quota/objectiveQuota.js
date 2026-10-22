@@ -37,3 +37,27 @@ export function describeUsage(quota) {
 export function freeTestsPhrase(count, label) {
   return `${count} free ${label} ${count === 1 ? 'test' : 'tests'}`;
 }
+
+/**
+ * What the library strip says for each state: nothing left to start, the last
+ * one, plenty, or a plan with no free tests at all.
+ */
+export function describeAllowance(quota, label) {
+  const { exhausted, remaining, limit } = quota;
+  const lastOne = !exhausted && remaining === 1;
+  let title = `${freeTestsPhrase(remaining, label)} left`;
+  if (limit === 0) title = `${label} tests need Pro`;
+  else if (exhausted) title = `Free ${label} tests used`;
+  else if (lastOne) title = `Last free ${label} test`;
+  return {
+    title,
+    detail: limit === 0 ? 'Included with Pro' : 'Resuming a test never uses one',
+    tone: exhausted || lastOne ? 'warn' : 'accent',
+  };
+}
+
+/** The paywall dialog opens for one skill, and only while its tests are used up. */
+export function isPaywallRequested(request, testType, quota) {
+  if (!request || !quota.exhausted) return false;
+  return request.testType === testType;
+}

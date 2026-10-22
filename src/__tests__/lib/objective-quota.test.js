@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  describeAllowance,
   describeUsage,
   freeTestsPhrase,
+  isPaywallRequested,
   summariseObjectiveQuota,
 } from '@/features/testing/shared/quota/objectiveQuota';
 
@@ -52,5 +54,33 @@ describe('copy helpers', () => {
   it('pluralises free tests', () => {
     expect(freeTestsPhrase(1, 'Reading')).toBe('1 free Reading test');
     expect(freeTestsPhrase(5, 'Listening')).toBe('5 free Listening tests');
+  });
+});
+
+describe('describeAllowance', () => {
+  const describe_ = (limit, used) =>
+    describeAllowance(summariseObjectiveQuota({ limit, used }), 'Reading');
+
+  it('words each state of the allowance', () => {
+    expect(describe_(5, 2)).toMatchObject({ title: '3 free Reading tests left', tone: 'accent' });
+    expect(describe_(5, 4)).toMatchObject({ title: 'Last free Reading test', tone: 'warn' });
+    expect(describe_(5, 5)).toMatchObject({ title: 'Free Reading tests used', tone: 'warn' });
+    expect(describe_(0, 0)).toMatchObject({
+      title: 'Reading tests need Pro',
+      detail: 'Included with Pro',
+    });
+    expect(describe_(5, 2).detail).toBe('Resuming a test never uses one');
+  });
+});
+
+describe('isPaywallRequested', () => {
+  const spent = summariseObjectiveQuota({ limit: 5, used: 5 });
+  const left = summariseObjectiveQuota({ limit: 5, used: 1 });
+
+  it('opens only for the requested skill while its tests are used up', () => {
+    expect(isPaywallRequested({ testType: 'reading' }, 'reading', spent)).toBe(true);
+    expect(isPaywallRequested({ testType: 'listening' }, 'reading', spent)).toBe(false);
+    expect(isPaywallRequested({ testType: 'reading' }, 'reading', left)).toBe(false);
+    expect(isPaywallRequested(null, 'reading', spent)).toBe(false);
   });
 });
