@@ -88,18 +88,9 @@ describe('solo objective test start', () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it('reports a quota denial with the server reset time', async () => {
+  it('reports a quota denial with the free total the server counted', async () => {
     mocks.rpc.mockResolvedValue({
-      data: {
-        error: 'quota_exceeded',
-        quota: {
-          daily_limit: 1,
-          daily_used: 1,
-          monthly_limit: 10,
-          monthly_used: 1,
-          daily_reset_at: '2026-09-24T00:00:00Z',
-        },
-      },
+      data: { error: 'quota_exceeded', quota: { limit: 5, used: 5 } },
       error: null,
     });
     await expect(
@@ -108,26 +99,20 @@ describe('solo objective test start', () => {
     try {
       await createTestSession({ passageId: 'passage-1', type: 'reading' });
     } catch (error) {
-      expect(getObjectiveStartErrorMessage(error, 'reading')).toContain('free reading test limit');
-      expect(getObjectiveStartErrorMessage(error, 'reading')).toContain('upgrade');
+      expect(error.quota).toEqual({ limit: 5, used: 5 });
+      const message = getObjectiveStartErrorMessage(error, 'reading');
+      expect(message).toContain('all 5 of your free reading tests');
+      expect(message).toContain('Upgrade');
     }
     expect(mocks.invalidate).not.toHaveBeenCalled();
   });
 
-  it('uses the monthly reset when both limits are exhausted', () => {
+  it('words the denial plainly when the plan has no free tests at all', () => {
     const message = getObjectiveStartErrorMessage(
-      new ObjectiveTestQuotaError({
-        daily_limit: 1,
-        daily_used: 1,
-        monthly_limit: 1,
-        monthly_used: 1,
-        daily_reset_at: '2026-09-24T00:00:00Z',
-        monthly_reset_at: '2026-10-01T00:00:00Z',
-      }),
-      'reading'
+      new ObjectiveTestQuotaError({ limit: 0, used: 0 }),
+      'listening'
     );
-    expect(message).toContain('Oct 1');
-    expect(message).not.toContain('Sep 24');
+    expect(message).toBe("You've used your free listening tests. Upgrade for unlimited tests.");
   });
 
   it('returns the created session if scoring initialization temporarily fails', async () => {

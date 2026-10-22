@@ -6,7 +6,9 @@ import {
   createTestSession,
   getObjectiveStartErrorMessage,
   initializeTest,
+  ObjectiveTestQuotaError,
 } from '@/lib/testInitializer';
+import { OBJECTIVE_QUOTA_QUERY_KEY } from '@/features/testing/shared/quota/useObjectiveTestQuota';
 import { TestSession } from '@/features/testing/shared/services/TestSession';
 import {
   getLearningActivityId,
@@ -32,7 +34,7 @@ import {
 } from '@/features/testing/shared/testMode';
 import { useExamDeadline } from '@/features/testing/shared/hooks/useExamDeadline';
 import { trackAppEvent } from '@/lib/tracking';
-import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
+import { invalidateLearnerPracticeQueries, queryClient } from '@/lib/queryClient';
 
 import { loadAudioDuration, recoverListeningExamTiming } from '../utils/examAudio';
 
@@ -51,6 +53,8 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
   const startRequestIdRef = useRef(crypto.randomUUID());
+  // Set when the server refuses a start because the free allowance is spent.
+  const [limitQuota, setLimitQuota] = useState(null);
   const [examReview, setExamReview] = useState(false);
   const audioPlayerRef = useRef(null);
   const awardXP = awardXPFromPage || (async () => ({ success: false }));
@@ -534,6 +538,11 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
         navigate(`/listening-test/${newSession.id}`, { replace: true });
       } catch (startError) {
         console.error('Failed to start listening test:', startError);
+        if (startError instanceof ObjectiveTestQuotaError) {
+          setLimitQuota(startError.quota);
+          // The library's allowance strip was stale; refresh it for when they go back.
+          queryClient.invalidateQueries({ queryKey: [OBJECTIVE_QUOTA_QUERY_KEY] });
+        }
         dispatch({
           type: ACTIONS.SET_ERROR,
           payload: getObjectiveStartErrorMessage(startError, 'listening'),
@@ -592,6 +601,7 @@ export const useListeningTestLogic = ({ awardXP: awardXPFromPage, onResumeExpire
     examEligibility,
     isAwaitingStart: Boolean(testData && currentUser && !session),
     isStarting,
+    limitQuota,
     examReview,
     // Handlers
     toggleFlag,

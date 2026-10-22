@@ -6,7 +6,9 @@ import {
   createTestSession,
   getObjectiveStartErrorMessage,
   initializeTest,
+  ObjectiveTestQuotaError,
 } from '@/lib/testInitializer';
+import { OBJECTIVE_QUOTA_QUERY_KEY } from '@/features/testing/shared/quota/useObjectiveTestQuota';
 import {
   getLearningActivityId,
   getRequestedTestMode,
@@ -18,7 +20,7 @@ import {
   serverScoringEnabled,
 } from '@/features/testing/shared/services/objectiveTests';
 import { removeFromCache } from '@/lib/apiCache';
-import { invalidateLearnerPracticeQueries } from '@/lib/queryClient';
+import { invalidateLearnerPracticeQueries, queryClient } from '@/lib/queryClient';
 import { useTestNavigation } from '@/hooks/useTestNavigation';
 import { calculateErrorPatterns, calculatePassageProficiency } from '@/services/testMetricsService';
 import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService';
@@ -61,6 +63,8 @@ export function useReadingTestLogic(
   const [examEligibility, setExamEligibility] = useState({ eligible: false, reason: '' });
   const [isStarting, setIsStarting] = useState(false);
   const startRequestIdRef = useRef(crypto.randomUUID());
+  // Set when the server refuses a start because the free allowance is spent.
+  const [limitQuota, setLimitQuota] = useState(null);
 
   // Results & Status State
   const [isFinished, setIsFinished] = useState(false);
@@ -376,6 +380,11 @@ export function useReadingTestLogic(
         navigate(`/reading-test/${newSession.id}`, { replace: true });
       } catch (startError) {
         console.error('Failed to start reading test:', startError);
+        if (startError instanceof ObjectiveTestQuotaError) {
+          setLimitQuota(startError.quota);
+          // The library's allowance strip was stale; refresh it for when they go back.
+          queryClient.invalidateQueries({ queryKey: [OBJECTIVE_QUOTA_QUERY_KEY] });
+        }
         setError(getObjectiveStartErrorMessage(startError, 'reading'));
       } finally {
         setIsStarting(false);
@@ -608,6 +617,7 @@ export function useReadingTestLogic(
     examEligibility,
     isAwaitingStart: Boolean(testData && user && !session),
     isStarting,
+    limitQuota,
     isFinished,
     showResults,
     setShowResults, // Needed for closing modal

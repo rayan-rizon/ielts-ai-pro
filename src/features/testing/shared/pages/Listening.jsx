@@ -9,6 +9,10 @@ import {
   ListeningTestsGrid,
 } from '@/features/testing/listening/ListeningGrid';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
+import {
+  ObjectiveLimitDialog,
+  ObjectiveQuotaStrip,
+} from '@/features/testing/shared/components/ObjectiveQuotaControls';
 
 // ---------------------------------------------------------------------------
 // Tab-matching logic (pure, module-level)
@@ -100,6 +104,8 @@ export default function Listening() {
           onViewModeChange={setViewMode}
         />
 
+        <ObjectiveQuotaStrip testType="listening" />
+
         <PairedPracticeSpotlight type="listening" />
 
         <div id="available-tests" className="scroll-mt-4">
@@ -142,6 +148,7 @@ export default function Listening() {
           </div>
         )}
       </div>
+      <ObjectiveLimitDialog testType="listening" />
     </main>
   );
 }

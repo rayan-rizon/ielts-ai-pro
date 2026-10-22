@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   TestCardActions as ListeningActions,
   TestRowAction as ListeningRowAction,
@@ -15,6 +15,11 @@ import {
   TestRowAction as SpeakingRowAction,
 } from '@/features/testing/speaking/SpeakingCardComponents';
 
+const quotaLock = vi.hoisted(() => ({ locked: false, open: vi.fn() }));
+vi.mock('@/features/testing/shared/quota/useObjectiveTestQuota', () => ({
+  useQuotaLock: () => quotaLock,
+}));
+
 const test = { id: 'test-1' };
 const session = { id: 'session-1' };
 
@@ -23,6 +28,10 @@ function renderCard(ui) {
 }
 
 describe('resume restart actions', () => {
+  beforeEach(() => {
+    quotaLock.locked = false;
+  });
+
   it('lets learners restart an unfinished Speaking attempt that cannot be resumed', () => {
     const { unmount } = renderCard(
       <SpeakingActions isLocked={false} isResuming isCompleted={false} test={test} />

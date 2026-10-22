@@ -22,10 +22,8 @@ describe('admin objective test limits', () => {
       writing_monthly_limit: 3,
       speaking_daily_limit: 2,
       speaking_monthly_limit: 2,
-      reading_daily_limit: -1,
-      reading_monthly_limit: -1,
-      listening_daily_limit: -1,
-      listening_monthly_limit: -1,
+      reading_test_limit: -1,
+      listening_test_limit: -1,
     };
     mocks.list.mockResolvedValue(
       ['free', 'pro', 'premium', 'admin'].map((tier) => ({ ...base, tier }))
@@ -44,20 +42,22 @@ describe('admin objective test limits', () => {
     const free = within(freeCard);
     expect(screen.queryByText('General API')).toBeNull();
     expect(screen.queryByText('Burst/min')).toBeNull();
-    expect(free.getByText('Reading & Listening test starts')).toBeTruthy();
-    expect(free.getByText(/Paired tests and resumed tests do not/)).toBeTruthy();
-    const readingDaily = free.getAllByLabelText('Daily test starts')[0];
-    expect(readingDaily.disabled).toBe(true);
-    fireEvent.click(free.getAllByLabelText('Daily unlimited')[0]);
-    fireEvent.change(readingDaily, { target: { value: '2' } });
+    expect(free.getByText('Reading & Listening free tests')).toBeTruthy();
+    expect(free.getByText(/for the life of the account/)).toBeTruthy();
+    expect(free.queryByLabelText('Daily free tests')).toBeNull();
+    const [readingLimit, listeningLimit] = free.getAllByLabelText('Free tests limit');
+    expect(readingLimit.disabled).toBe(true);
+    expect(listeningLimit.disabled).toBe(true);
+    fireEvent.click(free.getAllByLabelText('Free tests unlimited')[0]);
+    fireEvent.change(readingLimit, { target: { value: '5' } });
     fireEvent.click(free.getByRole('button', { name: /^save$/i }));
     await waitFor(() =>
       expect(mocks.upsert).toHaveBeenCalledWith(
         'free',
         'ALL',
         expect.objectContaining({
-          reading_daily_limit: 2,
-          reading_monthly_limit: -1,
+          reading_test_limit: 5,
+          listening_test_limit: -1,
           daily_limit: 0,
           monthly_limit: 3,
           burst_limit: 3,
@@ -67,6 +67,6 @@ describe('admin objective test limits', () => {
 
     const proCard = screen.getByText('pro tier').closest('.overflow-hidden');
     expect(within(proCard).getAllByText('Unlimited test starts')).toHaveLength(2);
-    expect(within(proCard).queryByLabelText('Daily test starts')).toBeNull();
+    expect(within(proCard).queryByLabelText('Free tests limit')).toBeNull();
   });
 });

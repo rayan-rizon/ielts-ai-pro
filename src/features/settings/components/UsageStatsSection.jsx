@@ -195,9 +195,10 @@ export default function UsageStatsSection() {
             </div>
 
             <div className={cn(PANEL, 'p-4 sm:p-5 lg:col-span-2')}>
-              <PanelTitle label="Reading & Listening starts" accent />
+              <PanelTitle label="Reading & Listening tests" accent />
               <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
-                Practice and Exam starts count when you begin. Resuming does not use another start.
+                Practice and Exam starts count when you begin. Resuming a test does not use another
+                one.
               </p>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {[
@@ -213,11 +214,9 @@ export default function UsageStatsSection() {
                           {label}
                         </h4>
                         <p className={cn(MICRO, MUTED, 'mt-0.5 normal-case tracking-normal')}>
-                          {quota?.monthly_limit === -1
-                            ? 'Unlimited this month'
-                            : `${quota?.monthly_used ?? 0} / ${quota?.monthly_limit ?? 0} this month`}
-                          {quota?.daily_limit !== -1 &&
-                            ` · ${quota?.daily_used ?? 0} / ${quota?.daily_limit ?? 0} today`}
+                          {!quota || quota.limit === -1
+                            ? 'Unlimited'
+                            : `${Math.min(quota.used ?? 0, quota.limit)} of ${quota.limit} free tests used`}
                         </p>
                       </div>
                     </div>

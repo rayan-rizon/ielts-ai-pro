@@ -93,10 +93,8 @@ describe('pricing plan configuration', () => {
         free: {
           writing_monthly_limit: 3,
           speaking_monthly_limit: 2,
-          reading_daily_limit: 1,
-          reading_monthly_limit: 4,
-          listening_daily_limit: 2,
-          listening_monthly_limit: 6,
+          reading_test_limit: 4,
+          listening_test_limit: 6,
         },
         pro: { writing_monthly_limit: 50, speaking_monthly_limit: 25 },
         premium: { writing_monthly_limit: 100, speaking_monthly_limit: 50 },
@@ -109,12 +107,8 @@ describe('pricing plan configuration', () => {
     expect(plans.find(({ tier }) => tier === 'free').features).toContain(
       '2 AI Speaking Sessions/month'
     );
-    expect(plans.find(({ tier }) => tier === 'free').features).toContain(
-      'Reading tests: 1/day, 4/month'
-    );
-    expect(plans.find(({ tier }) => tier === 'free').features).toContain(
-      'Listening tests: 2/day, 6/month'
-    );
+    expect(plans.find(({ tier }) => tier === 'free').features).toContain('4 free Reading tests');
+    expect(plans.find(({ tier }) => tier === 'free').features).toContain('6 free Listening tests');
     expect(plans.find(({ tier }) => tier === 'pro').features).toContain(
       'Unlimited Reading & Listening tests'
     );

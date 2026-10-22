@@ -26,5 +26,5 @@ create function public.get_user_monthly_usage(p_user uuid,p_endpoint text) retur
 create schema objective_private;
 create schema skill_lab_private;
 create table objective_private.test_start_ledger(session_id uuid,user_id uuid,request_id uuid,test_type text,counts_toward_free_limit boolean,started_at timestamptz default now());
-alter table public.tier_rate_limits add column reading_daily_limit integer default 1, add column reading_monthly_limit integer default 2,add column listening_daily_limit integer default 1,add column listening_monthly_limit integer default 2;
+alter table public.tier_rate_limits add column reading_test_limit integer default 1, add column listening_test_limit integer default 1;
 create function skill_lab_private.tier(p_user uuid) returns text language sql stable set search_path='' as $$ select case when role='admin' then 'premium' when subscription_end_date is not null and subscription_end_date<=now() then 'free' when subscription_tier in ('pro','premium') then subscription_tier else 'free' end from public.users where id=p_user $$;

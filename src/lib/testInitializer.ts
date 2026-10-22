@@ -83,14 +83,10 @@ export class ObjectiveTestQuotaError extends Error {
 
 export function getObjectiveStartErrorMessage(error: unknown, type: 'reading' | 'listening') {
   if (error instanceof ObjectiveTestQuotaError) {
-    const q = error.quota;
-    const monthlyReached =
-      Number(q.monthly_limit) >= 0 && Number(q.monthly_used) >= Number(q.monthly_limit);
-    const reset = new Date(String(monthlyReached ? q.monthly_reset_at : q.daily_reset_at));
-    const when = Number.isNaN(reset.getTime())
-      ? 'when your limit resets'
-      : reset.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-    return `You've reached your free ${type} test limit. You can start another test ${when}, or upgrade for unlimited tests.`;
+    const limit = Number(error.quota.limit);
+    const allowance =
+      limit > 0 ? `all ${limit} of your free ${type} tests` : `your free ${type} tests`;
+    return `You've used ${allowance}. Upgrade for unlimited tests.`;
   }
   return `Failed to start the ${type} test. Please try again.`;
 }
