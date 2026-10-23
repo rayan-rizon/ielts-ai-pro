@@ -2,10 +2,16 @@ import { getAdmittedUser, withTextAiAdmission } from '../_shared/aiAdmission.ts'
 // @ts-ignore Deno runtime imports
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { getCorsHeaders, handleCorsPrelight, validateCsrfProtection } from '../_shared/security.ts';
-import { requestOpenRouterJson, TextAiProviderError } from '../_shared/textAiProvider.ts';
+import {
+  requestOpenRouterJson,
+  requestOpenRouterJsonStream,
+  TextAiProviderError,
+} from '../_shared/textAiProvider.ts';
 import {
   AI_COACH_MAX_INPUT_TOKENS,
   asksForPersonalEvidence,
+  mergeCoachMemory,
+  normalizeCoachMemoryNotes,
   detectCoachLanguage,
   estimateCoachInputTokens,
   groundedCoachSystemPrompt,
@@ -21,6 +27,13 @@ import {
   AI_COACH_PRIMARY_MODEL,
 } from '../_shared/aiModelRegistry.ts';
 import { buildLearnerEvidence } from '../_shared/learnerEvidence.ts';
+import {
+  buildSourceDigest,
+  buildSourcePreview,
+  shrinkSourceDigest,
+  sourceNeedsQuestionRows,
+} from '../_shared/coachSourceDigest.ts';
+import { CoachAnswerStreamer } from '../_shared/coachStream.ts';
 
 declare const Deno: any;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -162,6 +175,10 @@ function evidenceClaim(item: any) {
       details.push(`${Number(value.correct)} of ${Number(value.total)} correct`);
     const completed = evidenceDate(item?.observedAt);
     if (completed) details.push(`completed ${completed}`);
+  } else if (item?.category === 'coach_practice') {
+    if (hasNumber(value.correct) && hasNumber(value.total))
+      details.push(`${Number(value.correct)} of ${Number(value.total)} first-try correct`);
+    details.push('chat practice, not an official result');
   } else if (item?.category === 'goal') {
     if (typeof item.value === 'number' || typeof item.value === 'string') {
       details.push(
@@ -177,7 +194,53 @@ function evidenceClaim(item: any) {
   return [label, ...details].filter(Boolean).join(' · ').slice(0, 180);
 }
 
-async function loadContext(admin: any, profile: any, sourceReference: any) {
+/**
+ * The completed result a learner attached to a question, plus its structured digest.
+ * Throws the same learner-facing errors as before for unfinished, exam-mode or foreign
+ * sessions. Reading and Listening also pull the reviewed answer key so Ava can explain a
+ * specific question; that read is best-effort and the digest degrades without it.
+ */
+async function loadSource(admin: any, profile: any, sourceReference: any) {
+  if (sourceReference?.type !== 'test_session') return { sourceSession: null, digest: null };
+  const { data: sourceSession } = await admin
+    .from('test_sessions')
+    .select(
+      'id,test_type,test_mode,score,band_score,is_completed,content_data,evaluation_status,passage_id,user_responses,actual_duration_seconds'
+    )
+    .eq('id', sourceReference.id)
+    .eq('user_id', profile.id)
+    .maybeSingle();
+  if (!sourceSession) throw new Error('That completed result could not be loaded.');
+  if (!sourceSession.is_completed) {
+    if (['mock', 'exam'].includes(String(sourceSession.test_mode || '').toLowerCase()))
+      throw new Error('AI Coach cannot help with answers during an unfinished Exam-mode test.');
+    throw new Error('AI Coach can attach only completed results.');
+  }
+  let questions: any[] = [];
+  if (sourceNeedsQuestionRows(sourceSession) && sourceSession.passage_id) {
+    const { data } = await admin
+      .from('questions')
+      .select(
+        'question_number,question_count,question_text,group_instructions,type,options,explanation,explanation_data'
+      )
+      .eq('passage_id', sourceSession.passage_id)
+      .order('question_number')
+      .limit(80);
+    questions = data || [];
+  }
+  const digest = buildSourceDigest({
+    session: sourceSession,
+    questions,
+    focusQuestion: sourceReference.questionNumber ?? null,
+  });
+  return { sourceSession, digest };
+}
+
+function liveMemory(items: unknown) {
+  return mergeCoachMemory(items, []);
+}
+
+async function loadContext(admin: any, profile: any, authId: string, sourceReference: any) {
   const cutoff = new Date(Date.now() - 90 * 86400000).toISOString();
   const requests: any[] = [
     admin
@@ -224,28 +287,19 @@ async function loadContext(admin: any, profile: any, sourceReference: any) {
       .order('scheduled_date', { ascending: true, nullsFirst: false })
       .limit(10),
   ];
-  if (sourceReference?.type === 'test_session')
-    requests.push(
-      admin
-        .from('test_sessions')
-        .select(
-          'id,test_type,test_mode,score,band_score,is_completed,content_data,evaluation_status'
-        )
-        .eq('id', sourceReference.id)
-        .eq('user_id', profile.id)
-        .maybeSingle()
-    );
-  const results = await Promise.all(requests);
+  const [results, source, practice, memory] = await Promise.all([
+    Promise.all(requests),
+    loadSource(admin, profile, sourceReference),
+    // Both are best-effort: a missing migration or a transient error must never block a reply.
+    Promise.resolve(admin.rpc('ai_coach_practice_summary', { p_auth: authId })).catch(() => ({
+      data: null,
+    })),
+    Promise.resolve(
+      admin.from('ai_coach_memory').select('items').eq('user_id', profile.id).maybeSingle()
+    ).catch(() => ({ data: null })),
+  ]);
   const failed = results.find((item: any) => item.error);
   if (failed) throw new Error('Your latest learning data could not be loaded. Please try again.');
-  const sourceSession = sourceReference?.type === 'test_session' ? results[6]?.data : null;
-  if (sourceReference?.type === 'test_session' && !sourceSession)
-    throw new Error('That completed result could not be loaded.');
-  if (sourceSession && !sourceSession.is_completed) {
-    if (['mock', 'exam'].includes(String(sourceSession.test_mode || '').toLowerCase()))
-      throw new Error('AI Coach cannot help with answers during an unfinished Exam-mode test.');
-    throw new Error('AI Coach can attach only completed results.');
-  }
   const context = buildLearnerEvidence({
     profile,
     sessions: results[0].data,
@@ -254,11 +308,13 @@ async function loadContext(admin: any, profile: any, sourceReference: any) {
     vocabularyItems: results[3].data,
     vocabularyReviews: results[4].data,
     activities: results[5].data,
-    sourceSession,
+    sourceSession: source.sourceSession,
+    sourceDigest: source.digest,
+    coachPractice: practice?.data || null,
   });
   if (sourceReference?.type === 'test_session' && !context.source)
     throw new Error('That result does not have a valid finalized score yet.');
-  return context;
+  return { ...context, memory: liveMemory(memory?.data?.items) };
 }
 
 async function handleBootstrap(admin: any, authId: string) {
@@ -292,11 +348,56 @@ async function handleBootstrap(admin: any, authId: string) {
         .limit(20),
     ]);
   if (statusError) throw statusError;
+  // Best-effort: the memory table ships in a separate migration, and its absence must not
+  // stop the coach from loading.
+  const { data: memory } = await Promise.resolve(
+    admin.from('ai_coach_memory').select('items').eq('user_id', profile.id).maybeSingle()
+  ).catch(() => ({ data: null }));
   return {
     status,
     preferredLanguage: preferences?.explanation_language || 'en',
     conversations: conversations || [],
+    memory: liveMemory(memory?.items).map((item) => item.text),
   };
+}
+
+async function learnerProfile(admin: any, authId: string) {
+  const { data: profile } = await admin
+    .rpc('get_institution_learner_profile', { p_auth: authId })
+    .select('id')
+    .eq('auth_id', authId)
+    .maybeSingle();
+  if (!profile) throw new Error('Account unavailable');
+  return profile;
+}
+
+/** A deterministic, AI-free summary of one completed result, plus questions worth asking. */
+async function handleSourcePreview(admin: any, authId: string, body: any) {
+  if (!UUID.test(String(body.sessionId || ''))) throw new Error('Invalid source reference');
+  const profile = await learnerProfile(admin, authId);
+  const { digest } = await loadSource(admin, profile, {
+    type: 'test_session',
+    id: body.sessionId,
+    questionNumber: null,
+  });
+  return { preview: buildSourcePreview(digest) };
+}
+
+async function handleMemoryForget(admin: any, authId: string, body: any) {
+  const profile = await learnerProfile(admin, authId);
+  const { data } = await admin
+    .from('ai_coach_memory')
+    .select('items')
+    .eq('user_id', profile.id)
+    .maybeSingle();
+  const items = liveMemory(data?.items);
+  const index = Number(body.index);
+  const next = body.all === true ? [] : items.filter((_item, position) => position !== index);
+  const { error } = await admin
+    .from('ai_coach_memory')
+    .upsert({ user_id: profile.id, items: next, updated_at: new Date().toISOString() });
+  if (error) throw error;
+  return { memory: next.map((item) => item.text) };
 }
 
 async function handleHistory(admin: any, authId: string, body: any) {
@@ -482,6 +583,29 @@ const handleRequest = async (req: Request) => {
   const chargedAttempts: unknown[] = [];
   let providerAttempted = false;
   let providerCallCount = 0;
+
+  /** Close a reserved operation as failed, charging whatever the provider billed. */
+  const recordFailure = async (requestBody: any, error: unknown) => {
+    const requestId = String(requestBody?.requestId || '');
+    if (!UUID.test(requestId)) return;
+    const attempts = chargedAttempts.includes(error)
+      ? [...chargedAttempts]
+      : [...chargedAttempts, error];
+    const cost = attempts.reduce<number>((total, item) => total + billedCost(item), 0);
+    const tokens = attempts.reduce<number>((total, item) => total + billedTokens(item), 0);
+    const unknownProviderCost =
+      providerAttempted && attempts.filter(hasKnownBilledCost).length < providerCallCount;
+    await admin.rpc('ai_coach_finish', {
+      p_operation_id: requestId,
+      p_user_message: '',
+      p_response: null,
+      p_cost: unknownProviderCost ? null : cost,
+      p_tokens: tokens,
+      p_model: '',
+      p_latency: 0,
+      p_ok: false,
+    });
+  };
   try {
     if (body.operation === 'bootstrap')
       return response(await handleBootstrap(admin, authUser.id), 200, headers);
@@ -489,6 +613,10 @@ const handleRequest = async (req: Request) => {
       return response(await handleHistory(admin, authUser.id, body), 200, headers);
     if (body.operation === 'confirm_action')
       return response(await handleConfirm(admin, authUser.id, body), 200, headers);
+    if (body.operation === 'source_preview')
+      return response(await handleSourcePreview(admin, authUser.id, body), 200, headers);
+    if (body.operation === 'memory_forget')
+      return response(await handleMemoryForget(admin, authUser.id, body), 200, headers);
     if (body.operation === 'check_exercise') {
       if (!UUID.test(String(body.messageId || '')) || !Number.isInteger(body.selectedIndex))
         throw new Error('Invalid exercise answer');
@@ -549,7 +677,12 @@ const handleRequest = async (req: Request) => {
     const preferred = isCoachLanguage(preference?.explanation_language)
       ? preference.explanation_language
       : input.preferredLanguage;
-    const detected = detectCoachLanguage(input.message, preferred);
+    // Messages the app wrote itself (suggestion chips, "Ask Ava" drafts) are English
+    // whatever the learner reads, so they follow the saved language instead of the wording.
+    const detected =
+      input.languageHint === 'preference'
+        ? { language: preferred, source: 'preference' as const, ambiguous: false }
+        : detectCoachLanguage(input.message, preferred);
     if ('unsupportedLanguage' in detected) {
       return response(
         {
@@ -590,7 +723,7 @@ const handleRequest = async (req: Request) => {
     }
     if (reservation.state !== 'reserved') throw new Error('This request could not be completed');
 
-    const context = await loadContext(admin, profile, input.sourceReference);
+    const context = await loadContext(admin, profile, authUser.id, input.sourceReference);
     if (/\b(save|remember|add)\b/i.test(input.message)) {
       context.eligibleActions.push({
         type: 'save_vocabulary',
@@ -611,12 +744,15 @@ const handleRequest = async (req: Request) => {
       .order('role', { ascending: true })
       .limit(8);
     const systemPrompt = groundedCoachSystemPrompt(language);
+    // Key order is deliberate. Providers cache a prompt by its longest unchanged prefix, so
+    // the parts that rarely change between turns (evidence, source, memory, actions) come
+    // first and the parts that change every turn (history, language decision, the new
+    // message) come last.
     const promptData: any = {
-      studentMessage: input.message,
-      languageDecision: detected,
       studentEvidence: context.evidence,
       evidenceConfidence: context.evidenceConfidence,
       source: context.source,
+      learnerMemory: context.memory.map((item: any) => item.text),
       eligibleActions: context.eligibleActions,
       recentConversation: [...(history || [])].reverse().map(({ role, content }: any) => ({
         role,
@@ -625,6 +761,8 @@ const handleRequest = async (req: Request) => {
       recentSuggestedQuestions: (history || [])
         .flatMap((item: any) => item.follow_ups || [])
         .slice(0, 9),
+      languageDecision: detected,
+      studentMessage: input.message,
     };
     let prompt = JSON.stringify(promptData);
     const inputTokens = () => estimateCoachInputTokens(`${systemPrompt}\n${prompt}`);
@@ -632,8 +770,17 @@ const handleRequest = async (req: Request) => {
       promptData.recentConversation.shift();
       prompt = JSON.stringify(promptData);
     }
-    if (inputTokens() > AI_COACH_MAX_INPUT_TOKENS && promptData.source?.excerpt) {
-      promptData.source.excerpt = String(promptData.source.excerpt).slice(0, 800);
+    for (const level of [1, 2] as const) {
+      if (inputTokens() > AI_COACH_MAX_INPUT_TOKENS && promptData.source?.digest) {
+        promptData.source = {
+          ...promptData.source,
+          digest: shrinkSourceDigest(context.source?.digest, level),
+        };
+        prompt = JSON.stringify(promptData);
+      }
+    }
+    while (inputTokens() > AI_COACH_MAX_INPUT_TOKENS && promptData.learnerMemory.length) {
+      promptData.learnerMemory.pop();
       prompt = JSON.stringify(promptData);
     }
     while (inputTokens() > AI_COACH_MAX_INPUT_TOKENS && promptData.studentEvidence.length > 4) {
@@ -649,7 +796,13 @@ const handleRequest = async (req: Request) => {
       evidenceById.set(`source:${context.source.id}`, {
         category: 'completed_result',
         label: `${context.source.testType} completed result`,
-        value: { score: context.source.score, mode: context.source.testMode },
+        // The digest rides along so a numeric detail Ava quotes from it, a question
+        // number or a corrected answer, still counts as present in the cited evidence.
+        value: {
+          score: context.source.score,
+          mode: context.source.testMode,
+          digest: context.source.digest,
+        },
       });
     const evidenceIds = new Set(evidenceById.keys());
     const personalQuestion = asksForPersonalEvidence(input.message);
@@ -692,131 +845,193 @@ const handleRequest = async (req: Request) => {
       )
         return false;
       value.actions = validateActions(value.actions, context, input.message);
+      value.memory = normalizeCoachMemoryNotes(value.memory) ?? [];
       return true;
     };
-    const apiKey = Deno.env.get('OPENROUTER_API_KEY');
-    if (!apiKey) throw new Error('AI Coach provider is not configured');
-    const started = Date.now();
-    let generated: any;
-    try {
-      providerAttempted = true;
-      providerCallCount += 1;
-      generated = await requestOpenRouterJson({
-        apiKey,
-        model: AI_COACH_PRIMARY_MODEL,
-        prompt,
-        systemPrompt,
-        maxOutputTokens: AI_COACH_MAX_OUTPUT_TOKENS,
-        timeoutMs: 10_000,
-        includeUsageAccounting: true,
-        disableReasoning: true,
-        reasoningEffort: 'low',
-        temperature: 0.1,
-        validateJson: validate,
-      });
-    } catch (error) {
-      chargedAttempts.push(error);
-      const remainingMs = 20_000 - (Date.now() - started);
-      if (remainingMs < 1_000) throw error;
-      providerCallCount += 1;
+
+    /**
+     * One validated reply: primary model, then one fallback, then an honest error.
+     * `emit` is set for streaming requests; the primary call then streams the answer
+     * through the sentence-level gate in coachStream.ts. The fallback is never streamed.
+     */
+    const produce = async (emit?: (event: string, data: unknown) => void) => {
+      const apiKey = Deno.env.get('OPENROUTER_API_KEY');
+      if (!apiKey) throw new Error('AI Coach provider is not configured');
+      const started = Date.now();
+      const streamer = emit
+        ? new CoachAnswerStreamer({ language, evidenceById, personalQuestion }, (text) =>
+            emit('delta', { text })
+          )
+        : null;
+      let generated: any;
       try {
-        generated = await requestOpenRouterJson({
+        providerAttempted = true;
+        providerCallCount += 1;
+        const primary = {
           apiKey,
-          model: AI_COACH_FALLBACK_MODEL,
+          model: AI_COACH_PRIMARY_MODEL,
           prompt,
           systemPrompt,
           maxOutputTokens: AI_COACH_MAX_OUTPUT_TOKENS,
-          timeoutMs: remainingMs,
+          timeoutMs: 10_000,
           includeUsageAccounting: true,
           disableReasoning: true,
-          reasoningEffort: 'none',
+          reasoningEffort: 'low' as const,
+          temperature: 0.1,
           validateJson: validate,
-        });
-      } catch (fallbackError) {
-        chargedAttempts.push(fallbackError);
-        generated = {
-          parsed: safeCoachFallbackReply(language),
-          model: 'deterministic-grounding-fallback',
-          usage: { estimatedProviderCostUsd: 0, tokensUsed: 0 },
         };
+        generated = streamer
+          ? await requestOpenRouterJsonStream({ ...primary, onText: (text) => streamer.push(text) })
+          : await requestOpenRouterJson(primary);
+      } catch (error) {
+        chargedAttempts.push(error);
+        // Whatever was streamed is superseded by the fallback or by an error.
+        if (streamer?.emitted) emit?.('reset', {});
+        const remainingMs = 20_000 - (Date.now() - started);
+        if (remainingMs < 1_000) throw error;
+        providerCallCount += 1;
+        try {
+          generated = await requestOpenRouterJson({
+            apiKey,
+            model: AI_COACH_FALLBACK_MODEL,
+            prompt,
+            systemPrompt,
+            maxOutputTokens: AI_COACH_MAX_OUTPUT_TOKENS,
+            timeoutMs: remainingMs,
+            includeUsageAccounting: true,
+            disableReasoning: true,
+            reasoningEffort: 'none',
+            validateJson: validate,
+          });
+        } catch (fallbackError) {
+          chargedAttempts.push(fallbackError);
+          // A canned sentence that spends one of the learner's daily replies helps no one.
+          // Say what happened; the failed operation does not count toward the quota.
+          throw new Error(
+            'Ava could not verify an answer to that. Please rephrase or ask something more specific. This did not use one of your daily replies.'
+          );
+        }
       }
-    }
-    generated.parsed.actions = validateActions(generated.parsed.actions, context, input.message);
-    const failedAttemptCost = chargedAttempts.reduce<number>(
-      (total, attempt) => total + billedCost(attempt),
-      0
-    );
-    const measuredCost = generated.usage.estimatedProviderCostUsd + failedAttemptCost;
-    const hasUnknownAttemptCost = chargedAttempts.some((attempt) => !hasKnownBilledCost(attempt));
-    const cost = hasUnknownAttemptCost
-      ? Math.max(Number(reservation.reservedCostUsd || 0), measuredCost)
-      : measuredCost;
-    const tokens =
-      generated.usage.tokensUsed +
-      chargedAttempts.reduce<number>((total, attempt) => total + billedTokens(attempt), 0);
-    const { data: final, error: finishError } = await admin.rpc('ai_coach_finish', {
-      p_operation_id: input.requestId,
-      p_user_message: input.message,
-      p_response: generated.parsed,
-      p_cost: cost,
-      p_tokens: tokens,
-      p_model: generated.model,
-      p_latency: Date.now() - started,
-      p_ok: true,
-    });
-    if (finishError) throw finishError;
-    await admin.from('ai_api_usage').insert({
-      user_id: profile.id,
-      endpoint: 'ai-coach',
-      tokens_used: tokens,
-      cached: false,
-      request_metadata: {
-        model: generated.model,
-        responseLanguage: language,
-        reservationStatus: 'completed',
-        estimatedProviderCostUsd: cost,
-        fallbackUsed: chargedAttempts.length > 0,
-        budgetWarning: Boolean(reservation.budgetWarning),
-        latencyMs: Date.now() - started,
-      },
-    });
-    return response(
-      {
+      const memoryNotes = normalizeCoachMemoryNotes(generated.parsed.memory) ?? [];
+      delete generated.parsed.memory;
+      generated.parsed.actions = validateActions(generated.parsed.actions, context, input.message);
+      const failedAttemptCost = chargedAttempts.reduce<number>(
+        (total, attempt) => total + billedCost(attempt),
+        0
+      );
+      const measuredCost = generated.usage.estimatedProviderCostUsd + failedAttemptCost;
+      const hasUnknownAttemptCost = chargedAttempts.some((attempt) => !hasKnownBilledCost(attempt));
+      const cost = hasUnknownAttemptCost
+        ? Math.max(Number(reservation.reservedCostUsd || 0), measuredCost)
+        : measuredCost;
+      const tokens =
+        generated.usage.tokensUsed +
+        chargedAttempts.reduce<number>((total, attempt) => total + billedTokens(attempt), 0);
+      const { data: final, error: finishError } = await admin.rpc('ai_coach_finish', {
+        p_operation_id: input.requestId,
+        p_user_message: input.message,
+        p_response: generated.parsed,
+        p_cost: cost,
+        p_tokens: tokens,
+        p_model: generated.model,
+        p_latency: Date.now() - started,
+        p_ok: true,
+      });
+      if (finishError) throw finishError;
+      await admin.from('ai_api_usage').insert({
+        user_id: profile.id,
+        endpoint: 'ai-coach',
+        tokens_used: tokens,
+        cached: false,
+        request_metadata: {
+          model: generated.model,
+          responseLanguage: language,
+          reservationStatus: 'completed',
+          estimatedProviderCostUsd: cost,
+          cachedPromptTokens: generated.usage.cachedPromptTokens,
+          promptTokens: generated.usage.promptTokens,
+          fallbackUsed: chargedAttempts.length > 0,
+          streamed: Boolean(streamer?.emitted),
+          budgetWarning: Boolean(reservation.budgetWarning),
+          latencyMs: Date.now() - started,
+        },
+      });
+      if (memoryNotes.length) await rememberAboutLearner(admin, profile.id, memoryNotes);
+      return {
         ...final,
         remainingDailyReplies: reservation.remainingDailyReplies,
         quotaResetsAt: reservation.quotaResetsAt,
-      },
-      200,
-      headers
-    );
-  } catch (error) {
-    const requestId = String(body?.requestId || '');
-    if (UUID.test(requestId)) {
-      const attempts = chargedAttempts.includes(error)
-        ? [...chargedAttempts]
-        : [...chargedAttempts, error];
-      const cost = attempts.reduce<number>((total, item) => total + billedCost(item), 0);
-      const tokens = attempts.reduce<number>((total, item) => total + billedTokens(item), 0);
-      const unknownProviderCost =
-        providerAttempted && attempts.filter(hasKnownBilledCost).length < providerCallCount;
-      await admin.rpc('ai_coach_finish', {
-        p_operation_id: requestId,
-        p_user_message: '',
-        p_response: null,
-        p_cost: unknownProviderCost ? null : cost,
-        p_tokens: tokens,
-        p_model: '',
-        p_latency: 0,
-        p_ok: false,
+      };
+    };
+
+    if (input.stream) {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (event: string, data: unknown) => {
+            try {
+              controller.enqueue(
+                encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+              );
+            } catch {
+              // The learner disconnected. Generation still finishes so billing stays accurate.
+            }
+          };
+          try {
+            send('final', await produce(send));
+          } catch (error) {
+            await recordFailure(body, error);
+            const message = errorMessage(error);
+            send('error', { error: message, status: errorStatus(message) });
+          } finally {
+            try {
+              controller.close();
+            } catch {
+              // Already closed by a disconnect.
+            }
+          }
+        },
+      });
+      return new Response(stream, {
+        status: 200,
+        headers: {
+          ...headers,
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-store, no-transform',
+          'X-Accel-Buffering': 'no',
+        },
       });
     }
-    return response(
-      { error: error instanceof Error ? error.message : 'AI Coach is temporarily unavailable' },
-      databaseStatus(error instanceof Error ? error.message : ''),
-      headers
-    );
+    return response(await produce(), 200, headers);
+  } catch (error) {
+    await recordFailure(body, error);
+    const message = errorMessage(error);
+    return response({ error: message }, errorStatus(message), headers);
   }
 };
+
+const errorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'AI Coach is temporarily unavailable';
+const errorStatus = (message: string) =>
+  /could not verify an answer/i.test(message) ? 502 : databaseStatus(message);
+
+/** Merge new learner-stated facts into stored memory. Memory is a convenience, never a blocker. */
+async function rememberAboutLearner(admin: any, userId: string, notes: string[]) {
+  try {
+    const { data } = await admin
+      .from('ai_coach_memory')
+      .select('items')
+      .eq('user_id', userId)
+      .maybeSingle();
+    await admin.from('ai_coach_memory').upsert({
+      user_id: userId,
+      items: mergeCoachMemory(data?.items, notes),
+      updated_at: new Date().toISOString(),
+    });
+  } catch {
+    console.warn('AI Coach memory could not be saved');
+  }
+}
 
 Deno.serve(
   withTextAiAdmission('ai-coach', handleRequest, [
@@ -825,5 +1040,7 @@ Deno.serve(
     'confirm_action',
     'check_exercise',
     'save_preferences',
+    'source_preview',
+    'memory_forget',
   ])
 );

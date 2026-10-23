@@ -57,6 +57,18 @@ export function withTextAiAdmission(
     const { data: auth, error: authError } = await db.auth.getUser(token);
     if (authError || !auth.user) return errorResponse('Please sign in', 401, headers);
     let lease: string | null = null;
+    let leaseHeldByStream = false;
+    const releaseLease = async () => {
+      if (!lease) return;
+      const held = lease;
+      lease = null;
+      try {
+        const { error } = await db.rpc('release_text_ai_lease', { p_lease: held });
+        if (error) console.warn('AI lease release failed; it will expire automatically');
+      } catch {
+        console.warn('AI lease release interrupted; it will expire automatically');
+      }
+    };
     try {
       const { data, error } = await db.rpc('acquire_text_ai_lease', {
         p_key: `${route}:${auth.user.id}`,
@@ -81,17 +93,43 @@ export function withTextAiAdmission(
         );
       lease = data.leaseId;
       admittedUsers.set(req, auth.user);
-      return await handler(req);
+      const result = await handler(req);
+      // A streamed reply keeps generating after the handler returns, so the concurrency
+      // lease must last until the stream ends or the client disconnects.
+      if (
+        lease &&
+        result.body &&
+        result.headers.get('content-type')?.includes('text/event-stream')
+      ) {
+        leaseHeldByStream = true;
+        const reader = result.body.getReader();
+        const body = new ReadableStream({
+          async pull(controller) {
+            try {
+              const { done, value } = await reader.read();
+              if (done) {
+                controller.close();
+                await releaseLease();
+              } else controller.enqueue(value);
+            } catch (streamError) {
+              controller.error(streamError);
+              await releaseLease();
+            }
+          },
+          async cancel(reason) {
+            try {
+              await reader.cancel(reason);
+            } finally {
+              await releaseLease();
+            }
+          },
+        });
+        return new Response(body, { status: result.status, headers: result.headers });
+      }
+      return result;
     } finally {
       admittedUsers.delete(req);
-      if (lease) {
-        try {
-          const { error } = await db.rpc('release_text_ai_lease', { p_lease: lease });
-          if (error) console.warn('AI lease release failed; it will expire automatically');
-        } catch {
-          console.warn('AI lease release interrupted; it will expire automatically');
-        }
-      }
+      if (!leaseHeldByStream) await releaseLease();
     }
   };
 }

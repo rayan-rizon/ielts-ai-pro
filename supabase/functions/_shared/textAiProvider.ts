@@ -581,6 +581,158 @@ export async function requestOpenRouterJson(
   }
 }
 
+/**
+ * Streaming variant of `requestOpenRouterJson`. `onText` receives the whole reply text
+ * so far after every delta; the final text is still parsed and shape-checked exactly
+ * like the non-streaming call, and a rejection carries the billed cost when the
+ * provider reported one. The deadline covers the whole stream, not just the headers.
+ */
+export async function requestOpenRouterJsonStream(
+  request: OpenRouterModelRequest & { onText?: (textSoFar: string) => void }
+): Promise<TextAiResult> {
+  const fetchImpl = request.fetchImpl || fetch;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), request.timeoutMs || DEFAULT_TIMEOUT_MS);
+  let text = '';
+  let usageChunk: any = null;
+  let servedModel: string | null = null;
+  try {
+    const response = await fetchImpl(OPENROUTER_URL, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${request.apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Title': 'IELTS Ai Pro',
+      },
+      body: JSON.stringify({
+        model: request.model,
+        messages: chatMessages(request),
+        ...(request.jsonMode === false ? {} : { response_format: { type: 'json_object' } }),
+        ...(request.disableReasoning === false
+          ? {}
+          : { reasoning: { effort: request.reasoningEffort || 'none', exclude: true } }),
+        provider: {
+          ...(request.providerOrder?.length
+            ? { order: request.providerOrder, allow_fallbacks: false }
+            : { sort: 'latency' }),
+          require_parameters: request.requireParameters ?? true,
+        },
+        ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
+        max_tokens: request.maxOutputTokens,
+        usage: { include: true },
+        stream: true,
+        stream_options: { include_usage: true },
+      }),
+    });
+    if (!response.ok || !response.body) {
+      throw new TextAiProviderError(`OpenRouter returned HTTP ${response.status}`, {
+        provider: 'openrouter',
+        status: response.status,
+        code: 'http_error',
+      });
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let done = false;
+    const handleLine = (line: string) => {
+      const trimmed = line.trim();
+      // Comment lines such as ": OPENROUTER PROCESSING" keep the connection alive.
+      if (!trimmed.startsWith('data:')) return;
+      const payload = trimmed.slice(5).trim();
+      if (!payload) return;
+      if (payload === '[DONE]') {
+        done = true;
+        return;
+      }
+      let chunk: any;
+      try {
+        chunk = JSON.parse(payload);
+      } catch {
+        return;
+      }
+      if (chunk?.usage) usageChunk = chunk.usage;
+      if (chunk?.model) servedModel = chunk.model;
+      if (chunk?.error) {
+        throw new TextAiProviderError('OpenRouter stream failed', {
+          provider: 'openrouter',
+          status: Number(chunk.error?.code) || null,
+          code: 'stream_error',
+        });
+      }
+      const delta = chunk?.choices?.[0]?.delta?.content;
+      if (typeof delta === 'string' && delta) {
+        text += delta;
+        try {
+          request.onText?.(text);
+        } catch {
+          // A display callback must never break generation or its cost accounting.
+        }
+      }
+    };
+    while (!done) {
+      const { value, done: finished } = await reader.read();
+      if (finished) break;
+      buffer += decoder.decode(value, { stream: true });
+      let newline = buffer.indexOf('\n');
+      while (newline >= 0) {
+        handleLine(buffer.slice(0, newline));
+        buffer = buffer.slice(newline + 1);
+        newline = buffer.indexOf('\n');
+      }
+    }
+    if (buffer) handleLine(buffer);
+
+    // Some upstreams omit the usage chunk on a stream. Never record that as free: fall
+    // back to a deliberately generous character-based estimate priced at the registry rate.
+    const usage = openAiShapedUsage(
+      {
+        usage:
+          usageChunk ||
+          (() => {
+            const prompt = Math.ceil(
+              ((request.systemPrompt || '').length + request.prompt.length) / 3
+            );
+            const output = Math.ceil(text.length / 3);
+            return {
+              prompt_tokens: prompt,
+              completion_tokens: output,
+              total_tokens: prompt + output,
+            };
+          })(),
+      },
+      request.model
+    );
+    const parsed = parseBilledJson('openrouter', text, usage, request.validateJson);
+    return {
+      parsed,
+      text,
+      provider: 'openrouter',
+      model: servedModel || request.model,
+      mode: 'non-thinking',
+      fallbackUsed: false,
+      fallbackReason: null,
+      usage,
+    };
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      throw providerFailure(
+        'openrouter',
+        new TextAiProviderError('AI provider request timed out', {
+          provider: 'openrouter',
+          code: 'timeout',
+          usage: usageChunk ? openAiShapedUsage({ usage: usageChunk }, request.model) : null,
+        })
+      );
+    }
+    throw providerFailure('openrouter', error);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function requestGeminiJson(request: ProviderRequest): Promise<TextAiResult> {
   const fetchImpl = request.fetchImpl || fetch;
   try {

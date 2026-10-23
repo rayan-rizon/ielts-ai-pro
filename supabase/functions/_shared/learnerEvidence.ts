@@ -15,6 +15,8 @@ export function buildLearnerEvidence({
   vocabularyReviews,
   activities,
   sourceSession,
+  sourceDigest,
+  coachPractice,
 }: any) {
   const scoredSessions = (Array.isArray(sessions) ? sessions : []).filter(isScoredLearningSession);
   const skillSummary = summarizeEvidence(Array.isArray(skills) ? skills : []);
@@ -168,6 +170,22 @@ export function buildLearnerEvidence({
         })
       );
 
+  // Mini-exercises answered in chat. They are practice, never official results, so
+  // they are always an early signal: enough to revisit a missed drill, not to rank skills.
+  if (coachPractice && Number(coachPractice.total) > 0)
+    evidence.push({
+      id: 'coach:practice',
+      category: 'coach_practice',
+      confidence: 'tentative',
+      label: 'Ava chat drills (last 30 days)',
+      value: {
+        correct: Number(coachPractice.correct) || 0,
+        total: Number(coachPractice.total) || 0,
+        missedPrompts: (coachPractice.missedPrompts || []).slice(0, 3),
+      },
+      observedAt: coachPractice.lastAt || null,
+    });
+
   const eligibleActions: any[] = [
     { type: 'navigate', label: 'Open Reading practice', payload: { route: '/reading' } },
     { type: 'navigate', label: 'Open Writing practice', payload: { route: '/writing' } },
@@ -205,7 +223,7 @@ export function buildLearnerEvidence({
       testMode: sourceSession.test_mode,
       completed: sourceSession.is_completed,
       score: numberOrNull(sourceSession.score ?? sourceSession.band_score),
-      excerpt: JSON.stringify(sourceSession.content_data || {}).slice(0, 3000),
+      digest: sourceDigest || null,
     };
   }
   return {

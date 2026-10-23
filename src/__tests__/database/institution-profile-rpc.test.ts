@@ -50,7 +50,7 @@ describe('institution-aware profile lookups', () => {
         source.match(/\.rpc\('get_institution_learner_profile', \{ p_auth: [\w.]+ \}\)/g) || [];
       callers += calls.length;
     }
-    expect(callers).toBe(17);
+    expect(callers).toBe(18);
   });
 });
 
