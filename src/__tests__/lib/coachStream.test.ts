@@ -363,7 +363,7 @@ describe('readCoachStream (browser side)', () => {
       { onReset }
     );
     expect(onReset).toHaveBeenCalledTimes(1);
-    expect(result.answer).toBe('Final');
+    expect((result as any).answer).toBe('Final');
   });
 
   it('surfaces a server error without asking the page to retry the same request', async () => {
