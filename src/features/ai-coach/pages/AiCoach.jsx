@@ -40,6 +40,8 @@ import {
   confirmCoachAction,
   deleteCoachConversation,
   executeConfirmedClientAction,
+  forgetCoachMemory,
+  getCoachSourcePreview,
   loadCoachHistory,
   sendCoachMessage,
 } from '../services/aiCoachService';
@@ -709,6 +711,9 @@ export default function AiCoach() {
   const [switchingConversation, setSwitchingConversation] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
   const [showHistorySearch, setShowHistorySearch] = useState(false);
+  const [memory, setMemory] = useState([]);
+  const [streamingText, setStreamingText] = useState('');
+  const [preview, setPreview] = useState(null);
   const chatScrollRef = useRef(null);
   const chatPanelRef = useRef(null);
   const historyPanelRef = useRef(null);
@@ -716,6 +721,9 @@ export default function AiCoach() {
   const composerRef = useRef(null);
   const conversationCacheRef = useRef(new Map());
   const historyRequestRef = useRef(0);
+  // The exact text of an app-written English draft. Sent unedited, it follows the
+  // learner's saved language instead of the language of its wording.
+  const cannedDraftRef = useRef(null);
 
   useEffect(() => {
     if (!AI_COACH_ENABLED) {
@@ -737,10 +745,12 @@ export default function AiCoach() {
           conversations: data.conversations,
           preferredLanguage: data.preferredLanguage,
         });
+        setMemory(Array.isArray(data.memory) ? data.memory : []);
         const savedDraft = takeCoachDraft();
         if (savedDraft) {
           setDraft(savedDraft.message || '');
           setSourceReference(savedDraft.sourceReference || null);
+          cannedDraftRef.current = savedDraft.canned ? savedDraft.message || '' : null;
         }
       })
       .catch(
@@ -764,6 +774,22 @@ export default function AiCoach() {
       window.clearTimeout(timer);
     };
   }, [messages, sending, switchingConversation]);
+
+  // A deterministic summary of the attached result, with questions worth asking.
+  // It needs no AI call and no reply from the daily allowance.
+  useEffect(() => {
+    if (!sourceReference?.id || !AI_COACH_ENABLED) {
+      setPreview(null);
+      return undefined;
+    }
+    let active = true;
+    getCoachSourcePreview(sourceReference.id)
+      .then((data) => active && setPreview(data?.preview || null))
+      .catch(() => active && setPreview(null));
+    return () => {
+      active = false;
+    };
+  }, [sourceReference?.id]);
 
   const selectConversation = async (id) => {
     if (!id || id === conversationId) return;
@@ -817,11 +843,14 @@ export default function AiCoach() {
     }
   };
 
-  const sendMessage = async (messageText) => {
+  const sendMessage = async (messageText, { canned = false, questionNumber = null } = {}) => {
     const text = messageText.trim();
     if (!text || sending || switchingConversation || !canSend) return;
+    const useSavedLanguage = canned || cannedDraftRef.current === text;
+    cannedDraftRef.current = null;
     setDraft('');
     setSending(true);
+    setStreamingText('');
     conversationCacheRef.current.delete(conversationId);
     const recovery = recoveryRef.current?.text === text ? recoveryRef.current : null;
     const requestId = recovery?.requestId || crypto.randomUUID();
@@ -837,12 +866,18 @@ export default function AiCoach() {
         conversationId,
         message: text,
         preferredLanguage: state.preferredLanguage,
-        sourceReference,
+        sourceReference:
+          sourceReference && questionNumber
+            ? { ...sourceReference, questionNumber }
+            : sourceReference,
+        languageHint: useSavedLanguage ? 'preference' : undefined,
+        onDelta: (segment) => setStreamingText((current) => current + segment),
+        onReset: () => setStreamingText(''),
       });
       const nextConversationId = result.conversationId || conversationId;
       setConversationId(nextConversationId);
       recoveryRef.current = null;
-      setSourceReference(null);
+      setStreamingText('');
       const assistantMessage = {
         id: result.messageId,
         role: 'assistant',
@@ -883,6 +918,7 @@ export default function AiCoach() {
     } catch (error) {
       setMessages((current) => current.filter((message) => message.id !== optimisticId));
       recoveryRef.current = error.requestOutcomeUnknown ? { requestId, text } : null;
+      setStreamingText('');
       setDraft(text);
       toast.error(error.message);
     } finally {
@@ -958,7 +994,17 @@ export default function AiCoach() {
   );
   const conversationGroups = groupCoachConversations(matchingConversations);
   const viewMotion = reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.2, 0, 0, 1] };
+  const forgetMemory = async (options) => {
+    try {
+      const data = await forgetCoachMemory(options);
+      setMemory(Array.isArray(data?.memory) ? data.memory : []);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const prepareDraft = (message) => {
+    cannedDraftRef.current = message;
     setDraft(message);
     requestAnimationFrame(() => composerRef.current?.focus());
   };
@@ -1115,6 +1161,51 @@ export default function AiCoach() {
               Your coach uses completed results when they are relevant and says when evidence is
               missing.
             </p>
+          </div>
+          <div className={cn(TILE, 'mt-3 p-3')} aria-label="What Ava remembers">
+            <div className="flex items-center justify-between gap-2">
+              <span className={MICRO}>What Ava remembers</span>
+              {memory.length ? (
+                <button
+                  type="button"
+                  onClick={() => forgetMemory({ all: true })}
+                  className={cn(
+                    FOCUS_RING,
+                    'rounded-md text-[10px] font-bold text-slate-500 hover:text-rose-600 dark:text-slate-400'
+                  )}
+                >
+                  Forget all
+                </button>
+              ) : null}
+            </div>
+            {memory.length ? (
+              <ul className="mt-2 space-y-1.5">
+                {memory.map((note, index) => (
+                  <li
+                    key={`${note}-${index}`}
+                    className="flex items-start justify-between gap-2 text-xs leading-5 text-slate-600 dark:text-slate-300"
+                  >
+                    <span dir="auto">{note}</span>
+                    <button
+                      type="button"
+                      onClick={() => forgetMemory({ index })}
+                      aria-label={`Forget: ${note}`}
+                      className={cn(
+                        FOCUS_RING,
+                        'mt-0.5 shrink-0 rounded-md text-slate-400 hover:text-rose-600'
+                      )}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                Lasting details you share, like your exam type, will appear here. You can remove any
+                of them.
+              </p>
+            )}
           </div>
         </aside>
 
@@ -1305,7 +1396,16 @@ export default function AiCoach() {
                 Opening conversation…
               </div>
             ) : null}
-            {sending ? (
+            {sending && streamingText ? (
+              <div className="space-y-4" aria-live="polite">
+                <CoachMessage
+                  message={{ id: 'streaming', role: 'assistant', content: streamingText }}
+                  onAction={executeAction}
+                  actionBusy
+                  user={user}
+                />
+              </div>
+            ) : sending ? (
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <Loader2 className="h-4 w-4 animate-spin text-[#5a63df]" />
                 Checking your learning evidence…
@@ -1316,7 +1416,63 @@ export default function AiCoach() {
             onSubmit={submit}
             className="border-t border-[#e4e2f0] bg-white p-3 dark:border-white/[0.07] dark:bg-[#121116] sm:p-4"
           >
-            {sourceReference ? (
+            {sourceReference && preview ? (
+              <div className={cn(TILE, 'mb-2 p-3')} aria-label="Attached result summary">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className={cn(MICRO, 'flex items-center gap-1.5 text-[#5a63df]')}>
+                      <BookOpenCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                      {preview.title}
+                    </span>
+                    {preview.facts.map((fact) => (
+                      <span
+                        key={fact.label}
+                        className="text-[11px] text-slate-500 dark:text-slate-400"
+                      >
+                        <span className="font-semibold">{fact.label}</span>{' '}
+                        <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
+                          {fact.value}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSourceReference(null)}
+                    aria-label="Remove result"
+                    className={cn(
+                      FOCUS_RING,
+                      'shrink-0 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    )}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {preview.suggestions.length ? (
+                  <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+                    {preview.suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.message}
+                        type="button"
+                        onClick={() =>
+                          sendMessage(suggestion.message, {
+                            canned: true,
+                            questionNumber: suggestion.questionNumber ?? null,
+                          })
+                        }
+                        disabled={!canSend || sending || switchingConversation}
+                        className={cn(
+                          FOCUS_RING,
+                          'shrink-0 whitespace-nowrap rounded-full border border-[#dedcec] bg-white px-3 py-1.5 text-left text-[11px] font-bold text-[#4a52c9] transition-colors hover:border-[#5a63df]/45 hover:bg-[#f3f2ff] disabled:cursor-not-allowed disabled:opacity-45 sm:whitespace-normal dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-[#c3c7ff]'
+                        )}
+                      >
+                        {suggestion.message}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : sourceReference ? (
               <div className="mb-2 flex items-center gap-2 rounded-lg bg-[#5a63df]/[0.07] px-2.5 py-2 text-xs font-semibold text-[#4a52c9] dark:text-[#c3c7ff]">
                 <BookOpenCheck className="h-4 w-4" />
                 <span className="flex-1">A completed result is attached for context.</span>
@@ -1348,7 +1504,10 @@ export default function AiCoach() {
                   ref={composerRef}
                   id="ava-coach-message"
                   value={draft}
-                  onChange={(event) => setDraft(event.target.value.slice(0, 2000))}
+                  onChange={(event) => {
+                    cannedDraftRef.current = null;
+                    setDraft(event.target.value.slice(0, 2000));
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' && !event.shiftKey) {
                       event.preventDefault();
@@ -1395,7 +1554,7 @@ export default function AiCoach() {
                 <span className={cn(NUM, 'shrink-0')}>{draft.length}/2000</span>
               </div>
             </div>
-            {state.status?.enabled && messages.length === 0 ? (
+            {state.status?.enabled && messages.length === 0 && !sourceReference ? (
               <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5 px-1">
                 <span className="mr-1 text-[10px] font-bold text-slate-400">Try these:</span>
                 {QUICK_SUGGESTIONS.map((suggestion) => (

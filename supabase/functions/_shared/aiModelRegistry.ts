@@ -274,7 +274,7 @@ export const AI_ROUTES: AiRoute[] = [
       },
     ],
     notes:
-      'Feature-gated. Input is capped at 6,000 tokens, output at 1,800 tokens, and the shared provider budget is $3 per UTC day. The 1,800-token limit keeps the full primary-plus-fallback worst case below the $0.005 reservation.',
+      'Feature-gated. Input is capped at 6,000 tokens, output at 1,800 tokens, and the shared provider budget is $3 per UTC day. The 1,800-token limit keeps the full primary-plus-fallback worst case below the $0.005 reservation. The primary call may stream (same model, same cost); only the fallback is never streamed. A reply may also carry up to three short learner-memory notes, a few dozen output tokens inside the same cap. The system prompt and the prompt key order keep the stable prefix first so the provider can cache it.',
   },
   {
     id: 'writing-detailed-feedback',

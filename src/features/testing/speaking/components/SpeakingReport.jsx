@@ -10,6 +10,7 @@ import { cn } from '@/lib/cn';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { MUTED, PANEL, Pill, TITLE } from '@/features/dashboard/components/primitives';
 
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 import SpeakingAnalysis from './SpeakingAnalysis';
 import SpeakingReportErrorState from './SpeakingReportErrorState';
 import ReportHeader from './report/ReportHeader';
@@ -36,6 +37,20 @@ function InsufficientEvidence({ finalEvaluation }) {
         Choose a speaking test
       </Link>
     </div>
+  );
+}
+
+function AskAvaAboutReport({ sessionId }) {
+  if (!sessionId) return null;
+  return (
+    <AskAiCoachButton
+      compact
+      showAvatar
+      label="Ask Ava about this report"
+      draft="Which Speaking criterion should I work on first, and how?"
+      sourceReference={{ type: 'test_session', id: sessionId }}
+      className="h-9"
+    />
   );
 }
 
@@ -336,6 +351,7 @@ export default function SpeakingReport({
             className="col-span-12 flex flex-col-reverse gap-2 border-t border-[#e4e2f0] pt-4 dark:border-white/[0.07] sm:flex-row sm:justify-end"
             aria-label="Next"
           >
+            <AskAvaAboutReport sessionId={insufficient ? null : sessionId} />
             <Link to="/dashboard" className={QUIET_BUTTON}>
               Back to dashboard
             </Link>

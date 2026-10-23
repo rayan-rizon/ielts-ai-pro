@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { WritingCoach } from './WritingCoach';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
 import React, { useEffect, useId, useMemo, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
@@ -858,6 +859,19 @@ export function FeedbackPanel({
               />
 
               <StrengthsCard strengths={report.strengths} />
+
+              {coachSession?.id && (
+                <div className="flex justify-end">
+                  <AskAiCoachButton
+                    compact
+                    showAvatar
+                    label="Ask Ava about this feedback"
+                    draft="Explain my Writing feedback and the one change that would raise my band most."
+                    sourceReference={{ type: 'test_session', id: coachSession.id }}
+                    className="h-9"
+                  />
+                </div>
+              )}
 
               {coachSession?.id && coachTaskType && (
                 <WritingCoach

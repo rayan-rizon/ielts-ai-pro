@@ -7,6 +7,8 @@ import WavingCoachArtwork from './WavingCoachArtwork';
 export default function AskAiCoachButton({
   draft,
   sourceReference = null,
+  questionNumber = null,
+  label = null,
   className,
   compact = false,
   showAvatar = false,
@@ -15,7 +17,15 @@ export default function AskAiCoachButton({
   return (
     <Link
       to="/ai-coach"
-      onClick={() => saveCoachDraft({ message: draft, sourceReference })}
+      onClick={() =>
+        saveCoachDraft({
+          message: draft,
+          sourceReference:
+            sourceReference && questionNumber
+              ? { ...sourceReference, questionNumber }
+              : sourceReference,
+        })
+      }
       className={cn(
         'inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#5a63df]/25 bg-[#5a63df]/[0.07] px-3 py-2 text-xs font-bold text-[#4a52c9] transition-colors hover:bg-[#5a63df]/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-[#c3c7ff]',
         className
@@ -28,7 +38,7 @@ export default function AskAiCoachButton({
       ) : (
         <MessageCircleMore className="h-4 w-4" />
       )}
-      {compact ? 'Ask coach' : 'Ask AI Coach'}
+      {label || (compact ? 'Ask coach' : 'Ask AI Coach')}
     </Link>
   );
 }
