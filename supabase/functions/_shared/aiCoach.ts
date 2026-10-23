@@ -132,14 +132,14 @@ const UNSUPPORTED_LATIN_HINTS: Array<[RegExp, string]> = [
 // Ambiguous short words (ar, ba, sob, den, na) are deliberately left out.
 const BANGLISH_WORDS = new Set(
   (
-    'ami amar amake amader amra tumi tomar tomake apni apnar apnake ki kivabe kibhabe kemon keno ' +
-    'kothay koto kore korbo korte korchi korsi korle kora korun korbe hobe hoy hoye hocche hoche ' +
-    'hoyeche hoise hoilo ache achhe nai nei lagbe lage dite dibo dao debo bolo bolun bolen ' +
-    'bujhi bujhte bujhlam bujhina bujhbo jani janina jante jano shikhbo shikhte shekha shikhi porbo ' +
-    'porte pori parbo parlam pari parina parchi parsi pacchi paini pelam pabo likhbo likhte likhi ' +
-    'likhsi dekhbo dekhao dekhan bhalo valo bhaloi kharap vul bhul shob ekta ekti ei eta ota ' +
-    'kintu jodi tahole tobe abar onek beshi besi thik thikmoto sahajjo shahajjo kothin shohoj sohoj ' +
-    'bhabe mone chacchi chaichi dorkar lagche bolchi bolsi korena hocchena bujhtesi ' +
+    'ami amar amake amader amra tumi tomar tomake apni apnar apnake kivabe kibhabe kemon keno ' +
+    'kothay koto kore korbo korte korchi korsi korle korun korbe hobe hoy hoye hocche hoche ' +
+    'hoyeche hoise hoilo ache achhe nai nei lagbe lage dite dibo debo bolun ' +
+    'bujhi bujhte bujhlam bujhina bujhbo shikhbo shikhte shekha shikhi porbo ' +
+    'porte pori parlam parina parchi parsi pacchi paini pelam pabo likhbo ' +
+    'likhsi dekhbo dekhao dekhan bhalo valo bhaloi vul bhul ekta ekti ei eta ota ' +
+    ' tahole onek beshi besi thikmoto sahajjo shahajjo kothin shohoj sohoj ' +
+    'bhabe chacchi chaichi dorkar lagche bolchi bolsi korena hocchena bujhtesi ' +
     'banglay bangla ta ti ektu bujhiye bujhiyedin bujhai shikhiye dekhiye likhe dhoro dhorun den'
   ).split(' ')
 );
@@ -157,6 +157,18 @@ const BANGLISH_STRONG = new Set([
   'bolun',
   'banglay',
 ]);
+
+// Latin-script Hindi and Urdu share a few words with Bangla. A message that also carries
+// Hindi/Urdu grammar words is not Banglish unless it has a word only Bangla uses.
+const HINDI_URDU_MARKERS =
+  /\b(kaise|kaisay|kya|kyun|kyon|kaun|hai|hain|nahi|nahin|mein|aap|apni|karna|karo|karein|chahiye|chahiyay|hota|hoti|hote|mujhe|mujhay|mera|meri|mere|batao|batayen|samjhao|samjhaen|likhna|likhte|ke liye|ka|ko)\b/i;
+
+const HINDI_URDU_STRICT =
+  /\b(kaise|kaisay|kya|kyun|kyon|kaun|hai|hain|nahi|nahin|mein|aap|karna|chahiye|chahiyay|hota|hoti|batao|batayen|samjhao|samjhaen|mujhe|mujhay|mera|meri)\b/gi;
+
+function distinctMatches(text: string, pattern: RegExp) {
+  return new Set((text.match(pattern) || []).map((word) => word.toLowerCase())).size;
+}
 
 export function banglishScore(text: string) {
   const words = String(text || '')
@@ -176,6 +188,7 @@ export function banglishScore(text: string) {
 export function looksLikeBanglish(text: string, preferred: CoachLanguage = 'en') {
   const { hits, strong, ratio } = banglishScore(text);
   if (strong >= 1) return true;
+  if (HINDI_URDU_MARKERS.test(text)) return false;
   if (hits >= 2 && ratio >= 0.15) return true;
   // A learner who chose Bangla and writes a Latin-letter message with any Bangla word.
   return preferred === 'bn' && hits >= 1 && ratio >= 0.1;
@@ -275,10 +288,18 @@ export function detectCoachLanguage(message: string, preferred: CoachLanguage = 
     return { language: 'es' as const, source: 'message' as const, ambiguous: false };
   const romanized = ROMANIZED_HINTS.filter(([, pattern]) => pattern.test(text));
   const banglish = looksLikeBanglish(text, preferred);
-  if (banglish && romanized.length === 0)
+  if (banglish && (romanized.length === 0 || banglishScore(text).strong >= 1))
     return { language: 'bn' as const, source: 'message' as const, ambiguous: false };
-  if (!banglish && romanized.length === 1)
+  if (romanized.length === 1)
     return { language: romanized[0][0], source: 'message' as const, ambiguous: false };
+  // Latin-script Hindi/Urdu without one of the few named hint words above. Two distinct
+  // grammar words are enough; the saved preference breaks the Hindi/Urdu tie.
+  if (distinctMatches(text, HINDI_URDU_STRICT) >= 2)
+    return {
+      language: preferred === 'ur' ? ('ur' as const) : ('hi' as const),
+      source: 'message' as const,
+      ambiguous: false,
+    };
   const supportedLatin = SUPPORTED_LATIN_HINTS.filter(([, pattern]) => pattern.test(text));
   if (supportedLatin.length === 1)
     return { language: supportedLatin[0][0], source: 'message' as const, ambiguous: false };
@@ -506,6 +527,17 @@ export function claimNumbers(answer: string, studentMessage = '') {
     claims.push(number);
   }
   return claims;
+}
+
+/**
+ * Some replies arrive with the two characters `\n` where a line break belongs (the model
+ * escaped its own JSON twice), which shows as one run-on paragraph with "\n" in it.
+ * Only a reply with no real line breaks at all is repaired, so an answer that quotes
+ * `\n` on purpose, next to real line breaks, is left alone.
+ */
+export function restoreLineBreaks(text: string) {
+  const value = String(text ?? '');
+  return value.includes('\\n') && !value.includes('\n') ? value.replace(/\\n/g, '\n') : value;
 }
 
 /** Hard safety rules every learner-facing answer text, or streamed part of one, must satisfy. */

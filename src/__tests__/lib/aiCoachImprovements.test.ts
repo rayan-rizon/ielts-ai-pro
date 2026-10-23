@@ -11,6 +11,7 @@ import {
   mergeCoachMemory,
   normalizeCoachMemoryNotes,
   promisesFutureScore,
+  restoreLineBreaks,
   validateCoachReply,
   validateCoachSendBody,
 } from '../../../supabase/functions/_shared/aiCoach';
@@ -126,7 +127,7 @@ describe('Banglish detection', () => {
   it('uses the saved Bangla preference for a short Latin-letter message with one Bangla word', () => {
     expect(looksLikeBanglish('Reading e kothin', 'bn')).toBe(true);
     expect(looksLikeBanglish('Reading e kothin', 'en')).toBe(false);
-    expect(looksLikeBanglish('shob kothin', 'en')).toBe(true);
+    expect(looksLikeBanglish('kothin lage', 'en')).toBe(true);
   });
 
   it('keeps romanized Hindi and Urdu working', () => {
@@ -284,5 +285,59 @@ describe('numbers that need evidence', () => {
 
   it('keeps ordinary prose numbers free', () => {
     expect(claimNumbers('Write at least 250 words in Task 2 and use 4 paragraphs.')).toEqual([]);
+  });
+});
+
+// Bangla detection must never capture another language. Latin-script Hindi and Urdu share
+// words such as "ki" and "likhte" with Bangla; the original code passed every case here.
+describe('language detection across the supported languages', () => {
+  const cases: Array<[string, string]> = [
+    ['bn', 'আমার রাইটিং স্কোর কীভাবে বাড়াব?'],
+    ['bn', 'Writing task 2 te conclusion ki likhbo bujhi na'],
+    ['bn', 'ei sentence ta keno vul hoyeche bujhiye den'],
+    ['bn', 'reading e ami onek vul kori ki korbo'],
+    ['hi', 'मेरा स्कोर कैसे सुधरेगा?'],
+    ['hi', 'mujhe writing score kaise improve karna hai'],
+    ['hi', 'mujhe samjhao ki passive voice kya hota hai'],
+    ['hi', 'essay kaise likhte hain ki conclusion mein kya likhna chahiye'],
+    ['ur', 'میرا اسکور کیسے بہتر ہوگا؟'],
+    ['ur', 'mujhay samjhaen ki essay kaise likhte hain'],
+    ['ur', 'mujhay batayen ki writing mein kya karna chahiye'],
+    ['ar', 'كيف أحسن درجتي في الكتابة؟'],
+    ['ne', 'मेरो स्कोर कसरी सुधार गर्ने?'],
+    ['zh-CN', '我怎样提高雅思写作成绩？'],
+    ['vi', 'Tôi nên cải thiện điểm IELTS như thế nào?'],
+    ['vi', 'toi lam sao de cai thien diem cua minh'],
+    ['es', '¿Cómo puedo mejorar mi puntuación en writing?'],
+    ['es', 'Como puedo mejorar mi puntuacion'],
+    ['tr', 'IELTS puanımı nasıl geliştirebilirim?'],
+    ['tr', 'Puanimi nasil gelistirebilirim'],
+    ['en', 'How do I improve my Writing score?'],
+    ['en', 'What is the difference between True and Not Given?'],
+  ];
+
+  it.each(cases)('detects %s: %s', (expected, message) => {
+    expect(detectCoachLanguage(message, 'en').language).toBe(expected);
+  });
+
+  it.each(cases.filter(([language]) => language !== 'bn' && language !== 'en'))(
+    'a saved Bangla preference does not pull %s toward Bangla: %s',
+    (expected, message) => {
+      expect(detectCoachLanguage(message, 'bn').language).toBe(expected);
+    }
+  );
+});
+
+describe('literal line breaks', () => {
+  it('repairs a reply that has only the two characters \\n', () => {
+    expect(restoreLineBreaks('Plan:\\n\\n1. Reading\\n2. Vocabulary')).toBe(
+      'Plan:\n\n1. Reading\n2. Vocabulary'
+    );
+  });
+
+  it('leaves a reply that already has real line breaks alone', () => {
+    const answer = 'Use the escape \\n in code.\nSecond line.';
+    expect(restoreLineBreaks(answer)).toBe(answer);
+    expect(restoreLineBreaks('No breaks at all.')).toBe('No breaks at all.');
   });
 });

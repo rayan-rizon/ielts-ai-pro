@@ -11,6 +11,7 @@ import {
   AI_COACH_MAX_INPUT_TOKENS,
   asksForPersonalEvidence,
   claimNumbers,
+  restoreLineBreaks,
   mergeCoachMemory,
   normalizeCoachMemoryNotes,
   detectCoachLanguage,
@@ -845,6 +846,7 @@ const handleRequest = async (req: Request) => {
           /\b(?:band|score)\s*[0-9](?:\.[05])?\b/i.test(value.answer))
       )
         return false;
+      value.answer = restoreLineBreaks(value.answer);
       value.actions = validateActions(value.actions, context, input.message);
       value.memory = normalizeCoachMemoryNotes(value.memory) ?? [];
       return true;
