@@ -140,9 +140,14 @@ function objectiveDigest(session: any, rows: SourceQuestionRow[], focusQuestion:
     .slice(0, missLimit)
     .map((detail) => describeQuestion(detail, rows, { text: 200, why: 220, highlight: 180 }));
 
-  const totalQuestions = finite(content.totalQuestions) ?? details.length;
+  // Older results saved only the raw answers, keyed by question id, with no grading detail.
+  // Say so rather than reporting "0 wrong" for a result that plainly had mistakes.
+  const detailAvailable = details.length > 0;
+  const totalQuestions =
+    finite(content.totalQuestions) ?? (detailAvailable ? details.length : null);
   const correctAnswers =
-    finite(content.correctAnswers) ?? details.filter((d) => d?.isCorrect).length;
+    finite(content.correctAnswers) ??
+    (detailAvailable ? details.filter((d) => d?.isCorrect).length : null);
   const seconds = finite(content.timeMetrics?.totalTimeSpent ?? session.actual_duration_seconds);
   return {
     kind: 'objective' as const,
@@ -155,7 +160,13 @@ function objectiveDigest(session: any, rows: SourceQuestionRow[], focusQuestion:
     minutesSpent: seconds == null ? null : Math.round(seconds / 60),
     changedAnswers: finite(content.changedAnswersCount),
     weakestTypes: typeStats,
-    missesTotal: wrong.length,
+    detailAvailable,
+    ...(detailAvailable
+      ? {}
+      : {
+          note: 'Per-question detail was not saved for this older result, so individual mistakes are unknown.',
+        }),
+    missesTotal: detailAvailable ? wrong.length : null,
     misses,
     ...(focusDetail
       ? {
@@ -317,7 +328,7 @@ export function buildSourcePreview(digest: any) {
 
   if (digest.band != null) facts.push({ label: 'Band', value: String(digest.band) });
   if (digest.kind === 'objective') {
-    facts.push({ label: 'Correct', value: `${digest.correct}/${digest.total}` });
+    if (digest.total) facts.push({ label: 'Correct', value: `${digest.correct}/${digest.total}` });
     if (digest.unanswered) facts.push({ label: 'Unanswered', value: String(digest.unanswered) });
     const weakest = digest.weakestTypes?.find((item: any) => item.correct < item.total);
     if (weakest)
@@ -336,7 +347,7 @@ export function buildSourcePreview(digest: any) {
       suggestions.push({
         message: `How do I get better at ${weakest.type.replace(/_/g, ' ')} questions?`,
       });
-    if (digest.missesTotal > 1)
+    if ((digest.missesTotal ?? 0) > 1)
       suggestions.push({ message: 'What mistakes do my wrong answers have in common?' });
   } else if (digest.kind === 'writing') {
     const task = digest.tasks?.[0];

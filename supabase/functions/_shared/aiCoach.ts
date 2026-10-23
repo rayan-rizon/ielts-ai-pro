@@ -473,6 +473,41 @@ export function mergeCoachMemory(
   return [...fresh, ...older].slice(0, AI_COACH_MEMORY_MAX_ITEMS);
 }
 
+/**
+ * Numbers in an answer that make a claim about the learner and so must appear in the
+ * evidence it cites: scores, bands, mastery, percentages, counts of right or wrong
+ * answers, and anything with a decimal point. A study plan ("5 minutes of vocabulary",
+ * "1. Reading practice", "5-6 questions") or a number the learner typed themselves is
+ * not a claim about their results. Checking every digit sent 9 of the first 10 replies
+ * to the "What should I practise in my next 15 minutes?" starter to the canned fallback.
+ */
+export function claimNumbers(answer: string, studentMessage = '') {
+  const text = String(answer || '')
+    .normalize('NFKC')
+    .replace(/^\s*(?:\d+[.)]|\d\uFE0F?\u20E3)\s+/gmu, ' ')
+    .replace(
+      /\b\d+(?:\.\d+)?(?:\s*[-–—]\s*\d+(?:\.\d+)?)?\s*(?:minutes?|mins?|hours?|hrs?|days?|weeks?|months?|seconds?|secs?)\b/giu,
+      ' '
+    );
+  const message = String(studentMessage || '').normalize('NFKC');
+  const scoreWords =
+    /band|score|mastery|%|percent|correct|wrong|incorrect|accuracy|result|out of|\bof\s+\d|\d\s+of\b|points?|marks?|ব্যান্ড|স্কোর|ফলাফল|बैंड|स्कोर|परिणाम|分|điểm|puntuaci|puan/iu;
+  const claims: string[] = [];
+  let lastClaimEnd = -100;
+  for (const match of text.matchAll(/\d+(?:\.\d+)?/gu)) {
+    const number = match[0];
+    const start = match.index ?? 0;
+    const near = text.slice(Math.max(0, start - 14), start + number.length + 14);
+    // "from 5.5 to 4": the second number of a pair is a score too.
+    const pairedWithClaim = start - lastClaimEnd <= 6;
+    if (!number.includes('.') && !scoreWords.test(near) && !pairedWithClaim) continue;
+    lastClaimEnd = start + number.length;
+    if (message.includes(number)) continue;
+    claims.push(number);
+  }
+  return claims;
+}
+
 /** Hard safety rules every learner-facing answer text, or streamed part of one, must satisfy. */
 export function answerBreaksSafetyRules(answer: string) {
   const normalizedAnswer = String(answer || '').normalize('NFKC');

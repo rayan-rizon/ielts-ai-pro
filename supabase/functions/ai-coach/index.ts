@@ -10,6 +10,7 @@ import {
 import {
   AI_COACH_MAX_INPUT_TOKENS,
   asksForPersonalEvidence,
+  claimNumbers,
   mergeCoachMemory,
   normalizeCoachMemoryNotes,
   detectCoachLanguage,
@@ -827,7 +828,7 @@ const handleRequest = async (req: Request) => {
         const citedText = value.evidenceRefs
           .map((ref: any) => JSON.stringify(evidenceById.get(ref.id) || {}))
           .join(' ');
-        const answerNumbers = value.answer.match(/\d+(?:\.\d+)?/g) || [];
+        const answerNumbers = claimNumbers(value.answer, input.message);
         if (answerNumbers.some((number: string) => !citedText.includes(number))) return false;
       }
       // Never trust model-supplied citation wording. Convert all valid references,
@@ -859,8 +860,9 @@ const handleRequest = async (req: Request) => {
       if (!apiKey) throw new Error('AI Coach provider is not configured');
       const started = Date.now();
       const streamer = emit
-        ? new CoachAnswerStreamer({ language, evidenceById, personalQuestion }, (text) =>
-            emit('delta', { text })
+        ? new CoachAnswerStreamer(
+            { language, evidenceById, personalQuestion, studentMessage: input.message },
+            (text) => emit('delta', { text })
           )
         : null;
       let generated: any;

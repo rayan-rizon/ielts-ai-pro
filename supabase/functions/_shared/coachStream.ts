@@ -1,4 +1,4 @@
-import { answerBreaksSafetyRules } from './aiCoach.ts';
+import { answerBreaksSafetyRules, claimNumbers } from './aiCoach.ts';
 
 // Streams Ava's answer to the browser while the model is still writing it, without
 // giving up the checks that normally run on the finished reply.
@@ -18,6 +18,8 @@ export type CoachStreamContext = {
   evidenceById: Map<string, unknown>;
   /** The question asks about this learner's own results. */
   personalQuestion: boolean;
+  /** What the learner typed; numbers they supplied are not claims about their results. */
+  studentMessage?: string;
 };
 
 const ANSWER_KEY = /"answer"\s*:\s*"/;
@@ -140,7 +142,7 @@ export class CoachAnswerStreamer {
   private segmentIsSafe(segment: string, textSoFar: string) {
     if (answerBreaksSafetyRules(textSoFar)) return false;
     if (this.context.personalQuestion && this.context.evidenceById.size > 0) {
-      const numbers = segment.match(/\d+(?:\.\d+)?/g) || [];
+      const numbers = claimNumbers(segment, this.context.studentMessage);
       if (numbers.some((number) => !this.citedText.includes(number))) return false;
     }
     if (this.context.personalQuestion && this.context.evidenceById.size === 0) {

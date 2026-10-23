@@ -4,6 +4,7 @@ import {
   answerBreaksSafetyRules,
   asksForPersonalEvidence,
   banglishScore,
+  claimNumbers,
   detectCoachLanguage,
   groundedCoachSystemPrompt,
   looksLikeBanglish,
@@ -258,5 +259,30 @@ describe('send body', () => {
         sourceReference: { type: 'test_session', id: sessionId, questionNumber },
       })
     ).toThrow('Invalid source reference');
+  });
+});
+
+describe('numbers that need evidence', () => {
+  it('lets a study plan use durations, list numbers and counts', () => {
+    const plan =
+      'For the next 15 minutes:\n1. Reading multiple-choice: a timed set (5 min), 5-6 questions.\n2. Yes/No/Not Given: another 5 minutes.\n3) Listening gap-fill for 5-10 minutes.';
+    expect(claimNumbers(plan, 'What should I practise in my next 15 minutes?')).toEqual([]);
+  });
+
+  it('still checks claims about the learner’s results', () => {
+    expect(claimNumbers('Your Reading score is 6.5 and mastery is 0.27.')).toEqual(['6.5', '0.27']);
+    expect(claimNumbers('You got 28 correct answers.')).toEqual(['28']);
+    expect(claimNumbers('You answered 3 of 4 correctly.')).toEqual(['3', '4']);
+    expect(claimNumbers('Accuracy was 72%.')).toEqual(['72']);
+    expect(claimNumbers('Your overall result fell from 5.5 to 4.')).toEqual(['5.5', '4']);
+  });
+
+  it('does not count a number the learner typed themselves', () => {
+    expect(claimNumbers('Your band 7 target is clear.', 'I want band 7')).toEqual([]);
+    expect(claimNumbers('Your band 8 target is clear.', 'I want band 7')).toEqual(['8']);
+  });
+
+  it('keeps ordinary prose numbers free', () => {
+    expect(claimNumbers('Write at least 250 words in Task 2 and use 4 paragraphs.')).toEqual([]);
   });
 });

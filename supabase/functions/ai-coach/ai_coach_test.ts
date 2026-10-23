@@ -743,3 +743,40 @@ Deno.test('a missing migration (memory table / practice RPC) never blocks a repl
     (globalThis as any).__fakeSupabase = original;
   }
 });
+
+Deno.test(
+  'the "next 15 minutes" starter, which failed 9 of its first 10 live replies, is delivered',
+  async () => {
+    reset();
+    fetchQueue.push(() =>
+      jsonResponse(
+        reply({
+          groundingStatus: 'supported',
+          evidenceRefs: [{ id: 'goal:target-band', claim: 'x' }],
+          answer:
+            'You are aiming for band 7, so use the next 15 minutes well:\n1. Reading multiple-choice: a timed set (5 min), 5-6 questions.\n2. Yes/No/Not Given: another 5 minutes.\n3. Finish with a 5 minute listening gap-fill.',
+        })
+      )
+    );
+    const response = await send('What should I practise in my next 15 minutes?');
+    assert.equal(response.status, 200);
+    assert.match((await response.json()).answer, /next 15 minutes well/);
+    assert.equal(fetchBodies.length, 1, 'accepted on the first attempt, no fallback call');
+  }
+);
+
+Deno.test('an invented score in a personal answer is still rejected', async () => {
+  reset();
+  const invented = () =>
+    jsonResponse(
+      reply({
+        groundingStatus: 'supported',
+        evidenceRefs: [{ id: 'goal:target-band', claim: 'x' }],
+        answer: 'Your latest Reading score is 5.5, so focus on matching headings.',
+      })
+    );
+  fetchQueue.push(invented, invented);
+  const response = await send('What has improved in my recent practice?');
+  assert.equal(response.status, 502);
+  assert.equal(fetchBodies.length, 2);
+});

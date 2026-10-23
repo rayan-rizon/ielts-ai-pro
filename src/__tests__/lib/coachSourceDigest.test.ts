@@ -196,11 +196,41 @@ describe('objective source digest', () => {
     expect(capped.misses[0].yourAnswer).toBe('wrong');
   });
 
-  it('copes with a session that stored no per-question detail', () => {
-    const empty: any = buildSourceDigest({
+  it('does not call an older result mistake-free when no per-question detail was saved', () => {
+    const legacy: any = buildSourceDigest({
+      session: {
+        test_type: 'reading',
+        test_mode: 'mock',
+        score: 4.5,
+        // Older saves kept only raw answers keyed by question id.
+        content_data: { time_remaining: 120, highlights: [] },
+        user_responses: { 'f0f0f0f0-0000-4000-8000-000000000001': 'C. something' },
+      },
+    });
+    expect(legacy).toMatchObject({
+      band: 4.5,
+      detailAvailable: false,
+      correct: null,
+      total: null,
+      missesTotal: null,
+      misses: [],
+    });
+    expect(legacy.note).toContain('not saved');
+    const preview = buildSourcePreview(legacy)!;
+    expect(preview.facts).toEqual([{ label: 'Band', value: '4.5' }]);
+    expect(preview.suggestions).toEqual([]);
+  });
+
+  it('uses saved totals when only the per-question detail is missing', () => {
+    const partial: any = buildSourceDigest({
       session: { ...readingSession, content_data: { totalQuestions: 40, correctAnswers: 30 } },
     });
-    expect(empty).toMatchObject({ correct: 30, total: 40, missesTotal: 0, misses: [] });
+    expect(partial).toMatchObject({
+      correct: 30,
+      total: 40,
+      detailAvailable: false,
+      missesTotal: null,
+    });
   });
 
   it('knows which modules need the answer key', () => {
