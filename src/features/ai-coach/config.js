@@ -20,11 +20,14 @@ export const isRtlLanguage = (language) => language === 'ar' || language === 'ur
 
 export const COACH_DRAFT_KEY = 'ielts-ai-coach-draft-v1';
 
-export function saveCoachDraft({ message, sourceReference = null }) {
+// `canned` marks a draft the app wrote in English, such as an "Ask Ava" button's
+// starter. If the learner sends it unedited, Ava answers in their saved language
+// instead of guessing the language from the wording.
+export function saveCoachDraft({ message, sourceReference = null, canned = true }) {
   if (!AI_COACH_ENABLED || typeof window === 'undefined') return;
   window.sessionStorage.setItem(
     COACH_DRAFT_KEY,
-    JSON.stringify({ message: String(message || '').slice(0, 2000), sourceReference })
+    JSON.stringify({ message: String(message || '').slice(0, 2000), sourceReference, canned })
   );
 }
 

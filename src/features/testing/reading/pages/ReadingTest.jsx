@@ -1,3 +1,4 @@
+import { CoachSourceProvider } from '@/features/ai-coach/CoachSourceContext';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import { usePairedTest } from '@/features/testing/paired/PairedContext';
 import PairedTestGate from '@/features/testing/paired/PairedTestGate';
@@ -981,291 +982,295 @@ function ReadingTestContent() {
   };
 
   return (
-    <div
-      className={cn('w-full flex flex-col bg-background', paired ? 'min-h-0 flex-1' : 'h-screen')}
-      onClick={handleClearSelection}
-    >
-      <Suspense
-        fallback={
-          <div className="flex h-screen w-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        }
+    <CoachSourceProvider sessionId={session?.is_completed ? session.id : null}>
+      <div
+        className={cn('w-full flex flex-col bg-background', paired ? 'min-h-0 flex-1' : 'h-screen')}
+        onClick={handleClearSelection}
       >
-        {isAwaitingStart && !paired && <ObjectiveStartNote testType="reading" />}
-        {isAwaitingStart && examEligibility.eligible && (
-          <div className="px-4 pb-2">
-            <TakeWithFriend test={testData} />
-          </div>
-        )}
-        {/* Gamification Components — confetti lives in TestResultsModal now. */}
-        <XPNotification
-          show={showXPNotification}
-          xp={earnedXP.xp}
-          bonus={earnedXP.bonus}
-          streak={earnedXP.streak}
-          onComplete={() => setShowXPNotification(false)}
-        />
-
-        {/* Header */}
-        <ReadingTestHeader
-          testData={testData}
-          allQuestions={allQuestions}
-          currentPassageIndex={currentPassageIndex}
-          passageTimes={passageTimes}
-          totalDurationSeconds={(session?.duration_minutes || 60) * 60}
-          answers={answers}
-          totalQuestions={calculateTotalTestQuestions(testData)}
-          showExitDialog={showExitDialog}
-          setShowExitDialog={setShowExitDialog}
-          highlightedAnswerQs={highlightedAnswerQs}
-          setHighlightedAnswerQs={setHighlightedAnswerQs}
-          showNotes={showNotes}
-          setShowNotes={setShowNotes}
-          showAnswerSheet={showAnswerSheet}
-          setShowAnswerSheet={setShowAnswerSheet}
-          notes={notes}
-          isSaving={isSaving}
-          lastSaved={lastSaved}
-          theme={paperTheme}
-          onExit={async () => {
-            if (paired) {
-              await paired.save(getLatestState().answers);
-              handleExit();
-              return;
-            }
-            if (session && session.id) {
-              const exitTime = getLatestState().timeRemaining;
-              try {
-                await supabase
-                  .from('test_sessions')
-                  .update({
-                    user_responses: answers,
-                    content_data: {
-                      ...session.content_data,
-                      time_remaining: exitTime,
-                      highlights: getLatestState().highlights,
-                      notes: getLatestState().notes,
-                      last_saved_at: new Date().toISOString(),
-                    },
-                  })
-                  .eq('id', session.id);
-              } catch (e) {
-                console.error('Exit save failed', e);
-              }
-            }
-            handleExit();
-          }}
-          onContinue={resetBlocker}
-          formatTime={formatTime}
-          isFinished={isFinished}
-          testMode={testMode}
-          isAwaitingStart={isAwaitingStart}
-          selectedMode={selectedMode}
-          onModeChange={setSelectedMode}
-          examEligibility={examEligibility}
-          onStart={handleStartTest}
-          isStarting={isStarting}
-        />
-
-        {/* Main Layout Container */}
-        <div
-          className={cn(
-            'flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative transition-all duration-300',
-            isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
-          )}
-          aria-disabled={isAwaitingStart || undefined}
-          inert={isAwaitingStart ? '' : undefined}
+        <Suspense
+          fallback={
+            <div className="flex h-screen w-full items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          }
         >
-          {/* Main Content Area with Resizable Layout */}
-          <div
-            ref={containerRef}
-            className="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative z-10 w-full"
-          >
-            {/* Passage Content - Resizable */}
-            <div
-              className="@container flex flex-col overflow-hidden border-b md:border-b-0 md:border-r border-border"
-              style={{
-                width: isMobile ? '100%' : `${passageWidth}%`,
-                height: isMobile ? '50%' : '100%',
-                flexShrink: 0,
-              }}
-            >
-              <PassagePanel
-                currentPassage={currentPassage}
-                passageIndex={currentPassageIndex}
-                passageRef={passageRef}
-                paperTheme={paperTheme}
-                textSize={textSize}
-                onTextSelection={handleTextSelection}
-                onMouseMove={testMode === 'exam' ? undefined : handlePassageMouseMove}
-                onMouseLeave={() => setHoverHighlight(null)}
-                hoverHighlightRef={hoverHighlightRef}
-                highlightedAnswerQs={highlightedAnswerQs}
-                onPaperThemeChange={setPaperTheme}
-                onTextSizeChange={setTextSize}
-                passageBodyRef={passageBodyRef}
-              />
+          {isAwaitingStart && !paired && <ObjectiveStartNote testType="reading" />}
+          {isAwaitingStart && examEligibility.eligible && (
+            <div className="px-4 pb-2">
+              <TakeWithFriend test={testData} />
             </div>
+          )}
+          {/* Gamification Components — confetti lives in TestResultsModal now. */}
+          <XPNotification
+            show={showXPNotification}
+            xp={earnedXP.xp}
+            bonus={earnedXP.bonus}
+            streak={earnedXP.streak}
+            onComplete={() => setShowXPNotification(false)}
+          />
 
-            {/* Resize Handle - Hidden on Mobile */}
-            {!isMobile && (
-              <ResizeHandle
-                onMouseDown={() => setIsResizing(true)}
-                onKeyDown={handleResizeKeyDown}
-                aria-valuenow={passageWidth}
-                aria-valuemin={20}
-                aria-valuemax={80}
-              />
-            )}
-
-            {/* Questions Sidebar - Resizable */}
-            <div
-              className="flex flex-col bg-[#f8f8fb] dark:bg-[#08080a] md:border-l md:border-[#e4e2f0] md:dark:border-white/[0.07] h-full"
-              style={{
-                width: isMobile ? '100%' : `${100 - passageWidth}%`,
-                height: isMobile ? '50%' : '100%',
-              }}
-            >
-              <ReadingTestQuestionsSidebar
-                currentPassageQuestions={currentPassageQuestions}
-                currentPassageIndex={currentPassageIndex}
-                setCurrentPassageIndex={setCurrentPassageIndex}
-                testData={testData}
-                allQuestions={allQuestions}
-                answers={answers}
-                handleAnswerChange={handleAnswerChange}
-                flaggedQuestions={flaggedQuestions}
-                toggleFlag={toggleFlag}
-                isFinished={isFinished}
-                validationMap={validationMap}
-                highlightedQuestionId={highlightedQuestionId}
-                isSaving={isSaving}
-                lastSaved={lastSaved}
-                handleSubmit={handleSubmitWithMetrics}
-                isSubmitting={isSubmitting}
-                showResults={showResults}
-                setShowResults={setShowResults}
-                session={session}
-                setHighlightedAnswerQs={setHighlightedAnswerQs}
-              />
-            </div>
-          </div>
-
-          {/* Answer Sheet Sidebar (Inline when Finished on Desktop) */}
-          <ReadingTestSheet
-            showAnswerSheet={showAnswerSheet}
-            setShowAnswerSheet={setShowAnswerSheet}
-            currentPassageIndex={currentPassageIndex}
+          {/* Header */}
+          <ReadingTestHeader
             testData={testData}
             allQuestions={allQuestions}
+            currentPassageIndex={currentPassageIndex}
+            passageTimes={passageTimes}
+            totalDurationSeconds={(session?.duration_minutes || 60) * 60}
             answers={answers}
-            handleAnswerChange={handleAnswerChange}
+            totalQuestions={calculateTotalTestQuestions(testData)}
+            showExitDialog={showExitDialog}
+            setShowExitDialog={setShowExitDialog}
+            highlightedAnswerQs={highlightedAnswerQs}
+            setHighlightedAnswerQs={setHighlightedAnswerQs}
+            showNotes={showNotes}
+            setShowNotes={setShowNotes}
+            showAnswerSheet={showAnswerSheet}
+            setShowAnswerSheet={setShowAnswerSheet}
+            notes={notes}
+            isSaving={isSaving}
+            lastSaved={lastSaved}
+            theme={paperTheme}
+            onExit={async () => {
+              if (paired) {
+                await paired.save(getLatestState().answers);
+                handleExit();
+                return;
+              }
+              if (session && session.id) {
+                const exitTime = getLatestState().timeRemaining;
+                try {
+                  await supabase
+                    .from('test_sessions')
+                    .update({
+                      user_responses: answers,
+                      content_data: {
+                        ...session.content_data,
+                        time_remaining: exitTime,
+                        highlights: getLatestState().highlights,
+                        notes: getLatestState().notes,
+                        last_saved_at: new Date().toISOString(),
+                      },
+                    })
+                    .eq('id', session.id);
+                } catch (e) {
+                  console.error('Exit save failed', e);
+                }
+              }
+              handleExit();
+            }}
+            onContinue={resetBlocker}
+            formatTime={formatTime}
             isFinished={isFinished}
-            onQuestionClick={scrollToQuestion}
+            testMode={testMode}
+            isAwaitingStart={isAwaitingStart}
+            selectedMode={selectedMode}
+            onModeChange={setSelectedMode}
+            examEligibility={examEligibility}
+            onStart={handleStartTest}
+            isStarting={isStarting}
+          />
+
+          {/* Main Layout Container */}
+          <div
+            className={cn(
+              'flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative transition-all duration-300',
+              isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
+            )}
+            aria-disabled={isAwaitingStart || undefined}
+            inert={isAwaitingStart ? '' : undefined}
+          >
+            {/* Main Content Area with Resizable Layout */}
+            <div
+              ref={containerRef}
+              className="flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative z-10 w-full"
+            >
+              {/* Passage Content - Resizable */}
+              <div
+                className="@container flex flex-col overflow-hidden border-b md:border-b-0 md:border-r border-border"
+                style={{
+                  width: isMobile ? '100%' : `${passageWidth}%`,
+                  height: isMobile ? '50%' : '100%',
+                  flexShrink: 0,
+                }}
+              >
+                <PassagePanel
+                  currentPassage={currentPassage}
+                  passageIndex={currentPassageIndex}
+                  passageRef={passageRef}
+                  paperTheme={paperTheme}
+                  textSize={textSize}
+                  onTextSelection={handleTextSelection}
+                  onMouseMove={testMode === 'exam' ? undefined : handlePassageMouseMove}
+                  onMouseLeave={() => setHoverHighlight(null)}
+                  hoverHighlightRef={hoverHighlightRef}
+                  highlightedAnswerQs={highlightedAnswerQs}
+                  onPaperThemeChange={setPaperTheme}
+                  onTextSizeChange={setTextSize}
+                  passageBodyRef={passageBodyRef}
+                />
+              </div>
+
+              {/* Resize Handle - Hidden on Mobile */}
+              {!isMobile && (
+                <ResizeHandle
+                  onMouseDown={() => setIsResizing(true)}
+                  onKeyDown={handleResizeKeyDown}
+                  aria-valuenow={passageWidth}
+                  aria-valuemin={20}
+                  aria-valuemax={80}
+                />
+              )}
+
+              {/* Questions Sidebar - Resizable */}
+              <div
+                className="flex flex-col bg-[#f8f8fb] dark:bg-[#08080a] md:border-l md:border-[#e4e2f0] md:dark:border-white/[0.07] h-full"
+                style={{
+                  width: isMobile ? '100%' : `${100 - passageWidth}%`,
+                  height: isMobile ? '50%' : '100%',
+                }}
+              >
+                <ReadingTestQuestionsSidebar
+                  currentPassageQuestions={currentPassageQuestions}
+                  currentPassageIndex={currentPassageIndex}
+                  setCurrentPassageIndex={setCurrentPassageIndex}
+                  testData={testData}
+                  allQuestions={allQuestions}
+                  answers={answers}
+                  handleAnswerChange={handleAnswerChange}
+                  flaggedQuestions={flaggedQuestions}
+                  toggleFlag={toggleFlag}
+                  isFinished={isFinished}
+                  validationMap={validationMap}
+                  highlightedQuestionId={highlightedQuestionId}
+                  isSaving={isSaving}
+                  lastSaved={lastSaved}
+                  handleSubmit={handleSubmitWithMetrics}
+                  isSubmitting={isSubmitting}
+                  showResults={showResults}
+                  setShowResults={setShowResults}
+                  session={session}
+                  setHighlightedAnswerQs={setHighlightedAnswerQs}
+                />
+              </div>
+            </div>
+
+            {/* Answer Sheet Sidebar (Inline when Finished on Desktop) */}
+            <ReadingTestSheet
+              showAnswerSheet={showAnswerSheet}
+              setShowAnswerSheet={setShowAnswerSheet}
+              currentPassageIndex={currentPassageIndex}
+              testData={testData}
+              allQuestions={allQuestions}
+              answers={answers}
+              handleAnswerChange={handleAnswerChange}
+              isFinished={isFinished}
+              onQuestionClick={scrollToQuestion}
+              isMobile={isMobile}
+            />
+          </div>
+
+          {/* Premium Notes Sidebar */}
+          <ReadingTestNotes
+            showNotes={showNotes}
+            setShowNotes={setShowNotes}
+            notes={notes}
+            onRemoveNote={removeNote}
+            onAddNote={() => addNote(currentPassageIndex)}
+            newNote={newNote}
+            setNewNote={setNewNote}
+            onNavigateToRef={handleNavigateToRef}
+          />
+
+          {/* Highlight Menu */}
+          {showHighlightMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={handleClearSelection} />
+              <HighlightMenu
+                position={highlightMenuPosition}
+                onSelectColor={applyHighlight}
+                onRemove={selectedHighlight ? removeHighlight : () => setShowHighlightMenu(false)}
+                onEdit={() => {
+                  setSelectedHighlight(null);
+                  setShowHighlightMenu(false);
+                }}
+                isExistingHighlight={!!selectedHighlight}
+                currentSelection={currentSelection}
+                setNewNote={setNewNote}
+                setShowNotes={setShowNotes}
+                setShowHighlightMenu={setShowHighlightMenu}
+                assistantEnabled={readingAssistantEnabled && Boolean(currentSelection?.start >= 0)}
+                onAssistantAction={handleAssistantAction}
+              />
+            </>
+          )}
+
+          {/* Word Definition Popover Call */}
+          {readingAssistantEnabled ? (
+            <WordDefinitionPopover
+              wordDefinition={wordDefinition}
+              addToVocabulary={addToVocabulary}
+              onClose={() => setWordDefinition(null)}
+            />
+          ) : null}
+
+          <SentenceAssistantPopover
+            assistant={sentenceAssistant.assistant}
+            status={sentenceAssistant.status}
+            language={sentenceAssistant.language}
+            onLanguageChange={(language) => {
+              sentenceAssistant.setLanguage(language);
+              if (sentenceAssistant.assistant?.action === 'translate') {
+                sentenceAssistant.request(
+                  'translate',
+                  sentenceAssistant.assistant.selection,
+                  sentenceAssistant.assistant.position,
+                  language
+                );
+              }
+            }}
+            onActionChange={sentenceAssistant.changeAction}
+            onClose={sentenceAssistant.close}
             isMobile={isMobile}
           />
-        </div>
 
-        {/* Premium Notes Sidebar */}
-        <ReadingTestNotes
-          showNotes={showNotes}
-          setShowNotes={setShowNotes}
-          notes={notes}
-          onRemoveNote={removeNote}
-          onAddNote={() => addNote(currentPassageIndex)}
-          newNote={newNote}
-          setNewNote={setNewNote}
-          onNavigateToRef={handleNavigateToRef}
-        />
-
-        {/* Highlight Menu */}
-        {showHighlightMenu && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={handleClearSelection} />
-            <HighlightMenu
-              position={highlightMenuPosition}
-              onSelectColor={applyHighlight}
-              onRemove={selectedHighlight ? removeHighlight : () => setShowHighlightMenu(false)}
-              onEdit={() => {
-                setSelectedHighlight(null);
-                setShowHighlightMenu(false);
-              }}
-              isExistingHighlight={!!selectedHighlight}
-              currentSelection={currentSelection}
-              setNewNote={setNewNote}
-              setShowNotes={setShowNotes}
-              setShowHighlightMenu={setShowHighlightMenu}
-              assistantEnabled={readingAssistantEnabled && Boolean(currentSelection?.start >= 0)}
-              onAssistantAction={handleAssistantAction}
-            />
-          </>
-        )}
-
-        {/* Word Definition Popover Call */}
-        {readingAssistantEnabled ? (
-          <WordDefinitionPopover
-            wordDefinition={wordDefinition}
-            addToVocabulary={addToVocabulary}
-            onClose={() => setWordDefinition(null)}
+          {/* Premium Results Modal */}
+          <TestResultsModal
+            showResults={showResults}
+            testResults={testResults}
+            testData={testData}
+            earnedXP={earnedXP}
+            user={user}
+            sessionId={session?.id}
+            onClose={() => setShowResults(false)}
+            onReviewAnswers={() => {
+              setShowResults(false);
+              setShowAnswerSheet(true);
+            }}
+            onNavigateToQuestion={handleNavigateToQuestion}
+            testType="reading"
+            testMode={testMode}
           />
-        ) : null}
 
-        <SentenceAssistantPopover
-          assistant={sentenceAssistant.assistant}
-          status={sentenceAssistant.status}
-          language={sentenceAssistant.language}
-          onLanguageChange={(language) => {
-            sentenceAssistant.setLanguage(language);
-            if (sentenceAssistant.assistant?.action === 'translate') {
-              sentenceAssistant.request(
-                'translate',
-                sentenceAssistant.assistant.selection,
-                sentenceAssistant.assistant.position,
-                language
-              );
+          {/* Time's Up Dialog */}
+          <TimeUpDialog
+            open={showTimeUpDialog}
+            onOpenChange={setShowTimeUpDialog}
+            onConfirm={handleSubmitWithMetrics}
+            onCancel={() => setShowTimeUpDialog(false)}
+            isSubmitting={isSubmitting}
+            answeredCount={
+              Object.keys(answers || {}).filter(
+                (k) =>
+                  answers[k] !== undefined &&
+                  answers[k] !== null &&
+                  String(answers[k]).trim() !== ''
+              ).length
             }
-          }}
-          onActionChange={sentenceAssistant.changeAction}
-          onClose={sentenceAssistant.close}
-          isMobile={isMobile}
-        />
-
-        {/* Premium Results Modal */}
-        <TestResultsModal
-          showResults={showResults}
-          testResults={testResults}
-          testData={testData}
-          earnedXP={earnedXP}
-          user={user}
-          sessionId={session?.id}
-          onClose={() => setShowResults(false)}
-          onReviewAnswers={() => {
-            setShowResults(false);
-            setShowAnswerSheet(true);
-          }}
-          onNavigateToQuestion={handleNavigateToQuestion}
-          testType="reading"
-          testMode={testMode}
-        />
-
-        {/* Time's Up Dialog */}
-        <TimeUpDialog
-          open={showTimeUpDialog}
-          onOpenChange={setShowTimeUpDialog}
-          onConfirm={handleSubmitWithMetrics}
-          onCancel={() => setShowTimeUpDialog(false)}
-          isSubmitting={isSubmitting}
-          answeredCount={
-            Object.keys(answers || {}).filter(
-              (k) =>
-                answers[k] !== undefined && answers[k] !== null && String(answers[k]).trim() !== ''
-            ).length
-          }
-          totalQuestions={calculateTotalTestQuestions(testData)}
-        />
-      </Suspense>
-    </div>
+            totalQuestions={calculateTotalTestQuestions(testData)}
+          />
+        </Suspense>
+      </div>
+    </CoachSourceProvider>
   );
 }
 

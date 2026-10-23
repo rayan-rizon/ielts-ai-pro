@@ -5,9 +5,12 @@ import { cn } from '@/lib/cn';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { IconChip, MICRO, TILE, PANEL, Pill } from '@/features/dashboard/components/primitives.jsx';
 import { answerChoices, wrongOptions, temptingAnswer } from '../utils/readingExplanations';
+import AskAiCoachButton from '@/features/ai-coach/components/AskAiCoachButton';
+import { useCoachSource } from '@/features/ai-coach/coachSource';
 
 export function ExplanationBody({ entries, userAnswer }) {
   const chosen = answerChoices(userAnswer);
+  const coachSource = useCoachSource();
   return (
     <div className="max-h-[min(70dvh,560px)] space-y-4 overflow-y-auto overflow-x-hidden p-3.5">
       {entries.map(({ key, data }, index) => {
@@ -38,6 +41,17 @@ export function ExplanationBody({ entries, userAnswer }) {
                 </Pill>
               )}
             </div>
+            {coachSource && Number.isInteger(Number(key)) ? (
+              <AskAiCoachButton
+                compact
+                showAvatar
+                label="Ask Ava about this question"
+                draft={`Explain question ${key} and what I should learn from my answer.`}
+                sourceReference={{ type: 'test_session', id: coachSource.sessionId }}
+                questionNumber={Number(key)}
+                className="w-full"
+              />
+            ) : null}
             <div className={cn(TILE, 'p-3 space-y-1.5')}>
               <div className="flex items-center gap-1.5">
                 <IconChip icon={Lightbulb} tone="accent" size="sm" />
