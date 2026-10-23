@@ -40,6 +40,20 @@ function InsufficientEvidence({ finalEvaluation }) {
   );
 }
 
+function AskAvaAboutReport({ sessionId }) {
+  if (!sessionId) return null;
+  return (
+    <AskAiCoachButton
+      compact
+      showAvatar
+      label="Ask Ava about this report"
+      draft="Which Speaking criterion should I work on first, and how?"
+      sourceReference={{ type: 'test_session', id: sessionId }}
+      className="h-9"
+    />
+  );
+}
+
 function useReportDate(testDate, generatedAt) {
   const date = new Date(testDate || generatedAt || NaN);
   if (Number.isNaN(date.getTime())) return { label: '', iso: '', date: null };
@@ -337,16 +351,7 @@ export default function SpeakingReport({
             className="col-span-12 flex flex-col-reverse gap-2 border-t border-[#e4e2f0] pt-4 dark:border-white/[0.07] sm:flex-row sm:justify-end"
             aria-label="Next"
           >
-            {sessionId && !insufficient ? (
-              <AskAiCoachButton
-                compact
-                showAvatar
-                label="Ask Ava about this report"
-                draft="Which Speaking criterion should I work on first, and how?"
-                sourceReference={{ type: 'test_session', id: sessionId }}
-                className="h-9"
-              />
-            ) : null}
+            <AskAvaAboutReport sessionId={insufficient ? null : sessionId} />
             <Link to="/dashboard" className={QUIET_BUTTON}>
               Back to dashboard
             </Link>

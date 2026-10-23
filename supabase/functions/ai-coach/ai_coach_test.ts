@@ -48,75 +48,61 @@ function reset() {
   fetchBodies.length = 0;
 }
 
+const ok = (data: unknown) => ({ data, error: null });
+
+const RPC_REPLIES: Record<string, (args: any) => unknown> = {
+  acquire_text_ai_lease: () => {
+    world.leaseEvents.push('acquire');
+    return { allowed: true, leaseId: 'lease-1' };
+  },
+  release_text_ai_lease: () => {
+    world.leaseEvents.push('release');
+    return true;
+  },
+  get_institution_learner_profile: () => ({
+    id: 'user-1',
+    role: 'learner',
+    subscription_tier: 'free',
+    target_band_score: 7,
+  }),
+  ai_coach_reserve: () => ({
+    state: 'reserved',
+    conversationId: 'conv-1',
+    reservedCostUsd: 0.005,
+    remainingDailyReplies: 4,
+    quotaResetsAt: '2026-10-24T00:00:00Z',
+  }),
+  ai_coach_finish: (args) =>
+    !args.p_ok || !args.p_response
+      ? {}
+      : { ...args.p_response, messageId: 'msg-1', conversationId: 'conv-1', actions: [] },
+  ai_coach_practice_summary: () => world.practice,
+  ai_coach_status: () => ({ remainingDailyReplies: 4, quotaResetsAt: 'x' }),
+};
+
+function resolveRpc(call: Call) {
+  return ok(RPC_REPLIES[call.name]?.(call.args) ?? null);
+}
+
+const hasEq = (call: Call, column: string) =>
+  call.ops.some(([name, first]) => name === 'eq' && first === column);
+
+const TABLE_REPLIES: Record<string, (call: Call) => unknown> = {
+  test_sessions: (call) => (hasEq(call, 'id') ? world.sourceSession : []),
+  questions: () => world.questions,
+  ai_coach_preferences: () =>
+    world.preferredLanguage ? { explanation_language: world.preferredLanguage } : null,
+  ai_coach_messages: () => world.history,
+  ai_coach_memory: () => (world.memory ? { items: world.memory } : null),
+};
+
+function resolveTable(call: Call, single: boolean) {
+  const reply = TABLE_REPLIES[call.name];
+  return ok(reply ? reply(call) : single ? null : []);
+}
+
 function resolveCall(call: Call, single: boolean): { data: any; error: any } {
-  const has = (op: string, column?: string) =>
-    call.ops.some(([name, first]) => name === op && (column === undefined || first === column));
-  if (call.kind === 'rpc') {
-    switch (call.name) {
-      case 'acquire_text_ai_lease':
-        world.leaseEvents.push('acquire');
-        return { data: { allowed: true, leaseId: 'lease-1' }, error: null };
-      case 'release_text_ai_lease':
-        world.leaseEvents.push('release');
-        return { data: true, error: null };
-      case 'get_institution_learner_profile':
-        return {
-          data: { id: 'user-1', role: 'learner', subscription_tier: 'free', target_band_score: 7 },
-          error: null,
-        };
-      case 'ai_coach_reserve':
-        return {
-          data: {
-            state: 'reserved',
-            conversationId: 'conv-1',
-            reservedCostUsd: 0.005,
-            remainingDailyReplies: 4,
-            quotaResetsAt: '2026-10-24T00:00:00Z',
-          },
-          error: null,
-        };
-      case 'ai_coach_finish': {
-        const args = call.args;
-        if (!args.p_ok || !args.p_response) return { data: {}, error: null };
-        return {
-          data: {
-            ...args.p_response,
-            messageId: 'msg-1',
-            conversationId: 'conv-1',
-            actions: [],
-          },
-          error: null,
-        };
-      }
-      case 'ai_coach_practice_summary':
-        return { data: world.practice, error: null };
-      case 'ai_coach_status':
-        return { data: { remainingDailyReplies: 4, quotaResetsAt: 'x' }, error: null };
-      default:
-        return { data: null, error: null };
-    }
-  }
-  switch (call.name) {
-    case 'test_sessions':
-      if (has('eq', 'id')) return { data: world.sourceSession, error: null };
-      return { data: [], error: null };
-    case 'questions':
-      return { data: world.questions, error: null };
-    case 'ai_coach_preferences':
-      return {
-        data: world.preferredLanguage ? { explanation_language: world.preferredLanguage } : null,
-        error: null,
-      };
-    case 'ai_coach_messages':
-      return { data: world.history, error: null };
-    case 'ai_coach_memory':
-      return {
-        data: world.memory ? { items: world.memory } : null,
-        error: null,
-      };
-    default:
-      return { data: single ? null : [], error: null };
-  }
+  return call.kind === 'rpc' ? resolveRpc(call) : resolveTable(call, single);
 }
 
 class Query {

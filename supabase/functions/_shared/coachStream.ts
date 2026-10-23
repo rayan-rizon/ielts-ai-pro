@@ -23,6 +23,38 @@ export type CoachStreamContext = {
 };
 
 const ANSWER_KEY = /"answer"\s*:\s*"/;
+const GROUNDING_STATUSES = ['supported', 'insufficient', 'general'];
+
+/** The JSON written before `"answer"`, closed so it can be parsed; null if it cannot be. */
+function parseHead(prefix: string) {
+  try {
+    return JSON.parse(`${prefix.replace(/[\s,]+$/, '')}}`);
+  } catch {
+    return null;
+  }
+}
+
+const SIMPLE_ESCAPES: Record<string, string> = {
+  n: '\n',
+  t: '\t',
+  r: '\r',
+  b: '\b',
+  f: '\f',
+  '"': '"',
+  '\\': '\\',
+  '/': '/',
+};
+
+/** One escape sequence at `index` (a backslash). `null` means it is not complete yet. */
+function readEscape(raw: string, index: number): { text: string; length: number } | null {
+  const next = raw[index + 1];
+  if (next === undefined) return null;
+  if (next !== 'u') return { text: SIMPLE_ESCAPES[next] ?? next, length: 2 };
+  const hex = raw.slice(index + 2, index + 6);
+  if (hex.length < 4) return null;
+  if (!/^[0-9a-fA-F]{4}$/.test(hex)) return { text: '', length: 6 };
+  return { text: String.fromCharCode(parseInt(hex, 16)), length: 6 };
+}
 
 /** Decode the JSON string that starts at `start` as far as the text allows. */
 export function decodePartialJsonString(raw: string, start: number) {
@@ -36,28 +68,10 @@ export function decodePartialJsonString(raw: string, start: number) {
       index += 1;
       continue;
     }
-    const next = raw[index + 1];
-    if (next === undefined) break;
-    if (next === 'u') {
-      const hex = raw.slice(index + 2, index + 6);
-      if (hex.length < 4) break;
-      if (!/^[0-9a-fA-F]{4}$/.test(hex)) return { text: out, closed: false };
-      out += String.fromCharCode(parseInt(hex, 16));
-      index += 6;
-      continue;
-    }
-    const simple: Record<string, string> = {
-      n: '\n',
-      t: '\t',
-      r: '\r',
-      b: '\b',
-      f: '\f',
-      '"': '"',
-      '\\': '\\',
-      '/': '/',
-    };
-    out += simple[next] ?? next;
-    index += 2;
+    const escape = readEscape(raw, index);
+    if (!escape) break;
+    out += escape.text;
+    index += escape.length;
   }
   return { text: out, closed: false };
 }
@@ -106,37 +120,36 @@ export class CoachAnswerStreamer {
   private start(raw: string) {
     const match = ANSWER_KEY.exec(raw);
     if (!match) return false;
-    // `answer` came before the grounding fields, so nothing could be checked first.
-    const prefix = raw.slice(0, match.index).replace(/[\s,]+$/, '');
-    let head: any;
-    try {
-      head = JSON.parse(`${prefix}}`);
-    } catch {
-      this.stopped = true;
-      return false;
-    }
-    const { language, evidenceById, personalQuestion } = this.context;
-    const refs = Array.isArray(head?.evidenceRefs) ? head.evidenceRefs : [];
-    const validRefs = refs.every(
-      (ref: any) => typeof ref?.id === 'string' && evidenceById.has(ref.id)
-    );
-    const status = head?.groundingStatus;
-    const languageOk = head?.responseLanguage === undefined || head.responseLanguage === language;
-    let grounded =
-      validRefs && languageOk && ['supported', 'insufficient', 'general'].includes(status);
-    if (personalQuestion && evidenceById.size > 0)
-      grounded = grounded && status === 'supported' && refs.length > 0;
-    if (personalQuestion && evidenceById.size === 0)
-      grounded = grounded && status === 'insufficient' && refs.length === 0;
-    if (!grounded) {
+    const head = parseHead(raw.slice(0, match.index));
+    const refs = head ? this.groundedRefs(head) : null;
+    if (!refs) {
+      // `answer` came first or the grounding fields failed, so nothing could be checked.
       this.stopped = true;
       return false;
     }
     this.citedText = refs
-      .map((ref: any) => JSON.stringify(evidenceById.get(ref.id) ?? {}))
+      .map((ref: any) => JSON.stringify(this.context.evidenceById.get(ref.id) ?? {}))
       .join(' ');
     this.started = true;
     return true;
+  }
+
+  /** The cited references when the grounding fields pass the same rules as a finished reply. */
+  private groundedRefs(head: any) {
+    const { language, evidenceById, personalQuestion } = this.context;
+    const refs = Array.isArray(head.evidenceRefs) ? head.evidenceRefs : [];
+    const status = head.groundingStatus;
+    const refsKnown = refs.every(
+      (ref: any) => typeof ref?.id === 'string' && evidenceById.has(ref.id)
+    );
+    const languageOk = head.responseLanguage === undefined || head.responseLanguage === language;
+    if (!refsKnown || !languageOk || !GROUNDING_STATUSES.includes(status)) return null;
+    if (!personalQuestion) return refs;
+    const supported = evidenceById.size > 0;
+    const personalOk = supported
+      ? status === 'supported' && refs.length > 0
+      : status === 'insufficient' && refs.length === 0;
+    return personalOk ? refs : null;
   }
 
   private segmentIsSafe(segment: string, textSoFar: string) {

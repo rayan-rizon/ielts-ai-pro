@@ -38,40 +38,59 @@ const finite = (value: unknown): number | null => {
   return Number.isFinite(number) ? number : null;
 };
 
+const isObject = (value: unknown): value is Record<string, any> =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+/** `{ [key]: value }` when there is a value to report, otherwise nothing. */
+const optional = (key: string, value: unknown) =>
+  value === undefined || value === null || value === '' ? {} : { [key]: value };
+
+const listOf = (value: unknown, max: number): any[] =>
+  Array.isArray(value) ? value.slice(0, max) : [];
+
+const cleanedStrings = (value: unknown, max: number, length: number) =>
+  listOf(value, max).map((item) => clean(item, length));
+
+/** A short, cleaned `{ key: text }` copy of an object of notes, or undefined. */
+function cleanedNotes(value: unknown, max: number, length: number) {
+  if (!isObject(value)) return undefined;
+  return Object.fromEntries(
+    Object.entries(value)
+      .slice(0, max)
+      .map(([key, note]) => [clean(key, 40), clean(note, length)])
+  );
+}
+
 function answerText(value: unknown, max = 90): string | null {
   if (value === null || value === undefined) return null;
-  const text = Array.isArray(value)
-    ? value.map((item) => answerText(item, 40)).join(', ')
-    : typeof value === 'object'
-      ? JSON.stringify(value)
-      : String(value);
-  const cleaned = clean(text, max);
-  return cleaned || null;
+  let text: string;
+  if (Array.isArray(value)) text = value.map((item) => answerText(item, 40)).join(', ');
+  else text = isObject(value) ? JSON.stringify(value) : String(value);
+  return clean(text, max) || null;
 }
 
 function optionLabels(options: unknown): string[] {
-  if (!Array.isArray(options)) return [];
-  return options
-    .slice(0, 6)
+  return listOf(options, 6)
     .map((option: any) =>
       clean(typeof option === 'string' ? option : (option?.text ?? option?.label ?? ''), 70)
     )
     .filter(Boolean);
 }
 
+const textOrNull = (value: unknown) => (typeof value === 'string' ? value : null);
+
 /** Per-question explanation, which is stored either flat or under `blanks[number]`. */
 function explanationFor(row: SourceQuestionRow | undefined, number: number) {
   const data = row?.explanation_data;
-  if (!data || typeof data !== 'object') return null;
-  const entry =
-    data.blanks?.[String(number)] ??
-    (Number(row?.question_number) === number || !data.blanks ? data : null);
-  if (!entry || typeof entry !== 'object') return null;
+  if (!isObject(data)) return null;
+  const isThisQuestion = Number(row?.question_number) === number || !data.blanks;
+  const entry = data.blanks?.[String(number)] ?? (isThisQuestion ? data : null);
+  if (!isObject(entry)) return null;
   return {
-    why: typeof entry.why_correct === 'string' ? entry.why_correct : null,
-    trap: typeof entry.trap === 'string' ? entry.trap : null,
-    highlight: typeof entry.passage_highlight === 'string' ? entry.passage_highlight : null,
-    tempting: typeof entry.tempting_answer === 'string' ? entry.tempting_answer : null,
+    why: textOrNull(entry.why_correct),
+    trap: textOrNull(entry.trap),
+    highlight: textOrNull(entry.passage_highlight),
+    tempting: textOrNull(entry.tempting_answer),
   };
 }
 
@@ -83,41 +102,44 @@ function rowFor(rows: SourceQuestionRow[], number: number) {
   });
 }
 
-function describeQuestion(
-  detail: any,
-  rows: SourceQuestionRow[],
-  limits: { text: number; why: number; highlight: number }
+type Limits = { text: number; why: number; highlight: number };
+
+function explanationFields(
+  explanation: ReturnType<typeof explanationFor>,
+  row: SourceQuestionRow | undefined,
+  limits: Limits
 ) {
+  const why = explanation?.why ? explanation.why : row?.explanation;
+  return {
+    ...optional('whyCorrect', why && clean(why, limits.why)),
+    ...optional('trap', explanation?.trap && clean(explanation.trap, 160)),
+    ...optional('temptingAnswer', explanation?.tempting && clean(explanation.tempting, 60)),
+    ...optional(
+      'passageHighlight',
+      explanation?.highlight && clean(explanation.highlight, limits.highlight)
+    ),
+  };
+}
+
+function describeQuestion(detail: any, rows: SourceQuestionRow[], limits: Limits) {
   const number = Number(detail?.questionNumber);
   const row = rowFor(rows, number);
-  const explanation = explanationFor(row, number);
+  const questionText = row?.question_text || row?.group_instructions;
   const options = optionLabels(row?.options);
   return {
     number,
     type: clean(detail?.questionType || detail?.type || row?.type || 'unknown', 40),
-    ...(row?.question_text || row?.group_instructions
-      ? { question: clean(row?.question_text || row?.group_instructions, limits.text) }
-      : {}),
+    ...optional('question', questionText && clean(questionText, limits.text)),
     ...(options.length ? { options } : {}),
     yourAnswer: answerText(detail?.userAnswer),
     correctAnswer: answerText(detail?.correctAnswer),
     flagged: detail?.wasFlagged === true,
-    ...(explanation?.why ? { whyCorrect: clean(explanation.why, limits.why) } : {}),
-    ...(explanation?.trap ? { trap: clean(explanation.trap, 160) } : {}),
-    ...(explanation?.tempting ? { temptingAnswer: clean(explanation.tempting, 60) } : {}),
-    ...(explanation?.highlight
-      ? { passageHighlight: clean(explanation.highlight, limits.highlight) }
-      : {}),
-    ...(!explanation?.why && row?.explanation
-      ? { whyCorrect: clean(row.explanation, limits.why) }
-      : {}),
+    ...explanationFields(explanationFor(row, number), row, limits),
   };
 }
 
-function objectiveDigest(session: any, rows: SourceQuestionRow[], focusQuestion: number | null) {
-  const content = session.content_data || {};
-  const details: any[] = Array.isArray(content.responseDetails) ? content.responseDetails : [];
-  const typeStats = Object.entries(content.typeStats || {})
+function weakestTypes(content: any) {
+  return Object.entries(content.typeStats || {})
     .map(([type, stat]: [string, any]) => ({
       type: clean(type, 40),
       correct: finite(stat?.correct) ?? 0,
@@ -126,115 +148,109 @@ function objectiveDigest(session: any, rows: SourceQuestionRow[], focusQuestion:
     .filter((stat) => stat.total > 0)
     .sort((a, b) => a.correct / a.total - b.correct / b.total || b.total - a.total)
     .slice(0, 8);
+}
 
-  const wrong = details.filter((detail) => detail?.isCorrect === false);
-  const unanswered = wrong.filter((detail) => answerText(detail?.userAnswer) === null).length;
-  const focusDetail =
-    focusQuestion == null
-      ? null
-      : details.find((detail) => Number(detail?.questionNumber) === focusQuestion) || null;
-  const missLimit = focusDetail ? MAX_MISSES_WITH_FOCUS : MAX_MISSES;
-  const misses = wrong
-    .filter((detail) => detail !== focusDetail)
-    .sort((a, b) => Number(a.questionNumber) - Number(b.questionNumber))
-    .slice(0, missLimit)
-    .map((detail) => describeQuestion(detail, rows, { text: 200, why: 220, highlight: 180 }));
+/** The focus question gets more room; the remaining misses make way for it. */
+function focusFields(details: any[], rows: SourceQuestionRow[], focusQuestion: number | null) {
+  if (focusQuestion == null) return { focusDetail: null, fields: {} };
+  const focusDetail = details.find((d) => Number(d?.questionNumber) === focusQuestion) || null;
+  if (!focusDetail)
+    return {
+      focusDetail,
+      fields: { focusQuestionNote: `Question ${focusQuestion} is not on record for this result.` },
+    };
+  const limits = { text: 420, why: 420, highlight: 360 };
+  return { focusDetail, fields: { focusQuestion: describeQuestion(focusDetail, rows, limits) } };
+}
 
-  // Older results saved only the raw answers, keyed by question id, with no grading detail.
-  // Say so rather than reporting "0 wrong" for a result that plainly had mistakes.
+/**
+ * Older results saved only the raw answers, keyed by question id, with no grading detail.
+ * Say so rather than reporting "0 wrong" for a result that plainly had mistakes.
+ */
+function gradingSummary(content: any, details: any[], wrong: any[]) {
   const detailAvailable = details.length > 0;
-  const totalQuestions =
-    finite(content.totalQuestions) ?? (detailAvailable ? details.length : null);
-  const correctAnswers =
-    finite(content.correctAnswers) ??
-    (detailAvailable ? details.filter((d) => d?.isCorrect).length : null);
-  const seconds = finite(content.timeMetrics?.totalTimeSpent ?? session.actual_duration_seconds);
+  const fallback = (value: number) => (detailAvailable ? value : null);
   return {
-    kind: 'objective' as const,
-    module: clean(session.test_type, 20).toLowerCase(),
-    mode: clean(session.test_mode || 'practice', 20),
-    band: finite(session.score ?? session.band_score),
-    correct: correctAnswers,
-    total: totalQuestions,
-    unanswered,
-    minutesSpent: seconds == null ? null : Math.round(seconds / 60),
-    changedAnswers: finite(content.changedAnswersCount),
-    weakestTypes: typeStats,
     detailAvailable,
+    total: finite(content.totalQuestions) ?? fallback(details.length),
+    correct: finite(content.correctAnswers) ?? fallback(details.filter((d) => d?.isCorrect).length),
+    missesTotal: fallback(wrong.length),
     ...(detailAvailable
       ? {}
       : {
           note: 'Per-question detail was not saved for this older result, so individual mistakes are unknown.',
         }),
-    missesTotal: detailAvailable ? wrong.length : null,
+  };
+}
+
+function objectiveDigest(session: any, rows: SourceQuestionRow[], focusQuestion: number | null) {
+  const content = session.content_data || {};
+  const details: any[] = listOf(content.responseDetails, Infinity);
+  const wrong = details.filter((detail) => detail?.isCorrect === false);
+  const { focusDetail, fields } = focusFields(details, rows, focusQuestion);
+  const misses = wrong
+    .filter((detail) => detail !== focusDetail)
+    .sort((a, b) => Number(a.questionNumber) - Number(b.questionNumber))
+    .slice(0, focusDetail ? MAX_MISSES_WITH_FOCUS : MAX_MISSES)
+    .map((detail) => describeQuestion(detail, rows, { text: 200, why: 220, highlight: 180 }));
+  const seconds = finite(content.timeMetrics?.totalTimeSpent ?? session.actual_duration_seconds);
+  const grading = gradingSummary(content, details, wrong);
+  return {
+    kind: 'objective' as const,
+    module: clean(session.test_type, 20).toLowerCase(),
+    mode: clean(session.test_mode || 'practice', 20),
+    band: finite(session.score ?? session.band_score),
+    correct: grading.correct,
+    total: grading.total,
+    unanswered: wrong.filter((detail) => answerText(detail?.userAnswer) === null).length,
+    minutesSpent: seconds == null ? null : Math.round(seconds / 60),
+    changedAnswers: finite(content.changedAnswersCount),
+    weakestTypes: weakestTypes(content),
+    detailAvailable: grading.detailAvailable,
+    ...optional('note', grading.note),
+    missesTotal: grading.missesTotal,
     misses,
-    ...(focusDetail
-      ? {
-          focusQuestion: describeQuestion(focusDetail, rows, {
-            text: 420,
-            why: 420,
-            highlight: 360,
-          }),
-        }
-      : focusQuestion != null
-        ? {
-            focusQuestionNote: `Question ${focusQuestion} is not on record for this result.`,
-          }
-        : {}),
+    ...fields,
+  };
+}
+
+function writingTask(task: 'Task 1' | 'Task 2', feedback: any, response: any) {
+  const text = task === 'Task 1' ? response?.task1_response : response?.task2_response;
+  const scores = isObject(feedback.criteriaScores)
+    ? Object.fromEntries(
+        Object.entries(feedback.criteriaScores)
+          .slice(0, 4)
+          .map(([key, value]) => [clean(key, 40), finite(value)])
+      )
+    : undefined;
+  return {
+    task,
+    band: finite(feedback.overallBand ?? feedback.overall_band ?? feedback.band_score),
+    criteria: scores,
+    notes: cleanedNotes(feedback.criterionNotes, 4, 160),
+    strengths: cleanedStrings(feedback.strengths, 3, 120),
+    priorities: listOf(feedback.priorities, 3).map((item: any) => ({
+      criterion: clean(item?.criterion, 40),
+      issue: clean(item?.issue, 150),
+      action: clean(item?.action, 170),
+    })),
+    corrections: listOf(feedback.corrections, 4).map((item: any) => ({
+      original: clean(item?.original, 100),
+      correction: clean(item?.correction, 100),
+      why: clean(item?.explanation, 120),
+    })),
+    learnerResponse: typeof text === 'string' ? clean(text, 1_100) : undefined,
   };
 }
 
 function writingDigest(session: any) {
-  const content = session.content_data || {};
-  const feedbacks =
-    content.ai_feedbacks && typeof content.ai_feedbacks === 'object' ? content.ai_feedbacks : {};
+  const feedbacks = isObject(session.content_data?.ai_feedbacks)
+    ? session.content_data.ai_feedbacks
+    : {};
   const response = Array.isArray(session.user_responses) ? session.user_responses[0] : null;
   const tasks = (['Task 1', 'Task 2'] as const)
-    .map((task) => {
-      const feedback = feedbacks[task];
-      if (!feedback || typeof feedback !== 'object') return null;
-      const text = task === 'Task 1' ? response?.task1_response : response?.task2_response;
-      const notes =
-        feedback.criterionNotes && typeof feedback.criterionNotes === 'object'
-          ? Object.fromEntries(
-              Object.entries(feedback.criterionNotes)
-                .slice(0, 4)
-                .map(([key, note]) => [clean(key, 40), clean(note, 160)])
-            )
-          : undefined;
-      return {
-        task,
-        band: finite(feedback.overallBand ?? feedback.overall_band ?? feedback.band_score),
-        criteria:
-          feedback.criteriaScores && typeof feedback.criteriaScores === 'object'
-            ? Object.fromEntries(
-                Object.entries(feedback.criteriaScores)
-                  .slice(0, 4)
-                  .map(([key, value]) => [clean(key, 40), finite(value)])
-              )
-            : undefined,
-        notes,
-        strengths: (Array.isArray(feedback.strengths) ? feedback.strengths : [])
-          .slice(0, 3)
-          .map((item: unknown) => clean(item, 120)),
-        priorities: (Array.isArray(feedback.priorities) ? feedback.priorities : [])
-          .slice(0, 3)
-          .map((item: any) => ({
-            criterion: clean(item?.criterion, 40),
-            issue: clean(item?.issue, 150),
-            action: clean(item?.action, 170),
-          })),
-        corrections: (Array.isArray(feedback.corrections) ? feedback.corrections : [])
-          .slice(0, 4)
-          .map((item: any) => ({
-            original: clean(item?.original, 100),
-            correction: clean(item?.correction, 100),
-            why: clean(item?.explanation, 120),
-          })),
-        learnerResponse: typeof text === 'string' ? clean(text, 1_100) : undefined,
-      };
-    })
-    .filter(Boolean);
+    .filter((task) => isObject(feedbacks[task]))
+    .map((task) => writingTask(task, feedbacks[task], response));
   return {
     kind: 'writing' as const,
     module: 'writing',
@@ -244,14 +260,22 @@ function writingDigest(session: any) {
   };
 }
 
+function speakingParts(partScores: unknown) {
+  if (!isObject(partScores)) return {};
+  return Object.fromEntries(
+    Object.entries(partScores)
+      .slice(0, 3)
+      .map(([key, part]: [string, any]) => [
+        clean(key, 10),
+        { band: finite(part?.band), observation: clean(part?.keyObservation, 200) },
+      ])
+  );
+}
+
 function speakingDigest(session: any) {
-  const content = session.content_data || {};
-  const evaluation =
-    content.finalEvaluation && typeof content.finalEvaluation === 'object'
-      ? content.finalEvaluation
-      : {};
-  const parts =
-    evaluation.partScores && typeof evaluation.partScores === 'object' ? evaluation.partScores : {};
+  const evaluation = isObject(session.content_data?.finalEvaluation)
+    ? session.content_data.finalEvaluation
+    : {};
   return {
     kind: 'speaking' as const,
     module: 'speaking',
@@ -263,28 +287,13 @@ function speakingDigest(session: any) {
       grammar: finite(evaluation.grammar),
       pronunciation: finite(evaluation.pronunciation),
     },
-    notes:
-      evaluation.criterionNotes && typeof evaluation.criterionNotes === 'object'
-        ? Object.fromEntries(
-            Object.entries(evaluation.criterionNotes)
-              .slice(0, 4)
-              .map(([key, note]) => [clean(key, 40), clean(note, 180)])
-          )
-        : undefined,
-    parts: Object.fromEntries(
-      Object.entries(parts)
-        .slice(0, 3)
-        .map(([key, part]: [string, any]) => [
-          clean(key, 10),
-          { band: finite(part?.band), observation: clean(part?.keyObservation, 200) },
-        ])
-    ),
-    strengths: (Array.isArray(evaluation.strengths) ? evaluation.strengths : [])
-      .slice(0, 3)
-      .map((item: unknown) => clean(item, 120)),
-    improvements: (Array.isArray(evaluation.improvements) ? evaluation.improvements : [])
-      .slice(0, 3)
-      .map((item: any) => ({ area: clean(item?.area, 60), tip: clean(item?.tip, 170) })),
+    notes: cleanedNotes(evaluation.criterionNotes, 4, 180),
+    parts: speakingParts(evaluation.partScores),
+    strengths: cleanedStrings(evaluation.strengths, 3, 120),
+    improvements: listOf(evaluation.improvements, 3).map((item: any) => ({
+      area: clean(item?.area, 60),
+      tip: clean(item?.tip, 170),
+    })),
   };
 }
 
@@ -319,54 +328,79 @@ export function sourceNeedsQuestionRows(session: any) {
  * plus suggested questions that point at the real misses. Replaces a per-result
  * "debrief" model call: everything here is already measured.
  */
+type Fact = { label: string; value: string };
+type Suggestion = { message: string; questionNumber?: number };
+type PreviewParts = { facts: Fact[]; suggestions: Suggestion[] };
+
+const spaced = (type: string) => type.replace(/_/g, ' ');
+
+function objectivePreview(digest: any): PreviewParts {
+  const facts: Fact[] = [];
+  const suggestions: Suggestion[] = [];
+  const weakest = digest.weakestTypes?.find((item: any) => item.correct < item.total);
+  const first = digest.focusQuestion || digest.misses?.[0];
+  if (digest.total) facts.push({ label: 'Correct', value: `${digest.correct}/${digest.total}` });
+  if (digest.unanswered) facts.push({ label: 'Unanswered', value: String(digest.unanswered) });
+  if (weakest)
+    facts.push({
+      label: 'Weakest type',
+      value: `${spaced(weakest.type)} ${weakest.correct}/${weakest.total}`,
+    });
+  if (digest.minutesSpent) facts.push({ label: 'Time', value: `${digest.minutesSpent} min` });
+  if (first)
+    suggestions.push({
+      message: `Why was my answer to question ${first.number} wrong?`,
+      questionNumber: first.number,
+    });
+  if (weakest)
+    suggestions.push({ message: `How do I get better at ${spaced(weakest.type)} questions?` });
+  if ((digest.missesTotal ?? 0) > 1)
+    suggestions.push({ message: 'What mistakes do my wrong answers have in common?' });
+  return { facts, suggestions };
+}
+
+function writingPreview(digest: any): PreviewParts {
+  const facts: Fact[] = [];
+  const task = digest.tasks?.[0];
+  const topPriority = task?.priorities?.[0];
+  if (task?.band != null) facts.push({ label: task.task, value: String(task.band) });
+  if (topPriority) facts.push({ label: 'Top priority', value: topPriority.criterion });
+  const suggestions: Suggestion[] = [
+    { message: 'What is the one change that would raise my Writing band most?' },
+  ];
+  if (task?.corrections?.length)
+    suggestions.push({ message: 'Explain the corrections in my Writing feedback.' });
+  return { facts, suggestions };
+}
+
+function speakingPreview(digest: any): PreviewParts {
+  const scored = Object.entries(digest.criteria || {}).filter(
+    ([, value]) => value != null
+  ) as Array<[string, number]>;
+  const lowest = scored.sort((a, b) => a[1] - b[1])[0];
+  return {
+    facts: lowest ? [{ label: 'Lowest criterion', value: `${lowest[0]} ${lowest[1]}` }] : [],
+    suggestions: [{ message: 'What should I practise to improve my Speaking criteria?' }],
+  };
+}
+
+const PREVIEW_BY_KIND: Record<string, (digest: any) => PreviewParts> = {
+  objective: objectivePreview,
+  writing: writingPreview,
+  speaking: speakingPreview,
+};
+
 export function buildSourcePreview(digest: any) {
   if (!digest) return null;
-  const facts: Array<{ label: string; value: string }> = [];
-  const suggestions: Array<{ message: string; questionNumber?: number }> = [];
   const moduleName = String(digest.module || '');
   const title = `${moduleName.charAt(0).toUpperCase()}${moduleName.slice(1)} result`;
-
-  if (digest.band != null) facts.push({ label: 'Band', value: String(digest.band) });
-  if (digest.kind === 'objective') {
-    if (digest.total) facts.push({ label: 'Correct', value: `${digest.correct}/${digest.total}` });
-    if (digest.unanswered) facts.push({ label: 'Unanswered', value: String(digest.unanswered) });
-    const weakest = digest.weakestTypes?.find((item: any) => item.correct < item.total);
-    if (weakest)
-      facts.push({
-        label: 'Weakest type',
-        value: `${weakest.type.replace(/_/g, ' ')} ${weakest.correct}/${weakest.total}`,
-      });
-    if (digest.minutesSpent) facts.push({ label: 'Time', value: `${digest.minutesSpent} min` });
-    const first = digest.focusQuestion || digest.misses?.[0];
-    if (first)
-      suggestions.push({
-        message: `Why was my answer to question ${first.number} wrong?`,
-        questionNumber: first.number,
-      });
-    if (weakest)
-      suggestions.push({
-        message: `How do I get better at ${weakest.type.replace(/_/g, ' ')} questions?`,
-      });
-    if ((digest.missesTotal ?? 0) > 1)
-      suggestions.push({ message: 'What mistakes do my wrong answers have in common?' });
-  } else if (digest.kind === 'writing') {
-    const task = digest.tasks?.[0];
-    const weakest = task?.priorities?.[0];
-    if (task?.band != null) facts.push({ label: task.task, value: String(task.band) });
-    if (weakest) facts.push({ label: 'Top priority', value: weakest.criterion });
-    suggestions.push({ message: 'What is the one change that would raise my Writing band most?' });
-    if (task?.corrections?.length)
-      suggestions.push({ message: 'Explain the corrections in my Writing feedback.' });
-  } else if (digest.kind === 'speaking') {
-    const entries = Object.entries(digest.criteria || {}).filter(([, v]) => v != null) as Array<
-      [string, number]
-    >;
-    entries.sort((a, b) => a[1] - b[1]);
-    if (entries[0])
-      facts.push({ label: 'Lowest criterion', value: `${entries[0][0]} ${entries[0][1]}` });
-    suggestions.push({ message: 'What should I practise to improve my Speaking criteria?' });
-  }
-  return { title, facts: facts.slice(0, 5), suggestions: suggestions.slice(0, 3) };
+  const band: Fact[] = digest.band != null ? [{ label: 'Band', value: String(digest.band) }] : [];
+  const parts = PREVIEW_BY_KIND[digest.kind]?.(digest) ?? { facts: [], suggestions: [] };
+  return {
+    title,
+    facts: [...band, ...parts.facts].slice(0, 5),
+    suggestions: parts.suggestions.slice(0, 3),
+  };
 }
 
 /** Progressively smaller copies of a digest, for staying inside the prompt token budget. */
