@@ -40,7 +40,6 @@ import {
   confirmCoachAction,
   deleteCoachConversation,
   executeConfirmedClientAction,
-  forgetCoachMemory,
   getCoachSourcePreview,
   loadCoachHistory,
   sendCoachMessage,
@@ -711,7 +710,6 @@ export default function AiCoach() {
   const [switchingConversation, setSwitchingConversation] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
   const [showHistorySearch, setShowHistorySearch] = useState(false);
-  const [memory, setMemory] = useState([]);
   const [streamingText, setStreamingText] = useState('');
   const [preview, setPreview] = useState(null);
   const chatScrollRef = useRef(null);
@@ -745,7 +743,6 @@ export default function AiCoach() {
           conversations: data.conversations,
           preferredLanguage: data.preferredLanguage,
         });
-        setMemory(Array.isArray(data.memory) ? data.memory : []);
         const savedDraft = takeCoachDraft();
         if (savedDraft) {
           setDraft(savedDraft.message || '');
@@ -994,15 +991,6 @@ export default function AiCoach() {
   );
   const conversationGroups = groupCoachConversations(matchingConversations);
   const viewMotion = reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.2, 0, 0, 1] };
-  const forgetMemory = async (options) => {
-    try {
-      const data = await forgetCoachMemory(options);
-      setMemory(Array.isArray(data?.memory) ? data.memory : []);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
   const prepareDraft = (message) => {
     cannedDraftRef.current = message;
     setDraft(message);
@@ -1149,61 +1137,6 @@ export default function AiCoach() {
                 {historySearch
                   ? 'No recent conversations match your search.'
                   : 'Your saved conversations will appear here.'}
-              </p>
-            )}
-          </div>
-          <div className={cn(TILE, 'mt-3 p-3')}>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
-              <span className={MICRO}>Evidence first</span>
-            </div>
-            <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-              Your coach uses completed results when they are relevant and says when evidence is
-              missing.
-            </p>
-          </div>
-          <div className={cn(TILE, 'mt-3 p-3')} aria-label="What Ava remembers">
-            <div className="flex items-center justify-between gap-2">
-              <span className={MICRO}>What Ava remembers</span>
-              {memory.length ? (
-                <button
-                  type="button"
-                  onClick={() => forgetMemory({ all: true })}
-                  className={cn(
-                    FOCUS_RING,
-                    'rounded-md text-[10px] font-bold text-slate-500 hover:text-rose-600 dark:text-slate-400'
-                  )}
-                >
-                  Forget all
-                </button>
-              ) : null}
-            </div>
-            {memory.length ? (
-              <ul className="mt-2 space-y-1.5">
-                {memory.map((note, index) => (
-                  <li
-                    key={`${note}-${index}`}
-                    className="flex items-start justify-between gap-2 text-xs leading-5 text-slate-600 dark:text-slate-300"
-                  >
-                    <span dir="auto">{note}</span>
-                    <button
-                      type="button"
-                      onClick={() => forgetMemory({ index })}
-                      aria-label={`Forget: ${note}`}
-                      className={cn(
-                        FOCUS_RING,
-                        'mt-0.5 shrink-0 rounded-md text-slate-400 hover:text-rose-600'
-                      )}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                Lasting details you share, like your exam type, will appear here. You can remove any
-                of them.
               </p>
             )}
           </div>

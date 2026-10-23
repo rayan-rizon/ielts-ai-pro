@@ -6,7 +6,6 @@ import AiCoach from '@/features/ai-coach/pages/AiCoach';
 import { COACH_DRAFT_KEY } from '@/features/ai-coach/config';
 import {
   bootstrapCoach,
-  forgetCoachMemory,
   getCoachSourcePreview,
   sendCoachMessage,
 } from '@/features/ai-coach/services/aiCoachService';
@@ -24,7 +23,6 @@ vi.mock('@/features/ai-coach/services/aiCoachService', () => ({
   deleteCoachConversation: vi.fn(),
   executeConfirmedClientAction: vi.fn(),
   getCoachSourcePreview: vi.fn(),
-  forgetCoachMemory: vi.fn(),
 }));
 
 const SESSION = '0f7d3b5e-9a52-4c1d-8d7e-3a1b2c4d5e6f';
@@ -56,7 +54,6 @@ beforeEach(() => {
     status: { enabled: true, budgetAvailable: true, remainingDailyReplies: 5 },
     preferredLanguage: 'bn',
     conversations: [],
-    memory: ['Sitting UKVI Academic', 'Prefers examples in Bangla'],
   });
   getCoachSourcePreview.mockResolvedValue({ preview });
   sendCoachMessage.mockResolvedValue({
@@ -246,37 +243,11 @@ describe('attached result summary', () => {
   });
 });
 
-describe('what Ava remembers', () => {
-  it('lists remembered facts and forgets one on request', async () => {
-    forgetCoachMemory.mockResolvedValue({ memory: ['Prefers examples in Bangla'] });
+describe('sidebar', () => {
+  it('shows saved conversations only, with no explainer cards under them', async () => {
     renderCoach();
-    const panel = await screen.findByLabelText('What Ava remembers');
-    expect(within(panel).getByText('Sitting UKVI Academic')).toBeInTheDocument();
-    fireEvent.click(within(panel).getByRole('button', { name: 'Forget: Sitting UKVI Academic' }));
-    await waitFor(() => expect(forgetCoachMemory).toHaveBeenCalledWith({ index: 0 }));
-    await waitFor(() =>
-      expect(within(panel).queryByText('Sitting UKVI Academic')).not.toBeInTheDocument()
-    );
-    expect(within(panel).getByText('Prefers examples in Bangla')).toBeInTheDocument();
-  });
-
-  it('forgets everything in one click and explains the empty state', async () => {
-    forgetCoachMemory.mockResolvedValue({ memory: [] });
-    renderCoach();
-    const panel = await screen.findByLabelText('What Ava remembers');
-    fireEvent.click(within(panel).getByRole('button', { name: 'Forget all' }));
-    await waitFor(() => expect(forgetCoachMemory).toHaveBeenCalledWith({ all: true }));
-    expect(await within(panel).findByText(/Lasting details you share/)).toBeInTheDocument();
-  });
-
-  it('copes with a server that has no memory yet', async () => {
-    bootstrapCoach.mockResolvedValueOnce({
-      status: { enabled: true, budgetAvailable: true, remainingDailyReplies: 5 },
-      preferredLanguage: 'en',
-      conversations: [],
-    });
-    renderCoach();
-    const panel = await screen.findByLabelText('What Ava remembers');
-    expect(within(panel).getByText(/Lasting details you share/)).toBeInTheDocument();
+    expect(await screen.findByText('Saved conversations')).toBeInTheDocument();
+    expect(screen.queryByText('Evidence first')).not.toBeInTheDocument();
+    expect(screen.queryByText('What Ava remembers')).not.toBeInTheDocument();
   });
 });
