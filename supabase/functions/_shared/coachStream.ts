@@ -1,4 +1,4 @@
-import { answerBreaksSafetyRules, claimNumbers } from './aiCoach.ts';
+import { answerBreaksSafetyRules, claimNumbers, restoreLineBreaks } from './aiCoach.ts';
 
 // Streams Ava's answer to the browser while the model is still writing it, without
 // giving up the checks that normally run on the finished reply.
@@ -114,7 +114,7 @@ export class CoachAnswerStreamer {
     }
     this.emittedLength = releasable;
     this.emitted = text.slice(0, releasable);
-    this.emit(segment);
+    this.emit(restoreLineBreaks(segment));
   }
 
   private start(raw: string) {

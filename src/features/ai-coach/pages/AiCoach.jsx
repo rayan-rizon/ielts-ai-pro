@@ -390,8 +390,12 @@ function inlineCoachText(text) {
     });
 }
 
+// Older replies were saved with a literal \\n where the model meant a line break.
+const restoreLineBreaks = (text) =>
+  text.includes('\\n') && !text.includes('\n') ? text.replace(/\\n/g, '\n') : text;
+
 function CoachAnswer({ content }) {
-  const clean = String(content || '')
+  const clean = restoreLineBreaks(String(content || ''))
     .replace(/\s*【[\s\S]*?(?:】|\]\.)/gu, '')
     .replace(/```(?:markdown)?|```/giu, '')
     .trim();
