@@ -13,6 +13,7 @@ import EngagementWidget from './EngagementWidget';
 import CambridgeTestsCard from './CambridgeTestsCard';
 import StudyResourcesHub from './StudyResourcesHub';
 import OnboardingCard from './OnboardingCard';
+import FeatureRequestCard from './FeatureRequestCard';
 import { FADE_UP } from './primitives';
 import PaidFeatureGate from '@/features/subscription/components/PaidFeatureGate';
 import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
@@ -65,6 +66,10 @@ export default function DashboardGrid({
 
       <m.div variants={FADE_UP}>
         <StatBand stats={stats} weeklyProgress={weeklyProgress} user={user} />
+      </m.div>
+
+      <m.div variants={FADE_UP}>
+        <FeatureRequestCard />
       </m.div>
 
       <div className="grid grid-cols-12 gap-3">
