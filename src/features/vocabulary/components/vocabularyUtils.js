@@ -7,9 +7,11 @@ const POS_RULES = [
   { test: (def) => def.startsWith('to ') || def.includes('action of'), pos: 'v.' },
 ];
 
+const POS_ABBREVIATIONS = { noun: 'n.', verb: 'v.', adjective: 'adj.', adverb: 'adv.' };
+
 export const getPartOfSpeech = (item) => {
-  const explicitPos = item?.pos || item?.part_of_speech;
-  if (explicitPos) return explicitPos;
+  const explicitPos = String(item?.pos || item?.part_of_speech || '').trim();
+  if (explicitPos) return POS_ABBREVIATIONS[explicitPos.toLowerCase()] || explicitPos.toLowerCase();
 
   const def = (item?.definition || '').toLowerCase();
   const matched = POS_RULES.find((rule) => rule.test(def));

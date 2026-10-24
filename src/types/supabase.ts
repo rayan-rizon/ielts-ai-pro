@@ -1515,9 +1515,11 @@ export type Database = {
           example: string | null;
           id: string;
           interval_days: number | null;
+          ipa: string | null;
           last_reviewed: string | null;
           mastery_level: number | null;
           next_review_date: string | null;
+          part_of_speech: string | null;
           source: string | null;
           synonyms: string[] | null;
           times_reviewed: number | null;
@@ -1533,9 +1535,11 @@ export type Database = {
           example?: string | null;
           id?: string;
           interval_days?: number | null;
+          ipa?: string | null;
           last_reviewed?: string | null;
           mastery_level?: number | null;
           next_review_date?: string | null;
+          part_of_speech?: string | null;
           source?: string | null;
           synonyms?: string[] | null;
           times_reviewed?: number | null;
@@ -1551,9 +1555,11 @@ export type Database = {
           example?: string | null;
           id?: string;
           interval_days?: number | null;
+          ipa?: string | null;
           last_reviewed?: string | null;
           mastery_level?: number | null;
           next_review_date?: string | null;
+          part_of_speech?: string | null;
           source?: string | null;
           synonyms?: string[] | null;
           times_reviewed?: number | null;

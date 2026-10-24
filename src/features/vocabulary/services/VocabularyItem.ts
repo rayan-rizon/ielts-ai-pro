@@ -19,6 +19,12 @@ interface ListResult {
   count: number;
 }
 
+// 42703: Postgres undefined_column. PGRST204: PostgREST schema cache has no such column.
+const OPTIONAL_COLUMN_ERROR_CODES = new Set(['42703', 'PGRST204']);
+
+const hasOptionalColumns = (data: Partial<VocabularyItemType>) =>
+  'part_of_speech' in data || 'ipa' in data;
+
 export const VocabularyItem = {
   /**
    * List vocabulary items with optional pagination
@@ -113,11 +119,18 @@ export const VocabularyItem = {
   },
 
   async create(data: Partial<VocabularyItemType>): Promise<VocabularyItemType> {
-    const { data: newItem, error } = await supabase
-      .from('vocabulary_items')
-      .insert(data)
-      .select()
-      .single();
+    const insert = (row: Partial<VocabularyItemType>) =>
+      supabase.from('vocabulary_items').insert(row).select().single();
+
+    let { data: newItem, error } = await insert(data);
+
+    // part_of_speech and ipa arrive with a migration. If the client is deployed
+    // first, an unknown column must not make Save Word fail, so retry without them.
+    if (error && OPTIONAL_COLUMN_ERROR_CODES.has(error.code) && hasOptionalColumns(data)) {
+      const { part_of_speech: _pos, ipa: _ipa, ...rest } = data;
+      ({ data: newItem, error } = await insert(rest));
+    }
+
     if (error) throw error;
     return newItem as VocabularyItemType;
   },

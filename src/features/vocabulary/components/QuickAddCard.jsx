@@ -59,6 +59,8 @@ export default function QuickAddCard({
   const [newWord, setNewWord] = useState('');
   const [newDefinition, setNewDefinition] = useState('');
   const [newExample, setNewExample] = useState('');
+  // Looked up together with the meaning; saved so the list can show them later.
+  const [lookupMeta, setLookupMeta] = useState({ partOfSpeech: '', ipa: '' });
   const [isEditingMeaning, setIsEditingMeaning] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Academic');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -72,7 +74,6 @@ export default function QuickAddCard({
     fetchWordDetails: fetchDefinition,
     isFetchingDef,
     error: definitionError,
-    wordData,
     clearWordData: clearDefinitionLookup,
   } = useWordDefinition();
 
@@ -101,10 +102,7 @@ export default function QuickAddCard({
       const details = await fetchDefinition(word);
       if (!isCurrentLookup || !details || !hasMeaning(details.definition)) return;
 
-      if (!definitionEditedRef.current) {
-        setNewDefinition(details.definition);
-        setNewExample(details.example || '');
-      }
+      if (!definitionEditedRef.current) applyLookup(details);
     }, 400);
 
     return () => {
@@ -113,10 +111,21 @@ export default function QuickAddCard({
     };
   }, [newWord, fetchDefinition]);
 
-  const handleSelectSuggestion = (word) => {
-    setNewWord(word);
+  const applyLookup = (details) => {
+    setNewDefinition(details.definition);
+    setNewExample(details.example || '');
+    setLookupMeta({ partOfSpeech: details.partOfSpeech || '', ipa: details.phonetic || '' });
+  };
+
+  const resetLookup = () => {
     setNewDefinition('');
     setNewExample('');
+    setLookupMeta({ partOfSpeech: '', ipa: '' });
+  };
+
+  const handleSelectSuggestion = (word) => {
+    setNewWord(word);
+    resetLookup();
     setIsEditingMeaning(false);
     definitionEditedRef.current = false;
     clearDefinitionLookup();
@@ -145,6 +154,7 @@ export default function QuickAddCard({
 
     let finalDefinition = newDefinition.trim();
     let finalExample = newExample.trim();
+    let finalMeta = lookupMeta;
 
     if (!finalDefinition) {
       try {
@@ -152,6 +162,7 @@ export default function QuickAddCard({
         if (hasMeaning(details?.definition)) {
           finalDefinition = details.definition;
           finalExample = details.example || '';
+          finalMeta = { partOfSpeech: details.partOfSpeech || '', ipa: details.phonetic || '' };
         }
       } catch (e) {
         console.error('[Vocab] Fetch definition error', e);
@@ -176,13 +187,14 @@ export default function QuickAddCard({
       word: newWord.trim(),
       definition: finalDefinition,
       example: finalExample,
+      partOfSpeech: finalMeta.partOfSpeech,
+      ipa: finalMeta.ipa,
       source: selectedCategory,
     });
 
     if (result === true || result?.success === true) {
       setNewWord('');
-      setNewDefinition('');
-      setNewExample('');
+      resetLookup();
       setIsEditingMeaning(false);
       definitionEditedRef.current = false;
       clearDefinitionLookup();
@@ -241,8 +253,7 @@ export default function QuickAddCard({
               value={newWord}
               onChange={(e) => {
                 definitionEditedRef.current = false;
-                setNewDefinition('');
-                setNewExample('');
+                resetLookup();
                 clearDefinitionLookup();
                 setNewWord(e.target.value);
                 setShowSuggestions(true);
@@ -277,8 +288,7 @@ export default function QuickAddCard({
                 onClick={async () => {
                   const details = await fetchDefinition(newWord.trim());
                   if (hasMeaning(details?.definition) && !definitionEditedRef.current) {
-                    setNewDefinition(details.definition);
-                    setNewExample(details.example || '');
+                    applyLookup(details);
                   }
                 }}
                 disabled={isFetchingDef || !newWord.trim()}
@@ -322,8 +332,8 @@ export default function QuickAddCard({
             <div className="flex items-center gap-2">
               <BookOpen className="h-3.5 w-3.5 text-[#5a63df]" />
               <span className={cn(MICRO, 'text-slate-500 dark:text-slate-400')}>Meaning</span>
-              {hasMeaning(newDefinition) && wordData?.partOfSpeech && (
-                <Pill className="text-[8px]">{wordData.partOfSpeech}</Pill>
+              {hasMeaning(newDefinition) && lookupMeta.partOfSpeech && (
+                <Pill className="text-[8px]">{lookupMeta.partOfSpeech}</Pill>
               )}
             </div>
             {newWord.trim() && (

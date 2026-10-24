@@ -1,6 +1,35 @@
 const DICTIONARY_API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 const DATAMUSE_API_URL = 'https://api.datamuse.com/words';
 const PROVIDER_TIMEOUT_MS = 4500;
+const MAX_CACHED_DEFINITIONS = 250;
+const DEFINITION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Quick Add looks a word up on every typing pause and Reading on every tap, so the
+// same headword was re-fetched from two free, rate-limited providers each time.
+// Only successful lookups are stored: a miss or timeout must stay retryable.
+const definitionCache = new Map();
+
+function readCachedDefinition(key) {
+  const entry = definitionCache.get(key);
+  if (!entry) return null;
+  definitionCache.delete(key);
+  if (entry.expiresAt <= Date.now()) return null;
+  // Re-insert so the Map's order tracks recency and the oldest entry is evicted first.
+  definitionCache.set(key, entry);
+  return entry.value;
+}
+
+function cacheDefinition(key, value) {
+  definitionCache.delete(key);
+  if (definitionCache.size >= MAX_CACHED_DEFINITIONS) {
+    definitionCache.delete(definitionCache.keys().next().value);
+  }
+  definitionCache.set(key, { value, expiresAt: Date.now() + DEFINITION_CACHE_TTL_MS });
+}
+
+export function clearDefinitionCache() {
+  definitionCache.clear();
+}
 
 export function isUsableDefinition(definition) {
   return (
@@ -172,6 +201,10 @@ async function fetchJson(url, parentSignal, timeoutMs) {
 }
 
 export async function fetchFastDefinition(word, signal) {
+  const cacheKey = word.trim().toLowerCase();
+  const cached = readCachedDefinition(cacheKey);
+  if (cached) return cached;
+
   const lookupController = new AbortController();
   const abortLookup = () => lookupController.abort();
   if (signal.aborted) abortLookup();
@@ -199,7 +232,9 @@ export async function fetchFastDefinition(word, signal) {
 
   try {
     // A slow primary lookup must not block a faster fallback response.
-    return await Promise.any([primary, fallback]);
+    const result = await Promise.any([primary, fallback]);
+    cacheDefinition(cacheKey, result);
+    return result;
   } finally {
     lookupController.abort();
     signal.removeEventListener('abort', abortLookup);

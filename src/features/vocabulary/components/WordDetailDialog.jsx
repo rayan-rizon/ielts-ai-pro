@@ -16,6 +16,7 @@ import {
   getLanguageName,
 } from '@/features/vocabulary/services/translateService';
 import { playPronunciation } from '../utils/audioUtils';
+import { getPartOfSpeech } from './vocabularyUtils';
 import { TILE } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 
@@ -54,9 +55,9 @@ const WordHeader = ({ viewingWord }) => {
         </div>
 
         <div className="flex items-center gap-2.5 font-mono text-xs text-indigo-100/90">
-          <span>{viewingWord.ipa || `/${viewingWord.word}/`}</span>
+          {viewingWord.ipa && <span>{viewingWord.ipa}</span>}
           <span className="rounded bg-white/15 px-2 py-0.5 font-sans text-[9px] font-bold uppercase tracking-wider">
-            {viewingWord.pos || 'Word'}
+            {getPartOfSpeech(viewingWord)}
           </span>
         </div>
 

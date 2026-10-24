@@ -2,6 +2,7 @@ import { act, render, renderHook, screen, waitFor } from '@testing-library/react
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import WordDefinitionPopover from '@/features/testing/reading/components/WordDefinitionPopover';
 import { useWordDefinition } from '@/features/testing/reading/components/ReadingTest/hooks/useWordDefinition';
+import { clearDefinitionCache } from '@/features/vocabulary/utils/dictionaryLookup';
 import { requestReadingAssistance } from '@/features/testing/reading/services/readingAiService';
 
 vi.mock('@/features/testing/reading/services/readingAiService', () => ({
@@ -18,6 +19,7 @@ vi.mock('@/features/vocabulary/services/VocabularyItem', () => ({
 
 describe('reading word definitions', () => {
   afterEach(() => {
+    clearDefinitionCache();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.useRealTimers();

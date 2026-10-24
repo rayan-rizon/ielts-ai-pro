@@ -7,31 +7,7 @@ import {
 } from '@/features/vocabulary/utils/dictionaryLookup';
 import { requestReadingAssistance } from '@/features/testing/reading/services/readingAiService';
 
-// Simple in-memory cache for word definitions to prevent redundant API calls
-const definitionCache = new Map();
-const MAX_DEFINITION_CACHE_ENTRIES = 250;
-const DEFINITION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const CONTEXTUAL_LOOKUP_DEADLINE_MS = 20000;
-
-function readCachedDefinition(word) {
-  const entry = definitionCache.get(word);
-  if (!entry) return null;
-  if (entry.expiresAt <= Date.now()) {
-    definitionCache.delete(word);
-    return null;
-  }
-  definitionCache.delete(word);
-  definitionCache.set(word, entry);
-  return entry.value;
-}
-
-function cacheDefinition(word, value) {
-  definitionCache.delete(word);
-  if (definitionCache.size >= MAX_DEFINITION_CACHE_ENTRIES) {
-    definitionCache.delete(definitionCache.keys().next().value);
-  }
-  definitionCache.set(word, { value, expiresAt: Date.now() + DEFINITION_CACHE_TTL_MS });
-}
 
 export const useWordDefinition = (
   user,
@@ -131,20 +107,16 @@ export const useWordDefinition = (
           // The AI may finish while the dictionary is still in flight.
         }
 
-        let result = readCachedDefinition(cleanWord);
-        if (!result) {
-          const details = await fetchFastDefinition(cleanWord, controller.signal);
-          result = {
-            word: cleanWord,
-            definition: details.definition,
-            pronunciation: details.phonetic,
-            audio: details.audio,
-            example: details.example,
-            synonyms: details.synonyms || [],
-            part_of_speech: details.partOfSpeech,
-          };
-          cacheDefinition(cleanWord, result);
-        }
+        const details = await fetchFastDefinition(cleanWord, controller.signal);
+        const result = {
+          word: cleanWord,
+          definition: details.definition,
+          pronunciation: details.phonetic,
+          audio: details.audio,
+          example: details.example,
+          synonyms: details.synonyms || [],
+          part_of_speech: details.partOfSpeech,
+        };
         if (isCurrent() && !contextualApplied) {
           updateWordDefinition((prev) => ({ ...prev, ...result, contextual: false, error: false }));
         }
@@ -194,8 +166,10 @@ export const useWordDefinition = (
         const createdVocabulary = await VocabularyItem.create({
           user_id: user.id,
           word: wordData.word,
-          definition: `${wordData.part_of_speech ? `(${wordData.part_of_speech}) ` : ''}${wordData.definition}`,
+          definition: wordData.definition,
           example: wordData.example,
+          part_of_speech: wordData.part_of_speech || null,
+          ipa: wordData.pronunciation || null,
           synonyms: Array.isArray(wordData.synonyms)
             ? wordData.synonyms
             : wordData.synonyms
