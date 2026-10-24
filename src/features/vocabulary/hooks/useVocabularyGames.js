@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 
+import { pickDistractors } from '../utils/vocabCard';
+
 export const playableWords = (words) =>
   words.filter(
     (item) =>
@@ -30,12 +32,9 @@ export function useSpeedQuiz({ allVocabulary }) {
     const questions = quizWords
       .filter((word) => word && word.word)
       .map((word) => {
-        // Get wrong answers from other words
-        const otherWords = words.filter((w) => w.id !== word.id);
-        const wrongAnswers = otherWords
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3)
-          .map((w) => w.definition);
+        // Wrong answers prefer the same part of speech, so the right one cannot be
+        // spotted from its grammar alone.
+        const wrongAnswers = pickDistractors(word, words, 3);
 
         const options = [...wrongAnswers, word.definition].sort(() => Math.random() - 0.5);
 

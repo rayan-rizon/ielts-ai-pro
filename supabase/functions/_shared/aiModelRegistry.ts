@@ -190,6 +190,14 @@ export const AI_COACH_FALLBACK_MODEL = 'openai/gpt-6-luna';
 // registered rates, below the $0.005 per-request reservation in ai_coach settings.
 export const AI_COACH_MAX_OUTPUT_TOKENS = 1_800;
 
+// Vocabulary cards write Bangla and other learner languages, which is the work
+// Reading Translate keeps on 120B, so the same chain applies here.
+export const VOCAB_DEFINE_PRIMARY_MODEL = READING_ASSISTANT_PRIMARY_MODEL;
+export const VOCAB_DEFINE_LUNA_FALLBACK_MODEL = READING_ASSISTANT_LUNA_FALLBACK_MODEL;
+export const VOCAB_DEFINE_DEEPSEEK_FALLBACK_MODEL = READING_ASSISTANT_DEEPSEEK_FALLBACK_MODEL;
+export const VOCAB_DEFINE_GLM_FALLBACK_MODEL = READING_ASSISTANT_GLM_FALLBACK_MODEL;
+export const VOCAB_DEFINE_MAX_OUTPUT_TOKENS = 900;
+
 export function readingAssistantPrimaryModel(action: string) {
   return action === 'dictionary' || action === 'simplify'
     ? READING_ASSISTANT_FAST_MODEL
@@ -438,6 +446,38 @@ export const AI_ROUTES: AiRoute[] = [
     ],
     notes:
       'Dictionary sends the selected word with its own sentence and caches on that pair, shared by every learner. Exam mode is server-blocked; completed review is allowed. Dictionary/Simplify use GPT OSS 20B -> GPT OSS 120B -> Luna -> DeepSeek -> GLM. Translate/Breakdown use GPT OSS 120B -> Luna -> DeepSeek -> GLM. Every attempt in the chain is billed, so rejected answers are charged to the daily budget too.',
+  },
+  {
+    id: 'vocab-define',
+    surface:
+      'Vocabulary: AI word card (meaning, Bangla, IPA, examples) for Quick Add and enrichment',
+    file: 'supabase/functions/vocab-define/index.ts',
+    maxOutputTokens: VOCAB_DEFINE_MAX_OUTPUT_TOKENS,
+    timeoutMs: 8000,
+    steps: [
+      {
+        model: VOCAB_DEFINE_PRIMARY_MODEL,
+        role: 'primary',
+        when: 'GPT OSS 120B through OpenRouter with low reasoning and the validated JSON contract. Bengali and other non-Latin scripts are checked on output.',
+      },
+      {
+        model: VOCAB_DEFINE_LUNA_FALLBACK_MODEL,
+        role: 'fallback',
+        when: '120B is unavailable or returns an invalid card (including a translation in the wrong script).',
+      },
+      {
+        model: VOCAB_DEFINE_DEEPSEEK_FALLBACK_MODEL,
+        role: 'fallback',
+        when: '120B and Luna are unavailable or invalid.',
+      },
+      {
+        model: VOCAB_DEFINE_GLM_FALLBACK_MODEL,
+        role: 'fallback',
+        when: 'All earlier providers are unavailable or invalid; GLM with low reasoning is the last resort.',
+      },
+    ],
+    notes:
+      'One card per word, learner language (any of the 24 the Vocabulary page offers) and saved sense, cached in ai_feedback_cache for 90 days and shared by every learner. Limits live in vocab_assistant_private.settings: 12 requests/min, 25 (Free) or 150 (Pro/Premium) fresh generations per UTC day, 400 cache hits per day, 2 concurrent, and a shared USD 3 daily budget that pauses new generation but still serves cached cards. IPA prefers a real dictionary phonetic over the model. Every attempt in the chain is billed, so rejected answers are charged to the budget too.',
   },
   {
     id: 'skill-lab-transcription',

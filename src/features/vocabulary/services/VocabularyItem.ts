@@ -22,8 +22,17 @@ interface ListResult {
 // 42703: Postgres undefined_column. PGRST204: PostgREST schema cache has no such column.
 const OPTIONAL_COLUMN_ERROR_CODES = new Set(['42703', 'PGRST204']);
 
+const OPTIONAL_COLUMNS = [
+  'part_of_speech',
+  'ipa',
+  'level',
+  'translations',
+  'details',
+  'enriched_at',
+] as const;
+
 const hasOptionalColumns = (data: Partial<VocabularyItemType>) =>
-  'part_of_speech' in data || 'ipa' in data;
+  OPTIONAL_COLUMNS.some((column) => column in data);
 
 export const VocabularyItem = {
   /**
@@ -124,10 +133,11 @@ export const VocabularyItem = {
 
     let { data: newItem, error } = await insert(data);
 
-    // part_of_speech and ipa arrive with a migration. If the client is deployed
-    // first, an unknown column must not make Save Word fail, so retry without them.
+    // These columns arrive with migrations. If the client is deployed first, an
+    // unknown column must not make Save Word fail, so retry without them.
     if (error && OPTIONAL_COLUMN_ERROR_CODES.has(error.code) && hasOptionalColumns(data)) {
-      const { part_of_speech: _pos, ipa: _ipa, ...rest } = data;
+      const rest = { ...data };
+      for (const column of OPTIONAL_COLUMNS) delete rest[column];
       ({ data: newItem, error } = await insert(rest));
     }
 

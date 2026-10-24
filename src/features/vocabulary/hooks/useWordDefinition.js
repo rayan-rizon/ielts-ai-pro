@@ -1,95 +1,132 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-import { fetchFastDefinition } from '../utils/dictionaryLookup';
+import { defineWord, getBlockedSeconds, VocabDefineError } from '../services/vocabDefineService';
 
-const LOOKUP_TIMEOUT_MS = 7000;
+const WAIT_KINDS = new Set(['quota', 'burst', 'busy', 'budget']);
+const BUDGET_RETRY_SECONDS = 300;
 
 /**
- * Custom hook for fetching word definitions from dictionary API
+ * Looks a word up as an AI word card (meaning, translation, IPA, examples...).
+ *
+ * `status` is idle | loading | ready | error. A refusal that means "wait"
+ * (rate limit, daily allowance) is exposed as `retryIn` seconds that counts down,
+ * so the UI can disable the button and say when it comes back instead of letting
+ * the learner hammer it.
  */
 export function useWordDefinition() {
-  const [isFetchingDef, setIsFetchingDef] = useState(false);
-  const [wordData, setWordData] = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [card, setCard] = useState(null);
   const [error, setError] = useState(null);
-  const requestRef = useRef(null);
+  const [quota, setQuota] = useState({ remaining: null, resetsAt: null });
+  const [retryUntil, setRetryUntil] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   const requestIdRef = useRef(0);
+  const controllerRef = useRef(null);
 
   useEffect(
     () => () => {
       requestIdRef.current += 1;
-      requestRef.current?.controller.abort();
+      controllerRef.current?.abort();
     },
     []
   );
 
-  const fetchWordDetails = useCallback(async (word) => {
-    const trimmed = (word || '').trim();
-    if (!trimmed) return null;
+  const retryIn = Math.max(0, Math.ceil((retryUntil - now) / 1000));
 
-    const normalizedWord = trimmed.toLowerCase();
-    if (requestRef.current?.word === normalizedWord) return requestRef.current.promise;
+  // Tick only while a wait is running.
+  useEffect(() => {
+    if (retryUntil <= Date.now()) return undefined;
+    const timer = setInterval(() => {
+      setNow(Date.now());
+      if (Date.now() >= retryUntil)
+        setError((current) => (current?.kind === 'budget' ? current : null));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [retryUntil]);
 
-    requestRef.current?.controller.abort();
+  const lookup = useCallback(async (word, { hint = '', language = 'bn' } = {}) => {
+    const entry = (word || '').trim();
+    if (!entry) return null;
+
+    controllerRef.current?.abort();
     const controller = new AbortController();
+    controllerRef.current = controller;
     const requestId = ++requestIdRef.current;
-    const timeoutId = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
+    const isCurrent = () => requestId === requestIdRef.current;
 
-    setIsFetchingDef(true);
+    setStatus('loading');
     setError(null);
-
-    const promise = (async () => {
-      try {
-        const result = await fetchFastDefinition(trimmed, controller.signal);
-        if (requestId !== requestIdRef.current) return null;
-        setWordData(result);
-        return result;
-      } catch {
-        if (requestId === requestIdRef.current) {
-          setError('No definition found. Enter the meaning manually.');
-        }
-        return null;
-      } finally {
-        clearTimeout(timeoutId);
-        if (requestId === requestIdRef.current) {
-          setIsFetchingDef(false);
-          requestRef.current = null;
-        }
+    try {
+      const result = await defineWord(entry, { hint, language, signal: controller.signal });
+      if (!isCurrent()) return null;
+      setCard(result.card);
+      setStatus('ready');
+      setQuota({ remaining: result.remainingDailyQuota, resetsAt: result.quotaResetsAt });
+      return result.card;
+    } catch (caught) {
+      if (!isCurrent() || caught?.name === 'AbortError') return null;
+      const mapped =
+        caught instanceof VocabDefineError
+          ? caught
+          : new VocabDefineError('unavailable', 'AI lookup is unavailable right now.');
+      setCard(null);
+      setError(mapped);
+      setStatus('error');
+      if (mapped.kind === 'quota') setQuota({ remaining: 0, resetsAt: mapped.quotaResetsAt });
+      if (WAIT_KINDS.has(mapped.kind)) {
+        const seconds =
+          mapped.kind === 'budget'
+            ? BUDGET_RETRY_SECONDS
+            : Math.max(getBlockedSeconds(), mapped.retryAfterSeconds || 0);
+        setNow(Date.now());
+        setRetryUntil(Date.now() + seconds * 1000);
       }
-    })();
-
-    requestRef.current = { word: normalizedWord, controller, promise };
-    return promise;
+      return null;
+    }
   }, []);
 
-  const clearWordData = useCallback(() => {
+  const clear = useCallback(() => {
     requestIdRef.current += 1;
-    requestRef.current?.controller.abort();
-    requestRef.current = null;
-    setIsFetchingDef(false);
-    setWordData(null);
+    controllerRef.current?.abort();
+    setStatus('idle');
+    setCard(null);
     setError(null);
   }, []);
 
   return {
-    isFetchingDef,
-    wordData,
+    status,
+    isLooking: status === 'loading',
+    card,
     error,
-    fetchWordDetails,
-    clearWordData,
+    quota,
+    retryIn,
+    lookup,
+    clear,
   };
 }
 
+const SUGGESTION_CACHE_LIMIT = 200;
+const suggestionCache = new Map();
+
 async function fetchSuggestionsFromAPI(query, signal) {
+  const key = query.toLowerCase();
+  if (suggestionCache.has(key)) return suggestionCache.get(key);
   const response = await fetch(
     `https://api.datamuse.com/sug?s=${encodeURIComponent(query)}&max=5`,
     { signal }
   );
   if (!response.ok) throw new Error('Network response was not ok');
-  return response.json();
+  const data = await response.json();
+  if (suggestionCache.size >= SUGGESTION_CACHE_LIMIT) {
+    suggestionCache.delete(suggestionCache.keys().next().value);
+  }
+  suggestionCache.set(key, data);
+  return data;
 }
 
 /**
- * Custom hook for word suggestions/autocomplete
+ * Autocomplete and spelling check for the word box. Datamuse only suggests
+ * spellings here; every meaning shown to the learner comes from the AI card.
  */
 export function useWordSuggestions() {
   const [suggestions, setSuggestions] = useState([]);

@@ -59,7 +59,13 @@ const VocabularyTableView = ({
   </div>
 );
 
-const VocabularyCardGrid = ({ displayedWords, onViewWord, onToggleMastery, onDeleteWord }) => (
+const VocabularyCardGrid = ({
+  displayedWords,
+  onViewWord,
+  onToggleMastery,
+  onDeleteWord,
+  targetLanguage,
+}) => (
   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {displayedWords.map((item) => (
       <VocabularyCardItem
@@ -68,6 +74,7 @@ const VocabularyCardGrid = ({ displayedWords, onViewWord, onToggleMastery, onDel
         onViewWord={onViewWord}
         onToggleMastery={onToggleMastery}
         onDeleteWord={onDeleteWord}
+        targetLanguage={targetLanguage}
       />
     ))}
 
@@ -175,6 +182,7 @@ export default function VocabularyList({
               onViewWord={onViewWord}
               onToggleMastery={onToggleMastery}
               onDeleteWord={onDeleteWord}
+              targetLanguage={targetLanguage}
             />
           )}
         </m.div>

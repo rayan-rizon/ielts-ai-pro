@@ -13,7 +13,7 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddWord = useCallback(
-    async ({ word, definition, example, partOfSpeech, ipa, source = 'Manual' }) => {
+    async ({ word, definition, example, fields = {}, source = 'Manual' }) => {
       if (!word.trim()) return { success: false, error: 'Word is required' };
 
       // Check limit
@@ -31,11 +31,12 @@ export function useVocabularyMutations({ user, allVocabulary, setAllVocabulary }
       setIsAdding(true);
       try {
         const newItem = await VocabularyItem.create({
+          // AI word-card columns (part of speech, IPA, translations, ...) come first so
+          // the learner's own word, definition and example always win.
+          ...fields,
           word: word.trim(),
           definition: definition || '',
           example: example || '',
-          part_of_speech: partOfSpeech || null,
-          ipa: ipa || null,
           user_id: user?.id,
           created_by: user?.id,
           mastery_level: 0,

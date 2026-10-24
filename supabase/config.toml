@@ -385,6 +385,9 @@ verify_jwt = true
 [functions.reading-assistant]
 verify_jwt = true
 
+[functions.vocab-define]
+verify_jwt = true
+
 [functions.ai-coach]
 verify_jwt = true
 

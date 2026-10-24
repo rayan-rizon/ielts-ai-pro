@@ -8,6 +8,10 @@ export interface Language {
 
 export type LanguageCode = string;
 
+// The product's largest signup market reads Bangla, so a learner who has not
+// chosen a language sees it. Choosing English turns the extra line off.
+export const DEFAULT_LANGUAGE: LanguageCode = 'bn';
+
 // Supported languages (commonly used)
 export const SUPPORTED_LANGUAGES: Language[] = [
   { code: 'en', name: 'English' },
@@ -18,11 +22,16 @@ export const SUPPORTED_LANGUAGES: Language[] = [
   { code: 'pt', name: 'Portuguese' },
   { code: 'ru', name: 'Russian' },
   { code: 'zh-CN', name: 'Chinese' },
+  { code: 'zh-TW', name: 'Traditional Chinese' },
   { code: 'ja', name: 'Japanese' },
   { code: 'ko', name: 'Korean' },
   { code: 'ar', name: 'Arabic' },
   { code: 'hi', name: 'Hindi' },
-  { code: 'bn', name: 'Bengali' },
+  { code: 'bn', name: 'Bangla' },
+  { code: 'ur', name: 'Urdu' },
+  { code: 'fa', name: 'Persian' },
+  { code: 'uz', name: 'Uzbek' },
+  { code: 'tl', name: 'Filipino' },
   { code: 'tr', name: 'Turkish' },
   { code: 'vi', name: 'Vietnamese' },
   { code: 'th', name: 'Thai' },
@@ -195,25 +204,78 @@ async function fetchFromMyMemory(
   return text;
 }
 
+const LANGUAGE_STORAGE_KEY = 'vocabularyTargetLanguage';
+const languageListeners = new Set<() => void>();
+
+const isSupportedLanguage = (code: string | null | undefined): code is LanguageCode =>
+  Boolean(code) && SUPPORTED_LANGUAGES.some((language) => language.code === code);
+
+// Browser tags the supported list spells differently.
+const BROWSER_LANGUAGE_ALIASES: Record<string, LanguageCode> = {
+  zh: 'zh-CN',
+  'zh-hans': 'zh-CN',
+  'zh-hant': 'zh-TW',
+  'zh-tw': 'zh-TW',
+  'zh-hk': 'zh-TW',
+  fil: 'tl',
+  in: 'id',
+};
+
+/**
+ * The language to start in when the learner has not chosen one: their browser's
+ * own language if it is one we support, otherwise Bangla. English is never picked
+ * for them, because a learner reading English needs no second line.
+ */
+export function detectDefaultLanguage(): LanguageCode {
+  if (typeof navigator === 'undefined') return DEFAULT_LANGUAGE;
+  for (const tag of navigator.languages?.length ? navigator.languages : [navigator.language]) {
+    const lower = String(tag || '').toLowerCase();
+    const primary = lower.split('-')[0];
+    const match =
+      BROWSER_LANGUAGE_ALIASES[lower] ||
+      SUPPORTED_LANGUAGES.find((language) => language.code.toLowerCase() === lower)?.code ||
+      BROWSER_LANGUAGE_ALIASES[primary] ||
+      SUPPORTED_LANGUAGES.find((language) => language.code.toLowerCase() === primary)?.code;
+    if (match && match !== 'en') return match;
+  }
+  return DEFAULT_LANGUAGE;
+}
+
 /**
  * Get saved language preference
  * @returns Language code
  */
 export function getSavedLanguage(): LanguageCode {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('vocabularyTargetLanguage') || 'en';
+    try {
+      const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (isSupportedLanguage(saved)) return saved;
+    } catch {
+      // Blocked storage falls through to the detected language.
+    }
   }
-  return 'en';
+  return detectDefaultLanguage();
 }
 
 /**
- * Save language preference
+ * Save language preference and tell every open vocabulary component, so the
+ * Quick Add card, the word list and the review cards switch together.
  * @param langCode - Language code to save
  */
 export function saveLanguagePreference(langCode: LanguageCode): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('vocabularyTargetLanguage', langCode);
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, langCode);
+    } catch {
+      // The choice still applies for this visit.
+    }
   }
+  languageListeners.forEach((listener) => listener());
+}
+
+export function subscribeLanguage(listener: () => void): () => void {
+  languageListeners.add(listener);
+  return () => languageListeners.delete(listener);
 }
 
 /**

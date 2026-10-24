@@ -1,61 +1,32 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Trash2, Languages, Volume2, Eye } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import {
-  translateText,
-  getCachedTranslation,
-} from '@/features/vocabulary/services/translateService';
 import { playPronunciation } from '../utils/audioUtils';
+import { getItemTranslation } from '../utils/vocabCard';
 import { getPartOfSpeech, getMemoryStrength } from './vocabularyUtils';
 
-const useWordTranslation = (definition, targetLanguage) => {
-  const [translatedDef, setTranslatedDef] = useState('');
-  const [isTranslating, setIsTranslating] = useState(false);
-
-  useEffect(() => {
-    if (!targetLanguage || targetLanguage === 'en') {
-      setTranslatedDef('');
-      return;
-    }
-
-    const cached = getCachedTranslation(definition || '', targetLanguage, 'en');
-    if (cached) {
-      setTranslatedDef(cached);
-      return;
-    }
-
-    setIsTranslating(true);
-    translateText(definition || '', targetLanguage, 'en')
-      .then((translated) => setTranslatedDef(translated))
-      .catch(() => setTranslatedDef(''))
-      .finally(() => setIsTranslating(false));
-  }, [definition, targetLanguage]);
-
-  return { translatedDef, isTranslating };
-};
-
-const DefinitionCell = ({ definition, targetLanguage }) => {
-  const { translatedDef, isTranslating } = useWordTranslation(definition, targetLanguage);
-  const showTranslation = targetLanguage && targetLanguage !== 'en';
+const DefinitionCell = ({ item, targetLanguage }) => {
+  // The AI card stores the meaning in the learner's language; nothing is
+  // machine-translated on the fly, so a word without it shows no second line.
+  const translatedDef = getItemTranslation(item, targetLanguage)?.meaning;
 
   return (
     <td className="px-4 py-3.5">
       <div className="max-w-lg space-y-1">
         <p className="text-xs font-medium leading-relaxed text-slate-800 dark:text-slate-200 sm:text-sm">
-          {definition}
+          {item.definition}
         </p>
-        {showTranslation && (
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <Languages className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
-            {isTranslating ? (
-              <span className="animate-pulse text-xs italic text-[#5a63df]">Translating...</span>
-            ) : translatedDef ? (
-              <span className="line-clamp-1 rounded-md bg-[#5a63df]/10 px-2 py-0.5 text-xs font-semibold text-[#5a63df] dark:bg-indigo-950/40 dark:text-indigo-300">
-                {translatedDef}
-              </span>
-            ) : null}
+        {translatedDef && (
+          <div className="flex items-start gap-1.5 pt-0.5">
+            <Languages className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
+            <span
+              lang={targetLanguage}
+              className="line-clamp-2 rounded-md bg-[#5a63df]/10 px-2 py-0.5 text-xs font-semibold text-[#5a63df] dark:bg-indigo-950/40 dark:text-indigo-300"
+            >
+              {translatedDef}
+            </span>
           </div>
         )}
       </div>
@@ -177,7 +148,7 @@ export const VocabularyTableRow = memo(
               >
                 {item.word}
               </span>
-              <span className="font-mono text-xs font-semibold text-slate-600 dark:text-slate-300">
+              <span className="font-sans text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {item.ipa || ''}
               </span>
             </div>
@@ -193,7 +164,7 @@ export const VocabularyTableRow = memo(
           </Badge>
         </td>
 
-        <DefinitionCell definition={item.definition} targetLanguage={targetLanguage} />
+        <DefinitionCell item={item} targetLanguage={targetLanguage} />
 
         <td className="px-3 py-3.5">
           <Badge

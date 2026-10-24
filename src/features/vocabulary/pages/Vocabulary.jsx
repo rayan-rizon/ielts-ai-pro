@@ -1,6 +1,15 @@
 import React, { Suspense, lazy, useState, useEffect, useMemo, useRef } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Search, BookOpen, MoreVertical, Trash2, AlertCircle, Languages } from 'lucide-react';
+import {
+  Search,
+  BookOpen,
+  MoreVertical,
+  Trash2,
+  AlertCircle,
+  Languages,
+  Sparkles,
+  Loader2,
+} from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 
 import { Button } from '@/components/ui/button';
@@ -26,8 +35,9 @@ import WordDetailDialog from '@/features/vocabulary/components/WordDetailDialog'
 
 import {
   SUPPORTED_LANGUAGES,
-  saveLanguagePreference,
+  getLanguageName,
 } from '@/features/vocabulary/services/translateService';
+import { needsEnrichment } from '@/features/vocabulary/utils/vocabCard';
 import { generateAdaptiveLearningPath } from '@/utils/api';
 import { completeVocabularyLearningActivity } from '@/features/vocabulary/services/vocabularyRetention';
 import {
@@ -36,6 +46,9 @@ import {
   useSpeedQuiz,
   useMatchPairs,
   useVocabularyData,
+  useVocabularyEnrichment,
+  useVocabularyLanguage,
+  ENRICH_BATCH_SIZE,
 } from '@/features/vocabulary/hooks';
 import { IconChip, MUTED, PANEL, Pill } from '@/features/dashboard/components/primitives';
 
@@ -159,6 +172,7 @@ const PersonalWordBank = ({
   handleToggleMastery,
   handleDeleteWord,
   handleLoadMore,
+  enrichment,
 }) => (
   <div className={cn(PANEL, 'space-y-4 p-4 sm:p-5')}>
     <div className="flex flex-col gap-3">
@@ -186,13 +200,7 @@ const PersonalWordBank = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Select
-            value={targetLanguage}
-            onValueChange={(val) => {
-              setTargetLanguage(val);
-              saveLanguagePreference(val);
-            }}
-          >
+          <Select value={targetLanguage} onValueChange={setTargetLanguage}>
             <SelectTrigger className="h-9 w-[130px] shrink-0 rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/4">
               <Languages className="mr-1.5 h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <SelectValue placeholder="Language" />
@@ -245,6 +253,40 @@ const PersonalWordBank = ({
       </div>
     </div>
 
+    {enrichment.pendingCount > 0 && (
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#e4e2f0] bg-[#faf9ff] px-3 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
+        <p className="flex min-w-0 items-start gap-2 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">
+          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
+          <span>
+            {enrichment.pendingCount} saved word{enrichment.pendingCount === 1 ? '' : 's'} can get
+            an AI word card: {enrichment.languageName} meaning, IPA, collocations.
+          </span>
+        </p>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 shrink-0 rounded-lg border-[#e2e5f2] px-3 text-[10px] font-black uppercase tracking-wider text-[#5a63df] dark:border-white/10"
+          onClick={enrichment.run}
+          disabled={Boolean(enrichment.batch)}
+        >
+          {enrichment.batch ? (
+            <>
+              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+              {enrichment.batch.done}/{enrichment.batch.total}
+            </>
+          ) : (
+            `Add to ${Math.min(enrichment.pendingCount, ENRICH_BATCH_SIZE)}`
+          )}
+        </Button>
+        {enrichment.notice && (
+          <p role="status" className="w-full text-xs text-slate-500 dark:text-slate-400">
+            {enrichment.notice.message}
+          </p>
+        )}
+      </div>
+    )}
+
     <VocabularyList
       filteredWords={filteredWords}
       hasMore={hasMoreItems}
@@ -275,12 +317,7 @@ export default function Vocabulary() {
   const [viewingWord, setViewingWord] = useState(null);
   const [retentionRefreshKey, setRetentionRefreshKey] = useState(0);
 
-  const [targetLanguage, setTargetLanguage] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('vocabularyTargetLanguage') || 'en';
-    }
-    return 'en';
-  });
+  const [targetLanguage, setTargetLanguage] = useVocabularyLanguage();
 
   const {
     allVocabulary,
@@ -294,6 +331,17 @@ export default function Vocabulary() {
     handleLoadMore,
     loadItems,
   } = useVocabularyData(user);
+
+  const enrichment = useVocabularyEnrichment({ setAllVocabulary, language: targetLanguage });
+  const viewingItem = useMemo(
+    () =>
+      viewingWord ? allVocabulary.find((item) => item.id === viewingWord.id) || viewingWord : null,
+    [allVocabulary, viewingWord]
+  );
+  const pendingEnrichment = useMemo(
+    () => allVocabulary.filter((item) => item && needsEnrichment(item, enrichment.aiLanguage)),
+    [allVocabulary, enrichment.aiLanguage]
+  );
 
   const stats = useMemo(
     () => ({
@@ -312,12 +360,6 @@ export default function Vocabulary() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isDropdownOpen]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('vocabularyTargetLanguage', targetLanguage);
-    }
-  }, [targetLanguage]);
 
   const {
     isAdding,
@@ -515,6 +557,13 @@ export default function Vocabulary() {
               handleToggleMastery={handleToggleMastery}
               handleDeleteWord={handleDeleteWord}
               handleLoadMore={handleLoadMore}
+              enrichment={{
+                pendingCount: pendingEnrichment.length,
+                languageName: getLanguageName(enrichment.aiLanguage),
+                batch: enrichment.batch,
+                notice: enrichment.notice,
+                run: () => enrichment.enrichMany(pendingEnrichment),
+              }}
             />
           </div>
 
@@ -549,6 +598,7 @@ export default function Vocabulary() {
               isFlipped={isFlipped}
               onFlip={flipCard}
               onSubmit={handleReviewSubmit}
+              language={targetLanguage}
             />
           </Suspense>
         )}
@@ -569,11 +619,14 @@ export default function Vocabulary() {
         <AlertDialog config={alertConfig} setConfig={setAlertConfig} />
 
         <WordDetailDialog
-          viewingWord={viewingWord}
+          viewingWord={viewingItem}
           setViewingWord={setViewingWord}
           targetLanguage={targetLanguage}
           setTargetLanguage={setTargetLanguage}
           handleDeleteWord={handleDeleteWord}
+          onEnrich={enrichment.enrichOnce}
+          isEnriching={Boolean(viewingItem && enrichment.busyIds.has(viewingItem.id))}
+          enrichNotice={enrichment.notice}
         />
       </m.div>
     </div>

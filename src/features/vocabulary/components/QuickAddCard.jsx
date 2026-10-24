@@ -3,8 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Plus,
-  Zap,
+  Sparkles,
   Search,
   ChevronRight,
   Volume2,
@@ -12,16 +19,32 @@ import {
   Pencil,
   Check,
   Loader2,
+  AlertCircle,
+  Languages,
 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { useWordSuggestions, useWordDefinition } from '@/features/vocabulary/hooks';
+import {
+  useWordSuggestions,
+  useWordDefinition,
+  useVocabularyLanguage,
+} from '@/features/vocabulary/hooks';
 import { isUsableDefinition as hasMeaning } from '../utils/dictionaryLookup';
+import { cardToItemFields } from '../utils/vocabCard';
+import { describeLookupError } from '../utils/lookupMessages';
 import { playPronunciation } from '../utils/audioUtils';
+import { getCachedCard, resolveDefineLanguage } from '../services/vocabDefineService';
+import { getLanguageName, SUPPORTED_LANGUAGES } from '../services/translateService';
+import { WordCardBody, WordMetaRow } from './WordCardBody';
 import { IconChip, PANEL, TILE, MICRO, Pill } from '@/features/dashboard/components/primitives';
 
 const VOCABULARY_LIMITS = { free: 100, pro: 300, premium: Infinity };
 const CATEGORIES = ['Academic', 'Speaking', 'Writing', 'Reading'];
+// A pause this long after typing a word the suggestion list confirms is a lookup.
+// Anything shorter would spend an AI lookup on every half-typed word.
+const AUTO_LOOKUP_DELAY_MS = 900;
+const QUOTA_HINT_THRESHOLD = 10;
+const REFUSAL_KINDS = ['quota', 'burst', 'busy', 'budget'];
 
 const getWordLimit = (subscriptionTier) => {
   const tier = (subscriptionTier || 'free').toLowerCase();
@@ -48,6 +71,20 @@ function checkWordLimit(user, allVocabularyCount, onShowAlert) {
   return false;
 }
 
+const LookupNotice = ({ error, retryIn }) => {
+  const message = describeLookupError(error, retryIn);
+  if (!message) return null;
+  return (
+    <p
+      role="status"
+      className="flex items-start gap-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300"
+    >
+      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+      <span>{message}</span>
+    </p>
+  );
+};
+
 export default function QuickAddCard({
   onAddWord,
   isAdding,
@@ -58,9 +95,7 @@ export default function QuickAddCard({
 }) {
   const [newWord, setNewWord] = useState('');
   const [newDefinition, setNewDefinition] = useState('');
-  const [newExample, setNewExample] = useState('');
-  // Looked up together with the meaning; saved so the list can show them later.
-  const [lookupMeta, setLookupMeta] = useState({ partOfSpeech: '', ipa: '' });
+  const [exampleIndex, setExampleIndex] = useState(0);
   const [isEditingMeaning, setIsEditingMeaning] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Academic');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -68,14 +103,31 @@ export default function QuickAddCard({
   const meaningInputId = useId();
   const definitionEditedRef = useRef(false);
   const definitionInputRef = useRef(null);
+  const autoTriedRef = useRef('');
 
   const { suggestions, fetchSuggestions, clearSuggestions } = useWordSuggestions();
   const {
-    fetchWordDetails: fetchDefinition,
-    isFetchingDef,
-    error: definitionError,
-    clearWordData: clearDefinitionLookup,
+    lookup,
+    isLooking,
+    card,
+    error: lookupError,
+    quota,
+    retryIn,
+    clear: clearLookup,
   } = useWordDefinition();
+
+  const word = newWord.trim();
+  const [savedLanguage, setSavedLanguage] = useVocabularyLanguage();
+  const language = resolveDefineLanguage(savedLanguage);
+  const languageLabel = getLanguageName(language);
+  const isRefused = retryIn > 0 && REFUSAL_KINDS.includes(lookupError?.kind);
+  const hasAiMeaning = Boolean(card?.meaning);
+  // Once the learner rewrites the meaning, the AI's translation, examples and
+  // collocations describe a different sentence and stop being shown or saved.
+  const isEdited = definitionEditedRef.current;
+  const showsAiCard = hasAiMeaning && !isEdited;
+  const meaningText = isEdited ? newDefinition : card?.meaning || newDefinition;
+  const examples = showsAiCard ? card.examples || [] : [];
 
   useEffect(() => {
     if (isEditingMeaning) definitionInputRef.current?.focus();
@@ -93,56 +145,67 @@ export default function QuickAddCard({
     return () => clearTimeout(delayDebounce);
   }, [newWord, fetchSuggestions, clearSuggestions]);
 
+  const runLookup = async (entry) => {
+    // Whatever the outcome, this word in this language has been tried: the automatic
+    // lookup must not retry a failure on its own. Only the learner asks again.
+    autoTriedRef.current = `${entry.toLowerCase()}|${language}`;
+    const found = await lookup(entry, { language });
+    if (found && !definitionEditedRef.current) setNewDefinition(found.meaning);
+    return found;
+  };
+
+  // Automatic lookup only for a word the spelling list recognises, or one already
+  // in the local cache (free). Typing "mitig" must not cost a generation, and a
+  // failed lookup must not turn into a retry loop.
   useEffect(() => {
-    const word = newWord.trim();
-    if (word.length < 2) return undefined;
+    if (word.length < 2 || card || isLooking || isRefused || definitionEditedRef.current)
+      return undefined;
+    if (autoTriedRef.current === `${word.toLowerCase()}|${language}`) return undefined;
+    const confirmed =
+      Boolean(getCachedCard(word, { language })) ||
+      suggestions.some((item) => item.word?.toLowerCase() === word.toLowerCase());
+    if (!confirmed) return undefined;
+    const timer = setTimeout(() => runLookup(word), AUTO_LOOKUP_DELAY_MS);
+    return () => clearTimeout(timer);
+    // runLookup only closes over `language` and the stable `lookup`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [word, suggestions, card, isLooking, isRefused, language]);
 
-    let isCurrentLookup = true;
-    const lookupTimer = setTimeout(async () => {
-      const details = await fetchDefinition(word);
-      if (!isCurrentLookup || !details || !hasMeaning(details.definition)) return;
-
-      if (!definitionEditedRef.current) applyLookup(details);
-    }, 400);
-
-    return () => {
-      isCurrentLookup = false;
-      clearTimeout(lookupTimer);
-    };
-  }, [newWord, fetchDefinition]);
-
-  const applyLookup = (details) => {
-    setNewDefinition(details.definition);
-    setNewExample(details.example || '');
-    setLookupMeta({ partOfSpeech: details.partOfSpeech || '', ipa: details.phonetic || '' });
-  };
-
-  const resetLookup = () => {
+  const resetCard = () => {
     setNewDefinition('');
-    setNewExample('');
-    setLookupMeta({ partOfSpeech: '', ipa: '' });
+    setExampleIndex(0);
+    definitionEditedRef.current = false;
+    clearLookup();
   };
 
-  const handleSelectSuggestion = (word) => {
-    setNewWord(word);
-    resetLookup();
+  const handleLanguageChange = (code) => {
+    if (code === savedLanguage) return;
+    // The card was written in the old language; the new one is a different card.
+    resetCard();
     setIsEditingMeaning(false);
-    definitionEditedRef.current = false;
-    clearDefinitionLookup();
+    setSavedLanguage(code);
+  };
+
+  const handleSelectSuggestion = (selected) => {
+    setNewWord(selected);
+    resetCard();
+    setIsEditingMeaning(false);
     clearSuggestions();
     setShowSuggestions(false);
+    // Picking a suggestion is an explicit choice of the word.
+    runLookup(selected);
   };
 
   const handleAudio = (e) => {
     e.preventDefault();
-    if (!newWord.trim()) return;
+    if (!word) return;
     setIsPlayingAudio(true);
-    playPronunciation(newWord.trim()).finally(() => setIsPlayingAudio(false));
+    playPronunciation(word).finally(() => setIsPlayingAudio(false));
   };
 
   const handleAddWord = async () => {
-    if (!newWord.trim()) return;
-    if (isFetchingDef) return;
+    if (!word) return;
+    if (isLooking) return;
     if (!user) {
       alert('Please sign in to add words.');
       return;
@@ -152,52 +215,55 @@ export default function QuickAddCard({
       return;
     }
 
-    let finalDefinition = newDefinition.trim();
-    let finalExample = newExample.trim();
-    let finalMeta = lookupMeta;
+    let finalDefinition = meaningText.trim();
+    let finalCard = card;
 
-    if (!finalDefinition) {
-      try {
-        const details = await fetchDefinition(newWord.trim());
-        if (hasMeaning(details?.definition)) {
-          finalDefinition = details.definition;
-          finalExample = details.example || '';
-          finalMeta = { partOfSpeech: details.partOfSpeech || '', ipa: details.phonetic || '' };
-        }
-      } catch (e) {
-        console.error('[Vocab] Fetch definition error', e);
+    // Pressing Save on a word that has not been looked up yet is a lookup request.
+    if (!hasMeaning(finalDefinition) && !isRefused) {
+      const found = await runLookup(word);
+      if (found) {
+        finalCard = found;
+        finalDefinition = found.meaning;
       }
     }
 
-    // A word saved with the placeholder "Saved IELTS vocabulary word" is dead weight:
-    // it cannot be reviewed, drilled or read back. Ask for a definition instead of
-    // persisting a filler string the learner never sees the origin of.
+    // A word saved with a filler meaning is dead weight: it cannot be reviewed,
+    // drilled or read back. Ask for a definition instead of persisting a placeholder.
     if (!hasMeaning(finalDefinition)) {
       setIsEditingMeaning(true);
       const message = {
         title: 'No definition found',
-        message: `We could not look up "${newWord.trim()}". Enter its meaning below, then save it again.`,
+        message: `We could not look up "${word}". Enter its meaning below, then save it again.`,
       };
       if (onShowAlert) onShowAlert(message);
       else alert(message.message);
       return;
     }
 
+    const keepsAiCard = Boolean(finalCard) && !definitionEditedRef.current;
+    const fields = finalCard ? cardToItemFields(finalCard, language) : {};
+    if (finalCard && !keepsAiCard) {
+      // Keep the learner's words and let enrichment translate them later.
+      fields.translations = {};
+      fields.enriched_at = null;
+    }
+    const cardExamples = finalCard?.examples || [];
+    const savedExample = keepsAiCard
+      ? cardExamples[Math.min(exampleIndex, cardExamples.length - 1)] || ''
+      : '';
+
     const result = await onAddWord({
-      word: newWord.trim(),
+      word,
       definition: finalDefinition,
-      example: finalExample,
-      partOfSpeech: finalMeta.partOfSpeech,
-      ipa: finalMeta.ipa,
+      example: savedExample,
+      fields,
       source: selectedCategory,
     });
 
     if (result === true || result?.success === true) {
       setNewWord('');
-      resetLookup();
+      resetCard();
       setIsEditingMeaning(false);
-      definitionEditedRef.current = false;
-      clearDefinitionLookup();
       clearSuggestions();
       setShowSuggestions(false);
       onSuccess?.();
@@ -205,6 +271,21 @@ export default function QuickAddCard({
       alert('Failed to add word: ' + (result?.error || 'Unknown error'));
     }
   };
+
+  const translation =
+    showsAiCard && card.translation
+      ? {
+          label: `${languageLabel} meaning`,
+          lang: language,
+          word: card.translation.word,
+          meaning: card.translation.meaning,
+        }
+      : null;
+
+  const showQuota =
+    quota.remaining != null &&
+    quota.remaining <= QUOTA_HINT_THRESHOLD &&
+    (user?.subscription_tier || 'free').toLowerCase() === 'free';
 
   return (
     <div className={cn(PANEL, 'relative z-30 overflow-visible p-4')}>
@@ -214,7 +295,7 @@ export default function QuickAddCard({
           <span className="truncate">Quick Add Word</span>
         </h3>
         <Pill tone="accent" className="shrink-0 text-[8.5px]">
-          Auto lookup
+          AI word card
         </Pill>
       </div>
 
@@ -243,23 +324,28 @@ export default function QuickAddCard({
         </div>
 
         <div className="relative space-y-1.5">
-          <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+          <label
+            htmlFor={`${meaningInputId}-word`}
+            className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400"
+          >
             Word or expression
           </label>
           <div className="group relative">
             <Input
+              id={`${meaningInputId}-word`}
               placeholder="Type a word to save..."
-              className="h-11 rounded-lg border-[#e2e5f2] bg-white pl-3.5 pr-16 text-xs font-semibold text-slate-900 focus:border-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-white"
+              className="h-11 rounded-lg border-[#e2e5f2] bg-white pl-3.5 pr-20 text-xs font-semibold text-slate-900 focus:border-[#5a63df] dark:border-white/10 dark:bg-white/4 dark:text-white"
               value={newWord}
+              maxLength={40}
               onChange={(e) => {
-                definitionEditedRef.current = false;
-                resetLookup();
-                clearDefinitionLookup();
+                resetCard();
                 setNewWord(e.target.value);
                 setShowSuggestions(true);
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddWord();
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                handleAddWord();
               }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               onFocus={() => setShowSuggestions(true)}
@@ -267,7 +353,7 @@ export default function QuickAddCard({
             />
 
             <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
-              {newWord.trim() && (
+              {word && (
                 <button
                   type="button"
                   onClick={handleAudio}
@@ -275,7 +361,8 @@ export default function QuickAddCard({
                     'rounded-lg p-1.5 text-slate-400 transition-colors hover:text-[#5a63df]',
                     isPlayingAudio && 'animate-pulse bg-[#5a63df]/10 text-[#5a63df]'
                   )}
-                  title="Test audio"
+                  title="Listen to pronunciation"
+                  aria-label="Listen to pronunciation"
                 >
                   <Volume2 className="h-4 w-4" />
                 </button>
@@ -284,16 +371,15 @@ export default function QuickAddCard({
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 rounded-lg text-[#5a63df] hover:bg-[#5a63df]/10"
-                aria-label="Look up meaning"
-                onClick={async () => {
-                  const details = await fetchDefinition(newWord.trim());
-                  if (hasMeaning(details?.definition) && !definitionEditedRef.current) {
-                    applyLookup(details);
-                  }
+                aria-label="Look up with AI"
+                title={isRefused ? `Available again in ${retryIn}s` : 'Look up with AI'}
+                onClick={() => {
+                  definitionEditedRef.current = false;
+                  runLookup(word);
                 }}
-                disabled={isFetchingDef || !newWord.trim()}
+                disabled={isLooking || isRefused || !word}
               >
-                <Zap className={cn('h-4 w-4', isFetchingDef && 'animate-spin')} />
+                <Sparkles className={cn('h-4 w-4', isLooking && 'animate-pulse')} />
               </Button>
             </div>
           </div>
@@ -306,9 +392,9 @@ export default function QuickAddCard({
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
                 className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-[#e2e5f2] bg-white py-1 dark:border-white/10 dark:bg-[#131315]"
               >
-                {suggestions.map((sug, index) => (
+                {suggestions.map((sug) => (
                   <div
-                    key={index}
+                    key={sug.word}
                     className="group/item flex cursor-pointer items-center justify-between px-3.5 py-2 text-xs font-bold text-slate-900 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/5"
                     onMouseDown={(e) => {
                       e.preventDefault();
@@ -327,30 +413,63 @@ export default function QuickAddCard({
           </AnimatePresence>
         </div>
 
+        <div className="flex items-center justify-between gap-2">
+          <label
+            htmlFor={`${meaningInputId}-language`}
+            className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-400"
+          >
+            <Languages className="h-3.5 w-3.5 text-[#5a63df]" />
+            Meaning in
+          </label>
+          <Select value={savedLanguage} onValueChange={handleLanguageChange}>
+            <SelectTrigger
+              id={`${meaningInputId}-language`}
+              className="h-8 w-[150px] rounded-lg border-[#e2e5f2] bg-[#fbfbfe] text-xs font-bold dark:border-white/10 dark:bg-white/4"
+            >
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent className="max-h-72 rounded-lg">
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <SelectItem key={lang.code} value={lang.code} className="text-xs font-semibold">
+                  {lang.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <section aria-label="Word meaning" className={cn(TILE, 'overflow-hidden')}>
           <div className="flex items-center justify-between gap-2 border-b border-[#e4e2f0] px-3.5 py-2.5 dark:border-white/[0.07]">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-3.5 w-3.5 text-[#5a63df]" />
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <BookOpen className="h-3.5 w-3.5 shrink-0 text-[#5a63df]" />
               <span className={cn(MICRO, 'text-slate-500 dark:text-slate-400')}>Meaning</span>
-              {hasMeaning(newDefinition) && lookupMeta.partOfSpeech && (
-                <Pill className="text-[8px]">{lookupMeta.partOfSpeech}</Pill>
+              {hasAiMeaning && (
+                <WordMetaRow
+                  ipa={card.ipa}
+                  partOfSpeech={card.partOfSpeech}
+                  level={card.level}
+                  register={card.register}
+                />
               )}
             </div>
-            {newWord.trim() && (
+            {word && (
               <button
                 type="button"
-                onClick={() => setIsEditingMeaning((editing) => !editing)}
+                onClick={() => {
+                  if (!isEditingMeaning) setNewDefinition(meaningText);
+                  setIsEditingMeaning((editing) => !editing);
+                }}
                 aria-label={
                   isEditingMeaning
                     ? 'Done editing meaning'
-                    : hasMeaning(newDefinition)
+                    : hasMeaning(meaningText)
                       ? 'Edit meaning'
                       : 'Enter meaning'
                 }
-                className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-[10px] font-bold text-[#5a63df] hover:bg-[#5a63df]/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+                className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-1 text-[10px] font-bold text-[#5a63df] hover:bg-[#5a63df]/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
               >
                 {isEditingMeaning ? <Check className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
-                {isEditingMeaning ? 'Done' : hasMeaning(newDefinition) ? 'Edit' : 'Enter meaning'}
+                {isEditingMeaning ? 'Done' : hasMeaning(meaningText) ? 'Edit' : 'Enter meaning'}
               </button>
             )}
           </div>
@@ -372,37 +491,40 @@ export default function QuickAddCard({
                   placeholder="Enter the meaning in your own words…"
                   className="min-h-0 resize-y border-[#e4e2f0] bg-white text-xs leading-relaxed shadow-none dark:border-white/10 dark:bg-white/4"
                 />
-              </>
-            ) : (
-              <div aria-live="polite" aria-atomic="true">
-                {hasMeaning(newDefinition) ? (
-                  <>
-                    <p className="text-[13px] font-medium leading-relaxed text-slate-900 dark:text-slate-100">
-                      {newDefinition}
-                    </p>
-                    {newExample && (
-                      <div className="mt-3 border-l-2 border-[#5a63df]/30 pl-2.5">
-                        <span className={cn(MICRO, 'text-slate-400')}>Example</span>
-                        <p className="mt-1 text-xs italic leading-relaxed text-slate-600 dark:text-slate-400">
-                          {newExample}
-                        </p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p className="flex items-center gap-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                    {isFetchingDef && (
-                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#5a63df]" />
-                    )}
-                    {isFetchingDef
-                      ? 'Looking up meaning…'
-                      : definitionError
-                        ? 'No dictionary meaning found. You can enter one manually.'
-                        : newWord.trim()
-                          ? 'Finding the meaning…'
-                          : 'Type a word to see its meaning.'}
+                {hasAiMeaning && isEdited && (
+                  <p className="mt-2 text-[10px] text-slate-400">
+                    Your wording is saved as written. The {languageLabel} line and AI examples
+                    belong to the AI meaning, so they are not saved with it.
                   </p>
                 )}
+              </>
+            ) : (
+              <div aria-live="polite" aria-atomic="true" className="space-y-3">
+                {hasMeaning(meaningText) ? (
+                  <WordCardBody
+                    meaning={meaningText}
+                    translation={translation}
+                    examples={examples}
+                    selectedExample={exampleIndex}
+                    onSelectExample={setExampleIndex}
+                    synonyms={showsAiCard ? card.synonyms : []}
+                    collocations={showsAiCard ? card.collocations : []}
+                    wordFamily={showsAiCard ? card.wordFamily : []}
+                    commonMistake={showsAiCard ? card.commonMistake : ''}
+                  />
+                ) : (
+                  <p className="flex items-center gap-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    {isLooking && (
+                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[#5a63df]" />
+                    )}
+                    {isLooking
+                      ? 'Writing your word card…'
+                      : word
+                        ? 'Pick a suggestion, press Enter, or tap the sparkle to look it up.'
+                        : 'Type a word to see its meaning.'}
+                  </p>
+                )}
+                {lookupError && <LookupNotice error={lookupError} retryIn={retryIn} />}
               </div>
             )}
           </div>
@@ -411,11 +533,19 @@ export default function QuickAddCard({
         <Button
           className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5a63df] text-xs font-bold text-white transition-all hover:bg-[#4a52c9] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleAddWord}
-          disabled={isAdding || isFetchingDef || !newWord.trim()}
+          disabled={isAdding || isLooking || !word}
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
           {isAdding ? 'Adding Word...' : 'Save Word'}
         </Button>
+
+        {showQuota && (
+          <p className="text-center text-[10px] font-semibold text-slate-400">
+            {quota.remaining === 0
+              ? 'No AI lookups left today. You can still save words with your own meaning.'
+              : `${quota.remaining} AI lookup${quota.remaining === 1 ? '' : 's'} left today. Words other learners already looked up don’t count.`}
+          </p>
+        )}
       </div>
     </div>
   );
