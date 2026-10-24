@@ -78,7 +78,10 @@ export function captureSignupAttribution() {
       if (/^(utm_|gclid$|fbclid$)/.test(field) && attribution[field])
         safeParams.set(field, attribution[field]);
     });
-    attribution.landing_page = url.pathname + (safeParams.size ? '?' + safeParams.toString() : '');
+    // URLSearchParams.size is missing before Safari 17 / Chrome 113, where it
+    // reads as undefined and silently dropped the campaign query string.
+    var safeQuery = safeParams.toString();
+    attribution.landing_page = url.pathname + (safeQuery ? '?' + safeQuery : '');
     // Keep even a no-signal landing: a later ad must not replace a direct first visit.
     window.__signupAttribution = attribution;
     try {

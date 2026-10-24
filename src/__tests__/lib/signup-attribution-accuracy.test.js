@@ -28,6 +28,22 @@ afterEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
+describe('landing page capture in older browsers', () => {
+  it('keeps the campaign query when URLSearchParams.size is unsupported', () => {
+    const original = Object.getOwnPropertyDescriptor(URLSearchParams.prototype, 'size');
+    Object.defineProperty(URLSearchParams.prototype, 'size', {
+      configurable: true,
+      get: () => undefined,
+    });
+    try {
+      const stored = land('/?utm_source=facebook&utm_medium=paid_social&email=a@b.co');
+      expect(stored.landing_page).toBe('/?utm_source=facebook&utm_medium=paid_social');
+    } finally {
+      if (original) Object.defineProperty(URLSearchParams.prototype, 'size', original);
+    }
+  });
+});
+
 describe('evidence-based signup channels', () => {
   it.each([
     [{ fbclid: 'click' }, 'social'],

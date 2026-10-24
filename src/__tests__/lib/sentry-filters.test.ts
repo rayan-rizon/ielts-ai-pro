@@ -36,4 +36,63 @@ describe('Sentry browser-noise filtering', () => {
       )
     ).toBe(false);
   });
+
+  it('drops a wallet-extension rejection', () => {
+    expect(
+      shouldDropSentryEvent(
+        {},
+        { originalException: { code: 4001, message: 'wallet must has at least one account' } }
+      )
+    ).toBe(true);
+  });
+
+  it('keeps an application rejection that has a code and message', () => {
+    expect(
+      shouldDropSentryEvent(
+        {},
+        { originalException: { code: 'PGRST116', message: 'Row not found' } }
+      )
+    ).toBe(false);
+  });
+
+  it('drops a TypeError whose only frames are in the GTM loader', () => {
+    expect(
+      shouldDropSentryEvent(
+        {
+          exception: {
+            values: [
+              {
+                type: 'TypeError',
+                stacktrace: { frames: [{ filename: 'https://www.ieltsai.pro/mx/gtm.js' }] },
+              },
+            ],
+          },
+        },
+        { originalException: new TypeError("Cannot read properties of null (reading '0')") }
+      )
+    ).toBe(true);
+  });
+
+  it('keeps a TypeError that reaches application code', () => {
+    expect(
+      shouldDropSentryEvent(
+        {
+          exception: {
+            values: [
+              {
+                type: 'TypeError',
+                stacktrace: {
+                  frames: [
+                    { filename: 'https://www.ieltsai.pro/mx/gtm.js' },
+                    { filename: 'https://www.ieltsai.pro/assets/index-abc.js' },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        { originalException: new TypeError("Cannot read properties of null (reading '0')") }
+      )
+    ).toBe(false);
+  });
 });

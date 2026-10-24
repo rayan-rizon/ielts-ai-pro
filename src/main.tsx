@@ -6,6 +6,9 @@ import { optionalPublicEnv } from '@/lib/publicEnv';
 import { shouldDropSentryEvent } from '@/lib/sentryFilters';
 import { scheduleIdle } from '@/lib/scheduleIdle';
 import { recoverFromChunkLoadError } from '@/lib/chunkLoadRecovery';
+import { installDomMutationGuard } from '@/lib/domMutationGuard';
+
+installDomMutationGuard();
 
 const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
 const isLiveProduction = import.meta.env.PROD && !isLocalHost;
