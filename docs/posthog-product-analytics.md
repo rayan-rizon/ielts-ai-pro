@@ -26,6 +26,20 @@ Supabase and the payment provider. Sentry remains the error-investigation tool.
 Only reviewed scalar properties are sent. Answers, essays, speaking transcripts, audio, email,
 name, session IDs, campaign IDs, and payment-provider IDs are excluded in `src/lib/posthog.js`.
 
+## AI Observability
+
+Server-side `$ai_generation` events are emitted by `supabase/functions/_shared/aiObservability.ts`
+for the shared text and writing providers. They include model/provider, token counts, generation
+settings, and a per-request trace ID; parse/schema rejections and writing-provider failures include
+the error name. They omit `$ai_input`, `$ai_output_choices`, error messages, learner content, and
+conversation session IDs.
+The AI Coach uses the existing stable profile ID as `distinct_id`; other requests are grouped under
+the shared `unattributed` ID because their Edge Function call sites do not carry a verified user ID.
+
+Local Edge Function development reads `POSTHOG_API_KEY` and `POSTHOG_HOST` from
+`supabase/functions/.env`. Production capture requires those values as Supabase Edge Function
+secrets; adding code or local env values does not configure the deployed project.
+
 ## Privacy and performance policy
 
 - The SDK loads automatically only on `ieltsai.pro`/`www.ieltsai.pro` when a project token is

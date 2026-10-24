@@ -1,3 +1,4 @@
+import { captureAiGeneration } from './aiObservability.ts';
 import { estimateTokenCostUsd } from './aiModelRegistry.ts';
 import { parseStructuredJson } from './evaluationUtils.ts';
 
@@ -200,7 +201,17 @@ export async function requestOpenRouterWritingFeedback({
         typeof parsedFeedback.taskAnalysis.visualReadable === 'boolean' &&
         Array.isArray(parsedFeedback.taskAnalysis.observedFeatures));
 
-    if (!hasRequiredScores || !hasRequiredTaskAnalysis) {
+    const invalidSchema = !hasRequiredScores || !hasRequiredTaskAnalysis;
+    await captureAiGeneration({
+      model,
+      provider: 'openrouter',
+      promptTokens: usage.promptTokens,
+      outputTokens: usage.outputTokens,
+      maxOutputTokens: 4096,
+      ...(invalidSchema ? { error: new Error('invalid_schema') } : {}),
+    });
+
+    if (invalidSchema) {
       console.warn(`${model} writing pass (seed ${seed}) failed schema validation`);
       return failed('invalid_schema', null, usage);
     }
@@ -209,6 +220,14 @@ export async function requestOpenRouterWritingFeedback({
   } catch (error: any) {
     const code = error?.name === 'AbortError' ? 'timeout' : 'provider_error';
     console.warn(`${model} writing pass (seed ${seed}) threw ${code}`);
+    await captureAiGeneration({
+      model,
+      provider: 'openrouter',
+      promptTokens: 0,
+      outputTokens: 0,
+      maxOutputTokens: 4096,
+      error: new Error(code),
+    });
     return failed(code);
   } finally {
     clearTimeout(timeoutId);

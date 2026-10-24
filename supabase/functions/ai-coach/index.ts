@@ -861,6 +861,7 @@ const handleRequest = async (req: Request) => {
       const apiKey = Deno.env.get('OPENROUTER_API_KEY');
       if (!apiKey) throw new Error('AI Coach provider is not configured');
       const started = Date.now();
+      const observabilityTraceId = crypto.randomUUID();
       const streamer = emit
         ? new CoachAnswerStreamer(
             { language, evidenceById, personalQuestion, studentMessage: input.message },
@@ -883,6 +884,10 @@ const handleRequest = async (req: Request) => {
           reasoningEffort: 'low' as const,
           temperature: 0.1,
           validateJson: validate,
+          observability: {
+            traceId: observabilityTraceId,
+            distinctId: profile.id,
+          },
         };
         generated = streamer
           ? await requestOpenRouterJsonStream({ ...primary, onText: (text) => streamer.push(text) })
@@ -906,6 +911,10 @@ const handleRequest = async (req: Request) => {
             disableReasoning: true,
             reasoningEffort: 'none',
             validateJson: validate,
+            observability: {
+              traceId: observabilityTraceId,
+              distinctId: profile.id,
+            },
           });
         } catch (fallbackError) {
           chargedAttempts.push(fallbackError);

@@ -1,3 +1,4 @@
+import { captureAiGeneration, type AiObservationContext } from './aiObservability.ts';
 import { estimateTokenCostUsd } from './aiModelRegistry.ts';
 
 export const DEEPSEEK_TEXT_MODEL = 'deepseek-v4-flash';
@@ -58,6 +59,7 @@ type TextAiRequest = {
   validateJson?: (value: any) => boolean;
   geminiModel?: string;
   responseSchema?: Record<string, unknown>;
+  observability?: AiObservationContext;
 };
 
 function chatMessages(request: Pick<TextAiRequest, 'prompt' | 'systemPrompt'>) {
@@ -234,19 +236,43 @@ function openAiShapedUsage(data: any, costModel: string): TextAiUsage {
   };
 }
 
-/** Parse and shape-check a generated answer, tagging a rejection with its cost. */
-function parseBilledJson(
+/** Parse, shape-check, and record a generated answer with its billed usage. */
+async function parseBilledJson(
   provider: ProviderName,
   text: unknown,
   usage: TextAiUsage,
-  validateJson?: (value: any) => boolean
+  request: Pick<ProviderRequest, 'maxOutputTokens' | 'temperature' | 'observability'>,
+  model: string,
+  validateJson?: (value: any) => boolean,
+  stream = false
 ) {
   try {
     const parsed = parseJsonText(text);
     assertValidJsonShape(provider, parsed, validateJson);
+    await captureAiGeneration({
+      model,
+      provider,
+      promptTokens: usage.promptTokens,
+      outputTokens: usage.outputTokens,
+      maxOutputTokens: request.maxOutputTokens,
+      temperature: request.temperature,
+      stream,
+      context: request.observability,
+    });
     return parsed;
   } catch (error) {
     if (error instanceof TextAiProviderError) error.usage = usage;
+    await captureAiGeneration({
+      model,
+      provider,
+      promptTokens: usage.promptTokens,
+      outputTokens: usage.outputTokens,
+      maxOutputTokens: request.maxOutputTokens,
+      temperature: request.temperature,
+      stream,
+      context: request.observability,
+      error,
+    });
     throw error;
   }
 }
@@ -287,7 +313,14 @@ export async function requestDeepSeekJson(request: ProviderRequest): Promise<Tex
     const text = data?.choices?.[0]?.message?.content;
     // The direct API never reports a cost, so this always uses the catalog rate.
     const usage = openAiShapedUsage(data, DEEPSEEK_TEXT_MODEL);
-    const parsed = parseBilledJson('deepseek', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'deepseek',
+      text,
+      usage,
+      request,
+      DEEPSEEK_TEXT_MODEL,
+      request.validateJson
+    );
 
     return {
       parsed,
@@ -353,7 +386,14 @@ export async function requestOpenRouterDeepSeekJson(
     const text = data?.choices?.[0]?.message?.content;
     // Prefers OpenRouter's reported charge; otherwise its catalog base price.
     const usage = openAiShapedUsage(data, OPENROUTER_DEEPSEEK_MODEL);
-    const parsed = parseBilledJson('openrouter-deepseek', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'openrouter-deepseek',
+      text,
+      usage,
+      request,
+      data?.model || OPENROUTER_DEEPSEEK_MODEL,
+      request.validateJson
+    );
 
     return {
       parsed,
@@ -411,7 +451,14 @@ export async function requestOpenRouterLunaJson(
     // Prefers OpenRouter's billed cost; the catalog rate is only a fallback for
     // responses that omit cost metadata.
     const usage = openAiShapedUsage(data, OPENROUTER_LUNA_MODEL);
-    const parsed = parseBilledJson('openrouter-luna', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'openrouter-luna',
+      text,
+      usage,
+      request,
+      data?.model || OPENROUTER_LUNA_MODEL,
+      request.validateJson
+    );
 
     return {
       parsed,
@@ -467,7 +514,14 @@ export async function requestVercelGatewayLunaJson(
     const text = data?.choices?.[0]?.message?.content;
     // The gateway serves the same model, so it is priced from the Luna entry.
     const usage = openAiShapedUsage(data, OPENROUTER_LUNA_MODEL);
-    const parsed = parseBilledJson('vercel-ai-gateway-luna', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'vercel-ai-gateway-luna',
+      text,
+      usage,
+      request,
+      data?.model || VERCEL_GATEWAY_LUNA_MODEL,
+      request.validateJson
+    );
 
     return {
       parsed,
@@ -564,7 +618,14 @@ export async function requestOpenRouterJson(
     // Unknown candidate models are absent from the registry, so an unreported
     // cost stays 0 rather than silently guessing a rate.
     const usage = openAiShapedUsage(data, request.model);
-    const parsed = parseBilledJson('openrouter', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'openrouter',
+      text,
+      usage,
+      request,
+      data?.model || request.model,
+      request.validateJson
+    );
 
     return {
       parsed,
@@ -705,7 +766,15 @@ export async function requestOpenRouterJsonStream(
       },
       request.model
     );
-    const parsed = parseBilledJson('openrouter', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'openrouter',
+      text,
+      usage,
+      request,
+      servedModel || request.model,
+      request.validateJson,
+      true
+    );
     return {
       parsed,
       text,
@@ -791,7 +860,14 @@ export async function requestGeminiJson(request: ProviderRequest): Promise<TextA
         outputTokens,
       }),
     };
-    const parsed = parseBilledJson('gemini', text, usage, request.validateJson);
+    const parsed = await parseBilledJson(
+      'gemini',
+      text,
+      usage,
+      request,
+      model,
+      request.validateJson
+    );
 
     return {
       parsed,
