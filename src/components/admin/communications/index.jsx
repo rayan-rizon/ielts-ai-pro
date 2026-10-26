@@ -50,7 +50,10 @@ const ViewTab = ({ view, isActive }) => {
   return (
     <TabsTrigger
       value={view.value}
-      className={cn(ADMIN_TAB_TRIGGER, 'relative overflow-visible data-[state=active]:shadow-none')}
+      className={cn(
+        ADMIN_TAB_TRIGGER,
+        'relative justify-center overflow-visible px-2 data-[state=active]:shadow-none sm:px-3'
+      )}
     >
       {isActive && (
         <motion.span
@@ -150,7 +153,7 @@ export default function CommunicationsCenter() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="mx-auto max-w-[1700px] space-y-4 pb-10 pt-12 md:pt-0"
+      className="mx-auto max-w-[1700px] space-y-4 pb-10"
     >
       <m.div variants={FADE_UP}>
         <AdminPageHeader
@@ -164,16 +167,18 @@ export default function CommunicationsCenter() {
             </span>
           )}
           {bannerLive && <span className={cn(PILL_BASE, pillTone('accent'))}>Banner live</span>}
-          <AdminButton variant="outline" onClick={load}>
+          <AdminButton variant="outline" onClick={load} aria-label="Refresh">
             <RefreshCcw className={cn('h-3 w-3', loading && 'animate-spin')} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </AdminButton>
         </AdminPageHeader>
       </m.div>
 
       <Tabs value={activeView} onValueChange={handleViewChange} className="w-full space-y-4">
-        <div className="scrollbar-thin flex overflow-x-auto pb-1">
-          <TabsList className={ADMIN_TABS_LIST}>
+        <div className="scrollbar-thin overflow-x-auto">
+          <TabsList
+            className={cn(ADMIN_TABS_LIST, 'grid w-full grid-cols-3 sm:inline-flex sm:w-auto')}
+          >
             {VIEWS.map((view) => (
               <ViewTab key={view.value} view={view} isActive={activeView === view.value} />
             ))}

@@ -153,7 +153,7 @@ const UNIT_META = [
     title: 'Hedging and precision',
     summary: 'Replace unsupported certainty with accurate, defensible academic claims.',
     skillCode: 'grammar_clause_control',
-    kit: 'IELTS Accuracy Clinic',
+    kit: 'IELTS Accuracy Lab',
     minutes: 6,
   },
   {
@@ -162,7 +162,7 @@ const UNIT_META = [
     title: 'Punctuation for grammar accuracy',
     summary: 'Use full stops, commas, semicolons, and apostrophes to keep meaning controlled.',
     skillCode: 'grammar_sentence_boundaries',
-    kit: 'IELTS Accuracy Clinic',
+    kit: 'IELTS Accuracy Lab',
     minutes: 8,
   },
   {
@@ -171,7 +171,7 @@ const UNIT_META = [
     title: 'Word forms and word families',
     summary: 'Choose the noun, verb, adjective, or adverb form that the sentence position needs.',
     skillCode: 'grammar_word_forms',
-    kit: 'IELTS Accuracy Clinic',
+    kit: 'IELTS Accuracy Lab',
     minutes: 7,
   },
 ];
@@ -235,7 +235,7 @@ const KIT_META = [
   {
     slug: 'ielts-accuracy',
     kind: 'practice',
-    title: 'IELTS Accuracy Clinic',
+    title: 'IELTS Accuracy Lab',
     eyebrow: 'Units 17–19 + mixed review',
     description:
       'Refine cautious claims, punctuation and word forms, then check that the patterns transfer into real IELTS sentences.',
@@ -616,7 +616,7 @@ const EXTRA_GUIDES = [
     label: 'Mixed review',
     summary:
       'Error correction, sentence combining, Task 1 cloze, paragraph upgrade and speaking drills.',
-    kit: 'IELTS Accuracy Clinic',
+    kit: 'IELTS Accuracy Lab',
     minutes: 20,
     access: 'pro',
     markdown: buildMixedReview,

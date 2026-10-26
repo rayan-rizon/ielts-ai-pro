@@ -16,7 +16,7 @@ import { cn } from '@/lib/cn';
 
 // A 9px pill is a fine label but a poor tap target, so the due-reviews chip
 // keeps the pill's shape and grows to a ~24px hit area once it does something.
-const CHIP_SIZE = 'gap-1.5 px-2.5 py-1 text-[10px]';
+const CHIP_SIZE = 'gap-1.5 px-2.5 py-1.5 text-[10px] sm:py-1';
 
 function allowanceCopy(access) {
   if (access?.isPaid) return 'Unlimited practice';
@@ -140,7 +140,7 @@ export default function GrammarHeroPanel({
         <p className="mt-1.5 max-w-lg text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
           {primaryDescription}
         </p>
-        <div className="mt-4 flex flex-wrap items-center gap-2.5">
+        <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
           <Button
             onClick={onStart}
             disabled={
@@ -150,7 +150,7 @@ export default function GrammarHeroPanel({
                 (dailyLimitReached ||
                   (primaryMode === 'diagnostic' && !access.diagnosticAvailable)))
             }
-            className="h-10 rounded-lg bg-[#5a63df] px-5 font-bold text-white hover:bg-[#4a52c9]"
+            className="h-11 w-full rounded-lg bg-[#5a63df] px-5 font-bold text-white transition-[transform,background-color] duration-150 hover:bg-[#4a52c9] active:scale-[0.97] sm:h-10 sm:w-auto"
           >
             {isStarting || isResuming ? (
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -175,7 +175,7 @@ export default function GrammarHeroPanel({
                       ? 'Start review'
                       : 'Start 5-question practice'}
           </Button>
-          <div className="flex items-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 px-3 py-1.5 text-[11px] font-bold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+          <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 px-3 py-2 sm:w-auto sm:justify-start sm:py-1.5 text-[11px] font-bold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
             {access.isPaid ? (
               <CheckCircle2 className="h-4 w-4 text-[rgb(var(--signal-ok))]" />
             ) : (

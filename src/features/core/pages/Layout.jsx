@@ -16,6 +16,7 @@ import { OfflineBanner } from '@/components/OfflineBanner';
 import ServiceOutageBanner from '@/components/shared/ServiceOutageBanner';
 import { isAnnouncementLive } from '@/lib/communications';
 import { cn } from '@/lib/cn';
+import { LogoIcon } from '@/components/shared/Logo';
 import ProductTour from '@/features/dashboard/components/ProductTour';
 
 // Modular Components
@@ -263,20 +264,21 @@ function MainContentArea({
 }) {
   return (
     <main className="flex-1 flex flex-col overflow-hidden relative" data-oid="ikt0z38">
-      {/* Minimal floating toggle for mobile (Hidden on test pages to avoid header overlap) */}
+      {/* In-flow mobile top bar: it takes its own row, so the menu button can never sit on
+          top of page headings. Hidden on test pages, which bring their own header. */}
       {!isTestPage && (
-        <div
-          className="pointer-events-none absolute top-4 left-4 z-50 flex items-center gap-2 md:hidden"
+        <header
+          className="flex h-12 shrink-0 items-center gap-1 border-b border-[#e4e2f0] bg-white px-1.5 dark:border-white/[0.07] dark:bg-[#100f15] md:hidden"
           data-oid="9gb208j"
         >
-          <div className="pointer-events-auto rounded-xl border border-border bg-background p-1">
-            <SidebarTrigger
-              className="h-11 w-11 text-foreground/80 hover:text-primary hover:bg-primary/5 transition duration-150"
-              aria-label="Open mobile menu"
-              data-oid="u0ntjik"
-            />
-          </div>
-        </div>
+          <SidebarTrigger
+            className="h-11 w-11 rounded-lg text-foreground/80 transition duration-150 hover:bg-primary/5 hover:text-primary active:scale-[0.96]"
+            aria-label="Open menu"
+            data-oid="u0ntjik"
+          />
+          <LogoIcon className="h-6 w-6" />
+          <span className="text-[13px] font-bold tracking-tight text-foreground">IELTS AI Pro</span>
+        </header>
       )}
 
       <div

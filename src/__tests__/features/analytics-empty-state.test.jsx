@@ -47,7 +47,7 @@ describe('EmptyAnalyticsView', () => {
     expect(screen.getAllByText('--').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('No score yet')).toBeInTheDocument();
     expect(screen.getByText('Tests Counted')).toBeInTheDocument();
-    expect(screen.getByText('0 sessions in this period')).toBeInTheDocument();
+    expect(screen.getAllByText('0 sessions in this period')[0]).toBeInTheDocument();
     expect(screen.getByText('Study Effort')).toBeInTheDocument();
     expect(screen.getByText('0.0h')).toBeInTheDocument();
   });

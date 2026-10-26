@@ -56,13 +56,13 @@ export default function AnalyticsReport({
         variants={CONTAINER_VARIANTS}
         initial="hidden"
         animate="visible"
-        className="relative z-10 mx-auto max-w-[1600px] space-y-3"
+        className="relative z-10 mx-auto min-w-0 max-w-[1600px] space-y-3"
       >
         <AnalyticsHeader {...headerProps} />
 
         <StatCards stats={stats} progressToTarget={progressToTarget} />
 
-        <div className="grid grid-cols-12 gap-3">
+        <div className="grid grid-cols-12 gap-3 *:min-w-0">
           {/* Movement · standing · verdict */}
           <div className="col-span-12 xl:col-span-5">
             <Suspense fallback={<ChartSkeleton />}>

@@ -51,7 +51,7 @@ const MODULE_TYPES = ['reading', 'listening', 'writing', 'speaking'];
 const InactiveModuleLink = ({ type }) => {
   const meta = MODULE_META[type];
   return (
-    <div className={cn(TILE, 'flex h-10 items-center gap-2 px-2.5 opacity-40 sm:h-11')}>
+    <div className={cn(TILE, 'flex h-11 items-center gap-2 px-2.5 opacity-40')}>
       <IconChip icon={meta.icon} tone="neutral" size="sm" />
       <div className="flex min-w-0 flex-col">
         <span className={cn(MICRO, 'truncate leading-none text-slate-400')}>{meta.label}</span>
@@ -69,11 +69,11 @@ const ActiveModuleLink = ({ type, data, session }) => {
   const href = type === 'writing' ? `${meta.url}${data.id}` : `${meta.url}/${data.id}`;
 
   return (
-    <Link to={href} className="group/module block h-10 sm:h-11">
+    <Link to={href} className="group/module block h-11">
       <div
         className={cn(
           TILE,
-          'flex h-full items-center gap-2 px-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
+          'flex h-full items-center gap-2 px-2.5 transition-[transform,border-color] duration-150 ease-out hover:border-[#cfd0f5] active:scale-[0.97] dark:hover:border-white/12'
         )}
       >
         <IconChip icon={meta.icon} tone={meta.tone} size="sm" />
@@ -81,7 +81,7 @@ const ActiveModuleLink = ({ type, data, session }) => {
           <span className={cn(MICRO, 'truncate leading-none text-slate-700 dark:text-slate-200')}>
             {meta.label}
           </span>
-          <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wider leading-tight text-slate-400 dark:text-slate-500">
+          <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wider leading-tight text-slate-400 dark:text-slate-500">
             {isResuming ? 'Resume' : 'Start'}
           </span>
         </div>
@@ -100,20 +100,16 @@ const isModuleCompletedWithScore = (module, session) => {
   return !!(module && session?.is_completed && session?.score != null);
 };
 
-const TestCardHeader = ({ progressPercent }) => (
-  <div className="mb-3 flex items-start justify-between">
-    <IconChip icon={GraduationCap} tone="accent" size="md" />
-    {progressPercent > 0 ? (
-      <Pill tone={progressPercent === 100 ? 'ok' : 'accent'}>
-        <span className={NUM}>{progressPercent}%</span> done
-      </Pill>
-    ) : (
-      <Pill tone="neutral">
-        <ShieldCheck className="h-3 w-3" /> Official
-      </Pill>
-    )}
-  </div>
-);
+const TestCardPill = ({ progressPercent }) =>
+  progressPercent > 0 ? (
+    <Pill tone={progressPercent === 100 ? 'ok' : 'accent'} className="shrink-0">
+      <span className={NUM}>{progressPercent}%</span> done
+    </Pill>
+  ) : (
+    <Pill tone="neutral" className="shrink-0">
+      <ShieldCheck className="h-3 w-3" /> Official
+    </Pill>
+  );
 
 const TestCardBandScore = ({ overallBandScore, completedScoresLength, moduleScores }) => (
   <div className={cn(WELL, 'flex items-center justify-between gap-3 rounded-lg p-2')}>
@@ -220,19 +216,20 @@ const CambridgeTestCard = ({ title, modules, sessions }) => {
     useMemo(() => calculateCardStats(title, modules, sessions), [title, modules, sessions]);
 
   return (
-    <div
-      className={cn(
-        PANEL,
-        'flex h-full flex-col p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
-      )}
-    >
-      <TestCardHeader progressPercent={progressPercent} />
-
+    <div className={cn(PANEL, 'flex h-full flex-col p-4')}>
+      {/* Icon, title and status share one row; the repeated "full exam
+          simulation" blurb only earns its space once the card has room. */}
       <div className="mb-3 grow">
-        <h3 className={cn(TITLE, 'text-sm leading-snug')}>{title}</h3>
-        <p className={cn(MICRO, MUTED, 'mt-1 line-clamp-1')}>
-          Full IELTS exam simulation, all four skills.
-        </p>
+        <div className="flex items-start gap-2.5">
+          <IconChip icon={GraduationCap} tone="accent" size="md" />
+          <div className="min-w-0 flex-1 pt-0.5">
+            <h3 className={cn(TITLE, 'text-sm leading-snug')}>{title}</h3>
+            <p className={cn(MICRO, MUTED, 'mt-1 hidden line-clamp-1 sm:block')}>
+              Full IELTS exam simulation, all four skills.
+            </p>
+          </div>
+          <TestCardPill progressPercent={progressPercent} />
+        </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           {MODULE_TYPES.map((type) => (
@@ -366,11 +363,11 @@ const CambridgeTestsControls = ({ searchQuery, setSearchQuery, activeTab, setAct
         placeholder="Find a series or book..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131315]"
+        className="h-10 rounded-lg border-[#e2e5f2] bg-white pl-9 text-base font-semibold sm:h-9 sm:text-xs dark:border-white/10 dark:bg-[#131315]"
       />
     </div>
 
-    <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
+    <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto mask-[linear-gradient(to_right,black_calc(100%-28px),transparent)] rounded-lg lg:mask-none border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -379,7 +376,7 @@ const CambridgeTestsControls = ({ searchQuery, setSearchQuery, activeTab, setAct
             whileTap={{ scale: 0.96 }}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+              'relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-150 sm:py-1.5',
               isActive
                 ? 'text-white'
                 : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white'
@@ -535,7 +532,7 @@ export default function CambridgeTests() {
   );
 
   return (
-    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5">
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"

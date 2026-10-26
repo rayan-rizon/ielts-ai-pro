@@ -111,7 +111,7 @@ export default function TestIssueReports() {
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
   return (
-    <div className="space-y-4 pb-10 pt-12 md:pt-0">
+    <div className="space-y-4 pb-10">
       <AdminPageHeader
         title="Test issue reports"
         description="Review possible mistakes in Reading and Listening tests and record their status."

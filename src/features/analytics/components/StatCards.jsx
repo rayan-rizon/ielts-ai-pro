@@ -30,13 +30,19 @@ import {
  */
 function ContextStat({ icon, tone, label, value, sub, delta, tip }) {
   return (
-    <div className="flex flex-1 flex-col gap-1.5 px-4 py-2.5 sm:first:pl-0 sm:last:pr-0">
-      <div className="flex items-center gap-1.5">
-        <IconChip icon={icon} tone={tone} size="sm" />
-        <p className={cn(MICRO, MUTED)}>{label}</p>
-        {tip && <InfoTip>{tip}</InfoTip>}
+    <div className="flex flex-1 items-center justify-between gap-3 px-1 py-2.5 sm:flex-col sm:items-stretch sm:justify-start sm:gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+      <div className="flex min-w-0 items-center gap-2.5 sm:block">
+        <IconChip icon={icon} tone={tone} size="sm" className="sm:hidden" />
+        <div className="min-w-0 space-y-0.5">
+          <div className="flex items-center gap-1.5">
+            <IconChip icon={icon} tone={tone} size="sm" className="hidden sm:inline-flex" />
+            <p className={cn(MICRO, MUTED)}>{label}</p>
+            {tip && <InfoTip>{tip}</InfoTip>}
+          </div>
+          {sub && <p className={cn(MICRO, MUTED, 'truncate sm:hidden')}>{sub}</p>}
+        </div>
       </div>
-      <div className="flex items-baseline gap-1.5">
+      <div className="flex shrink-0 items-baseline gap-1.5">
         <span
           className={cn(
             NUM,
@@ -47,7 +53,7 @@ function ContextStat({ icon, tone, label, value, sub, delta, tip }) {
         </span>
         {delta}
       </div>
-      {sub && <p className={cn(MICRO, MUTED)}>{sub}</p>}
+      {sub && <p className={cn(MICRO, MUTED, 'hidden sm:block')}>{sub}</p>}
     </div>
   );
 }
@@ -222,7 +228,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             style={{ width: `${trackPct}%` }}
           />
         </div>
-        <div className="mt-1.5 flex items-center justify-between gap-2">
+        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <span className={cn(MICRO, MUTED)}>
             Now{' '}
             <span className={cn(NUM, 'font-bold')}>

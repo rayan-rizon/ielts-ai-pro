@@ -22,7 +22,7 @@ describe('GrammarGuidesPanel (the grammar course)', () => {
     ['Start here', 'Sentence Foundations', 'Verbs & Time', 'Grammatical Range'].forEach((title) =>
       expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
     );
-    expect(screen.getByRole('heading', { name: 'IELTS Accuracy Clinic' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'IELTS Accuracy Lab' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Grammar by IELTS task' })).toBeInTheDocument();
     expect(screen.getByText('of 19 units done').previousSibling).toHaveTextContent('0');
     expect(screen.getByRole('link', { name: /19\. Word forms and word families/ })).toHaveAttribute(

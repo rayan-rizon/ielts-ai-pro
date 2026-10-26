@@ -306,7 +306,7 @@ function PricingPlansGrid({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3 lg:gap-5"
+      className="grid grid-cols-1 items-stretch gap-4 max-md:*:nth-2:-order-1 md:grid-cols-3 lg:gap-5"
     >
       {plans.map((plan) => {
         const displayPrice = calculatePrice(
@@ -755,7 +755,7 @@ export default function Pricing() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative mx-auto max-w-7xl space-y-6 px-4 pb-14 pt-6 md:px-8 md:pt-8"
+          className="relative mx-auto max-w-7xl space-y-5 px-4 pb-14 pt-4 md:space-y-6 md:px-8 md:pt-8"
         >
           <PricingHeaderSection
             billingInterval={billingInterval}

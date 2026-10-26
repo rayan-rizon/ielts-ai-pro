@@ -160,13 +160,7 @@ export const LiveDot = ({ active = true, tone = 'ok' }) => (
 
 /** Standard KPI tile. */
 export const Kpi = ({ label, value, sub, delta, tip, live = false, className }) => (
-  <div
-    className={cn(
-      PANEL,
-      'py-2 sm:py-2.5 px-3 sm:px-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12 min-w-0',
-      className
-    )}
-  >
+  <div className={cn(PANEL, 'py-2 sm:py-2.5 px-3 sm:px-3.5 min-w-0', className)}>
     <div className="flex items-center gap-1.5 min-w-0">
       {live && <LiveDot />}
       <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>{label}</p>
@@ -691,7 +685,7 @@ AdminButton.displayName = 'AdminButton';
 export const ADMIN_TABS_LIST =
   'inline-flex h-auto items-center justify-start gap-1 p-1 bg-stone-100 dark:bg-white/4 border border-stone-200/80 dark:border-white/[0.07] rounded-lg shrink-0';
 export const ADMIN_TAB_TRIGGER =
-  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-all duration-fast ease-smooth-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] shrink-0';
+  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-stone-500 dark:text-stone-400 data-[state=active]:bg-white dark:data-[state=active]:bg-[#131315] data-[state=active]:text-stone-900 dark:data-[state=active]:text-stone-50 data-[state=active]:shadow-2xs transition-[color,background-color,transform] duration-fast ease-smooth-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315] shrink-0';
 
 /**
  * Shared enter animation for admin pages/panels — a quiet staggered fade+rise
@@ -822,7 +816,7 @@ export const SkeletonRows = ({ count = 5, className }) => (
  * pages use); pass `rows` for pages whose body is a list/table instead.
  */
 export const AdminPageSkeleton = ({ kpis = 3, panels = 1, rows = 0, className }) => (
-  <div className={cn('animate-panel-in space-y-4 pb-6 pt-12 md:pt-0', className)}>
+  <div className={cn('animate-panel-in space-y-4 pb-6', className)}>
     <SkeletonHeader />
     <SkeletonKpiRow count={kpis} />
     {panels > 0 && (

@@ -20,7 +20,7 @@ function PricingFeature({ label, unavailable }) {
 
   if (inherits) {
     return (
-      <li className="py-2.5 text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+      <li className="py-2 text-[12px] sm:py-2.5 font-semibold text-slate-500 dark:text-slate-400">
         Everything in{' '}
         <span className="font-extrabold text-slate-900 dark:text-white">{inherits[1]}</span>, plus
       </li>
@@ -28,7 +28,7 @@ function PricingFeature({ label, unavailable }) {
   }
 
   return (
-    <li className="flex items-start gap-2.5 py-2.5">
+    <li className="flex items-start gap-2.5 py-2 sm:py-2.5">
       <span
         className={cn(
           'mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full',
@@ -182,12 +182,12 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       onClick={() => onUpgrade(plan.tier)}
       disabled={isLoading || isPricingLoading || isActive}
       className={cn(
-        'flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl px-3 text-sm font-bold tracking-tight transition-colors duration-200 ease-smooth-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] disabled:cursor-not-allowed disabled:opacity-60',
+        'flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl px-3 text-sm font-bold tracking-tight transition-[color,background-color,transform] duration-150 ease-smooth-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] disabled:cursor-not-allowed disabled:opacity-60',
         isActive
           ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500 cursor-default'
           : isPro
-            ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.99]'
-            : 'cursor-pointer bg-[#eeedfb] text-[#4f57cd] hover:bg-[#e4e2f8] active:scale-[0.99] dark:bg-[#5a63df]/15 dark:text-[#b5baff] dark:hover:bg-[#5a63df]/25'
+            ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.97]'
+            : 'cursor-pointer bg-[#eeedfb] text-[#4f57cd] hover:bg-[#e4e2f8] active:scale-[0.97] dark:bg-[#5a63df]/15 dark:text-[#b5baff] dark:hover:bg-[#5a63df]/25'
       )}
     >
       {isActive ? 'Current plan' : buttonLabel}

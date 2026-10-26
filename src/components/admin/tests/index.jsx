@@ -284,7 +284,7 @@ const TestManagement = () => {
             filter: 'blur(2px)',
             transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] },
           }}
-          className="space-y-4 pb-6 pt-12 md:pt-0"
+          className="space-y-4 pb-6"
         >
           <TestUnlockModal
             isOpen={showUnlockModal}

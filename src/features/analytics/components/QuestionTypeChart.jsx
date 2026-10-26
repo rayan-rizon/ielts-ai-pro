@@ -44,25 +44,47 @@ function TypeRow({ item, maxTotal }) {
     <Tip
       content={`${item.module ? `${formatType(item.module)} · ` : ''}${formatType(item.type)} — ${item.correct} of ${item.total} correct, ${lost} mark${lost === 1 ? '' : 's'} lost. ${verdict}.`}
     >
-      {/* Rows flex to fill the plot area instead of stacking at their natural
-          height and leaving a void above the footnote — the card is stretched
-          to its row's height, so the chart has to stretch with it. Bounded top
-          and bottom so a learner with three tracked formats doesn't get three
-          absurdly tall rows. */}
-      <div className="flex max-h-[30px] min-h-[22px] flex-1 items-center gap-2">
-        <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" strokeWidth={2} />
-        <span className="w-[92px] shrink-0 truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100 sm:w-[110px]">
-          {formatType(item.type)}
-        </span>
+      {/* Two lines per row: the name gets the full width so long formats
+          ("Matching Features", "True False Not Given") are never clipped, and
+          the bar below gets the full width too, which makes length differences
+          between formats easier to compare. The module is spelled out beside
+          the name because two "Multiple Choice" rows are otherwise
+          indistinguishable without decoding an icon. */}
+      <div className="space-y-1.5 py-0.5">
+        <div className="flex items-center gap-2">
+          <Icon
+            className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500"
+            strokeWidth={2}
+          />
+          <span className="min-w-0 truncate text-xs font-extrabold text-slate-800 dark:text-slate-100">
+            {formatType(item.type)}
+          </span>
+          {item.module ? (
+            <span className={cn(MICRO, MUTED, 'shrink-0')}>{formatType(item.module)}</span>
+          ) : null}
+          <span className="ml-auto flex shrink-0 items-baseline gap-2">
+            <span className={cn(NUM, 'text-[10px] font-semibold', MUTED)}>
+              {item.correct}/{item.total}
+            </span>
+            <span
+              className={cn(
+                NUM,
+                'w-9 text-right text-xs font-bold text-slate-800 dark:text-slate-100'
+              )}
+            >
+              {item.accuracy}%
+            </span>
+          </span>
+        </div>
 
         {/* Width lives in `style` with a CSS transition rather than a
             framer-motion `animate` — a motion value that starts at 0 leaves the
             bar genuinely zero-width until frames run, so any context without
             them (reduced motion, a test, a paint before hydration) renders an
             empty chart. Same pattern as every other meter on this page. */}
-        <div className={cn('relative h-2.5 flex-1 overflow-hidden rounded-full', WELL)}>
+        <div className={cn('relative h-2 w-full overflow-hidden rounded-full', WELL)}>
           <div
-            className="absolute inset-y-0 left-0 flex overflow-hidden rounded-full transition-[width] duration-700 ease-out"
+            className="absolute inset-y-0 left-0 flex overflow-hidden rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `${volumePct}%` }}
           >
             <div
@@ -72,15 +94,6 @@ function TypeRow({ item, maxTotal }) {
             <div className="h-full flex-1 bg-[rgb(var(--signal-fault)/0.35)]" />
           </div>
         </div>
-
-        <span
-          className={cn(
-            NUM,
-            'w-7 shrink-0 text-right text-[11px] font-bold text-slate-700 dark:text-slate-200'
-          )}
-        >
-          {item.accuracy}%
-        </span>
       </div>
     </Tip>
   );
@@ -115,7 +128,7 @@ const QuestionTypeChart = React.memo(function QuestionTypeChart({ data }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-1.5 flex shrink-0 items-center gap-3 pl-22 sm:pl-[6.6rem]">
+      <div className="mb-2.5 flex shrink-0 items-center gap-3">
         <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
           <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
           Correct
@@ -127,7 +140,7 @@ const QuestionTypeChart = React.memo(function QuestionTypeChart({ data }) {
         <span className={cn(MICRO, MUTED, 'ml-auto')}>bar = questions sat</span>
       </div>
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col justify-between gap-2.5">
         {ordered.map((item) => (
           <TypeRow key={`${item.module}:${item.type}`} item={item} maxTotal={maxTotal} />
         ))}

@@ -17,7 +17,7 @@ function IntervalTab({ active, onClick, children, className }) {
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'relative z-10 flex cursor-pointer items-center gap-2 rounded-full py-1.5 text-xs font-bold tracking-tight transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] sm:py-2 sm:text-[13px]',
+        'relative z-10 flex cursor-pointer items-center gap-2 rounded-full py-2 text-xs font-bold tracking-tight transition-[color,transform] duration-200 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] sm:py-2 sm:text-[13px]',
         active
           ? 'text-white'
           : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
@@ -46,8 +46,7 @@ export default function PricingHeaderSection({
   const isPass = billingInterval === 'quarterly';
 
   return (
-    // Phones keep top room for the floating sidebar button.
-    <header className="flex flex-col items-center gap-2.5 pt-10 text-center sm:pt-0">
+    <header className="flex flex-col items-center gap-2.5 text-center">
       <p
         className={cn(
           MICRO,
@@ -65,20 +64,20 @@ export default function PricingHeaderSection({
         Instant AI band scores and a study plan built around your exam date.
       </p>
 
-      <div className="mt-1.5 inline-flex items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4">
+      <div className="mt-1.5 grid w-full max-w-sm grid-cols-2 items-center rounded-full border border-[#e4e2f0] bg-white p-1 dark:border-white/10 dark:bg-white/4 sm:inline-grid sm:w-auto">
         <IntervalTab
           active={!isPass}
           onClick={() => setBillingInterval('monthly')}
-          className="px-6 sm:px-7"
+          className="justify-center px-3 sm:px-7"
         >
           Monthly
         </IntervalTab>
         <IntervalTab
           active={isPass}
           onClick={() => setBillingInterval('quarterly')}
-          className="px-5 sm:px-6"
+          className="justify-center gap-1.5 px-3 sm:gap-2 sm:px-6"
         >
-          <span>{EXAM_PASS_MONTHS}-Month Pass</span>
+          <span className="whitespace-nowrap">{EXAM_PASS_MONTHS}-Month Pass</span>
           <span
             className={cn(
               'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors duration-200',
@@ -87,7 +86,8 @@ export default function PricingHeaderSection({
                 : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#a9afff]'
             )}
           >
-            Save {EXAM_PASS_DISCOUNT_PERCENT}%
+            <span className="sm:hidden">−{EXAM_PASS_DISCOUNT_PERCENT}%</span>
+            <span className="hidden sm:inline">Save {EXAM_PASS_DISCOUNT_PERCENT}%</span>
           </span>
         </IntervalTab>
       </div>

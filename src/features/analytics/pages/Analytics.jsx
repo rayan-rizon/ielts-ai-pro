@@ -10,7 +10,7 @@ import AnalyticsReport from '../components/AnalyticsReport';
 import EmptyAnalyticsView from '../components/EmptyAnalyticsView';
 
 const PAGE_SHELL =
-  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5';
+  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5';
 
 function PageBackdrop() {
   return (

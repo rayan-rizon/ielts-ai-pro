@@ -179,7 +179,7 @@ export default function MarketingHub() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-5 pb-10 pt-12 md:pt-0 min-w-0 max-w-full"
+      className="space-y-5 pb-10 min-w-0 max-w-full"
     >
       <m.div variants={FADE_UP}>
         <AdminPageHeader

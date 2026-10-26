@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { m } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { PromoCode } from '@/entities';
 import { toast } from 'sonner';
 import {
@@ -157,6 +157,34 @@ const PromoManagement = () => {
     }
   };
 
+  const [confirmClearExpired, setConfirmClearExpired] = useState(false);
+  const [isClearingExpired, setIsClearingExpired] = useState(false);
+
+  // Signup-offer templates are the source the personal codes are minted from,
+  // so they are never swept up here even when their own window has lapsed.
+  const expiredPromos = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return promoCodes.filter(
+      (promo) => promo.valid_until && promo.valid_until < today && !promo.is_signup_offer_template
+    );
+  }, [promoCodes]);
+
+  const confirmClearExpiredPromos = async () => {
+    setIsClearingExpired(true);
+    try {
+      const results = await Promise.allSettled(
+        expiredPromos.map((promo) => PromoCode.delete(promo.id))
+      );
+      const failed = results.filter((result) => result.status === 'rejected').length;
+      await fetchPromoCodes();
+      if (failed) toast.error(`Deleted ${results.length - failed}, ${failed} failed`);
+      else toast.success(`Deleted ${results.length} expired promo codes`);
+      setConfirmClearExpired(false);
+    } finally {
+      setIsClearingExpired(false);
+    }
+  };
+
   const stats = useMemo(
     () => ({
       total: promoCodes.length,
@@ -178,7 +206,7 @@ const PromoManagement = () => {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-10 pt-12 md:pt-0"
+      className="space-y-4 pb-10"
     >
       <m.div variants={FADE_UP}>
         <AdminPageHeader
@@ -186,6 +214,12 @@ const PromoManagement = () => {
           description="Discount codes and direct subscription grants"
           tip="Discount or tier codes. Deactivation only stops new redemptions."
         >
+          {expiredPromos.length > 0 && (
+            <AdminButton onClick={() => setConfirmClearExpired(true)}>
+              <Trash2 className="w-3.5 h-3.5" />
+              Clear {expiredPromos.length} expired
+            </AdminButton>
+          )}
           <AdminButton onClick={() => setIsAddingPromo(true)}>
             <Plus className="w-3.5 h-3.5" />
             Add promo code
@@ -235,6 +269,30 @@ const PromoManagement = () => {
               className="bg-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.9)] text-white"
             >
               {isDeletingPromo ? 'Deleting…' : 'Delete Code'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={confirmClearExpired} onOpenChange={setConfirmClearExpired}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete expired promo codes</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes {expiredPromos.length} promo codes whose expiry date has
+              passed. Signup-offer templates are kept. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClearingExpired}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                confirmClearExpiredPromos();
+              }}
+              disabled={isClearingExpired}
+              className="bg-[rgb(var(--signal-fault))] hover:bg-[rgb(var(--signal-fault)/0.9)] text-white"
+            >
+              {isClearingExpired ? 'Deleting…' : `Delete ${expiredPromos.length} codes`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

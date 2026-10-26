@@ -111,7 +111,7 @@ export default function GrammarSkillsPanel({
             onStart({ mode: 'review', targetSkills: null, questionCount: 5 });
           }}
           disabled={isStarting || !dueReviews}
-          className="cursor-pointer rounded-lg border border-[#e2e5f2] px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#c9cdf3] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
+          className="cursor-pointer rounded-lg border border-[#e2e5f2] px-3 py-2 text-[11px] sm:py-1.5 font-bold text-slate-600 transition hover:border-[#c9cdf3] hover:text-[#5a63df] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:text-slate-300"
         >
           Review missed items
         </button>

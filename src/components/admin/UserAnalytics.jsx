@@ -285,7 +285,7 @@ const UserAnalytics = ({
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-6 pt-12 md:pt-0"
+      className="space-y-4 pb-6"
     >
       <motion.div variants={FADE_UP}>
         <AdminPageHeader

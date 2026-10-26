@@ -287,7 +287,7 @@ const UserManagement = () => {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-10 pt-14 sm:pt-12 md:pt-0"
+      className="space-y-4 pb-10"
     >
       <RefinedDeleteModal
         isOpen={!!userToDelete}

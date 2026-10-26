@@ -164,7 +164,7 @@ export default function FeatureRequestManagement() {
       variants={STAGGER_CONTAINER}
       initial="hidden"
       animate="visible"
-      className="space-y-4 pb-10 pt-12 md:pt-0"
+      className="space-y-4 pb-10"
     >
       <m.div variants={FADE_UP}>
         <AdminPageHeader

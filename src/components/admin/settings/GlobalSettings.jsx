@@ -223,7 +223,7 @@ export default function GlobalSettings() {
         animate="visible"
         aria-busy={isInitialLoad}
         className={cn(
-          'space-y-6 pb-12 pt-16 sm:pt-14 md:pt-0 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full min-w-0 overflow-x-clip',
+          'space-y-6 pb-12 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 w-full min-w-0 overflow-x-clip',
           isInitialLoad && 'hidden'
         )}
         data-oid="_8_3dg3"

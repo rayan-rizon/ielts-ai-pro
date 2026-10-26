@@ -45,7 +45,7 @@ function HeaderMetric({ icon: Icon, value, label, tone, href, onClick, disabled 
   );
   const className = cn(
     PANEL,
-    'flex min-w-[102px] items-center gap-2 px-2.5 py-2 transition-all duration-200 ease-smooth-out hover:border-[#5a63df]/35 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] dark:hover:border-[#8f97ff]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0'
+    'flex min-w-0 items-center gap-2 px-2.5 py-2.5 transition-[transform,border-color] duration-150 ease-out hover:border-[#5a63df]/35 active:scale-[0.97] dark:hover:border-[#8f97ff]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 sm:min-w-[102px] sm:py-2'
   );
 
   return href ? (
@@ -73,7 +73,7 @@ function GrammarHeaderStats({ dashboard, isStarting, onReview }) {
   return (
     <div
       aria-label="Grammar practice summary"
-      className="flex flex-wrap items-center justify-end gap-2"
+      className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end"
     >
       <HeaderMetric
         icon={Target}
@@ -194,7 +194,7 @@ export default function GrammarLab() {
       />
       <main
         ref={pageTopRef}
-        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pt-16 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 sm:pt-4 md:px-5 md:py-5"
+        className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5"
       >
         <div
           aria-hidden="true"
@@ -219,7 +219,7 @@ export default function GrammarLab() {
                   Learn the grammar that IELTS Writing and Speaking reward, then practise it
                 </p>
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
+              <div className="w-full sm:w-auto">
                 <GrammarHeaderStats
                   dashboard={grammar.dashboard}
                   isStarting={grammar.isStarting}

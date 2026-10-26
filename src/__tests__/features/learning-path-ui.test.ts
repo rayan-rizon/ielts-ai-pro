@@ -121,7 +121,7 @@ describe('Learning Path main page composition', () => {
     // Narrowest at the *widest* viewport, where it takes a 1fr column.
     expect(readiness).toContain('2xl:grid-cols-2');
     expect(layout).toContain(
-      'pointer-events-none absolute top-4 left-4 z-50 flex items-center gap-2 md:hidden'
+      'flex h-12 shrink-0 items-center gap-1 border-b border-[#e4e2f0] bg-white px-1.5 dark:border-white/[0.07] dark:bg-[#100f15] md:hidden'
     );
     expect(app).toContain("path: '/learning-path-preview'");
     expect(app).toContain('<Navigate to="/learning-path" replace />');

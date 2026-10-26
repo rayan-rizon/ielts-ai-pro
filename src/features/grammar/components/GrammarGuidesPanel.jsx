@@ -112,16 +112,24 @@ function GuideCard({ guide, user, isCompleted, recommendation }) {
     <Link
       to={`/grammar/guides/${guide.slug}`}
       className={cn(
-        'group flex min-h-[168px] flex-col justify-between rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15]',
+        'group relative flex flex-col justify-between gap-2.5 rounded-xl border bg-linear-to-br/srgb p-3.5 text-left transition-[transform,border-color] duration-150 ease-out hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:from-white/[0.035] dark:to-white/1.5 dark:focus-visible:ring-offset-[#100f15] sm:min-h-[168px] sm:gap-0',
         recommendation
-          ? 'border-[#5a63df]/40 shadow-xs dark:border-[#8f97ff]/40'
+          ? 'border-[#5a63df]/40 dark:border-[#8f97ff]/40'
           : 'border-[#eceafa] dark:border-white/10',
         visual.panelClass,
         visual.cardClass
       )}
     >
-      <div>
-        <div className="flex items-start justify-between gap-2">
+      <ContentStatusBadge
+        user={user}
+        requiredTier={guide.access_tier}
+        completed={isCompleted}
+        className="absolute right-3.5 top-3.5"
+      />
+      {/* Phones: the artwork sits beside the copy so a card is about half as
+          tall; from sm up it stacks above it as before. */}
+      <div className="flex gap-3 sm:block">
+        <div className="flex shrink-0 items-start justify-between gap-2">
           {guide.unit_number ? (
             <SkillVisual
               skillCode={guide.skill_code}
@@ -132,34 +140,32 @@ function GuideCard({ guide, user, isCompleted, recommendation }) {
           ) : (
             <IconChip icon={FileText} size="lg" />
           )}
-          <ContentStatusBadge
-            user={user}
-            requiredTier={guide.access_tier}
-            completed={isCompleted}
-            className="shrink-0"
-          />
         </div>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          {recommendation && <RecommendationBadge recommendation={recommendation} />}
-          <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
-            {guide.skill_code ? skillLabel(guide.skill_code) : guide.label}
-          </span>
+        <div className="min-w-0 flex-1">
+          <div className="pr-16 sm:mt-2.5 sm:pr-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {recommendation && <RecommendationBadge recommendation={recommendation} />}
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#5a63df]">
+                {guide.skill_code ? skillLabel(guide.skill_code) : guide.label}
+              </span>
+            </div>
+          </div>
+          <h3 className="mt-1 text-[13px] font-extrabold leading-snug text-slate-900 dark:text-white sm:text-xs sm:leading-4">
+            {guide.unit_number ? `${guide.unit_number}. ` : ''}
+            {guide.title}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-4 text-slate-500 dark:text-slate-400 sm:mt-1.5 sm:text-[10px]">
+            {guide.summary}
+          </p>
         </div>
-        <h3 className="mt-1 text-xs font-extrabold leading-4 text-slate-900 dark:text-white">
-          {guide.unit_number ? `${guide.unit_number}. ` : ''}
-          {guide.title}
-        </h3>
-        <p className="mt-1.5 line-clamp-2 text-[10px] font-medium leading-4 text-slate-500 dark:text-slate-400">
-          {guide.summary}
-        </p>
       </div>
-      <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+      <div className="flex items-center justify-between border-t border-black/[0.05] pt-2 text-[10px] font-bold text-slate-500 dark:border-white/[0.07] dark:text-slate-400 sm:mt-2 sm:border-0 sm:pt-0">
         <span className="inline-flex items-center gap-1">
           <Clock3 className="h-3 w-3" /> {guide.estimated_minutes} min
         </span>
         <span className="inline-flex items-center gap-0.5 text-[#5a63df]">
           {isLocked ? 'Unlock' : isCompleted ? 'Review' : 'Open'}
-          <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+          <ChevronRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
         </span>
       </div>
     </Link>
@@ -194,7 +200,7 @@ function PartHeader({ kit, progress, canPractise, noAllowance, isStarting, onSta
               ? 'Your free questions for today are used. They reset tomorrow.'
               : 'Five questions on the skills in this part'
           }
-          className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-white px-3 text-[11px] font-bold text-[#5a63df] transition hover:bg-[#5a63df]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 dark:border-indigo-400/30 dark:bg-white/5 dark:text-indigo-300"
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/30 bg-white px-3 text-[11px] font-bold text-[#5a63df] transition-[transform,background-color] duration-150 active:scale-[0.97] sm:h-8 hover:bg-[#5a63df]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] disabled:cursor-not-allowed disabled:opacity-45 dark:border-indigo-400/30 dark:bg-white/5 dark:text-indigo-300"
         >
           {isStarting ? (
             <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -310,7 +316,7 @@ export default function GrammarGuidesPanel({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search for a rule, e.g. articles"
           aria-label="Search grammar guides"
-          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#10131f]"
+          className="h-10 rounded-lg border-[#e2e5f2] bg-white pl-9 text-base font-semibold dark:border-white/10 dark:bg-[#10131f] sm:h-9 sm:text-xs"
         />
       </div>
 
