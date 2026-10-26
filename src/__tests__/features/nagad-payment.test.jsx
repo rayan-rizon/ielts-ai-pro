@@ -324,10 +324,10 @@ describe('Nagad result page', () => {
 describe('Nagad result route', () => {
   it('is served by the app, not answered with a 404', () => {
     // Nagad redirects the learner here after paying. The Cloudflare Worker
-    // (and the Vercel fallback) take their rewrites from vercel.json and only
+    // takes its rewrites from cloudflare/routes.json and only
     // send allowlisted paths to the app; anything else is a hard 404.
-    const vercel = JSON.parse(readFileSync('vercel.json', 'utf8'));
-    expect(vercel.rewrites).toContainEqual({
+    const routeConfig = JSON.parse(readFileSync('cloudflare/routes.json', 'utf8'));
+    expect(routeConfig.rewrites).toContainEqual({
       source: '/payment/nagad',
       destination: '/index.html',
     });

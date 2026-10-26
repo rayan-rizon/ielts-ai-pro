@@ -117,3 +117,6 @@ renders/
 # Nagad sandbox keys and the NDA-confidential integration guide
 Nagad/
 *.pem
+
+# --- Generated media and prompt artifacts ---
+/output/

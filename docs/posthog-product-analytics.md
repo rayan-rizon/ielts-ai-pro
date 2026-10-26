@@ -53,7 +53,7 @@ secrets; adding code or local env values does not configure the deployed project
 
 ## Production activation
 
-1. Set `VITE_POSTHOG_PROJECT_TOKEN`, `VITE_POSTHOG_HOST`, and `VITE_POSTHOG_UI_HOST` in the Vercel
+1. Set `VITE_POSTHOG_PROJECT_TOKEN`, `VITE_POSTHOG_HOST`, and `VITE_POSTHOG_UI_HOST` in the Cloudflare Workers Builds
    Production environment. Do not enable `VITE_POSTHOG_ENABLE_DEVELOPMENT` there.
 2. In PostHog project settings, set the project timezone to `Asia/Dhaka` before building daily or
    weekly insights.

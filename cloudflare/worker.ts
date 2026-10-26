@@ -177,7 +177,7 @@ async function publicHtml(
 
 async function route(request: Request, env: Env, ctx: ExecutionContext) {
   const url = new URL(request.url);
-  // Preserve Vercel's existing path-prefix + POST rule using trusted edge IPs.
+  // Apply the path-prefix + POST rule using trusted Cloudflare edge IPs.
   // The native counter is local to each Cloudflare location, not a global quota.
   if (
     isMeasuredRequest(url, env.DEPLOYMENT_STAGE) &&
@@ -203,8 +203,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext) {
         }
       );
   }
-  // Vercel's project domain redirect is outside vercel.json. Preserve it when
-  // both production domains eventually route here, including path/query data.
+  // Redirect the apex to the canonical www host, preserving path and query.
   if (isMeasuredRequest(url, env.DEPLOYMENT_STAGE) && url.hostname === 'ieltsai.pro') {
     const canonical = new URL(url);
     canonical.hostname = 'www.ieltsai.pro';

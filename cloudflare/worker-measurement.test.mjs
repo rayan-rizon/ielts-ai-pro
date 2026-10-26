@@ -10,6 +10,18 @@ const mf = new Miniflare(convertV4MiniflareOptions({ workers: [{ name: 'measurem
 } }] }));
 const send = (url, body, headers = {}) => mf.dispatchFetch(url, { method: 'POST', headers: { origin: 'https://www.ieltsai.pro', 'Content-Type': 'application/json', 'cf-connecting-ip': '192.0.2.10', ...headers }, body: typeof body === 'string' ? body : JSON.stringify(body) });
 try {
+  for (const [raw, country] of [['BD', 'BD'], ['KZ', 'KZ'], ['XX', null], ['T1', null], ['', null], ['BANGLADESH', null], [undefined, null]]) {
+    const response = await mf.dispatchFetch('https://www.ieltsai.pro/api/geo', {
+      cf: { country: raw }, headers: { 'x-vercel-ip-country': 'US' },
+    });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { country }, 'country comes from Cloudflare metadata only');
+    assert.match(response.headers.get('cache-control'), /no-store/);
+  }
+  const geoPost = await mf.dispatchFetch('https://www.ieltsai.pro/api/geo', { method: 'POST' });
+  assert.equal(geoPost.status, 405);
+  assert.equal(geoPost.headers.get('allow'), 'GET');
+  checks.push({ name: 'geo uses Cloudflare country, rejects placeholders, bypasses cache and requires GET', status: 200 });
   const base = 'https://www.ieltsai.pro/api/meta-capi';
   const valid = { event_name: 'Purchase', event_id: 'worker-fixture-only', event_source_url: 'https://www.ieltsai.pro/pricing', value: 10, currency: 'BDT', user: { em: 'a'.repeat(64), external_id: 'b'.repeat(64) } };
   for (const [name, url, body, headers, status] of [
@@ -51,7 +63,7 @@ try {
   assert.deepEqual(statuses.slice(0, 20), Array(20).fill(400));
   assert.equal(statuses[20], 429, 'changing forwarding headers must not reset edge IP limit');
   const blocked = await send(base + '/extra', {}, { 'cf-connecting-ip': '192.0.2.20' });
-  assert.equal(blocked.status, 429, 'same path-prefix rule as Vercel');
+  assert.equal(blocked.status, 429, 'path-prefix rate limit covers subpaths');
   assert.equal(blocked.headers.get('retry-after'), '60');
   assert.match(blocked.headers.get('cache-control'), /no-store/);
   assert.equal((await send(base, { event_name: 'probe' }, { 'cf-connecting-ip': '192.0.2.21' })).status, 400);

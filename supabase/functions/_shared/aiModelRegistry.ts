@@ -19,13 +19,7 @@ export type ModelEntry = {
   id: string;
   vendor: string;
   /** How the request reaches the model. */
-  access:
-    | 'openrouter'
-    | 'deepseek-direct'
-    | 'google-direct'
-    | 'vercel-ai-gateway'
-    | 'cloudflare'
-    | 'azure';
+  access: 'openrouter' | 'deepseek-direct' | 'google-direct' | 'cloudflare' | 'azure';
   pricing?: TokenPricing;
   /** USD per 1M input characters, for speech models billed per character. */
   characterPricingPerMillion?: number;

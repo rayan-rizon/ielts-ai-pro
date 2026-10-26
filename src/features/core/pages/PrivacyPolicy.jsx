@@ -257,7 +257,10 @@ export default function PrivacyPolicy() {
           <LegalDefinitions
             items={[
               { term: 'Supabase', description: 'Database and authentication (US/EU regions).' },
-              { term: 'Vercel', description: 'Website hosting (global CDN with EU presence).' },
+              {
+                term: 'Cloudflare',
+                description: 'Website hosting and global content delivery network.',
+              },
               { term: 'Stripe', description: 'Payment processing (PCI DSS compliant, EU/US).' },
               {
                 term: 'Google',

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { matchSource, resolveRule, configuredHeaders } from './routing.mjs';
 
-const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url)));
+const config = JSON.parse(readFileSync(new URL('./routes.json', import.meta.url)));
 test('all configured redirects and rewrites resolve without changing destinations', () => {
   for (const rule of [...config.redirects, ...config.rewrites]) {
     const pathname = rule.source.replace(/:slug/g, 'cambridge-ielts-20').replace(/:sessionId/g, 'session-123').replace(/:kitSlug/g, 'academic').replace(/:guideSlug/g, 'articles').replace(/:id/g, 'test-123');

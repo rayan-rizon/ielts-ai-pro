@@ -18,7 +18,7 @@ describe('error page indexing', () => {
   });
 
   it('returns a crawler noindex header for the direct error route', () => {
-    const config = JSON.parse(readSource('vercel.json'));
+    const config = JSON.parse(readSource('cloudflare/routes.json'));
     const errorRoute = config.headers.find((entry) => entry.source === '/500');
 
     expect(errorRoute?.headers).toContainEqual({

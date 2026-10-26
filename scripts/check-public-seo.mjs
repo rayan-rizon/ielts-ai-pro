@@ -76,7 +76,7 @@ const sitemap = renderSitemap([validationArticle]);
 const llms = renderLlmsTxt([validationArticle]);
 const feed = renderFeed([validationArticle]);
 const robots = readFileSync(path.join(root, 'public/robots.txt'), 'utf8');
-const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+const routeConfig = JSON.parse(readFileSync(path.join(root, 'cloudflare/routes.json'), 'utf8'));
 const appSource = readFileSync(path.join(root, 'src/App.jsx'), 'utf8');
 const indexHtml = readFileSync(path.join(root, 'index.html'), 'utf8');
 const faviconSvg = readFileSync(path.join(root, 'public/favicon.svg'), 'utf8');
@@ -162,7 +162,7 @@ for (const route of Object.keys(generatedSeoPages)) {
 // canonical; otherwise the sitemap is nominating pages that point elsewhere.
 for (const [route, config] of Object.entries(generatedSeoPages)) {
   if (!sitemap.includes(`<loc>${siteUrl}${route}</loc>`)) continue;
-  const rewrite = (vercel.rewrites || []).find((entry) => entry.source === route);
+  const rewrite = (routeConfig.rewrites || []).find((entry) => entry.source === route);
   if (rewrite?.destination === '/index.html') {
     fail(`${route} is in the sitemap but rewrites to the shell, inheriting the homepage canonical`);
   }
@@ -259,7 +259,7 @@ for (const route of removedStaticPagePaths) {
 }
 
 const redirects = new Map(
-  (vercel.redirects || []).map(({ source, destination }) => [source, destination])
+  (routeConfig.redirects || []).map(({ source, destination }) => [source, destination])
 );
 for (const [source, destination] of Object.entries(retiredRoutes)) {
   if (redirects.get(source) !== destination)
@@ -270,7 +270,7 @@ for (const [source, destination] of Object.entries(retiredRoutes)) {
 }
 
 const rewrites = new Map(
-  (vercel.rewrites || []).map(({ source, destination }) => [source, destination])
+  (routeConfig.rewrites || []).map(({ source, destination }) => [source, destination])
 );
 const requiredRewrites = {
   '/institutions': '/institutions/index.html',
@@ -305,7 +305,7 @@ for (const route of appRoutes) {
   }
 }
 
-for (const rewrite of vercel.rewrites || []) {
+for (const rewrite of routeConfig.rewrites || []) {
   if (Object.hasOwn(retiredRoutes, rewrite.source))
     fail(`retired route ${rewrite.source} still rewrites`);
   if (

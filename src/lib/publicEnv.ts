@@ -20,7 +20,7 @@ export const requirePublicEnv = (name: string) => {
   }
 
   if (!value || isPlaceholder(value)) {
-    throw new Error(`${name} is required; set it in .env or the Vercel project settings.`);
+    throw new Error(`${name} is required; set it in .env or Cloudflare Build variables.`);
   }
 
   return value;

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import process from 'node:process';
 
-import geoHandler from '../../../api/geo.js';
 import capiHandler from '../../../api/meta-capi.js';
 
 const makeRes = () => {
@@ -28,40 +27,6 @@ const makeRes = () => {
   });
   return res;
 };
-
-describe('GET /api/geo', () => {
-  it('returns the country the edge already resolved, with no user input', async () => {
-    const res = makeRes();
-    await geoHandler({ method: 'GET', headers: { 'x-vercel-ip-country': 'bd' } }, res);
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ country: 'BD' });
-  });
-
-  it.each(['XX', 'T1', '', 'BANGLADESH', '1'])(
-    'reports no country rather than writing the placeholder %s to a profile',
-    async (header) => {
-      const res = makeRes();
-      await geoHandler({ method: 'GET', headers: { 'x-vercel-ip-country': header } }, res);
-
-      expect(res.body).toEqual({ country: null });
-    }
-  );
-
-  it('returns null when the header is absent, as it is in local development', async () => {
-    const res = makeRes();
-    await geoHandler({ method: 'GET', headers: {} }, res);
-
-    expect(res.body).toEqual({ country: null });
-  });
-
-  it('is never cached, since the answer differs per visitor', async () => {
-    const res = makeRes();
-    await geoHandler({ method: 'GET', headers: { 'x-vercel-ip-country': 'KZ' } }, res);
-
-    expect(res.headers['Cache-Control']).toBe('no-store, private');
-  });
-});
 
 describe('POST /api/meta-capi host gate', () => {
   const emailHash = 'b4c9a289323b21a01c3e940f150eb9b8c542587f1abfd8f0e1cc1ffc5e475514';

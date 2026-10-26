@@ -42,7 +42,7 @@ in the same commit.
 `docs/meta-conversions-api.md` is the reference for how the Pixel and the
 first-party Conversions API relay (`api/meta-capi.js`) fit together.
 
-The CSP in `vercel.json` **deliberately** blocks Meta's Open Bridge
+The CSP in `cloudflare/routes.json` **deliberately** blocks Meta's Open Bridge
 (Conversions API Gateway) endpoints and its client param builder. Those blocked
 requests appear as console errors and cost a Lighthouse Best Practices point,
 so they read like a bug. They are not.

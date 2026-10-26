@@ -12,7 +12,7 @@ import sitemapHandler from '../api/sitemap.js';
 const rootDir = resolve(import.meta.dirname, '..');
 const distDir = join(rootDir, 'dist');
 const port = Number(process.env.PORT) || 4174;
-const vercelConfig = JSON.parse(readFileSync(join(rootDir, 'vercel.json'), 'utf8'));
+const routeConfig = JSON.parse(readFileSync(join(rootDir, 'cloudflare/routes.json'), 'utf8'));
 
 dotenv.config({ path: join(rootDir, '.env.local'), quiet: true });
 dotenv.config({ path: join(rootDir, '.env'), quiet: true });
@@ -64,7 +64,7 @@ function sourceMatches(source, pathname) {
   return new RegExp(`^${pattern}$`).test(pathname);
 }
 
-function createVercelResponse(response) {
+function createHandlerResponse(response) {
   response.status = (statusCode) => {
     response.statusCode = statusCode;
     return response;
@@ -78,7 +78,7 @@ function createVercelResponse(response) {
 
 createServer(async (request, response) => {
   const url = new URL(request.url || '/', `http://${request.headers.host || '127.0.0.1'}`);
-  const vercelResponse = createVercelResponse(response);
+  const handlerResponse = createHandlerResponse(response);
 
   const dynamicHandlers = new Map([
     ['/blog.css', blogCssHandler],
@@ -87,7 +87,7 @@ createServer(async (request, response) => {
     ['/blog/feed.xml', feedHandler],
   ]);
   if (dynamicHandlers.has(url.pathname)) {
-    await dynamicHandlers.get(url.pathname)(request, vercelResponse);
+    await dynamicHandlers.get(url.pathname)(request, handlerResponse);
     return;
   }
 
@@ -95,13 +95,13 @@ createServer(async (request, response) => {
     const slug = url.pathname === '/blog' ? undefined : decodeURIComponent(url.pathname.slice(6));
     const query = Object.fromEntries(url.searchParams.entries());
     if (slug) query.slug = slug;
-    await blogHandler({ query }, vercelResponse);
+    await blogHandler({ query }, handlerResponse);
     return;
   }
 
   if (sendFile(url.pathname, response)) return;
 
-  const rewrite = (vercelConfig.rewrites || []).find(({ source }) =>
+  const rewrite = (routeConfig.rewrites || []).find(({ source }) =>
     sourceMatches(source, url.pathname)
   );
   if (rewrite?.destination.endsWith('/index.html') && sendFile(rewrite.destination, response)) {
@@ -114,5 +114,5 @@ createServer(async (request, response) => {
   }
 }).listen(port, '127.0.0.1', () => {
   console.log(`Production-route preview: http://127.0.0.1:${port}`);
-  console.log('Direct public routes and unknown-path 404s mirror vercel.json.');
+  console.log('Direct public routes and unknown-path 404s mirror cloudflare/routes.json.');
 });

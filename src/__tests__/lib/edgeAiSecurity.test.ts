@@ -6,15 +6,15 @@ import { isAllowedOrigin } from '../../../supabase/functions/_shared/originValid
 import { AI_ROUTES, MODELS } from '../../../supabase/functions/_shared/aiModelRegistry.ts';
 
 describe('AI edge security controls', () => {
-  it('accepts exact production and preview origins', () => {
+  it('accepts only the production domains for hosted access', () => {
     expect(isAllowedOrigin('https://ieltsai.pro')).toBe(true);
-    expect(
-      isAllowedOrigin('https://ielts-ai-pro-preview-123-rayan-rizons-projects.vercel.app')
-    ).toBe(true);
-    expect(isAllowedOrigin('https://ielts-ai-pro-rayan-rizons-projects.vercel.app')).toBe(true);
-    expect(isAllowedOrigin('https://ielts-ai-kgv121tmq-rayan-rizons-projects.vercel.app')).toBe(
-      true
-    );
+    expect(isAllowedOrigin('https://www.ieltsai.pro')).toBe(true);
+    for (const origin of [
+      'https://ielts-ai-pro-preview-123-rayan-rizons-projects.vercel.app',
+      'https://ielts-ai-pro-rayan-rizons-projects.vercel.app',
+      'https://ielts-ai-kgv121tmq-rayan-rizons-projects.vercel.app',
+    ])
+      expect(isAllowedOrigin(origin)).toBe(false);
   });
 
   it('requires an explicit local-only opt-in before allowing loopback origins', () => {

@@ -4,7 +4,6 @@ import { estimateTokenCostUsd } from './aiModelRegistry.ts';
 export const DEEPSEEK_TEXT_MODEL = 'deepseek-v4-flash';
 export const OPENROUTER_DEEPSEEK_MODEL = 'deepseek/deepseek-v4-flash-0731';
 export const OPENROUTER_LUNA_MODEL = 'openai/gpt-6-luna';
-export const VERCEL_GATEWAY_LUNA_MODEL = 'openai/gpt-6-luna';
 export const GEMINI_TEXT_FALLBACK_MODEL = 'gemini-2.5-flash-lite';
 export const GEMINI_SCORING_MODEL = 'gemini-2.5-flash';
 
@@ -14,12 +13,7 @@ const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models
 const DEFAULT_TIMEOUT_MS = 20_000;
 
 type ProviderName =
-  | 'openrouter-deepseek'
-  | 'openrouter-luna'
-  | 'vercel-ai-gateway-luna'
-  | 'deepseek'
-  | 'gemini'
-  | 'openrouter';
+  'openrouter-deepseek' | 'openrouter-luna' | 'deepseek' | 'gemini' | 'openrouter';
 
 export type TextAiUsage = {
   promptTokens: number;
@@ -472,69 +466,6 @@ export async function requestOpenRouterLunaJson(
     };
   } catch (error) {
     throw providerFailure('openrouter-luna', error);
-  }
-}
-
-export async function requestVercelGatewayLunaJson(
-  request: ProviderRequest
-): Promise<TextAiResult> {
-  const fetchImpl = request.fetchImpl || fetch;
-  try {
-    const response = await fetchWithTimeout(
-      fetchImpl,
-      'https://ai-gateway.vercel.sh/v1/chat/completions',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${request.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: VERCEL_GATEWAY_LUNA_MODEL,
-          messages: chatMessages(request),
-          // Gateway's Luna access currently rejects response_format on free
-          // keys. The production prompt still requires JSON, and the shared
-          // shape validator prevents accepting an incomplete response.
-          reasoning: { effort: 'none', exclude: true },
-          max_tokens: request.maxOutputTokens,
-          stream: false,
-        }),
-      },
-      request.timeoutMs || DEFAULT_TIMEOUT_MS
-    );
-    if (!response.ok) {
-      throw new TextAiProviderError(`Vercel AI Gateway returned HTTP ${response.status}`, {
-        provider: 'vercel-ai-gateway-luna',
-        status: response.status,
-        code: 'http_error',
-      });
-    }
-
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content;
-    // The gateway serves the same model, so it is priced from the Luna entry.
-    const usage = openAiShapedUsage(data, OPENROUTER_LUNA_MODEL);
-    const parsed = await parseBilledJson(
-      'vercel-ai-gateway-luna',
-      text,
-      usage,
-      request,
-      data?.model || VERCEL_GATEWAY_LUNA_MODEL,
-      request.validateJson
-    );
-
-    return {
-      parsed,
-      text,
-      provider: 'vercel-ai-gateway-luna',
-      model: data?.model || VERCEL_GATEWAY_LUNA_MODEL,
-      mode: 'non-thinking',
-      fallbackUsed: false,
-      fallbackReason: null,
-      usage,
-    };
-  } catch (error) {
-    throw providerFailure('vercel-ai-gateway-luna', error);
   }
 }
 

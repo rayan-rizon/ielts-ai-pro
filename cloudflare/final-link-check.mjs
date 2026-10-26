@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const origin = 'https://www.ieltsai.pro';
 const edge = execFileSync('dig', ['@suzanne.ns.cloudflare.com', 'www.ieltsai.pro', 'A', '+short'], {encoding:'utf8'}).trim().split('\n').find(ip => /^\d+\.\d+\.\d+\.\d+$/.test(ip));
 if (!edge) throw Error('No authoritative edge address');
-const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url)));
+const config = JSON.parse(readFileSync(new URL('./routes.json', import.meta.url)));
 const request = (url, head = false) => {
   const raw = execFileSync('curl', ['-sS','--max-time','20','--max-redirs','6','-L',
     '--resolve', `www.ieltsai.pro:443:${edge}`, '--resolve', `ieltsai.pro:443:${edge}`,

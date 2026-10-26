@@ -2,13 +2,15 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const vercelConfig = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8'));
-const globalHeaders = vercelConfig.headers.find((entry) => entry.source === '/(.*)');
+const routeConfig = JSON.parse(
+  readFileSync(resolve(process.cwd(), 'cloudflare/routes.json'), 'utf8')
+);
+const globalHeaders = routeConfig.headers.find((entry) => entry.source === '/(.*)');
 const headerValues = Object.fromEntries(
   globalHeaders.headers.map(({ key, value }) => [key.toLowerCase(), value])
 );
 
-describe('Vercel security-header contract', () => {
+describe('Cloudflare security-header contract', () => {
   it('keeps the baseline browser hardening headers on every route', () => {
     expect(headerValues).toMatchObject({
       'x-content-type-options': 'nosniff',
@@ -22,8 +24,8 @@ describe('Vercel security-header contract', () => {
   });
 
   it('keeps crawler directives and cache policy explicit for protected and root static paths', () => {
-    const protectedRoutes = vercelConfig.headers.find((entry) => entry.source.includes('admin/'));
-    const rootStaticAssets = vercelConfig.headers.find((entry) =>
+    const protectedRoutes = routeConfig.headers.find((entry) => entry.source.includes('admin/'));
+    const rootStaticAssets = routeConfig.headers.find((entry) =>
       entry.source.includes('og\\.webp')
     );
 
@@ -35,7 +37,7 @@ describe('Vercel security-header contract', () => {
       key: 'Cache-Control',
       value: 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400',
     });
-    expect(vercelConfig.redirects).toContainEqual({
+    expect(routeConfig.redirects).toContainEqual({
       source: '/feed.xml',
       destination: '/blog/feed.xml',
       permanent: true,
@@ -43,9 +45,9 @@ describe('Vercel security-header contract', () => {
   });
 
   it('revalidates the SPA shell while keeping fingerprinted assets immutable', () => {
-    const rootDocument = vercelConfig.headers.find((entry) => entry.source === '/');
-    const indexDocument = vercelConfig.headers.find((entry) => entry.source === '/index.html');
-    const fingerprintedAssets = vercelConfig.headers.find(
+    const rootDocument = routeConfig.headers.find((entry) => entry.source === '/');
+    const indexDocument = routeConfig.headers.find((entry) => entry.source === '/index.html');
+    const fingerprintedAssets = routeConfig.headers.find(
       (entry) => entry.source === '/assets/(.*)'
     );
     const revalidate = {
@@ -72,5 +74,6 @@ describe('Vercel security-header contract', () => {
 
     expect(imageSources).not.toMatch(/(?:^|\s)https:(?:\s|$)/);
     expect(csp).not.toContain('https://*.supabase.co');
+    expect(csp).not.toMatch(/vercel|https:\/\/\*\.on\.aws|https:\/\/\*\.run\.app|capi-automation/);
   });
 });

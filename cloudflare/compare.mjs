@@ -3,7 +3,7 @@ import { resolveRule } from './routing.mjs';
 
 const candidate = process.argv[2] || 'https://ielts-ai-pro-staging.rayan-rizon.workers.dev';
 const production = 'https://www.ieltsai.pro';
-const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url)));
+const config = JSON.parse(readFileSync(new URL('./routes.json', import.meta.url)));
 const results = [];
 const get = async (origin, pathname) => {
   const start = performance.now();

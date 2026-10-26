@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from '@/App.jsx';
 import { RootProviders } from './components/RootProviders';
@@ -10,8 +10,8 @@ import { installDomMutationGuard } from '@/lib/domMutationGuard';
 
 installDomMutationGuard();
 
-const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
-const isLiveProduction = import.meta.env.PROD && !isLocalHost;
+const isLiveProduction =
+  import.meta.env.PROD && ['ieltsai.pro', 'www.ieltsai.pro'].includes(window.location.hostname);
 const SENTRY_INITIALIZED_KEY = '__ieltsAiProSentryInitialized__';
 const sentryDsn = optionalPublicEnv('VITE_SENTRY_DSN');
 const isSentryEnabled =
@@ -97,38 +97,6 @@ if (import.meta.env.DEV && isSentryEnabled) {
   scheduleDeferredTelemetry(initSentry);
 }
 
-// Lazy-load telemetry to keep it off the critical path
-const SpeedInsights = lazy(() =>
-  import('@vercel/speed-insights/react').then((m) => ({ default: m.SpeedInsights }))
-);
-
-const Analytics = lazy(() =>
-  import('@vercel/analytics/react').then((m) => ({ default: m.Analytics }))
-);
-
-const IdleTelemetry = () => {
-  const [ready, setReady] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isLiveProduction) return undefined;
-    scheduleDeferredTelemetry(() => setReady(true));
-    return undefined;
-  }, []);
-
-  if (!ready) return null;
-
-  return (
-    <>
-      <Suspense fallback={null}>
-        <SpeedInsights data-oid="e6n:l6p" />
-      </Suspense>
-      <Suspense fallback={null}>
-        <Analytics />
-      </Suspense>
-    </>
-  );
-};
-
 /**
  * Global error listeners to catch chunk load failures early.
  * This handles stale cache issues after deployments where old script hashes
@@ -150,6 +118,5 @@ if (typeof window !== 'undefined') {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <RootProviders data-oid="root-providers">
     <App data-oid="5:8tvi2" />
-    <IdleTelemetry />
   </RootProviders>
 );

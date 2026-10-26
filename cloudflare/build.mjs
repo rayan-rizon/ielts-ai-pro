@@ -52,7 +52,7 @@ const removeFinderMetadata = directory => {
 };
 removeFinderMetadata(path.join(root, output));
 
-const config = JSON.parse(readFileSync(path.join(root, 'vercel.json')));
+const config = JSON.parse(readFileSync(path.join(root, 'cloudflare/routes.json')));
 mkdirSync(path.join(root, 'cloudflare/.generated'), { recursive: true });
 writeFileSync(path.join(root, 'cloudflare/.generated/routes.json'), JSON.stringify(config));
 // Keep short static header rules within Cloudflare's per-line limit. Document
@@ -70,7 +70,7 @@ writeFileSync(path.join(root, 'cloudflare/.dev.vars'), [
 ].join('\n') + '\n', { mode: 0o600 });
 writeFileSync(path.join(root, `cloudflare/.generated/build${profile === 'production' ? '-production' : ''}.json`), JSON.stringify({
   builtAt: new Date().toISOString(), output, profile,
-  telemetry: profile === 'production' ? 'production hosts only; Vercel widgets omitted' : 'preview disabled; Vercel widgets omitted',
+  telemetry: profile === 'production' ? 'production hosts only' : 'preview disabled',
   publicSettingsPresent: Object.fromEntries(PUBLIC_BUILD_SETTINGS.map(name => [name, Boolean(env[name])])),
 }, null, 2));
-console.log('Independent Cloudflare frontend and SEO pages built. Vercel configuration unchanged.');
+console.log('Cloudflare frontend and SEO pages built.');

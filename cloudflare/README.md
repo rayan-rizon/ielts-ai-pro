@@ -58,6 +58,11 @@ Types, generated configuration, build output and raw verification reports are ig
 
 ## Security and caching
 
+`cloudflare/routes.json` owns redirects, rewrites, security headers and cache rules.
+The Worker build, local preview, SEO checks and routing tests all use this file.
+Vercel Analytics, Speed Insights and their CSP permissions have been removed.
+Sentry and product measurement run only on the production custom domains.
+
 The existing CSP and Permissions Policy are preserved. Meta Open Bridge endpoints
 remain blocked as documented in `../docs/meta-conversions-api.md`.
 
