@@ -10,8 +10,6 @@ import { refreshLearningPathAfterTest } from '@/services/adaptiveLearningService
 import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 import { flushPendingWritingDrafts } from '@/features/testing/writing/writingDraftFlush';
 import {
-  aggregateWritingCriteria,
-  calculateWeightedWritingBand,
   isCurrentWritingFeedbackCache,
   normalizeTaskPrompt,
   normalizeWritingSource,
@@ -23,8 +21,35 @@ import {
   isWritingLearnerQuotaError,
   isStalePendingWritingEvaluation,
   isValidFeedback,
-  summarizeWritingEvaluationFailure,
 } from '@/features/testing/writing/writingFeedbackHelpers';
+
+import {
+  isSameWritingEvaluation,
+  completeWritingEvaluation,
+  recordWritingEvaluationFailure,
+} from '@/features/testing/writing/writingEvaluationAttempt';
+
+function isActiveWritingEvaluation(expected) {
+  const current = useWritingTestStore.getState().session;
+  return expected ? isSameWritingEvaluation(expected, current) : !current;
+}
+
+function restoreSavedFeedback(store, session) {
+  if (session?.evaluation_status !== 'complete') return false;
+  const feedbacks = getWritingFeedbacks(session?.content_data);
+  if (!feedbacks) return false;
+
+  const currentFeedback =
+    feedbacks[store.activeType] || feedbacks['Task 1'] || feedbacks['Task 2'] || null;
+  if (!isValidFeedback(currentFeedback)) return false;
+
+  store.setSession(session);
+  store.setFeedbacksBulk(feedbacks);
+  store.setCurrentFeedback(currentFeedback);
+  store.setCompleted(true);
+  store.setFeedbackError(null);
+  return true;
+}
 
 /**
  * useWritingFeedback
@@ -46,95 +71,81 @@ export function useWritingFeedback(awardXP) {
 
   const analyzingRef = useRef(false);
 
-  const restoreSavedFeedback = useCallback((store, session) => {
-    if (session?.evaluation_status !== 'complete') return false;
-    const feedbacks = getWritingFeedbacks(session?.content_data);
-    if (!feedbacks) return false;
+  const claimEvaluation = useCallback(async (store) => {
+    if (!isActiveWritingEvaluation(store.session)) return false;
+    if (!store.session) return true;
 
-    const currentFeedback =
-      feedbacks[store.activeType] || feedbacks['Task 1'] || feedbacks['Task 2'] || null;
-    if (!isValidFeedback(currentFeedback)) return false;
-
-    store.setSession(session);
-    store.setFeedbacksBulk(feedbacks);
-    store.setCurrentFeedback(currentFeedback);
-    store.setCompleted(true);
-    store.setFeedbackError(null);
-    return true;
-  }, []);
-
-  const claimEvaluation = useCallback(
-    async (store) => {
-      if (!store.session) return true;
-
-      const claim = async () => {
-        const requestedAt = new Date().toISOString();
-        const contentData = {
-          ...store.session.content_data,
-          evaluationRequestedAt: requestedAt,
-        };
-        const { data, error } = await supabase
-          .from('test_sessions')
-          .update({
-            evaluation_status: 'pending',
-            updated_at: requestedAt,
-            content_data: contentData,
-          })
-          .eq('id', store.session.id)
-          .in('evaluation_status', ['not_requested', 'failed'])
-          .select('id, evaluation_status, content_data, updated_at')
-          .maybeSingle();
-        if (error) throw error;
-        if (data) {
-          store.setSession({
-            ...store.session,
-            ...data,
-            content_data: contentData,
-          });
-        }
-        return Boolean(data);
+    const claim = async () => {
+      const requestedAt = new Date().toISOString();
+      const contentData = {
+        ...store.session.content_data,
+        evaluationRequestedAt: requestedAt,
       };
-
-      if (await claim()) return true;
-
-      const { data: latestSession, error } = await supabase
+      const { data, error } = await supabase
         .from('test_sessions')
-        .select('id, is_completed, evaluation_status, evaluation_version, content_data, updated_at')
+        .update({
+          evaluation_status: 'pending',
+          updated_at: requestedAt,
+          content_data: contentData,
+        })
         .eq('id', store.session.id)
+        .in('evaluation_status', ['not_requested', 'failed'])
+        .select('id, evaluation_status, content_data, updated_at')
         .maybeSingle();
       if (error) throw error;
-
-      if (restoreSavedFeedback(store, latestSession)) return false;
-
-      // Rejoin the existing generation after refresh. Server job fingerprints
-      // and quota reservations prevent another provider call for either part.
-      if (
-        latestSession?.evaluation_status === 'pending' &&
-        !isStalePendingWritingEvaluation(latestSession)
-      ) {
-        store.setSession({ ...store.session, ...latestSession });
-        return true;
+      if (!isActiveWritingEvaluation(store.session)) return false;
+      if (data) {
+        store.setSession({
+          ...store.session,
+          ...data,
+          content_data: contentData,
+        });
       }
+      return Boolean(data);
+    };
 
-      if (isStalePendingWritingEvaluation(latestSession)) {
-        const { data: recovered, error: recoveryError } = await supabase
-          .from('test_sessions')
-          .update({ evaluation_status: 'failed', updated_at: new Date().toISOString() })
-          .eq('id', store.session.id)
-          .eq('evaluation_status', 'pending')
-          .select('id')
-          .maybeSingle();
-        if (recoveryError) throw recoveryError;
-        if (recovered && (await claim())) return true;
-      }
+    if (await claim()) return true;
+    if (!isActiveWritingEvaluation(store.session)) return false;
 
-      store.setFeedbackError(
-        'Your feedback is still being prepared. Check again in a moment; it will appear here when ready.'
-      );
-      return false;
-    },
-    [restoreSavedFeedback]
-  );
+    const { data: latestSession, error } = await supabase
+      .from('test_sessions')
+      .select('id, is_completed, evaluation_status, evaluation_version, content_data, updated_at')
+      .eq('id', store.session.id)
+      .maybeSingle();
+    if (error) throw error;
+
+    if (!isActiveWritingEvaluation(store.session)) return false;
+    if (restoreSavedFeedback(store, latestSession)) return false;
+
+    // Rejoin the existing generation after refresh. Server job fingerprints
+    // and quota reservations prevent another provider call for either part.
+    if (
+      latestSession?.evaluation_status === 'pending' &&
+      !isStalePendingWritingEvaluation(latestSession)
+    ) {
+      store.setSession({ ...store.session, ...latestSession });
+      return true;
+    }
+
+    if (isStalePendingWritingEvaluation(latestSession)) {
+      const { data: recovered, error: recoveryError } = await supabase
+        .from('test_sessions')
+        .update({ evaluation_status: 'failed', updated_at: new Date().toISOString() })
+        .eq('id', store.session.id)
+        .eq('evaluation_status', 'pending')
+        .select('id')
+        .maybeSingle();
+      if (recoveryError) throw recoveryError;
+      if (!isActiveWritingEvaluation(store.session)) return false;
+      if (recovered && (await claim())) return true;
+    }
+
+    if (!isActiveWritingEvaluation(store.session)) return false;
+    store.setFeedbackError(
+      'Your feedback is still being prepared. Check again in a moment; it will appear here when ready.'
+    );
+    return false;
+  }, []);
 
   const handleGetFeedback = useCallback(async () => {
     if (analyzingRef.current) return;
@@ -255,6 +266,10 @@ export function useWritingFeedback(awardXP) {
             quota &&
             (!Number.isFinite(dailyRemaining) || dailyRemaining >= requiredPartReviews) &&
             (!Number.isFinite(monthlyRemaining) || monthlyRemaining >= requiredPartReviews);
+          if (!isActiveWritingEvaluation(store.session)) {
+            analyzingRef.current = false;
+            return;
+          }
           if (
             requiredPartReviews > 0 &&
             !isRetryingFailedEvaluation &&
@@ -278,21 +293,30 @@ export function useWritingFeedback(awardXP) {
       );
     }
 
+    let evaluationSession = store.session;
+    const collectedFeedbacks = {};
+    const evaluationDrafts = { ...store.drafts };
+    const isCurrentPendingEvaluation = () =>
+      isActiveWritingEvaluation(evaluationSession) &&
+      useWritingTestStore.getState().session?.evaluation_status === 'pending';
+
     try {
+      if (!isActiveWritingEvaluation(evaluationSession)) return;
       // Ensure content is saved before starting feedback
       console.info('[WritingTest] Starting AI feedback, saving content first...');
       // The worker owns pending results; a stale draft save must not replace
       // its generation marker or partially completed reports.
       if (!isRecoveringPendingEvaluation) await saveNow();
+      if (!isActiveWritingEvaluation(evaluationSession)) return;
 
       store.setAnalyzing(true);
       store.setFeedbackError(null);
       store.setCurrentFeedback(null);
 
       const newFeedbacks = { ...store.feedbacks };
-      let overallScore = null;
 
       if (!(await claimEvaluation(store))) return;
+      evaluationSession = useWritingTestStore.getState().session;
 
       // Execute parallel analysis for non-cached tasks
       const analysisPromises = analysisPlan.map(async (item) => {
@@ -302,10 +326,9 @@ export function useWritingFeedback(awardXP) {
         }
 
         const payload = {
-          writingText: writingSourceForMarking(store.drafts[item.type]) || item.text,
-          sessionId: store.session?.id,
-          evaluationRequestedAt:
-            useWritingTestStore.getState().session?.content_data?.evaluationRequestedAt,
+          writingText: writingSourceForMarking(evaluationDrafts[item.type]) || item.text,
+          sessionId: evaluationSession?.id,
+          evaluationRequestedAt: evaluationSession?.content_data?.evaluationRequestedAt,
           taskPrompt: item.prompt,
           taskType: item.type,
           imageUrl: item.imageUrl,
@@ -362,7 +385,7 @@ export function useWritingFeedback(awardXP) {
               feedbackData.writingCalibrationRevision ?? raw.writingCalibrationRevision ?? null,
             taskPrompt: item.prompt,
             imageUrl: item.imageUrl,
-            originalSource: store.drafts[item.type],
+            originalSource: evaluationDrafts[item.type],
             isBelowMinimumWordCount: item.isBelowMinimum,
             evaluationVersion: responseVersion,
             sourceFingerprint: feedbackData.sourceFingerprint || null,
@@ -386,194 +409,107 @@ export function useWritingFeedback(awardXP) {
       results.forEach(({ type, feedback }) => {
         if (feedback) {
           newFeedbacks[type] = feedback;
+          collectedFeedbacks[type] = feedback;
         }
       });
 
       const failedResult = settledResults.find((result) => result.status === 'rejected');
-      if (failedResult) {
-        const failure = summarizeWritingEvaluationFailure(failedResult.reason, tasksToAnalyze);
-        const currentSession = useWritingTestStore.getState().session;
-        if (currentSession?.id && currentSession.evaluation_status === 'pending') {
-          const failedAt = new Date().toISOString();
-          const failedContent = {
-            ...currentSession.content_data,
-            ai_feedbacks: newFeedbacks,
-            evaluationFailure: failure,
-          };
-          await supabase
-            .from('test_sessions')
-            .update({
-              evaluation_status: 'failed',
-              content_data: failedContent,
-              updated_at: failedAt,
-            })
-            .eq('id', currentSession.id)
-            .eq('evaluation_status', 'pending');
-          store.setSession({
-            ...currentSession,
-            evaluation_status: 'failed',
-            content_data: failedContent,
-            updated_at: failedAt,
-          });
-          store.setFeedbacksBulk(newFeedbacks);
-        }
-        throw failedResult.reason;
+      if (failedResult) throw failedResult.reason;
+
+      // A late successful response must not change another active attempt.
+      if (!isActiveWritingEvaluation(evaluationSession)) return;
+      if (evaluationSession && !isCurrentPendingEvaluation()) return;
+      if (!evaluationSession) {
+        store.setFeedbacksBulk(newFeedbacks);
+        store.setCurrentFeedback(newFeedbacks[store.activeType] || newFeedbacks[tasksToAnalyze[0]]);
+        return;
       }
-
-      const scoredTask1Band = newFeedbacks['Task 1']?.overallBand;
-      const scoredTask2Band = newFeedbacks['Task 2']?.overallBand;
-      overallScore = calculateWeightedWritingBand(scoredTask1Band, scoredTask2Band);
-
+      const completedSession = await completeWritingEvaluation({
+        session: evaluationSession,
+        feedbacks: newFeedbacks,
+        drafts: evaluationDrafts,
+        wordCount: store.wordCount,
+        timeRemaining: store.timeRemaining,
+      });
+      if (!isCurrentPendingEvaluation()) return;
+      if (!completedSession) {
+        store.setFeedbackError(
+          'This evaluation changed while feedback was being saved. Reload to view the latest result.'
+        );
+        return;
+      }
+      store.setSession(completedSession);
       store.setFeedbacksBulk(newFeedbacks);
       store.setCurrentFeedback(newFeedbacks[store.activeType] || newFeedbacks[tasksToAnalyze[0]]);
+      store.setCompleted(true);
+      const overallScore = completedSession.score;
 
-      // Save session
-      if (store.session) {
-        const completedAt = new Date().toISOString();
+      trackAppEvent('writing_submitted', {
+        test_type: 'writing',
+        task_type: store.activeType,
+        overall_band: overallScore,
+        session_id: completedSession.id,
+      });
+      trackAppEvent('test_completed', {
+        test_type: 'writing',
+        overall_band: overallScore,
+        session_id: completedSession.id,
+      });
 
-        // Extract per-task criteria scores for analytics
-        const task1Feedback = newFeedbacks['Task 1'];
-        const task2Feedback = newFeedbacks['Task 2'];
+      removeFromCache('writing-tests-list');
 
-        const t1Criteria = aggregateWritingCriteria(task1Feedback, null);
-        const t2Criteria = aggregateWritingCriteria(null, task2Feedback);
-        const aggregatedCriteria = aggregateWritingCriteria(task1Feedback, task2Feedback);
+      // Invalidate usage stats so Settings page updates immediately
+      queryClient.invalidateQueries({ queryKey: ['user-usage-counts'] });
 
-        const updatePayload = {
-          is_completed: true,
-          completed_at: store.session.completed_at || completedAt,
-          score: overallScore,
-          evaluation_status: 'complete',
-          evaluation_version: CURRENT_EVALUATION_VERSION,
-          evaluated_at: completedAt,
-          actual_duration_seconds:
-            store.session.actual_duration_seconds ||
-            Math.max(1, 60 * 60 - Number(store.timeRemaining || 0)),
-          user_responses: [
-            {
-              response: JSON.stringify(store.drafts),
-              word_count: store.wordCount,
-              task1_response: store.drafts['Task 1'],
-              task2_response: store.drafts['Task 2'],
-            },
-          ],
-          content_data: {
-            ...Object.fromEntries(
-              Object.entries(store.session.content_data || {}).filter(
-                ([key]) => key !== 'evaluationFailure'
-              )
-            ),
-            time_remaining: store.timeRemaining,
-            ai_feedbacks: newFeedbacks,
-            // Criteria scores for analytics dashboard
-            criteriaScores: aggregatedCriteria,
-            task1CriteriaScores: t1Criteria,
-            task2CriteriaScores: t2Criteria,
-            task1Band: task1Feedback?.overallBand ?? null,
-            task2Band: task2Feedback?.overallBand ?? null,
-            evaluationVersion: CURRENT_EVALUATION_VERSION,
-            evaluatedAt: completedAt,
-            evaluationModel: task2Feedback?.model || task1Feedback?.model || null,
-            sourceFingerprints: {
-              task1: task1Feedback?.sourceFingerprint || null,
-              task2: task2Feedback?.sourceFingerprint || null,
-            },
-            timeMetrics: {
-              ...store.session.content_data?.timeMetrics,
-              totalTimeSpent:
-                store.session.actual_duration_seconds ||
-                Math.max(1, 60 * 60 - Number(store.timeRemaining || 0)),
-            },
-          },
-          updated_at: completedAt,
-        };
-
-        const { data: completedEvaluation, error: updateError } = await supabase
-          .from('test_sessions')
-          .update(updatePayload)
-          .eq('id', store.session.id)
-          .eq('evaluation_status', 'pending')
-          .select('id')
-          .maybeSingle();
-
-        if (updateError) {
-          throw new Error(`Failed to save feedback: ${updateError.message}`);
-        }
-        if (!completedEvaluation) throw new Error('Feedback was already saved for this response.');
-
-        store.setSession({
-          ...store.session,
-          ...updatePayload,
+      if (overallScore != null && Number.isFinite(Number(overallScore))) {
+        refreshLearningPathAfterTest(
+          completedSession.user_id,
+          'writing',
+          Number(overallScore)
+        ).catch((refreshError) => {
+          if (refreshError?.status !== 403) {
+            console.warn(
+              'Writing: learning path refresh failed:',
+              refreshError?.message || refreshError
+            );
+          }
         });
-        store.setCompleted(true);
+      }
 
-        trackAppEvent('writing_submitted', {
-          test_type: 'writing',
-          task_type: store.activeType,
-          overall_band: overallScore,
-          session_id: store.session?.id,
+      const totalTasks = tasksToAnalyze.length;
+      if (awardXP) {
+        await awardXP(totalTasks, totalTasks, {
+          includePerfectBonus: overallScore >= 7.0,
+          updateStreak: true,
+          notificationDelay: 800,
+          actionKey: `writing-test:${completedSession.id}`,
         });
-        trackAppEvent('test_completed', {
-          test_type: 'writing',
-          overall_band: overallScore,
-          session_id: store.session?.id,
-        });
-
-        removeFromCache('writing-tests-list');
-
-        // Invalidate usage stats so Settings page updates immediately
-        queryClient.invalidateQueries({ queryKey: ['user-usage-counts'] });
-
-        if (overallScore != null && Number.isFinite(Number(overallScore))) {
-          refreshLearningPathAfterTest(
-            store.session.user_id,
-            'writing',
-            Number(overallScore)
-          ).catch((refreshError) => {
-            if (refreshError?.status !== 403) {
-              console.warn(
-                'Writing: learning path refresh failed:',
-                refreshError?.message || refreshError
-              );
-            }
-          });
-        }
-
-        const totalTasks = tasksToAnalyze.length;
-        if (awardXP) {
-          await awardXP(totalTasks, totalTasks, {
-            includePerfectBonus: overallScore >= 7.0,
-            updateStreak: true,
-            notificationDelay: 800,
-            actionKey: `writing-test:${store.session.id}`,
-          });
-        }
       }
     } catch (err) {
       console.error('Feedback error:', err);
-      const currentSession = useWritingTestStore.getState().session;
-      if (currentSession?.id && currentSession.evaluation_status === 'pending') {
-        const failedAt = new Date().toISOString();
-        const failedContent = {
-          ...currentSession.content_data,
-          evaluationFailure: summarizeWritingEvaluationFailure(err, tasksToAnalyze),
-        };
-        await supabase
-          .from('test_sessions')
-          .update({
-            evaluation_status: 'failed',
-            content_data: failedContent,
-            updated_at: failedAt,
-          })
-          .eq('id', currentSession.id)
-          .eq('evaluation_status', 'pending');
-        store.setSession({
-          ...currentSession,
-          evaluation_status: 'failed',
-          content_data: failedContent,
-          updated_at: failedAt,
-        });
+      if (isCurrentPendingEvaluation()) {
+        store.setFeedbacksBulk(collectedFeedbacks);
+        try {
+          const failedSession = await recordWritingEvaluationFailure({
+            session: evaluationSession,
+            error: err,
+            attemptedTasks: tasksToAnalyze,
+            feedbacks: collectedFeedbacks,
+          });
+          if (failedSession && isCurrentPendingEvaluation()) {
+            store.setSession(failedSession);
+            store.setFeedbacksBulk(getWritingFeedbacks(failedSession.content_data) || {});
+          }
+        } catch (persistenceError) {
+          console.warn('Writing: could not save evaluation failure:', persistenceError);
+        }
       }
+      const currentSession = useWritingTestStore.getState().session;
+      if (
+        !isActiveWritingEvaluation(evaluationSession) ||
+        currentSession?.evaluation_status === 'complete'
+      )
+        return;
 
       // Only learner-account quota exhaustion is an upgrade condition. A
       // provider 429 is an operational outage and must never blame the learner.
@@ -582,7 +518,7 @@ export function useWritingFeedback(awardXP) {
         return;
       }
 
-      store.setFeedbackError(err.message || 'Failed to generate AI feedback.');
+      store.setFeedbackError(err?.message || 'Failed to generate AI feedback.');
     } finally {
       store.setAnalyzing(false);
       analyzingRef.current = false;

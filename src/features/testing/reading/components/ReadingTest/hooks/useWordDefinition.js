@@ -1,13 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { UserPoints } from '@/features/gamification/services/UserPoints';
 import { VocabularyItem } from '@/features/vocabulary/services/VocabularyItem';
-import {
-  fetchFastDefinition,
-  isUsableDefinition,
-} from '@/features/vocabulary/utils/dictionaryLookup';
-import { requestReadingAssistance } from '@/features/testing/reading/services/readingAiService';
-
-const CONTEXTUAL_LOOKUP_DEADLINE_MS = 20000;
+import { lookupReadingDefinition } from '@/features/testing/reading/services/readingWordDefinition';
 
 export const useWordDefinition = (
   user,
@@ -60,68 +54,8 @@ export const useWordDefinition = (
         .toLowerCase();
       if (!cleanWord) return;
       const isCurrent = () => requestId === requestIdRef.current && !controller.signal.aborted;
-      const applyContextual = (contextual) => {
-        if (!isUsableDefinition(contextual?.result?.meaning) || !isCurrent()) return false;
-        updateWordDefinition((prev) => ({
-          ...prev,
-          word: cleanWord,
-          definition: contextual.result.meaning,
-          part_of_speech: contextual.result.partOfSpeech || '',
-          synonyms: contextual.result.synonyms || [],
-          example: contextual.result.example || '',
-          pronunciation: '',
-          audio: '',
-          contextual: true,
-          error: false,
-        }));
-        return true;
-      };
-
-      let contextualApplied = false;
-      try {
-        if (assistantEnabled && sessionId && selection) {
-          // Keep listening after the UI deadline: a slow valid AI result must
-          // replace the provisional dictionary result for this same selection.
-          const contextualPromise = requestReadingAssistance({
-            sessionId,
-            passageIndex: currentPassageIndex,
-            selectionStart: selection.start,
-            selectionEnd: selection.end,
-            selectedText: selection.text || word,
-            action: 'dictionary',
-          })
-            .then((response) => {
-              contextualApplied = applyContextual(response);
-              return response;
-            })
-            .catch(() => null);
-          let deadlineId;
-          await Promise.race([
-            contextualPromise,
-            new Promise((resolve) => {
-              deadlineId = window.setTimeout(resolve, CONTEXTUAL_LOOKUP_DEADLINE_MS);
-            }),
-          ]);
-          window.clearTimeout(deadlineId);
-          if (contextualApplied || !isCurrent()) return;
-          // The AI may finish while the dictionary is still in flight.
-        }
-
-        const details = await fetchFastDefinition(cleanWord, controller.signal);
-        const result = {
-          word: cleanWord,
-          definition: details.definition,
-          pronunciation: details.phonetic,
-          audio: details.audio,
-          example: details.example,
-          synonyms: details.synonyms || [],
-          part_of_speech: details.partOfSpeech,
-        };
-        if (isCurrent() && !contextualApplied) {
-          updateWordDefinition((prev) => ({ ...prev, ...result, contextual: false, error: false }));
-        }
-      } catch (err) {
-        if (!isCurrent() || contextualApplied) return;
+      const onError = (err) => {
+        if (!isCurrent()) return;
         console.warn('Error fetching definition:', err);
         updateWordDefinition((prev) => ({
           ...prev,
@@ -130,6 +64,29 @@ export const useWordDefinition = (
           contextual: false,
           error: true,
         }));
+      };
+      try {
+        await lookupReadingDefinition({
+          word: cleanWord,
+          contextualRequest:
+            assistantEnabled && sessionId && selection
+              ? {
+                  sessionId,
+                  passageIndex: currentPassageIndex,
+                  selectionStart: selection.start,
+                  selectionEnd: selection.end,
+                  selectedText: selection.text || word,
+                  action: 'dictionary',
+                }
+              : null,
+          signal: controller.signal,
+          onError,
+          onDefinition: (definition) => {
+            if (isCurrent()) updateWordDefinition((prev) => ({ ...prev, ...definition }));
+          },
+        });
+      } catch (err) {
+        onError(err);
       }
     },
     [assistantEnabled, currentPassageIndex, sessionId]

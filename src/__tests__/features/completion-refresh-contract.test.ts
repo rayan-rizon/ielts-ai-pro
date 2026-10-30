@@ -45,13 +45,15 @@ describe('scored completion learning-path refresh contract', () => {
   });
 
   it('refreshes Writing only after a finite feedback score is persisted', () => {
-    const saveGuard = writingFeedbackSource.indexOf('if (updateError)');
+    const save = writingFeedbackSource.indexOf('await completeWritingEvaluation(');
+    const saveGuard = writingFeedbackSource.indexOf('if (!completedSession)');
     const scoreGuard = writingFeedbackSource.indexOf(
       'overallScore != null && Number.isFinite(Number(overallScore))'
     );
     const refresh = writingFeedbackSource.lastIndexOf('refreshLearningPathAfterTest');
 
-    expect(saveGuard).toBeGreaterThan(-1);
+    expect(save).toBeGreaterThan(-1);
+    expect(saveGuard).toBeGreaterThan(save);
     expect(scoreGuard).toBeGreaterThan(saveGuard);
     expect(refresh).toBeGreaterThan(scoreGuard);
   });

@@ -24,6 +24,14 @@ const ok = (card = CARD, extra = {}) => ({
 });
 const failure = (status, details = {}, extra = {}) =>
   Object.assign(new Error(details.error || `HTTP ${status}`), { status, details, ...extra });
+const deferred = () => {
+  let resolve, reject;
+  const promise = new Promise((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
+  return { promise, resolve, reject };
+};
 
 beforeEach(() => {
   resetDefineState();
@@ -195,6 +203,119 @@ describe('server refusals', () => {
     finish(ok());
     await vi.waitFor(() => expect(getCachedCard('mitigate')).toEqual(CARD));
   });
+
+  it('lets one caller abort while another receives and caches the shared result', async () => {
+    const request = deferred();
+    mocked.call.mockReturnValue(request.promise);
+    const controller = new AbortController();
+    const leaving = defineWord('mitigate', { signal: controller.signal });
+    const staying = defineWord('mitigate');
+    controller.abort();
+    await expect(leaving).rejects.toMatchObject({ name: 'AbortError' });
+    request.resolve(ok());
+    await expect(staying).resolves.toMatchObject({ card: CARD });
+    expect(getCachedCard('mitigate')).toEqual(CARD);
+    expect(mocked.call).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['success', 'quota refusal', 'provider rejection'])(
+    'retries a timed-out request and ignores its late %s',
+    async (outcome) => {
+      vi.useFakeTimers();
+      const old = deferred();
+      const replacement = deferred();
+      mocked.call.mockReturnValueOnce(old.promise).mockReturnValueOnce(replacement.promise);
+      const expired = expect(defineWord('mitigate')).rejects.toMatchObject({ kind: 'unavailable' });
+      await vi.advanceTimersByTimeAsync(25_001);
+      await expired;
+
+      const retry = defineWord('mitigate');
+      expect(mocked.call).toHaveBeenCalledTimes(2);
+      if (outcome === 'success')
+        old.resolve(ok({ ...CARD, meaning: 'Obsolete' }, { remainingDailyQuota: 1 }));
+      else old.reject(failure(outcome === 'quota refusal' ? 429 : 503, { rateLimitType: 'quota' }));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(getCachedCard('mitigate')).toBeNull();
+      expect(getLatestQuota()).toEqual({ remaining: null, resetsAt: null });
+      expect(getBlockedSeconds()).toBe(0);
+
+      const joined = defineWord('mitigate');
+      expect(mocked.call).toHaveBeenCalledTimes(2);
+      replacement.resolve(ok());
+      await expect(retry).resolves.toMatchObject({ card: CARD });
+      await expect(joined).resolves.toMatchObject({ card: CARD });
+      expect(getCachedCard('mitigate')).toEqual(CARD);
+      expect(getLatestQuota().remaining).toBe(20);
+    }
+  );
+
+  it('uses one deadline for callers joining the same request at different times', async () => {
+    vi.useFakeTimers();
+    mocked.call.mockReturnValue(new Promise(() => {}));
+    const first = expect(defineWord('mitigate')).rejects.toMatchObject({ kind: 'unavailable' });
+    await vi.advanceTimersByTimeAsync(24_000);
+    const joined = expect(defineWord('mitigate')).rejects.toMatchObject({ kind: 'unavailable' });
+    await vi.advanceTimersByTimeAsync(1_001);
+    await Promise.all([first, joined]);
+    expect(mocked.call).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['success', 'quota refusal'])(
+    'preserves a completed replacement after the expired request returns a late %s',
+    async (outcome) => {
+      vi.useFakeTimers();
+      const old = deferred();
+      mocked.call.mockReturnValueOnce(old.promise).mockResolvedValueOnce(ok());
+      const expired = expect(defineWord('mitigate')).rejects.toMatchObject({ kind: 'unavailable' });
+      await vi.advanceTimersByTimeAsync(25_001);
+      await expired;
+      await defineWord('mitigate');
+      if (outcome === 'success')
+        old.resolve(ok({ ...CARD, meaning: 'Obsolete' }, { remainingDailyQuota: 1 }));
+      else old.reject(failure(429, { rateLimitType: 'quota' }));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(getCachedCard('mitigate')).toEqual(CARD);
+      expect(getLatestQuota().remaining).toBe(20);
+      expect(getBlockedSeconds()).toBe(0);
+    }
+  );
+
+  it('still handles shared failures when the only caller was already aborted', async () => {
+    const request = deferred();
+    mocked.call.mockReturnValueOnce(request.promise);
+    const controller = new AbortController();
+    controller.abort();
+    await expect(defineWord('mitigate', { signal: controller.signal })).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+    request.reject(failure(429, { rateLimitType: 'quota' }));
+    await vi.waitFor(() => expect(getLatestQuota().remaining).toBe(0));
+  });
+
+  it.each(['success', 'quota refusal'])(
+    'invalidates pending publication on reset, including a late %s',
+    async (outcome) => {
+      vi.useFakeTimers();
+      const old = deferred();
+      const replacement = deferred();
+      mocked.call.mockReturnValueOnce(old.promise).mockReturnValueOnce(replacement.promise);
+      const previous = defineWord('mitigate');
+      const previousOutcome = previous.catch(() => {});
+      resetDefineState();
+      const current = defineWord('mitigate');
+      if (outcome === 'success') old.resolve(ok({ ...CARD, meaning: 'Obsolete' }));
+      else old.reject(failure(429, { rateLimitType: 'quota' }));
+      await previousOutcome;
+      expect(getCachedCard('mitigate')).toBeNull();
+      expect(getLatestQuota()).toEqual({ remaining: null, resetsAt: null });
+      expect(getBlockedSeconds()).toBe(0);
+      const joined = defineWord('mitigate');
+      expect(mocked.call).toHaveBeenCalledTimes(2);
+      replacement.resolve(ok());
+      await expect(current).resolves.toMatchObject({ card: CARD });
+      await expect(joined).resolves.toMatchObject({ card: CARD });
+    }
+  );
 });
 
 describe('resolveDefineLanguage', () => {

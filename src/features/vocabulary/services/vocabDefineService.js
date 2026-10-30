@@ -166,19 +166,28 @@ function noteRefusal(error, now = Date.now()) {
   block = { kind: error.kind, until: now + seconds * 1000, error };
 }
 
-function withTimeout(promise, signal) {
+/** The deadline belongs to the shared request, even if every caller leaves. */
+function withTimeout(promise) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(
       () => reject(new VocabDefineError('unavailable', 'The lookup took too long. Try again.')),
       REQUEST_TIMEOUT_MS
     );
-    const onAbort = () => reject(new DOMException('Aborted', 'AbortError'));
-    if (signal?.aborted) onAbort();
-    signal?.addEventListener('abort', onAbort, { once: true });
-    promise.then(resolve, reject).finally(() => {
-      clearTimeout(timer);
-      signal?.removeEventListener('abort', onAbort);
-    });
+    promise.then(resolve, reject).finally(() => clearTimeout(timer));
+  });
+}
+
+/** Aborting a subscriber only detaches that subscriber from the shared result. */
+function awaitRequest(promise, signal) {
+  if (!signal) return promise;
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      signal.removeEventListener('abort', onAbort);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+    if (signal.aborted) onAbort();
+    else signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
   });
 }
 
@@ -188,6 +197,53 @@ const newRequestId = () =>
     const random = (Math.random() * 16) | 0;
     return (char === 'x' ? random : (random & 0x3) | 0x8).toString(16);
   });
+
+function lookupResult(data) {
+  if (!data?.result?.meaning) throw new VocabDefineError('unavailable', 'Empty lookup result.');
+  return {
+    card: data.result,
+    source: data.source,
+    remainingDailyQuota: data.remainingDailyQuota ?? null,
+    quotaResetsAt: data.quotaResetsAt ?? null,
+  };
+}
+
+function publishResult(key, result) {
+  remember(key, result.card);
+  if (result.remainingDailyQuota != null || result.quotaResetsAt) {
+    latestQuota = { remaining: result.remainingDailyQuota, resetsAt: result.quotaResetsAt };
+  }
+}
+
+function publishRefusal(error) {
+  noteRefusal(error);
+  if (error.kind === 'quota') latestQuota = { remaining: 0, resetsAt: error.quotaResetsAt };
+}
+
+/** Identity owns publication and eviction; reset also invalidates that identity. */
+function startRequest(key, word, hint, language) {
+  const request = {};
+  const isCurrent = () => inFlight.get(key) === request;
+  inFlight.set(key, request);
+  const response = new Promise((resolve) => {
+    resolve(callEdgeFunction('vocab-define', { requestId: newRequestId(), word, hint, language }));
+  });
+  request.promise = withTimeout(response)
+    .then(lookupResult)
+    .then((result) => {
+      if (isCurrent()) publishResult(key, result);
+      return result;
+    })
+    .catch((error) => {
+      const mapped = toDefineError(error);
+      if (isCurrent()) publishRefusal(mapped);
+      throw mapped;
+    })
+    .finally(() => {
+      if (isCurrent()) inFlight.delete(key);
+    });
+  return request;
+}
 
 /**
  * Get the card for a word. Resolves to { card, source, remainingDailyQuota,
@@ -221,41 +277,6 @@ export async function defineWord(word, { hint = '', language = 'bn', signal } = 
     });
   }
 
-  let pending = inFlight.get(key);
-  if (!pending) {
-    pending = callEdgeFunction('vocab-define', {
-      requestId: newRequestId(),
-      word: entry,
-      hint,
-      language,
-    })
-      .then((data) => {
-        if (!data?.result?.meaning)
-          throw new VocabDefineError('unavailable', 'Empty lookup result.');
-        remember(key, data.result);
-        if (data.remainingDailyQuota != null || data.quotaResetsAt) {
-          latestQuota = {
-            remaining: data.remainingDailyQuota ?? null,
-            resetsAt: data.quotaResetsAt ?? null,
-          };
-        }
-        return {
-          card: data.result,
-          source: data.source,
-          remainingDailyQuota: data.remainingDailyQuota ?? null,
-          quotaResetsAt: data.quotaResetsAt ?? null,
-        };
-      })
-      .catch((error) => {
-        const mapped = toDefineError(error);
-        noteRefusal(mapped);
-        if (mapped.kind === 'quota') latestQuota = { remaining: 0, resetsAt: mapped.quotaResetsAt };
-        throw mapped;
-      })
-      .finally(() => {
-        inFlight.delete(key);
-      });
-    inFlight.set(key, pending);
-  }
-  return withTimeout(pending, signal);
+  const pending = inFlight.get(key) || startRequest(key, entry, hint, language);
+  return awaitRequest(pending.promise, signal);
 }
