@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   aggregateReadiness,
@@ -137,18 +137,19 @@ describe('days until the exam', () => {
   const originalTz = process.env.TZ;
   afterEach(() => {
     process.env.TZ = originalTz;
+    vi.useRealTimers();
   });
 
-  it('reads a date-only exam date as a local calendar day west of UTC', () => {
+  it.each([
+    ['2026-10-30T12:00:00Z', '2026-11-02', 3],
+    ['2026-03-06T12:00:00Z', '2026-03-09', 3],
+    ['2026-11-02T12:00:00Z', '2026-10-30', -3],
+    ['2026-10-30T12:00:00Z', '2026-10-30', 0],
+  ])('counts local calendar days from %s to %s across DST', (today, examDate, days) => {
     process.env.TZ = 'America/New_York';
-    const inThreeDays = new Date();
-    inThreeDays.setDate(inThreeDays.getDate() + 3);
-    const key = [
-      inThreeDays.getFullYear(),
-      String(inThreeDays.getMonth() + 1).padStart(2, '0'),
-      String(inThreeDays.getDate()).padStart(2, '0'),
-    ].join('-');
-    expect(calculateDaysUntilExam(key)).toBe(3);
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(today));
+    expect(calculateDaysUntilExam(examDate)).toBe(days);
   });
 });
 

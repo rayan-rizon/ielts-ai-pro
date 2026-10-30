@@ -315,10 +315,11 @@ export function calculateDaysUntilExam(testDate: string | null): number | null {
   today.setHours(0, 0, 0, 0);
   examDate.setHours(0, 0, 0, 0);
 
-  const diffTime = examDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays;
+  // Compare calendar dates rather than elapsed local hours: a DST change can
+  // make three calendar days span 71 or 73 hours.
+  const examDay = Date.UTC(examDate.getFullYear(), examDate.getMonth(), examDate.getDate());
+  const todayDay = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return (examDay - todayDay) / (1000 * 60 * 60 * 24);
 }
 
 // Get study intensity recommendation based on days until exam
