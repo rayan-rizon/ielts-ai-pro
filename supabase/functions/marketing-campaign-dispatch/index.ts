@@ -7,6 +7,7 @@ import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/se
 import {
   nextMarketingAttempt,
   readMarketingAudienceRows,
+  readMarketingDispatchHistory,
   reserveMarketingDelivery,
 } from '../_shared/marketingDelivery.ts';
 
@@ -137,13 +138,45 @@ function chooseJourneyChannel(
 }
 
 async function dispatchCampaign(campaignId: string, journey: Record<string, any> | null = null) {
-  const { data: campaign, error: campaignError } = await admin
-    .from('marketing_campaigns')
-    .select(
-      '*, segment:marketing_segments(*), promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,discount_type,discount_value,is_signup_offer_template,assigned_user_id,is_active,valid_from,valid_until,offer_expires_at,max_uses,current_uses)'
-    )
-    .eq('id', campaignId)
-    .single();
+  const started = performance.now();
+  const phases: Record<string, number> = {};
+  const timed = async <T>(phase: string, task: () => PromiseLike<T>): Promise<T> => {
+    const start = performance.now();
+    try {
+      return await task();
+    } finally {
+      phases[phase] = Math.round(performance.now() - start);
+    }
+  };
+  try {
+    return await dispatchCampaignWithTiming(campaignId, journey, timed);
+  } finally {
+    console.info(
+      '[marketing-dispatch-timing]',
+      JSON.stringify({
+        campaign_id: campaignId,
+        journey_id: journey?.id || null,
+        ...phases,
+        total_ms: Math.round(performance.now() - started),
+      })
+    );
+  }
+}
+
+async function dispatchCampaignWithTiming(
+  campaignId: string,
+  journey: Record<string, any> | null,
+  timed: <T>(phase: string, task: () => PromiseLike<T>) => Promise<T>
+) {
+  const { data: campaign, error: campaignError } = await timed('campaign_ms', () =>
+    admin
+      .from('marketing_campaigns')
+      .select(
+        '*, segment:marketing_segments(*), promo:promo_codes!marketing_campaigns_promo_code_id_fkey(id,code,discount_type,discount_value,is_signup_offer_template,assigned_user_id,is_active,valid_from,valid_until,offer_expires_at,max_uses,current_uses)'
+      )
+      .eq('id', campaignId)
+      .single()
+  );
   if (campaignError || !campaign) throw new Error('Campaign not found');
   if (!['active', 'scheduled'].includes(campaign.status))
     throw new Error('Campaign must be active or scheduled');
@@ -192,39 +225,46 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
   }
 
   const segmentId = journey?.segment_id || campaign.segment_id;
-  const { data: members, error: memberError } = await admin.rpc('marketing_segment_members', {
-    p_segment_id: segmentId,
-    p_require_marketing_consent: false,
-    p_limit: 10000,
-  });
+  const { data: members, error: memberError } = await timed('segment_ms', () =>
+    admin.rpc('marketing_segment_members', {
+      p_segment_id: segmentId,
+      p_require_marketing_consent: false,
+      p_limit: 10000,
+    })
+  );
   if (memberError) throw memberError;
   const audience = [
     ...new Map((members || []).map((member: any) => [member.user_id, member])).values(),
   ] as any[];
   const userIds = audience.map((member: any) => member.user_id);
-  const usernameRows = await readMarketingAudienceRows(
-    admin,
-    'users',
-    'id,username,promo_discount,used_promo_codes',
-    userIds,
-    'id'
-  );
-  const profiles = new Map((usernameRows || []).map((row: any) => [row.id, row]));
-  const usernames = new Map((usernameRows || []).map((row: any) => [row.id, row.username]));
-  const preferenceRows = await readMarketingAudienceRows(
-    admin,
-    'learner_marketing_preferences',
-    '*',
-    userIds,
-    'user_id',
-    'user_id'
+  // Only hydrate profiles if a member passes the existing delivery gates. Share
+  // the promise across the five workers, but never cache across dispatches:
+  // consent, preferences and delivery history must be read fresh every run.
+  let profileRows: Promise<Map<string, any>> | undefined;
+  const loadProfiles = () =>
+    (profileRows ??= timed('profiles_ms', async () => {
+      const rows = await readMarketingAudienceRows(
+        admin,
+        'users',
+        'id,username,promo_discount,used_promo_codes',
+        userIds,
+        'id'
+      );
+      return new Map(rows.map((row: any) => [row.id, row]));
+    }));
+  const preferenceRows = await timed('preferences_ms', () =>
+    readMarketingAudienceRows(
+      admin,
+      'learner_marketing_preferences',
+      '*',
+      userIds,
+      'user_id',
+      'user_id'
+    )
   );
   const preferenceByUser = new Map((preferenceRows || []).map((row: any) => [row.user_id, row]));
-  const history = await readMarketingAudienceRows(
-    admin,
-    'marketing_deliveries',
-    'user_id,channel,campaign_id,attempt,status,failure_reason,created_at,campaign:marketing_campaigns(objective)',
-    userIds
+  const history = await timed('history_ms', () =>
+    readMarketingDispatchHistory(admin, campaign.id, userIds)
   );
   history.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -267,8 +307,7 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
     (Number(campaign.metadata?.signup_offer_percent) === 20 &&
       ['signup', 'first_result', 'quota'].includes(campaign.metadata?.lifecycle_stage));
   const stats = { accepted: 0, skipped: 0, failed: 0 };
-  await mapLimit(audience, 5, async (member: any) => {
-    const recipient = { ...member, username: usernames.get(member.user_id) || null };
+  const processMember = async (member: any) => {
     const preference = preferenceByUser.get(member.user_id);
     if (
       journey &&
@@ -421,6 +460,10 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
         continue;
       }
 
+      // Keep profile-read failures before the send reservation, as before.
+      const profiles = await loadProfiles();
+      const account = profiles.get(member.user_id) as any;
+      const recipient = { ...member, username: account?.username || null };
       const delivery = await reserveMarketingDelivery(admin, {
         campaign_id: campaign.id,
         journey_id: journey?.id || null,
@@ -476,7 +519,6 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
             firstPaymentOnly: true,
           };
       }
-      const account = profiles.get(member.user_id) as any;
       if (
         !issuesSignupOffer &&
         offer &&
@@ -656,16 +698,19 @@ async function dispatchCampaign(campaignId: string, journey: Record<string, any>
           .eq('id', delivery.id);
       }
     }
-  });
+  };
+  await timed('processing_ms', () => mapLimit(audience, 5, processMember));
 
-  await admin
-    .from('marketing_campaigns')
-    .update({
-      status: 'active',
-      activated_at: campaign.activated_at || now.toISOString(),
-      updated_at: now.toISOString(),
-    })
-    .eq('id', campaign.id);
+  await timed('activation_ms', () =>
+    admin
+      .from('marketing_campaigns')
+      .update({
+        status: 'active',
+        activated_at: campaign.activated_at || now.toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq('id', campaign.id)
+  );
   return {
     campaign_id: campaign.id,
     journey_id: journey?.id || null,

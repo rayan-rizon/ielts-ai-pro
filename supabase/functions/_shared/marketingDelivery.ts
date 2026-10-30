@@ -28,6 +28,31 @@ export async function readMarketingAudienceRows(
   return rows;
 }
 
+// Compact history is computed fresh in Postgres. Keep complete pagination:
+// successful contacts and non-failed campaign rows must never be truncated.
+export async function readMarketingDispatchHistory(
+  db: any,
+  campaignId: string,
+  userIds: string[]
+): Promise<any[]> {
+  const rows: any[] = [];
+  const ids = [...new Set(userIds)];
+  for (let start = 0; start < ids.length; start += 100) {
+    const batch = ids.slice(start, start + 100);
+    for (let offset = 0; ;) {
+      const { data, error } = await db
+        .rpc('marketing_dispatch_history', { p_campaign_id: campaignId, p_user_ids: batch })
+        .order('id')
+        .range(offset, offset + 499);
+      if (error) throw error;
+      if (!data?.length) break;
+      rows.push(...data);
+      offset += data.length;
+    }
+  }
+  return rows;
+}
+
 export function nextMarketingAttempt(rows: { attempt: number }[]): number {
   return rows.reduce((max, row) => Math.max(max, Number(row.attempt) || 0), 0) + 1;
 }
