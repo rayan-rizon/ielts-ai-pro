@@ -281,6 +281,10 @@
       "destination": "/api/llms"
     },
     {
+      "source": "/pricing.md",
+      "destination": "/api/pricing"
+    },
+    {
       "source": "/blog/feed.xml",
       "destination": "/api/feed"
     },

@@ -7,6 +7,7 @@ import blogHandler from '../api/blog.js';
 import blogCssHandler from '../api/blog-css.js';
 import feedHandler from '../api/feed.js';
 import llmsHandler from '../api/llms.js';
+import pricingHandler from '../api/pricing.js';
 import sitemapHandler from '../api/sitemap.js';
 
 const rootDir = resolve(import.meta.dirname, '..');
@@ -84,6 +85,7 @@ createServer(async (request, response) => {
     ['/blog.css', blogCssHandler],
     ['/sitemap.xml', sitemapHandler],
     ['/llms.txt', llmsHandler],
+    ['/pricing.md', pricingHandler],
     ['/blog/feed.xml', feedHandler],
   ]);
   if (dynamicHandlers.has(url.pathname)) {

@@ -276,6 +276,7 @@ const requiredRewrites = {
   '/institutions': '/institutions/index.html',
   '/sitemap.xml': '/api/sitemap',
   '/llms.txt': '/api/llms',
+  '/pricing.md': '/api/pricing',
   '/blog/feed.xml': '/api/feed',
   '/blog': '/api/blog',
   '/blog/:slug': '/api/blog?slug=:slug',
@@ -412,9 +413,11 @@ for (const route of publicRoutes) {
 
 // A logo URL that falls through the SPA rewrite resolves to HTML, which makes
 // the Organization markup unusable, so the file has to exist in public/.
-const staticLogoPath = JSON.parse(staticJsonLd)['@graph']?.find(
+const staticLogo = JSON.parse(staticJsonLd)['@graph']?.find(
   (node) => node['@type'] === 'Organization'
-)?.logo?.url;
+)?.logo;
+// schema.org allows the logo as a bare URL or as an ImageObject.
+const staticLogoPath = typeof staticLogo === 'string' ? staticLogo : staticLogo?.url;
 if (!staticLogoPath?.startsWith(`${siteUrl}/`)) {
   fail('homepage Organization markup is missing a same-origin logo URL');
 }

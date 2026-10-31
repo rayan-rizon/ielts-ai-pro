@@ -2,6 +2,7 @@ import blogHandler from '../api/blog.js';
 import blogCssHandler from '../api/blog-css.js';
 import feedHandler from '../api/feed.js';
 import llmsHandler from '../api/llms.js';
+import pricingHandler from '../api/pricing.js';
 import sitemapHandler from '../api/sitemap.js';
 import metaCapiHandler from '../api/meta-capi.js';
 import config from './.generated/routes.json';
@@ -56,6 +57,7 @@ const handlers: Record<string, LegacyHandler> = {
   '/api/blog-css': blogCssHandler,
   '/api/feed': feedHandler,
   '/api/llms': llmsHandler,
+  '/api/pricing': pricingHandler,
   '/api/sitemap': sitemapHandler,
 };
 

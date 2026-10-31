@@ -670,6 +670,7 @@ async function dispatchCampaignWithTiming(
         text: email.text,
         headers: unsubscribeHeaders(unsubscribeUrl),
         type: 'marketing_campaign',
+        idempotencyKey: `marketing-delivery:${delivery.id}`,
       });
       if ('error' in result && result.error) {
         stats.failed += 1;

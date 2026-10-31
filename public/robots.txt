@@ -1,5 +1,5 @@
 # IELTS Ai Pro - robots.txt
-# Last updated: 2026-08-04
+# Last updated: 2026-11-01
 
 # This policy applies to search and AI discovery crawlers, including:
 # Googlebot, Bingbot, OAI-SearchBot, GPTBot, ChatGPT-User,
@@ -12,6 +12,7 @@ Allow: /ielts-writing-checker
 Allow: /ielts-speaking-practice-ai
 Allow: /cambridge-ielts-practice-tests
 Allow: /ielts-university-requirements
+Allow: /pricing.md
 
 # Private/authenticated routes
 Disallow: /dashboard/
@@ -32,6 +33,8 @@ Disallow: /forgot-password
 Disallow: /update-password
 
 # Protected app pages
+# (/pricing.md is the public machine-readable price sheet; the longer Allow rule
+# above wins over the /pricing prefix below.)
 # These are ProtectedRoute screens: they answer 200 with the SPA shell, so a crawler
 # that reaches them indexes a login wall carrying the homepage's metadata.
 Disallow: /pricing
@@ -56,4 +59,5 @@ Sitemap: https://www.ieltsai.pro/sitemap.xml
 
 # AI answer engines can cite the public marketing and calculator pages.
 # LLM-friendly site summary: https://www.ieltsai.pro/llms.txt
+# Public price sheet for AI agents: https://www.ieltsai.pro/pricing.md
 # Published article feed: https://www.ieltsai.pro/blog/feed.xml

@@ -53,6 +53,38 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Keep each Edge Function isolate below Resend's 10 requests/second team
+// ceiling. Retry-After handling below covers bursts from other isolates.
+let resendRequestQueue = Promise.resolve();
+let nextResendRequestAt = 0;
+
+async function waitForResendSlot() {
+  let release!: () => void;
+  const previous = resendRequestQueue;
+  resendRequestQueue = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await previous;
+
+  const waitMs = Math.max(0, nextResendRequestAt - Date.now());
+  if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
+  nextResendRequestAt = Date.now() + 150;
+  release();
+}
+
+function retryDelayMs(response: Response, attempt: number) {
+  const retryAfter = response.headers.get('retry-after');
+  const retryAfterSeconds = retryAfter ? Number(retryAfter) : Number.NaN;
+  const retryAfterDate =
+    retryAfter && Number.isNaN(retryAfterSeconds) ? Date.parse(retryAfter) : NaN;
+  const providerDelay = Number.isFinite(retryAfterSeconds)
+    ? retryAfterSeconds * 1000
+    : Number.isFinite(retryAfterDate)
+      ? retryAfterDate - Date.now()
+      : 0;
+  return Math.min(5000, Math.max(providerDelay, 250 * 2 ** attempt));
+}
+
 type DispatchStatus = 'accepted' | 'failed' | 'skipped';
 
 async function hashRecipient(recipient: string): Promise<string | null> {
@@ -104,9 +136,10 @@ async function recordDispatch({
 function providerErrorMessage(result: unknown): string {
   if (!result || typeof result !== 'object') return 'Resend rejected the email dispatch';
   const candidate = result as Record<string, unknown>;
-  return String(candidate.message || candidate.name || 'Resend rejected the email dispatch').slice(
-    0,
-    500
+  const code = typeof candidate.name === 'string' ? candidate.name : '';
+  const message = typeof candidate.message === 'string' ? candidate.message : '';
+  return (
+    [code, message].filter(Boolean).join(': ').slice(0, 450) || 'Resend rejected the email dispatch'
   );
 }
 
@@ -160,26 +193,50 @@ export async function sendEmail({
     const from = isSupport
       ? 'IELTS AI Pro Support <mail@ieltsai.pro>'
       : 'IELTS AI Pro <mail@ieltsai.pro>';
+    const requestIdempotencyKey = idempotencyKey || crypto.randomUUID();
 
     // 3. Dispatch to Resend API
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
-      },
-      body: JSON.stringify({
-        from,
-        to,
-        subject,
-        html,
-        ...(text ? { text } : {}),
-        ...(headers && Object.keys(headers).length ? { headers } : {}),
-      }),
-    });
+    let response: Response | undefined;
+    let result: Record<string, any> = {};
+    let networkError: unknown;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      await waitForResendSlot();
+      try {
+        response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+            'Idempotency-Key': requestIdempotencyKey,
+          },
+          body: JSON.stringify({
+            from,
+            to,
+            subject,
+            html,
+            ...(text ? { text } : {}),
+            ...(headers && Object.keys(headers).length ? { headers } : {}),
+          }),
+        });
+        const body = await response.text();
+        try {
+          result = body ? JSON.parse(body) : {};
+        } catch {
+          result = { message: body.slice(0, 300) || 'Resend returned an unreadable response' };
+        }
 
-    const result = await response.json();
+        if ((response.status !== 429 && response.status < 500) || attempt === 3) break;
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs(response!, attempt)));
+      } catch (error) {
+        response = undefined;
+        result = {};
+        networkError = error;
+        if (attempt === 3) break;
+        await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** attempt));
+      }
+    }
+
+    if (!response) throw networkError || new Error('Resend request failed before a response');
 
     if (response.ok) {
       console.log(`Successfully sent '${type}' email to ${to}:`, result.id);
@@ -192,13 +249,14 @@ export async function sendEmail({
       return { success: true, id: result.id };
     } else {
       console.error(`Resend API Error sending '${type}' email:`, result);
+      const errorMessage = `${response.status} ${providerErrorMessage(result)}`;
       await recordDispatch({
         to,
         type,
         status: 'failed',
-        errorMessage: providerErrorMessage(result),
+        errorMessage,
       });
-      return { error: result };
+      return { error: errorMessage };
     }
   } catch (err) {
     console.error('Unexpected error in sendEmail:', err);

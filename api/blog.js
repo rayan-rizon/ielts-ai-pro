@@ -457,6 +457,8 @@ const NARROW_TITLE_CHARS = new Set([...` .,:;!|'"()[]{}ijltfrI-`]);
 const WIDE_TITLE_CHARS = new Set([...'mwMW@%']);
 const OFFICIAL_WRITING_FORMAT_URL =
   'https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-writing';
+const CAMBRIDGE_IELTS_16_FRONTMATTER_URL =
+  'https://assets.cambridge.org/97811089/33858/frontmatter/9781108933858_frontmatter.pdf';
 
 /*
  * These citations were published before the editorial link audit. Keeping the
@@ -480,6 +482,10 @@ function repairKnownContentLinks(content = '') {
     .replaceAll(
       'https://ieltsimmigration.ir/wp-content/uploads/2020/03/Band-Descriptors-Task-2.pdf',
       OFFICIAL_WRITING_FORMAT_URL
+    )
+    .replaceAll(
+      'https://www.cambridge.org/gb/cambridgeenglish/catalog/cambridge-english-exams-ielts/ielts/ielts-16',
+      CAMBRIDGE_IELTS_16_FRONTMATTER_URL
     );
 }
 
@@ -969,24 +975,18 @@ function renderArticle(post, allPosts = []) {
       '@type': 'Organization',
       '@id': `${SITE_URL}/#organization`,
       name: 'IELTS Ai Pro',
-      url: `${SITE_URL}/about`,
+      url: `${SITE_URL}/`,
     },
     publisher: {
       '@type': 'Organization',
       '@id': `${SITE_URL}/#organization`,
       name: 'IELTS Ai Pro',
       url: `${SITE_URL}/`,
-      // This must be a crawlable raster image. logo.png was never deployed and
-      // made otherwise-valid Article schema reference a 404 asset.
-      logo: {
-        '@type': 'ImageObject',
-        url: `${SITE_URL}/apple-touch-icon.png`,
-        width: 180,
-        height: 180,
-      },
+      // Keep the canonical square organization mark consistent across pages.
+      logo: `${SITE_URL}/apple-touch-icon.png`,
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-    image: { '@type': 'ImageObject', url: socialImageUrl, width: 1200, height: 675 },
+    image: socialImageUrl,
     inLanguage: 'en',
     isAccessibleForFree: true,
     articleSection: post.category || 'IELTS guide',

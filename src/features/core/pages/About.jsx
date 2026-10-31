@@ -58,8 +58,10 @@ export default function About() {
           },
           publisher: {
             '@type': 'Organization',
+            '@id': 'https://www.ieltsai.pro/#organization',
             name: 'IELTS Ai Pro',
-            logo: 'https://www.ieltsai.pro/logo.svg',
+            url: 'https://www.ieltsai.pro/',
+            logo: 'https://www.ieltsai.pro/apple-touch-icon.png',
           },
         }}
       />

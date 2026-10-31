@@ -23,11 +23,18 @@ serve(async (req) => {
   const payload = await req.text();
   const svixId = req.headers.get('svix-id') || '';
   try {
-    const event = new Webhook(webhookSecret).verify(payload, {
-      'svix-id': svixId,
-      'svix-timestamp': req.headers.get('svix-timestamp') || '',
-      'svix-signature': req.headers.get('svix-signature') || '',
-    }) as Record<string, any>;
+    let event: Record<string, any>;
+    try {
+      event = new Webhook(webhookSecret).verify(payload, {
+        'svix-id': svixId,
+        'svix-timestamp': req.headers.get('svix-timestamp') || '',
+        'svix-signature': req.headers.get('svix-signature') || '',
+      }) as Record<string, any>;
+    } catch (error) {
+      console.warn('[resend-marketing-webhook] Rejected invalid signature:', error);
+      return new Response('Invalid webhook signature', { status: 400 });
+    }
+
     const eventType = eventMap[event.type];
     if (!eventType) return new Response('ok');
     const providerMessageId = event.data?.email_id || event.data?.id;
@@ -40,7 +47,7 @@ serve(async (req) => {
       .maybeSingle();
     if (!delivery) return new Response('ok');
 
-    await admin.from('marketing_events').insert({
+    const { error: insertError } = await admin.from('marketing_events').insert({
       campaign_id: delivery.campaign_id,
       delivery_id: delivery.id,
       user_id: delivery.user_id,
@@ -53,15 +60,26 @@ serve(async (req) => {
         click_url: event.data?.click?.link || null,
       },
     });
-    if (eventType === 'failed') {
-      await admin
-        .from('marketing_deliveries')
-        .update({ status: 'failed', failure_reason: event.type })
-        .eq('id', delivery.id);
+    if (insertError && insertError.code !== '23505') {
+      console.error('[resend-marketing-webhook] Could not store event:', insertError);
+      return new Response('Could not store event', { status: 500 });
+    }
+
+    const deliveryUpdate =
+      eventType === 'failed'
+        ? { status: 'failed', failure_reason: event.type }
+        : { status: eventType };
+    const { error: updateError } = await admin
+      .from('marketing_deliveries')
+      .update(deliveryUpdate)
+      .eq('id', delivery.id);
+    if (updateError) {
+      console.error('[resend-marketing-webhook] Could not update delivery:', updateError);
+      return new Response('Could not update delivery', { status: 500 });
     }
     return new Response('ok');
   } catch (error) {
-    console.warn('[resend-marketing-webhook] Rejected request:', error);
-    return new Response('Invalid webhook signature', { status: 400 });
+    console.error('[resend-marketing-webhook] Failed to process event:', error);
+    return new Response('Webhook processing failed', { status: 500 });
   }
 });

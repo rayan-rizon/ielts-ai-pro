@@ -45,6 +45,7 @@ function renderLlmsTxt(posts = []) {
 ## Public tools and pages
 
 - [Home](${SITE_URL}/): Platform overview, product capabilities, pricing, FAQ, and sign-up path.
+- [Pricing](${SITE_URL}/pricing.md): Machine-readable plan prices, monthly limits, the 3-month Exam Pass and local prices, generated from the live price list.
 - [Free IELTS Writing Checker](${SITE_URL}/ielts-writing-checker): Public Academic IELTS Task 1 and Task 2 writing workspace with a readable demonstration report.
 - [AI IELTS Speaking Practice](${SITE_URL}/ielts-speaking-practice-ai): Public explanation of the Parts 1–3 simulator, estimated criterion feedback, limitations, and practice workflow.
 - [Cambridge-style IELTS Practice Tests](${SITE_URL}/cambridge-ielts-practice-tests): Public Reading and Listening practice hub with a diagnostic-review-repeat workflow.

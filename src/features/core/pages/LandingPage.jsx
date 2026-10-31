@@ -156,12 +156,7 @@ const getStructuredData = () => ({
         'https://www.instagram.com/ieltsaipro/',
         'https://x.com/IELTSAiPro',
       ],
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://www.ieltsai.pro/logo.svg',
-        width: 300,
-        height: 72,
-      },
+      logo: 'https://www.ieltsai.pro/apple-touch-icon.png',
     },
     // The questions below are the ones FAQSection renders on this page, so the
     // markup stays consistent with the visible content Google requires.
