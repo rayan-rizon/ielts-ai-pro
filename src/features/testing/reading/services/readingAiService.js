@@ -5,7 +5,7 @@ const responseCache = new Map();
 const inFlightRequests = new Map();
 const MAX_CACHE_ENTRIES = 100;
 const CACHE_TTL_MS = 60 * 60 * 1000;
-const CLIENT_CACHE_VERSION = 4;
+const CLIENT_CACHE_VERSION = 5;
 const STORAGE_KEY = `reading_assistant_cache_v${CLIENT_CACHE_VERSION}`;
 
 // The session id stays in the key: two Reading tests can both be at passage 0,
@@ -18,6 +18,7 @@ const cacheKey = (userId, payload) =>
     userId,
     payload.sessionId,
     payload.passageIndex,
+    payload.source || 'passage',
     payload.selectionStart,
     payload.selectionEnd,
     String(payload.selectedText || '')

@@ -67,9 +67,9 @@ describe('Reading assistant browser cache', () => {
     expect(callEdgeFunction).toHaveBeenCalledTimes(1);
 
     // A reload drops the module state but not sessionStorage.
-    const saved = window.sessionStorage.getItem('reading_assistant_cache_v4');
+    const saved = window.sessionStorage.getItem('reading_assistant_cache_v5');
     clearReadingAssistantCache();
-    window.sessionStorage.setItem('reading_assistant_cache_v4', saved);
+    window.sessionStorage.setItem('reading_assistant_cache_v5', saved);
 
     await requestReadingAssistance(payload);
     expect(callEdgeFunction).toHaveBeenCalledTimes(1);
@@ -86,4 +86,13 @@ describe('Reading assistant browser cache', () => {
 
     expect(callEdgeFunction).toHaveBeenCalledTimes(2);
   });
+});
+
+it('keeps question explanations separate from identical passage selections', async () => {
+  clearReadingAssistantCache();
+  vi.clearAllMocks();
+  callEdgeFunction.mockResolvedValue({ state: 'complete', result: { simplified: 'A sample.' } });
+  await requestReadingAssistance({ ...payload, action: 'simplify' });
+  await requestReadingAssistance({ ...payload, action: 'simplify', source: 'question' });
+  expect(callEdgeFunction).toHaveBeenCalledTimes(2);
 });

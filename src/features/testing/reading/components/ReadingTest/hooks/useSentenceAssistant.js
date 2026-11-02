@@ -59,6 +59,7 @@ export function useSentenceAssistant({ sessionId, passageIndex, enabled }) {
           selectionStart: selection.start,
           selectionEnd: selection.end,
           selectedText: selection.text,
+          ...(selection.source ? { source: selection.source } : {}),
           action,
           ...(action === 'translate' ? { targetLanguage: languageOverride || language } : {}),
         });

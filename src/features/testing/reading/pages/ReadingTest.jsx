@@ -1130,6 +1130,17 @@ function ReadingTestContent() {
                 }}
               >
                 <ReadingTestQuestionsSidebar
+                  testMode={testMode}
+                  questionAssistantEnabled={testMode === 'practice' && readingAssistantEnabled}
+                  onQuestionAssistantAction={(action, selection) => {
+                    setWordDefinition(null);
+                    setShowHighlightMenu(false);
+                    sentenceAssistant.request(action, selection, selection.position);
+                  }}
+                  onAddQuestionNote={(text) => {
+                    setNewNote(`Question ref: "${text}"\n\n`);
+                    setShowNotes(true);
+                  }}
                   currentPassageQuestions={currentPassageQuestions}
                   currentPassageIndex={currentPassageIndex}
                   setCurrentPassageIndex={setCurrentPassageIndex}

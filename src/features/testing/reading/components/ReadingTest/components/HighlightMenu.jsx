@@ -94,15 +94,17 @@ function ColorSwatchesRow({ onSelectColor, onAddNote, onCancel }) {
           />
         ))}
 
-        <button
-          type="button"
-          onClick={onAddNote}
-          className="grid size-6 place-items-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.08] dark:hover:text-slate-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-          title="Add Note to Selection"
-          aria-label="Add Note to Selection"
-        >
-          <FileText className="size-3.5" />
-        </button>
+        {onAddNote && (
+          <button
+            type="button"
+            onClick={onAddNote}
+            className="grid size-6 place-items-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.08] dark:hover:text-slate-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
+            title="Add Note to Selection"
+            aria-label="Add Note to Selection"
+          >
+            <FileText className="size-3.5" />
+          </button>
+        )}
       </div>
 
       <button
@@ -159,6 +161,7 @@ const HighlightMenu = memo(function HighlightMenu({
   setShowHighlightMenu,
   assistantEnabled = false,
   onAssistantAction,
+  onAddNote,
 }) {
   const { menuWidth, menuLeft, menuTop } = calculateMenuLayout(
     position,
@@ -186,10 +189,7 @@ const HighlightMenu = memo(function HighlightMenu({
         damping: 32,
         mass: 0.7,
       }}
-      className={cn(
-        PANEL,
-        'fixed z-50 p-2 shadow-xl shadow-slate-900/12 dark:shadow-black/50 border border-[#e4e2f0] dark:border-white/[0.08]'
-      )}
+      className={cn(PANEL, 'fixed z-50 p-2 border border-[#e4e2f0] dark:border-white/[0.08]')}
       style={{
         top: menuTop,
         left: menuLeft,
@@ -202,7 +202,7 @@ const HighlightMenu = memo(function HighlightMenu({
         <>
           <ColorSwatchesRow
             onSelectColor={onSelectColor}
-            onAddNote={handleAddNote}
+            onAddNote={onAddNote || (setNewNote && setShowNotes ? handleAddNote : undefined)}
             onCancel={onRemove}
           />
           {assistantEnabled && <AssistantActionsRow onAssistantAction={onAssistantAction} />}

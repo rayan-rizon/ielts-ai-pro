@@ -1,4 +1,8 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
+import { useSentenceAssistant } from '@/features/testing/reading/components/ReadingTest/hooks/useSentenceAssistant';
+import SentenceAssistantPopover from '@/features/testing/reading/components/SentenceAssistantPopover';
+import QuestionHighlighter from '@/features/testing/shared/components/QuestionHighlighter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Inbox, Lightbulb, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,11 +29,17 @@ export default function ListeningTestMainContent({
   dispatch,
   ACTIONS,
   testMode = 'practice',
+  highlightSessionId,
   isAwaitingStart = false,
   examReview = false,
   onExamAudioEnded,
 }) {
   const isExamMode = testMode === 'exam';
+  const questionAssistant = useSentenceAssistant({
+    sessionId: highlightSessionId,
+    passageIndex: activePart,
+    enabled: testMode === 'practice' && Boolean(highlightSessionId) && !isAwaitingStart,
+  });
   const {
     leftPanelWidth,
     setLeftPanelWidth,
@@ -153,44 +163,57 @@ export default function ListeningTestMainContent({
             className="flex-1 overflow-y-auto min-h-0 p-2 md:p-4 custom-scrollbar"
             data-oid="ei0mpxi"
           >
-            <div className="max-w-4xl mx-auto pb-8" data-oid="mazna.x">
-              <AnimatePresence mode="wait" data-oid="6t5jc9d">
-                <motion.div
-                  key={activePart}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                  data-oid="dtbr3a4"
-                >
-                  {sectionQuestions.length > 0 ? (
-                    questionGroups.map((group, gIdx) => (
-                      <QuestionGroupCard
-                        key={gIdx}
-                        group={group}
-                        answers={answers}
-                        handleAnswerChange={handleAnswerChange}
-                        handleMultiSelectChange={handleMultiSelectChange}
-                        toggleFlag={toggleFlag}
-                        flaggedQuestions={flaggedQuestions}
-                        isFinished={isFinished}
-                        correctAnswersMap={correctAnswersMap}
-                      />
-                    ))
-                  ) : (
-                    <div
-                      className="flex flex-col items-center justify-center h-full py-20 opacity-50"
-                      data-oid="pfsl8gz"
-                    >
-                      <Inbox className="w-16 h-16 text-slate-300 mb-4" data-oid="w5rdlsj" />
-                      <p className="font-semibold text-slate-400" data-oid="3em_akk">
-                        No questions for this section
-                      </p>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            <QuestionHighlighter
+              scope={`listening:${highlightSessionId}:${testMode}:${activePart}`}
+              mode={testMode}
+              assistantEnabled={
+                testMode === 'practice' &&
+                Boolean(highlightSessionId) &&
+                questionAssistant.status?.enabled !== false
+              }
+              onAssistantAction={(action, selection) =>
+                questionAssistant.request(action, selection, selection.position)
+              }
+            >
+              <div className="max-w-4xl mx-auto pb-8" data-oid="mazna.x">
+                <AnimatePresence mode="wait" data-oid="6t5jc9d">
+                  <motion.div
+                    key={activePart}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    data-oid="dtbr3a4"
+                  >
+                    {sectionQuestions.length > 0 ? (
+                      questionGroups.map((group, gIdx) => (
+                        <QuestionGroupCard
+                          key={gIdx}
+                          group={group}
+                          answers={answers}
+                          handleAnswerChange={handleAnswerChange}
+                          handleMultiSelectChange={handleMultiSelectChange}
+                          toggleFlag={toggleFlag}
+                          flaggedQuestions={flaggedQuestions}
+                          isFinished={isFinished}
+                          correctAnswersMap={correctAnswersMap}
+                        />
+                      ))
+                    ) : (
+                      <div
+                        className="flex flex-col items-center justify-center h-full py-20 opacity-50"
+                        data-oid="pfsl8gz"
+                      >
+                        <Inbox className="w-16 h-16 text-slate-300 mb-4" data-oid="w5rdlsj" />
+                        <p className="font-semibold text-slate-400" data-oid="3em_akk">
+                          No questions for this section
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </QuestionHighlighter>
             {isMobile && <div className="h-28 shrink-0" />}
           </div>
         </div>
@@ -224,6 +247,28 @@ export default function ListeningTestMainContent({
           </div>
         )}
       </div>
+      {createPortal(
+        <SentenceAssistantPopover
+          assistant={questionAssistant.assistant}
+          status={questionAssistant.status}
+          language={questionAssistant.language}
+          isMobile={isMobile}
+          onLanguageChange={(language) => {
+            questionAssistant.setLanguage(language);
+            if (questionAssistant.assistant?.action === 'translate') {
+              questionAssistant.request(
+                'translate',
+                questionAssistant.assistant.selection,
+                questionAssistant.assistant.position,
+                language
+              );
+            }
+          }}
+          onActionChange={questionAssistant.changeAction}
+          onClose={questionAssistant.close}
+        />,
+        document.body
+      )}
     </div>
   );
 }

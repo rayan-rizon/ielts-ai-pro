@@ -194,6 +194,7 @@ function ListeningTestInner() {
           inert={isAwaitingStart ? '' : undefined}
         >
           <ListeningTestMainContent
+            highlightSessionId={state.session?.id || state.testData?.id}
             layout={layout}
             nav={nav}
             audioPlayerRef={audioPlayerRef}

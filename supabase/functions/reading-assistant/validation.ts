@@ -67,10 +67,13 @@ export function validateAssistBody(body: any) {
     throw new Error('Select one English word for a definition');
   if (body.action === 'translate' && !TRANSLATION_LANGUAGES[body.targetLanguage])
     throw new Error('Choose a supported translation language');
+  const source = body.source || 'passage';
+  if (!['passage', 'question'].includes(source)) throw new Error('Invalid assistance source');
   const passageIndex = Number(body.passageIndex);
   if (!Number.isInteger(passageIndex) || passageIndex < 0 || passageIndex > 9)
     throw new Error('Invalid passage selection');
   return {
+    source: source as 'passage' | 'question',
     sessionId: body.sessionId as string,
     requestId: body.requestId as string,
     action: body.action as ReadingAction,
@@ -208,6 +211,51 @@ export function resolveSelection(
     // actions whose selection can span clauses.
     context: action === 'dictionary' ? sentence : sectionText.slice(contextStart, contextEnd),
   };
+}
+
+/** Only stored, learner-visible question content can be sent for language help. */
+export function resolveQuestionSelection(
+  questions: any[],
+  partIndex: number,
+  selectedText: string,
+  action: ReadingAction
+) {
+  const visibleText = (value: any): string => {
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value)) return value.map(visibleText).join(' ');
+    if (!value || typeof value !== 'object') return '';
+    return Object.entries(value)
+      .filter(([key]) => !/answer|correct|explanation|solution|evidence|transcript/i.test(key))
+      .map(([, child]) => visibleText(child))
+      .join(' ');
+  };
+  for (const question of questions) {
+    const part = Number(question.section ?? question.part_number ?? 1);
+    if (part !== partIndex + 1) continue;
+    const text = normalizePassageText(
+      [
+        question.question_text,
+        question.group_instructions,
+        question.mcq_title,
+        question.options,
+        question.gap_fill,
+        question.table_data,
+        question.flowchart,
+        question.matching_data,
+        question.matching_features,
+        question.static_text,
+        question.map_labeling,
+      ]
+        .map(visibleText)
+        .join(' ')
+    );
+    try {
+      return { ...resolveSelection(text, selectedText, null, action), questionId: question.id };
+    } catch {
+      /* Try the next question in this part. */
+    }
+  }
+  throw new Error('The selected text is not part of these questions');
 }
 
 /**

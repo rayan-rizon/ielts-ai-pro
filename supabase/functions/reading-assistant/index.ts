@@ -23,6 +23,7 @@ import {
   normalizeAssistantResult,
   parseReadingSections,
   resolveSelection,
+  resolveQuestionSelection,
   validateAssistBody,
   validateAssistantResult,
 } from './validation.ts';
@@ -282,8 +283,12 @@ const handleRequest = async (req: Request) => {
     .eq('id', input.sessionId)
     .eq('user_id', profile.id)
     .single();
-  if (!session || session.test_type !== 'reading' || session.paired_room_id)
+  if (!session || !['reading', 'listening'].includes(session.test_type) || session.paired_room_id)
     return response({ error: 'This Reading session is unavailable' }, 403, headers);
+  if (session.test_type === 'listening' && input.source !== 'question')
+    return response({ error: 'Listening help is available for question text only' }, 403, headers);
+  if (input.source === 'question' && session.test_mode === 'mock')
+    return response({ error: 'Question help is hidden during Exam mode' }, 403, headers);
   if (!session.is_completed && session.test_mode === 'mock')
     return response({ error: 'Reading help is hidden during Exam mode' }, 403, headers);
   const { data: passage } = await admin
@@ -313,16 +318,32 @@ const handleRequest = async (req: Request) => {
       headers
     );
 
-  let selection;
+  let selection: ReturnType<typeof resolveSelection> & { questionId?: string };
   try {
-    const sections = parseReadingSections(passage.content);
-    if (!sections[input.passageIndex]) throw new Error('Invalid passage selection');
-    selection = resolveSelection(
-      sections[input.passageIndex],
-      input.selectedText,
-      input.selectionStart,
-      input.action
-    );
+    if (input.source === 'question') {
+      const { data: questions, error } = await admin
+        .from('questions')
+        .select(
+          'id, section, part_number, question_text, group_instructions, mcq_title, options, gap_fill, table_data, flowchart, matching_data, matching_features, static_text, map_labeling'
+        )
+        .eq('passage_id', session.passage_id);
+      if (error) throw new Error('Question content is unavailable');
+      selection = resolveQuestionSelection(
+        questions || [],
+        input.passageIndex,
+        input.selectedText,
+        input.action
+      );
+    } else {
+      const sections = parseReadingSections(passage.content);
+      if (!sections[input.passageIndex]) throw new Error('Invalid passage selection');
+      selection = resolveSelection(
+        sections[input.passageIndex],
+        input.selectedText,
+        input.selectionStart,
+        input.action
+      );
+    }
   } catch (error) {
     return response(
       { error: error instanceof Error ? error.message : 'Invalid selection' },
@@ -337,6 +358,9 @@ const handleRequest = async (req: Request) => {
   const cacheKey = await sha256(
     JSON.stringify({
       version: CACHE_VERSION,
+      ...(input.source === 'question'
+        ? { source: 'question', questionId: selection.questionId }
+        : {}),
       ...cacheIdentity(
         input.action,
         passage.id,

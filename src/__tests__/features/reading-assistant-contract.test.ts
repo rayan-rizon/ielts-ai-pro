@@ -265,3 +265,42 @@ describe('Reading assistant contract', () => {
     );
   });
 });
+
+describe('question text assistance', () => {
+  it('resolves stored visible question text without including answer keys or explanations', async () => {
+    const { resolveQuestionSelection } =
+      await import('../../../supabase/functions/reading-assistant/validation');
+    const result = resolveQuestionSelection(
+      [
+        {
+          id: 'q1',
+          section: 1,
+          question_text: 'The artist remained independent from trends.',
+          correct_answer: 'FALSE',
+          explanation: 'The answer is FALSE.',
+          gap_fill: { structured_text: 'She worked as a teacher.', answers: ['teacher'] },
+        },
+      ],
+      0,
+      'remained independent',
+      'simplify'
+    );
+    expect(result.selectedText).toBe('remained independent');
+    expect(result.context).toContain('The artist remained independent from trends.');
+    expect(result.context).not.toContain('FALSE');
+    expect(result.questionId).toBe('q1');
+  });
+
+  it('rejects text from another part, invented text and hidden answer fields', async () => {
+    const { resolveQuestionSelection } =
+      await import('../../../supabase/functions/reading-assistant/validation');
+    const questions = [
+      { id: 'q2', section: 2, question_text: 'A different part.', correct_answer: 'secret' },
+    ];
+    expect(() =>
+      resolveQuestionSelection(questions, 0, 'A different part.', 'translate')
+    ).toThrow();
+    expect(() => resolveQuestionSelection(questions, 1, 'secret', 'simplify')).toThrow();
+    expect(() => resolveQuestionSelection(questions, 1, 'Invented text.', 'breakdown')).toThrow();
+  });
+});
