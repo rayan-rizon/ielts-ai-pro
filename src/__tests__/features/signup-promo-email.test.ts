@@ -19,6 +19,37 @@ describe('personal offer email', () => {
     vi.setSystemTime(new Date('2026-10-05T12:00:00Z'));
   });
   afterEach(() => vi.useRealTimers());
+  it('shows a full 24-hour signup deadline in HTML and plain text', () => {
+    const result = getCampaignTemplate({
+      ...input,
+      offer: {
+        code: 'START20A7C4E92B',
+        discountPercent: 20,
+        expiresAt: '2026-10-06T12:00:00Z',
+        firstPaymentOnly: true,
+      },
+    });
+    expect(result.text).toContain('Time remaining when sent: 24 hours, 0 minutes.');
+    expect(result.text).toContain('Expires Oct 6, 2026, 12:00 PM UTC.');
+    expect(result.html).toContain('Expires Oct 6, 2026, 12:00 PM UTC.');
+    expect(result.html).toMatch(/>24<\/span><span[^>]*>Hours<\/span>/);
+    expect(result.html).not.toMatch(/>Days<\/span>/);
+    expect(result.text).toContain('20% off the first payment');
+  });
+  it('shows the actual remaining time when the signup email is delayed', () => {
+    vi.setSystemTime(new Date('2026-10-05T14:15:00Z'));
+    const result = getCampaignTemplate({
+      ...input,
+      offer: {
+        code: 'START20A7C4E92B',
+        discountPercent: 20,
+        expiresAt: '2026-10-06T12:00:00Z',
+        firstPaymentOnly: true,
+      },
+    });
+    expect(result.text).toContain('Time remaining when sent: 21 hours, 45 minutes.');
+    expect(result.text).toContain('Expires Oct 6, 2026, 12:00 PM UTC.');
+  });
   it('renders an accurate send-time countdown and keeps previously issued long codes readable', () => {
     const code = 'START20-84A1D329B6704F809A8736D1593F2C8E';
     const result = getCampaignTemplate({

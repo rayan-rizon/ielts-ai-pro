@@ -8,10 +8,12 @@ import {
   promoForPlan,
 } from '@/lib/pricingUtils';
 import { describeExamCoverage, getExamPlanContext } from '@/lib/examPlan';
+import { useOfferCheckoutLink } from '@/features/subscription/hooks/useOfferCheckoutLink';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import ManualPayment from '../components/ManualPayment';
 import { getGaSessionHandle, trackAppEvent, trackAuthenticatedAppEvent } from '@/lib/tracking';
+import { saveRequestedDestination } from '@/features/auth/utils/authDestination';
 import { getMarketingAttribution } from '@/lib/marketingAttribution';
 import { getSignupOffer, getAppliedPromo } from '@/features/subscription/services/signupOffer';
 import { capturePromoCode, clearPendingPromoCode, getPendingPromoCode } from '@/lib/promoOffer';
@@ -537,7 +539,12 @@ export default function Pricing() {
     setShowManualPayment(true);
   };
 
-  const startStripeCheckoutSession = async (planTier, selectedPlanData, chargeAmount) => {
+  const startStripeCheckoutSession = async (
+    planTier,
+    selectedPlanData,
+    chargeAmount,
+    checkoutRequest
+  ) => {
     setIsLoading(true);
     try {
       const { supabase } = await import('@/lib/supabase');
@@ -546,7 +553,15 @@ export default function Pricing() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        window.location.href = '/login?redirect=/pricing';
+        const destination = new URL(window.location.href);
+        destination.searchParams.set('plan', planTier);
+        destination.searchParams.set('interval', billingInterval);
+        if (checkoutRequest?.code) {
+          destination.searchParams.set('checkout', '1');
+          destination.searchParams.set('promo', checkoutRequest.code);
+        }
+        saveRequestedDestination(`${destination.pathname}${destination.search}${destination.hash}`);
+        window.location.href = '/login';
         return;
       }
 
@@ -630,7 +645,7 @@ export default function Pricing() {
     }
   };
 
-  const handleUpgrade = async (planTier) => {
+  const handleUpgrade = async (planTier, checkoutRequest = null) => {
     const meta = getPlanPriceAndMeta({
       plans,
       planTier,
@@ -690,7 +705,11 @@ export default function Pricing() {
           promoDiscount: validOffer,
           currentTier: user.subscription_tier,
         });
-        if (!validOffer || freshMeta.chargeAmount !== meta.chargeAmount) {
+        if (
+          !validOffer ||
+          (checkoutRequest?.code && validOffer.code !== checkoutRequest.code) ||
+          freshMeta.chargeAmount !== meta.chargeAmount
+        ) {
           setPromoDiscount(validOffer);
           const { toast } = await import('sonner');
           toast.error('Your offer changed or expired. Review the updated price before paying.');
@@ -709,8 +728,17 @@ export default function Pricing() {
       return;
     }
 
-    await startStripeCheckoutSession(planTier, meta.plan, meta.chargeAmount);
+    await startStripeCheckoutSession(planTier, meta.plan, meta.chargeAmount, checkoutRequest);
   };
+
+  useOfferCheckoutLink({
+    user,
+    plans,
+    isPricingLoading,
+    promoDiscount,
+    billingInterval,
+    onCheckout: handleUpgrade,
+  });
 
   return (
     <>

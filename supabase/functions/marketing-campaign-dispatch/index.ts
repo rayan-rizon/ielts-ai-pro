@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { sendEmail, unsubscribeHeaders } from '../_shared/resend.ts';
 import { isUndeliverableEmail } from '../_shared/emailAddress.ts';
 import { getCampaignTemplate } from '../_shared/templates.ts';
+import { getCampaignAction } from '../_shared/marketingOfferAction.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import {
   nextMarketingAttempt,
@@ -606,7 +607,8 @@ async function dispatchCampaignWithTiming(
         };
       }
 
-      const destination = new URL(campaign.cta_url || '/pricing', 'https://www.ieltsai.pro');
+      const action = getCampaignAction(campaign, offer);
+      const destination = new URL(action.url, 'https://www.ieltsai.pro');
       destination.searchParams.set('campaign_id', campaign.id);
       destination.searchParams.set('delivery_id', delivery.id);
       if (offer?.code) destination.searchParams.set('promo', offer.code);
@@ -616,6 +618,7 @@ async function dispatchCampaignWithTiming(
           content: {
             ...content,
             cta_url: `${destination.pathname}${destination.search}`,
+            cta_label: action.label,
             promo_code: offer?.code || null,
             offer_expires_at: offer?.expiresAt || null,
             discount_percent: offer?.discountPercent || null,
@@ -656,7 +659,7 @@ async function dispatchCampaignWithTiming(
 
       const unsubscribeUrl = unsubscribeEndpoint(delivery.id, delivery.tracking_token);
       const email = campaignEmail(
-        campaign,
+        { ...campaign, cta_label: action.label },
         recipient,
         offer,
         trackingEndpoint(delivery.id, delivery.tracking_token, 'click', destination.toString()),

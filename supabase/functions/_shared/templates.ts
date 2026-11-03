@@ -720,14 +720,21 @@ export function getCampaignTemplate(input: {
     remainingMinutes === null
       ? null
       : [
-          { value: Math.floor(remainingMinutes / 1440), label: 'Days' },
-          { value: Math.floor((remainingMinutes % 1440) / 60), label: 'Hours' },
+          ...(remainingMinutes > 1440
+            ? [{ value: Math.floor(remainingMinutes / 1440), label: 'Days' }]
+            : []),
+          {
+            value: Math.floor(
+              (remainingMinutes > 1440 ? remainingMinutes % 1440 : remainingMinutes) / 60
+            ),
+            label: 'Hours',
+          },
           { value: remainingMinutes % 60, label: 'Minutes' },
         ];
   const countdownText = countdown
     ? remainingMinutes === 0
       ? 'Less than 1 minute remaining when sent.'
-      : `Time remaining when sent: ${countdown[0].value} days, ${countdown[1].value} hours, ${countdown[2].value} minutes.`
+      : `Time remaining when sent: ${countdown.map(({ value, label }) => `${value} ${label.toLowerCase()}`).join(', ')}.`
     : '';
   const baseUrl = BASE_URL;
   const name = escapeHtml(input.recipientName || 'there');

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
+import { getCampaignAction } from '../../../supabase/functions/_shared/marketingOfferAction';
 import { nextMarketingAttempt } from '../../../supabase/functions/_shared/marketingDelivery';
 
 // Execute the actual dispatcher without starting Deno's HTTP server or sending
@@ -56,6 +57,7 @@ function setup(
     'nextMarketingAttempt',
     'isUndeliverableEmail',
     'sendEmail',
+    'getCampaignAction',
     `${code}\nreturn dispatchCampaign;`
   )(
     db,
@@ -64,7 +66,8 @@ function setup(
     reserve,
     nextMarketingAttempt,
     () => false,
-    send
+    send,
+    getCampaignAction
   );
   const run = () => dispatch('campaign', { id: 'journey', delay_hours: 0 });
   return { run, read, reserve, send, db };

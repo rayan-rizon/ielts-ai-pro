@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { getRequestedDestination } from '@/features/auth/utils/authDestination';
 
 const authState = vi.hoisted(() => ({
   user: null,
@@ -53,6 +54,30 @@ describe('ProtectedRoute redirects', () => {
 
     expect(screen.getByText('login:/protected')).toBeInTheDocument();
     expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
+  });
+
+  it('preserves the full offer checkout destination through login', () => {
+    const target =
+      '/pricing?plan=premium&interval=monthly&checkout=1&promo=START20A7C4E92B&campaign_id=campaign-1&delivery_id=delivery-1';
+    function Destination() {
+      return <div>{getRequestedDestination(useLocation())}</div>;
+    }
+    render(
+      <MemoryRouter initialEntries={[target]}>
+        <Routes>
+          <Route
+            path="/pricing"
+            element={
+              <ProtectedRoute>
+                <div>Pricing</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<Destination />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(screen.getByText(target)).toBeInTheDocument();
   });
 
   it('redirects free users from pro-only routes to the upgrade page', () => {
