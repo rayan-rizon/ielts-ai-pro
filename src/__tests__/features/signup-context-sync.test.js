@@ -8,7 +8,11 @@ const { database, query } = vi.hoisted(() => {
   );
   return {
     query,
-    database: { from: vi.fn(), rpc: vi.fn(), auth: { signUp: vi.fn(), getSession: vi.fn() } },
+    database: {
+      from: vi.fn(),
+      rpc: vi.fn(),
+      auth: { signUp: vi.fn(), getSession: vi.fn(), signInWithIdToken: vi.fn() },
+    },
   };
 });
 vi.mock('@/lib/supabase', () => ({ supabase: database }));
@@ -36,6 +40,73 @@ beforeEach(() => {
 
 describe('signup attribution persistence', () => {
   const signupSession = { user: { id: 'auth-new', email: 'learner@example.test' } };
+
+  it('rejects a failed profile insert instead of returning a learner without a database id', async () => {
+    database.auth.getSession.mockResolvedValue({ data: { session: signupSession } });
+    query.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: 'insert unavailable', code: '42501' },
+      });
+    await expect(User.personalProfile()).rejects.toThrow(/profile/i);
+  });
+
+  it('does not report Google login as ready when profile loading fails', async () => {
+    database.auth.signInWithIdToken.mockResolvedValue({
+      data: { session: signupSession, user: signupSession.user },
+      error: null,
+    });
+    const loader = vi.spyOn(User, 'me').mockRejectedValue(new Error('Learner profile unavailable'));
+    try {
+      await expect(User.signInWithGoogle('credential')).rejects.toThrow(
+        'Learner profile unavailable'
+      );
+    } finally {
+      loader.mockRestore();
+    }
+  });
+
+  it('keeps registration measurement and referrals when the backend creates a new Google profile', async () => {
+    database.auth.getSession.mockResolvedValue({ data: { session: signupSession } });
+    const profile = {
+      id: 'backend-profile',
+      auth_id: 'auth-new',
+      created_at: new Date().toISOString(),
+      signup_attribution_recorded_at: new Date().toISOString(),
+    };
+    query.maybeSingle.mockResolvedValue({ data: profile, error: null });
+    database.rpc.mockResolvedValue({ data: {}, error: null });
+    const { trackSignupCompleted } = await import('@/lib/tracking');
+    expect(await User.personalProfile('FRIEND')).toMatchObject({ id: 'backend-profile' });
+    expect(trackSignupCompleted).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 'backend-profile' })
+    );
+    expect(database.rpc).toHaveBeenCalledWith('process_referral', {
+      p_new_user_id: 'backend-profile',
+      p_referral_code: 'FRIEND',
+    });
+  });
+
+  it('fills the country of a newly server-provisioned profile without overwriting an existing country', async () => {
+    const { resolveSignupCountry } = await import('@/lib/geo');
+    resolveSignupCountry.mockResolvedValue('BD');
+    const profile = {
+      id: 'backend-profile',
+      created_at: new Date().toISOString(),
+      signup_attribution_recorded_at: new Date().toISOString(),
+      country: null,
+    };
+    query.maybeSingle.mockResolvedValue({ data: { ...profile, country: 'BD' }, error: null });
+    expect(await User.syncSignupContext(profile)).toMatchObject({ country: 'BD' });
+    query.update.mockClear();
+    expect(await User.syncSignupContext({ ...profile, country: 'US' })).toMatchObject({
+      country: 'US',
+    });
+    expect(query.update).not.toHaveBeenCalled();
+    resolveSignupCountry.mockResolvedValue(undefined);
+  });
 
   it('returns the actual profile when another profile loader wins the insert race', async () => {
     database.auth.getSession.mockResolvedValue({ data: { session: signupSession } });

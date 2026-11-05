@@ -11,6 +11,10 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 
+## CodeScene
+
+After changing code, run `code_health_review` on the changed source files. If Code Health drops, fix the regression, run the review again, and use `code_health_score` to confirm the result. Before committing or finishing, run `pre_commit_code_health_safeguard` and resolve regressions introduced by the change until it passes.
+
 ## Learner Panel Design System (UI & Aesthetics Rule)
 
 Do NOT use legacy glassmorphism (`backdrop-blur`, heavy `shadow-lg` / `shadow-2xl`, glowing neon backlights) for UI design in this project.

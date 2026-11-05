@@ -43,11 +43,17 @@ const isWalletExtensionRejection = (error: unknown) => {
 // The only frames come from Google's tag-manager loader (served through the
 // /mx proxy), so there is no application code to fix. Matches one signature
 // only: a TypeError raised with nothing but gtm.js on the stack.
-const isGtmLoaderTypeError = (event: SentryLikeEvent) => {
+const isKnownGtmError = (exception: { type?: string; value?: string }) =>
+  exception.type === 'TypeError' ||
+  (exception.type === 'SyntaxError' && exception.value === 'Unexpected end of input');
+const isGtmFrame = (frame: { filename?: string }) =>
+  /(^|\/)gtm\.js(\?|$)/.test(frame.filename || '');
+const isGtmLoaderError = (event: SentryLikeEvent) => {
   const exception = event.exception?.values?.[0];
   const frames = exception?.stacktrace?.frames;
-  if (exception?.type !== 'TypeError' || !frames?.length) return false;
-  return frames.every((frame) => /(^|\/)gtm\.js(\?|$)/.test(frame.filename || ''));
+  if (!frames?.length) return false;
+  if (!isKnownGtmError(exception)) return false;
+  return frames.every(isGtmFrame);
 };
 
 export const shouldDropSentryEvent = (event: SentryLikeEvent, hint: SentryLikeHint) => {
@@ -55,7 +61,7 @@ export const shouldDropSentryEvent = (event: SentryLikeEvent, hint: SentryLikeHi
 
   if (NOISE_KEYWORDS.some((keyword) => errorMessage.includes(keyword))) return true;
   if (isWalletExtensionRejection(hint.originalException)) return true;
-  if (isGtmLoaderTypeError(event)) return true;
+  if (isGtmLoaderError(event)) return true;
 
   const browserName = event.contexts?.browser?.name || '';
   const osName = event.contexts?.os?.name || '';

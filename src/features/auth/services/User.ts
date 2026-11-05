@@ -7,6 +7,7 @@ import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
 import { getMissingSignupProfileFields, getSignupAttribution } from '@/lib/attribution';
 import { resolveSignupCountry } from '@/lib/geo';
 import { recordActivityHeartbeat } from './activityHeartbeat';
+import { completeRecentSignup, syncNewProfileCountry } from './signupProfile';
 
 // Signup and session listeners can create the profile concurrently.
 // Ignore an existing email without updating its owner, tier or referral data.
@@ -38,6 +39,7 @@ interface ListOptions {
 
 export const User = {
   async syncSignupContext(profile: any) {
+    profile = await syncNewProfileCountry(profile);
     const patch = getMissingSignupProfileFields(profile, getSignupAttribution());
     if (Object.keys(patch).length === 0) return profile;
 
@@ -156,6 +158,7 @@ export const User = {
 
     if (profileByAuth) {
       const syncedProfile = await this.syncSignupContext(profileByAuth);
+      await completeRecentSignup(syncedProfile, user, referralCode);
       return {
         ...user,
         ...syncedProfile,
@@ -239,17 +242,7 @@ export const User = {
         '[User.me] Failed to create profile:',
         insertError?.message || 'Profile missing'
       );
-      // Return a default profile object even on error
-      return {
-        ...user,
-        id: undefined,
-        auth_id: user.id,
-        email: user.email!,
-        full_name: defaultProfile.full_name,
-        role: 'user',
-        subscription_tier: 'free',
-        onboarding_completed: false,
-      } as UserProfile;
+      throw new Error('Your learner profile could not be saved. Please retry signing in.');
     }
 
     console.log('[User.me] Created new profile');
@@ -258,7 +251,7 @@ export const User = {
     // before the CompleteRegistration pixel call below. The identity helper
     // is deliberately awaited only for this new-profile path so the browser
     // event has matching data while analytics failures remain non-blocking.
-    if (insertedProfile) await pushUserIdentity(insertedProfile);
+    await pushUserIdentity(insertedProfile);
 
     // The only point in the app where a brand-new account definitively comes
     // into existence, regardless of provider. Reporting the registration here
@@ -267,14 +260,14 @@ export const User = {
     // session immediately, so the large majority of real signups were invisible
     // to Meta. trackSignupCompleted deduplicates per user id.
     trackSignupCompleted({
-      userId: insertedProfile?.id || user.id,
+      userId: insertedProfile.id,
       method: user.app_metadata?.provider || 'email',
       email: user.email || null,
-      channel: insertedProfile?.signup_channel || defaultProfile.signup_channel,
+      channel: insertedProfile.signup_channel || defaultProfile.signup_channel,
     });
 
     // IF this is a new profile and we have a referral code, process it
-    if (referralCode && insertedProfile?.id) {
+    if (referralCode && insertedProfile.id) {
       try {
         console.log('[User.me] Processing referral for new profile:', { referralCode });
         const { data: referralResult, error: referralError } = await supabase.rpc(
@@ -405,12 +398,7 @@ export const User = {
 
     // Ensure user profile exists after successful login
     if (data?.session?.user) {
-      try {
-        // This creates/syncs profile using auth_id
-        await this.me();
-      } catch (profileError) {
-        console.warn('Profile check/creation failed after google login:', profileError);
-      }
+      await this.me();
       return data.user;
     }
 
@@ -439,11 +427,7 @@ export const User = {
 
     // Ensure user profile exists after successful login
     if (data.user) {
-      try {
-        await this.me(); // This will create profile if missing
-      } catch (profileError) {
-        console.warn('Profile check/creation failed after login:', profileError);
-      }
+      await this.me(); // A login is ready only when its learner profile exists.
     }
 
     return data.user;

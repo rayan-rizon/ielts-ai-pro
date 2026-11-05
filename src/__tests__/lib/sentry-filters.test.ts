@@ -7,6 +7,26 @@ const transitionError = new DOMException(
 );
 
 describe('Sentry browser-noise filtering', () => {
+  it('isolates the known truncated-script SyntaxError to GTM-only stacks', () => {
+    const exception = {
+      type: 'SyntaxError',
+      value: 'Unexpected end of input',
+      stacktrace: { frames: [{ filename: 'https://www.ieltsai.pro/mx/gtm.js?id=GTM-test' }] },
+    };
+    expect(
+      shouldDropSentryEvent(
+        { exception: { values: [exception] } },
+        { originalException: new SyntaxError('Unexpected end of input') }
+      )
+    ).toBe(true);
+    exception.stacktrace.frames.push({ filename: 'https://www.ieltsai.pro/assets/Login-test.js' });
+    expect(
+      shouldDropSentryEvent(
+        { exception: { values: [exception] } },
+        { originalException: new SyntaxError('Unexpected end of input') }
+      )
+    ).toBe(false);
+  });
   it('drops the known Instagram iOS transition rejection', () => {
     expect(
       shouldDropSentryEvent(

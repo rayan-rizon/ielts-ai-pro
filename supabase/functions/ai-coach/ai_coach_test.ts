@@ -43,6 +43,7 @@ function reset() {
   world.practice = { total: 0, correct: 0, missedPrompts: [] };
   world.history = [];
   world.preferredLanguage = null;
+  world.finishFailsWith = null;
   world.leaseEvents = [];
   fetchQueue.length = 0;
   fetchBodies.length = 0;
@@ -81,6 +82,11 @@ const RPC_REPLIES: Record<string, (args: any) => unknown> = {
 };
 
 function resolveRpc(call: Call) {
+  if (call.name === 'ai_coach_finish') {
+    if (call.args.p_ok && world.finishFailsWith) {
+      return { data: null, error: { code: 'XX000', message: world.finishFailsWith } };
+    }
+  }
   return ok(RPC_REPLIES[call.name]?.(call.args) ?? null);
 }
 
@@ -336,7 +342,10 @@ Deno.test(
   'when no model gives a verifiable answer the learner gets an honest error, not a spent reply',
   async () => {
     reset();
-    const promise = () => jsonResponse(reply({ answer: 'I guarantee Band 8 for you.' }));
+    const promise = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 3));
+      return jsonResponse(reply({ answer: 'I guarantee Band 8 for you.' }));
+    };
     fetchQueue.push(promise, promise);
     const response = await send('Tell me my future band');
     assert.equal(response.status, 502);
@@ -349,6 +358,45 @@ Deno.test(
       'the operation is closed as failed, so it is not counted'
     );
     assert.ok(finish.args.p_cost > 0, 'the provider spend is still recorded');
+    assert.equal(finish.args.p_model, 'openai/gpt-6-luna');
+    assert.ok(finish.args.p_latency > 0, 'failure latency measures the actual request');
+    assert.equal(finish.args.p_diagnostics.stage, 'fallback');
+    assert.equal(finish.args.p_diagnostics.attempts.length, 2);
+    assert.equal(finish.args.p_diagnostics.attempts[0].code, 'invalid_schema');
+    assert.equal(finish.args.p_diagnostics.attempts[1].code, 'invalid_schema');
+    assert.equal(
+      JSON.stringify(finish.args.p_diagnostics).includes('guarantee'),
+      false,
+      'diagnostics never persist model content'
+    );
+  }
+);
+
+Deno.test('retains the conservative reservation when provider cost is unknown', async () => {
+  reset();
+  fetchQueue.push(
+    () => new Response(null, { status: 503 }),
+    () => jsonResponse(reply({ answer: 'I guarantee Band 8 for you.' }))
+  );
+  assert.equal((await send('Tell me my future band')).status, 502);
+  assert.equal(finishCalls().at(-1)?.args.p_cost, null);
+});
+
+Deno.test(
+  'a finalization error retains the successful provider spend and failure stage',
+  async () => {
+    reset();
+    world.finishFailsWith = 'Database temporarily unavailable';
+    fetchQueue.push(() => jsonResponse(reply()));
+    const response = await send('How do I structure an essay?');
+    assert.equal(response.status, 502);
+    const finish = finishCalls().at(-1)!;
+    assert.equal(finish.args.p_ok, false);
+    assert.equal(finish.args.p_cost, 0.0003);
+    assert.equal(finish.args.p_tokens, 1350);
+    assert.equal(finish.args.p_diagnostics.stage, 'finalize');
+    assert.equal(finish.args.p_diagnostics.code, 'database_error');
+    assert.equal(JSON.stringify(finish.args.p_diagnostics).includes('Database temporarily'), false);
   }
 );
 

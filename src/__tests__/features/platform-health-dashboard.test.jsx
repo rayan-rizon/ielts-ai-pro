@@ -269,6 +269,7 @@ describe('PlatformHealthDashboard operations console', () => {
             dailySpendUsd: 2.41,
             dailyBudgetUsd: 3,
             budgetUtilization: 80.3,
+            failureRate: 75,
             pendingReservations: 1,
             stuckReservations: 0,
             completedReplies: 492,
@@ -290,6 +291,7 @@ describe('PlatformHealthDashboard operations console', () => {
     expect(screen.getAllByText('$2.4100').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Pending coach replies').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Enabled').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('75%').length).toBeGreaterThan(0);
   });
 
   it('filters and searches the full provider directory without hiding incident context', async () => {

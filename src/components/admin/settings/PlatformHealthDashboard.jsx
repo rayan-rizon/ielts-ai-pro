@@ -214,6 +214,7 @@ const ALARM_KEYS = new Set([
 ]);
 
 const PERCENT_METRICS = new Set([
+  'failureRate',
   'errorRate',
   'upstreamFailureRate',
   'completionRate',
@@ -239,7 +240,14 @@ const METRIC_FORMATTERS = {
   dailySpendUsd: (value) => `$${Number(value).toFixed(4)}`,
   dailyBudgetUsd: (value) => `$${Number(value).toFixed(2)}`,
   featureEnabled: (value) => (value ? 'Enabled' : 'Disabled'),
-  resetsAt: (value) => new Date(value).toLocaleString(),
+  resetsAt: (value) =>
+    new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    }).format(new Date(value)),
 };
 
 const NULL_METRIC_LABELS = {
@@ -248,12 +256,14 @@ const NULL_METRIC_LABELS = {
 };
 
 const formatMissingMetric = (key) => NULL_METRIC_LABELS[key] || '—';
+const formatPercentage = (value) =>
+  Number(value) > 0 && Number(value) < 0.1 ? '<0.1%' : `${value}%`;
 
 const fmt = (key, value) => {
   if (value === null || value === undefined) {
     return formatMissingMetric(key);
   }
-  if (PERCENT_METRICS.has(key)) return `${value}%`;
+  if (PERCENT_METRICS.has(key)) return formatPercentage(value);
   if (HOUR_METRICS.has(key)) return `${value}h`;
   if (METRIC_FORMATTERS[key]) return METRIC_FORMATTERS[key](value);
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
@@ -702,7 +712,10 @@ const ProblemPanel = ({ service, index, incidentCount = 0, incidentSummary, onRe
         <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg border border-stone-200 dark:border-white/[0.07] bg-stone-50/70 dark:bg-black/10 p-2.5 w-full min-w-0">
           {metrics.slice(0, 4).map(([key, value]) => (
             <div key={key} className="min-w-0">
-              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+              <p
+                className={cn(MICRO, 'text-stone-500 dark:text-stone-400 break-words')}
+                title={METRIC_LABEL[key] || key}
+              >
                 {METRIC_LABEL[key] || key}
               </p>
               <p
@@ -775,14 +788,18 @@ const ServiceDetails = ({ service, metrics, incidentSummary }) => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
           {metrics.map(([key, value]) => (
             <div key={key} className="min-w-0">
-              <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400 truncate')}>
+              <p
+                className={cn(MICRO, 'text-stone-500 dark:text-stone-400 break-words')}
+                title={METRIC_LABEL[key] || key}
+              >
                 {METRIC_LABEL[key] || key}
               </p>
               <p
                 className={cn(
                   NUM,
-                  'mt-1 text-sm font-bold text-stone-900 dark:text-stone-50 truncate'
+                  'mt-1 text-sm font-bold text-stone-900 dark:text-stone-50 break-words'
                 )}
+                title={key === 'resetsAt' ? new Date(value).toLocaleString() : fmt(key, value)}
               >
                 {fmt(key, value)}
               </p>

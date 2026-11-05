@@ -2,11 +2,7 @@ import { getAdmittedUser, withTextAiAdmission } from '../_shared/aiAdmission.ts'
 // @ts-ignore Deno runtime imports
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { getCorsHeaders, handleCorsPrelight, validateCsrfProtection } from '../_shared/security.ts';
-import {
-  requestOpenRouterJson,
-  requestOpenRouterJsonStream,
-  TextAiProviderError,
-} from '../_shared/textAiProvider.ts';
+import { requestOpenRouterJson, requestOpenRouterJsonStream } from '../_shared/textAiProvider.ts';
 import {
   AI_COACH_MAX_INPUT_TOKENS,
   asksForPersonalEvidence,
@@ -36,6 +32,11 @@ import {
   sourceNeedsQuestionRows,
 } from '../_shared/coachSourceDigest.ts';
 import { CoachAnswerStreamer } from '../_shared/coachStream.ts';
+import {
+  CoachDiagnostics,
+  successfulCoachUsage,
+  failedCoachUsage,
+} from '../_shared/coachDiagnostics.ts';
 
 declare const Deno: any;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -57,13 +58,6 @@ const response = (data: unknown, status: number, headers: Record<string, string>
     status,
     headers: { ...headers, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
-
-const billedCost = (error: unknown) =>
-  error instanceof TextAiProviderError ? error.usage?.estimatedProviderCostUsd || 0 : 0;
-const billedTokens = (error: unknown) =>
-  error instanceof TextAiProviderError ? error.usage?.tokensUsed || 0 : 0;
-const hasKnownBilledCost = (error: unknown) =>
-  error instanceof TextAiProviderError && typeof error.usage?.estimatedProviderCostUsd === 'number';
 
 function databaseStatus(message: string) {
   if (/not available yet|taking a break/i.test(message)) return 503;
@@ -583,30 +577,37 @@ const handleRequest = async (req: Request) => {
   }
 
   const chargedAttempts: unknown[] = [];
-  let providerAttempted = false;
   let providerCallCount = 0;
+  const diagnostics = new CoachDiagnostics();
+  let settlement: { cost: number; tokens: number } | null = null;
 
   /** Close a reserved operation as failed, charging whatever the provider billed. */
   const recordFailure = async (requestBody: any, error: unknown) => {
     const requestId = String(requestBody?.requestId || '');
     if (!UUID.test(requestId)) return;
-    const attempts = chargedAttempts.includes(error)
-      ? [...chargedAttempts]
-      : [...chargedAttempts, error];
-    const cost = attempts.reduce<number>((total, item) => total + billedCost(item), 0);
-    const tokens = attempts.reduce<number>((total, item) => total + billedTokens(item), 0);
-    const unknownProviderCost =
-      providerAttempted && attempts.filter(hasKnownBilledCost).length < providerCallCount;
-    await admin.rpc('ai_coach_finish', {
+    const usage = failedCoachUsage({
+      settlement,
+      attempts: chargedAttempts,
+      error,
+      providerCallCount,
+    });
+    const failure = diagnostics.snapshot(true);
+    const { error: finishError } = await admin.rpc('ai_coach_finish', {
       p_operation_id: requestId,
       p_user_message: '',
       p_response: null,
-      p_cost: unknownProviderCost ? null : cost,
-      p_tokens: tokens,
-      p_model: '',
-      p_latency: 0,
+      p_cost: usage.cost,
+      p_tokens: usage.tokens,
+      p_model: failure.model,
+      p_latency: failure.latency,
+      p_diagnostics: failure.diagnostics,
       p_ok: false,
     });
+    if (finishError)
+      console.error('[ai-coach] failure settlement unavailable', {
+        requestId,
+        code: finishError.code || 'database_error',
+      });
   };
   try {
     if (body.operation === 'bootstrap')
@@ -870,7 +871,6 @@ const handleRequest = async (req: Request) => {
         : null;
       let generated: any;
       try {
-        providerAttempted = true;
         providerCallCount += 1;
         const primary = {
           apiKey,
@@ -889,9 +889,11 @@ const handleRequest = async (req: Request) => {
             distinctId: profile.id,
           },
         };
-        generated = streamer
-          ? await requestOpenRouterJsonStream({ ...primary, onText: (text) => streamer.push(text) })
-          : await requestOpenRouterJson(primary);
+        generated = await diagnostics.attempt('primary', AI_COACH_PRIMARY_MODEL, () =>
+          streamer
+            ? requestOpenRouterJsonStream({ ...primary, onText: (text) => streamer.push(text) })
+            : requestOpenRouterJson(primary)
+        );
       } catch (error) {
         chargedAttempts.push(error);
         // Whatever was streamed is superseded by the fallback or by an error.
@@ -900,22 +902,24 @@ const handleRequest = async (req: Request) => {
         if (remainingMs < 1_000) throw error;
         providerCallCount += 1;
         try {
-          generated = await requestOpenRouterJson({
-            apiKey,
-            model: AI_COACH_FALLBACK_MODEL,
-            prompt,
-            systemPrompt,
-            maxOutputTokens: AI_COACH_MAX_OUTPUT_TOKENS,
-            timeoutMs: remainingMs,
-            includeUsageAccounting: true,
-            disableReasoning: true,
-            reasoningEffort: 'none',
-            validateJson: validate,
-            observability: {
-              traceId: observabilityTraceId,
-              distinctId: profile.id,
-            },
-          });
+          generated = await diagnostics.attempt('fallback', AI_COACH_FALLBACK_MODEL, () =>
+            requestOpenRouterJson({
+              apiKey,
+              model: AI_COACH_FALLBACK_MODEL,
+              prompt,
+              systemPrompt,
+              maxOutputTokens: AI_COACH_MAX_OUTPUT_TOKENS,
+              timeoutMs: remainingMs,
+              includeUsageAccounting: true,
+              disableReasoning: true,
+              reasoningEffort: 'none',
+              validateJson: validate,
+              observability: {
+                traceId: observabilityTraceId,
+                distinctId: profile.id,
+              },
+            })
+          );
         } catch (fallbackError) {
           chargedAttempts.push(fallbackError);
           // A canned sentence that spends one of the learner's daily replies helps no one.
@@ -928,18 +932,13 @@ const handleRequest = async (req: Request) => {
       const memoryNotes = normalizeCoachMemoryNotes(generated.parsed.memory) ?? [];
       delete generated.parsed.memory;
       generated.parsed.actions = validateActions(generated.parsed.actions, context, input.message);
-      const failedAttemptCost = chargedAttempts.reduce<number>(
-        (total, attempt) => total + billedCost(attempt),
-        0
+      const { cost, tokens } = successfulCoachUsage(
+        generated,
+        chargedAttempts,
+        Number(reservation.reservedCostUsd || 0)
       );
-      const measuredCost = generated.usage.estimatedProviderCostUsd + failedAttemptCost;
-      const hasUnknownAttemptCost = chargedAttempts.some((attempt) => !hasKnownBilledCost(attempt));
-      const cost = hasUnknownAttemptCost
-        ? Math.max(Number(reservation.reservedCostUsd || 0), measuredCost)
-        : measuredCost;
-      const tokens =
-        generated.usage.tokensUsed +
-        chargedAttempts.reduce<number>((total, attempt) => total + billedTokens(attempt), 0);
+      settlement = { cost, tokens };
+      diagnostics.stage = 'finalize';
       const { data: final, error: finishError } = await admin.rpc('ai_coach_finish', {
         p_operation_id: input.requestId,
         p_user_message: input.message,
@@ -947,10 +946,11 @@ const handleRequest = async (req: Request) => {
         p_cost: cost,
         p_tokens: tokens,
         p_model: generated.model,
-        p_latency: Date.now() - started,
+        p_latency: diagnostics.snapshot().latency,
+        p_diagnostics: diagnostics.snapshot().diagnostics,
         p_ok: true,
       });
-      if (finishError) throw finishError;
+      if (finishError) throw new Error('AI Coach could not save your answer. Please retry.');
       await admin.from('ai_api_usage').insert({
         user_id: profile.id,
         endpoint: 'ai-coach',
@@ -1026,7 +1026,9 @@ const handleRequest = async (req: Request) => {
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'AI Coach is temporarily unavailable';
 const errorStatus = (message: string) =>
-  /could not verify an answer/i.test(message) ? 502 : databaseStatus(message);
+  /could not verify an answer|could not save your answer/i.test(message)
+    ? 502
+    : databaseStatus(message);
 
 /** Merge new learner-stated facts into stored memory. Memory is a convenience, never a blocker. */
 async function rememberAboutLearner(admin: any, userId: string, notes: string[]) {

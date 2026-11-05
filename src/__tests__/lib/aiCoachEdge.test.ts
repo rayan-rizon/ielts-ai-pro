@@ -22,12 +22,6 @@ describe('personalized AI Coach Edge Function contract', () => {
     expect(edge).toContain('timeoutMs: remainingMs');
   });
 
-  it('retains the conservative reservation when any provider cost is unknown', () => {
-    expect(edge).toContain('providerCallCount += 1');
-    expect(edge).toContain('attempts.filter(hasKnownBilledCost).length < providerCallCount');
-    expect(edge).toContain('p_cost: unknownProviderCost ? null : cost');
-  });
-
   it('allows only eligible routes and claims confirmed actions before execution', () => {
     expect(edge).toContain('eligibleRoutes.has(action.payload?.route)');
     expect(edge).toContain("admin.rpc('ai_coach_claim_action'");
