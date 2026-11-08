@@ -64,7 +64,7 @@ describe('Reading assistant contract', () => {
       targetLanguage: 'uz',
     };
     expect(validateAssistBody(base).targetLanguage).toBe('uz');
-    for (const targetLanguage of ['fa', 'fr', 'nl', 'tl', 'de', 'zh-TW']) {
+    for (const targetLanguage of ['fa', 'fr', 'nl', 'tl', 'de', 'zh-TW', 'id']) {
       expect(() => validateAssistBody({ ...base, targetLanguage })).not.toThrow();
     }
     expect(() => validateAssistBody({ ...base, targetLanguage: 'xx' })).toThrow(
@@ -73,6 +73,14 @@ describe('Reading assistant contract', () => {
     expect(() =>
       validateAssistBody({ ...base, targetLanguage: 'bn', selectedText: 'x'.repeat(1201) })
     ).toThrow('too long');
+
+    expect(
+      buildReadingPrompt(
+        'translate',
+        { selectedText: 'A short sentence.', context: 'A passage.' },
+        'id'
+      )
+    ).toContain('Translate into Indonesian.');
   });
 
   it('keeps the browser language menu and edge-function allowlist in sync', () => {

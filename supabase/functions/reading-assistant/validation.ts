@@ -4,6 +4,7 @@ export type ReadingAction = (typeof READING_ACTIONS)[number];
 export const TRANSLATION_LANGUAGES: Record<string, string> = {
   bn: 'Bengali',
   hi: 'Hindi',
+  id: 'Indonesian',
   uz: 'Uzbek',
   fa: 'Persian',
   vi: 'Vietnamese',

@@ -53,6 +53,7 @@ describe('Reading assistant UI', () => {
     expect(screen.getByText('4 of 5 free Translations left today')).toBeInTheDocument();
     expect(screen.getByText('একটি অনুবাদ')).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Uzbek' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Indonesian' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Persian' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Traditional Chinese' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Breakdown' }));

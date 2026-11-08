@@ -5,6 +5,7 @@
 export const READING_TRANSLATION_LANGUAGES = [
   { code: 'bn', label: 'Bengali' },
   { code: 'hi', label: 'Hindi' },
+  { code: 'id', label: 'Indonesian' },
   { code: 'uz', label: 'Uzbek' },
   { code: 'fa', label: 'Persian' },
   { code: 'vi', label: 'Vietnamese' },
