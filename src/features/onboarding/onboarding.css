@@ -1279,6 +1279,11 @@
 }
 .onboarding-interval__save {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
   padding: 2px 7px;
   border-radius: 999px;
   background: var(--ob-accent-soft);
