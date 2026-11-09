@@ -21,6 +21,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/cn';
 import { AiBadge, TierBadge } from '@/features/dashboard/components/primitives';
 import InstitutionBrand from '@/features/institution/components/InstitutionBrand';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 
 const ACCENT_ACTIVE =
   'bg-[#5a63df]/9 text-[#4a52c9] border-[#5a63df]/15 dark:bg-[#5a63df]/22 dark:text-[#c3c7ff] dark:border-[#5a63df]/25';
@@ -96,8 +97,7 @@ const NavItem = memo(({ item, isActive }) => {
 });
 NavItem.displayName = 'NavItem';
 
-const isPremiumUser = (user) =>
-  user?.subscription_tier === 'pro' || user?.subscription_tier === 'premium';
+const isPremiumUser = hasPaidAccess;
 
 const resolveMainNavigation = (user) =>
   userNavigationItems.map((item) => {

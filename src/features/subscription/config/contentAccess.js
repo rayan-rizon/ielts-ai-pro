@@ -10,8 +10,18 @@ export function normalizeSubscriptionTier(tier) {
   return Object.hasOwn(CONTENT_TIER_ORDER, value) ? value : 'free';
 }
 
+function effectiveSubscriptionTier(user) {
+  const tier = normalizeSubscriptionTier(user?.subscription_tier);
+  const endDate = user?.subscription_end_date;
+  if (CONTENT_TIER_ORDER[tier] >= CONTENT_TIER_ORDER.pro && endDate != null) {
+    const endTime = Date.parse(endDate);
+    if (!Number.isFinite(endTime) || endTime <= Date.now()) return 'free';
+  }
+  return tier;
+}
+
 export function hasContentAccess(user, requiredTier = 'free') {
-  const userTier = normalizeSubscriptionTier(user?.subscription_tier);
+  const userTier = effectiveSubscriptionTier(user);
   const minimumTier = normalizeSubscriptionTier(requiredTier);
   return CONTENT_TIER_ORDER[userTier] >= CONTENT_TIER_ORDER[minimumTier];
 }
@@ -20,7 +30,7 @@ export function hasPaidAccess(user) {
   // Learner monetisation follows the purchased tier only. Admin permissions
   // are enforced separately by protected admin routes and must not make a free
   // account render Pro badges or paid learner features.
-  const subscriptionTier = normalizeSubscriptionTier(user?.subscription_tier);
+  const subscriptionTier = effectiveSubscriptionTier(user);
   return CONTENT_TIER_ORDER[subscriptionTier] >= CONTENT_TIER_ORDER.pro;
 }
 

@@ -19,6 +19,24 @@ describe('paid analytics entitlements', () => {
     expect(hasContentAccess({ subscription_tier: 'pro' }, 'premium')).toBe(false);
   });
 
+  it('keeps access through a cancelled paid period and locks it after expiry', () => {
+    const activeCancellation = {
+      subscription_tier: 'pro',
+      cancel_at_period_end: true,
+      subscription_end_date: '2099-01-01T00:00:00Z',
+    };
+    const endedCancellation = {
+      ...activeCancellation,
+      subscription_end_date: '2000-01-01T00:00:00Z',
+    };
+
+    expect(hasPaidAccess(activeCancellation)).toBe(true);
+    expect(hasContentAccess(activeCancellation, 'pro')).toBe(true);
+    expect(hasPaidAccess(endedCancellation)).toBe(false);
+    expect(hasContentAccess(endedCancellation, 'pro')).toBe(false);
+    expect(hasPaidAccess({ subscription_tier: 'pro', subscription_end_date: null })).toBe(true);
+  });
+
   it('does not mount personalised values inside a locked gate', () => {
     render(
       <MemoryRouter>
