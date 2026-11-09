@@ -2,6 +2,8 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { Webhook } from 'https://esm.sh/svix@1.76.1';
 
+import { recordMarketingFeedback } from '../_shared/marketingEmailHealth.ts';
+
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET') || '';
@@ -35,16 +37,18 @@ serve(async (req) => {
       return new Response('Invalid webhook signature', { status: 400 });
     }
 
+    await recordMarketingFeedback(admin, event as any);
     const eventType = eventMap[event.type];
     if (!eventType) return new Response('ok');
     const providerMessageId = event.data?.email_id || event.data?.id;
     if (!providerMessageId) return new Response('ok');
 
-    const { data: delivery } = await admin
+    const { data: delivery, error: lookupError } = await admin
       .from('marketing_deliveries')
       .select('id,campaign_id,user_id,channel')
       .eq('provider_message_id', providerMessageId)
       .maybeSingle();
+    if (lookupError) throw lookupError;
     if (!delivery) return new Response('ok');
 
     const { error: insertError } = await admin.from('marketing_events').insert({
@@ -57,6 +61,7 @@ serve(async (req) => {
       metadata: {
         provider_message_id: providerMessageId,
         provider_event: event.type,
+        bounce: event.data?.bounce || null,
         click_url: event.data?.click?.link || null,
       },
     });

@@ -4,6 +4,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { getCampaignAction } from '../../../supabase/functions/_shared/marketingOfferAction';
 import { nextMarketingAttempt } from '../../../supabase/functions/_shared/marketingDelivery';
 
+import {
+  countsAsMarketingContact,
+  countsTowardsCampaignCap,
+} from '../../../supabase/functions/_shared/marketingEmailHealth';
+
 // Execute the actual dispatcher without starting Deno's HTTP server or sending
 // network requests. Only the external I/O boundaries are replaced.
 const source = readFileSync('supabase/functions/marketing-campaign-dispatch/index.ts', 'utf8');
@@ -58,6 +63,8 @@ function setup(
     'isUndeliverableEmail',
     'sendEmail',
     'getCampaignAction',
+    'countsAsMarketingContact',
+    'countsTowardsCampaignCap',
     `${code}\nreturn dispatchCampaign;`
   )(
     db,
@@ -67,7 +74,9 @@ function setup(
     nextMarketingAttempt,
     () => false,
     send,
-    getCampaignAction
+    getCampaignAction,
+    countsAsMarketingContact,
+    countsTowardsCampaignCap
   );
   const run = () => dispatch('campaign', { id: 'journey', delay_hours: 0 });
   return { run, read, reserve, send, db };
@@ -122,6 +131,25 @@ describe('marketing journey scan', () => {
     expect(await run()).toMatchObject({ accepted: 0, skipped: 1 });
     expect(profileReads(read)).toHaveLength(0);
     expect(reserve).not.toHaveBeenCalled();
+  });
+
+  it('does not resend a bounced provider-accepted campaign', async () => {
+    const { run, read, send } = setup({
+      history: [
+        {
+          user_id: 'learner',
+          channel: 'in_app',
+          campaign_id: 'campaign',
+          status: 'failed',
+          provider_message_id: 'accepted-id',
+          attempt: 1,
+          created_at: '2020-01-01',
+        },
+      ],
+    });
+    expect(await run()).toMatchObject({ accepted: 0, skipped: 1 });
+    expect(profileReads(read)).toHaveLength(0);
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('shares one lazy profile read across eligible workers and refreshes it next dispatch', async () => {

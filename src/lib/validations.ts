@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { emailDomainSuggestion } from '../../supabase/functions/_shared/emailAddress';
 
 /**
  * Authentication validation schemas
@@ -37,7 +38,14 @@ export const signInSchema = z.object({
 
 // Sign Up Schema - more strict password requirements
 export const signUpSchema = z.object({
-  email: emailSchema,
+  email: emailSchema.superRefine((email, ctx) => {
+    const suggestion = emailDomainSuggestion(email);
+    if (suggestion)
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Please check your email domain. Did you mean ${suggestion}?`,
+      });
+  }),
   username: usernameSchema,
   password: z
     .string()

@@ -12,6 +12,11 @@ import {
   reserveMarketingDelivery,
 } from '../_shared/marketingDelivery.ts';
 
+import {
+  countsAsMarketingContact,
+  countsTowardsCampaignCap,
+} from '../_shared/marketingEmailHealth.ts';
+
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const admin = createClient(supabaseUrl, serviceKey);
@@ -362,25 +367,19 @@ async function dispatchCampaignWithTiming(
       const rows = existing.get(key) || [];
       const allUserRows = historyByUser.get(member.user_id) || [];
       const allCampaignRows = rows.filter((row) => row.campaign_id === campaign.id);
-      const campaignRows = allCampaignRows.filter(
-        (row) => !['skipped', 'failed'].includes(row.status)
-      );
-      const latest = rows.find((row) =>
-        ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status)
-      );
+      const campaignRows = allCampaignRows.filter(countsTowardsCampaignCap);
+      const latest = rows.find(countsAsMarketingContact);
       const cooldownHours = journey?.cooldown_hours ?? campaign.cooldown_hours;
       const cooldownOpen =
         latest && now.getTime() - new Date(latest.created_at).getTime() < cooldownHours * 3_600_000;
-      const latestCrossChannel = allUserRows.find((row: any) =>
-        ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status)
-      );
+      const latestCrossChannel = allUserRows.find(countsAsMarketingContact);
       const crossChannelCooldownOpen =
         latestCrossChannel &&
         now.getTime() - new Date(latestCrossChannel.created_at).getTime() < 72 * 3_600_000;
       const contactCapReached =
         allUserRows.filter(
           (row: any) =>
-            ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status) &&
+            countsAsMarketingContact(row) &&
             now.getTime() - new Date(row.created_at).getTime() < 7 * 24 * 3_600_000
         ).length >= 2;
       const upgradePromotionCapReached =
@@ -388,7 +387,7 @@ async function dispatchCampaignWithTiming(
         allUserRows.some(
           (row: any) =>
             row.campaign?.objective === 'paid_conversion' &&
-            ['accepted', 'delivered', 'viewed', 'clicked'].includes(row.status) &&
+            countsAsMarketingContact(row) &&
             now.getTime() - new Date(row.created_at).getTime() < 7 * 24 * 3_600_000
         );
       const overCap = campaignRows.length >= campaign.frequency_cap;

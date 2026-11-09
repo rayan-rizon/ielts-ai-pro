@@ -1,6 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { isUndeliverableEmail } from './emailAddress.ts';
 
+import { marketingEmailBlockReason } from './marketingEmailHealth.ts';
+
 export type EmailType =
   | 'institution_invitation'
   | 'welcome'
@@ -143,7 +145,7 @@ function providerErrorMessage(result: unknown): string {
   );
 }
 
-export async function sendEmail({
+async function dispatchEmail({
   to,
   subject,
   html,
@@ -267,5 +269,17 @@ export async function sendEmail({
       errorMessage: err instanceof Error ? err.message : 'Unexpected email dispatch error',
     });
     return { error: err };
+  }
+}
+
+export async function sendEmail(params: SendEmailParams) {
+  try {
+    if (params.type === 'marketing_campaign') {
+      const reason = await marketingEmailBlockReason(supabase, params.to);
+      if (reason) return { success: true, skipped: true, reason };
+    }
+    return await dispatchEmail(params);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Email health check unavailable' };
   }
 }

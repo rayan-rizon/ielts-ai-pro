@@ -168,7 +168,8 @@ export default function Login() {
 
   const validateOnChange = (field, value) => {
     let result = { valid: true, error: null };
-    if (field === 'email') result = validateField(emailSchema, value);
+    if (field === 'email')
+      result = validateField(authMode === 'signup' ? signUpSchema.shape.email : emailSchema, value);
     else if (field === 'username' && authMode === 'signup')
       result = validateField(usernameSchema, value);
     setFieldErrors((prev) => ({ ...prev, [field]: result.error }));

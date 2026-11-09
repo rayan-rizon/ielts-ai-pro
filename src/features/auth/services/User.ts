@@ -303,7 +303,7 @@ export const User = {
       throw new Error('Email and password are required');
     }
 
-    const normalizedEmail = emailSchema.parse(email);
+    const normalizedEmail = signUpSchema.shape.email.parse(email);
 
     try {
       signUpSchema.shape.password.parse(password);
