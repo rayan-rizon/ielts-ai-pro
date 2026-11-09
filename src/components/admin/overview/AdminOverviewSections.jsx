@@ -192,7 +192,7 @@ const PayingKpi = ({ kpis }) => (
     label="Paying"
     value={kpis.paying?.total ?? 0}
     sub={`${kpis.paying?.conversion ?? 0}% of users · ${kpis.paying?.premium ?? 0} premium`}
-    tip="Pro and Premium users as a share of all signups."
+    tip="Pro and Premium users with a recorded successful payment, as a share of all signups."
   />
 );
 

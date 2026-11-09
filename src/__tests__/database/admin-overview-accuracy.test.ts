@@ -28,6 +28,13 @@ const activityHistoryMigration = readFileSync(
   ),
   'utf8'
 ).toLowerCase();
+const payingUsersMigration = readFileSync(
+  resolve(
+    process.cwd(),
+    'supabase/migrations/20261109201156_count_verified_paying_users_in_admin_overview.sql'
+  ),
+  'utf8'
+).toLowerCase();
 
 const userService = readFileSync(
   resolve(process.cwd(), 'src/features/auth/services/User.ts'),
@@ -45,6 +52,14 @@ const userManagementFilters = readFileSync(
 );
 
 describe('admin overview accuracy contract', () => {
+  it('counts paying users only when a successful payment is recorded', () => {
+    expect(payingUsersMigration).toContain("bh.status = 'paid'");
+    expect(payingUsersMigration).toContain("pr.status = 'approved'");
+    expect(payingUsersMigration).toContain("subscription_tier = 'pro'");
+    expect(payingUsersMigration).toContain("subscription_tier = 'premium'");
+    expect(overviewSections).toContain('with a recorded successful payment');
+  });
+
   it('aligns selected-window active users, completions, and trend length', () => {
     expect(migration).toContain('count(*) filter (where last_active >= v_since)');
     expect(migration).toContain("'value', v_active");
