@@ -102,4 +102,39 @@ describe('speaking audio recovery message', () => {
       confidence: 0.9,
     });
   });
+
+  it('does not resubmit an answer when finalization reports a terminal conflict', async () => {
+    const conflict = Object.assign(new Error('Turn no longer active'), {
+      status: 409,
+      retryable: false,
+      code: 'speaking_turn_inactive',
+      state: { part: 1, questionNumber: 2, revision: 9, status: 'active' },
+    });
+    callEdgeFunctionMultipart.mockRejectedValueOnce(conflict);
+    await expect(
+      submitSpeakingV2TurnWithConflictRecovery({
+        audioBlob: new Blob(['audio']),
+        sessionId: 'session-1',
+        speakingV2State: { revision: 8, status: 'active' },
+      })
+    ).rejects.toBe(conflict);
+    expect(callEdgeFunctionMultipart).toHaveBeenCalledTimes(1);
+    expect(callEdgeFunction).not.toHaveBeenCalled();
+  });
+
+  it('stops after one recovery attempt if the revision keeps conflicting', async () => {
+    const conflict = Object.assign(new Error('Revision conflict'), {
+      status: 409,
+      state: { revision: 9, status: 'active' },
+    });
+    callEdgeFunctionMultipart.mockRejectedValue(conflict);
+    await expect(
+      submitSpeakingV2TurnWithConflictRecovery({
+        audioBlob: new Blob(['audio']),
+        sessionId: 'session-1',
+        speakingV2State: { revision: 8, status: 'active' },
+      })
+    ).rejects.toBe(conflict);
+    expect(callEdgeFunctionMultipart).toHaveBeenCalledTimes(2);
+  });
 });

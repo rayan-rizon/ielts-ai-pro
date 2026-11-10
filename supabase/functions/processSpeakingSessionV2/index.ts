@@ -1,3 +1,4 @@
+import { finalizeSpeakingTurn } from '../_shared/speakingTurnFinalization.ts';
 import { updateSpeakingSessionSummary } from '../_shared/speakingSessionSummary.ts';
 // @ts-ignore
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
@@ -509,6 +510,92 @@ async function isPracticeCoachEnabled(supabase: any, authId: string) {
   return isPracticeTtsAllowed(rollout, data?.role === 'admin');
 }
 
+function speakingTurnProviderMetadata({
+  transcription,
+  decision,
+  state,
+  coachReply,
+  coachSource,
+  coachError,
+}: {
+  transcription: any;
+  decision: any;
+  state: StateRow;
+  coachReply: any;
+  coachSource: string;
+  coachError: string;
+}) {
+  return {
+    transcriptionProvider: transcription.provider,
+    transcriptionModel: transcription.model,
+    semantic: decision.provider,
+    ...(state.mode === 'practice'
+      ? {
+          coach: coachReply
+            ? {
+                source: 'ai',
+                model: coachReply.model,
+                estimatedProviderCostUsd: coachReply.estimatedProviderCostUsd,
+              }
+            : {
+                source: coachSource,
+                ...(coachSource === 'fallback'
+                  ? { error: coachError || 'No usable coach reply' }
+                  : {}),
+              },
+        }
+      : {}),
+  };
+}
+
+function finalizationFailureResponse(
+  finalization: any,
+  questionCount: number,
+  corsHeaders: Record<string, string>
+) {
+  const body = finalization.body;
+  if (finalization.status >= 500) {
+    console.error('Speaking finalization failed', {
+      operationId: finalization.body.operationId,
+      code: body.code,
+      retryable: body.retryable,
+    });
+  }
+  // A timed-out write may have committed. Never mark it failed here.
+  return responseJson(
+    {
+      ...body,
+      ...('state' in body ? { state: publicState(decodeState(body.state), questionCount) } : {}),
+    },
+    finalization.status,
+    corsHeaders
+  );
+}
+
+function finalizationResponse(
+  finalization: any,
+  questionCount: number,
+  corsHeaders: Record<string, string>
+) {
+  if ('status' in finalization)
+    return finalizationFailureResponse(finalization, questionCount, corsHeaders);
+  const authoritativeState = decodeState(finalization);
+  if (finalization.replayed) {
+    return responseJson(
+      {
+        ...finalization.response,
+        cached: true,
+        operationId: finalization.operationId,
+        state: publicState(authoritativeState, questionCount),
+      },
+      200,
+      corsHeaders
+    );
+  }
+
+  return null;
+}
+
 async function handleTurn(params: {
   req: Request;
   supabase: any;
@@ -786,62 +873,51 @@ async function handleTurn(params: {
       isPartComplete: completesPart,
       state: projectedState,
     };
-    const { data: finalized, error: finalizeError } = await params.supabase.rpc(
-      'finalize_speaking_v2_turn',
-      {
-        p_auth_id: params.authId,
-        p_turn_id: turnId,
-        p_result: {
-          questionId: question.id,
-          transcript: transcription.transcript,
-          transcriptStatus: 'ready',
-          classification: decision.classification,
-          relevance: decision.relevance,
-          answerDepth: decision.answerDepth,
-          isValidAnswer: resolved.isValidAnswer,
-          semanticDegraded: decision.semanticDegraded,
-          evidenceQuote: decision.evidenceQuote,
-          coachingCode: decision.coachingCode,
-          action: resolved.action,
-          provider: {
-            transcriptionProvider: transcription.provider,
-            transcriptionModel: transcription.model,
-            semantic: decision.provider,
-            ...(state.mode === 'practice'
-              ? {
-                  coach: coachReply
-                    ? {
-                        source: 'ai',
-                        model: coachReply.model,
-                        estimatedProviderCostUsd: coachReply.estimatedProviderCostUsd,
-                      }
-                    : {
-                        source: coachSource,
-                        ...(coachSource === 'fallback'
-                          ? { error: coachError || 'No usable coach reply' }
-                          : {}),
-                      },
-                }
-              : {}),
-          },
-          latency: {
-            uploadMs: uploadLatencyMs,
-            transcriptionMs: transcription.latencyMs,
-            semanticDecisionMs: decision.latencyMs,
-            ...(coachReply ? { coachMs: coachReply.latencyMs } : {}),
-          },
-          state: {
-            part: state.current_part,
-            questionNumber: nextQuestionIndex,
-            clarificationCount: resolved.clarificationCount,
-            status: nextStatus,
-          },
-          response: responsePayload,
+    const finalization = await finalizeSpeakingTurn(params.supabase, {
+      authId: params.authId,
+      turnId,
+      result: {
+        questionId: question.id,
+        transcript: transcription.transcript,
+        transcriptStatus: 'ready',
+        classification: decision.classification,
+        relevance: decision.relevance,
+        answerDepth: decision.answerDepth,
+        isValidAnswer: resolved.isValidAnswer,
+        semanticDegraded: decision.semanticDegraded,
+        evidenceQuote: decision.evidenceQuote,
+        coachingCode: decision.coachingCode,
+        action: resolved.action,
+        provider: speakingTurnProviderMetadata({
+          transcription,
+          decision,
+          state,
+          coachReply,
+          coachSource,
+          coachError,
+        }),
+        latency: {
+          uploadMs: uploadLatencyMs,
+          transcriptionMs: transcription.latencyMs,
+          semanticDecisionMs: decision.latencyMs,
+          ...(coachReply ? { coachMs: coachReply.latencyMs } : {}),
         },
-      }
+        state: {
+          part: state.current_part,
+          questionNumber: nextQuestionIndex,
+          clarificationCount: resolved.clarificationCount,
+          status: nextStatus,
+        },
+        response: responsePayload,
+      },
+    });
+    const immediateResponse = finalizationResponse(
+      finalization,
+      questions.length,
+      params.corsHeaders
     );
-    if (finalizeError) throw new Error(finalizeError.message);
-    const authoritativeState = decodeState(finalized);
+    if (immediateResponse) return immediateResponse;
+    const authoritativeState = decodeState(finalization);
 
     if (pronunciationAudio instanceof File && pronunciationAudio.size > 0) {
       const wavBytes = new Uint8Array(await pronunciationAudio.arrayBuffer());
@@ -859,6 +935,7 @@ async function handleTurn(params: {
     return responseJson(
       {
         ...responsePayload,
+        operationId: turnId,
         revision: authoritativeState.revision,
         state: publicState(authoritativeState, questions.length),
       },

@@ -53,7 +53,7 @@ export async function submitSpeakingV2TurnWithConflictRecovery(params) {
   try {
     return await processSpeakingV2Turn({ ...params, idempotencyKey });
   } catch (error) {
-    if (error?.status !== 409) throw error;
+    if (!isRecoverableConflict(error)) throw error;
     const recoveredState = await recoverSpeakingV2Conflict({
       error,
       sessionId: params.sessionId,
@@ -265,7 +265,7 @@ export default function useSpeakingRecordingProcessor({
             description: 'Your place is safe. Please answer the current question once more.',
             duration: 3500,
           });
-          requestAutoStart?.();
+          restartAfterConflict(error, requestAutoStart);
           return;
         }
         const shouldRestart = await handleProcessingError(error, {
@@ -433,7 +433,7 @@ async function processSpeakingTurn({
   } catch (error) {
     console.error('Edge Function failed:', error);
 
-    if (error.status === 429 || error.status === 403 || error.name === 'RateLimitError') {
+    if (isAccessOrRateLimitError(error)) {
       throw error;
     }
 
@@ -615,12 +615,33 @@ function handlePartCompleteResponse(response, context) {
   });
 }
 
+function isRecoverableConflict(error) {
+  return error?.status === 409 && error.retryable !== false;
+}
+
+function restartAfterConflict(error, restart) {
+  if (error.retryable !== false) restart?.();
+}
+
+function isAccessOrRateLimitError(error) {
+  return error.status === 429 || error.status === 403 || error.name === 'RateLimitError';
+}
+
 async function handleProcessingError(error, context) {
   const { setConversation, speakAiMessageFromLoadingState } = context;
 
   console.error('Error processing recording:', error);
 
-  if (error.status === 429 || error.status === 403 || error.name === 'RateLimitError') {
+  if (error.operationId) {
+    setConversation((prev) => prev.filter((entry) => !entry.isLoading));
+    toast.error('Answer could not be saved', {
+      description: `${error.userMessage || error.message} Reference: ${error.operationId}`,
+      duration: 6000,
+    });
+    return false;
+  }
+
+  if (isAccessOrRateLimitError(error)) {
     setConversation((prev) => prev.filter((entry) => !entry.isLoading));
     if (error.rateLimitType === 'speaking_turn') {
       toast.info('This test attempt is complete', {

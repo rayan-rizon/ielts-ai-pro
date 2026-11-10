@@ -49,3 +49,55 @@ Only this incident report is included in the associated commit. Existing UI and
 formatting edits in the checkout were outside this task. A workspace CodeScene
 safeguard reported regressions in those pre-existing changes to
 `DashboardHeader.jsx` and `format.ts`; this task changed no source files.
+
+## Speaking finalization follow-up — 2026-11-11
+
+The separate Postgres error storm was traced to `finalize_speaking_v2_turn`:
+3,580 instances of `turn is not active` in the reported hour. Its business-state
+conflict used SQLSTATE `40001`, which denotes a retryable serialization failure.
+The exact originating retry implementation was not independently established.
+
+Applied `speaking_turn_finalization_reliability` in production. Completed turns
+now replay the saved response without charging turn/audio quota again. Inactive
+and failed turns return a structured terminal conflict and authoritative state;
+expired sessions cannot be revived by late responses. Stale part transitions
+also return an explicit conflict rather than a transaction exception. Service
+role and owner checks remain enforced.
+
+Deployed `processSpeakingSessionV2` v31 with a bounded finalization helper:
+three attempts maximum with backoff, an eight-second overall deadline, and a
+stable error code, retry policy and turn operation ID. A write with an uncertain
+outcome is not subsequently marked failed. Deployment preserved the existing
+live shared dependencies rather than replacing them with differing checkout
+versions.
+
+Deployed the scoped frontend build at 100% as Cloudflare Worker version
+`0fece688-7222-48fd-a1ec-a6d2f278f148`. The client preserves error metadata,
+stops resubmitting terminal conflicts, and does not automatically reopen the
+microphone after a finalization failure. The release excluded unrelated local
+UI edits.
+
+Verification:
+
+- Isolated PostgreSQL regression tests reproduced the old failure and passed
+  against the migration. The same rollback-only probes passed on production:
+  replay, single quota charge, stale turn/part, expiry and authorization.
+- Read-only live API probes passed for a saved-result replay and a terminal
+  inactive-turn conflict using the real database endpoint and new helper.
+- 25 focused unit tests passed; Deno type checking and targeted ESLint passed.
+- The full unit run had 3,715 passes and two unrelated failures, both reproduced
+  in the isolated checkout: `blog-renderer.test.js` (Article schema/HTML
+  sanitization) and `platformHealthMigration.test.ts` (missed daily invocation).
+- Cloudflare build and its required checks passed. The live speaking page
+  returned HTTP 200; the deployed speaking and index assets matched the release
+  bytes. A new microphone-to-report browser session was not exercised.
+- Scoped CodeScene safeguard passed. Finalization helper Code Health: 10/10.
+- No new Supabase security advisor findings compared with the pre-change check.
+- No `turn is not active` or `speaking state conflict` log entries appeared in
+  the checked 20:32–20:36 UTC post-migration window. This short window is not a
+  guarantee about every future error or load condition.
+
+The previously observed admin health-query timeouts and a platform-wide alerting
+or provider circuit-breaker system are outside this targeted repair. Temporary
+release directories and investigation logs are removed after verification;
+regression tests are retained as project files.
