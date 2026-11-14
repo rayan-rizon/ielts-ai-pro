@@ -1,6 +1,8 @@
 import { m } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { usePaymentOverview } from '@/hooks/admin/usePaymentOverview';
+import PaymentOverviewPanel from './billing/PaymentOverviewPanel';
 import { usePaymentHistory } from '@/hooks/admin/usePaymentHistory';
 import {
   AlertCircle,
@@ -27,7 +29,6 @@ import {
   NUM,
   MICRO,
   PANEL,
-  Kpi,
   AdminPageHeader,
   PILL_BASE,
   pillTone,
@@ -53,6 +54,7 @@ const FILTERS = [
 ];
 
 export default function PaymentManagement() {
+  const overview = usePaymentOverview();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [isProcessing, setIsProcessing] = useState(null);
@@ -103,21 +105,20 @@ export default function PaymentManagement() {
 
   const filteredRequests = requests.filter((request) => matchesPaymentSearch(request, search));
 
-  // Counts come from the loaded set, so they reflect whatever filter is active.
-  const stats = useMemo(() => {
-    const pending = requests.filter((r) => r.status === 'pending');
-    const oldest = pending.reduce(
-      (acc, r) => Math.min(acc, new Date(r.created_at).getTime()),
-      Date.now()
+  useEffect(() => {
+    if (
+      !overview.data?.complete ||
+      overview.loading ||
+      overview.error ||
+      busy ||
+      manualError ||
+      stripeError
+    )
+      return;
+    window.dispatchEvent(
+      new CustomEvent('admin-payments-loaded', { detail: { observedAt: overview.data.observedAt } })
     );
-    return {
-      pending: pending.length,
-      approved: requests.filter((r) => r.status === 'approved').length,
-      rejected: requests.filter((r) => r.status === 'rejected').length,
-      refunded: requests.filter((r) => r.status === 'refunded').length,
-      oldestHours: pending.length ? Math.round((Date.now() - oldest) / 3600000) : 0,
-    };
-  }, [requests]);
+  }, [overview.data, overview.loading, overview.error, busy, manualError, stripeError]);
 
   const ActionButtons = ({ request, full = false }) => {
     if (request.institution_id)
@@ -212,14 +213,14 @@ export default function PaymentManagement() {
       <m.div variants={FADE_UP}>
         <AdminPageHeader
           title="Payments"
-          description="Approve manual payments, check refund evidence, and issue refunds"
+          description="Monitor subscriptions, resolve failed renewals, and manage payments"
           tip="Approving a manual payment upgrades the learner's plan. Review opens the learner's payments, AI usage since purchase, and refund options."
         >
           <div className="relative w-full sm:w-56">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
             <Input
               aria-label="Search payments"
-              placeholder="Search TrxID, phone, user…"
+              placeholder="Search learner, email, transaction…"
               maxLength={160}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -246,26 +247,20 @@ export default function PaymentManagement() {
           Loading Stripe history… Manual payments are available as they load.
         </p>
       )}
-      {/* Queue state */}
-      <m.div variants={FADE_UP} className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <Kpi
-          label="Awaiting review"
-          value={stats.pending}
-          sub={
-            stats.pending ? `loaded · oldest ${stats.oldestHours}h ago` : 'none in loaded history'
-          }
-          tip="Pending payments in the loaded history. Select Pending and load older records to review the full queue."
-        />
-        <Kpi label="Approved" value={stats.approved} sub="in loaded history" />
-        <Kpi label="Rejected" value={stats.rejected} sub="in loaded history" />
-        <Kpi label="Refunded" value={stats.refunded} sub="in loaded history" />
-        <Kpi
-          label="Loaded records"
-          value={requests.length}
-          sub={hasMore ? 'more history available' : 'manual + Stripe'}
-          className="col-span-2 lg:col-span-1"
-        />
-      </m.div>
+      <PaymentOverviewPanel
+        data={overview.data}
+        loading={overview.loading}
+        error={overview.error}
+        onRefresh={overview.refresh}
+        onReview={setBillingUserId}
+        search={search}
+      />
+      <div className="border-t border-[#e4e2f0] pt-5 dark:border-white/[0.07]">
+        <h2 className="text-sm font-bold">Payment history</h2>
+        <p className="mt-1 text-xs text-stone-500">
+          {requests.length} loaded records · successful Stripe payments and manual requests
+        </p>
+      </div>
 
       {/* Filter row */}
       <m.div
@@ -513,6 +508,7 @@ export default function PaymentManagement() {
           setLedgerKey((key) => key + 1);
           refreshManual();
           refreshStripe();
+          overview.refresh();
         }}
       />
     </m.div>

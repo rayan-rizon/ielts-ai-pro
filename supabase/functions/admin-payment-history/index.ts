@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import Stripe from 'npm:stripe@^14.14.0';
 import { loadHistoryPage, parseHistoryOptions } from './pagination.ts';
+import { loadPaymentOverview } from './overview.ts';
 import { getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import { fromStripeAmount } from '../_shared/planPricing.ts';
 
@@ -95,7 +96,11 @@ const paymentFromInvoice = (invoice: Stripe.Invoice) => {
 };
 
 Deno.serve(async (req: Request) => {
-  const corsHeaders = { ...getCorsHeaders(req), 'Content-Type': 'application/json' };
+  const corsHeaders = {
+    ...getCorsHeaders(req),
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-store',
+  };
   if (req.method === 'OPTIONS') return handleCorsPrelight(req);
   if (!['GET', 'POST'].includes(req.method)) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -145,9 +150,22 @@ Deno.serve(async (req: Request) => {
         headers: corsHeaders,
       });
     }
+    let input;
+    try {
+      input = req.method === 'POST' ? await req.json() : { limit: 100 };
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid history page' }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+    if (input?.action === 'overview') {
+      const overview = await loadPaymentOverview(stripe, supabase);
+      return new Response(JSON.stringify(overview), { status: 200, headers: corsHeaders });
+    }
     let options;
     try {
-      options = parseHistoryOptions(req.method === 'POST' ? await req.json() : { limit: 100 });
+      options = parseHistoryOptions(input);
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid history page' }), {
         status: 400,

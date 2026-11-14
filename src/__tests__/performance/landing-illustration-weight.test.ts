@@ -80,7 +80,7 @@ describe('landing feature illustrations', () => {
   });
 
   it('declares intrinsic dimensions matching the files, so the box is reserved before decode', () => {
-    const tags = source.match(/<img[\s\S]*?\/>/g) ?? [];
+    const tags: string[] = source.match(/<img[\s\S]*?\/>/g) ?? [];
     const illustrationTags = tags.filter((tag) => tag.includes('/landing-illustrations/'));
 
     expect(illustrationTags).toHaveLength(ASSETS.length);

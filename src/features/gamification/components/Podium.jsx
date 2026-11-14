@@ -4,6 +4,7 @@ import { Crown, Flame, Trophy } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/cn';
 import { NUM, PANEL, Pill } from '@/features/dashboard/components/primitives';
+import { getInitials } from '@/lib/format';
 
 const itemVariants = {
   hidden: { y: 12, opacity: 0 },
@@ -35,7 +36,7 @@ function PodiumPlace({ user, place }) {
         >
           <AvatarImage src={user.avatar} alt={user.name} />
           <AvatarFallback className="bg-[#5a63df]/10 font-bold text-[#5a63df]">
-            {user.name?.[0] || 'U'}
+            {getInitials(user.name)}
           </AvatarFallback>
         </Avatar>
         <div
@@ -53,7 +54,7 @@ function PodiumPlace({ user, place }) {
           {user.name}
         </h4>
         <p className={cn(NUM, 'mt-0.5 text-[11px] font-bold text-slate-500 dark:text-slate-400')}>
-          {user.points.toLocaleString()} <span className="text-[9px] uppercase">xp</span>
+          {(user.points ?? 0).toLocaleString()} <span className="text-[9px] uppercase">xp</span>
         </p>
         <div className="mt-1 flex items-center justify-center gap-1.5">
           {Number(user.bandScore) > 0 && <Pill tone="accent">Band {user.bandScore}</Pill>}

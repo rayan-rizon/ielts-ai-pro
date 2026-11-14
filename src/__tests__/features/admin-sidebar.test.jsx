@@ -79,7 +79,7 @@ describe('AdminSidebar', () => {
     expect(screen.getByLabelText('4 feature requests awaiting review')).toBeInTheDocument();
   });
 
-  it('acknowledges payments through a fresh server snapshot on entry', async () => {
+  it('acknowledges only after the payment view has loaded', async () => {
     fixture.data = {
       ...fixture.data,
       pendingCount: 0,
@@ -87,6 +87,14 @@ describe('AdminSidebar', () => {
       stripeFailureCount: 0,
     };
     render(sidebar({ ...overview, search: '?tab=payments' }, admin));
+    await waitFor(() => expect(supabase.rpc).toHaveBeenCalledTimes(1));
+    await act(async () =>
+      window.dispatchEvent(
+        new CustomEvent('admin-payments-loaded', {
+          detail: { observedAt: fixture.data.observedAt },
+        })
+      )
+    );
     await waitFor(() => expect(supabase.rpc).toHaveBeenCalledTimes(2));
     expect(supabase.rpc).toHaveBeenLastCalledWith('get_admin_sidebar_badges', {
       p_payment_seen_through: fixture.data.observedAt,

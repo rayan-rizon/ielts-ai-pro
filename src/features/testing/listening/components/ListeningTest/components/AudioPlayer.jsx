@@ -470,7 +470,7 @@ function AudioPrimaryControls({
   onSkip,
 }) {
   if (examMode) {
-    const canStartAudio = !examReview && !isPlaying && currentTime === 0;
+    const canStartAudio = !examReview && !isPlaying;
 
     if (canStartAudio) {
       return (
@@ -482,7 +482,7 @@ function AudioPrimaryControls({
           }}
           className="rounded-full bg-[#5a63df] px-4 text-[10px] font-black uppercase tracking-wider text-white hover:bg-[#4a52c9]"
         >
-          Start audio
+          {currentTime > 0 ? 'Resume audio' : 'Start audio'}
         </Button>
       );
     }

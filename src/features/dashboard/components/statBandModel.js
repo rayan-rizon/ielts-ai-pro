@@ -24,7 +24,10 @@ const buildBandTile = ({ average, measuredTests, abandonedTests }) => ({
   icon: Target,
   label: 'Band average',
   value: measuredTests > 0 ? average.toFixed(1) : '—',
-  sub: measuredTests > 0 ? `across ${measuredTests} tests` : 'no measured tests yet',
+  sub:
+    measuredTests > 0
+      ? `across ${measuredTests} ${measuredTests === 1 ? 'test' : 'tests'}`
+      : 'no measured tests yet',
   tip:
     abandonedTests > 0
       ? `Your mean band across every scored test. ${abandonedTests} left early and are excluded.`
@@ -73,8 +76,8 @@ const buildExamTile = (daysToExam, weekTests) => {
     key: 'exam',
     icon: CalendarClock,
     label: 'Exam',
-    value: hasUpcomingExam ? daysToExam : '—',
-    unit: hasUpcomingExam ? 'days' : null,
+    value: hasUpcomingExam ? daysToExam.toLocaleString() : '—',
+    unit: hasUpcomingExam ? (daysToExam === 1 ? 'day' : 'days') : null,
     sub: buildExamSub(daysToExam, weekTests),
     href: !hasUpcomingExam ? '/onboarding' : null,
     tip: "Days until the test date on your profile, with the rate you're practising at now.",

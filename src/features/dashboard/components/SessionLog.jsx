@@ -187,8 +187,8 @@ function SessionRowItem({ row }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12px] font-extrabold capitalize leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
-          {row.title || `${row.module} test`}
+        <p className="truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors duration-200 ease-smooth-out group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
+          {row.title || <span className="capitalize">{row.module} test</span>}
         </p>
         <p className={cn(MICRO, MUTED, 'mt-1')}>
           <span className="capitalize">{row.module}</span>
@@ -276,7 +276,7 @@ const SessionLog = React.memo(({ recentTests }) => {
         {average != null ? (
           <>
             <FootNum>{average.toFixed(1)}</FootNum> average across the last{' '}
-            <FootNum>{rows.length}</FootNum>
+            <FootNum>{rows.length}</FootNum> {rows.length === 1 ? 'session' : 'sessions'}
           </>
         ) : (
           <>start any paper above to build your review log</>

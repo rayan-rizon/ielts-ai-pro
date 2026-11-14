@@ -4,6 +4,7 @@ import { Crown, Flame, Medal } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/cn';
 import { MICRO, MUTED, NUM, Pill } from '@/features/dashboard/components/primitives';
+import { getInitials } from '@/lib/format';
 
 const itemVariants = {
   hidden: { y: 10, opacity: 0 },
@@ -26,7 +27,11 @@ function RankBadge({ rank }) {
     );
   }
   return (
-    <span className={cn(NUM, 'text-xs font-bold text-slate-400 dark:text-slate-500')}>{rank}</span>
+    <span
+      className={cn(NUM, 'text-xs font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap')}
+    >
+      {typeof rank === 'number' ? rank.toLocaleString() : rank}
+    </span>
   );
 }
 
@@ -68,7 +73,7 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
                 : 'bg-[#f4f3fb] text-slate-500 dark:bg-white/6 dark:text-slate-300'
             )}
           >
-            {user.name?.[0] || 'U'}
+            {getInitials(user.name)}
           </AvatarFallback>
         </Avatar>
 
@@ -126,7 +131,7 @@ const LeaderboardRow = React.memo(({ user, isCurrentUser, rank, isSticky = false
           highlighted ? 'text-[#5a63df] dark:text-[#a9afff]' : 'text-slate-900 dark:text-white'
         )}
       >
-        {user.points.toLocaleString()}{' '}
+        {(user.points ?? 0).toLocaleString()}{' '}
         <span className="text-[9px] font-bold uppercase text-slate-400">xp</span>
       </div>
     </m.div>

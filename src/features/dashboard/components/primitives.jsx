@@ -72,7 +72,7 @@ export const ROW_HOVER =
   'hover:border-[#5a63df]/35 hover:bg-[#f7f6fd] hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] active:translate-y-0 transition-all duration-200 ease-smooth-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:hover:border-[#8f97ff]/30 dark:hover:bg-white/6 dark:focus-visible:ring-offset-[#08080a]';
 
 export const PILL_BASE =
-  'inline-flex items-center gap-1 rounded-full border px-2 py-[2px] text-[9px] font-bold uppercase tracking-wide leading-normal';
+  'inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full border px-2 py-[2px] text-[9px] font-bold uppercase tracking-wide leading-normal';
 
 export const pillTone = (tone) =>
   ({

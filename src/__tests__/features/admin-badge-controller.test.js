@@ -97,10 +97,10 @@ describe('admin badge request lifecycle', () => {
     expect(client.rpc).toHaveBeenCalledTimes(1);
     finish({ data: data(), error: null });
     await drain();
-    expect(client.rpc).toHaveBeenCalledTimes(2);
+    expect(client.rpc).toHaveBeenCalledTimes(1);
   });
 
-  it('writes once on Payments entry, preserving payments after the observed cutoff', async () => {
+  it('acknowledges only loaded payment data, preserving later payments', async () => {
     const responses = [
       data(),
       data({ observedAt: '2026-10-04T00:00:01Z' }),
@@ -112,6 +112,13 @@ describe('admin badge request lifecycle', () => {
     controller.start();
     await drain();
     controller.setPaymentsOpen(true);
+    await drain();
+    expect(client.rpc.mock.calls.every(([, args]) => args.p_payment_seen_through === null)).toBe(
+      true
+    );
+    window.dispatchEvent(
+      new CustomEvent('admin-payments-loaded', { detail: { observedAt: '2026-10-04T00:00:01Z' } })
+    );
     await drain();
     expect(client.rpc).toHaveBeenLastCalledWith('get_admin_sidebar_badges', {
       p_payment_seen_through: '2026-10-04T00:00:01Z',
@@ -134,6 +141,10 @@ describe('admin badge request lifecycle', () => {
     );
     controller.setPaymentsOpen(true);
     controller.start();
+    await drain();
+    window.dispatchEvent(
+      new CustomEvent('admin-payments-loaded', { detail: { observedAt: '2026-10-04T00:00:00Z' } })
+    );
     await drain();
     await vi.advanceTimersByTimeAsync(BADGE_REFRESH_MS * 2);
     expect(

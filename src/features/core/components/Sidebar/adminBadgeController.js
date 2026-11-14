@@ -62,12 +62,7 @@ export function createAdminBadgeController({ client, onChange }) {
       lastSuccessAt = Date.now();
       succeeded = true;
       onChange({ ...data, stale: false });
-      if (currentAck && acknowledgment === currentAck) {
-        // First read a fresh snapshot; acknowledge only that snapshot next.
-        // Payments arriving after it remain unread. Retries use the same cutoff.
-        if (cutoff) acknowledgment = null;
-        else currentAck.cutoff = data.observedAt;
-      }
+      if (acknowledgment === currentAck) acknowledgment = null;
     } catch {
       if (!disposed) {
         failures = Math.min(failures + 1, 3);
@@ -84,6 +79,12 @@ export function createAdminBadgeController({ client, onChange }) {
     }
   }
 
+  const onPaymentsLoaded = (event) => {
+    if (!paymentsOpen || !Number.isFinite(Date.parse(event.detail?.observedAt))) return;
+    acknowledgment = { cutoff: event.detail.observedAt };
+    if (started) void refresh();
+  };
+
   const onVisibility = () => {
     cancelTimer();
     if (visible()) void refresh();
@@ -97,6 +98,7 @@ export function createAdminBadgeController({ client, onChange }) {
       if (started || disposed) return;
       started = true;
       document.addEventListener('visibilitychange', onVisibility);
+      window.addEventListener('admin-payments-loaded', onPaymentsLoaded);
       window.addEventListener('online', onVisibility);
       window.addEventListener('offline', onVisibility);
       window.addEventListener('focus', onFocus);
@@ -105,7 +107,7 @@ export function createAdminBadgeController({ client, onChange }) {
     setPaymentsOpen(open) {
       if (open === paymentsOpen) return;
       paymentsOpen = open;
-      acknowledgment = open ? { cutoff: null } : null;
+      if (!open) acknowledgment = null;
       if (started) void refresh();
     },
     refresh,
@@ -114,6 +116,7 @@ export function createAdminBadgeController({ client, onChange }) {
       cancelTimer();
       abortController?.abort();
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('admin-payments-loaded', onPaymentsLoaded);
       window.removeEventListener('online', onVisibility);
       window.removeEventListener('offline', onVisibility);
       window.removeEventListener('focus', onFocus);

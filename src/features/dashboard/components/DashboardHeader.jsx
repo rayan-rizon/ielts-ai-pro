@@ -6,8 +6,14 @@ import { cn } from '@/lib/cn';
 import { FADE_UP, MICRO, MUTED, NUM, TierBadge } from './primitives';
 import { requestProductTour } from '../lib/productTourStorage';
 
+function greetingName(user) {
+  const name = user?.full_name?.trim();
+  if (name) return name.split(/\s+/)[0];
+  return user?.username || 'there';
+}
+
 const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommended }) => {
-  const firstName = user?.full_name?.split(' ')[0] || user?.username || 'there';
+  const firstName = greetingName(user);
   const avg = Number(stats?.avgScore) || 0;
   const hasMeasuredScore = Number(stats?.measuredTests) > 0;
   const parsedTarget = Number(stats?.targetScore);
@@ -54,7 +60,7 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
         </p>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
         <button
           type="button"
           onClick={requestProductTour}
@@ -65,10 +71,10 @@ const DashboardHeader = React.memo(({ dateLabel, greeting, user, stats, recommen
         </button>
         <Link
           to={recommended.href}
-          className="group inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50"
+          className="group inline-flex h-8 max-w-[240px] items-center justify-center gap-1.5 rounded-md bg-[#5a63df] px-3 text-xs font-bold text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 sm:max-w-none"
         >
-          Practise {recommended.title}
-          <ArrowRight className="h-3 w-3 transition-transform duration-150 ease-smooth-out group-hover:translate-x-0.5" />
+          <span className="truncate">Practise {recommended.title}</span>
+          <ArrowRight className="h-3 w-3 shrink-0 transition-transform duration-150 ease-smooth-out group-hover:translate-x-0.5" />
         </Link>
       </div>
     </m.header>

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/cn';
+import { getInitials } from '@/lib/format';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { MICRO, NUM, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
 import { AI_COACH_ENABLED, isRtlLanguage, takeCoachDraft } from '../config';
@@ -549,13 +550,7 @@ function LearnerAvatar({ user }) {
   const [imageFailed, setImageFailed] = useState(false);
   const avatarUrl = user?.avatar_url || user?.user_metadata?.avatar_url;
   const name = user?.full_name || user?.user_metadata?.full_name || user?.username || 'You';
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
+  const initials = getInitials(name);
 
   return (
     <span
@@ -601,7 +596,7 @@ function CoachMessage({ message, onAction, actionBusy, user }) {
         </span>
         <div
           className={cn(
-            'ai-coach-message w-fit max-w-full rounded-2xl border px-4 py-3 text-sm leading-6',
+            'ai-coach-message w-fit max-w-full rounded-2xl border px-4 py-3 text-sm leading-6 [overflow-wrap:anywhere] break-words',
             assistant
               ? 'border-[#e4e2f0] bg-[#f7f7fc] text-slate-700 dark:border-white/[0.09] dark:bg-white/[0.05] dark:text-slate-200'
               : 'border-[#dcdcff] bg-[#eeeeff] text-[#252b67] dark:border-[#777deb]/30 dark:bg-[#5a63df]/20 dark:text-[#e3e5ff]'
@@ -611,7 +606,9 @@ function CoachMessage({ message, onAction, actionBusy, user }) {
           {assistant ? (
             <CoachAnswer content={message.content} />
           ) : (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p className="whitespace-pre-wrap [overflow-wrap:anywhere] break-words">
+              {message.content}
+            </p>
           )}
           {assistant && message.exercise ? (
             <CoachExercise

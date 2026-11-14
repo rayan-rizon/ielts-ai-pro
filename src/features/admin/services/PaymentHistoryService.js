@@ -1,6 +1,17 @@
 import { supabase } from '@/lib/supabase';
 
 export const PaymentHistoryService = {
+  async overview() {
+    const { data, error } = await supabase.functions.invoke('admin-payment-history', {
+      body: { action: 'overview' },
+    });
+    if (error) throw error;
+    const valid = [data?.observedAt, Array.isArray(data?.subscriptions), data?.summary].every(
+      Boolean
+    );
+    if (!valid) throw new Error('Invalid subscription overview');
+    return data;
+  },
   async manualPage({ status = 'all', search = '', cursor = null } = {}) {
     const { data, error } = await supabase.rpc(
       'admin_payment_requests_page',

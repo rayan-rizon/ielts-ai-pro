@@ -35,7 +35,7 @@ export default function GoalsSection({ formData, setFormData }) {
             Target band score
           </Label>
           <Select
-            value={formData.target_band_score.toString()}
+            value={(formData.target_band_score ?? 7.0).toString()}
             onValueChange={(val) =>
               setFormData({ ...formData, target_band_score: parseFloat(val) })
             }

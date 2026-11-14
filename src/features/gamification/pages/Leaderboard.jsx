@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Empty, MICRO, MUTED, NUM, PANEL, Pill } from '@/features/dashboard/components/primitives';
+import { getInitials } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import Podium from '../components/Podium';
 import LeaderboardRow from '../components/LeaderboardRow';
@@ -140,7 +141,7 @@ export default function Leaderboard() {
               <Avatar className="h-10 w-10 shrink-0 border-2 border-[#5a63df]/30">
                 <AvatarImage src={currentUserRankInfo.avatar} alt={currentUserRankInfo.name} />
                 <AvatarFallback className="bg-[#5a63df]/10 font-bold text-[#5a63df]">
-                  {currentUserRankInfo.name?.[0] || 'U'}
+                  {getInitials(currentUserRankInfo.name)}
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -152,7 +153,7 @@ export default function Leaderboard() {
                 </div>
                 <p className={cn('text-xs font-medium', MUTED)}>
                   <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
-                    {currentUserRankInfo.points.toLocaleString()}
+                    {(currentUserRankInfo.points ?? 0).toLocaleString()}
                   </span>{' '}
                   total XP · keep solving tests to climb
                 </p>
