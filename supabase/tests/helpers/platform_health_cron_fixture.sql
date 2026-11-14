@@ -1,0 +1,17 @@
+create role anon; create role authenticated; create role service_role;
+create schema auth; create schema cron;
+create table auth.users(id uuid, created_at timestamptz);
+create table public.users(id uuid, auth_id uuid, created_at timestamptz);
+create table public.test_sessions(is_completed boolean, evaluation_status text, score numeric, band_score numeric, updated_at timestamptz, created_at timestamptz, user_id uuid, test_type text);
+create table public.email_delivery_events(status text, error_message text, created_at timestamptz);
+create table public.scheduled_email_runs(status text, started_at timestamptz, completed_at timestamptz, accepted integer, failed integer, error_message text);
+insert into public.scheduled_email_runs values('completed',now()-interval '30 minutes',now()-interval '29 minutes',3,0,null);
+create table cron.job(jobid bigint primary key, jobname text, active boolean);
+insert into cron.job values(11,'daily-scheduled-emails',true),(12,'unrelated',true);
+create table cron.job_run_details(runid bigint primary key,jobid bigint,status text,start_time timestamptz,end_time timestamptz,return_message text);
+insert into cron.job_run_details select n,12,'succeeded',now()-interval '1 hour',now(),null from generate_series(1,8000)n;
+insert into cron.job_run_details values(8001,11,'running',now()-interval '5 minutes',null,null);
+create function cron.schedule(text,text,text) returns bigint language sql as $$ select 999::bigint $$;
+create function public.is_admin() returns boolean language sql stable as $$ select coalesce(current_setting('test.admin',true),'true')='true' $$;
+create function public.get_platform_health_core_v2(integer) returns jsonb language sql stable as $$ select '{"services":[]}'::jsonb $$;
+create function public.get_platform_health_incidents_core_v2(integer,integer) returns jsonb language sql stable as $$ select '[]'::jsonb $$;
