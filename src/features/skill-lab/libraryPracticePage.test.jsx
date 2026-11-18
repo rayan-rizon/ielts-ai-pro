@@ -108,20 +108,23 @@ describe('library practice page', () => {
     expect(screen.getByText(/partly practised/)).toBeInTheDocument();
     expect(screen.queryByText(/What your teacher knows/)).not.toBeInTheDocument();
   });
-  it('starts a resumable library session and moves through teaching into original questions', async () => {
+  it('starts a resumable library session straight into the original questions', async () => {
     mount();
     fireEvent.click(await screen.findByRole('button', { name: 'Review and practise' }));
     await screen.findByRole('heading', { name: 'Original library test', level: 1 });
-    fireEvent.click(screen.getByRole('button', { name: /See the approach|Start the questions/ }));
-    await screen.findByText('Read the whole sentence.');
-    fireEvent.click(screen.getByRole('button', { name: /See the approach|Start the questions/ }));
     await screen.findByRole('button', { name: 'Check my answers' });
     expect(screen.getByText('The library closes on Sunday.')).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'The library on Sunday · Part 1' })
     ).toBeInTheDocument();
     expect(screen.queryByText('[center]')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Ask your teacher' })).not.toBeInTheDocument();
+    // The approach step and the AI teacher launcher are gone.
+    expect(screen.queryByText('Try this approach')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /AI teacher/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Practice workflow stages' })).toHaveTextContent(
+      /^1Practise this set2Review your answers$/
+    );
+    expect(screen.queryByText('Review your mistake')).not.toBeInTheDocument();
     await waitFor(() =>
       expect(invoke).toHaveBeenCalledWith(
         'skill-lab',
@@ -130,6 +133,44 @@ describe('library practice page', () => {
         })
       )
     );
+  });
+  it('opens an earlier mistake first, then goes straight to practising', async () => {
+    const mistake = {
+      ...session.source,
+      questions: session.questions,
+      answers: { q: 'B' },
+      explanations: [{ id: 'q', text: 'The passage says Sunday.' }],
+      result: {
+        correct: 0,
+        total: 1,
+        answers: {
+          q: { questionNumber: 1, userAnswer: 'B', correctAnswer: 'A', isCorrect: false },
+        },
+      },
+    };
+    invoke.mockImplementation(async (_, { body }) => ({
+      data:
+        body.action === 'save'
+          ? { ...session, mistake, stage: body.stage }
+          : { ...session, mistake },
+    }));
+    mount('/practice-lab/session/session?library=1');
+    expect(await screen.findByLabelText('Question 1 feedback')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Practice workflow stages' })).toHaveTextContent(
+      /^1Review your mistake2Practise this set3Review your answers$/
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Start practising' }));
+    await screen.findByRole('button', { name: 'Check my answers' });
+    expect(
+      invoke.mock.calls.some(
+        ([, options]) => options.body.action === 'save' && options.body.stage === 2
+      )
+    ).toBe(true);
+  });
+  it('opens a session saved at the removed approach step on the questions', async () => {
+    invoke.mockResolvedValue({ data: { ...session, stage: 1 } });
+    mount('/practice-lab/session/session?library=1');
+    expect(await screen.findByRole('button', { name: 'Check my answers' })).toBeInTheDocument();
   });
   it('moves to the answer review step after server scoring', async () => {
     invoke.mockImplementation(async (_, { body }) => {
@@ -164,15 +205,12 @@ describe('library practice page', () => {
     });
     mount('/practice-lab/session/session?library=1');
     await screen.findByRole('heading', { name: 'Original library test', level: 1 });
-    fireEvent.click(screen.getByRole('button', { name: /See the approach|Start the questions/ }));
-    await screen.findByRole('heading', { name: 'An approach to try' });
-    fireEvent.click(screen.getByRole('button', { name: /See the approach|Start the questions/ }));
     await screen.findByRole('button', { name: 'Check my answers' });
     fireEvent.click(screen.getByRole('button', { name: 'Check my answers' }));
     expect(await screen.findByRole('region', { name: 'Practice result' })).toBeInTheDocument();
     expect(screen.getByText('0 of 1 correct')).toBeInTheDocument();
-    expect(screen.getByText('Not answered')).toBeInTheDocument();
-    expect(screen.getByText('Review this answer')).toBeInTheDocument();
+    expect(screen.getAllByText('Not answered').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Question 1 feedback')).toBeInTheDocument();
   });
   it('shows each question, answer and explanation together with clear answer colors', async () => {
     invoke.mockResolvedValue({
@@ -192,11 +230,11 @@ describe('library practice page', () => {
     });
     mount('/practice-lab/session/session?library=1');
 
-    const feedback = await screen.findByLabelText('Feedback for question 1');
+    const feedback = await screen.findByLabelText('Question 1 feedback');
     expect(within(feedback).getByText('When does it close?')).toBeInTheDocument();
     expect(within(feedback).getByText(/library closes on Sunday/)).toBeInTheDocument();
-    expect(within(feedback).getByText('B')).toHaveClass('text-[rgb(var(--signal-fault))]');
-    expect(within(feedback).getByText('A')).toHaveClass('text-[rgb(var(--signal-ok))]');
+    expect(within(feedback).getByText('B. Monday')).toHaveClass('text-[rgb(var(--signal-fault))]');
+    expect(within(feedback).getByText('A. Sunday')).toHaveClass('text-[rgb(var(--signal-ok))]');
   });
   it('shows the meaning behind saved matching answer letters', async () => {
     invoke.mockResolvedValue({
@@ -225,7 +263,7 @@ describe('library practice page', () => {
       },
     });
     mount('/practice-lab/session/session?library=1');
-    const feedback = await screen.findByLabelText('Feedback for question 1');
+    const feedback = await screen.findByLabelText('Question 1 feedback');
     expect(within(feedback).getByText('A — Elkind')).toBeInTheDocument();
     expect(within(feedback).getByText('B — Miller & Almon')).toBeInTheDocument();
   });
@@ -244,37 +282,74 @@ describe('library practice page', () => {
       )
     );
   });
-  it('keeps paid teacher help in a collapsible corner panel and restores keyboard focus', async () => {
-    auth.user = { id: 'student', subscription_tier: 'premium' };
-    invoke.mockImplementation(async (_, { body }) => ({
-      data:
-        body.action === 'help'
-          ? { explanation: 'The passage says Sunday.', next_step: 'Check the exact detail.' }
-          : { ...session, stage: 1 },
-    }));
+  it('reviews every answer of a listening set, not just the first question', async () => {
+    invoke.mockResolvedValue({
+      data: {
+        ...session,
+        focus: 'listening:multiple_choice',
+        stage: 3,
+        completed_at: '2026-09-08T00:00:00Z',
+        source: {
+          title: 'Listening test',
+          audio_url: 'part2.mp3',
+          audio_scope: 'section',
+          section: 2,
+        },
+        questions: [
+          {
+            id: 'multi',
+            question_number: 11,
+            question_count: 2,
+            allow_multiple: true,
+            type: 'multiple_choice',
+            question_text: 'Which TWO things does the speaker mention?',
+            options: ['A. A photo', 'B. A competition', 'C. Sunhats'],
+          },
+          {
+            id: 'single',
+            question_number: 13,
+            type: 'multiple_choice',
+            question_text: 'When did it start?',
+            options: ['A. Two years ago', 'B. Six years ago'],
+          },
+        ],
+        // The scorer numbers the set from 1 and keys multi-select rows by option.
+        result: {
+          correct: 2,
+          total: 3,
+          answers: {
+            multi_option_0: {
+              questionNumber: 1,
+              userAnswer: 'B. A COMPETITION',
+              correctAnswer: 'B. A COMPETITION',
+              isCorrect: true,
+            },
+            multi_option_1: {
+              questionNumber: 2,
+              userAnswer: 'A. A PHOTO',
+              correctAnswer: 'C. SUNHATS',
+              isCorrect: false,
+            },
+            single: {
+              questionNumber: '3',
+              userAnswer: 'B. Six years ago',
+              correctAnswer: 'B. Six years ago',
+              isCorrect: true,
+            },
+          },
+        },
+      },
+    });
     mount('/practice-lab/session/session?library=1');
-    const trigger = await screen.findByRole('button', { name: 'Ask your AI teacher' });
-    expect(screen.queryByRole('textbox', { name: 'Your question' })).not.toBeInTheDocument();
-    fireEvent.click(trigger);
-    const input = screen.getByRole('textbox', { name: 'Your question' });
-    expect(input).toHaveFocus();
-    fireEvent.click(screen.getByRole('button', { name: 'Suggest an approach' }));
-    expect(input).toHaveValue('Suggest an approach');
-    fireEvent.click(screen.getByRole('button', { name: 'Ask your teacher' }));
-    await screen.findByText(/The passage says Sunday/);
-    fireEvent.keyDown(input, { key: 'Escape' });
-    expect(screen.queryByRole('textbox', { name: 'Your question' })).not.toBeInTheDocument();
-    expect(trigger).toHaveFocus();
-    fireEvent.click(trigger);
-    expect(screen.getByText(/The passage says Sunday/)).toBeInTheDocument();
-  });
-  it('shows the plan link for free teacher access without sending AI requests', async () => {
-    invoke.mockResolvedValue({ data: { ...session, stage: 1 } });
-    mount('/practice-lab/session/session?library=1');
-    fireEvent.click(await screen.findByRole('button', { name: 'Ask your AI teacher' }));
-    expect(screen.getByRole('link', { name: 'Explore plans' })).toHaveAttribute('href', '/pricing');
-    expect(screen.queryByRole('textbox', { name: 'Your question' })).not.toBeInTheDocument();
-    expect(invoke.mock.calls.some(([, options]) => options.body.action === 'help')).toBe(false);
+    await screen.findByRole('region', { name: 'Practice result' });
+    expect(screen.getByText('2 of 3 correct')).toBeInTheDocument();
+    for (const number of [11, 12, 13]) {
+      expect(screen.getByLabelText(`Question ${number} feedback`)).toBeInTheDocument();
+    }
+    const second = screen.getByLabelText('Question 12 feedback');
+    expect(within(second).getByText('A. A photo')).toBeInTheDocument();
+    expect(within(second).getByText('C. Sunhats')).toBeInTheDocument();
+    expect(screen.getByText(/Your set covers/)).toHaveTextContent('Questions 11–13 of Part 2');
   });
   it('updates the next step and source picker when a different card is selected', async () => {
     invoke.mockImplementation(async (_, { body }) => {

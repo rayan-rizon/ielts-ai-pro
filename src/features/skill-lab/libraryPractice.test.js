@@ -225,6 +225,104 @@ describe('library-backed personal practice', () => {
     );
     expect(buildLibraryGroups({ ...passage, is_active: false }, questions)).toEqual([]);
   });
+  it('keeps a titled MCQ set together instead of splitting off its first question', () => {
+    // The importer puts mcq_title on the first question of a set only.
+    const passage = {
+      id: 'p',
+      test_type: 'listening',
+      is_active: true,
+      title: 'Listening test',
+      audio_url: 'full.mp3',
+      content: JSON.stringify([{ section_number: 3, audio_url: 'part3.mp3' }]),
+    };
+    const abc = 'Choose the correct letter, A, B or C.';
+    const mcq = (number, extra = {}) => ({
+      id: `q${number}`,
+      passage_id: 'p',
+      section: 3,
+      type: 'multiple_choice',
+      group_instructions: abc,
+      correct_answer: 'A',
+      question_number: number,
+      ...extra,
+    });
+    const groups = buildLibraryGroups(passage, [
+      mcq(30),
+      mcq(25, { mcq_title: 'Teaching handwriting' }),
+      mcq(26),
+      mcq(27),
+      mcq(28),
+      mcq(29),
+      mcq(31, { mcq_title: 'A second set' }),
+      mcq(32),
+    ]);
+    expect(groups.map((g) => g.questions.map((q) => q.question_number))).toEqual([
+      [25, 26, 27, 28, 29, 30],
+      [31, 32],
+    ]);
+    expect(groups[0]).toMatchObject({ id: 'p:q25', total: 6, eligible: true });
+    expect(groups[0].source).toMatchObject({ audio_scope: 'section', section: 3 });
+  });
+  describe('listening MCQ set grouping on real import shapes', () => {
+    const passage = {
+      id: 'p',
+      test_type: 'listening',
+      is_active: true,
+      title: 'Listening test',
+      audio_url: 'full.mp3',
+      content: JSON.stringify([{ section_number: 2, audio_url: 'part2.mp3' }]),
+    };
+    const mcq = (number, extra = {}) => ({
+      id: `q${number}`,
+      passage_id: 'p',
+      section: 2,
+      type: 'multiple_choice',
+      group_instructions: 'Choose the correct letter, A, B or C.',
+      correct_answer: 'A',
+      question_number: number,
+      ...extra,
+    });
+    const numbers = (groups) => groups.map((g) => g.questions.map((q) => q.question_number));
+
+    it('keeps one set when every question repeats the same heading', () => {
+      const title = '[TITLE: MANHAM PORT]';
+      const groups = buildLibraryGroups(
+        passage,
+        [11, 12, 13, 14, 15].map((n) => mcq(n, { mcq_title: title }))
+      );
+      expect(numbers(groups)).toEqual([[11, 12, 13, 14, 15]]);
+    });
+    it('treats an empty heading as no heading', () => {
+      const groups = buildLibraryGroups(
+        passage,
+        [31, 32, 33].map((n) => mcq(n, { mcq_title: '' }))
+      );
+      expect(numbers(groups)).toEqual([[31, 32, 33]]);
+    });
+    it('starts a new set only when the heading changes', () => {
+      const groups = buildLibraryGroups(passage, [
+        mcq(11, { mcq_title: 'First' }),
+        mcq(12, { mcq_title: 'First' }),
+        mcq(13, { mcq_title: 'Second' }),
+        mcq(14),
+      ]);
+      expect(numbers(groups)).toEqual([
+        [11, 12],
+        [13, 14],
+      ]);
+    });
+    it('groups questions whose instructions only differ after the first line', () => {
+      const multi = (number, topic) =>
+        mcq(number, {
+          allow_multiple: true,
+          question_count: 2,
+          group_instructions: `Choose TWO letters, A-E.\nWhich TWO ${topic}?`,
+        });
+      const groups = buildLibraryGroups(passage, [multi(21, 'skills'), multi(23, 'benefits')]);
+      expect(numbers(groups)).toEqual([[21, 23]]);
+      expect(groups[0].total).toBe(4);
+    });
+  });
   it('keeps verified answer context when the original passage is too long for the AI prompt', () => {
     const context = buildLibraryTutorContext(
       {

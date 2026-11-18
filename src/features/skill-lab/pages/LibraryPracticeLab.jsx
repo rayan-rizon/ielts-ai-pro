@@ -1,18 +1,8 @@
-import { createPortal } from 'react-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import PracticeHome from '../components/PracticeHome';
-import {
-  Sparkles,
-  X,
-  ArrowUp,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  CircleX,
-  HelpCircle,
-  Info,
-  Lightbulb,
-} from 'lucide-react';
+import { ResultSummary, ReviewList } from '../components/PracticeResults';
+import { buildReviewRows, questionRangeLabel } from '../practiceReview';
+import { ArrowLeft, ArrowRight, Check, HelpCircle } from 'lucide-react';
 import { focusLabel } from '../practiceLabels';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -23,11 +13,9 @@ import { formatLibraryText } from '../libraryText';
 import { getSupabaseFunctionHeaders } from '@/lib/csrf';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import { ReiconTarget } from '@/components/icons/ReiconTarget';
 import {
   PANEL,
   WELL,
-  TILE,
   MICRO,
   MUTED,
   NUM,
@@ -56,27 +44,6 @@ async function action(actionName, data = {}) {
   }
   return result;
 }
-function answerText(answer) {
-  if (Array.isArray(answer)) {
-    const values = answer.map((value) => String(value ?? '').trim()).filter(Boolean);
-    return values.length ? values.join(' / ') : 'Not answered';
-  }
-  if (typeof answer === 'string') return answer.trim() || 'Not answered';
-  return answer == null ? 'Not answered' : String(answer);
-}
-
-function reviewAnswerText(question, answer) {
-  const value = answerText(answer);
-  if (question.type !== 'matching_features') return value;
-  const options = question.matching_features?.options;
-  if (!Array.isArray(options)) return value;
-  const index = /^[A-Z]$/i.test(value) ? value.toUpperCase().charCodeAt(0) - 65 : -1;
-  const option = options[index];
-  return typeof option === 'string'
-    ? `${value} — ${option.replace(/^[A-Z]\s*[.)]\s*/i, '')}`
-    : value;
-}
-
 function sourcePassageTitle(source) {
   const direct = source?.passage_title || source?.passageTitle;
   if (typeof direct === 'string' && direct.trim()) return direct.trim();
@@ -99,120 +66,6 @@ function sourcePassageTitle(source) {
     !/^[A-G]$/i.test(title)
     ? title
     : null;
-}
-
-function AnswerStatus({ isCorrect }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${isCorrect ? 'text-[rgb(var(--signal-ok))]' : 'text-[rgb(var(--signal-fault))]'}`}
-    >
-      {isCorrect ? <Check size={11} strokeWidth={2.5} /> : <CircleX size={11} strokeWidth={2.5} />}
-      {isCorrect ? 'Correct' : 'Review this answer'}
-    </span>
-  );
-}
-
-function reviewItems(question) {
-  const nestedQuestions =
-    question.questions ||
-    question.matching_features?.questions ||
-    question.matching_data?.questions;
-  if (Array.isArray(nestedQuestions) && nestedQuestions.length > 0) {
-    return nestedQuestions.map((item, index) => ({
-      id: `${question.id}_${item.id || index}`,
-      number: item.question_number ?? question.question_number + index,
-      prompt: item.question_text || item.text || item.label || 'Question to review',
-    }));
-  }
-  if (Array.isArray(question.matching_data?.paragraphs)) {
-    return question.matching_data.paragraphs.map((item, index) => ({
-      id: `${question.id}_${item.label}`,
-      number: item.question_number ?? question.question_number + index,
-      prompt: `Paragraph ${item.label}`,
-    }));
-  }
-  if (question.type?.startsWith('matching') && Array.isArray(question.options)) {
-    return question.options.map((item, index) => ({
-      id: `${question.id}_${String.fromCharCode(65 + index)}`,
-      number: question.question_number + index,
-      prompt: String(item).replace(/^\d+\.\s*/, ''),
-    }));
-  }
-  return [
-    {
-      id: question.id,
-      number: question.question_number,
-      prompt: question.question_text || question.text || 'Question to review',
-    },
-  ];
-}
-
-function numberedExplanations(text) {
-  const source = String(text || '').trim();
-  return new Map(
-    [
-      ...source.matchAll(
-        /(?:^|\n+)\s*Question\s+(\d+)\s*:\s*([\s\S]*?)(?=(?:\n+\s*Question\s+\d+\s*:)|$)/gi
-      ),
-    ].map((match) => [Number(match[1]), match[2].trim()])
-  );
-}
-
-function reviewAnswer(question, item, result) {
-  const entries = Object.entries(result?.answers || {}).filter(
-    ([id]) => id === question.id || id.startsWith(`${question.id}_`)
-  );
-  return (
-    entries.find(([id]) => id === item.id) ||
-    entries.find(([, answer]) => Number(answer.questionNumber) === Number(item.number)) ||
-    (entries.length === 1 ? entries[0] : null)
-  );
-}
-
-function ReviewAnswerCard({ question, item, answerEntry, answers, explanation, itemCount }) {
-  if (!answerEntry) return null;
-  const [answerId, answer] = answerEntry;
-  const hasSavedAnswer = Object.prototype.hasOwnProperty.call(answer, 'userAnswer');
-  const userAnswer = hasSavedAnswer
-    ? answer.userAnswer
-    : (answers[answerId] ?? answers[item.id] ?? answers[question.id]);
-  const explanationMap = numberedExplanations(explanation);
-  const why =
-    explanationMap.get(Number(item.number)) || (itemCount === 1 ? String(explanation || '') : '');
-
-  return (
-    <article className="rounded-lg border border-[#e4e2f0] bg-white p-3 dark:border-white/[0.07] dark:bg-[#141319]">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className={`${MICRO} ${MUTED}`}>Question {item.number}</span>
-        <AnswerStatus isCorrect={answer.isCorrect} />
-      </div>
-      {item.prompt && (
-        <p className="mt-1.5 text-[13px] font-semibold leading-relaxed">{item.prompt}</p>
-      )}
-      <div className="mt-2.5 grid grid-cols-2 gap-3 border-t border-[#e4e2f0] pt-2.5 text-xs dark:border-white/[0.07]">
-        <div>
-          <p className={`${MICRO} ${MUTED}`}>Your answer</p>
-          <p
-            className={`mt-1 font-semibold ${answer.isCorrect ? 'text-[rgb(var(--signal-ok))]' : 'text-[rgb(var(--signal-fault))]'}`}
-          >
-            {reviewAnswerText(question, userAnswer)}
-          </p>
-        </div>
-        <div>
-          <p className={`${MICRO} ${MUTED}`}>Correct answer</p>
-          <p className="mt-1 font-semibold text-[rgb(var(--signal-ok))]">
-            {reviewAnswerText(question, answer.correctAnswer)}
-          </p>
-        </div>
-      </div>
-      <div className="mt-2.5 border-t border-[#e4e2f0] pt-2.5 dark:border-white/[0.07]">
-        <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Why this answer</p>
-        <p className={`mt-1 text-xs leading-relaxed ${why ? '' : MUTED}`}>
-          {why || 'A saved explanation is not available for this question.'}
-        </p>
-      </div>
-    </article>
-  );
 }
 
 function hasRenderableQuestion(question, module) {
@@ -305,10 +158,27 @@ export function QuestionGroupInstructions({ instructions }) {
   );
 }
 
-function Questions({ questions, module, answers, onChange, result, explanations = [] }) {
+function QuestionBody({ module, question, props }) {
+  if (module === 'listening') return <ListeningQuestions {...props} />;
+  if (question.type.startsWith('matching')) {
+    return hasRenderableQuestion(question, module) ? (
+      <MatchingRenderer {...props} />
+    ) : (
+      <p className={`${WELL} rounded-lg p-3 text-xs leading-relaxed ${MUTED}`}>
+        This question set is missing its original question details, so it cannot be practised here.
+        Open the source test to view the complete set.
+      </p>
+    );
+  }
+  if (question.type === 'multiple_choice') return <MultipleChoiceRenderer {...props} />;
+  if (['true_false_not_given', 'yes_no_not_given'].includes(question.type)) {
+    return <TrueFalseRenderer {...props} />;
+  }
+  return <p className={MUTED}>Open this question type in the test library.</p>;
+}
+
+function Questions({ questions, module, answers, onChange }) {
   return questions.map((question, index) => {
-    const items = reviewItems(question);
-    const explanation = explanations.find((entry) => entry.id === question.id)?.text || '';
     const props = {
       question,
       allQuestions: questions,
@@ -318,9 +188,9 @@ function Questions({ questions, module, answers, onChange, result, explanations 
       flaggedQuestions: new Set(),
       onToggleFlag: () => {},
       toggleFlag: () => {},
-      isFinished: Boolean(result),
-      validationMap: result?.answers || {},
-      correctAnswersMap: result?.answers || {},
+      isFinished: false,
+      validationMap: {},
+      correctAnswersMap: {},
       handleMultiSelectChange: (id, value, checked, limit) => {
         const previous = Array.isArray(answers[id]) ? answers[id] : [];
         const next = checked
@@ -329,6 +199,7 @@ function Questions({ questions, module, answers, onChange, result, explanations 
         if (!checked || !limit || next.length <= limit) onChange(id, next);
       },
     };
+    const isListening = module === 'listening';
     return (
       <article
         key={question.id}
@@ -338,52 +209,18 @@ function Questions({ questions, module, answers, onChange, result, explanations 
           questions[index - 1]?.group_instructions !== question.group_instructions && (
             <QuestionGroupInstructions instructions={question.group_instructions} />
           )}
-        {!result && question.question_text && (
+        {/* The listening renderer already prints the question; repeating it doubled the heading. */}
+        {!isListening && question.question_text && (
           <p className="text-sm font-semibold leading-snug">
             {question.question_number}. {question.question_text}
           </p>
         )}
-        {!result && module === 'listening' ? (
-          <ListeningQuestions {...props} />
-        ) : !result &&
-          question.type.startsWith('matching') &&
-          !hasRenderableQuestion(question, module) ? (
-          <p className={`${WELL} rounded-lg p-3 text-xs leading-relaxed ${MUTED}`}>
-            This question set is missing its original question details, so it cannot be practised
-            here. Open the source test to view the complete set.
-          </p>
-        ) : !result && question.type.startsWith('matching') ? (
-          <MatchingRenderer {...props} />
-        ) : !result && question.type === 'multiple_choice' ? (
-          <MultipleChoiceRenderer {...props} />
-        ) : !result && ['true_false_not_given', 'yes_no_not_given'].includes(question.type) ? (
-          <TrueFalseRenderer {...props} />
-        ) : !result ? (
-          <p className={MUTED}>Open this question type in the test library.</p>
-        ) : null}
-        {result && (
-          <div
-            className="space-y-2"
-            aria-label={`Feedback for question ${question.question_number}`}
-          >
-            {items.map((item) => (
-              <ReviewAnswerCard
-                key={item.id}
-                question={question}
-                item={item}
-                answerEntry={reviewAnswer(question, item, result)}
-                answers={answers}
-                explanation={explanation}
-                itemCount={items.length}
-              />
-            ))}
-          </div>
-        )}
+        <QuestionBody module={module} question={question} props={props} />
       </article>
     );
   });
 }
-function Source({ source }) {
+function Source({ source, questionRange }) {
   const [audioError, setAudioError] = useState(false);
   const passageTitle = sourcePassageTitle(source);
   return (
@@ -402,6 +239,14 @@ function Source({ source }) {
           {source.audio_scope === 'full_test'
             ? 'The original full recording is provided because a separate section is unavailable. Listen for the part containing these questions.'
             : 'Listen to the original recording for this part. Answer only the questions in your set.'}
+          {questionRange && (
+            <>
+              {' '}
+              Your set covers <strong className="font-semibold">{questionRange}</strong>
+              {source.section ? ` of Part ${source.section}` : ''}; the recording plays the whole
+              part.
+            </>
+          )}
         </p>
       )}
       {source.audio_url && (
@@ -436,183 +281,6 @@ function Source({ source }) {
     </section>
   );
 }
-function TeacherHelp({ sessionId }) {
-  const [open, setOpen] = useState(false);
-  const [question, setQuestion] = useState('');
-  const [response, setResponse] = useState(null);
-  const [helpError, setHelpError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const inputRef = useRef(null);
-  const triggerRef = useRef(null);
-  const { user } = useAuth();
-  const paid =
-    user?.role === 'admin' ||
-    (['pro', 'premium'].includes(user?.subscription_tier) &&
-      (!user.subscription_end_date || Date.parse(user.subscription_end_date) > Date.now()));
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-  const close = () => {
-    setOpen(false);
-    triggerRef.current?.focus();
-  };
-  async function ask(event) {
-    event.preventDefault();
-    if (busy || !question.trim()) return;
-    setBusy(true);
-    setHelpError('');
-    setResponse(null);
-    try {
-      const result = await action('help', {
-        sessionId,
-        kind: 'help',
-        answer: question,
-        requestId: crypto.randomUUID(),
-      });
-      setResponse(result);
-    } catch (e) {
-      setHelpError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  return createPortal(
-    <aside
-      aria-label="AI teacher"
-      className="fixed bottom-4 right-4 z-30 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-2 sm:bottom-5 sm:right-5"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') close();
-      }}
-    >
-      {open && (
-        <section
-          id="practice-teacher-panel"
-          aria-labelledby="practice-teacher-title"
-          className={`${PANEL} w-80 max-w-full overflow-hidden`}
-        >
-          <header className="flex items-center justify-between gap-2 border-b border-[#e4e2f0] px-3 py-2.5 dark:border-white/10">
-            <div>
-              <h2 id="practice-teacher-title" className={`${TITLE} flex items-center gap-2`}>
-                <Sparkles size={14} className="text-[#5a63df] dark:text-[#afb5ff]" />
-                Your AI teacher
-              </h2>
-              <p className={`mt-0.5 text-[10px] ${MUTED}`}>Uses this set and your saved results</p>
-            </div>
-            <button
-              type="button"
-              aria-label="Close AI teacher"
-              onClick={close}
-              className="rounded-md p-2 hover:bg-[#5a63df]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-            >
-              <X size={14} />
-            </button>
-          </header>
-          <div className="max-h-[60dvh] space-y-3 overflow-y-auto p-3">
-            {!paid ? (
-              <>
-                <p className={`text-xs leading-relaxed ${MUTED}`}>
-                  Get a clearer explanation of your answers with Pro or Premium. The saved tips
-                  remain free.
-                </p>
-                <Link
-                  to="/pricing"
-                  className="inline-flex rounded-lg bg-[#5a63df] px-3 py-2 text-xs font-semibold text-white"
-                >
-                  Explore plans
-                </Link>
-              </>
-            ) : (
-              <>
-                {!response && !busy && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Explain my mistake', 'Suggest an approach'].map((prompt) => (
-                      <button
-                        key={prompt}
-                        type="button"
-                        onClick={() => {
-                          setQuestion(prompt);
-                          inputRef.current?.focus();
-                        }}
-                        className={`${TILE} px-2 py-1.5 text-[11px] hover:border-[#5a63df]/40 focus-visible:ring-2 focus-visible:ring-[#5a63df]`}
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {response && (
-                  <div
-                    aria-live="polite"
-                    className="rounded-lg border border-[#e4e2f0] bg-white p-3 text-xs leading-relaxed dark:border-white/[0.07] dark:bg-[#141319]"
-                  >
-                    <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Answer</p>
-                    <p className="mt-1.5 whitespace-pre-wrap">{response.explanation}</p>
-                    {response.next_step && (
-                      <div className="mt-3 border-t border-[#e4e2f0] pt-2.5 dark:border-white/[0.07]">
-                        <p className={`${MICRO} ${MUTED}`}>Try next</p>
-                        <p className="mt-1">{response.next_step}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {helpError && (
-                  <p role="alert" className={`${WELL} rounded-lg p-3 text-xs leading-relaxed`}>
-                    {helpError}
-                  </p>
-                )}
-                {busy && (
-                  <p role="status" className={`text-xs ${MUTED}`}>
-                    Preparing your explanation…
-                  </p>
-                )}
-                <form onSubmit={ask} className="space-y-2">
-                  <label className="sr-only" htmlFor="practice-teacher-question">
-                    Your question
-                  </label>
-                  <textarea
-                    id="practice-teacher-question"
-                    ref={inputRef}
-                    rows={2}
-                    maxLength={600}
-                    placeholder="Ask about this set…"
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    className={`${TILE} w-full resize-none p-2.5 text-xs leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]`}
-                  />
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`text-[10px] ${MUTED}`}>3 teacher questions per set</span>
-                    <Button
-                      type="submit"
-                      size="sm"
-                      disabled={busy || !question.trim()}
-                      className="h-8 px-3 text-xs"
-                      aria-label="Ask your teacher"
-                    >
-                      Ask <ArrowUp size={13} className="ml-1" />
-                    </Button>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
-        </section>
-      )}
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-controls="practice-teacher-panel"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-2 rounded-full border border-[#5a63df]/30 bg-[#5a63df] px-4 py-2.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 hover:bg-[#4c55cd]"
-      >
-        <Sparkles size={15} />
-        {open ? 'AI teacher' : 'Ask your AI teacher'}
-        {busy && <span className="h-1.5 w-1.5 rounded-full bg-white motion-safe:animate-pulse" />}
-      </button>
-    </aside>,
-    document.body
-  );
-}
 const AUTOSAVE_DEBOUNCE_MS = 1200;
 
 export default function LibraryPracticeLab() {
@@ -623,7 +291,9 @@ export default function LibraryPracticeLab() {
   const cache = useQueryClient();
   const [focus, setFocus] = useState(params.get('focus') || '');
   const [answers, setAnswers] = useState({});
-  const [stage, setStage] = useState(0);
+  // null until the learner moves; the starting step is derived from the saved session.
+  const [chosenStep, setChosenStep] = useState(null);
+  const [reviewFilter, setReviewFilter] = useState('all');
   const [tab, setTab] = useState('questions');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -661,7 +331,8 @@ export default function LibraryPracticeLab() {
       hydratedSession.current = sessionId;
       answersRef.current = restored;
       setAnswers(restored);
-      setStage(query.data.result ? 3 : query.data.stage || 0);
+      setChosenStep(null);
+      setReviewFilter('all');
       setCompletedResult(query.data.result || null);
     }
   }, [sessionId, query.data, user?.id]);
@@ -810,22 +481,51 @@ export default function LibraryPracticeLab() {
       </main>
     );
   const data = query.data;
-  const tips = Array.isArray(data.tips) ? data.tips : [];
   const alert = error && (
     <p role="alert" className={`${WELL} p-3`}>
       {error}
     </p>
   );
   if (sessionId) {
-    const labels = [
-      data.mistake ? 'Review your mistake' : 'Your starting point',
-      'Try this approach',
-      'Practise another set',
-      'Review your answers',
-    ];
-    const reviewing = stage === 0 && data.mistake;
-    const source = reviewing ? data.mistake : data.source;
     const gradedResult = data.result || completedResult;
+    const hasMistake = Boolean(data.mistake);
+    // Old sessions saved stage 1 ("approach") and 2 (questions); both now mean practising.
+    const step =
+      chosenStep || (gradedResult ? 'results' : hasMistake && !data.stage ? 'review' : 'practise');
+    const steps = [
+      hasMistake && { id: 'review', label: 'Review your mistake' },
+      { id: 'practise', label: 'Practise this set' },
+      { id: 'results', label: 'Review your answers' },
+    ].filter(Boolean);
+    const stepIndex = steps.findIndex((entry) => entry.id === step);
+    const reviewing = step === 'review';
+    const module = data.focus.split(':')[0];
+    const source = reviewing ? data.mistake : data.source;
+    const reviewQuestions = reviewing ? data.mistake.questions : data.questions;
+    const reviewRows =
+      reviewing || step === 'results'
+        ? buildReviewRows({
+            questions: reviewQuestions,
+            result: reviewing ? data.mistake.result : gradedResult,
+            answers: reviewing ? data.mistake.answers : answers,
+            explanations: reviewing ? data.mistake.explanations : data.explanations,
+          })
+        : [];
+    const jumpToAnswer = (number) => {
+      setReviewFilter('all');
+      setTab('questions');
+      requestAnimationFrame(() =>
+        document
+          .getElementById(`review-q-${number}`)
+          ?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth', block: 'center' })
+      );
+    };
+    const startPractising = () =>
+      run(async () => {
+        await flushAutosave().catch(() => {});
+        await action('save', { sessionId, answers, stage: 2 });
+        setChosenStep('practise');
+      });
     const finish = () =>
       run(async () => {
         await saveQueue.current.catch(() => {});
@@ -837,7 +537,8 @@ export default function LibraryPracticeLab() {
         }
         cache.setQueryData(['practice-library', user?.id, sessionId], result);
         setCompletedResult(result.result || null);
-        setStage(3);
+        setReviewFilter('all');
+        setChosenStep('results');
         await Promise.all(
           ['practice-library', 'learningPath', 'learning-path', 'analytics', 'dashboard'].map(
             (key) => cache.invalidateQueries({ queryKey: [key] })
@@ -847,10 +548,8 @@ export default function LibraryPracticeLab() {
     const save = () =>
       run(async () => {
         await flushAutosave().catch(() => {});
-        await action('save', { sessionId, answers, stage });
-        navigate(
-          `/practice-lab?module=${data.focus.split(':')[0]}&focus=${encodeURIComponent(data.focus)}`
-        );
+        await action('save', { sessionId, answers, stage: reviewing ? 0 : 2 });
+        navigate(`/practice-lab?module=${module}&focus=${encodeURIComponent(data.focus)}`);
       });
     return (
       <main className="mx-auto max-w-7xl space-y-2.5 px-3 py-2 pb-16 md:px-5 md:py-3 md:pb-16">
@@ -871,7 +570,7 @@ export default function LibraryPracticeLab() {
             {data.source_session_id && (
               <Link
                 className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#5a63df] transition-colors hover:border-[#5a63df]/40 hover:bg-[#f7f6fd] dark:border-white/[0.09] dark:bg-white/[0.03] dark:text-[#afb5ff] dark:hover:bg-white/[0.07]"
-                to={`/${data.focus.split(':')[0]}-test/${data.source_session_id}?view-results=true`}
+                to={`/${module}-test/${data.source_session_id}?view-results=true`}
               >
                 View test result
                 <ArrowRight size={12} aria-hidden="true" />
@@ -889,20 +588,20 @@ export default function LibraryPracticeLab() {
               {data.source.title}
             </h1>
             <p className={`mt-0.5 text-[11px] ${MUTED}`}>
-              Step {stage + 1} of 4 · {labels[stage]}
+              Step {stepIndex + 1} of {steps.length} · {steps[stepIndex].label}
             </p>
           </div>
         </header>
         <ol
-          className={`${WELL} grid grid-cols-2 gap-1.5 rounded-xl p-1.5 sm:grid-cols-4`}
+          className={`${WELL} grid gap-1.5 rounded-xl p-1.5 ${steps.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
           aria-label="Practice workflow stages"
         >
-          {labels.map((label, index) => {
-            const isCurrent = index === stage;
-            const isCompleted = index < stage;
+          {steps.map((entry, index) => {
+            const isCurrent = index === stepIndex;
+            const isCompleted = index < stepIndex;
             return (
               <li
-                key={label}
+                key={entry.id}
                 aria-current={isCurrent ? 'step' : undefined}
                 className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-all duration-150 ${
                   isCurrent
@@ -923,275 +622,107 @@ export default function LibraryPracticeLab() {
                 >
                   {isCompleted ? <Check size={11} strokeWidth={2.5} /> : index + 1}
                 </span>
-                <span className="truncate">{label}</span>
+                <span className="truncate">{entry.label}</span>
               </li>
             );
           })}
         </ol>
         {alert}
-        {stage === 3 && gradedResult && (
-          <section
-            className={`${PANEL} flex flex-wrap items-center justify-between gap-3.5 p-4 sm:p-5`}
-            aria-label="Practice result"
-          >
-            <div className="flex flex-wrap items-center gap-3.5">
-              <div className="flex items-center gap-3">
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]">
-                  <ReiconTarget size={22} />
-                </div>
-                <div>
-                  <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>Diagnostic Result</p>
-                  <h2
-                    className={`${NUM} text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50`}
-                  >
-                    {gradedResult.correct} of {gradedResult.total} correct
-                  </h2>
-                </div>
-              </div>
-              <Pill tone={gradedResult.correct === gradedResult.total ? 'ok' : 'fault'}>
-                {gradedResult.total - gradedResult.correct === 0
-                  ? 'All correct'
-                  : `${gradedResult.total - gradedResult.correct} to review`}
-              </Pill>
-              <span className={`text-xs ${MUTED}`}>
-                {data.familiarity === 'new'
-                  ? 'New questions'
-                  : data.familiarity === 'familiar'
-                    ? 'Familiar source'
-                    : 'Repeated questions'}
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold">
-              {data.activity_id && (
-                <Link
-                  to="/learning-path"
-                  className="inline-flex items-center gap-1 text-[#5a63df] hover:underline dark:text-[#afb5ff]"
-                >
-                  Learning path <ArrowRight size={12} aria-hidden="true" />
-                </Link>
-              )}
-              <Link
-                to="/practice-lab"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-linear-to-r from-[#5a63df] to-[#6d75ed] px-3.5 py-2 font-bold text-white shadow-xs transition-all hover:from-[#4f58d4] hover:to-[#5e66e0] active:scale-[0.99]"
-              >
-                <span>Your next step</span>
-                <ArrowRight size={13} aria-hidden="true" />
-              </Link>
-            </div>
-          </section>
+        {step === 'results' && gradedResult && (
+          <ResultSummary
+            result={gradedResult}
+            rows={reviewRows}
+            familiarity={data.familiarity}
+            showLearningPath={Boolean(data.activity_id)}
+            onJump={jumpToAnswer}
+          />
         )}
-        {stage === 1 ? (
-          <section className={`${PANEL} space-y-4 p-4 sm:p-5`} aria-label="Strategy and approach">
-            {/* Header */}
-            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#eeedf7] pb-3.5 dark:border-white/[0.08]">
-              <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]">
-                  <Lightbulb className="h-4 w-4" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className={`${MICRO} text-[#5a63df] dark:text-[#afb5ff]`}>
-                    Step 2 of 4 · Learn a way to try
-                  </p>
-                  <h2
-                    aria-label="An approach to try"
-                    className="mt-0.5 text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100"
-                  >
-                    Try this approach
-                  </h2>
-                  <p className={`mt-0.5 text-xs ${MUTED}`}>
-                    Recommended strategies and techniques to apply before starting this question
-                    set.
-                  </p>
-                </div>
-              </div>
-              <Pill tone="accent">{tips.length} tips</Pill>
-            </div>
-
-            {/* Tip Tiles */}
-            <div className="grid gap-3 sm:grid-cols-3">
-              {tips.map((tip, index) => (
-                <div
-                  key={tip}
-                  className="group relative flex flex-col justify-between rounded-xl border border-[#e4e2f0] bg-white/70 p-3.5 sm:p-4 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/35 hover:bg-white hover:shadow-xs dark:border-white/[0.08] dark:bg-white/[0.03] dark:hover:border-[#8f97ff]/40 dark:hover:bg-white/[0.06]"
-                >
-                  <div>
-                    <div className="mb-2.5 flex items-center justify-between gap-2">
-                      <span
-                        className={`${NUM} inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#5a63df]/10 text-xs font-bold text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]`}
-                      >
-                        0{index + 1}
-                      </span>
-                      <span className={`${MICRO} text-slate-400 dark:text-slate-500`}>
-                        Tip {index + 1}
-                      </span>
-                    </div>
-                    <p className="text-[13px] sm:text-sm font-medium leading-relaxed text-slate-800 dark:text-slate-200">
-                      {tip}
-                    </p>
-                  </div>
-                  <div
-                    className="mt-3.5 h-0.5 w-6 rounded-full bg-[#5a63df]/20 transition-all duration-200 group-hover:w-10 group-hover:bg-[#5a63df] dark:bg-[#8f97ff]/25 dark:group-hover:bg-[#8f97ff]"
-                    aria-hidden="true"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Explanatory note */}
-            <div className="flex items-center gap-2 rounded-lg border border-[#e4e2f0]/80 bg-[#f8f7fd] px-3 py-2 text-xs text-slate-600 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-400">
-              <Info
-                className="h-3.5 w-3.5 shrink-0 text-[#5a63df] dark:text-[#afb5ff]"
-                aria-hidden="true"
-              />
-              <span>
-                Use these ideas on the next set. They are suggestions, not a guess about why you
-                made a mistake.
-              </span>
-            </div>
-
-            {/* Integrated Action Footer */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eeedf7] pt-3.5 dark:border-white/[0.08]">
-              <div>
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
-                  Ready? Use this approach on a fresh question set.
-                </p>
-                <p className={`text-[11px] ${MUTED}`}>
-                  Apply these techniques on the next practice questions.
-                </p>
-              </div>
-              <Button
-                disabled={busy}
-                className="ml-auto shrink-0 gap-1.5 bg-[#5a63df] font-semibold text-white shadow-xs transition-all hover:bg-[#4c55cd] active:scale-[0.99] dark:bg-[#5a63df] dark:hover:bg-[#4c55cd]"
-                onClick={() =>
-                  run(async () => {
-                    await flushAutosave().catch(() => {});
-                    await action('save', { sessionId, answers, stage: stage + 1 });
-                    setStage(stage + 1);
-                  })
-                }
-              >
-                Start the questions
-                <ArrowRight size={14} aria-hidden="true" />
-              </Button>
-            </div>
-          </section>
-        ) : stage === 0 && !data.mistake ? (
-          <section className={`${PANEL} space-y-2 p-4 sm:p-5`}>
-            <div className="flex items-center gap-2">
-              <span
-                className="h-4 w-[3px] rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
-                aria-hidden="true"
-              />
-              <h2 className={TITLE}>Your starting point</h2>
-            </div>
-            <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300">
-              There is no saved answer to review for this set. Start with a few tips, then try the
-              original library questions.
-            </p>
-          </section>
-        ) : (
-          <>
-            <div
-              className={`${WELL} relative flex gap-1 rounded-lg p-1 md:hidden`}
-              role="group"
-              aria-label="Content view"
+        <div
+          className={`${WELL} relative flex gap-1 rounded-lg p-1 md:hidden`}
+          role="group"
+          aria-label="Content view"
+        >
+          {[
+            { id: 'passage', label: 'Passage / audio' },
+            { id: 'questions', label: reviewing || step === 'results' ? 'Answers' : 'Questions' },
+          ].map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              aria-pressed={tab === entry.id}
+              onClick={() => setTab(entry.id)}
+              className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                tab === entry.id
+                  ? 'text-[#5a63df] dark:text-[#afb5ff]'
+                  : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
+              }`}
             >
-              <button
-                type="button"
-                aria-pressed={tab === 'passage'}
-                onClick={() => setTab('passage')}
-                className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
-                  tab === 'passage'
-                    ? 'text-[#5a63df] dark:text-[#afb5ff]'
-                    : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
-                }`}
-              >
-                {tab === 'passage' && (
-                  <motion.span
-                    layoutId="mobile-practice-active-tab"
-                    className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
-                    transition={
-                      shouldReduceMotion
-                        ? { duration: 0 }
-                        : { type: 'spring', stiffness: 480, damping: 32 }
-                    }
-                  />
-                )}
-                <span className="relative z-10">Passage / audio</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={tab === 'questions'}
-                onClick={() => setTab('questions')}
-                className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
-                  tab === 'questions'
-                    ? 'text-[#5a63df] dark:text-[#afb5ff]'
-                    : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
-                }`}
-              >
-                {tab === 'questions' && (
-                  <motion.span
-                    layoutId="mobile-practice-active-tab"
-                    className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
-                    transition={
-                      shouldReduceMotion
-                        ? { duration: 0 }
-                        : { type: 'spring', stiffness: 480, damping: 32 }
-                    }
-                  />
-                )}
-                <span className="relative z-10">Questions</span>
-              </button>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 md:items-stretch">
-              <div
-                className={`${tab !== 'passage' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto h-full`}
-              >
-                <Source
-                  key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
-                  source={source}
+              {tab === entry.id && (
+                <motion.span
+                  layoutId="mobile-practice-active-tab"
+                  className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0 }
+                      : { type: 'spring', stiffness: 480, damping: 32 }
+                  }
                 />
-              </div>
-              <div
-                className={`${tab !== 'questions' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} ${PANEL} min-w-0 p-3.5 sm:p-4 h-full`}
-              >
-                <Questions
-                  questions={reviewing ? data.mistake.questions : data.questions}
-                  module={data.focus.split(':')[0]}
-                  answers={reviewing ? data.mistake.answers : answers}
-                  onChange={reviewing || stage === 3 ? () => {} : changeAnswer}
-                  result={reviewing ? data.mistake.result : gradedResult}
-                  explanations={reviewing ? data.mistake.explanations : data.explanations}
+              )}
+              <span className="relative z-10">{entry.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 md:items-stretch">
+          <div
+            className={`${tab !== 'passage' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto h-full`}
+          >
+            <Source
+              key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
+              source={source}
+              questionRange={module === 'listening' ? questionRangeLabel(reviewQuestions) : null}
+            />
+          </div>
+          <div
+            className={`${tab !== 'questions' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} ${PANEL} min-w-0 p-3.5 sm:p-4 h-full`}
+          >
+            {reviewing || step === 'results' ? (
+              <>
+                {reviewing && (
+                  <p className={`mb-2.5 text-xs leading-relaxed ${MUTED}`}>
+                    Your earlier answers on this question type. Read the feedback, then practise a
+                    fresh set.
+                  </p>
+                )}
+                <ReviewList
+                  rows={reviewRows}
+                  filter={reviewFilter}
+                  onFilterChange={setReviewFilter}
                 />
-              </div>
-            </div>
-          </>
-        )}
-        {stage === 0 && (
+              </>
+            ) : (
+              <Questions
+                questions={data.questions}
+                module={module}
+                answers={answers}
+                onChange={changeAnswer}
+              />
+            )}
+          </div>
+        </div>
+        {step === 'review' && (
           <div
             className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3`}
           >
             <p className={`text-xs ${MUTED}`}>
-              Review the question and answer, then learn a way to try it.
+              Review the question and answer, then practise a fresh set.
             </p>
-            <Button
-              disabled={busy}
-              className="ml-auto shrink-0 gap-1.5"
-              onClick={() =>
-                run(async () => {
-                  await flushAutosave().catch(() => {});
-                  await action('save', { sessionId, answers, stage: stage + 1 });
-                  setStage(stage + 1);
-                })
-              }
-            >
-              See the approach
+            <Button disabled={busy} className="ml-auto shrink-0 gap-1.5" onClick={startPractising}>
+              Start practising
               <ArrowRight size={14} />
             </Button>
           </div>
         )}
-        {(stage === 1 || stage === 3) && <TeacherHelp key={sessionId} sessionId={sessionId} />}
-        {stage === 2 && (
+        {step === 'practise' && (
           <div
             className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3`}
           >

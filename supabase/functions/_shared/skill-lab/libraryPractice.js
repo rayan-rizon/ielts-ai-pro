@@ -442,22 +442,54 @@ function isQuestionTypeSupported(testType, type) {
     : SUPPORTED_LISTENING_TYPES.has(type);
 }
 
-function buildBucketKey(question) {
-  return [
-    question.section || question.part_number || 1,
-    question.focus,
-    question.group_instructions || '',
-    question.mcq_title || '',
-  ].join('|');
+function questionSection(question) {
+  return question.section || question.part_number || 1;
+}
+
+// Importers disagree on `mcq_title`: some put it on the first question of a set
+// only, some repeat it on every question, some leave an empty string. A set
+// therefore runs until the heading CHANGES, and a blank heading is no heading.
+// Instructions often continue with the question text after the first line
+// ("Choose TWO letters, A-E.\nWhich TWO ..."), so only the first line identifies
+// the task. Keep this in step with the `titled` CTEs in the dashboard-groups SQL.
+function instructionKey(testType, question) {
+  const text = String(question.group_instructions || '')
+    .replace(/\\n/g, '\n')
+    .trim();
+  // Reading sets open with a "Questions 1-5" range line, so they keep the full text.
+  return testType === 'listening' ? text.split('\n')[0].trim() : text;
+}
+
+function orderedPassageQuestions(passage, questions) {
+  return questions
+    .filter((question) => question.passage_id === passage.id)
+    .sort(
+      (a, b) =>
+        Number(questionSection(a)) - Number(questionSection(b)) ||
+        (a.question_number || 0) - (b.question_number || 0)
+    );
+}
+
+// Returns the run number a question belongs to, advancing it when the heading changes.
+function headingRun(headings, scope, rawHeading) {
+  const heading = String(rawHeading || '').trim();
+  const state = headings.get(scope) || { title: '', run: 0 };
+  if (heading && heading !== state.title) {
+    state.title = heading;
+    state.run += 1;
+  }
+  headings.set(scope, state);
+  return state.run;
 }
 
 function groupQuestionsByBucket(passage, questions) {
   const buckets = new Map();
-  for (const question of questions) {
-    if (question.passage_id !== passage.id) continue;
+  const headings = new Map();
+  for (const question of orderedPassageQuestions(passage, questions)) {
     const focus = questionFocus(passage.test_type, question);
     if (!focus) continue;
-    const key = buildBucketKey({ ...question, focus });
+    const scope = [questionSection(question), focus, instructionKey(passage.test_type, question)];
+    const key = `${scope.join('|')}|${headingRun(headings, scope.join('|'), question.mcq_title)}`;
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(question);
   }

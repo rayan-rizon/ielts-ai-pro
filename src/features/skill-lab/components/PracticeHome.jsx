@@ -40,6 +40,7 @@ import {
   FADE_UP,
 } from '@/features/dashboard/components/primitives.jsx';
 import { focusLabel } from '../practiceLabels';
+import ResumeList from './ResumeList';
 
 const subject = (focus = '') => (focus.startsWith('listening:') ? 'Listening' : 'Reading');
 const date = (value) =>
@@ -389,6 +390,7 @@ export default function PracticeHome({
   const next = sets.find((g) => g.id === groupId) || sets[0];
   const sessions = data.sessions || [];
   const continuing = sessions.filter((s) => !s.completed_at);
+  const groupTitles = new Map(allGroups.map((group) => [group.id, group.title]));
   const due = needs.filter((n) => n.due);
   const [asideTab, setAsideTab] = useState(() => (due.length > 0 ? 'review' : 'history'));
 
@@ -573,28 +575,7 @@ export default function PracticeHome({
                   <span className={`${MICRO} ${MUTED}`}>{continuing.length} in progress</span>
                 }
               />
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {continuing.map((s) => (
-                  <Link
-                    key={s.id}
-                    to={`/practice-lab/session/${s.id}?library=1`}
-                    className={`${TILE} ${focusRing} flex items-center justify-between gap-3 p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/40 hover:shadow-xs active:scale-[0.99]`}
-                  >
-                    <div className="min-w-0">
-                      <p className={`${MICRO} ${MUTED}`}>
-                        {subject(s.focus)} · Step {Math.min(4, (s.stage || 0) + 1)} of 4
-                      </p>
-                      <p className={`${TITLE} mt-1 truncate`}>{focusLabel(s.focus)}</p>
-                      {allGroups.find((group) => group.id === s.group_id)?.title && (
-                        <p className={`mt-1 truncate text-[11px] ${MUTED}`}>
-                          {allGroups.find((group) => group.id === s.group_id).title}
-                        </p>
-                      )}
-                    </div>
-                    <ArrowRight size={14} className="shrink-0 text-[#5a63df] dark:text-[#afb5ff]" />
-                  </Link>
-                ))}
-              </div>
+              <ResumeList sessions={continuing} titles={groupTitles} />
             </motion.section>
           )}
 
