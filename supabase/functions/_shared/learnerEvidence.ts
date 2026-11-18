@@ -3,6 +3,7 @@ import {
   summarizeEvidence,
   summarizeVocabularyEvidence,
 } from './learningPathV2.ts';
+import { coachResult, completedResultEvidence } from './coachResultEvidence.ts';
 
 const numberOrNull = (value: unknown) => (Number.isFinite(Number(value)) ? Number(value) : null);
 
@@ -67,45 +68,7 @@ export function buildLearnerEvidence({
       observedAt: profile.updated_at || null,
     });
 
-  scoredSessions.slice(0, 8).forEach((session: any) =>
-    evidence.push({
-      id: `session:${session.id}`,
-      category: 'completed_result',
-      confidence: 'measured',
-      label: `${String(session.test_type || 'IELTS')} ${String(session.test_mode || 'practice')} result`,
-      value: {
-        score: numberOrNull(session.score ?? session.band_score),
-        completedAt: session.completed_at,
-      },
-      observedAt: session.completed_at,
-    })
-  );
-  const comparable = new Map<string, any[]>();
-  scoredSessions.forEach((session: any) => {
-    const key = `${String(session.test_type || '').toLowerCase()}:${String(session.test_mode || 'practice').toLowerCase()}`;
-    comparable.set(key, [...(comparable.get(key) || []), session]);
-  });
-  comparable.forEach((items, key) => {
-    if (items.length < 2) return;
-    const [latest, previous] = [...items].sort(
-      (a, b) => Date.parse(b.completed_at || '') - Date.parse(a.completed_at || '')
-    );
-    const latestScore = numberOrNull(latest.score ?? latest.band_score);
-    const previousScore = numberOrNull(previous.score ?? previous.band_score);
-    if (latestScore == null || previousScore == null) return;
-    evidence.push({
-      id: `trend:${key}`,
-      category: 'comparable_trend',
-      confidence: 'measured',
-      label: `${key.replace(':', ' ')} score change`,
-      value: {
-        latest: latestScore,
-        previous: previousScore,
-        delta: Number((latestScore - previousScore).toFixed(1)),
-      },
-      observedAt: latest.completed_at,
-    });
-  });
+  evidence.push(...completedResultEvidence(scoredSessions));
   skillSummary.measured_priorities.slice(0, 6).forEach((skill: any) =>
     evidence.push({
       id: `skill:${skill.skill_code}`,
@@ -222,7 +185,8 @@ export function buildLearnerEvidence({
       testType: sourceSession.test_type,
       testMode: sourceSession.test_mode,
       completed: sourceSession.is_completed,
-      score: numberOrNull(sourceSession.score ?? sourceSession.band_score),
+      score: Number(sourceSession.score),
+      result: coachResult(sourceSession),
       digest: sourceDigest || null,
     };
   }

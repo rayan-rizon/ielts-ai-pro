@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/dialog';
 import { formatBand } from '../utils';
 
+import { getFullReportPath } from '@/features/testing/utils/practiceReportPath';
+
 const TestResultsModal = React.lazy(() => import('@/components/results/TestResultsModal'));
 
 const MODULE_META = {
@@ -31,22 +33,6 @@ const MODULE_META = {
   listening: { label: 'Listening', icon: Headphones, color: 'text-amber-600', soft: 'bg-amber-50' },
   speaking: { label: 'Speaking', icon: Mic2, color: 'text-fuchsia-600', soft: 'bg-fuchsia-50' },
 };
-
-function getFullReportPath(session) {
-  if (!session) return null;
-  switch (session.type) {
-    case 'reading':
-      return `/reading-test/${session.id}?view-results=true`;
-    case 'listening':
-      return `/listening-test/${session.id}?view-results=true`;
-    case 'writing':
-      return `/writing-task?sessionId=${session.id}&view=true`;
-    case 'speaking':
-      return `/speaking-test/${session.id}?view-score=true`;
-    default:
-      return null;
-  }
-}
 
 function labelize(value) {
   return String(value || '')

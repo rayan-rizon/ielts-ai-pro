@@ -1,3 +1,5 @@
+import { getFullReportPath } from '@/features/testing/utils/practiceReportPath';
+
 const SKILL_LABELS = {
   matching_features: 'Matching Features',
   notes_completion: 'Notes Completion',
@@ -82,7 +84,7 @@ export function formatEvidenceClaim(ref) {
 }
 
 const EVIDENCE_DETAIL_START =
-  /^(?:score\b|latest\b|previous\b|delta\b|mastery estimate\b|early signal\b|\d[\d,]* (?:observations?|practice records?)\b|\d[\d,]* of \d[\d,]* correct\b|completed\b|\d+(?:\.\d+)? hours? per week\b)/i;
+  /^(?:score\b|estimated band\b|\d+ comparable attempts\b|latest\b|previous\b|delta\b|mastery estimate\b|early signal\b|\d[\d,]* (?:observations?|practice records?)\b|\d[\d,]* of \d[\d,]* correct\b|completed\b|\d+(?:\.\d+)? hours? per week\b)/i;
 
 /** Split a source-derived evidence claim into a readable title and supporting details. */
 export function formatEvidenceReference(ref) {
@@ -103,4 +105,16 @@ export function formatEvidenceReference(ref) {
   }
 
   return { claim, title: claim, details: [] };
+}
+
+export function evidenceResultPath(ref, title) {
+  const session = String(ref.id || '').match(
+    /^(?:session|source):([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/i
+  );
+  if (!session) return null;
+  const legacyModule = title.match(/^(Reading|Listening|Writing|Speaking)\b/i)?.[1];
+  return getFullReportPath({
+    id: session[1],
+    type: ref.resultModule || legacyModule?.toLowerCase(),
+  });
 }

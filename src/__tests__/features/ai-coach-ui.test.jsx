@@ -141,4 +141,110 @@ describe('AI Coach conversation UI', () => {
     expect(document.querySelector('.coach-answer')).toHaveTextContent('Position: I disagree');
     expect(document.querySelector('.coach-answer')).not.toHaveTextContent('*Position:*');
   });
+
+  it('clears an unsent draft when starting a new conversation', async () => {
+    render(
+      <MemoryRouter>
+        <AiCoach />
+      </MemoryRouter>
+    );
+    const composer = await screen.findByRole('textbox', { name: 'Ask Ava' });
+    fireEvent.change(composer, { target: { value: 'Explain my essay' } });
+    fireEvent.click(screen.getByRole('button', { name: 'New conversation' }));
+    expect(composer).toHaveValue('');
+  });
+
+  it('opens the exact result cited in a saved reply', async () => {
+    loadCoachHistory.mockResolvedValueOnce({
+      messages: [
+        {
+          id: 'reply',
+          role: 'assistant',
+          content: 'Review the missing detail.',
+          evidence_refs: [
+            {
+              id: 'session:0f7d3b5e-9a52-4c1d-8d7e-3a1b2c4d5e6f',
+              claim: 'Listening practice result · band 6',
+              resultModule: 'listening',
+            },
+          ],
+        },
+      ],
+    });
+    render(
+      <MemoryRouter>
+        <AiCoach />
+      </MemoryRouter>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Open Writing task 2 essay' }));
+    expect(
+      await screen.findByRole('link', { name: /open listening practice result/i })
+    ).toHaveAttribute(
+      'href',
+      '/listening-test/0f7d3b5e-9a52-4c1d-8d7e-3a1b2c4d5e6f?view-results=true'
+    );
+  });
+
+  it('opens saved conversations in a dismissible drawer from the Chats control', async () => {
+    render(
+      <MemoryRouter>
+        <AiCoach />
+      </MemoryRouter>
+    );
+    const history = await screen.findByRole('complementary');
+    history.scrollIntoView = () => {};
+    fireEvent.click(screen.getByRole('button', { name: 'Chats', exact: true }));
+    const drawer = await screen.findByRole('dialog', { name: 'Saved conversations' });
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Open Writing task 2 essay' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(
+      await screen.findByText('Start with a clear position and one idea per paragraph.')
+    ).toBeInTheDocument();
+  });
+  it('keeps a displayed chat selected if loading another chat fails', async () => {
+    render(
+      <MemoryRouter>
+        <AiCoach />
+      </MemoryRouter>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Open Writing task 2 essay' }));
+    expect(
+      await screen.findByText('Start with a clear position and one idea per paragraph.')
+    ).toBeInTheDocument();
+
+    loadCoachHistory.mockRejectedValueOnce(new Error('Could not open chat'));
+    fireEvent.click(screen.getByRole('button', { name: 'Open Reading matching headings' }));
+    await waitFor(() =>
+      expect(screen.queryByText('Opening conversation…')).not.toBeInTheDocument()
+    );
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Ask Ava' }), {
+      target: { value: 'Explain the next paragraph' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+    await waitFor(() =>
+      expect(sendCoachMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ conversationId: 'writing-chat' })
+      )
+    );
+  });
+  it('reveals the quota reset time from the compact reply counter', async () => {
+    bootstrapCoach.mockResolvedValueOnce({
+      status: {
+        enabled: true,
+        budgetAvailable: true,
+        remainingDailyReplies: 20,
+        quotaResetsAt: '2026-11-20T00:00:00Z',
+      },
+      preferredLanguage: 'en',
+      conversations: [],
+    });
+    render(
+      <MemoryRouter>
+        <AiCoach />
+      </MemoryRouter>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: '20 replies left' }));
+    expect(await screen.findByText(/Resets/)).toBeVisible();
+  });
 });

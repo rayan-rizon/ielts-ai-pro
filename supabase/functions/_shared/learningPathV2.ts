@@ -484,7 +484,7 @@ export function isScoredLearningSession(session: any) {
   );
 }
 
-function writingTaskFromSession(session: any) {
+export function writingTaskFromSession(session: any) {
   const content = session?.content_data || {};
   const value = String(
     content.activeType || content.task_type || content.taskType || session?.task_type || ''

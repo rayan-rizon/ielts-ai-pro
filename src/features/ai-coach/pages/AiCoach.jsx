@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import * as Dialog from '@radix-ui/react-dialog';
+import * as Popover from '@radix-ui/react-popover';
 import {
   BookOpenCheck,
   Check,
@@ -8,7 +10,6 @@ import {
   ChevronRight,
   Clock3,
   Compass,
-  FileText,
   Loader2,
   MessageCircle,
   Mic2,
@@ -19,6 +20,7 @@ import {
   ShieldCheck,
   Sparkles,
   Headphones,
+  Languages,
   Trash2,
   X,
 } from 'lucide-react';
@@ -27,7 +29,7 @@ import { cn } from '@/lib/cn';
 import { getInitials } from '@/lib/format';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { MICRO, NUM, PANEL, Pill, TILE } from '@/features/dashboard/components/primitives';
-import { AI_COACH_ENABLED, isRtlLanguage, takeCoachDraft } from '../config';
+import { AI_COACH_ENABLED, AI_COACH_LANGUAGES, isRtlLanguage, takeCoachDraft } from '../config';
 import { EvidenceRefs } from '../components/EvidenceRefs.jsx';
 import WavingCoachArtwork from '../components/WavingCoachArtwork.jsx';
 import {
@@ -47,30 +49,14 @@ import {
 } from '../services/aiCoachService';
 
 const STARTERS = [
-  {
-    icon: Compass,
-    kicker: 'NEXT 15 MINUTES',
-    label: 'Build a short practice plan',
-    message: 'What should I practise in my next 15 minutes?',
-  },
-  {
-    icon: FileText,
-    kicker: 'LATEST RESULT',
-    label: 'Explain my main gap',
-    message: 'Explain the main issue in my latest result.',
-  },
+  { icon: BookOpenCheck, label: 'Review my latest result' },
+  { icon: MessageCircle, label: 'Explain an IELTS question' },
   {
     icon: ChartNoAxesCombined,
-    kicker: 'RECENT SIGNALS',
     label: 'Show what is improving',
     message: 'What has improved in my recent practice?',
   },
-  {
-    icon: PenLine,
-    kicker: 'QUICK PRACTICE',
-    label: 'Give me one short exercise',
-    message: 'Give me one short IELTS exercise.',
-  },
+  { icon: Mic2, label: 'Give me a speaking topic' },
 ];
 
 const AVA_INTROS = [
@@ -81,13 +67,6 @@ const AVA_INTROS = [
   { lang: 'ar', dir: 'rtl', before: 'تعرّف على ', accent: 'آفا' },
   { lang: 'zh-CN', before: '认识 ', accent: 'Ava' },
   { lang: 'es', before: 'Conoce a ', accent: 'Ava' },
-];
-
-const QUICK_SUGGESTIONS = [
-  'Review my latest result',
-  'Give me a speaking topic',
-  'Explain an IELTS question',
-  'Create a short study plan',
 ];
 
 const CONVERSATION_TOPICS = {
@@ -142,12 +121,26 @@ const sortCoachMessages = (items = []) =>
     return String(a.id || '').localeCompare(String(b.id || ''));
   });
 
-function CoachAvatar({ size = 'md', className, decorative = false, waving = false }) {
+function mergeCoachHistory(earlier, current) {
+  const messagesById = new Map([...earlier, ...current].map((item) => [item.id, item]));
+  return sortCoachMessages([...messagesById.values()]);
+}
+
+function keepHistoryPosition(panel, isCurrent) {
+  if (!panel) return () => {};
+  const previousHeight = panel.scrollHeight;
+  const previousTop = panel.scrollTop;
+  return () =>
+    requestAnimationFrame(() => {
+      if (isCurrent()) panel.scrollTop = previousTop + panel.scrollHeight - previousHeight;
+    });
+}
+
+function CoachAvatar({ size = 'md', className, decorative = false }) {
   const sizes = {
     sm: 'h-8 w-8',
     md: 'h-12 w-12',
     lg: 'h-28 w-28 sm:h-36 sm:w-36',
-    hero: 'h-44 w-44 sm:h-56 sm:w-56',
   };
   return (
     <span
@@ -160,19 +153,15 @@ function CoachAvatar({ size = 'md', className, decorative = false, waving = fals
       aria-label={decorative ? undefined : 'IELTS AI Coach avatar'}
       aria-hidden={decorative ? true : undefined}
     >
-      {waving ? (
-        <WavingCoachArtwork hero />
-      ) : (
-        <img
-          src="/assets/ai-coach/ava.webp"
-          alt=""
-          width="800"
-          height="800"
-          decoding="async"
-          className="h-full w-full object-cover"
-          draggable="false"
-        />
-      )}
+      <img
+        src="/assets/ai-coach/ava.webp"
+        alt=""
+        width="800"
+        height="800"
+        decoding="async"
+        className="h-full w-full object-cover"
+        draggable="false"
+      />
     </span>
   );
 }
@@ -191,12 +180,12 @@ function CoachPulse({ compact = false }) {
 function CoachLoadingSkeleton() {
   return (
     <main
-      className="ai-coach-canvas min-h-full p-3 text-slate-900 dark:text-white md:p-5"
+      className="ai-coach-canvas min-h-full p-2 text-slate-900 sm:p-3 min-[900px]:p-5 dark:text-white"
       aria-busy="true"
       aria-label="Loading Ava coach"
     >
       <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
-        <aside className={cn(PANEL, 'order-3 col-span-12 flex min-h-[72vh] flex-col p-3')}>
+        <aside className={cn(PANEL, 'hidden min-w-0 flex-col p-3 min-[900px]:flex')}>
           <div className="h-11 w-full animate-pulse rounded-xl bg-[#5a63df]/20" />
           <div className="mt-5 flex items-center justify-between">
             <div className="h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
@@ -218,7 +207,7 @@ function CoachLoadingSkeleton() {
         <section
           className={cn(
             PANEL,
-            'relative order-2 col-span-12 flex h-[calc(100dvh-1.5rem)] min-h-[36rem] flex-col overflow-hidden'
+            'relative order-2 col-span-12 flex h-[calc(100dvh-4rem)] flex-col overflow-hidden sm:h-[calc(100dvh-4.5rem)]'
           )}
         >
           <div className="flex items-center justify-between border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
@@ -251,12 +240,41 @@ function CoachLoadingSkeleton() {
   );
 }
 
+function ReplyAllowance({ remaining, resetAt }) {
+  const badge = (
+    <Pill tone={remaining > 2 ? 'emerald' : 'amber'} className="whitespace-nowrap">
+      {remaining} replies left
+    </Pill>
+  );
+  if (!resetAt) return badge;
+  return (
+    <Popover.Root>
+      <Popover.Trigger className={cn(FOCUS_RING, 'flex min-h-9 items-center rounded-lg')}>
+        {badge}
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          aria-label="Daily reply allowance"
+          align="end"
+          sideOffset={6}
+          className={cn(
+            PANEL,
+            'z-50 flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200'
+          )}
+        >
+          <Clock3 className="size-4 text-[#5a63df]" aria-hidden="true" />
+          Resets {formatReset(resetAt)}
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
 function AvaWelcome({ available, onSelect }) {
   return (
     <div className="ava-welcome mx-auto flex w-full max-w-4xl flex-col items-center text-center">
-      <Pill tone="accent">PERSONAL IELTS COACH</Pill>
       <h2
-        className="ava-display ava-greeting mt-3 text-3xl text-[#11163d] dark:text-white sm:text-5xl"
+        className="ava-display ava-greeting text-3xl text-[#11163d] dark:text-white sm:text-4xl"
         aria-label="Meet Ava"
       >
         <span className="ava-greeting__stage" aria-hidden="true">
@@ -278,50 +296,14 @@ function AvaWelcome({ available, onSelect }) {
           ))}
         </span>
       </h2>
-      <p className="mt-1 text-base font-semibold text-slate-500 dark:text-slate-400 sm:text-xl">
+      <p className="mt-1 text-base font-semibold text-slate-500 dark:text-slate-400 sm:text-lg">
         Your personal IELTS coach
       </p>
 
       <div className="ava-welcome__stage">
-        <CoachPulse />
-        {STARTERS.map((starter, index) => {
-          const Icon = starter.icon;
-          const content = (
-            <>
-              <span className="ava-prompt__icon" aria-hidden="true">
-                <Icon className="h-4 w-4" strokeWidth={2} />
-              </span>
-              <span>{starter.label}</span>
-            </>
-          );
-          return available ? (
-            <button
-              type="button"
-              key={starter.label}
-              onClick={() => onSelect(starter.message)}
-              className={cn(FOCUS_RING, `ava-prompt ava-prompt--${index + 1} ai-coach-starter`)}
-              style={{
-                '--coach-stagger': `${index * 80}ms`,
-                '--coach-float-delay': `${index * -1.15}s`,
-              }}
-            >
-              {content}
-            </button>
-          ) : (
-            <div
-              key={starter.label}
-              className={`ava-prompt ava-prompt--${index + 1} ai-coach-starter`}
-              style={{
-                '--coach-stagger': `${index * 80}ms`,
-                '--coach-float-delay': `${index * -1.15}s`,
-              }}
-            >
-              {content}
-            </div>
-          );
-        })}
-        <div className="ava-welcome__portrait">
-          <CoachAvatar size="hero" decorative waving />
+        <div className="ava-welcome__portrait" aria-hidden="true">
+          <CoachPulse />
+          <WavingCoachArtwork hero className="ava-welcome__art h-full w-full" />
           <span className="ava-welcome__wave-mark" aria-hidden="true">
             <svg viewBox="0 0 28 28" fill="none">
               <path d="M5 19c4-2 6-5 7-9M13 22c5-3 8-7 9-13" />
@@ -334,15 +316,30 @@ function AvaWelcome({ available, onSelect }) {
             ✦
           </span>
         </div>
+        {STARTERS.map(({ icon: Icon, label, message = label }, index) => (
+          <button
+            type="button"
+            key={label}
+            disabled={!available}
+            onClick={() => onSelect(message)}
+            className={cn(TILE, FOCUS_RING, 'ava-prompt')}
+            style={{ '--coach-float-delay': `${index * -1.15}s` }}
+          >
+            <span className="ava-prompt__icon" aria-hidden="true">
+              <Icon className="size-4" />
+            </span>
+            <span>{label}</span>
+          </button>
+        ))}
       </div>
 
-      <p className={cn(MICRO, 'ava-welcome__motto text-[#59618a] dark:text-[#aeb3cf]')}>
-        Ask <span aria-hidden="true">•</span> Practise <span aria-hidden="true">•</span> Improve
+      <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+        <ShieldCheck
+          className="size-4 shrink-0 text-[#5a63df] dark:text-[#b9bdff]"
+          aria-hidden="true"
+        />
+        Advice uses your learning evidence when available
       </p>
-      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#e4e2f0] bg-white px-3 py-2 text-xs font-bold text-slate-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-300">
-        <ShieldCheck className="h-4 w-4 text-emerald-500" />
-        Advice is linked to your learning evidence when available
-      </div>
     </div>
   );
 }
@@ -689,6 +686,14 @@ function ActionConfirmation({ action, onCancel, onConfirm, busy }) {
   );
 }
 
+function coachLanguageRequest(replyLanguage, useSavedLanguage, preferredLanguage) {
+  const hasOverride = replyLanguage !== 'auto';
+  return {
+    preferredLanguage: hasOverride ? replyLanguage : preferredLanguage,
+    languageHint: hasOverride || useSavedLanguage ? 'preference' : undefined,
+  };
+}
+
 export default function AiCoach() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -704,18 +709,20 @@ export default function AiCoach() {
   const [messages, setMessages] = useState([]);
   const [nextBefore, setNextBefore] = useState(null);
   const [draft, setDraft] = useState('');
+  const [replyLanguage, setReplyLanguage] = useState('auto');
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [sourceReference, setSourceReference] = useState(null);
   const [sending, setSending] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [switchingConversation, setSwitchingConversation] = useState(false);
   const [historySearch, setHistorySearch] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [showHistorySearch, setShowHistorySearch] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [preview, setPreview] = useState(null);
   const chatScrollRef = useRef(null);
-  const chatPanelRef = useRef(null);
-  const historyPanelRef = useRef(null);
+  const stickToLatestRef = useRef(true);
   const recoveryRef = useRef(null);
   const composerRef = useRef(null);
   const conversationCacheRef = useRef(new Map());
@@ -762,7 +769,7 @@ export default function AiCoach() {
 
   useEffect(() => {
     const scrollToLatest = () => {
-      if (chatScrollRef.current)
+      if (stickToLatestRef.current && chatScrollRef.current)
         chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     };
     const frame = requestAnimationFrame(scrollToLatest);
@@ -771,7 +778,7 @@ export default function AiCoach() {
       cancelAnimationFrame(frame);
       window.clearTimeout(timer);
     };
-  }, [messages, sending, switchingConversation]);
+  }, [messages, sending, switchingConversation, streamingText]);
 
   // A deterministic summary of the attached result, with questions worth asking.
   // It needs no AI call and no reply from the daily allowance.
@@ -789,15 +796,36 @@ export default function AiCoach() {
     };
   }, [sourceReference?.id]);
 
+  const clearDraft = () => {
+    setDraft('');
+    setSourceReference(null);
+    setPreview(null);
+    cannedDraftRef.current = null;
+    recoveryRef.current = null;
+  };
+
+  const startConversation = () => {
+    historyRequestRef.current += 1;
+    stickToLatestRef.current = true;
+    clearDraft();
+    setHistoryOpen(false);
+    setConversationId(null);
+    setMessages([]);
+    setNextBefore(null);
+    setSwitchingConversation(false);
+    requestAnimationFrame(() => composerRef.current?.focus());
+  };
+
   const selectConversation = async (id) => {
-    if (!id || id === conversationId) return;
-    if (window.matchMedia?.('(max-width: 899px)').matches) {
-      requestAnimationFrame(() => chatPanelRef.current?.scrollIntoView({ behavior: 'smooth' }));
-    }
+    if (sending || !id) return;
+    setHistoryOpen(false);
+    if (id === conversationId) return;
     const requestId = ++historyRequestRef.current;
-    setConversationId(id);
     const cached = conversationCacheRef.current.get(id);
     if (cached) {
+      clearDraft();
+      stickToLatestRef.current = true;
+      setConversationId(id);
       setMessages(cached.messages);
       setNextBefore(cached.nextBefore);
       setSwitchingConversation(false);
@@ -807,6 +835,9 @@ export default function AiCoach() {
     try {
       const data = await loadCoachHistory(id);
       if (requestId !== historyRequestRef.current) return;
+      clearDraft();
+      stickToLatestRef.current = true;
+      setConversationId(id);
       const orderedMessages = sortCoachMessages(data.messages || []);
       const nextCursor = data.nextBefore || null;
       conversationCacheRef.current.set(id, {
@@ -824,11 +855,18 @@ export default function AiCoach() {
 
   const loadEarlier = async () => {
     if (!conversationId || !nextBefore) return;
+    const view = historyRequestRef.current;
     try {
       const data = await loadCoachHistory(conversationId, nextBefore);
+      if (view !== historyRequestRef.current) return;
+      const restorePosition = keepHistoryPosition(
+        chatScrollRef.current,
+        () => view === historyRequestRef.current
+      );
+      stickToLatestRef.current = false;
       const earlierMessages = sortCoachMessages(data.messages || []);
       setMessages((current) => {
-        const nextMessages = sortCoachMessages([...earlierMessages, ...current]);
+        const nextMessages = mergeCoachHistory(earlierMessages, current);
         conversationCacheRef.current.set(conversationId, {
           messages: nextMessages,
           nextBefore: data.nextBefore || null,
@@ -836,6 +874,7 @@ export default function AiCoach() {
         return nextMessages;
       });
       setNextBefore(data.nextBefore || null);
+      restorePosition();
     } catch (error) {
       toast.error(error.message);
     }
@@ -844,7 +883,13 @@ export default function AiCoach() {
   const sendMessage = async (messageText, { canned = false, questionNumber = null } = {}) => {
     const text = messageText.trim();
     if (!text || sending || switchingConversation || !canSend) return;
+    stickToLatestRef.current = true;
     const useSavedLanguage = canned || cannedDraftRef.current === text;
+    const languageRequest = coachLanguageRequest(
+      replyLanguage,
+      useSavedLanguage,
+      state.preferredLanguage
+    );
     cannedDraftRef.current = null;
     setDraft('');
     setSending(true);
@@ -863,12 +908,11 @@ export default function AiCoach() {
         requestId,
         conversationId,
         message: text,
-        preferredLanguage: state.preferredLanguage,
+        ...languageRequest,
         sourceReference:
           sourceReference && questionNumber
             ? { ...sourceReference, questionNumber }
             : sourceReference,
-        languageHint: useSavedLanguage ? 'preference' : undefined,
         onDelta: (segment) => setStreamingText((current) => current + segment),
         onReset: () => setStreamingText(''),
       });
@@ -1000,158 +1044,154 @@ export default function AiCoach() {
 
   if (state.loading) return <CoachLoadingSkeleton />;
 
-  return (
-    <main className="ai-coach-canvas min-h-full p-3 text-slate-900 dark:text-white md:p-5">
-      <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
-        <aside
-          ref={historyPanelRef}
-          className={cn(PANEL, 'order-3 col-span-12 flex h-full min-w-0 flex-col p-3')}
+  const historyContents = (
+    <>
+      <button
+        type="button"
+        onClick={startConversation}
+        disabled={sending}
+        className={cn(
+          FOCUS_RING,
+          'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5a63df] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#4d56d4] active:scale-[0.99]'
+        )}
+      >
+        <Plus className="h-4 w-4" aria-hidden="true" />
+        New conversation
+      </button>
+      <div className="mt-5 flex items-center justify-between gap-2 px-1">
+        <h2
+          className={cn(
+            'text-sm font-extrabold tracking-tight text-slate-800 dark:text-slate-100',
+            historyOpen && 'sr-only'
+          )}
         >
-          <button
-            type="button"
-            onClick={() => {
-              historyRequestRef.current += 1;
-              setConversationId(null);
-              setMessages([]);
-              setNextBefore(null);
-              setSwitchingConversation(false);
-              if (window.matchMedia?.('(max-width: 899px)').matches) {
-                requestAnimationFrame(() =>
-                  chatPanelRef.current?.scrollIntoView({ behavior: 'smooth' })
-                );
-              }
-              requestAnimationFrame(() => composerRef.current?.focus());
-            }}
-            className={cn(
-              FOCUS_RING,
-              'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5a63df] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#4d56d4] active:scale-[0.99]'
-            )}
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            New conversation
-          </button>
-          <div className="mt-5 flex items-center justify-between gap-2 px-1">
-            <h2 className="text-sm font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
-              Saved conversations
-            </h2>
-            <button
-              type="button"
-              onClick={() => {
-                setShowHistorySearch((current) => !current);
-                setHistorySearch('');
-              }}
-              aria-label={showHistorySearch ? 'Close conversation search' : 'Search conversations'}
-              aria-expanded={showHistorySearch}
-              className={cn(
-                FOCUS_RING,
-                'grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/[0.07]'
-              )}
-            >
-              {showHistorySearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-            </button>
-          </div>
-          {showHistorySearch ? (
-            <input
-              type="search"
-              autoFocus
-              value={historySearch}
-              onChange={(event) => setHistorySearch(event.target.value)}
-              placeholder="Search recent chats"
-              aria-label="Search recent conversations"
-              className={cn(
-                FOCUS_RING,
-                'mt-2 h-9 w-full rounded-lg border border-[#e4e2f0] bg-white px-3 text-xs outline-none placeholder:text-slate-400 dark:border-white/10 dark:bg-white/[0.04]'
-              )}
-            />
-          ) : null}
-          <div className="mt-2 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-            {conversationGroups.length ? (
-              conversationGroups.map((group) => (
-                <div key={group.label}>
-                  <h3 className={cn(MICRO, 'mb-2 px-2 text-slate-400 dark:text-slate-500')}>
-                    {group.label}
-                  </h3>
-                  <div className="space-y-1">
-                    {group.items.map((item) => {
-                      const topic = CONVERSATION_TOPICS[coachTopic(item.title)];
-                      const Icon = topic.icon;
-                      return (
-                        <div
-                          key={item.id}
-                          className={cn(
-                            'group flex min-w-0 items-start gap-1 rounded-xl border transition-colors',
-                            conversationId === item.id
-                              ? 'border-[#5a63df]/20 bg-[#5a63df]/[0.07] dark:bg-[#5a63df]/[0.14]'
-                              : 'border-transparent hover:border-[#e4e2f0] hover:bg-[#f7f6fc] dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
-                          )}
+          Saved conversations
+        </h2>
+        <button
+          type="button"
+          onClick={() => {
+            setShowHistorySearch((current) => !current);
+            setHistorySearch('');
+          }}
+          aria-label={showHistorySearch ? 'Close conversation search' : 'Search conversations'}
+          aria-expanded={showHistorySearch}
+          className={cn(
+            FOCUS_RING,
+            'grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/[0.07]'
+          )}
+        >
+          {showHistorySearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+        </button>
+      </div>
+      {showHistorySearch ? (
+        <input
+          type="search"
+          autoFocus
+          value={historySearch}
+          onChange={(event) => setHistorySearch(event.target.value)}
+          placeholder="Search recent chats"
+          aria-label="Search recent conversations"
+          className={cn(
+            FOCUS_RING,
+            'mt-2 h-9 w-full rounded-lg border border-[#e4e2f0] bg-white px-3 text-xs outline-none placeholder:text-slate-400 dark:border-white/10 dark:bg-white/[0.04]'
+          )}
+        />
+      ) : null}
+      <div className="mt-2 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+        {conversationGroups.length ? (
+          conversationGroups.map((group) => (
+            <div key={group.label}>
+              <h3 className={cn(MICRO, 'mb-2 px-2 text-slate-400 dark:text-slate-500')}>
+                {group.label}
+              </h3>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const topic = CONVERSATION_TOPICS[coachTopic(item.title)];
+                  const Icon = topic.icon;
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        'group flex min-w-0 items-start gap-1 rounded-xl border transition-colors',
+                        conversationId === item.id
+                          ? 'border-[#5a63df]/20 bg-[#5a63df]/[0.07] dark:bg-[#5a63df]/[0.14]'
+                          : 'border-transparent hover:border-[#e4e2f0] hover:bg-[#f7f6fc] dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => selectConversation(item.id)}
+                        aria-label={`Open ${item.title || 'untitled conversation'}`}
+                        aria-current={conversationId === item.id ? 'page' : undefined}
+                        className={cn(
+                          FOCUS_RING,
+                          'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl px-2.5 py-3 text-left'
+                        )}
+                      >
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/10 dark:bg-white/[0.06]">
+                          <Icon className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100"
+                            title={item.title}
+                          >
+                            {item.title || 'Untitled conversation'}
+                          </span>
+                          <span className="mt-1 block truncate text-[11px] text-slate-500 dark:text-slate-400">
+                            {topic.description}
+                          </span>
+                        </span>
+                        <time
+                          className={cn(NUM, 'shrink-0 text-[10px] text-slate-400')}
+                          dateTime={item.last_message_at}
                         >
-                          <button
-                            type="button"
-                            onClick={() => selectConversation(item.id)}
-                            aria-label={`Open ${item.title || 'untitled conversation'}`}
-                            aria-current={conversationId === item.id ? 'page' : undefined}
-                            className={cn(
-                              FOCUS_RING,
-                              'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl px-2.5 py-3 text-left'
-                            )}
-                          >
-                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/10 dark:bg-white/[0.06]">
-                              <Icon className="h-4 w-4" aria-hidden="true" />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span
-                                className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100"
-                                title={item.title}
-                              >
-                                {item.title || 'Untitled conversation'}
-                              </span>
-                              <span className="mt-1 block truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                {topic.description}
-                              </span>
-                            </span>
-                            <time
-                              className={cn(NUM, 'shrink-0 text-[10px] text-slate-400')}
-                              dateTime={item.last_message_at}
-                            >
-                              {conversationTime(item.last_message_at, group.label === 'Today')}
-                            </time>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeConversation(item.id)}
-                            className={cn(
-                              FOCUS_RING,
-                              'mr-1 mt-3 grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 opacity-0 hover:text-rose-500 group-hover:opacity-100 focus:opacity-100'
-                            )}
-                            aria-label={`Delete ${item.title || 'conversation'}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="px-2 py-4 text-xs text-slate-500">
-                {historySearch
-                  ? 'No recent conversations match your search.'
-                  : 'Your saved conversations will appear here.'}
-              </p>
-            )}
-          </div>
+                          {conversationTime(item.last_message_at, group.label === 'Today')}
+                        </time>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeConversation(item.id)}
+                        className={cn(
+                          FOCUS_RING,
+                          'mr-1 mt-3 grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 opacity-0 hover:text-rose-500 group-hover:opacity-100 focus:opacity-100'
+                        )}
+                        aria-label={`Delete ${item.title || 'conversation'}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="px-2 py-4 text-xs text-slate-500">
+            {historySearch
+              ? 'No recent conversations match your search.'
+              : 'Your saved conversations will appear here.'}
+          </p>
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <main className="ai-coach-canvas min-h-full p-2 text-slate-900 sm:p-3 min-[900px]:p-5 dark:text-white">
+      <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
+        <aside className={cn(PANEL, 'hidden min-w-0 flex-col p-3 min-[900px]:flex')}>
+          {historyOpen ? null : historyContents}
         </aside>
 
         <section
-          ref={chatPanelRef}
           className={cn(
             PANEL,
-            'relative order-2 col-span-12 flex h-[calc(100dvh-1.5rem)] min-h-[36rem] flex-col overflow-hidden'
+            'relative order-2 col-span-12 flex h-[calc(100dvh-4rem)] flex-col overflow-hidden sm:h-[calc(100dvh-4.5rem)]'
           )}
         >
-          <div className="ava-coach-bar flex flex-wrap items-center justify-between gap-3 border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="ava-coach-bar flex items-center justify-between gap-2 border-b border-[#e4e2f0] px-2.5 py-1.5 dark:border-white/[0.07] sm:gap-3 sm:px-4 sm:py-2">
+            <div className="flex min-w-0 items-center gap-2">
               <CoachAvatar size="sm" decorative />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -1176,38 +1216,48 @@ export default function AiCoach() {
                     {state.status?.enabled ? 'Online' : 'Getting ready'}
                   </span>
                 </div>
-                <p className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                <p className="hidden truncate text-[11px] font-medium text-slate-500 sm:block dark:text-slate-400">
                   Personal IELTS coach
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => historyPanelRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                className={cn(
-                  FOCUS_RING,
-                  'inline-flex items-center gap-1.5 rounded-lg border border-[#e4e2f0] px-2.5 py-1.5 text-[11px] font-bold text-[#4a52c9] min-[900px]:hidden dark:border-white/10 dark:text-[#c3c7ff]'
-                )}
-              >
-                <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-                Chats
-              </button>
+            <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+              <Dialog.Root open={historyOpen} onOpenChange={setHistoryOpen}>
+                <Dialog.Trigger
+                  className={cn(
+                    FOCUS_RING,
+                    'inline-flex min-h-9 items-center gap-1 rounded-lg border border-[#e4e2f0] px-2 text-xs font-bold text-[#4a52c9] min-[900px]:hidden dark:border-white/10 dark:text-[#c3c7ff]'
+                  )}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                  Chats
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/40" />
+                  <Dialog.Content
+                    aria-describedby={undefined}
+                    className={cn(
+                      PANEL,
+                      'fixed inset-y-0 left-0 z-50 flex w-[min(88vw,22rem)] flex-col p-4'
+                    )}
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <Dialog.Title className="text-base font-bold">
+                        Saved conversations
+                      </Dialog.Title>
+                      <Dialog.Close
+                        className={cn(FOCUS_RING, 'grid size-9 place-items-center rounded-lg')}
+                        aria-label="Close chats"
+                      >
+                        <X className="size-4" aria-hidden="true" />
+                      </Dialog.Close>
+                    </div>
+                    {historyContents}
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
               {state.status?.enabled ? (
-                <>
-                  {remaining === 0 ? (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400"
-                      title="Daily reply reset time"
-                    >
-                      <Clock3 className="h-3.5 w-3.5 text-[#5a63df]" aria-hidden="true" />
-                      Resets {formatReset(state.status?.quotaResetsAt)}
-                    </span>
-                  ) : null}
-                  <Pill tone={remaining > 2 ? 'emerald' : 'amber'} className="shrink-0">
-                    {remaining} replies left
-                  </Pill>
-                </>
+                <ReplyAllowance remaining={remaining} resetAt={state.status.quotaResetsAt} />
               ) : (
                 <Pill tone="amber" className="shrink-0">
                   Not live yet
@@ -1217,8 +1267,13 @@ export default function AiCoach() {
           </div>
           <div
             ref={chatScrollRef}
+            onScroll={({ currentTarget }) => {
+              stickToLatestRef.current =
+                currentTarget.scrollHeight - currentTarget.scrollTop - currentTarget.clientHeight <
+                48;
+            }}
             className={cn(
-              'relative flex-1 space-y-4 overflow-y-auto p-3 sm:p-5',
+              'relative min-h-0 flex-1 space-y-4 overflow-y-auto px-2.5 py-2 sm:p-4',
               switchingConversation && 'ai-coach-conversation-switching'
             )}
           >
@@ -1253,9 +1308,12 @@ export default function AiCoach() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.985, y: -8 }}
                   transition={viewMotion}
-                  className="ai-coach-empty flex min-h-full items-center py-6 sm:py-8"
+                  className="ai-coach-empty flex min-h-full items-start py-3 sm:items-center sm:py-5"
                 >
-                  <AvaWelcome available={Boolean(state.status?.enabled)} onSelect={prepareDraft} />
+                  <AvaWelcome
+                    available={canSend && !switchingConversation}
+                    onSelect={prepareDraft}
+                  />
                 </motion.div>
               ) : (
                 <motion.div
@@ -1270,6 +1328,7 @@ export default function AiCoach() {
                     <button
                       type="button"
                       onClick={loadEarlier}
+                      disabled={switchingConversation}
                       className={cn(
                         FOCUS_RING,
                         'mx-auto block rounded-lg border border-[#e4e2f0] px-3 py-1.5 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-slate-300'
@@ -1348,7 +1407,7 @@ export default function AiCoach() {
           </div>
           <form
             onSubmit={submit}
-            className="border-t border-[#e4e2f0] bg-white p-3 dark:border-white/[0.07] dark:bg-[#121116] sm:p-4"
+            className="border-t border-[#e4e2f0] bg-white p-2.5 dark:border-white/[0.07] dark:bg-[#121116] sm:p-3"
           >
             {sourceReference && preview ? (
               <div className={cn(TILE, 'mb-2 p-3')} aria-label="Attached result summary">
@@ -1429,9 +1488,6 @@ export default function AiCoach() {
                   <Sparkles className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
                   Ask Ava
                 </label>
-                <span className="text-[10px] font-semibold text-slate-400">
-                  Replies in your language
-                </span>
               </div>
               <div className="flex items-end gap-2 rounded-xl bg-white px-2 py-1.5 dark:bg-[#151419]">
                 <textarea
@@ -1443,7 +1499,11 @@ export default function AiCoach() {
                     setDraft(event.target.value.slice(0, 2000));
                   }}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
+                    if (
+                      event.key === 'Enter' &&
+                      !event.shiftKey &&
+                      !event.nativeEvent.isComposing
+                    ) {
                       event.preventDefault();
                       submit();
                     }
@@ -1451,22 +1511,22 @@ export default function AiCoach() {
                   dir="auto"
                   rows={1}
                   maxLength={2000}
-                  disabled={!canSend || sending}
+                  disabled={!canSend || sending || switchingConversation}
                   aria-describedby="ava-language-note"
                   placeholder={
                     !state.status?.enabled
                       ? 'Ava will be available when the coach is enabled'
                       : canSend
-                        ? 'Ask anything about your IELTS practice…'
+                        ? 'Ask an IELTS question…'
                         : state.status?.budgetAvailable === false
                           ? 'AI replies are temporarily unavailable'
                           : 'Daily replies are unavailable'
                   }
-                  className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-1.5 py-2.5 text-base leading-6 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed sm:text-sm"
+                  className="max-h-36 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-1.5 py-2.5 text-base leading-6 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed sm:text-sm"
                 />
                 <button
                   type="submit"
-                  disabled={!draft.trim() || !canSend || sending}
+                  disabled={!draft.trim() || !canSend || sending || switchingConversation}
                   className={cn(
                     FOCUS_RING,
                     'ava-send-button grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#5a63df] text-white active:scale-95 disabled:opacity-40'
@@ -1482,32 +1542,77 @@ export default function AiCoach() {
               </div>
               <div
                 id="ava-language-note"
-                className="flex items-center justify-between gap-3 px-1 pt-1.5 text-[10px] font-medium text-slate-400"
+                className="flex items-center justify-between gap-2 px-1 pt-1.5 text-[10px] font-medium text-slate-400"
               >
-                <span>Ava detects your language. She will tell you if it is not supported.</span>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="shrink-0">Reply language</span>
+                  <Popover.Root open={languageMenuOpen} onOpenChange={setLanguageMenuOpen}>
+                    <Popover.Trigger
+                      type="button"
+                      aria-label={`Reply language: ${replyLanguage === 'auto' ? 'Auto' : AI_COACH_LANGUAGES.find((item) => item.code === replyLanguage)?.label || replyLanguage}`}
+                      className={cn(
+                        FOCUS_RING,
+                        'inline-flex h-7 items-center gap-1 rounded-lg border border-[#e4e2f0] bg-white px-2 text-[11px] font-bold text-slate-700 transition-colors hover:border-[#5a63df]/40 hover:text-[#4a52c9] active:scale-[0.98] dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-200'
+                      )}
+                    >
+                      <Languages className="size-3.5 text-[#5a63df]" aria-hidden="true" />
+                      {replyLanguage === 'auto'
+                        ? 'Auto'
+                        : AI_COACH_LANGUAGES.find((item) => item.code === replyLanguage)?.label ||
+                          replyLanguage}
+                      <ChevronRight className="size-3 rotate-90 opacity-60" aria-hidden="true" />
+                    </Popover.Trigger>
+                    <Popover.Portal>
+                      <Popover.Content
+                        aria-label="Choose reply language"
+                        align="start"
+                        side="top"
+                        sideOffset={6}
+                        className="ava-language-popover z-50 max-h-64 w-52 overflow-y-auto rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/[0.1] dark:bg-[#17161d]"
+                      >
+                        <div role="listbox" aria-label="Reply language options">
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={replyLanguage === 'auto'}
+                            onClick={() => {
+                              setReplyLanguage('auto');
+                              setLanguageMenuOpen(false);
+                            }}
+                            className="flex min-h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/[0.06]"
+                          >
+                            Auto-detect
+                            {replyLanguage === 'auto' ? (
+                              <Check className="size-3.5 text-[#5a63df]" aria-hidden="true" />
+                            ) : null}
+                          </button>
+                          {AI_COACH_LANGUAGES.map((language) => (
+                            <button
+                              key={language.code}
+                              type="button"
+                              role="option"
+                              aria-selected={replyLanguage === language.code}
+                              onClick={() => {
+                                setReplyLanguage(language.code);
+                                setLanguageMenuOpen(false);
+                              }}
+                              className="flex min-h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/[0.06]"
+                            >
+                              {language.label}
+                              {replyLanguage === language.code ? (
+                                <Check className="size-3.5 text-[#5a63df]" aria-hidden="true" />
+                              ) : null}
+                            </button>
+                          ))}
+                        </div>
+                      </Popover.Content>
+                    </Popover.Portal>
+                  </Popover.Root>
+                </div>
                 <span className={cn(NUM, 'shrink-0')}>{draft.length}/2000</span>
               </div>
             </div>
-            {state.status?.enabled && messages.length === 0 && !sourceReference ? (
-              <div className="mt-2.5 flex flex-wrap items-center justify-center gap-1.5 px-1">
-                <span className="mr-1 text-[10px] font-bold text-slate-400">Try these:</span>
-                {QUICK_SUGGESTIONS.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => prepareDraft(suggestion)}
-                    disabled={!canSend || sending}
-                    className={cn(
-                      FOCUS_RING,
-                      'rounded-full border border-[#dedcec] bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600 transition-colors hover:border-[#5a63df]/40 hover:bg-[#5a63df]/[0.05] hover:text-[#4a52c9] disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300 dark:hover:bg-white/[0.07]'
-                    )}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <p className="mt-2 text-center text-[10px] font-medium text-slate-400">
+            <p className="mt-2 text-center text-[10px] font-medium text-slate-500 dark:text-slate-400">
               Chat practice does not change official IELTS scores. Check important decisions against
               your test instructions.
             </p>

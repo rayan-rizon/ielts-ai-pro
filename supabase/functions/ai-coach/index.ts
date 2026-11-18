@@ -136,19 +136,34 @@ function evidenceDate(value: unknown) {
   }).format(date);
 }
 
+const hasNumber = (number: unknown) =>
+  number != null && number !== '' && Number.isFinite(Number(number));
+
+function completedResultDetails(value: any) {
+  const details: string[] = [];
+  if (hasNumber(value.score))
+    details.push(
+      value.scoreUnit ? `estimated band ${Number(value.score)}` : `score ${Number(value.score)}`
+    );
+  if (value.task) details.push(value.task);
+  if (value.coverage === 'full') details.push('full test');
+  if (value.coverage === 'partial') details.push('partial test');
+  if (hasNumber(value.correct) && hasNumber(value.total))
+    details.push(`${value.correct} of ${value.total} correct`);
+  if (typeof value.mode === 'string' && value.mode.trim())
+    details.push(`${evidenceLabel(value.mode)} mode`);
+  const completed = evidenceDate(value.completedAt);
+  if (completed) details.push(`completed ${completed}`);
+  return details;
+}
+
 function evidenceClaim(item: any) {
   const label = evidenceLabel(item?.label);
   const value = item?.value && typeof item.value === 'object' ? item.value : {};
   const details: string[] = [];
 
-  const hasNumber = (number: unknown) =>
-    number != null && number !== '' && Number.isFinite(Number(number));
   if (item?.category === 'completed_result') {
-    if (hasNumber(value.score)) details.push(`score ${Number(value.score)}`);
-    if (typeof value.mode === 'string' && value.mode.trim())
-      details.push(`${evidenceLabel(value.mode)} mode`);
-    const completed = evidenceDate(value.completedAt);
-    if (completed) details.push(`completed ${completed}`);
+    details.push(...completedResultDetails(value));
   } else if (item?.category === 'measured_skill' || item?.category === 'early_skill') {
     const mastery = Number(value.mastery);
     if (hasNumber(value.mastery)) {
@@ -160,6 +175,7 @@ function evidenceClaim(item: any) {
     if (hasNumber(value.observations))
       details.push(`${Number(value.observations).toLocaleString('en-US')} practice records`);
   } else if (item?.category === 'comparable_trend') {
+    if (hasNumber(value.sampleCount)) details.push(`${value.sampleCount} comparable attempts`);
     for (const key of ['latest', 'previous', 'delta']) {
       if (hasNumber(value[key]))
         details.push(
@@ -201,7 +217,7 @@ async function loadSource(admin: any, profile: any, sourceReference: any) {
   const { data: sourceSession } = await admin
     .from('test_sessions')
     .select(
-      'id,test_type,test_mode,score,band_score,is_completed,content_data,evaluation_status,passage_id,user_responses,actual_duration_seconds'
+      'id,test_type,test_mode,score,band_score,is_completed,completed_at,content_data,evaluation_status,passage_id,user_responses,actual_duration_seconds'
     )
     .eq('id', sourceReference.id)
     .eq('user_id', profile.id)
@@ -242,7 +258,7 @@ async function loadContext(admin: any, profile: any, authId: string, sourceRefer
     admin
       .from('test_sessions')
       .select(
-        'id,test_type,test_mode,score,band_score,completed_at,is_completed,content_data,evaluation_status,evaluation_version'
+        'id,test_type,test_mode,score,band_score,completed_at,is_completed,content_data,evaluation_status,evaluation_version,actual_duration_seconds'
       )
       .eq('user_id', profile.id)
       .eq('is_completed', true)
@@ -710,6 +726,12 @@ const handleRequest = async (req: Request) => {
         headers
       );
     if (reservation.state === 'complete') {
+      if (!reservation.response || !reservation.conversationId)
+        return response(
+          { error: 'That conversation was deleted. Start a new conversation.' },
+          409,
+          headers
+        );
       const { data: currentStatus } = await admin.rpc('ai_coach_status', {
         p_auth: authUser.id,
       });
@@ -802,14 +824,12 @@ const handleRequest = async (req: Request) => {
         // The digest rides along so a numeric detail Ava quotes from it, a question
         // number or a corrected answer, still counts as present in the cited evidence.
         value: {
-          score: context.source.score,
-          mode: context.source.testMode,
+          ...context.source.result,
           digest: context.source.digest,
         },
       });
     const evidenceIds = new Set(evidenceById.keys());
     const personalQuestion = asksForPersonalEvidence(input.message);
-    const requiresEvidence = personalQuestion && evidenceIds.size > 0;
     const validate = (value: any) => {
       if (value && typeof value === 'object')
         value.followUps = normalizeCoachFollowUps(value.followUps, [
@@ -819,34 +839,38 @@ const handleRequest = async (req: Request) => {
             .map((item: any) => item.content),
           ...(history || []).flatMap((item: any) => item.follow_ups || []),
         ]);
-      if (!validateCoachReply(value, evidenceIds) || value.responseLanguage !== language)
-        return false;
       if (
-        requiresEvidence &&
-        (value.groundingStatus !== 'supported' || value.evidenceRefs.length === 0)
+        Array.isArray(value?.evidenceRefs) &&
+        value.evidenceRefs.some(
+          (ref: any) => typeof ref?.id === 'string' && !evidenceIds.has(ref.id)
+        )
       )
-        return false;
-      if (requiresEvidence) {
-        const citedText = value.evidenceRefs
-          .map((ref: any) => JSON.stringify(evidenceById.get(ref.id) || {}))
-          .join(' ');
+        return diagnostics.rejectReply('citation');
+      if (!validateCoachReply(value, evidenceIds)) return diagnostics.rejectReply('reply_shape');
+      if (value.responseLanguage !== language) return diagnostics.rejectReply('response_language');
+
+      if (personalQuestion) {
+        const citedItems = value.evidenceRefs.map((ref: any) => evidenceById.get(ref.id));
+        const supported = value.groundingStatus === 'supported' && citedItems.length > 0;
+        const insufficient = value.groundingStatus === 'insufficient' && citedItems.length === 0;
+        if (!supported && !insufficient) return diagnostics.rejectReply('citation');
         const answerNumbers = claimNumbers(value.answer, input.message);
-        if (answerNumbers.some((number: string) => !citedText.includes(number))) return false;
+        const citedText = citedItems.map((item: any) => JSON.stringify(item.value)).join(' ');
+        if (answerNumbers.some((number: string) => !citedText.includes(number)))
+          return diagnostics.rejectReply('unsupported_number');
       }
-      // Never trust model-supplied citation wording. Convert all valid references,
-      // including references on general questions, to concise source-derived text.
-      value.evidenceRefs = value.evidenceRefs.map((ref: any) => ({
-        id: ref.id,
-        claim: evidenceClaim(evidenceById.get(ref.id)),
-      }));
-      if (
-        personalQuestion &&
-        evidenceIds.size === 0 &&
-        (value.groundingStatus !== 'insufficient' ||
-          value.evidenceRefs.length > 0 ||
-          /\b(?:band|score)\s*[0-9](?:\.[05])?\b/i.test(value.answer))
-      )
-        return false;
+
+      // Only the server can turn a citation into a result link.
+      value.evidenceRefs = value.evidenceRefs.map((ref: any) => {
+        const item = evidenceById.get(ref.id);
+        return {
+          id: ref.id,
+          claim: evidenceClaim(item),
+          ...(item?.category === 'completed_result' && item.value?.module
+            ? { resultModule: item.value.module }
+            : {}),
+        };
+      });
       value.answer = restoreLineBreaks(value.answer);
       value.actions = validateActions(value.actions, context, input.message);
       value.memory = normalizeCoachMemoryNotes(value.memory) ?? [];
@@ -950,7 +974,8 @@ const handleRequest = async (req: Request) => {
         p_diagnostics: diagnostics.snapshot().diagnostics,
         p_ok: true,
       });
-      if (finishError) throw new Error('AI Coach could not save your answer. Please retry.');
+      if (finishError || !final?.messageId)
+        throw new Error('AI Coach could not save your answer. Please retry.');
       await admin.from('ai_api_usage').insert({
         user_id: profile.id,
         endpoint: 'ai-coach',

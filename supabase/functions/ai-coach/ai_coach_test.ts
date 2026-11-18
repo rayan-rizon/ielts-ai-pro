@@ -814,3 +814,26 @@ Deno.test('an invented score in a personal answer is still rejected', async () =
   assert.equal(response.status, 502);
   assert.equal(fetchBodies.length, 2);
 });
+
+Deno.test(
+  'records a bounded reason when a valid reply makes an unsupported numeric claim',
+  async () => {
+    reset();
+    const invented = () =>
+      jsonResponse(
+        reply({
+          groundingStatus: 'supported',
+          evidenceRefs: [{ id: 'goal:target-band', claim: 'goal' }],
+          answer: 'Your latest Reading score is 5.5.',
+        })
+      );
+    fetchQueue.push(invented, invented);
+    await send('Explain my latest score.');
+    assert.deepEqual(
+      finishCalls()
+        .at(-1)
+        ?.args.p_diagnostics.attempts.map((attempt: any) => attempt.validationReason),
+      ['unsupported_number', 'unsupported_number']
+    );
+  }
+);

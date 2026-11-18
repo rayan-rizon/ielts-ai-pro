@@ -52,7 +52,14 @@ const ERROR_CODES = new Set([
   'network_error',
   'provider_not_configured',
 ]);
-type Attempt = { model: string; code: string; status: number | null; latencyMs: number };
+type ValidationReason = 'reply_shape' | 'response_language' | 'citation' | 'unsupported_number';
+type Attempt = {
+  model: string;
+  code: string;
+  status: number | null;
+  latencyMs: number;
+  validationReason?: ValidationReason;
+};
 
 // Bounded metadata only: never retain prompts, generated text or raw error messages.
 export class CoachDiagnostics {
@@ -60,6 +67,12 @@ export class CoachDiagnostics {
   model = '';
   private started = Date.now();
   private attempts: Attempt[] = [];
+  private validationReason?: ValidationReason;
+
+  rejectReply(reason: ValidationReason) {
+    this.validationReason = reason;
+    return false;
+  }
 
   async attempt<T>(
     stage: 'primary' | 'fallback',
@@ -68,6 +81,7 @@ export class CoachDiagnostics {
   ): Promise<T> {
     this.stage = stage;
     this.model = model;
+    this.validationReason = undefined;
     const started = Date.now();
     let code = 'ok';
     let status: number | null = null;
@@ -82,7 +96,15 @@ export class CoachDiagnostics {
       throw error;
     } finally {
       if (this.attempts.length < 2)
-        this.attempts.push({ model, code, status, latencyMs: Date.now() - started });
+        this.attempts.push({
+          model,
+          code,
+          status,
+          latencyMs: Date.now() - started,
+          ...(code === 'invalid_schema' && this.validationReason
+            ? { validationReason: this.validationReason }
+            : {}),
+        });
     }
   }
 

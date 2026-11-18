@@ -9,7 +9,7 @@ const session = (id: string, score: number, completedAt: string) => ({
   score,
   is_completed: true,
   completed_at: completedAt,
-  content_data: { correctAnswers: 20 },
+  content_data: { correctAnswers: 20, totalQuestions: 40 },
 });
 
 describe('AI Coach learner evidence', () => {

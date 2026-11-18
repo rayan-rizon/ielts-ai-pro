@@ -130,6 +130,23 @@ describe('streamed replies', () => {
 });
 
 describe('language hint for app-written drafts', () => {
+  it('lets the learner choose a compact reply language override', async () => {
+    renderCoach();
+    fireEvent.click(await screen.findByRole('button', { name: /reply language: auto/i }));
+    fireEvent.click(await screen.findByRole('option', { name: 'বাংলা' }));
+    expect(
+      screen.queryByRole('listbox', { name: 'Reply language options' })
+    ).not.toBeInTheDocument();
+    const box = screen.getByLabelText(/Ask Ava/);
+    fireEvent.change(box, { target: { value: 'Explain this grammar rule.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+    await waitFor(() => expect(sendCoachMessage).toHaveBeenCalledTimes(1));
+    expect(sendCoachMessage.mock.calls[0][0]).toMatchObject({
+      preferredLanguage: 'bn',
+      languageHint: 'preference',
+    });
+  });
+
   it('asks for the saved language when an unedited starter is sent', async () => {
     renderCoach();
     fireEvent.click(await screen.findByRole('button', { name: 'Review my latest result' }));
@@ -250,4 +267,29 @@ describe('sidebar', () => {
     expect(screen.queryByText('Evidence first')).not.toBeInTheDocument();
     expect(screen.queryByText('What Ava remembers')).not.toBeInTheDocument();
   });
+});
+
+it('detects the language of a typed message without a composer dropdown', async () => {
+  renderCoach();
+  const box = await screen.findByRole('textbox', { name: 'Ask Ava' });
+  expect(screen.queryByRole('combobox', { name: 'Reply language' })).not.toBeInTheDocument();
+  fireEvent.change(box, { target: { value: 'Explain matching headings' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+  await waitFor(() =>
+    expect(sendCoachMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ preferredLanguage: 'bn', languageHint: undefined })
+    )
+  );
+});
+
+it('renders the original waving Ava artwork and rotating multilingual greeting', async () => {
+  const { container } = renderCoach();
+  const heading = await screen.findByRole('heading', { name: 'Meet Ava' });
+  expect(heading).toHaveTextContent('আভার সঙ্গে পরিচিত হোন');
+  expect(
+    container.querySelector('img[src="/assets/ai-coach/ava-arm-hero.webp"]')
+  ).toBeInTheDocument();
+  expect(
+    container.querySelector('img[src="/assets/ai-coach/ava-blink-hero.webp"]')
+  ).toBeInTheDocument();
 });
