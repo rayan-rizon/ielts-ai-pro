@@ -63,7 +63,7 @@ function getCurrentStepDescription({ activePathStage, inProgressAttempt, retestT
     return 'Take the 24-question level check. It shows which grammar skill to practise first.';
   }
   if (activePathStage === 'retest') {
-    return `Take one normal scored ${testName} test. Your Grammar results and AI Learning Path update from it automatically.`;
+    return `Take one normal scored ${testName} test. Your Grammar results and Study plan update from it automatically.`;
   }
   if (inProgressAttempt) {
     return `Finish this practice set. Your next step is one normal scored ${testName} test; there is nothing extra to submit.`;
@@ -200,7 +200,7 @@ export default function GrammarLearningPathCard({
           to="/learning-path"
           className="group flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-[#e2e5f2] bg-white/80 text-xs font-bold text-[#5a63df] transition hover:border-[#c9cdf3] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-indigo-300 dark:hover:bg-white/10"
         >
-          View full AI Learning Path{' '}
+          View full Study plan{' '}
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
         </Link>
       </motion.div>

@@ -2491,3 +2491,24 @@
     transform: scaleY(1);
   }
 }
+
+/* Study plan: a view swap (week/month, next week, another session) eases in from the
+   side it came from. Short and ease-out so it answers the tap instead of delaying it. */
+@keyframes plan-view-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--plan-shift, 0px), var(--plan-lift, 4px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-plan-view {
+  animation: plan-view-in 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}

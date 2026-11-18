@@ -53,7 +53,7 @@ describe('Learning Path refresh lifecycle', () => {
     const path = {
       version: 2,
       input_fingerprint: 'current',
-      generator_version: '2.4.4',
+      generator_version: '2.5.0',
       generated_at: new Date().toISOString(),
       goal_snapshot: { target_band: 7, study_availability: availability },
     };

@@ -167,7 +167,7 @@ function GuideWorkbookUnitsNav({ previousGuide, nextGuide }) {
 const IELTS_QUICK_LINKS = [
   { to: '/writing', label: 'Writing practice', icon: FilePenLine },
   { to: '/speaking', label: 'Speaking practice', icon: Mic2 },
-  { to: '/learning-path', label: 'AI Learning Path', icon: Sparkles },
+  { to: '/learning-path', label: 'Study plan', icon: Sparkles },
 ];
 
 function GuideIeltsLinks() {

@@ -1,6 +1,6 @@
 import { reconcileObjectiveResultEvidence } from './objective-scoring/resultEvidence.js';
 
-export const LEARNING_PATH_GENERATOR_VERSION = '2.4.4';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.5.0';
 
 export const STUDY_DAYS = [
   'monday',
@@ -104,10 +104,34 @@ export function getPlanStartDate(path: any): string | null {
   return studyDateKey(new Date(generatedAt), planTimezone(path));
 }
 
-/** The last calendar day a saved plan covers: six days after its first. */
+/** The last calendar day a saved plan covers. Plans saved before 30-day plans cover seven. */
+export const WEEK_DAYS = 7;
+export const MAX_PLAN_DAYS = 30;
+
+/** How many calendar days a saved plan covers: seven unless it says otherwise. */
+export function getPlanLength(path: any) {
+  const days = Math.round(Number(path?.plan_days));
+  return Number.isFinite(days) && days >= 1 ? Math.min(days, MAX_PLAN_DAYS) : WEEK_DAYS;
+}
+
+/**
+ * How far ahead to plan: up to 30 days, and never past the day before the exam.
+ * An exam 15 days away gets a 15-day plan, so every planned day is useful.
+ */
+export function getPlanHorizonDays(
+  testDate: Date | string | null | undefined,
+  today: Date | string
+) {
+  if (!testDate) return MAX_PLAN_DAYS;
+  const daysUntilExam = Math.ceil(
+    (startOfUtcDay(testDate).getTime() - startOfUtcDay(today).getTime()) / 86400000
+  );
+  return clamp(daysUntilExam, 1, MAX_PLAN_DAYS);
+}
+
 export function getPlanEndDate(path: any): string | null {
   const start = getPlanStartDate(path);
-  return start ? toIsoDate(addDays(startOfUtcDay(start), 6)) : null;
+  return start ? toIsoDate(addDays(startOfUtcDay(start), getPlanLength(path) - 1)) : null;
 }
 
 /** A plan covers seven calendar days, including rest days, in the learner's timezone. */
@@ -137,8 +161,12 @@ export function isLearningPlanBehind(path: any, now: Date | string = new Date())
  * the following week's plan would have given them. Once the previous plan has
  * fully passed nothing is kept, and the new week simply starts today.
  */
-export function getRolledScheduleStart(previousStartDate: string, today: string) {
-  const nextWeekStart = toIsoDate(addDays(startOfUtcDay(previousStartDate), 7));
+export function getRolledScheduleStart(
+  previousStartDate: string,
+  today: string,
+  previousHorizonDays = WEEK_DAYS
+) {
+  const nextWeekStart = toIsoDate(addDays(startOfUtcDay(previousStartDate), previousHorizonDays));
   return nextWeekStart > today ? nextWeekStart : today;
 }
 
@@ -165,6 +193,8 @@ export function rollScheduleForward({
   today,
   availability,
   activityDates = {},
+  horizonDays = WEEK_DAYS,
+  previousHorizonDays = WEEK_DAYS,
 }: {
   previousSchedule: Record<string, any[]> | null | undefined;
   previousStartDate: string;
@@ -172,10 +202,16 @@ export function rollScheduleForward({
   today: string;
   availability: StudyAvailability;
   activityDates?: Record<string, string | null | undefined>;
+  /** Days the rolled plan should cover from today. */
+  horizonDays?: number;
+  /** Days the previous plan covered from its start. */
+  previousHorizonDays?: number;
 }) {
   const start = startOfUtcDay(today);
-  const windowDates = Array.from({ length: 7 }, (_, offset) => toIsoDate(addDays(start, offset)));
-  const previousEnd = toIsoDate(addDays(startOfUtcDay(previousStartDate), 6));
+  const windowDates = Array.from({ length: horizonDays }, (_, offset) =>
+    toIsoDate(addDays(start, offset))
+  );
+  const previousEnd = toIsoDate(addDays(startOfUtcDay(previousStartDate), previousHorizonDays - 1));
   const coveredDates = new Set(
     windowDates.filter((date) => date >= previousStartDate && date <= previousEnd)
   );
@@ -216,7 +252,8 @@ export function rollScheduleForward({
       });
       freshDates.push(date);
     }
-    schedule[dayNameFor(date)] = tasks;
+    // Weekday names are only unique inside one week, so a longer plan is keyed by date.
+    schedule[horizonDays > WEEK_DAYS ? date : dayNameFor(date)] = tasks;
   });
 
   return { schedule, freshDates };
@@ -876,6 +913,14 @@ function activityForCategory(
   };
 }
 
+/** Rotation state carried from one planned week into the next, so weeks do not repeat. */
+export type PlanCarry = {
+  taskCursor: number;
+  writingTaskCursor: number;
+  grammarRepairsSinceRetest: number;
+  categoryCursors: Record<string, number>;
+};
+
 export function buildSevenDaySchedule({
   availability,
   evidence,
@@ -884,6 +929,8 @@ export function buildSevenDaySchedule({
   testDate,
   targetBand = 7,
   now = new Date(),
+  days = WEEK_DAYS,
+  carry,
 }: {
   availability: StudyAvailability;
   evidence: any;
@@ -892,6 +939,9 @@ export function buildSevenDaySchedule({
   testDate?: string | null;
   targetBand?: number;
   now?: Date | string;
+  /** How many of the seven days to plan; a plan that ends at the exam stops early. */
+  days?: number;
+  carry?: PlanCarry;
 }) {
   const start = startOfUtcDay(now);
   const daysUntilExam = testDate
@@ -919,13 +969,13 @@ export function buildSevenDaySchedule({
   );
   let assignedMinutes = 0;
   let grammarMinutes = 0;
-  let grammarRepairsSinceRetest = 0;
-  let writingTaskCursor = 0;
+  let grammarRepairsSinceRetest = carry?.grammarRepairsSinceRetest ?? 0;
+  let writingTaskCursor = carry?.writingTaskCursor ?? 0;
 
   const schedule: Record<string, any[]> = {};
-  let taskCursor = 0;
-  const categoryCursors: Record<string, number> = {};
-  for (let offset = 0; offset < 7; offset += 1) {
+  let taskCursor = carry?.taskCursor ?? 0;
+  const categoryCursors: Record<string, number> = { ...(carry?.categoryCursors || {}) };
+  for (let offset = 0; offset < Math.min(WEEK_DAYS, days); offset += 1) {
     const date = addDays(start, offset);
     const dateKey = toIsoDate(date);
     const day = STUDY_DAYS[(date.getUTCDay() + 6) % 7];
@@ -1194,6 +1244,13 @@ export function buildSevenDaySchedule({
     }
   }
 
+  if (carry) {
+    carry.taskCursor = taskCursor;
+    carry.writingTaskCursor = writingTaskCursor;
+    carry.grammarRepairsSinceRetest = grammarRepairsSinceRetest;
+    carry.categoryCursors = categoryCursors;
+  }
+
   return {
     schedule,
     allocation,
@@ -1203,6 +1260,63 @@ export function buildSevenDaySchedule({
     grammar_cap_minutes: finalGrammarCapMinutes,
     vocabulary_minutes: vocabularyMinutes,
     vocabulary_cap_minutes: vocabularyCapMinutes,
+  };
+}
+
+/**
+ * The plan: up to 30 days, shortened to end the day before the exam.
+ *
+ * Built a week at a time with the weekly planner, so each week is allocated for
+ * how far it sits from the exam (closer weeks lean on timed assessment) and the
+ * focus skills rotate rather than repeating. A plan of a week or less keeps the
+ * weekday keys it always had; a longer one is keyed by date, since weekday names
+ * repeat.
+ */
+export function buildPlanSchedule({
+  now = new Date(),
+  horizonDays,
+  testDate,
+  ...input
+}: Omit<Parameters<typeof buildSevenDaySchedule>[0], 'days' | 'carry' | 'now'> & {
+  now?: Date | string;
+  horizonDays?: number;
+}) {
+  const start = startOfUtcDay(now);
+  const horizon = clamp(
+    Math.round(horizonDays ?? getPlanHorizonDays(testDate, start)),
+    1,
+    MAX_PLAN_DAYS
+  );
+  const carry: PlanCarry = {
+    taskCursor: 0,
+    writingTaskCursor: 0,
+    grammarRepairsSinceRetest: 0,
+    categoryCursors: {},
+  };
+  const dated: Record<string, any[]> = {};
+  let firstWeek: ReturnType<typeof buildSevenDaySchedule> | null = null;
+
+  for (let offset = 0; offset < horizon; offset += WEEK_DAYS) {
+    const week = buildSevenDaySchedule({
+      ...input,
+      testDate,
+      now: addDays(start, offset),
+      days: Math.min(WEEK_DAYS, horizon - offset),
+      carry,
+    });
+    firstWeek ||= week;
+    Object.values(week.schedule)
+      .flat()
+      .forEach((task: any) => {
+        (dated[task.scheduled_date] ||= []).push(task);
+      });
+  }
+
+  const planned = firstWeek as ReturnType<typeof buildSevenDaySchedule>;
+  return {
+    ...planned,
+    schedule: horizon > WEEK_DAYS ? dated : planned.schedule,
+    horizon_days: horizon,
   };
 }
 

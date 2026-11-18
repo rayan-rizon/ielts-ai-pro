@@ -158,7 +158,7 @@ const publicPages = [
         ],
         [
           'Do I need to pay to use IELTS Ai Pro?',
-          'A free account covers Reading and Listening practice, a monthly allowance of Writing evaluation, vocabulary tools, and basic progress analytics. Paid plans raise the monthly Writing and Speaking evaluation limits and add features such as advanced analytics and an adaptive learning path. Current limits are always shown before you start a task.',
+          'A free account covers Reading and Listening practice, a monthly allowance of Writing evaluation, vocabulary tools, and basic progress analytics. Paid plans raise the monthly Writing and Speaking evaluation limits and add features such as advanced analytics and an adaptive study plan. Current limits are always shown before you start a task.',
         ],
         [
           'Which IELTS test does the platform target?',
@@ -421,7 +421,7 @@ const publicPages = [
           heading: 'How practice data is used',
           items: [
             '<strong>To produce your feedback:</strong> a Writing response or Speaking recording has to be processed to return criterion-level comments and an estimated practice band.',
-            '<strong>To build your progress history:</strong> saved attempts are what make skill trends, error patterns, and the adaptive learning path possible.',
+            '<strong>To build your progress history:</strong> saved attempts are what make skill trends, error patterns, and the adaptive study plan possible.',
             '<strong>To operate the service:</strong> authentication, plan limits, billing, and support all require a minimum of account data.',
             '<strong>Not to sell:</strong> we do not sell personal information, and CCPA-covered users retain the right to direct that no sale takes place.',
           ],

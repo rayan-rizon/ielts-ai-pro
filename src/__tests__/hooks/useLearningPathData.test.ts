@@ -301,20 +301,6 @@ describe('buildSkillTrendMap', () => {
   });
 });
 
-describe('getDayIndex', () => {
-  const getTodayIndex = () => {
-    const day = new Date().getDay();
-    return day === 0 ? 6 : day - 1;
-  };
-
-  it('should return correct day index (Monday=0, Sunday=6)', () => {
-    // This is a simple test to verify the function exists and works
-    const index = getTodayIndex();
-    expect(index).toBeGreaterThanOrEqual(0);
-    expect(index).toBeLessThanOrEqual(6);
-  });
-});
-
 describe('Weighted Average Calculation', () => {
   it('should calculate weighted average correctly', () => {
     const points = [

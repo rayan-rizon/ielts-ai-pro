@@ -55,11 +55,9 @@ export function buildProductTourSteps(user) {
     {
       id: 'learning-path',
       route: canOpenLearningPath ? createPageUrl('LearningPath') : createPageUrl('Upgrade'),
-      section: 'AI Learning Path',
+      section: 'Study plan',
       target: '[data-tour="learning-path"]',
-      title: canOpenLearningPath
-        ? 'Follow one adaptive study plan'
-        : 'Preview your AI Learning Path',
+      title: canOpenLearningPath ? 'Follow one adaptive study plan' : 'Preview your Study plan',
       body: canOpenLearningPath
         ? 'Follow personalized study tasks adapted to your exam date, band goal, and score trends.'
         : 'Preview how Pro creates an adaptive weekly study plan matched to your target exam date.',

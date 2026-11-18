@@ -38,7 +38,7 @@ const NavItem = memo(({ item, isActive }) => {
   const hasAiBadge =
     item.title === 'Writing Practice' ||
     item.title === 'AI Coach' ||
-    item.title === 'AI Learning Path' ||
+    item.title === 'Study plan' ||
     item.title === 'Practice Lab';
 
   return (
@@ -101,7 +101,7 @@ const isPremiumUser = hasPaidAccess;
 
 const resolveMainNavigation = (user) =>
   userNavigationItems.map((item) => {
-    if (item.title !== 'AI Learning Path' || isPremiumUser(user)) return item;
+    if (item.title !== 'Study plan' || isPremiumUser(user)) return item;
     return { ...item, url: createPageUrl('Upgrade') };
   });
 

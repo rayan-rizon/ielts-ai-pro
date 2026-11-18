@@ -106,7 +106,7 @@ describe('GrammarDashboard', () => {
     expect(screen.getByRole('button', { name: 'Level check' })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('button', { name: 'Level check' })).toBeDisabled();
     expect(screen.queryByText(/completed/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /View full AI Learning Path/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /View full Study plan/i })).toHaveAttribute(
       'href',
       '/learning-path'
     );

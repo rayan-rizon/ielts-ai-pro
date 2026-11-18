@@ -15,6 +15,8 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   aggregateReadiness,
+  getPlanHorizonDays,
+  getPlanLength,
   getPlanStartDate,
   getRolledScheduleStart,
   isLearningPlanBehind,
@@ -22,13 +24,15 @@ import {
   objectiveTypeStats,
   studyDateKey,
   buildRoadmap,
-  buildSevenDaySchedule,
+  buildPlanSchedule,
   findRecurringObjectiveMistakes,
   fingerprintLearningPathInputs,
   LEARNING_PATH_GENERATOR_VERSION,
   normalizeStudyAvailability,
   rollScheduleForward,
   scheduleRecurringRepair,
+  STUDY_DAYS,
+  WEEK_DAYS,
   summarizeEvidence,
   summarizeVocabularyEvidence,
 } from '../_shared/learningPathV2.ts';
@@ -219,10 +223,16 @@ function repairOnNewTasks(
   );
 }
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A plan longer than a week is keyed by date; the study time still belongs to the weekday. */
+const weekdayOfKey = (key: string) =>
+  ISO_DATE.test(key) ? STUDY_DAYS[(new Date(`${key}T12:00:00Z`).getUTCDay() + 6) % 7] : key;
+
 function mergeRecoveryTasks(schedule: Record<string, any[]>, previousPath: any, availability: any) {
   if (!previousPath?.weekly_schedule && !previousPath?.recovery_backlog) return schedule;
   const merged = Object.fromEntries(
-    Object.entries(schedule).map(([day, tasks]) => [day, [...(tasks as any[])]])
+    Object.entries(schedule).map(([key, tasks]) => [key, [...(tasks as any[])]])
   );
   const activeScheduleDates = new Set(
     Object.values(schedule)
@@ -230,33 +240,25 @@ function mergeRecoveryTasks(schedule: Record<string, any[]>, previousPath: any, 
       .map((task: any) => task?.scheduled_date)
       .filter(Boolean)
   );
-  const recoverySources: Record<string, any[]> = { ...(previousPath.weekly_schedule || {}) };
-  (Array.isArray(previousPath.recovery_backlog) ? previousPath.recovery_backlog : []).forEach(
-    (task: any) => {
-      const day = task?.scheduled_day;
-      if (!day) return;
-      if (!recoverySources[day]) recoverySources[day] = [];
-      recoverySources[day].push(task);
-    }
-  );
-  Object.entries(recoverySources).forEach(([day, tasks]) => {
-    const recoveryTasks = (Array.isArray(tasks) ? tasks : []).filter((task: any) =>
-      String(task?.activity_key || '').startsWith('result:')
+  const recoveryTasks = [
+    ...collectActivities(previousPath.weekly_schedule || {}),
+    ...(Array.isArray(previousPath.recovery_backlog) ? previousPath.recovery_backlog : []),
+  ].filter((task: any) => String(task?.activity_key || '').startsWith('result:'));
+
+  recoveryTasks.forEach((task: any) => {
+    if (task?.scheduled_date && !activeScheduleDates.has(task.scheduled_date)) return;
+    const key = merged[task?.scheduled_date] ? task.scheduled_date : task?.scheduled_day;
+    if (!key || !merged[key]) return;
+    if (merged[key].some((item: any) => item.activity_key === task.activity_key)) return;
+    const capacity = Number(availability?.days?.[weekdayOfKey(key)] || 0);
+    const used = merged[key].reduce(
+      (total: number, item: any) => total + Number(item.estimated_time || 0),
+      0
     );
-    recoveryTasks.forEach((task: any) => {
-      if (task?.scheduled_date && !activeScheduleDates.has(task.scheduled_date)) return;
-      if (!merged[day] || merged[day].some((item: any) => item.activity_key === task.activity_key))
-        return;
-      const capacity = Number(availability?.days?.[day] || 0);
-      const used = merged[day].reduce(
-        (total: number, item: any) => total + Number(item.estimated_time || 0),
-        0
-      );
-      const minutes = Math.max(20, Math.min(60, Number(task.estimated_time || 30)));
-      if (merged[day].length < 3 && capacity > 0 && used + minutes <= capacity) {
-        merged[day].push({ ...task, estimated_time: minutes, is_optional: true });
-      }
-    });
+    const minutes = Math.max(20, Math.min(60, Number(task.estimated_time || 30)));
+    if (merged[key].length < 3 && capacity > 0 && used + minutes <= capacity) {
+      merged[key].push({ ...task, estimated_time: minutes, is_optional: true });
+    }
   });
   return merged;
 }
@@ -694,7 +696,8 @@ const handleRequest = async (req: Request) => {
       testDate: planningTestDate,
       targetBand: Number(profile.target_band_score || 7),
     };
-    const scheduleData = buildSevenDaySchedule({ ...scheduleInput, now: localToday });
+    const horizonDays = getPlanHorizonDays(planningTestDate, localToday);
+    const scheduleData = buildPlanSchedule({ ...scheduleInput, now: localToday, horizonDays });
     // Same evidence, but today is past the plan's first day: roll the week
     // forward instead of re-planning days the learner has already been shown.
     const previousStartDate = sameInputs ? getPlanStartDate(latestPath) : null;
@@ -719,18 +722,30 @@ const handleRequest = async (req: Request) => {
           .filter((activity: any) => activity.activity_key)
           .map((activity: any) => [activity.activity_key, activity.scheduled_date])
       );
+      const previousHorizonDays = getPlanLength(latestPath);
+      const freshStart = getRolledScheduleStart(
+        previousStartDate as string,
+        localToday,
+        previousHorizonDays
+      );
+      const daysBeforeFreshStart = Math.round(
+        (Date.parse(`${freshStart}T00:00:00Z`) - Date.parse(`${localToday}T00:00:00Z`)) / 86400000
+      );
       const rolled = rollScheduleForward({
         previousSchedule: latestPath.weekly_schedule,
         previousStartDate: previousStartDate as string,
-        freshSchedule: buildSevenDaySchedule({
+        freshSchedule: buildPlanSchedule({
           ...scheduleInput,
-          now: getRolledScheduleStart(previousStartDate as string, localToday),
+          now: freshStart,
+          horizonDays: Math.max(1, horizonDays - daysBeforeFreshStart),
         }).schedule,
         today: localToday,
         availability,
         activityDates,
+        horizonDays,
+        previousHorizonDays,
       });
-      keepsPreviousWeek = rolled.freshDates.length < 7;
+      keepsPreviousWeek = rolled.freshDates.length < horizonDays;
       const previousKeys = new Set<string>(
         collectActivities(latestPath.weekly_schedule || {}).map((task: any) => task.activity_key)
       );
@@ -748,16 +763,20 @@ const handleRequest = async (req: Request) => {
       );
     }
     const finalActivities = collectActivities(scheduleData.schedule);
-    scheduleData.weekly_planned_minutes = finalActivities.reduce(
-      (total: number, task: any) => total + task.estimated_time,
-      0
+    // Allocation figures are per week, so they count the first seven days only.
+    const firstWeekEnd = new Date(Date.parse(`${localToday}T00:00:00Z`) + WEEK_DAYS * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    const firstWeekActivities = finalActivities.filter(
+      (task: any) => !task.scheduled_date || task.scheduled_date < firstWeekEnd
     );
-    scheduleData.grammar_minutes = finalActivities
-      .filter((task: any) => task.module === 'grammar')
-      .reduce((total: number, task: any) => total + task.estimated_time, 0);
-    scheduleData.vocabulary_minutes = finalActivities
-      .filter((task: any) => task.module === 'vocabulary')
-      .reduce((total: number, task: any) => total + task.estimated_time, 0);
+    const minutesFor = (tasks: any[], module?: string) =>
+      tasks
+        .filter((task: any) => !module || task.module === module)
+        .reduce((total: number, task: any) => total + task.estimated_time, 0);
+    scheduleData.weekly_planned_minutes = minutesFor(firstWeekActivities);
+    scheduleData.grammar_minutes = minutesFor(firstWeekActivities, 'grammar');
+    scheduleData.vocabulary_minutes = minutesFor(firstWeekActivities, 'vocabulary');
     const checkpoint = checkpointFor(readiness, roadmap, finalActivities);
     const goalSnapshot = {
       target_band: Number(profile.target_band_score || 7),
@@ -805,6 +824,7 @@ const handleRequest = async (req: Request) => {
       input_fingerprint: fingerprint,
       generated_at: new Date().toISOString(),
       schedule_start_date: localToday,
+      plan_days: horizonDays,
       generation_trigger: effectiveTrigger,
       goal_snapshot: goalSnapshot,
       evidence_summary: evidence,

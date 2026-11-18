@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildPlanSchedule,
   buildSevenDaySchedule,
   getPlanEndDate,
   getPlanStartDate,
@@ -11,14 +12,13 @@ import {
   rollScheduleForward,
 } from '../../../supabase/functions/_shared/learningPathV2';
 import {
-  computeSevenDays,
+  computePlanDays,
   getPlanRefreshTrigger,
   getFriendlyPlanText,
   getTaskModeLabel,
   getTaskPurpose,
 } from '@/features/learning/components/dashboard/dashboardUtils';
-import WeekPlan from '@/features/learning/components/dashboard/WeekPlan';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import PlanCalendar from '@/features/learning/components/dashboard/PlanCalendar';
 
 const availability = normalizeStudyAvailability({
   timezone: 'Asia/Dhaka',
@@ -48,7 +48,7 @@ const schedule = (start) =>
 const tasksOf = (weekly) => Object.values(weekly).flat();
 const plan = (start, extra = {}) => ({
   version: 2,
-  generator_version: '2.4.4',
+  generator_version: '2.5.0',
   input_fingerprint: 'same',
   generated_at: `${start}T02:00:00Z`,
   schedule_start_date: start,
@@ -217,7 +217,7 @@ describe('week view against the plan window', () => {
   it('flags days past the plan end instead of treating them as rest days', () => {
     pinDhakaDay('2026-10-06');
     const saved = plan('2026-10-03', { weekly_schedule: schedule('2026-10-03') });
-    const days = computeSevenDays(saved, {}, availability);
+    const days = computePlanDays(saved, {}, availability);
 
     expect(days.map((day) => day.dateKey)).toEqual([
       '2026-10-06',
@@ -234,115 +234,209 @@ describe('week view against the plan window', () => {
 
   it('treats a current plan and legacy weekday plans as fully planned', () => {
     pinDhakaDay('2026-10-06');
-    const current = computeSevenDays(
+    const current = computePlanDays(
       plan('2026-10-06', { weekly_schedule: schedule('2026-10-06') }),
       {},
       availability
     );
     expect(current.every((day) => day.inPlan)).toBe(true);
-    expect(computeSevenDays({ weekly_schedule: {} }, {}, availability).every((d) => d.inPlan)).toBe(
+    expect(computePlanDays({ weekly_schedule: {} }, {}, availability).every((d) => d.inPlan)).toBe(
       true
     );
   });
 });
 
-describe('WeekPlan display', () => {
-  const day = (dateKey, capacity, tasks = [], inPlan = true) => ({
+describe('plan days for a longer plan', () => {
+  const pinDhakaDay = (day) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(`${day}T06:00:00Z`));
+  };
+  const longPlan = (start, planDays, testDate = null) => {
+    const built = buildPlanSchedule({
+      availability,
+      evidence,
+      readiness,
+      targetBand: 7,
+      now: start,
+      testDate,
+    });
+    return plan(start, { plan_days: built.horizon_days, weekly_schedule: built.schedule });
+  };
+
+  it('shows the whole 30-day plan, each planned day with its own tasks', () => {
+    pinDhakaDay('2026-10-06');
+    const days = computePlanDays(longPlan('2026-10-06', 30), {}, availability);
+    expect(days).toHaveLength(30);
+    expect(days.every((day) => day.inPlan)).toBe(true);
+    expect(days.filter((day) => day.tasks.length > 0).length).toBeGreaterThan(12);
+    days.forEach((day) =>
+      day.tasks.forEach((task) => expect(task.scheduled_date).toBe(day.dateKey))
+    );
+  });
+
+  it('stops at the exam: a 15-day plan shows the planned days, then exam day, then nothing', () => {
+    pinDhakaDay('2026-10-06');
+    const saved = longPlan('2026-10-06', 15, '2026-10-21');
+    const days = computePlanDays(saved, {}, availability, { examDate: '2026-10-21' });
+    expect(days).toHaveLength(16);
+    expect(days.at(-1)).toMatchObject({ dateKey: '2026-10-21', isExamDay: true, tasks: [] });
+    expect(days.slice(0, 15).every((day) => day.inPlan && !day.isExamDay)).toBe(true);
+  });
+
+  it('keeps a plan saved before 30-day plans at seven days', () => {
+    pinDhakaDay('2026-10-06');
+    const days = computePlanDays(
+      plan('2026-10-06', { weekly_schedule: schedule('2026-10-06') }),
+      {},
+      availability
+    );
+    expect(days).toHaveLength(7);
+  });
+
+  it('never shows fewer than a week for an unrolled plan, flagging days past its end', () => {
+    pinDhakaDay('2026-10-12');
+    const days = computePlanDays(
+      plan('2026-10-03', { weekly_schedule: schedule('2026-10-03') }),
+      {},
+      availability
+    );
+    expect(days).toHaveLength(7);
+    expect(days.map((day) => day.inPlan)).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+});
+
+describe('PlanCalendar display', () => {
+  const day = (dateKey, tasks = [], inPlan = true) => ({
     dateKey,
     date: new Date(`${dateKey}T12:00:00`),
-    capacity,
+    capacity: 60,
     inPlan,
     tasks,
   });
   const task = (key, extra = {}) => ({
+    id: `id-${key}`,
     activity_key: key,
     title: 'Matching Features repair',
     module: 'reading',
     estimated_time: 35,
-    priority: 'high',
-    completion_policy: 'verified',
+    scheduled_date: '2026-10-07',
     ...extra,
   });
-  const renderWeek = (days) =>
+  const history = (status, dateKey = '2026-10-05') => ({
+    dateKey,
+    status,
+    capacity: 60,
+    count: status === 'practised' ? 1 : 0,
+    minutes: status === 'practised' ? 30 : 0,
+    modules: status === 'practised' ? ['reading'] : [],
+    sessions: [],
+  });
+  const renderCalendar = (days, historyDays = [history('missed')], overrides = {}) =>
     render(
-      <TooltipProvider>
-        <WeekPlan
-          days={days}
-          canReschedule
-          expandedTask={null}
-          setExpandedTask={vi.fn()}
-          onToggle={vi.fn()}
-          onStart={vi.fn()}
-          onReschedule={vi.fn()}
-        />
-      </TooltipProvider>
+      <PlanCalendar
+        days={days}
+        historyDays={historyDays}
+        todayKey="2026-10-06"
+        selectedKey=""
+        canReschedule
+        onSelect={vi.fn()}
+        onReschedule={vi.fn()}
+        doneMinutes={0}
+        plannedMinutes={35}
+        completedCount={0}
+        taskCount={1}
+        {...overrides}
+      />
     );
 
-  it('names empty days for what they are and counts unplanned days separately', () => {
-    renderWeek([
-      day('2026-10-06', 0),
-      day('2026-10-07', 60, [task('a'), task('b', { is_optional: true, estimated_time: 25 })]),
-      day('2026-10-08', 0),
-      day('2026-10-09', 60),
-      day('2026-10-10', 60, [], false),
-      day('2026-10-11', 0, [], false),
-      day('2026-10-12', 60, [], false),
+  it('names empty days for what they are, apart from days not planned yet', () => {
+    renderCalendar([
+      day('2026-10-06'),
+      day('2026-10-07', [task('a')]),
+      day('2026-10-08', [], false),
     ]);
-
-    expect(screen.getByRole('button', { name: /Tuesday, Oct 6\. Rest day\./ })).toBeVisible();
-    expect(
-      screen.getByRole('button', { name: /Friday, Oct 9\. Nothing scheduled\./ })
-    ).toBeVisible();
-    expect(
-      screen.getByRole('button', { name: /Saturday, Oct 10\. Not planned yet\./ })
-    ).toBeVisible();
-    expect(screen.getByText('3 days are not planned yet.')).toBeVisible();
+    expect(screen.getAllByText('Rest day')).toHaveLength(1);
+    expect(screen.getAllByText('Not planned yet')).toHaveLength(1);
   });
 
-  it('lists main tasks first, extras under "If you have time", each with a plain reason', () => {
-    renderWeek([
-      day('2026-10-07', 60, [
-        task('b', {
-          is_optional: true,
-          estimated_time: 25,
-          module: 'listening',
-          title: 'Listening gap fill repair',
-          activity_type: 'targeted_repair',
-          evidence_key: 'recurring:listening:gap_fill',
-          evidence: { observations: 3 },
-        }),
-        task('a', {
-          activity_type: 'targeted_drill',
-          skill_targets: ['reading_matching_features'],
-        }),
-      ]),
+  it('lets only an unfinished saved task be dragged to another day', () => {
+    renderCalendar([
+      day('2026-10-06', [task('open')]),
+      day('2026-10-07', [task('done', { title: 'Done task', is_completed: true })]),
     ]);
-
-    const [main, extras] = screen.getAllByRole('list');
-    expect(within(main).getByText('Reading: Matching features practice')).toBeVisible();
-    expect(within(main).getByText('A weak Reading area')).toBeVisible();
-    expect(screen.getByText('If you have time')).toBeVisible();
-    expect(within(extras).getByText('Missed in 3 recent tests')).toBeVisible();
-    // Priority labels told students nothing (almost every task was "high").
-    expect(screen.queryByText(/priority/i)).toBeNull();
-    expect(screen.getByText('0/2')).toBeVisible();
+    expect(screen.getByRole('button', { name: /Matching Features/ })).toHaveAttribute(
+      'draggable',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: /Done/ })).toHaveAttribute('draggable', 'false');
   });
 
-  it('shows finished tasks as done, and the day as done once all are finished', () => {
-    renderWeek([
-      day('2026-10-07', 60, [task('a', { is_completed: true }), task('b', { is_completed: true })]),
-    ]);
-    expect(screen.getByRole('button', { name: /all done/ })).toBeVisible();
-    expect(screen.getAllByRole('img', { name: /: done$/ })).toHaveLength(2);
-    expect(screen.getByText('2/2')).toBeVisible();
+  it('shows finished tasks as done', () => {
+    renderCalendar([day('2026-10-06', [task('done', { is_completed: true })])]);
+    expect(screen.getByLabelText('Done')).toBeInTheDocument();
   });
 
-  it('explains an unplanned day instead of calling it a rest day', () => {
-    renderWeek([day('2026-10-10', 60, [], false), day('2026-10-11', 60, [task('a')])]);
-    // The strip opens on the next day with work, so pick the unplanned day.
-    fireEvent.click(screen.getByRole('button', { name: /Saturday, Oct 10\. Not planned yet\./ }));
-    expect(screen.getByText('Not planned yet. It is added when your plan renews.')).toBeVisible();
-    expect(screen.queryByText(/Rest day/)).toBeNull();
+  it('pages a long plan a week at a time, and ends it on exam day', () => {
+    const longDays = Array.from({ length: 16 }, (_, index) => {
+      const dateKey = `2026-10-${String(6 + index).padStart(2, '0')}`;
+      return {
+        ...day(
+          dateKey,
+          index === 9 ? [task('later', { title: 'Writing Task 2 Practice Mode' })] : []
+        ),
+        isExamDay: index === 15,
+      };
+    });
+    renderCalendar(longDays);
+    expect(screen.getByText('Week 1 of 3')).toBeVisible();
+    expect(screen.queryByText(/Writing Task 2/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(screen.getByText('Week 2 of 3')).toBeVisible();
+    expect(screen.getByText(/Writing Task 2/)).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
+    expect(screen.getByText('Exam day')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Next week' })).toBeDisabled();
+    expect(screen.getByText(/plan ends the day before your exam/)).toBeVisible();
+  });
+
+  it('shows the whole plan as a month, with sessions on their dates and a way to switch back', () => {
+    const planDays = Array.from({ length: 16 }, (_, index) => {
+      const dateKey = `2026-10-${String(6 + index).padStart(2, '0')}`;
+      return {
+        ...day(
+          dateKey,
+          index === 9 ? [task('later', { title: 'Writing Task 2 Practice Mode' })] : []
+        ),
+        isExamDay: index === 15,
+      };
+    });
+    renderCalendar(planDays);
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }));
+    expect(screen.getByText(/October 2026/)).toBeVisible();
+    expect(screen.getByText(/Writing Task 2/)).toBeVisible();
+    expect(screen.getByText('Exam')).toBeVisible();
+    expect(screen.getByText(/16-day plan|15-day plan/)).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Week' }));
+    expect(screen.getByText('Week 1 of 3')).toBeVisible();
+  });
+
+  it('shows a skipped study day in the last 7 days instead of dropping it', () => {
+    renderCalendar(
+      [day('2026-10-06')],
+      [history('missed', '2026-10-04'), history('practised', '2026-10-05')]
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Show last 7 days' }));
+    expect(screen.getByText('No practice')).toBeVisible();
+    expect(screen.getByText('Practised')).toBeVisible();
+    expect(screen.getByText(/1 practised · 1 skipped/)).toBeVisible();
   });
 });
 

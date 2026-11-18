@@ -77,7 +77,7 @@ const PLAN_OPTIONS = {
     name: 'Pro',
     icon: ReiconSparkle,
     includes: 'Everything in Free, plus',
-    extra: 'Adaptive AI Learning Path',
+    extra: 'Adaptive Study plan',
   },
   premium: {
     name: 'Premium',

@@ -27,7 +27,7 @@ describe('Learning Path Edge Function safeguards', () => {
     expect(adaptiveLearningRoute?.maxOutputTokens).toBeGreaterThan(0);
     expect(adaptiveLearningRoute?.maxOutputTokens).toBeLessThanOrEqual(512);
     expect(source).toContain("AI_ROUTES.find((route) => route.id === 'adaptive-learning-path')");
-    expect(source).toContain('buildSevenDaySchedule');
+    expect(source).toContain('buildPlanSchedule');
     expect(source).toContain('Never predict improvement');
     expect(source).toContain(
       'Never invent activities, keys, evidence, routes, scores, or capacity'

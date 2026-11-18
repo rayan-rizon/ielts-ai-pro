@@ -46,7 +46,7 @@ describe('GrammarGuidePage', () => {
     expect(screen.getByText('The rate fell between 2000 and 2010.')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Incorrect example' })).toHaveClass('text-rose-500');
     expect(screen.getByRole('img', { name: 'Correct example' })).toHaveClass('text-emerald-500');
-    expect(screen.getByRole('link', { name: 'AI Learning Path' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Study plan' })).toHaveAttribute(
       'href',
       '/learning-path'
     );

@@ -52,12 +52,12 @@ const faqs = [
     a: 'No. AI band scores are practice estimates designed to help you find patterns and choose what to improve next. Official IELTS results are issued only by authorized IELTS test providers and trained examiners.',
   },
   {
-    q: 'How is the AI learning path personalized?',
-    a: 'For eligible plans, the learning path uses completed practice, skill performance, target band, and study schedule to recommend focused activities. You can review progress in the analytics dashboard and continue directly into the suggested module.',
+    q: 'How is my study plan personalized?',
+    a: 'For eligible plans, your study plan uses completed practice, skill performance, target band, and study schedule to recommend focused activities. You can review progress in the analytics dashboard and continue directly into the suggested module.',
   },
   {
     q: 'Does IELTS Ai Pro cover all four IELTS skills?',
-    a: 'Yes. The app includes Reading, Listening, Writing, and Speaking practice, plus Cambridge test sets, vocabulary review, study resources, progress analytics, and an adaptive learning path for eligible plans.',
+    a: 'Yes. The app includes Reading, Listening, Writing, and Speaking practice, plus Cambridge test sets, vocabulary review, study resources, progress analytics, and an adaptive study plan for eligible plans.',
   },
 ];
 

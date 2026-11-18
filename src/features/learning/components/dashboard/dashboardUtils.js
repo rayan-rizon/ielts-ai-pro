@@ -167,12 +167,6 @@ export const ROADMAP_PRESENTATION = [
   },
 ];
 
-export const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
-  month: 'short',
-  day: 'numeric',
-});
-
 /**
  * @param {Date | string | number} [value]
  * @returns {string}
@@ -666,19 +660,6 @@ export function getFriendlyPlanText(text = '') {
   );
 }
 
-export function buildDashboardDays(days = []) {
-  return days.map((day) => {
-    const rawDate = String(day.date || '').slice(0, 10);
-    const dateObj = rawDate ? new Date(`${rawDate}T12:00:00`) : new Date();
-    return {
-      dateKey: rawDate,
-      date: dateObj,
-      capacity: Number(day.capacity || 0),
-      tasks: day.tasks || [],
-    };
-  });
-}
-
 export function computeEvidence(path, skillMap = {}) {
   const savedEvidence = path?.evidence_summary;
   if (!Object.hasOwn(skillMap, 'byModule') && savedEvidence && typeof savedEvidence === 'object')
@@ -707,22 +688,42 @@ const normalizeSkillEvidence = (skill) => ({
 });
 
 /**
- * The seven days from today, each with its tasks and saved study time.
+ * The plan from today: a week, or longer when the saved plan covers more.
  *
- * The view always starts today, but a dated plan covers the seven days from the
+ * The view always starts today, but a dated plan covers a fixed window from the
  * day it was made. A day past the plan's end is flagged `inPlan: false`, so an
  * empty one reads as "not planned yet" rather than as a rest day the learner
- * chose. Legacy weekday-only plans have no end and cover every day.
+ * chose. Legacy weekday-only plans have no end and cover every day. When the
+ * exam date is known the view ends on exam day, which is flagged `isExamDay`
+ * and never holds tasks: nothing is planned for a day that does not exist.
  */
-export function computeSevenDays(path, activityByKey = {}, availability = {}) {
+export function computePlanDays(path, activityByKey = {}, availability = {}, { examDate } = {}) {
   const schedule = path?.weekly_schedule || path?.schedule || path?.daily_schedule || {};
   const tasksBySchedule = groupTasksBySchedule(schedule, activityByKey);
-  const today = new Date(`${studyDateKey(new Date(), availability.timezone || 'UTC')}T12:00:00`);
+  const todayKey = studyDateKey(new Date(), availability.timezone || 'UTC');
+  const today = new Date(`${todayKey}T12:00:00`);
   const planWindow = getPlanWindow(path);
+  const length = getViewLength({ todayKey, planWindow, examDate });
 
-  return Array.from({ length: 7 }, (_, offset) =>
-    buildUpcomingDay({ today, offset, tasksBySchedule, availability, planWindow })
+  return Array.from({ length }, (_, offset) =>
+    buildUpcomingDay({ today, offset, tasksBySchedule, availability, planWindow, examDate })
   );
+}
+
+const DAY_MS = 86_400_000;
+const WEEK_LENGTH = 7;
+const MAX_VIEW_DAYS = 30;
+const daysBetweenKeys = (fromKey, toKey) =>
+  Math.round((Date.parse(`${toKey}T00:00:00Z`) - Date.parse(`${fromKey}T00:00:00Z`)) / DAY_MS);
+
+/** At least a week, up to the end of the plan, ending on exam day when it falls in or just after. */
+function getViewLength({ todayKey, planWindow, examDate }) {
+  const planDaysLeft = planWindow?.end ? daysBetweenKeys(todayKey, planWindow.end) + 1 : 0;
+  const length = Math.min(MAX_VIEW_DAYS, Math.max(WEEK_LENGTH, planDaysLeft));
+  if (!examDate) return length;
+  const daysToExam = daysBetweenKeys(todayKey, String(examDate).slice(0, 10));
+  // A plan ends the day before the exam, so exam day itself is shown after it.
+  return daysToExam >= 0 && daysToExam + 1 <= length + 1 ? daysToExam + 1 : length;
 }
 
 const getPlanWindow = (path) =>
@@ -731,18 +732,20 @@ const getPlanWindow = (path) =>
 const isInPlanWindow = (window, scheduledDate) =>
   !window?.start || (scheduledDate >= window.start && scheduledDate <= window.end);
 
-function buildUpcomingDay({ today, offset, tasksBySchedule, availability, planWindow }) {
+function buildUpcomingDay({ today, offset, tasksBySchedule, availability, planWindow, examDate }) {
   const date = new Date(today);
   date.setDate(date.getDate() + offset);
   const scheduledDate = dateKey(date);
   const dayName = STUDY_DAYS[(date.getDay() + 6) % 7];
+  const isExamDay = Boolean(examDate) && scheduledDate === String(examDate).slice(0, 10);
   return {
     dateKey: scheduledDate,
     date,
     dayName,
     capacity: Number(availability?.days?.[dayName] || 0),
     inPlan: isInPlanWindow(planWindow, scheduledDate),
-    tasks: getTasksForDay(tasksBySchedule, scheduledDate, dayName),
+    isExamDay,
+    tasks: isExamDay ? [] : getTasksForDay(tasksBySchedule, scheduledDate, dayName),
   };
 }
 
@@ -805,36 +808,6 @@ function groupTasksBySchedule(schedule, activityByKey) {
     .forEach((task) => addTaskToGroup(groups, task));
   return groups;
 }
-
-export function getDaySummaryMeta(day = {}, primaryTask = null) {
-  const tasks = Array.isArray(day.tasks) ? day.tasks : [];
-  const primary = primaryTask || tasks[0] || null;
-  const totalMinutes = getPlannedMinutes(tasks, primary);
-  const capacity = Number(day.capacity || 0);
-
-  if (!primary) {
-    return {
-      titleText: 'Rest day',
-      durationText: capacity ? `${formatMinutes(capacity)} available` : 'Recovery time',
-      overflow: false,
-      additionalTasks: 0,
-    };
-  }
-
-  return {
-    titleText: getFriendlyTaskTitle(primary),
-    durationText: `${formatMinutes(totalMinutes)} planned`,
-    overflow: capacity > 0 && totalMinutes > capacity,
-    additionalTasks: Math.max(0, tasks.length - 1),
-  };
-}
-
-const getTaskMinutes = (task) => Number(task?.estimated_time || task?.estimated_minutes || 0);
-
-const getPlannedMinutes = (tasks, primary) => {
-  const planned = tasks.reduce((total, task) => total + getTaskMinutes(task), 0);
-  return planned || getTaskMinutes(primary);
-};
 
 function isPhaseInProgress(index, actual, isLegacyPlan) {
   if (actual?.status === 'in_progress') return true;

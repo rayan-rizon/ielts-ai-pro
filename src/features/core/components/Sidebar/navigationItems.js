@@ -37,7 +37,7 @@ export const userNavigationItems = [
     ? [{ title: 'AI Coach', url: createPageUrl('AiCoach'), icon: MessageCircleMore }]
     : []),
   {
-    title: 'AI Learning Path',
+    title: 'Study plan',
     url: createPageUrl('LearningPath'),
     icon: Sparkles,
     tourKey: 'learning-path',

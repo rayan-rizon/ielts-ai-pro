@@ -15,13 +15,11 @@ import {
   buildRoadmapViewModel,
   computeDashboardSnapshot,
   computeEvidence,
-  computeSevenDays,
+  computePlanDays,
   getPathProgress,
   getPlanRefreshTrigger,
   rankBestNextTask,
 } from './dashboardUtils';
-
-export { computeSevenDays };
 
 export function useLearningPathDashboard({
   user,
@@ -39,7 +37,6 @@ export function useLearningPathDashboard({
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [savingGoals, setSavingGoals] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedTask, setExpandedTask] = useState(null);
   const automaticRequests = useRef(new Set());
   const recentReadiness = useMemo(
     () => aggregateReadiness(stats?.sessions || []),
@@ -81,10 +78,13 @@ export function useLearningPathDashboard({
 
   const snapshot = useMemo(() => computeDashboardSnapshot(path, user, stats), [path, user, stats]);
 
-  const sevenDays = useMemo(
-    () => computeSevenDays(path, activityByKey, availability),
-    [path, activityByKey, availability]
+  const planDays = useMemo(
+    () => computePlanDays(path, activityByKey, availability, { examDate: snapshot.examDate }),
+    [path, activityByKey, availability, snapshot.examDate]
   );
+  // The next seven days drive "what to do next" and the weekly figures, however
+  // long the plan is; the full plan is for the calendar.
+  const sevenDays = useMemo(() => planDays.slice(0, 7), [planDays]);
   const refreshTrigger = useMemo(
     () =>
       getPlanRefreshTrigger({
@@ -139,12 +139,10 @@ export function useLearningPathDashboard({
     hasTestEvidence,
   ]);
 
-  const today = sevenDays[0];
-
   const isLegacyPlan = path?.version === 1;
 
   // The stage view model is computed once here rather than inside the roadmap
-  // panel, because the hero prints the same stage and the same percentage. Two
+  // panel, because several cards print the same stage and the same percentage. Two
   // components deriving it separately is how they drifted apart before.
   const phases = useMemo(
     () =>
@@ -172,7 +170,7 @@ export function useLearningPathDashboard({
   );
 
   // An empty schedule is not an empty page: fall back to the highest-value
-  // unscheduled work so the hero's primary action is never a disabled button.
+  // unscheduled work so the page's primary action is never a disabled button.
   const fallbackTask = useMemo(
     () =>
       scheduledTask
@@ -185,25 +183,6 @@ export function useLearningPathDashboard({
     [scheduledTask, snapshot.readiness, evidence, snapshot.targetBand]
   );
   const primaryTask = scheduledTask || fallbackTask;
-
-  // The hero ranks the best task across the whole week, so on a rest day it was
-  // urging work the plan had deliberately not scheduled for today. Surface the
-  // mismatch instead of hiding it — the plan's own rest day should still hold.
-  const todayIsRestDay = Boolean(today && (today.tasks?.length ?? 0) === 0);
-  const primaryTaskIsToday = Boolean(scheduledTask && scheduledTask.dayIndex === 0);
-  const primaryTaskDayLabel =
-    scheduledTask && !primaryTaskIsToday && scheduledTask.day?.date
-      ? scheduledTask.day.date.toLocaleDateString(undefined, { weekday: 'long' })
-      : '';
-  const nextTasks = useMemo(
-    () =>
-      sevenDays
-        .flatMap((day) => day.tasks.map((task) => ({ ...task, day })))
-        .filter((task) => !task.is_completed)
-        .filter((task) => task.activity_key !== primaryTask?.activity_key)
-        .slice(0, 3),
-    [sevenDays, primaryTask?.activity_key]
-  );
 
   const startTask = (task) => {
     if (previewMode) {
@@ -315,8 +294,6 @@ export function useLearningPathDashboard({
     savingGoals,
     refreshing,
     planUpdateAvailable,
-    expandedTask,
-    setExpandedTask,
     goalDraft,
     setGoalDraft,
     path,
@@ -327,17 +304,13 @@ export function useLearningPathDashboard({
     examDate: snapshot.examDate,
     daysLeft: snapshot.daysLeft,
     examDatePassed: snapshot.examDatePassed,
+    availability,
     weeklyCapacity,
+    planDays,
     sevenDays,
-    today,
     phases,
     pathProgress,
     primaryTask,
-    isFallbackTask: Boolean(fallbackTask),
-    todayIsRestDay,
-    primaryTaskIsToday,
-    primaryTaskDayLabel,
-    nextTasks,
     startTask,
     toggleTask,
     rescheduleTask,

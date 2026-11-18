@@ -14,22 +14,6 @@ import {
 
 export { buildSkillTrendMap, formatSkillName };
 
-export const dayNames = [
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-  'sunday',
-];
-export const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-export function getTodayIndex() {
-  const day = new Date().getDay();
-  return day === 0 ? 6 : day - 1;
-}
-
 async function fetchLearningPathData(userId) {
   if (!userId) return null;
   const { data, error } = await supabase.rpc('get_learning_path_data');

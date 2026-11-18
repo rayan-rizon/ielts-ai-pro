@@ -157,9 +157,7 @@ describe('new learner product tour', () => {
     expect(screen.getByRole('heading', { name: 'Analytics' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Next/ }));
     expect(screen.getByLabelText('current route')).toHaveTextContent('/upgrade');
-    expect(
-      screen.getByRole('heading', { name: 'Preview your AI Learning Path' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Preview your Study plan' })).toBeInTheDocument();
   });
 
   it('opens the real Learning Path for paid learners', () => {
