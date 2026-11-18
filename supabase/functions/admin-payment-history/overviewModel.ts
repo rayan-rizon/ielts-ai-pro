@@ -1,5 +1,33 @@
-import type Stripe from 'npm:stripe@^14.14.0';
 import { fromStripeAmount } from '../_shared/planPricing.ts';
+
+// Only the Stripe fields this model reads. Real Stripe objects satisfy these
+// structurally, and the shapes need no `npm:stripe` import, so the root
+// `tsc --noEmit` (which has no Stripe package) can type-check this file.
+type StripePaymentIntent = { last_payment_error?: { message?: string; code?: string } | null };
+type StripeInvoice = {
+  id: string;
+  status: string | null;
+  amount_remaining: number;
+  currency: string;
+  attempt_count: number;
+  next_payment_attempt: number | null;
+  payment_intent: StripePaymentIntent | string | null;
+};
+type StripePrice = {
+  unit_amount: number | null;
+  currency: string;
+  recurring?: { interval?: string; interval_count?: number } | null;
+};
+export type StripeSubscription = {
+  id: string;
+  status: string;
+  currency: string;
+  cancel_at_period_end: boolean;
+  current_period_end?: number | null;
+  metadata?: Record<string, string> | null;
+  items: { data: Array<{ price?: StripePrice | null }> };
+  latest_invoice: StripeInvoice | string | null;
+};
 
 export type BillingUser = {
   id: string;
@@ -23,7 +51,7 @@ const learner = (user: BillingUser) => ({
 });
 export const ATTENTION_STATUSES = ['past_due', 'unpaid', 'incomplete', 'paused'];
 
-function invoiceDetails(invoice: Stripe.Invoice | string | null) {
+function invoiceDetails(invoice: StripeInvoice | string | null) {
   if (!invoice || typeof invoice === 'string') return null;
   const failure = invoiceFailure(invoice.payment_intent);
   return {
@@ -37,13 +65,13 @@ function invoiceDetails(invoice: Stripe.Invoice | string | null) {
   };
 }
 
-function invoiceFailure(intent: Stripe.Invoice['payment_intent']) {
+function invoiceFailure(intent: StripeInvoice['payment_intent']) {
   if (!intent || typeof intent === 'string') return null;
   const error = intent.last_payment_error;
   return error?.message || error?.code || null;
 }
 
-function subscriptionPrice(sub: Stripe.Subscription) {
+function subscriptionPrice(sub: StripeSubscription) {
   const price = sub.items.data[0]?.price;
   if (!price) return { amount: null, currency: sub.currency.toUpperCase(), interval: 'month' };
   const amount =
@@ -53,12 +81,12 @@ function subscriptionPrice(sub: Stripe.Subscription) {
   return { amount, currency: price.currency.toUpperCase(), interval };
 }
 
-function periodEnd(sub: Stripe.Subscription) {
+function periodEnd(sub: StripeSubscription) {
   const item = sub.items.data[0] as unknown as { current_period_end?: number };
   return iso(sub.current_period_end ?? item?.current_period_end);
 }
 
-export function subscriptionRow(user: BillingUser, sub: Stripe.Subscription) {
+export function subscriptionRow(user: BillingUser, sub: StripeSubscription) {
   return {
     ...learner(user),
     ...subscriptionPrice(sub),

@@ -154,7 +154,7 @@ describe('platform health database contracts', () => {
     expect(scheduledEmailsSource).toContain('isRetryableScheduledRun');
     expect(scheduledEmailsSource).toContain('retryTransientDatabaseOperation');
     expect(scheduledEmailsSource).toContain('buildScheduledEmailIdempotencyKey');
-    expect(resendSource).toContain("'Idempotency-Key': idempotencyKey");
+    expect(resendSource).toContain("'Idempotency-Key': requestIdempotencyKey");
   });
 
   it('reports a repaired scheduler as pending verification until its first real run', () => {

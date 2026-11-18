@@ -316,7 +316,7 @@ describe('server-rendered IELTS blog', () => {
     expect(response.body).toContain(
       '"citation":["https://ielts.org/take-a-test/test-types/ielts-academic-test"]'
     );
-    expect(response.body).toContain('"url":"https://www.ieltsai.pro/apple-touch-icon.png"');
+    expect(response.body).toContain('"logo":"https://www.ieltsai.pro/apple-touch-icon.png"');
     expect(response.body).toContain('"image":"https://www.ieltsai.pro/blog-images/');
     expect(response.body).toContain('Use evidence');
     expect(response.body).not.toContain('<script>alert(1)</script>');
