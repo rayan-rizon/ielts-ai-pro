@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  AlertCircle,
-  AlertTriangle,
   Ban,
-  Clock,
-  CreditCard,
   ExternalLink,
-  History,
   Info,
   Loader2,
   ReceiptText,
@@ -41,17 +36,16 @@ import {
   StatRail,
   Tip,
   TITLE,
-  WELL,
 } from '../ui/primitives';
 import RefundDialog from './RefundDialog';
 import {
   REFUND_STATUS_TONE,
+  UNUSED_PURCHASE_VERDICTS,
   endpointLabel,
   formatDate,
   formatDateTime,
   formatElapsed,
   formatMoney,
-  formatReason,
   getProviderUrl,
   providerLabel,
   refundStatusLabel,
@@ -91,189 +85,114 @@ const Fact = ({ label, children, isMono = false, className }) => (
   </div>
 );
 
-function EvidenceBlock({ evidence }) {
-  const usage = evidence.usage || {};
-  const meta = verdictMeta(evidence.verdict);
+const TONE_TEXT = {
+  ok: 'text-emerald-600 dark:text-emerald-400',
+  warn: 'text-amber-600 dark:text-amber-400',
+  fault: 'text-rose-600 dark:text-rose-400',
+  accent: 'text-indigo-600 dark:text-indigo-400',
+  neutral: 'text-stone-600 dark:text-stone-300',
+};
+const TONE_FILL = {
+  ok: 'bg-emerald-500',
+  warn: 'bg-amber-500',
+  fault: 'bg-rose-500',
+  accent: 'bg-indigo-500',
+  neutral: 'bg-stone-400 dark:bg-stone-500',
+};
+
+/** How far through the 7-day window a payment is, 0–1. */
+function windowProgress(evidence, now = Date.now()) {
+  const start = new Date(evidence.paidAt).getTime();
+  const end = new Date(evidence.windowEndsAt).getTime();
+  if (!start || !end || end <= start) return null;
+  return Math.min(1, Math.max(0, (now - start) / (end - start)));
+}
+
+function WindowMeter({ evidence, tone }) {
+  const progress = windowProgress(evidence);
+  if (progress === null) return null;
   const remaining = windowRemaining(evidence.windowEndsAt);
-  const endpoints = (usage.byEndpoint || []).filter((row) => row.delivered + row.notDelivered > 0);
-  const refundable = Number(evidence.refundableAmount || 0);
-
-  const VerdictIcon =
-    {
-      ok: ShieldCheck,
-      warn: AlertTriangle,
-      fault: Ban,
-      accent: ReceiptText,
-      neutral: Clock,
-    }[meta.tone] || Info;
-
   return (
-    <div className="space-y-3">
-      {/* Verdict Announcement Card */}
+    <div
+      role="img"
+      aria-label={remaining ? `${remaining} left in refund window` : 'Refund window closed'}
+      className="h-1 overflow-hidden rounded-full bg-stone-200/80 dark:bg-white/[0.08]"
+    >
       <div
         className={cn(
-          'flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border p-3',
-          meta.tone === 'ok' && 'border-emerald-500/30 bg-emerald-500/[0.05]',
-          meta.tone === 'warn' && 'border-amber-500/30 bg-amber-500/[0.05]',
-          meta.tone === 'fault' && 'border-rose-500/30 bg-rose-500/[0.05]',
-          meta.tone === 'accent' && 'border-indigo-500/30 bg-indigo-500/[0.05]',
-          meta.tone === 'neutral' &&
-            'border-stone-200 bg-stone-100/70 dark:border-white/10 dark:bg-white/[0.03]'
+          'h-full origin-left rounded-full transition-transform duration-300 ease-out',
+          remaining ? TONE_FILL[tone] : 'bg-stone-400 dark:bg-stone-500'
         )}
-      >
-        <div className="flex items-start gap-2.5 min-w-0">
-          <VerdictIcon
-            className={cn(
-              'h-4 w-4 shrink-0 mt-0.5',
-              meta.tone === 'ok' && 'text-emerald-600 dark:text-emerald-400',
-              meta.tone === 'warn' && 'text-amber-600 dark:text-amber-400',
-              meta.tone === 'fault' && 'text-rose-600 dark:text-rose-400',
-              meta.tone === 'accent' && 'text-indigo-600 dark:text-indigo-400',
-              meta.tone === 'neutral' && 'text-stone-500 dark:text-stone-400'
-            )}
-          />
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Pill tone={meta.tone}>{meta.label}</Pill>
-              <span className="text-xs font-bold text-stone-900 dark:text-stone-50">
-                {meta.title}
-              </span>
-            </div>
-            {meta.detail && (
-              <p className="mt-0.5 text-[11px] leading-relaxed text-stone-600 dark:text-stone-300">
-                {meta.detail}
-              </p>
-            )}
-          </div>
-        </div>
+        style={{ transform: `scaleX(${progress})` }}
+      />
+    </div>
+  );
+}
 
-        <div className="shrink-0 sm:text-right pl-6 sm:pl-0">
-          <span className={cn(MICRO, MUTED, 'block')}>Refund policy</span>
+function EvidenceBlock({ evidence, action }) {
+  const usage = evidence.usage || {};
+  const meta = verdictMeta(evidence.verdict);
+  const endpoints = (usage.byEndpoint || []).filter((row) => row.delivered + row.notDelivered > 0);
+  const remaining = windowRemaining(evidence.windowEndsAt);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
           <span
-            className={cn(
-              NUM,
-              'text-xs font-bold',
-              refundable > 0
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-stone-500 dark:text-stone-400'
-            )}
-          >
-            {refundable > 0 ? `$${refundable.toFixed(2)} refundable` : 'Non-refundable'}
-          </span>
+            aria-hidden="true"
+            className={cn('h-2 w-2 shrink-0 rounded-full', TONE_FILL[meta.tone])}
+          />
+          <p title={meta.detail} className={cn('truncate text-xs font-bold', TONE_TEXT[meta.tone])}>
+            {meta.title}
+          </p>
         </div>
+        {action}
       </div>
 
-      {/* Structured Evidence Clusters */}
-      <div className={cn(WELL, 'rounded-lg p-3 space-y-3')}>
-        {/* Tier 1: Window & Policy Facts */}
-        <div>
-          <span className={cn(MICRO, MUTED, 'block mb-2')}>Window & eligibility</span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            <Fact label="Activated" isMono>
-              {formatDateTime(evidence.paidAt)}
-            </Fact>
-            <Fact label="7-Day Window">
-              {remaining ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                  {remaining} remaining
-                </span>
-              ) : (
-                `Closed on ${formatDate(evidence.windowEndsAt)}`
-              )}
-            </Fact>
-            <Fact label="Order History">
-              {evidence.isFirstPurchase ? 'First purchase on account' : 'Repeat purchase'}
-            </Fact>
-          </div>
+      <WindowMeter evidence={evidence} tone={meta.tone} />
+
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-stone-600 dark:text-stone-300">
+        <span>
+          {remaining ? `${remaining} left` : `Window closed ${formatDate(evidence.windowEndsAt)}`}
+        </span>
+        <span aria-hidden="true" className="text-stone-300 dark:text-stone-600">
+          /
+        </span>
+        <span className={NUM}>{usage.learnerDelivered ?? 0} AI results</span>
+        <span aria-hidden="true" className="text-stone-300 dark:text-stone-600">
+          /
+        </span>
+        <span className={NUM}>{usage.testsStarted ?? 0} tests</span>
+      </p>
+
+      <details className="group text-[11px]">
+        <summary className="inline-flex cursor-pointer select-none list-none items-center gap-1 rounded-sm font-semibold text-[#5a63df] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-[#afb5ff]">
+          <span className="group-open:hidden">Details</span>
+          <span className="hidden group-open:inline">Hide details</span>
+        </summary>
+        <div className="mt-1.5 space-y-1 leading-relaxed text-stone-600 dark:text-stone-300">
+          {meta.detail && <p>{meta.detail}</p>}
+          <p>
+            {evidence.isFirstPurchase ? 'First purchase.' : 'Repeat purchase.'}{' '}
+            {usage.firstLearnerUseAt
+              ? `First AI use ${formatElapsed(usage.minutesToFirstUse)} after payment.`
+              : 'No AI use since payment.'}
+            {usage.learnerNotDelivered ? ` ${usage.learnerNotDelivered} results failed.` : ''} Skill
+            Lab {usage.skillLabSessions ?? 0}, sessions {usage.sessionsOpened ?? 0}, API cost $
+            {Number(usage.providerCostUsd || 0).toFixed(4)}.
+          </p>
+          {endpoints.length > 0 && (
+            <p>
+              Automated activity does not disqualify a refund:{' '}
+              {endpoints
+                .map((row) => `${endpointLabel(row.endpoint)} ×${row.delivered}`)
+                .join(', ')}
+              .
+            </p>
+          )}
         </div>
-
-        <div className="h-px bg-stone-200/70 dark:bg-white/[0.06]" />
-
-        {/* Tier 2: Learner Activity */}
-        <div>
-          <span className={cn(MICRO, MUTED, 'block mb-2')}>Activity since payment</span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <Fact label="AI results delivered" isMono>
-              {usage.learnerDelivered ?? 0}
-              {usage.learnerNotDelivered ? (
-                <span className="text-rose-500 font-normal ml-1">
-                  (+{usage.learnerNotDelivered} failed)
-                </span>
-              ) : (
-                ''
-              )}
-            </Fact>
-            <Fact label="First AI use">
-              {usage.firstLearnerUseAt
-                ? `+${formatElapsed(usage.minutesToFirstUse)} after payment`
-                : 'None'}
-            </Fact>
-            <Fact label="Tests started" isMono>
-              {usage.testsStarted ?? 0}
-            </Fact>
-            <Fact label="Skill Lab / Sessions" isMono>
-              {usage.skillLabSessions ?? 0} lab · {usage.sessionsOpened ?? 0} opened
-            </Fact>
-          </div>
-        </div>
-
-        <div className="h-px bg-stone-200/70 dark:bg-white/[0.06]" />
-
-        {/* Tier 3: AI Provider Cost */}
-        <div className="flex items-center justify-between text-[11px]">
-          <span className={cn(MICRO, MUTED)}>API cost incurred for this user</span>
-          <span className={cn(NUM, 'font-bold text-stone-800 dark:text-stone-100')}>
-            ${Number(usage.providerCostUsd || 0).toFixed(4)}
-          </span>
-        </div>
-      </div>
-
-      {/* Formatted Policy Rule Highlights */}
-      {evidence.reasons?.length > 0 && (
-        <div className="space-y-1.5">
-          {evidence.reasons.map((reason) => (
-            <div
-              key={reason}
-              className="flex items-start gap-2 rounded-md border border-stone-200/80 bg-stone-50/80 px-2.5 py-1.5 text-[11px] text-stone-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-stone-300"
-            >
-              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-stone-400 dark:text-stone-500" />
-              <span className="leading-snug">{formatReason(reason)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Feature endpoints list */}
-      {endpoints.length > 0 && (
-        <div className="pt-0.5">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className={cn(MICRO, MUTED)}>Background & automated activity</span>
-            <Tip content="Background refreshes and automated paths do not disqualify refund requests.">
-              <span className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 cursor-help">
-                <Info className="w-3 h-3" />
-              </span>
-            </Tip>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {endpoints.map((row) => (
-              <span
-                key={row.endpoint}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold',
-                  row.class === 'background' || row.class === 'session'
-                    ? 'border-stone-200 text-stone-500 dark:border-white/10 dark:text-stone-400 bg-stone-50 dark:bg-white/[0.02]'
-                    : 'border-stone-300 text-stone-700 dark:border-white/15 dark:text-stone-200 bg-white dark:bg-white/[0.05]'
-                )}
-              >
-                {endpointLabel(row.endpoint)}
-                <span className={cn(NUM, 'text-stone-400 dark:text-stone-500')}>
-                  ×{row.delivered}
-                </span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      </details>
 
       {!evidence.evidenceComplete && (
         <Notice tone="warn" title="Evidence is partial">
@@ -288,30 +207,40 @@ function EvidenceBlock({ evidence }) {
 function PaymentCard({ payment, onRefund }) {
   const evidence = payment.evidence;
   const canRefund = payment.status === 'approved' && Number(evidence?.refundableAmount) > 0;
+  const qualifies = evidence && UNUSED_PURCHASE_VERDICTS.has(evidence.verdict);
   const stripeUrl = getProviderUrl(payment.provider, payment.transactionId);
 
+  const refundAction = canRefund ? (
+    <AdminButton
+      size="sm"
+      variant={qualifies ? 'primary' : 'outline'}
+      onClick={() => onRefund(payment)}
+      className="shrink-0"
+    >
+      <ReceiptText className="h-3 w-3" />
+      {qualifies
+        ? `Refund ${formatMoney(evidence.refundableAmount, payment.currency)}`
+        : 'Refund anyway'}
+    </AdminButton>
+  ) : null;
+
   return (
-    <div className="space-y-3 px-3.5 py-3.5">
-      <div className="flex flex-wrap items-start justify-between gap-2.5">
+    <div className="space-y-2 px-3.5 py-3">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={cn(NUM, 'text-base font-extrabold text-stone-900 dark:text-stone-50')}>
+          <p className="flex flex-wrap items-baseline gap-x-2 text-stone-900 dark:text-stone-50">
+            <span className={cn(NUM, 'text-base font-extrabold')}>
               {formatMoney(payment.amount, payment.currency)}
             </span>
-            <Pill tone="neutral" className="capitalize text-[10px]">
-              {payment.tier}
-            </Pill>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-              {payment.interval}
+            <span className="text-xs font-semibold capitalize text-stone-600 dark:text-stone-300">
+              {payment.tier} {payment.interval}
             </span>
-          </div>
-
+          </p>
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500 dark:text-stone-400">
             <span className="font-semibold text-stone-700 dark:text-stone-300">
               {providerLabel(payment.provider)}
             </span>
-            <span>·</span>
-            <span className={cn(NUM, 'text-[10px] truncate max-w-[200px] sm:max-w-none')}>
+            <span className={cn(NUM, 'max-w-[190px] truncate text-[10px] sm:max-w-[320px]')}>
               {payment.transactionId}
             </span>
             {payment.transactionId && (
@@ -323,37 +252,28 @@ function PaymentCard({ payment, onRefund }) {
                   href={stripeUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center text-stone-400 hover:text-[#5a63df] dark:hover:text-[#afb5ff] transition-colors"
+                  aria-label="Open in Stripe Dashboard"
+                  className="inline-flex items-center rounded-sm text-stone-400 transition-colors hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:hover:text-[#afb5ff]"
                 >
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </Tip>
             )}
             {payment.senderPhone && payment.provider !== 'stripe' && (
-              <>
-                <span>·</span>
-                <span className={cn(NUM, 'text-[10px]')}>{payment.senderPhone}</span>
-              </>
+              <span className={cn(NUM, 'text-[10px]')}>{payment.senderPhone}</span>
             )}
           </div>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Pill tone={PAYMENT_STATUS_TONE[payment.status] || 'neutral'}>{payment.status}</Pill>
-          {canRefund && (
-            <AdminButton size="sm" variant="outline" onClick={() => onRefund(payment)}>
-              <ReceiptText className="h-3 w-3" />
-              Issue refund
-            </AdminButton>
-          )}
-        </div>
+        <Pill tone={PAYMENT_STATUS_TONE[payment.status] || 'neutral'} className="shrink-0">
+          {payment.status}
+        </Pill>
       </div>
 
       {evidence ? (
-        <EvidenceBlock evidence={evidence} />
+        <EvidenceBlock evidence={evidence} action={refundAction} />
       ) : (
         <p className={BODY}>
-          Submitted {formatDateTime(payment.submittedAt)}. Evidence is shown once a payment is
+          Submitted {formatDateTime(payment.submittedAt)}. Refund details appear once the payment is
           approved.
         </p>
       )}
@@ -707,9 +627,15 @@ export default function CustomerBillingSheet({ userId, open, onOpenChange, onCha
 
           {profile && (
             <>
-              {/* Plan Card */}
+              {/* Account summary */}
+              {subscription.paymentFailedAt && (
+                <Notice tone="fault" title="Last payment failed">
+                  Stripe could not charge this account on {formatDate(subscription.paymentFailedAt)}
+                  .
+                </Notice>
+              )}
               <Section
-                label="Plan & subscription"
+                label="Account"
                 action={
                   <AdminButton
                     size="sm"
@@ -721,70 +647,22 @@ export default function CustomerBillingSheet({ userId, open, onOpenChange, onCha
                   </AdminButton>
                 }
               >
-                <StatRail className="grid-cols-2 sm:grid-cols-4">
-                  <StatCell label="Subscription">
-                    <Pill
-                      tone={isPaid ? 'ok' : 'neutral'}
-                      className="text-xs px-2.5 py-0.5 font-bold"
-                    >
-                      {subscription.tier || 'Free'}
-                    </Pill>
-                  </StatCell>
-                  <StatCell
-                    label={subscription.cancelAtPeriodEnd ? 'Ends on' : 'Renews / ends'}
-                    value={isPaid ? formatDate(subscription.endDate) : '—'}
-                  />
-                  <StatCell label="First payment" value={formatDate(profile.facts?.firstPaidAt)} />
-                  <StatCell
-                    label="Refunds on record"
-                    value={profile.facts?.refundsSucceeded ?? 0}
-                    tip="Counted for the life of the account, even after the six-month record purge."
-                  />
-                </StatRail>
-
-                {/* Account metadata strip */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-stone-200/80 bg-stone-50/50 px-3.5 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.02]">
-                  <span className={cn(BODY, 'flex items-center gap-1.5 text-[11px]')}>
-                    <Clock className="h-3.5 w-3.5 text-stone-400" /> Joined{' '}
-                    {formatDate(profile.user?.createdAt)}
-                  </span>
-                  <span className={cn(BODY, 'flex items-center gap-1.5 text-[11px]')}>
-                    <History className="h-3.5 w-3.5 text-stone-400" /> Last active{' '}
-                    {formatDateTime(profile.user?.lastActive)}
-                  </span>
-                  {subscription.hasStripeSubscription && (
-                    <span className={cn(BODY, 'flex items-center gap-1.5 text-[11px]')}>
-                      <CreditCard className="h-3.5 w-3.5 text-stone-400" /> Stripe subscription
-                      {subscription.cancelAtPeriodEnd ? ' (cancelling)' : ''}
-                    </span>
-                  )}
-                  {subscription.paymentFailedAt && (
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-[rgb(var(--signal-fault))]">
-                      <AlertCircle className="h-3.5 w-3.5" /> Payment failed{' '}
-                      {formatDate(subscription.paymentFailedAt)}
-                    </span>
-                  )}
-                </div>
-
-                {/* Protected subscription management action */}
-                {isPaid && (
-                  <div className="flex items-center justify-between border-t border-stone-200/80 bg-stone-50/80 px-3.5 py-2 dark:border-white/[0.07] dark:bg-white/[0.03]">
-                    <span className={cn(BODY, 'text-[11px] text-stone-500 dark:text-stone-400')}>
-                      {confirmEnd
-                        ? 'Are you sure? This drops the learner to Free tier immediately.'
-                        : 'Administrative access control'}
-                    </span>
-                    <AdminButton
-                      size="sm"
-                      variant="destructive"
-                      onClick={endAccess}
-                      onBlur={() => setConfirmEnd(false)}
-                      loading={endingAccess}
-                    >
-                      {confirmEnd ? 'Confirm: Drop to free' : 'End paid access'}
-                    </AdminButton>
-                  </div>
-                )}
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 px-3.5 py-3 sm:grid-cols-3">
+                  <Fact label={subscription.cancelAtPeriodEnd ? 'Ends on' : 'Renews on'}>
+                    {isPaid ? formatDate(subscription.endDate) : 'Free plan'}
+                  </Fact>
+                  <Fact label="First paid">{formatDate(profile.facts?.firstPaidAt)}</Fact>
+                  <Fact label="Refunds so far" isMono>
+                    {profile.facts?.refundsSucceeded ?? 0}
+                  </Fact>
+                  <Fact label="Joined">{formatDate(profile.user?.createdAt)}</Fact>
+                  <Fact label="Last active">{formatDateTime(profile.user?.lastActive)}</Fact>
+                  <Fact label="Billing">
+                    {subscription.hasStripeSubscription
+                      ? `Stripe${subscription.cancelAtPeriodEnd ? ', cancelling' : ''}`
+                      : 'One-time'}
+                  </Fact>
+                </dl>
               </Section>
 
               {/* Payments Section */}
@@ -810,6 +688,28 @@ export default function CustomerBillingSheet({ userId, open, onOpenChange, onCha
 
               {/* AI Usage Section */}
               <UsageSection usage={profile.usage} />
+
+              {/* Account actions: destructive, so it sits last and asks twice */}
+              {isPaid && (
+                <Section label="Account actions">
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 py-3">
+                    <p className={cn(BODY, 'min-w-0 flex-1 basis-56 text-[11px]')}>
+                      {confirmEnd
+                        ? 'This moves the learner to the Free plan right away. Click again to confirm.'
+                        : 'Moves the learner to the Free plan right away. Does not refund any payment.'}
+                    </p>
+                    <AdminButton
+                      size="sm"
+                      variant="destructive"
+                      onClick={endAccess}
+                      onBlur={() => setConfirmEnd(false)}
+                      loading={endingAccess}
+                    >
+                      {confirmEnd ? 'Confirm: end access' : 'End paid access'}
+                    </AdminButton>
+                  </div>
+                </Section>
+              )}
 
               {/* Retention Footnote */}
               <div className="flex items-start gap-2 rounded-lg border border-stone-200/80 bg-stone-50/70 p-3 text-[11px] text-stone-500 dark:border-white/10 dark:bg-white/[0.02] dark:text-stone-400">
