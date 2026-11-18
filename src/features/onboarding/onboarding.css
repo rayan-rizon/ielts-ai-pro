@@ -171,17 +171,6 @@
   font-weight: 700;
   color: var(--ob-muted);
 }
-.onboarding-skip {
-  justify-self: end;
-  min-height: 44px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ob-muted);
-  transition: color 150ms;
-}
-.onboarding-skip:hover {
-  color: var(--ob-accent-text);
-}
 .onboarding-body {
   flex: 1;
   min-height: 0;
@@ -1585,7 +1574,7 @@
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @container onboarding (max-width: 740px) {
   .onboarding-header {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
     padding-inline: 20px;
   }
   .onboarding-progress {

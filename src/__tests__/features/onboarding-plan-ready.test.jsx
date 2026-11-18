@@ -5,10 +5,16 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { getSignupOffer } from '@/features/subscription/services/signupOffer';
 import CompleteStep from '@/features/onboarding/components/steps/CompleteStep';
 import { buildOnboardingPlanPreview } from '@/features/onboarding/components/steps/onboardingPlanPreview';
+import Onboarding from '@/features/onboarding/pages/Onboarding';
 import { loadPricingConfiguration } from '@/features/subscription/hooks/usePricing';
+
+vi.mock('@/features/auth/context/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'learner', onboarding_completed: false } }),
+}));
 
 vi.mock('@/features/subscription/hooks/usePricing', async (importOriginal) => ({
   ...(await importOriginal()),
@@ -206,14 +212,24 @@ describe('onboarding plan-ready experience', () => {
     expect(source).not.toContain("toast.success('Preferences saved!'");
   });
 
-  it('records how the onboarding gate was satisfied, not just that it was', () => {
+  it('starts the questionnaire without a skip option', () => {
+    render(
+      <MemoryRouter>
+        <Onboarding />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('progressbar', { name: 'Onboarding progress' })).toHaveAttribute(
+      'aria-valuenow',
+      '1'
+    );
+    expect(screen.queryByRole('button', { name: /skip/i })).not.toBeInTheDocument();
+  });
+
+  it('records questionnaire completion and the subsequent plan choice', () => {
     const source = readFileSync('src/features/onboarding/pages/Onboarding.jsx', 'utf8');
 
-    // The questionnaire and the skip button both flip the routing gate; only
-    // the outcome distinguishes real activation from a skip.
     expect(source).toContain("onboarding_outcome: 'answered'");
-    expect(source).toContain("onboarding_outcome: 'skipped'");
-    expect(source).toMatch(/onboarding_completed: true,\s*\n\s*onboarding_outcome: 'skipped',/);
     expect(source).toContain("trackAuthenticatedAppEvent('onboarding_plan_selected'");
     expect(source).toContain("trackAuthenticatedAppEvent('onboarding_free_continue'");
   });

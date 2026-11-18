@@ -255,27 +255,6 @@ export default function Onboarding() {
     navigate(`${createPageUrl('Pricing')}?${params.toString()}`);
   };
 
-  const skipOnboarding = async () => {
-    setIsLoading(true);
-    try {
-      await User.updateMyUserData({
-        onboarding_completed: true,
-        onboarding_outcome: 'skipped',
-      });
-      saveOnboardingCompletedLocally();
-      toast.info('Onboarding skipped', {
-        description: 'You can complete your profile later from the dashboard.',
-      });
-      navigate(createPageUrl('Dashboard'));
-    } catch (error) {
-      console.error('Skip onboarding error:', error);
-      toast.warning('Could not save preferences, but continuing...');
-      navigate(createPageUrl('Dashboard'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const canProceed = () => {
     const currentStepId = steps[currentStep]?.id;
     if (currentStepId === 'timeline') {
@@ -421,18 +400,6 @@ export default function Onboarding() {
               )}
             </span>
           </div>
-          {currentStep < steps.length - 1 ? (
-            <button
-              type="button"
-              onClick={skipOnboarding}
-              disabled={isLoading}
-              className="onboarding-skip"
-            >
-              Skip for now
-            </button>
-          ) : (
-            <span className="onboarding-skip-placeholder" />
-          )}
         </header>
 
         <div className="onboarding-body" ref={bodyRef}>
