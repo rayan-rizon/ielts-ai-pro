@@ -7,8 +7,12 @@ import { withLearningActivity } from '@/features/testing/shared/activityContext'
 // Access lock
 // ---------------------------------------------------------------------------
 
-export function computeWritingAccessLock(test, user, isAdmin) {
-  return !isAdmin && !hasContentAccess(user, test.access_tier);
+export function computeWritingAccessLock(test, user, isAdmin, hasSavedSession = false) {
+  return (
+    !isAdmin &&
+    !hasSavedSession &&
+    (test?.upgradeForAllowance || !hasContentAccess(user, test.access_tier))
+  );
 }
 
 // ---------------------------------------------------------------------------

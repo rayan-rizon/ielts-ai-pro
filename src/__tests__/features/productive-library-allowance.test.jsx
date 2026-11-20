@@ -6,6 +6,8 @@ import {
   markAllowanceUpgrade,
 } from '@/features/testing/shared/quota/useProductiveAllowance';
 import ProductiveAllowancePanel from '@/features/testing/shared/components/ProductiveAllowancePanel';
+import { WritingActions } from '@/features/testing/writing/WritingCardComponents';
+import { GridActions } from '@/features/testing/speaking/SpeakingCardComponents';
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }));
 
@@ -45,5 +47,49 @@ describe('Library evaluation and start allowances', () => {
       { id: 'free-speaking', upgradeForAllowance: true },
     ]);
     expect(markAllowanceUpgrade(tests, { usage, canUpgrade: false })).toBe(tests);
+  });
+
+  it('locks older Writing and Speaking tests after each configured Free library limit', () => {
+    const tests = [{ id: 'newest' }, { id: 'next' }, { id: 'older' }];
+    const allowance = {
+      usage: { blocked: false },
+      libraryLimit: 2,
+      canUpgrade: true,
+    };
+
+    expect(markAllowanceUpgrade(tests, allowance)).toEqual([
+      { id: 'newest', upgradeForAllowance: false },
+      { id: 'next', upgradeForAllowance: false },
+      { id: 'older', upgradeForAllowance: true },
+    ]);
+  });
+
+  it('marks all new tests for upgrade when monthly or daily usage is exhausted', () => {
+    const tests = [{ id: 'newest' }, { id: 'older' }];
+    const allowance = {
+      usage: { blocked: true },
+      libraryLimit: 1,
+      canUpgrade: true,
+    };
+
+    expect(markAllowanceUpgrade(tests, allowance).map((test) => test.upgradeForAllowance)).toEqual([
+      true,
+      true,
+    ]);
+  });
+
+  it.each([
+    ['Writing', WritingActions],
+    ['Speaking', GridActions],
+  ])('renders the Unlock with Pro action on a locked %s card', (_skill, Actions) => {
+    render(
+      <MemoryRouter>
+        <Actions test={{ id: 'locked-test', upgradeForAllowance: true }} isLocked />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole('link', { name: 'Unlock with Pro' })).toHaveAttribute(
+      'href',
+      '/pricing?plan=pro'
+    );
   });
 });

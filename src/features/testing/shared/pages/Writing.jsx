@@ -45,7 +45,8 @@ export default function Writing() {
     wordLimits,
   } = useWritingData(userData, authLoading);
 
-  const filteredTests = filterWritingTests(passages, sessions, activeTab, debouncedSearchQuery);
+  const libraryTests = markAllowanceUpgrade(passages, allowance);
+  const filteredTests = filterWritingTests(libraryTests, sessions, activeTab, debouncedSearchQuery);
 
   return (
     <>
@@ -79,7 +80,7 @@ export default function Writing() {
             <WritingSkeletonGrid />
           ) : (
             <WritingTestsGrid
-              filteredTests={markAllowanceUpgrade(filteredTests, allowance)}
+              filteredTests={filteredTests}
               sessions={sessions}
               testCounts={testCounts}
               durations={durations}

@@ -45,7 +45,13 @@ export default function Speaking() {
     durations,
   } = useSpeakingPageData(userData, authLoading);
 
-  const filteredTests = filterSpeakingTests(passages, sessions, activeTab, debouncedSearchQuery);
+  const libraryTests = markAllowanceUpgrade(passages, allowance);
+  const filteredTests = filterSpeakingTests(
+    libraryTests,
+    sessions,
+    activeTab,
+    debouncedSearchQuery
+  );
 
   return (
     <>
@@ -79,7 +85,7 @@ export default function Speaking() {
             <SpeakingSkeletonGrid />
           ) : (
             <SpeakingTestsGrid
-              filteredTests={markAllowanceUpgrade(filteredTests, allowance)}
+              filteredTests={filteredTests}
               sessions={sessions}
               testCounts={testCounts}
               questionCounts={questionCounts}

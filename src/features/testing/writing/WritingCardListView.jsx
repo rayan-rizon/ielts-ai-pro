@@ -20,9 +20,9 @@ function getTestName(test) {
 
 function resolveTestState(test, sessions, userData, isAdmin) {
   const testSession = sessions.find((s) => s.passage_id === test.id);
-  const isLocked = computeWritingAccessLock(test, userData, isAdmin);
   const isCompleted = !!testSession?.is_completed;
   const isResuming = !!testSession && !isCompleted;
+  const isLocked = computeWritingAccessLock(test, userData, isAdmin, Boolean(testSession));
   const feedbackReady =
     testSession?.evaluation_status === 'legacy' ||
     testSession?.evaluation_status === 'complete' ||

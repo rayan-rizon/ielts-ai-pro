@@ -52,7 +52,7 @@ function buildWritingCardProps({
     completedRecord?.evaluation_status === 'complete' ||
     hasValidAiFeedback(completedRecord?.content_data);
 
-  const isLocked = computeWritingAccessLock(test, user, isAdmin);
+  const isLocked = computeWritingAccessLock(test, user, isAdmin, Boolean(completedRecord));
   const progress = computeWritingProgressFull(activeSession, test);
   const displayTitle = buildWritingDisplayTitle(test);
   const Icon = resolveWritingIcon(test);

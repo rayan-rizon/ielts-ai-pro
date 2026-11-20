@@ -29,8 +29,7 @@ export function GridStatusBadge({ test, isLocked, isResuming, isCompleted, needs
   if (isLocked) {
     return (
       <Pill tone="warn">
-        <Lock className="h-3 w-3" />{' '}
-        {test?.upgradeForAllowance ? 'Limit reached' : speakingPlanLabel(test)}
+        <Lock className="h-3 w-3" /> {speakingPlanLabel(test)}
       </Pill>
     );
   }
