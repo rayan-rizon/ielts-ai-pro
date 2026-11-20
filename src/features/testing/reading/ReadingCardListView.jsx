@@ -9,14 +9,7 @@ import {
   resolveReadingLinkConfig,
 } from './readingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './ReadingCardComponents';
-import {
-  IconChip,
-  MUTED,
-  PANEL,
-  TILE,
-  TITLE,
-  WELL,
-} from '@/features/dashboard/components/primitives';
+import { MUTED, PANEL, TILE, TITLE, WELL } from '@/features/dashboard/components/primitives';
 
 function getTestName(test) {
   const num = test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || '1';
@@ -25,14 +18,15 @@ function getTestName(test) {
 
 function resolveTestState(test, sessions, userData, isAdmin) {
   const testSession = sessions.find((s) => s.passage_id === test.id);
-  const isLocked = computeReadingAccessLock(test, userData, isAdmin);
+  const startLocked = computeReadingAccessLock(test, userData, isAdmin);
   const isCompleted = !!testSession?.is_completed;
   const isResuming = !!testSession && !isCompleted;
-  return { testSession, isLocked, isCompleted, isResuming };
+  const isLocked = startLocked && !testSession;
+  return { testSession, isLocked, startLocked, isCompleted, isResuming };
 }
 
 function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
-  const { testSession, isLocked, isCompleted, isResuming } = resolveTestState(
+  const { testSession, isLocked, startLocked, isCompleted, isResuming } = resolveTestState(
     test,
     sessions,
     userData,
@@ -68,6 +62,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
         </ContainerLink>
 
         <TestRowBadge
+          test={test}
           isLocked={isLocked}
           isCompleted={isCompleted}
           isResuming={isResuming}
@@ -78,6 +73,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
 
       <div className="flex shrink-0 items-center gap-1.5">
         <TestRowAction
+          startLocked={startLocked}
           isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
@@ -86,7 +82,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
         />
       </div>
 
-      <TakeWithFriend test={test} type="reading" isLocked={isLocked} compact />
+      <TakeWithFriend test={test} type="reading" isLocked={startLocked} compact />
     </div>
   );
 }
@@ -96,7 +92,6 @@ export default function ReadingCardListView({
   sessions,
   userData,
   isAdmin,
-  hasMounted,
   questionCounts,
 }) {
   return (

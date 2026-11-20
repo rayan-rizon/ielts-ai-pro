@@ -19,7 +19,6 @@ export default function WritingCardView(props) {
     Icon,
     ContainerLink,
     linkProps,
-    hasMounted,
     takenCount,
     duration,
     wordLimit,
@@ -40,13 +39,14 @@ export default function WritingCardView(props) {
         <div className="mb-3 flex items-start justify-between">
           <IconChip icon={Icon} tone="accent" size="md" />
           <WritingStatusBadge
+            test={test}
             isLocked={isLocked}
             isResuming={isResuming}
             isCompleted={isCompleted}
           />
         </div>
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <ContainerLink {...linkProps} className="block">
             <h3
               className={cn(
@@ -62,7 +62,7 @@ export default function WritingCardView(props) {
           </p>
         </div>
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <WritingMetaBar
             duration={duration}
             wordLimit={wordLimit}

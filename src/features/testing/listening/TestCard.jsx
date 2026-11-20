@@ -25,12 +25,12 @@ function TestCard({
   duration,
   user,
   isAdmin,
-  hasMounted,
 }) {
   const isResuming = !!session && !session.is_completed;
   const isCompleted = !!completedSession && completedSession.is_completed;
 
-  const isLocked = computeAccessLock(test, user, isAdmin);
+  const startLocked = computeAccessLock(test, user, isAdmin);
+  const isLocked = startLocked && !isResuming && !isCompleted;
   const progress = computeProgress(session, test, questionCount);
   const displayTitle = buildDisplayTitle(test);
   const Icon = resolveIcon(test);
@@ -49,13 +49,14 @@ function TestCard({
         <div className="mb-3 flex items-start justify-between">
           <IconChip icon={Icon} tone="accent" size="md" />
           <TestCardStatusBadge
+            test={test}
             isLocked={isLocked}
             isResuming={isResuming}
             isCompleted={isCompleted}
           />
         </div>
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <ContainerLink {...linkProps} className="block">
             <h3
               className={cn(
@@ -76,7 +77,7 @@ function TestCard({
           </p>
         </div>
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <TestCardMetaBar
             duration={duration}
             questionCount={questionCount}
@@ -91,6 +92,7 @@ function TestCard({
 
       <div className="mt-auto border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
         <TestCardActions
+          startLocked={startLocked}
           isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
@@ -99,20 +101,21 @@ function TestCard({
           completedSession={completedSession}
         />
       </div>
-      <TakeWithFriend test={test} type="listening" isLocked={isLocked} />
+      <TakeWithFriend test={test} type="listening" isLocked={startLocked} />
     </div>
   );
 }
 
 export const MemoizedTestCard = memo(TestCard, (prev, next) => {
   return (
-    prev.test.id === next.test.id &&
+    prev.test === next.test &&
     prev.session?.id === next.session?.id &&
     prev.completedSession?.id === next.completedSession?.id &&
     prev.takenCount === next.takenCount &&
     prev.questionCount === next.questionCount &&
     prev.duration === next.duration &&
     prev.user?.subscription_tier === next.user?.subscription_tier &&
+    prev.user?.subscription_end_date === next.user?.subscription_end_date &&
     prev.isAdmin === next.isAdmin &&
     prev.hasMounted === next.hasMounted
   );

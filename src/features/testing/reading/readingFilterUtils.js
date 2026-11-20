@@ -4,6 +4,7 @@
 
 const TAB_MATCHERS = {
   all: () => true,
+  starter: (test) => test.free_starter,
   'in-progress': (test, sessions) =>
     sessions.some((s) => s.passage_id === test.id && !s.is_completed),
   cambridge: (test) => !!test.is_official_cambridge,

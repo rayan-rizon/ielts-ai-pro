@@ -8,18 +8,23 @@ import { IconChip, MUTED, PANEL, TITLE } from '@/features/dashboard/components/p
 // Grid-view card for Reading tests
 // ---------------------------------------------------------------------------
 
-function GridCardHeader({ Icon, isLocked, isResuming, isCompleted }) {
+function GridCardHeader({ Icon, isLocked, isResuming, isCompleted, test }) {
   return (
     <div className="mb-3 flex items-start justify-between">
       <IconChip icon={Icon} tone="accent" size="md" />
-      <GridStatusBadge isLocked={isLocked} isResuming={isResuming} isCompleted={isCompleted} />
+      <GridStatusBadge
+        test={test}
+        isLocked={isLocked}
+        isResuming={isResuming}
+        isCompleted={isCompleted}
+      />
     </div>
   );
 }
 
-function GridCardTitleBody({ isLocked, displayTitle, test, ContainerLink, linkProps }) {
+function GridCardTitleBody({ displayTitle, test, ContainerLink, linkProps }) {
   return (
-    <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+    <div className="mb-3">
       <ContainerLink {...linkProps} className="block">
         <h3
           className={cn(
@@ -46,6 +51,7 @@ export default function ReadingCardGridView(props) {
   const {
     test,
     isLocked,
+    startLocked,
     isResuming,
     isCompleted,
     progress,
@@ -53,7 +59,6 @@ export default function ReadingCardGridView(props) {
     Icon,
     ContainerLink,
     linkProps,
-    hasMounted,
     takenCount,
     questionCount,
     duration,
@@ -72,19 +77,19 @@ export default function ReadingCardGridView(props) {
       <div className="flex flex-1 flex-col">
         <GridCardHeader
           Icon={Icon}
+          test={test}
           isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
         />
         <GridCardTitleBody
-          isLocked={isLocked}
           displayTitle={displayTitle}
           test={test}
           ContainerLink={ContainerLink}
           linkProps={linkProps}
         />
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <GridMetaBar
             duration={duration}
             questionCount={questionCount}
@@ -99,6 +104,7 @@ export default function ReadingCardGridView(props) {
 
       <div className="mt-auto border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
         <GridActions
+          startLocked={startLocked}
           isLocked={isLocked}
           isResuming={isResuming}
           isCompleted={isCompleted}
@@ -107,7 +113,7 @@ export default function ReadingCardGridView(props) {
           completedSession={completedSession}
         />
       </div>
-      <TakeWithFriend test={test} type="reading" isLocked={isLocked} />
+      <TakeWithFriend test={test} type="reading" isLocked={startLocked} />
     </div>
   );
 }

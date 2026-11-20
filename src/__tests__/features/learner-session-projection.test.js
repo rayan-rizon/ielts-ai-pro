@@ -1,15 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { from, rpc } = vi.hoisted(() => ({ from: vi.fn(), rpc: vi.fn() }));
 vi.mock('@/lib/supabase', () => ({ supabase: { from, rpc } }));
-vi.mock('@/features/testing/shared/services/objectiveTests', () => ({
-  serverScoringEnabled: () => true,
-}));
 vi.mock('@/features/testing/shared/services/practiceExposure', () => ({
   markPartlyPractised: async (rows) => rows,
 }));
 import { fetchReadingData } from '@/features/testing/reading/readingDataService';
 import { fetchListeningData } from '@/features/testing/listening/listeningDataService';
 import {
+  computeReadingAccessLock,
   computeReadingProgress,
   buildReadingLinkTarget,
 } from '@/features/testing/reading/readingCardHelpers';
@@ -58,6 +56,50 @@ describe('Learner latest-session cards', () => {
       '/reading-test/session'
     );
   });
+  it.each([
+    ['reading', fetchReadingData],
+    ['listening', fetchListeningData],
+  ])('%s limits the newest free filter before pagination', async (type, fetch) => {
+    const query = from();
+    query.range.mockResolvedValueOnce({ data: [{ id: 'recent' }], count: 48 });
+    const result = await fetch({ id: 'learner' }, { starterOnly: true, freeLimit: 6 });
+    expect(query.eq).toHaveBeenCalledWith('test_type', type);
+    expect(query.eq).toHaveBeenCalledWith('access_tier', 'free');
+    expect(query.range).toHaveBeenCalledWith(0, 5);
+    expect(result.passages).toEqual([{ id: 'recent', free_starter: true }]);
+    expect(result.totalCount).toBe(6);
+  });
+
+  it.each([
+    ['reading', fetchReadingData],
+    ['listening', fetchListeningData],
+  ])('%s marks older papers as locked in the full catalogue', async (_type, fetch) => {
+    const query = from();
+    query.range
+      .mockResolvedValueOnce({
+        data: [
+          { id: 'recent', access_tier: 'free' },
+          { id: 'older', access_tier: 'free' },
+        ],
+        count: 2,
+      })
+      .mockResolvedValueOnce({ data: [{ id: 'recent' }] });
+
+    const { passages } = await fetch({ id: 'learner' }, { freeLimit: 1 });
+    expect(query.range).toHaveBeenNthCalledWith(2, 0, 0);
+    expect(passages.map((paper) => paper.free_starter)).toEqual([true, false]);
+    expect(computeReadingAccessLock(passages[1], { subscription_tier: 'free' })).toBe(true);
+    expect(computeReadingAccessLock(passages[1], { subscription_tier: 'pro' })).toBe(false);
+  });
+
+  it('surfaces other catalogue errors without dropping the starter-set requirement', async () => {
+    const query = from();
+    const error = { code: '42501', message: 'permission denied for library_passages' };
+    query.range.mockResolvedValueOnce({ error });
+    await expect(fetchReadingData({ id: 'learner' })).rejects.toEqual(error);
+    expect(query.select).toHaveBeenCalledTimes(1);
+  });
+
   it('surfaces failed session reads rather than incorrectly showing all tests as unattempted', async () => {
     rpc.mockImplementation(async (name) =>
       name === 'get_test_taken_counts' ? { data: [] } : { error: new Error('network') }

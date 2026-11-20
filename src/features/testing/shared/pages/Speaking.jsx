@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { LayoutGrid, Award, Clock } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
+import {
+  markAllowanceUpgrade,
+  useProductiveAllowance,
+} from '@/features/testing/shared/quota/useProductiveAllowance';
 import DocumentHead from '@/components/shared/DocumentHead';
 
 import SpeakingHeader from '@/features/testing/speaking/SpeakingHeader';
@@ -18,6 +22,7 @@ const TABS_CONFIG = [
 export default function Speaking() {
   const { userProfile: userData, isAdmin, loading: authLoading } = useAuth();
 
+  const allowance = useProductiveAllowance('speaking', userData, isAdmin);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid');
@@ -60,6 +65,7 @@ export default function Speaking() {
 
         <div className="relative z-10 mx-auto max-w-[1600px] space-y-4">
           <SpeakingHeader
+            allowance={allowance}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             activeTab={activeTab}
@@ -73,7 +79,7 @@ export default function Speaking() {
             <SpeakingSkeletonGrid />
           ) : (
             <SpeakingTestsGrid
-              filteredTests={filteredTests}
+              filteredTests={markAllowanceUpgrade(filteredTests, allowance)}
               sessions={sessions}
               testCounts={testCounts}
               questionCounts={questionCounts}

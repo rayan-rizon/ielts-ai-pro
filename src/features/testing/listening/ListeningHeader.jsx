@@ -1,12 +1,14 @@
+import { ObjectiveQuotaStrip } from '../shared/components/ObjectiveQuotaControls';
 import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { Award, Clock, LayoutGrid, List, Search, Sparkles } from 'lucide-react';
+import { Award, BookOpen, Clock, LayoutGrid, List, Search, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { MUTED, Pill, TILE } from '@/features/dashboard/components/primitives';
 
 const TABS = [
   { id: 'all', label: 'All Tests', icon: LayoutGrid },
+  { id: 'starter', label: 'Newest Free Tests', icon: BookOpen },
   { id: 'cambridge', label: 'Cambridge', icon: Award },
   { id: 'in-progress', label: 'In Progress', icon: Clock },
 ];
@@ -15,6 +17,7 @@ function ListeningControls({
   searchQuery,
   onSearchChange,
   activeTab,
+  showStarterTab,
   onTabChange,
   viewMode,
   onViewModeChange,
@@ -37,7 +40,7 @@ function ListeningControls({
       </div>
 
       <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
-        {TABS.map((tab) => {
+        {TABS.filter((tab) => showStarterTab || tab.id !== 'starter').map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
           return (
@@ -124,32 +127,37 @@ export default function ListeningHeader({
   searchQuery,
   onSearchChange,
   activeTab,
+  showStarterTab,
   onTabChange,
   viewMode,
   onViewModeChange,
 }) {
   return (
     <header className="mb-1 flex flex-col gap-3 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">
-      <div className="max-w-2xl">
-        <Pill tone="accent">
-          <Sparkles className="h-3 w-3" />
-          Audio hub
-        </Pill>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-          Listening Library
-        </h1>
-        <p className={cn('mt-1 text-sm font-medium', MUTED)}>
-          Improve your listening skills with authentic, Cambridge-style curated audio tests.
-        </p>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <Pill tone="sky">Official Cambridge content</Pill>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+        <div className="min-w-0 max-w-2xl">
+          <Pill tone="accent">
+            <Sparkles className="h-3 w-3" />
+            Audio hub
+          </Pill>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Listening Library
+          </h1>
+          <p className={cn('mt-1 text-sm font-medium', MUTED)}>
+            Improve your listening skills with authentic, Cambridge-style curated audio tests.
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <Pill tone="sky">Official Cambridge content</Pill>
+          </div>
         </div>
+        <ObjectiveQuotaStrip testType="listening" starterSetsAvailable={showStarterTab} />
       </div>
 
       <ListeningControls
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         activeTab={activeTab}
+        showStarterTab={showStarterTab}
         onTabChange={onTabChange}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}

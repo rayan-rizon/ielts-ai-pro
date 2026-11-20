@@ -1,27 +1,10 @@
 import { supabase } from '@/lib/supabase';
-import { serverScoringEnabled } from '../shared/services/objectiveTests';
 import { markPartlyPractised } from '../shared/services/practiceExposure';
+import { fetchObjectiveCatalogue } from '../shared/services/objectiveCatalogue';
 
 // ---------------------------------------------------------------------------
 // Supabase query helpers
 // ---------------------------------------------------------------------------
-
-async function fetchPassages(page, pageSize) {
-  const offset = (page - 1) * pageSize;
-  const { data, count, error } = await supabase
-    .from(serverScoringEnabled() ? 'library_passages' : 'passages')
-    .select(
-      'id, title, is_official_cambridge, cambridge_year, cambridge_test_number, test_type, test_format, is_active, total_questions, created_at',
-      { count: 'exact' }
-    )
-    .eq('test_type', 'reading')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + pageSize - 1);
-
-  if (error) console.error('Error fetching reading passages:', error);
-  return { data: data || [], totalCount: count || 0 };
-}
 
 async function fetchUserSessions(user, passageIds) {
   if (!user || passageIds.length === 0) return [];
@@ -131,9 +114,12 @@ function mergeSessions(existingSessions, sessionsByPassage) {
  * Returns a merged snapshot that can be passed back as `existingData` for
  * subsequent "load more" calls.
  */
-export async function fetchReadingData(user, page = 1, pageSize = 32, existingData = null) {
+export async function fetchReadingData(
+  user,
+  { page = 1, pageSize = 32, existingData = null, starterOnly = false, freeLimit = -1 } = {}
+) {
   const [{ data: testsData, totalCount }, takenCountsData] = await Promise.all([
-    fetchPassages(page, pageSize),
+    fetchObjectiveCatalogue('reading', { page, pageSize, starterOnly, freeLimit }),
     fetchTakenCounts(),
   ]);
 

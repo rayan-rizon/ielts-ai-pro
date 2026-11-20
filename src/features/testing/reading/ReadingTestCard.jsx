@@ -32,7 +32,8 @@ function buildCardProps(config) {
   } = config;
   const isResuming = !!session && !session.is_completed;
   const isCompleted = !!completedSession && completedSession.is_completed;
-  const isLocked = computeReadingAccessLock(test, user, isAdmin);
+  const startLocked = computeReadingAccessLock(test, user, isAdmin);
+  const isLocked = startLocked && !isResuming && !isCompleted;
   const progress = computeReadingProgress(session, test, questionCount);
   const displayTitle = buildReadingDisplayTitle(test);
   const Icon = resolveReadingIcon(test);
@@ -48,6 +49,7 @@ function buildCardProps(config) {
   return {
     test,
     isLocked,
+    startLocked,
     isResuming,
     isCompleted,
     progress,
@@ -101,13 +103,19 @@ function arePropsEqual(prev, next) {
   if (keys.some((key) => prev[key] !== next[key])) return false;
 
   // Compare nested/optional properties
-  const testIdMatch = prev.test.id === next.test.id;
+  const testMatch = prev.test === next.test;
   const sessionIdMatch = getSessionId(prev.session) === getSessionId(next.session);
   const compSessionIdMatch =
     getSessionId(prev.completedSession) === getSessionId(next.completedSession);
   const tierMatch = getUserTier(prev.user) === getUserTier(next.user);
 
-  return testIdMatch && sessionIdMatch && compSessionIdMatch && tierMatch;
+  return (
+    testMatch &&
+    sessionIdMatch &&
+    compSessionIdMatch &&
+    tierMatch &&
+    prev.user?.subscription_end_date === next.user?.subscription_end_date
+  );
 }
 
 export const MemoizedTestCard = memo(TestCard, arePropsEqual);

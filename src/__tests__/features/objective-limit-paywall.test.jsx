@@ -149,21 +149,29 @@ describe('library allowance strip and start note', () => {
   it('shows how many free tests are left', () => {
     mocks.quotaData = { reading: status(5, 2) };
     renderInRouter(<ObjectiveQuotaStrip testType="reading" />);
-    expect(screen.getByText('3 free Reading tests left')).toBeInTheDocument();
+    expect(screen.getByText('Free Reading tests')).toBeInTheDocument();
+    expect(screen.getByText('3 starts left on the newest 5 tests')).toBeInTheDocument();
     expect(screen.getByText('2 of 5 used')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /go unlimited/i })).toBeInTheDocument();
+  });
+
+  it('shows the upgrade message when the admin sets zero free tests', () => {
+    mocks.quotaData = { reading: status(0, 0) };
+    renderInRouter(<ObjectiveQuotaStrip testType="reading" starterSetsAvailable={false} />);
+    expect(screen.getByText('Reading tests need Pro')).toBeInTheDocument();
+    expect(screen.queryByText('Free Reading tests')).not.toBeInTheDocument();
   });
 
   it('calls out the last free test', () => {
     mocks.quotaData = { reading: status(5, 4) };
     renderInRouter(<ObjectiveQuotaStrip testType="reading" />);
-    expect(screen.getByText('Last free Reading test')).toBeInTheDocument();
+    expect(screen.getByText('1 start left on the newest 5 tests')).toBeInTheDocument();
   });
 
   it('turns into an upgrade prompt that opens the paywall when the total is used', () => {
     mocks.quotaData = { listening: status(3, 3) };
     renderInRouter(<ObjectiveQuotaStrip testType="listening" />);
-    expect(screen.getByText('Free Listening tests used')).toBeInTheDocument();
+    expect(screen.getByText('No starts left. You can still resume a test.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /go unlimited/i })).toHaveAttribute(
       'aria-haspopup',
       'dialog'

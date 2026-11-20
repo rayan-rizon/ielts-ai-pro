@@ -1,3 +1,4 @@
+import ProductiveAllowancePanel from '../shared/components/ProductiveAllowancePanel';
 import React from 'react';
 import { m } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -116,6 +117,7 @@ function SpeakingControls({
 }
 
 export default function SpeakingHeader({
+  allowance,
   searchQuery,
   onSearchChange,
   activeTab,
@@ -126,20 +128,23 @@ export default function SpeakingHeader({
 }) {
   return (
     <header className="mb-1 flex flex-col gap-3 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">
-      <div className="max-w-2xl">
-        <Pill tone="accent">
-          <Sparkles className="h-3 w-3" />
-          Interaction hub
-        </Pill>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-          Speaking Library
-        </h1>
-        <p className={cn('mt-1 text-sm font-medium', MUTED)}>
-          Build speaking confidence with real-world scenarios and instant AI-driven feedback.
-        </p>
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          <Pill tone="sky">Official Cambridge content</Pill>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+        <div className="min-w-0 max-w-2xl">
+          <Pill tone="accent">
+            <Sparkles className="h-3 w-3" />
+            Interaction hub
+          </Pill>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Speaking Library
+          </h1>
+          <p className={cn('mt-1 text-sm font-medium', MUTED)}>
+            Build speaking confidence with real-world scenarios and instant AI-driven feedback.
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <Pill tone="sky">Official Cambridge content</Pill>
+          </div>
         </div>
+        <ProductiveAllowancePanel skill="speaking" allowance={allowance} />
       </div>
 
       {tabs && (

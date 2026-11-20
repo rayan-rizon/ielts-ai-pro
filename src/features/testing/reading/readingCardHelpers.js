@@ -1,19 +1,12 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, BookOpen } from 'lucide-react';
-import { createPageUrl } from '@/utils';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
 // Pure derived-value helpers used by the Reading TestCard components
 // ---------------------------------------------------------------------------
 
-export function computeReadingAccessLock(test, user, isAdmin) {
-  if (isAdmin) return false;
-  const tier = user?.subscription_tier?.toLowerCase();
-  if (tier === 'pro' || tier === 'premium') return false;
-  const isFreeTest = !test.access_tier || test.access_tier === 'free';
-  return !isFreeTest;
-}
+export { isObjectiveTestLocked as computeReadingAccessLock } from '../shared/quota/objectiveAccess';
 
 export function computeReadingProgress(session, test, questionCount) {
   if (!session?.id) return 0;
@@ -55,8 +48,8 @@ export function buildReadingLinkTarget({
 export function resolveReadingLinkConfig(isLocked, linkTo) {
   if (isLocked) {
     return {
-      ContainerLink: 'div',
-      linkProps: { onClick: () => (window.location.href = createPageUrl('Pricing')) },
+      ContainerLink: 'span',
+      linkProps: {},
     };
   }
   return { ContainerLink: Link, linkProps: { to: linkTo } };

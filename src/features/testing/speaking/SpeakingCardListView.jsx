@@ -7,14 +7,7 @@ import {
   resolveSpeakingLinkConfig,
 } from './speakingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './SpeakingCardComponents';
-import {
-  IconChip,
-  MUTED,
-  PANEL,
-  TILE,
-  TITLE,
-  WELL,
-} from '@/features/dashboard/components/primitives';
+import { MUTED, PANEL, TILE, TITLE, WELL } from '@/features/dashboard/components/primitives';
 
 function getTestName(test) {
   const num = test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || '1';
@@ -23,8 +16,9 @@ function getTestName(test) {
 
 function resolveTestState(test, sessions, userData, isAdmin) {
   const testSession = sessions.find((s) => s.passage_id === test.id);
-  const isLocked = computeSpeakingAccessLock(test, userData, isAdmin);
   const { isCompleted, isResuming, needsRestart } = resolveSpeakingAttemptState(testSession);
+  const isLocked =
+    !isResuming && !isCompleted && computeSpeakingAccessLock(test, userData, isAdmin);
   return { testSession, isLocked, isCompleted, isResuming, needsRestart };
 }
 
@@ -74,6 +68,7 @@ function BookTestRow({ test, sessions, userData, isAdmin }) {
           isResuming={isResuming}
           isCompleted={isCompleted}
           testSession={testSession}
+          needsRestart={needsRestart}
           test={test}
         />
       </div>
@@ -81,7 +76,7 @@ function BookTestRow({ test, sessions, userData, isAdmin }) {
   );
 }
 
-export default function SpeakingCardListView({ group, sessions, userData, isAdmin, hasMounted }) {
+export default function SpeakingCardListView({ group, sessions, userData, isAdmin }) {
   return (
     <div
       className={cn(

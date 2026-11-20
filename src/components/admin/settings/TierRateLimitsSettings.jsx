@@ -378,7 +378,7 @@ const TierBody = ({
                 </div>
                 <div className="space-y-1">
                   <CompactTestLimitInput
-                    label="Free tests"
+                    label="Newest free tests"
                     value={getVal('reading_test_limit') ?? -1}
                     onChange={(v) => onValueChange('reading_test_limit', v)}
                   />
@@ -398,7 +398,7 @@ const TierBody = ({
                 </div>
                 <div className="space-y-1">
                   <CompactTestLimitInput
-                    label="Free tests"
+                    label="Newest free tests"
                     value={getVal('listening_test_limit') ?? -1}
                     onChange={(v) => onValueChange('listening_test_limit', v)}
                   />

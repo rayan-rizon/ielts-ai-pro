@@ -1,3 +1,4 @@
+import ObjectiveUpgradeLink from '../shared/components/ObjectiveUpgradeLink';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/cn';
@@ -9,10 +10,8 @@ import {
   CheckCircle2,
   Users,
   Lock,
-  Crown,
   ChevronRight,
 } from 'lucide-react';
-import { createPageUrl } from '@/utils';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
 import {
@@ -25,11 +24,11 @@ import { useQuotaLock } from '@/features/testing/shared/quota/useObjectiveTestQu
 // Grid Sub-components
 // ---------------------------------------------------------------------------
 
-export function GridStatusBadge({ isLocked, isResuming, isCompleted }) {
+export function GridStatusBadge({ isLocked, isResuming, isCompleted, test }) {
   if (isLocked) {
     return (
       <Pill tone="warn">
-        <Lock className="h-3 w-3" /> Members only
+        <Lock className="h-3 w-3" /> {test?.access_tier === 'premium' ? 'Premium' : 'Pro'}
       </Pill>
     );
   }
@@ -51,6 +50,7 @@ export function GridStatusBadge({ isLocked, isResuming, isCompleted }) {
       </Pill>
     );
   }
+  if (test?.free_starter) return <Pill tone="accent">Free Starter</Pill>;
   return <Pill tone="neutral">New Test</Pill>;
 }
 
@@ -134,6 +134,7 @@ const OUTLINE_ICON_BTN = cn(
 
 export function GridActions({
   isLocked,
+  startLocked,
   isResuming,
   isCompleted,
   test,
@@ -142,16 +143,7 @@ export function GridActions({
 }) {
   const quotaLock = useQuotaLock('reading');
   if (isLocked) {
-    return (
-      <Link to={createPageUrl('Pricing')} className="block">
-        <button
-          type="button"
-          className={cn(PRIMARY_BTN, 'w-full bg-amber-500 text-white hover:bg-amber-600')}
-        >
-          <Crown className="h-4 w-4" /> Upgrade to Access
-        </button>
-      </Link>
-    );
+    return <ObjectiveUpgradeLink test={test} />;
   }
   if (isResuming) {
     return (
@@ -168,6 +160,7 @@ export function GridActions({
           test={test}
           path="/reading-test"
           quotaLock={quotaLock}
+          startLocked={startLocked}
           buttonClass={OUTLINE_ICON_BTN}
           iconClass="h-4 w-4"
         />
@@ -197,6 +190,7 @@ export function GridActions({
           test={test}
           path="/reading-test"
           quotaLock={quotaLock}
+          startLocked={startLocked}
           buttonClass={OUTLINE_ICON_BTN}
           iconClass="h-4 w-4"
         />
@@ -258,7 +252,7 @@ export function BookProgressBadge({ tests, sessions }) {
   return <Pill tone="neutral">0/{tests.length} Completed</Pill>;
 }
 
-export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, score }) {
+export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, score, test }) {
   if (isLocked) {
     return <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />;
   }
@@ -290,7 +284,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, scor
     <span
       className={cn(MICRO, MUTED, 'shrink-0 rounded bg-slate-100 px-1.5 py-0.5 dark:bg-white/5')}
     >
-      New
+      {test?.free_starter ? 'Free Starter' : 'New'}
     </span>
   );
 }
@@ -302,22 +296,17 @@ const ROW_ICON_BTN = cn(
   'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:text-[#5a63df] hover:border-[#5a63df]/35 active:scale-[0.98] dark:text-slate-400 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
-export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, test }) {
+export function TestRowAction({
+  isLocked,
+  startLocked,
+  isResuming,
+  isCompleted,
+  testSession,
+  test,
+}) {
   const quotaLock = useQuotaLock('reading');
   if (isLocked) {
-    return (
-      <>
-        <Link to={createPageUrl('Pricing')}>
-          <button
-            type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-amber-500 text-white hover:bg-amber-600')}
-          >
-            <Crown className="h-3 w-3" /> Upgrade
-          </button>
-        </Link>
-        <div className="h-8 w-8 shrink-0" />
-      </>
-    );
+    return <ObjectiveUpgradeLink test={test} compact />;
   }
   if (isResuming) {
     return (
@@ -334,6 +323,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
           test={test}
           path="/reading-test"
           quotaLock={quotaLock}
+          startLocked={startLocked}
           buttonClass={ROW_ICON_BTN}
           iconClass="h-3.5 w-3.5"
         />
@@ -358,6 +348,7 @@ export function TestRowAction({ isLocked, isResuming, isCompleted, testSession, 
           test={test}
           path="/reading-test"
           quotaLock={quotaLock}
+          startLocked={startLocked}
           buttonClass={ROW_ICON_BTN}
           iconClass="h-3.5 w-3.5"
         />

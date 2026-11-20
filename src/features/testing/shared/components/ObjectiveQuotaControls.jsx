@@ -1,14 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Lock, RotateCcw, Ticket } from 'lucide-react';
-import {
-  IconChip,
-  MICRO,
-  MUTED,
-  NUM,
-  PANEL,
-  TITLE,
-} from '@/features/dashboard/components/primitives';
+import { ArrowRight, Lock, RotateCcw } from 'lucide-react';
+import { MICRO, MUTED, NUM } from '@/features/dashboard/components/primitives';
+import LibraryUsagePanel from './LibraryUsagePanel';
 import { cn } from '@/lib/cn';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 import ObjectiveLimitPaywall, { AllowanceGauge } from './ObjectiveLimitPaywall';
@@ -64,48 +58,51 @@ function StripAction({ exhausted, onOpen }) {
   );
 }
 
+function starterSetAllowance(quota, label) {
+  const remaining = quota.remaining;
+  return {
+    title: `Free ${label} tests`,
+    detail: quota.exhausted
+      ? 'No starts left. You can still resume a test.'
+      : `${remaining} ${remaining === 1 ? 'start' : 'starts'} left on the newest ${quota.limit} tests`,
+    tone: remaining <= 1 ? 'warn' : 'accent',
+  };
+}
+
 /**
  * The allowance, stated where the learner chooses a test. Silent for anyone who
  * is not limited, so paid learners and Free plans without a cap see nothing.
  */
-export function ObjectiveQuotaStrip({ testType }) {
+export function ObjectiveQuotaStrip({ testType, starterSetsAvailable = true }) {
   const quota = useObjectiveTestQuota(testType);
   const openPaywall = useQuotaPaywallStore((state) => state.openPaywall);
   if (!quota.limited) return null;
 
   const label = TEST_TYPE_LABEL[testType];
-  const { title, detail, tone } = describeAllowance(quota, label);
+  const { title, detail, tone } = starterSetsAvailable
+    ? starterSetAllowance(quota, label)
+    : describeAllowance(quota, label);
 
   return (
-    <section
-      aria-label={`Free ${label} tests`}
-      className={cn(
-        PANEL,
-        'flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-5 sm:px-4',
-        quota.exhausted && 'border-[rgb(var(--signal-warn)/0.35)]'
-      )}
+    <LibraryUsagePanel
+      label={`Free ${label} tests`}
+      title={title}
+      detail={detail}
+      blocked={quota.exhausted}
+      tone={tone === 'warn' ? 'amber' : 'accent'}
+      action={<StripAction exhausted={quota.exhausted} onOpen={() => openPaywall(testType)} />}
     >
-      <div className="flex min-w-0 items-center gap-2.5 sm:w-[260px] sm:shrink-0">
-        <IconChip
-          icon={quota.exhausted ? Lock : Ticket}
-          tone={tone === 'warn' ? 'amber' : 'accent'}
-          size="md"
-        />
-        <div className="min-w-0">
-          <p className={cn(TITLE, 'truncate')}>{title}</p>
-          <p className={cn(MICRO, MUTED, 'mt-1 normal-case tracking-normal')}>{detail}</p>
-        </div>
-      </div>
-
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <AllowanceGauge quota={quota} tone={tone} />
-        {quota.limit > 0 && (
+      {quota.limit > 0 && (
+        <div className="flex items-center gap-2.5">
+          <AllowanceGauge
+            quota={quota}
+            tone={tone}
+            className="min-w-0 flex-1 [&>span]:min-w-0 [&>span]:flex-1"
+          />
           <span className={cn(MICRO, NUM, MUTED, 'shrink-0')}>{describeUsage(quota)} used</span>
-        )}
-      </div>
-
-      <StripAction exhausted={quota.exhausted} onOpen={() => openPaywall(testType)} />
-    </section>
+        </div>
+      )}
+    </LibraryUsagePanel>
   );
 }
 
@@ -159,7 +156,8 @@ export function ObjectiveLimitDialog({ testType }) {
 }
 
 /** Restart icon that opens the paywall instead of a test that cannot start. */
-export function RetakeLink({ test, path, quotaLock, buttonClass, iconClass }) {
+export function RetakeLink({ test, path, quotaLock, buttonClass, iconClass, startLocked }) {
+  if (startLocked) return null;
   const locked = quotaLock.locked;
   return (
     <Link

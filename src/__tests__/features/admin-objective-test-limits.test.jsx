@@ -45,10 +45,10 @@ describe('admin objective test limits', () => {
     expect(free.getByText('Reading & Listening free tests')).toBeTruthy();
     expect(free.getByText(/for the life of the account/)).toBeTruthy();
     expect(free.queryByLabelText('Daily free tests')).toBeNull();
-    const [readingLimit, listeningLimit] = free.getAllByLabelText('Free tests limit');
+    const [readingLimit, listeningLimit] = free.getAllByLabelText('Newest free tests limit');
     expect(readingLimit.disabled).toBe(true);
     expect(listeningLimit.disabled).toBe(true);
-    fireEvent.click(free.getAllByLabelText('Free tests unlimited')[0]);
+    fireEvent.click(free.getAllByLabelText('Newest free tests unlimited')[0]);
     fireEvent.change(readingLimit, { target: { value: '5' } });
     fireEvent.click(free.getByRole('button', { name: /^save$/i }));
     await waitFor(() =>
@@ -67,6 +67,6 @@ describe('admin objective test limits', () => {
 
     const proCard = screen.getByText('pro tier').closest('.overflow-hidden');
     expect(within(proCard).getAllByText('Unlimited test starts')).toHaveLength(2);
-    expect(within(proCard).queryByLabelText('Free tests limit')).toBeNull();
+    expect(within(proCard).queryByLabelText('Newest free tests limit')).toBeNull();
   });
 });

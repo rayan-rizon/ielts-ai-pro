@@ -1,5 +1,5 @@
 import { GraduationCap, Mic } from 'lucide-react';
-import { createPageUrl } from '@/utils';
+import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
@@ -20,13 +20,7 @@ export function resolveSpeakingIcon(test) {
 }
 
 export function computeSpeakingAccessLock(test, user, isAdmin) {
-  const tier = (user?.subscription_tier || 'free').toLowerCase();
-  const hasPremiumAccess = tier === 'pro' || tier === 'premium' || isAdmin;
-
-  if (test.access_tier && test.access_tier !== 'free') {
-    return !hasPremiumAccess;
-  }
-  return false;
+  return !isAdmin && (test.upgradeForAllowance || !hasContentAccess(user, test.access_tier));
 }
 
 export function resolveSpeakingAttemptState(session, now = Date.now()) {
@@ -61,8 +55,8 @@ export function resolveSpeakingLinkConfig(
 
   if (isLocked) {
     return {
-      ContainerLink: 'div',
-      linkProps: { onClick: () => (window.location.href = createPageUrl('Pricing')) },
+      ContainerLink: 'span',
+      linkProps: {},
     };
   }
 

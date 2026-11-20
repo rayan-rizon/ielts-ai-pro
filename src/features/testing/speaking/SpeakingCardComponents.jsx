@@ -10,10 +10,9 @@ import {
   ArrowRight,
   RotateCcw,
   ChevronRight,
-  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { createPageUrl } from '@/utils';
+import ObjectiveUpgradeLink from '../shared/components/ObjectiveUpgradeLink';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 import { resolveSpeakingAttemptState } from './speakingCardHelpers';
 import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
@@ -22,11 +21,16 @@ import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/compone
 // Grid Sub-components
 // ---------------------------------------------------------------------------
 
-export function GridStatusBadge({ isLocked, isResuming, isCompleted, needsRestart }) {
+function speakingPlanLabel(test) {
+  return test?.access_tier === 'premium' ? 'Premium' : 'Pro';
+}
+
+export function GridStatusBadge({ test, isLocked, isResuming, isCompleted, needsRestart }) {
   if (isLocked) {
     return (
       <Pill tone="warn">
-        <Lock className="h-3 w-3" /> Members only
+        <Lock className="h-3 w-3" />{' '}
+        {test?.upgradeForAllowance ? 'Limit reached' : speakingPlanLabel(test)}
       </Pill>
     );
   }
@@ -55,6 +59,46 @@ export function GridStatusBadge({ isLocked, isResuming, isCompleted, needsRestar
   return <Pill tone="neutral">Not started</Pill>;
 }
 
+function displaySpeakingScore(value) {
+  if (value == null || value === '') return null;
+  // Keep imported string projections as displayed in the grid.
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return { grid: typeof value === 'number' ? numeric.toFixed(1) : value, row: numeric.toFixed(1) };
+}
+
+function SpeakingGridProgress({ progress }) {
+  return (
+    <div className="space-y-1.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+      <div className="flex items-center justify-between">
+        <span className={cn(MICRO, MUTED)}>Completion</span>
+        <span className={cn(NUM, 'text-xs font-bold text-[#5a63df] dark:text-[#a9afff]')}>
+          {progress}%
+        </span>
+      </div>
+      <Bar value={progress} />
+    </div>
+  );
+}
+
+function SpeakingGridScore({ value }) {
+  const score = displaySpeakingScore(value);
+  if (!score) return <p className={cn(MICRO, MUTED)}>Score not available</p>;
+  return (
+    <div className="border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+      <div className="flex items-center justify-between">
+        <span className={cn(MICRO, MUTED)}>Your score</span>
+        <div className="flex items-baseline gap-1.5">
+          <span className={cn(NUM, 'text-xl font-extrabold text-slate-900 dark:text-slate-50')}>
+            {score.grid}
+          </span>
+          <span className={cn(MICRO, MUTED)}>/ 9.0</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function GridMetaBar({
   duration,
   takenCount,
@@ -63,12 +107,6 @@ export function GridMetaBar({
   displayScore,
   progress,
 }) {
-  const hasScore =
-    isCompleted &&
-    displayScore != null &&
-    Number.isFinite(Number(displayScore)) &&
-    displayScore !== '';
-
   return (
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -90,32 +128,8 @@ export function GridMetaBar({
         )}
       </div>
 
-      {isResuming && (
-        <div className="space-y-1.5 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
-          <div className="flex items-center justify-between">
-            <span className={cn(MICRO, MUTED)}>Completion</span>
-            <span className={cn(NUM, 'text-xs font-bold text-[#5a63df] dark:text-[#a9afff]')}>
-              {progress}%
-            </span>
-          </div>
-          <Bar value={progress} />
-        </div>
-      )}
-
-      {isCompleted && !hasScore && <p className={cn(MICRO, MUTED)}>Score not available</p>}
-      {hasScore && (
-        <div className="border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
-          <div className="flex items-center justify-between">
-            <span className={cn(MICRO, MUTED)}>Your score</span>
-            <div className="flex items-baseline gap-1.5">
-              <span className={cn(NUM, 'text-xl font-extrabold text-slate-900 dark:text-slate-50')}>
-                {typeof displayScore === 'number' ? displayScore.toFixed(1) : displayScore}
-              </span>
-              <span className={cn(MICRO, MUTED)}>/ 9.0</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {isResuming && <SpeakingGridProgress progress={progress} />}
+      {isCompleted && <SpeakingGridScore value={displayScore} />}
     </div>
   );
 }
@@ -127,92 +141,23 @@ const OUTLINE_ICON_BTN = cn(
   'flex h-9 w-9 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:border-[#5a63df]/30 hover:text-[#5a63df] active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
-export function GridActions({
-  isLocked,
-  isResuming,
-  isCompleted,
-  needsRestart,
-  test,
-  completedSessionId,
-}) {
-  if (isLocked) {
-    return (
-      <Link to={createPageUrl('Pricing')} className="block">
-        <button
-          type="button"
-          className={cn(PRIMARY_BTN, 'w-full bg-amber-500 text-white hover:bg-amber-600')}
-        >
-          <Crown className="h-4 w-4" /> Upgrade to Access
-        </button>
-      </Link>
-    );
-  }
-  if (isResuming) {
-    return (
-      <div className="flex gap-2">
-        <Link to={withLearningActivity(`/speaking-test/${test.id}`)} className="flex-1">
-          <button
-            type="button"
-            className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-          >
-            Resume Test <Play className="h-3.5 w-3.5 fill-current" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </Link>
-      </div>
-    );
-  }
-  if (isCompleted) {
-    return (
-      <div className="flex gap-2">
-        <Link to={`/speaking-test/${completedSessionId}?view-score=true`} className="flex-1">
-          <button
-            type="button"
-            className={cn(
-              TILE,
-              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all duration-200 ease-smooth-out hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-xs active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/12 cursor-pointer'
-            )}
-          >
-            View Feedback <ArrowRight className="h-4 w-4" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </Link>
-      </div>
-    );
-  }
-  if (needsRestart) {
-    return (
-      <Link
-        to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}
-        className="block"
-      >
-        <button
-          type="button"
-          className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-        >
-          Start again <RotateCcw className="h-3.5 w-3.5" />
-        </button>
-      </Link>
-    );
-  }
+function SpeakingRestartAction({ test, compact = false }) {
+  if (test.upgradeForAllowance) return null;
   return (
-    <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}`)} className="block">
+    <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
       <button
         type="button"
-        className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+        className={compact ? ROW_ICON_BTN : OUTLINE_ICON_BTN}
+        aria-label="Restart test"
       >
-        Start test <ChevronRight className="h-4 w-4" />
+        <RotateCcw className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
       </button>
     </Link>
   );
+}
+
+export function GridActions({ completedSessionId, ...props }) {
+  return <SpeakingButtons {...props} sessionId={completedSessionId} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,21 +165,10 @@ export function GridActions({
 // ---------------------------------------------------------------------------
 
 export function BookProgressBadge({ tests, sessions }) {
-  let completed = 0;
-  let inProgress = 0;
-
-  tests.forEach((t) => {
-    const s = sessions.find((session) => session.passage_id === t.id);
-    if (s) {
-      const { isCompleted, isResuming } = resolveSpeakingAttemptState(s);
-      if (isCompleted) {
-        completed++;
-      } else if (isResuming) {
-        inProgress++;
-      }
-    }
-  });
-
+  const attempts = tests.map((test) =>
+    resolveSpeakingAttemptState(sessions.find((session) => session.passage_id === test.id))
+  );
+  const completed = attempts.filter((attempt) => attempt.isCompleted).length;
   if (completed === tests.length) {
     return (
       <Pill tone="ok">
@@ -243,15 +177,12 @@ export function BookProgressBadge({ tests, sessions }) {
     );
   }
 
-  if (completed > 0 || inProgress > 0) {
-    return (
-      <Pill tone="accent">
-        {completed}/{tests.length} Completed
-      </Pill>
-    );
-  }
-
-  return <Pill tone="neutral">0/{tests.length} Completed</Pill>;
+  const hasProgress = attempts.some((attempt) => attempt.isCompleted || attempt.isResuming);
+  return (
+    <Pill tone={hasProgress ? 'accent' : 'neutral'}>
+      {completed}/{tests.length} Completed
+    </Pill>
+  );
 }
 
 export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
@@ -259,6 +190,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
     return <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />;
   }
   if (isCompleted) {
+    const band = displaySpeakingScore(score);
     return (
       <span
         className={cn(
@@ -266,9 +198,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, score }) {
           'shrink-0 rounded bg-[rgb(var(--signal-ok)/0.08)] px-1.5 py-0.5 text-[10px] font-extrabold text-[rgb(var(--signal-ok))]'
         )}
       >
-        {score != null && score !== '' && Number.isFinite(Number(score))
-          ? `Band ${Number(score).toFixed(1)}`
-          : 'Score not available'}
+        {band ? `Band ${band.row}` : 'Score not available'}
       </span>
     );
   }
@@ -295,96 +225,77 @@ const ROW_ICON_BTN = cn(
   'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:text-[#5a63df] hover:border-[#5a63df]/35 active:scale-[0.98] dark:text-slate-400 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
-export function TestRowAction({
+function getSpeakingAction({ test, sessionId, isResuming, isCompleted, needsRestart }) {
+  if (isResuming) {
+    return {
+      label: 'Resume Test',
+      shortLabel: 'Resume',
+      to: withLearningActivity(`/speaking-test/${test.id}`),
+      Icon: Play,
+    };
+  }
+  if (isCompleted) {
+    return {
+      label: 'View Feedback',
+      shortLabel: 'Results',
+      to: `/speaking-test/${sessionId}?view-score=true`,
+      Icon: ArrowRight,
+    };
+  }
+  const base = `/speaking-test?test-id=${test.id}`;
+  if (needsRestart) {
+    return {
+      label: 'Start again',
+      shortLabel: 'Start again',
+      to: withLearningActivity(`${base}&retake=true`),
+      Icon: RotateCcw,
+    };
+  }
+  return {
+    label: 'Start test',
+    shortLabel: 'Start',
+    to: withLearningActivity(base),
+    Icon: ChevronRight,
+  };
+}
+
+function SpeakingButtons({
+  test,
+  sessionId,
   isLocked,
   isResuming,
   isCompleted,
   needsRestart,
-  testSession,
-  test,
+  compact,
 }) {
-  if (isLocked) {
-    return (
-      <>
-        <Link to={createPageUrl('Pricing')}>
-          <button
-            type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-amber-500 text-white hover:bg-amber-600')}
-          >
-            <Crown className="h-3 w-3" /> Upgrade
-          </button>
-        </Link>
-        <div className="h-8 w-8 shrink-0" />
-      </>
-    );
-  }
-  if (isResuming) {
-    return (
-      <>
-        <Link to={withLearningActivity(`/speaking-test/${test.id}`)}>
-          <button
-            type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-          >
-            Resume <Play className="h-3 w-3 fill-current" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </Link>
-      </>
-    );
-  }
-  if (needsRestart) {
-    return (
-      <>
-        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
-          <button
-            type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-          >
-            Start again <RotateCcw className="h-3 w-3" />
-          </button>
-        </Link>
-        <div className="h-8 w-8 shrink-0" />
-      </>
-    );
-  }
-  if (isCompleted) {
-    return (
-      <>
-        <Link to={`/speaking-test/${testSession.id}?view-score=true`}>
-          <button
-            type="button"
-            className={cn(
-              TILE,
-              'flex h-8 w-[92px] shrink-0 items-center justify-center gap-1.5 rounded-lg text-xs font-bold text-slate-700 transition-all active:scale-95 dark:text-slate-200 cursor-pointer'
-            )}
-          >
-            Results <ArrowRight className="h-3 w-3" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}&retake=true`)}>
-          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </Link>
-      </>
-    );
-  }
+  if (isLocked) return <ObjectiveUpgradeLink test={test} compact={compact} />;
+
+  const { label, shortLabel, to, Icon } = getSpeakingAction({
+    test,
+    sessionId,
+    isResuming,
+    isCompleted,
+    needsRestart,
+  });
+  const actionClass = cn(
+    compact ? ROW_PRIMARY_BTN : cn(PRIMARY_BTN, 'w-full'),
+    isCompleted
+      ? cn(TILE, 'text-slate-700 dark:text-slate-200')
+      : 'bg-[#5a63df] text-white hover:bg-[#484FB2]'
+  );
+
   return (
-    <>
-      <Link to={withLearningActivity(`/speaking-test?test-id=${test.id}`)}>
-        <button
-          type="button"
-          className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-        >
-          Start <ChevronRight className="h-3.5 w-3.5" />
+    <div className="flex items-center gap-2">
+      <Link to={to} className="flex-1">
+        <button type="button" className={actionClass}>
+          {compact ? shortLabel : label} <Icon className="h-3.5 w-3.5" />
         </button>
       </Link>
-      <div className="h-8 w-8 shrink-0" />
-    </>
+      {(isResuming || isCompleted) && <SpeakingRestartAction test={test} compact={compact} />}
+    </div>
   );
+}
+
+export function TestRowAction({ testSession, ...props }) {
+  return <SpeakingButtons {...props} sessionId={testSession?.id} compact />;
 }

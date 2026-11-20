@@ -16,7 +16,6 @@ function SpeakingCardView(props) {
     Icon,
     ContainerLink,
     linkProps,
-    hasMounted,
     takenCount,
     duration,
     completedSessionId,
@@ -34,6 +33,7 @@ function SpeakingCardView(props) {
         <div className="mb-3 flex items-start justify-between">
           <IconChip icon={Icon} tone="accent" size="md" />
           <GridStatusBadge
+            test={test}
             isLocked={isLocked}
             isResuming={isResuming}
             isCompleted={isCompleted}
@@ -41,7 +41,7 @@ function SpeakingCardView(props) {
           />
         </div>
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <ContainerLink {...linkProps} className="block">
             <h3
               className={cn(
@@ -58,7 +58,7 @@ function SpeakingCardView(props) {
           </p>
         </div>
 
-        <div className={cn('mb-3', isLocked && 'select-none blur-[3px]')}>
+        <div className="mb-3">
           <GridMetaBar
             duration={duration}
             takenCount={takenCount}

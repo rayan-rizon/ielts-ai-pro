@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import { serverScoringEnabled } from '../shared/services/objectiveTests';
 import { markPartlyPractised } from '../shared/services/practiceExposure';
+import { fetchObjectiveCatalogue } from '../shared/services/objectiveCatalogue';
 
 // ---------------------------------------------------------------------------
 // Small pure helpers
@@ -21,23 +21,6 @@ function countResponses(userResponses) {
 // ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
-
-async function fetchPassages(page, pageSize) {
-  const offset = (page - 1) * pageSize;
-  const { data, count, error } = await supabase
-    .from(serverScoringEnabled() ? 'library_passages' : 'passages')
-    .select(
-      'id, title, is_official_cambridge, cambridge_year, cambridge_test_number, test_type, test_format, is_active, total_questions, created_at, duration_minutes, access_tier',
-      { count: 'exact' }
-    )
-    .eq('test_type', 'listening')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + pageSize - 1);
-
-  if (error) console.error('Error fetching passages:', error);
-  return { data: data || [], totalCount: count || 0 };
-}
 
 async function fetchTakenCounts() {
   const result = await supabase.rpc('get_test_taken_counts', { type_filter: 'listening' });
@@ -137,9 +120,12 @@ function mergePassages(existingPassages, newPassages) {
  * @param {number}      pageSize
  * @param {object|null} existingData - previously loaded data (for "load more")
  */
-export async function fetchListeningData(user, page = 1, pageSize = 32, existingData = null) {
+export async function fetchListeningData(
+  user,
+  { page = 1, pageSize = 32, existingData = null, starterOnly = false, freeLimit = -1 } = {}
+) {
   const [{ data: testsData, totalCount }, takenCountsData] = await Promise.all([
-    fetchPassages(page, pageSize),
+    fetchObjectiveCatalogue('listening', { page, pageSize, starterOnly, freeLimit }),
     fetchTakenCounts(),
   ]);
 

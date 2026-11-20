@@ -59,7 +59,7 @@ function buildSpeakingCardProps({
   hasMounted,
 }) {
   const { isResuming, isCompleted, needsRestart } = resolveSpeakingAttemptState(latestSession);
-  const isLocked = computeSpeakingAccessLock(test, user, isAdmin);
+  const isLocked = !isResuming && !isCompleted && computeSpeakingAccessLock(test, user, isAdmin);
   const progress = computeSpeakingProgress(latestSession, test, questionCount);
   const displayTitle = buildSpeakingDisplayTitle(test);
   const Icon = resolveSpeakingIcon(test);

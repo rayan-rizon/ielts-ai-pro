@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, Headphones } from 'lucide-react';
-import { createPageUrl } from '@/utils';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
@@ -8,11 +7,7 @@ import { withLearningActivity } from '@/features/testing/shared/activityContext'
 // ---------------------------------------------------------------------------
 
 /** Returns true when the test is locked behind a paywall for this user. */
-export function computeAccessLock(test, user, isAdmin) {
-  const tier = (user?.subscription_tier || 'free').toLowerCase();
-  const hasPremiumAccess = tier === 'pro' || tier === 'premium' || isAdmin;
-  return !!(test.access_tier && test.access_tier !== 'free' && !hasPremiumAccess);
-}
+export { isObjectiveTestLocked as computeAccessLock } from '../shared/quota/objectiveAccess';
 
 /** Returns the completion percentage (0-100) for an in-progress session. */
 export function computeProgress(session, test, questionCount) {
@@ -53,8 +48,8 @@ export function buildLinkTarget({ isResuming, isCompleted, session, completedSes
 export function resolveLinkConfig(isLocked, linkTo) {
   if (isLocked) {
     return {
-      ContainerLink: 'div',
-      linkProps: { onClick: () => (window.location.href = createPageUrl('Pricing')) },
+      ContainerLink: 'span',
+      linkProps: {},
     };
   }
   return { ContainerLink: Link, linkProps: { to: linkTo } };

@@ -9,19 +9,18 @@ import {
   Users,
   Target,
   Lock,
-  Crown,
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { createPageUrl } from '@/utils';
+import ObjectiveUpgradeLink from '../shared/components/ObjectiveUpgradeLink';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
 
-export function WritingStatusBadge({ isLocked, isResuming, isCompleted }) {
+export function WritingStatusBadge({ test, isLocked, isResuming, isCompleted }) {
   if (isLocked) {
     return (
       <Pill tone="warn">
-        <Lock className="h-3 w-3" /> Members only
+        <Lock className="h-3 w-3" /> {test?.access_tier === 'premium' ? 'Premium' : 'Pro'}
       </Pill>
     );
   }
@@ -123,81 +122,26 @@ const OUTLINE_ICON_BTN = cn(
   'flex h-9 w-9 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:border-[#5a63df]/30 hover:text-[#5a63df] active:scale-[0.98] dark:text-slate-400 dark:hover:border-[#5a63df]/40 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
-export function WritingActions({
-  isLocked,
-  isResuming,
-  isCompleted,
-  test,
-  session,
-  completedSessionId,
-  feedbackReady,
-}) {
-  if (isLocked) {
-    return (
-      <Link to={createPageUrl('Pricing')} className="block">
-        <button
-          type="button"
-          className={cn(PRIMARY_BTN, 'w-full bg-amber-500 text-white hover:bg-amber-600')}
-        >
-          <Crown className="h-4 w-4" /> Upgrade to Access
-        </button>
-      </Link>
-    );
-  }
-  if (isResuming) {
-    return (
-      <div className="flex gap-2">
-        <Link to={`/writing-task?sessionId=${session.id}`} className="flex-1">
-          <button
-            type="button"
-            className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-          >
-            Resume Task <Play className="h-3.5 w-3.5 fill-current" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
-          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </Link>
-      </div>
-    );
-  }
-  if (isCompleted) {
-    return (
-      <div className="flex gap-2">
-        <Link to={`/writing-task?sessionId=${completedSessionId}&view=true`} className="flex-1">
-          <button
-            type="button"
-            className={cn(
-              TILE,
-              'flex h-9 w-full items-center justify-center gap-1.5 text-xs font-bold text-slate-700 transition-all duration-200 ease-smooth-out hover:-translate-y-0.5 hover:border-[#5a63df]/30 hover:text-[#5a63df] hover:shadow-xs active:scale-[0.98] dark:text-slate-200 dark:hover:border-white/12 cursor-pointer'
-            )}
-          >
-            {feedbackReady ? 'View Feedback' : 'Analyze Response'}{' '}
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
-          <button type="button" className={OUTLINE_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-4 w-4" />
-          </button>
-        </Link>
-      </div>
-    );
-  }
+function WritingAllowanceActions({ test, compact = false }) {
   return (
-    <Link
-      to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}
-      className="block"
-    >
-      <button
-        type="button"
-        className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+    <div className={compact ? 'flex items-center gap-1.5' : 'grid gap-2'}>
+      <ObjectiveUpgradeLink test={test} compact={compact} />
+      <Link
+        to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}
+        className={cn(ROW_DRAFT_LINK, compact ? 'px-1.5' : 'justify-center')}
       >
-        Start Writing <ChevronRight className="h-4 w-4" />
-      </button>
-    </Link>
+        {compact ? 'Draft' : 'Write a draft'}
+      </Link>
+    </div>
+  );
+}
+
+const ROW_DRAFT_LINK =
+  'flex h-8 items-center text-xs font-bold text-slate-600 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] rounded-md dark:text-slate-300';
+
+export function WritingActions({ session, completedSessionId, ...props }) {
+  return (
+    <WritingButtons {...props} sessionId={props.isResuming ? session?.id : completedSessionId} />
   );
 }
 
@@ -280,81 +224,89 @@ const ROW_ICON_BTN = cn(
   'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:text-[#5a63df] hover:border-[#5a63df]/35 active:scale-[0.98] dark:text-slate-400 dark:hover:text-[#a9afff] cursor-pointer'
 );
 
-export function TestRowAction({
-  isLocked,
-  isResuming,
-  isCompleted,
-  testSession,
-  test,
-  feedbackReady = true,
-}) {
-  if (isLocked) {
-    return (
-      <>
-        <Link to={createPageUrl('Pricing')}>
-          <button
-            type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-amber-500 text-white hover:bg-amber-600')}
-          >
-            <Crown className="h-3 w-3" /> Upgrade
-          </button>
-        </Link>
-        <div className="h-8 w-8 shrink-0" />
-      </>
-    );
-  }
-  if (isResuming) {
-    return (
-      <>
-        <Link to={`/writing-task?sessionId=${testSession.id}`}>
-          <button
-            type="button"
-            className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-          >
-            Resume <Play className="h-3 w-3 fill-current" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
-          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </Link>
-      </>
-    );
-  }
-  if (isCompleted) {
-    return (
-      <>
-        <Link to={`/writing-task?sessionId=${testSession.id}&view=true`}>
-          <button
-            type="button"
-            className={cn(
-              TILE,
-              'flex h-8 w-[92px] shrink-0 items-center justify-center gap-1.5 rounded-lg text-xs font-bold text-slate-700 transition-all active:scale-95 dark:text-slate-200 cursor-pointer'
-            )}
-          >
-            {feedbackReady ? 'Results' : 'Analyze'} <ArrowRight className="h-3 w-3" />
-          </button>
-        </Link>
-        <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
-          <button type="button" className={ROW_ICON_BTN} aria-label="Restart test">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-        </Link>
-      </>
-    );
-  }
+function StartWritingAction({ test, compact }) {
+  if (test.upgradeForAllowance) return <WritingAllowanceActions test={test} compact={compact} />;
   return (
-    <>
+    <Link
+      to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}
+      className="block"
+    >
+      <button
+        type="button"
+        className={cn(
+          compact ? ROW_PRIMARY_BTN : cn(PRIMARY_BTN, 'w-full'),
+          'bg-[#5a63df] text-white hover:bg-[#484FB2]'
+        )}
+      >
+        {compact ? 'Start' : 'Start Writing'} <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+    </Link>
+  );
+}
+
+function savedWritingLabel(isResuming, feedbackReady, compact) {
+  if (isResuming) return compact ? 'Resume' : 'Resume Task';
+  if (feedbackReady) return compact ? 'Results' : 'View Feedback';
+  return compact ? 'Analyze' : 'Analyze Response';
+}
+
+function SavedWritingActions({ test, sessionId, isResuming, feedbackReady, compact }) {
+  const label = savedWritingLabel(isResuming, feedbackReady, compact);
+  const actionClass = cn(
+    compact ? ROW_PRIMARY_BTN : PRIMARY_BTN,
+    isResuming
+      ? 'bg-[#5a63df] text-white hover:bg-[#484FB2]'
+      : cn(TILE, 'text-slate-700 dark:text-slate-200')
+  );
+  const Icon = isResuming ? Play : ArrowRight;
+
+  return (
+    <div className="flex items-center gap-2">
+      <Link
+        to={`/writing-task?sessionId=${sessionId}${isResuming ? '' : '&view=true'}`}
+        className="flex-1"
+      >
+        <button type="button" className={cn(actionClass, !compact && 'w-full')}>
+          {label} <Icon className="h-3.5 w-3.5" />
+        </button>
+      </Link>
       <Link to={withLearningActivity(`/writing-task?taskId=${test.id}&new_attempt=true`)}>
         <button
           type="button"
-          className={cn(ROW_PRIMARY_BTN, 'bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+          className={compact ? ROW_ICON_BTN : OUTLINE_ICON_BTN}
+          aria-label="Restart test"
         >
-          Start <ChevronRight className="h-3.5 w-3.5" />
+          <RotateCcw className="h-3.5 w-3.5" />
         </button>
       </Link>
-      <div className="h-8 w-8 shrink-0" />
-    </>
+    </div>
   );
+}
+
+function WritingButtons({
+  test,
+  sessionId,
+  isLocked,
+  isResuming,
+  isCompleted,
+  feedbackReady = true,
+  compact,
+}) {
+  if (isLocked) return <ObjectiveUpgradeLink test={test} compact={compact} />;
+  if (isResuming || isCompleted) {
+    return (
+      <SavedWritingActions
+        test={test}
+        sessionId={sessionId}
+        isResuming={isResuming}
+        feedbackReady={feedbackReady}
+        compact={compact}
+      />
+    );
+  }
+  return <StartWritingAction test={test} compact={compact} />;
+}
+
+export function TestRowAction({ testSession, ...props }) {
+  return <WritingButtons {...props} sessionId={testSession?.id} compact />;
 }

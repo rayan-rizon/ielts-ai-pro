@@ -15,10 +15,10 @@ values
 on conflict (auth_id) do update set
   subscription_tier = excluded.subscription_tier,
   subscription_end_date = excluded.subscription_end_date;
-insert into public.passages (id, title, test_type, test_format, topic, is_active, access_tier)
+insert into public.passages (id, title, test_type, test_format, topic, is_active, access_tier, created_at)
 values
-  ('43000000-0000-4000-8000-000000000001', 'Quota Reading', 'reading', 'academic', 'fixture', true, 'free'),
-  ('43000000-0000-4000-8000-000000000002', 'Quota Listening', 'listening', 'academic', 'fixture', true, 'free');
+  ('43000000-0000-4000-8000-000000000001', 'Quota Reading', 'reading', 'academic', 'fixture', true, 'free', now() + interval '100 years'),
+  ('43000000-0000-4000-8000-000000000002', 'Quota Listening', 'listening', 'academic', 'fixture', true, 'free', now() + interval '100 years');
 update public.tier_rate_limits set
   reading_test_limit = -1, listening_test_limit = -1
 where tier = 'free' and currency = 'ALL';

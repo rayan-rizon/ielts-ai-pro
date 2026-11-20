@@ -1,6 +1,6 @@
 import { GraduationCap, PenTool } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { hasContentAccess } from '@/features/subscription/config/contentAccess';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
 
 // ---------------------------------------------------------------------------
@@ -8,10 +8,7 @@ import { withLearningActivity } from '@/features/testing/shared/activityContext'
 // ---------------------------------------------------------------------------
 
 export function computeWritingAccessLock(test, user, isAdmin) {
-  const tier = (user?.subscription_tier || 'free').toLowerCase();
-  const hasPremiumAccess = tier === 'pro' || tier === 'premium' || isAdmin;
-  if (test.access_tier && test.access_tier !== 'free') return !hasPremiumAccess;
-  return false;
+  return !isAdmin && !hasContentAccess(user, test.access_tier);
 }
 
 // ---------------------------------------------------------------------------
@@ -38,8 +35,8 @@ export function resolveWritingIcon(test) {
 export function resolveWritingLinkConfig(isLocked, test) {
   if (isLocked) {
     return {
-      ContainerLink: 'div',
-      linkProps: { onClick: () => (window.location.href = createPageUrl('Pricing')) },
+      ContainerLink: 'span',
+      linkProps: {},
     };
   }
   return {

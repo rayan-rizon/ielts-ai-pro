@@ -9,10 +9,8 @@ import {
   ListeningTestsGrid,
 } from '@/features/testing/listening/ListeningGrid';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
-import {
-  ObjectiveLimitDialog,
-  ObjectiveQuotaStrip,
-} from '@/features/testing/shared/components/ObjectiveQuotaControls';
+import ObjectiveLibraryResults from '@/features/testing/shared/components/ObjectiveLibraryResults';
+import { ObjectiveLimitDialog } from '@/features/testing/shared/components/ObjectiveQuotaControls';
 
 // ---------------------------------------------------------------------------
 // Tab-matching logic (pure, module-level)
@@ -20,6 +18,7 @@ import {
 
 const TAB_MATCHERS = {
   all: () => true,
+  starter: (test) => test.free_starter,
   'in-progress': (test, sessions) =>
     sessions.some((s) => s.passage_id === test.id && !s.is_completed),
   cambridge: (test) => !!test.is_official_cambridge,
@@ -73,15 +72,19 @@ export default function Listening() {
     listeningData,
     isLoading,
     isLoadingMore,
+    starterSetsAvailable,
+    selectedTab,
+    loadError,
+    retryLoad,
     handleLoadMore,
     passages,
     sessions,
     testCounts,
     questionCounts,
     durations,
-  } = useListeningData(userData, authLoading);
+  } = useListeningData(userData, authLoading, activeTab);
 
-  const filteredTests = filterTests(passages, sessions, activeTab, debouncedSearchQuery);
+  const filteredTests = filterTests(passages, sessions, selectedTab, debouncedSearchQuery);
 
   return (
     <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
@@ -98,22 +101,24 @@ export default function Listening() {
         <ListeningHeader
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          activeTab={activeTab}
+          activeTab={selectedTab}
+          showStarterTab={starterSetsAvailable}
           onTabChange={setActiveTab}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
 
-        <ObjectiveQuotaStrip testType="listening" />
-
         <PairedPracticeSpotlight type="listening" />
 
         <div id="available-tests" className="scroll-mt-4">
-          {isLoading ? (
-            <ListeningSkeletonGrid />
-          ) : (
+          <ObjectiveLibraryResults
+            error={loadError}
+            onRetry={retryLoad}
+            loading={isLoading}
+            skeleton={<ListeningSkeletonGrid />}
+          >
             <ListeningTestsGrid
-              activeTab={activeTab}
+              activeTab={selectedTab}
               filteredTests={filteredTests}
               sessions={sessions}
               testCounts={testCounts}
@@ -125,7 +130,7 @@ export default function Listening() {
               searchQuery={searchQuery}
               viewMode={viewMode}
             />
-          )}
+          </ObjectiveLibraryResults>
         </div>
 
         {listeningData?.hasMore && (

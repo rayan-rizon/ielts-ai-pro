@@ -10,10 +10,8 @@ import { filterReadingTests } from '@/features/testing/reading/readingFilterUtil
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
 import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
-import {
-  ObjectiveLimitDialog,
-  ObjectiveQuotaStrip,
-} from '@/features/testing/shared/components/ObjectiveQuotaControls';
+import ObjectiveLibraryResults from '@/features/testing/shared/components/ObjectiveLibraryResults';
+import { ObjectiveLimitDialog } from '@/features/testing/shared/components/ObjectiveQuotaControls';
 
 export default function Reading() {
   const { userProfile: userData, isAdmin, loading: authLoading } = useAuth();
@@ -32,15 +30,19 @@ export default function Reading() {
     readingData,
     isLoading,
     isLoadingMore,
+    starterSetsAvailable,
+    selectedTab,
+    loadError,
+    retryLoad,
     handleLoadMore,
     passages,
     sessions,
     testCounts,
     questionCounts,
     durations,
-  } = useReadingData(userData, authLoading);
+  } = useReadingData(userData, authLoading, activeTab);
 
-  const filteredTests = filterReadingTests(passages, sessions, activeTab, debouncedSearchQuery);
+  const filteredTests = filterReadingTests(passages, sessions, selectedTab, debouncedSearchQuery);
 
   return (
     <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
@@ -57,20 +59,22 @@ export default function Reading() {
         <ReadingHeader
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          activeTab={activeTab}
+          activeTab={selectedTab}
+          showStarterTab={starterSetsAvailable}
           onTabChange={setActiveTab}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
 
-        <ObjectiveQuotaStrip testType="reading" />
-
         <PairedPracticeSpotlight type="reading" />
 
         <div id="available-tests" className="scroll-mt-4">
-          {isLoading ? (
-            <SkeletonGrid viewMode={viewMode} />
-          ) : (
+          <ObjectiveLibraryResults
+            error={loadError}
+            onRetry={retryLoad}
+            loading={isLoading}
+            skeleton={<SkeletonGrid viewMode={viewMode} />}
+          >
             <TestsGrid
               filteredTests={filteredTests}
               sessions={sessions}
@@ -82,9 +86,9 @@ export default function Reading() {
               hasMounted={hasMounted}
               viewMode={viewMode}
               searchQuery={searchQuery}
-              activeTab={activeTab}
+              activeTab={selectedTab}
             />
-          )}
+          </ObjectiveLibraryResults>
         </div>
 
         {!isLoading && readingData?.hasMore && (

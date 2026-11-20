@@ -35,7 +35,7 @@ async function fetchPassages(offset, pageSize) {
   return supabase
     .from('passages')
     .select(
-      'id, title, is_official_cambridge, cambridge_year, cambridge_test_number, test_type, test_format, is_active, total_questions, created_at, duration_minutes',
+      'id, title, is_official_cambridge, cambridge_year, cambridge_test_number, test_type, test_format, is_active, total_questions, created_at, duration_minutes, access_tier',
       { count: 'exact' }
     )
     .eq('test_type', 'writing')

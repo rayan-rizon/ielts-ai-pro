@@ -102,21 +102,7 @@ function WritingTestCard({
   return <WritingCardView {...props} />;
 }
 
-function arePropsEqual(prev, next) {
-  const keys = ['takenCount', 'duration', 'wordLimit', 'isAdmin', 'hasMounted'];
-  if (keys.some((k) => prev[k] !== next[k])) return false;
-  return (
-    prev.test.id === next.test.id &&
-    prev.latestSession?.id === next.latestSession?.id &&
-    prev.latestSession?.evaluation_status === next.latestSession?.evaluation_status &&
-    prev.latestSession?.evaluation_version === next.latestSession?.evaluation_version &&
-    prev.latestSession?.score === next.latestSession?.score &&
-    prev.latestSession?.is_completed === next.latestSession?.is_completed &&
-    prev.user?.subscription_tier === next.user?.subscription_tier
-  );
-}
-
-export const MemoizedWritingCard = memo(WritingTestCard, arePropsEqual);
+export const MemoizedWritingCard = memo(WritingTestCard);
 
 // ---------------------------------------------------------------------------
 // Skeleton
