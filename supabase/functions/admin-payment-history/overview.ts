@@ -13,7 +13,7 @@ async function billingUsers(db: SupabaseClient): Promise<BillingUser[]> {
     const { data, error } = await db
       .from('users')
       .select(
-        'id,auth_id,full_name,email,subscription_tier,stripe_subscription_id,subscription_end_date,subscription_amount,subscription_currency,payment_failed_at'
+        'id,auth_id,full_name,email,subscription_tier,stripe_subscription_id,subscription_start_date,subscription_end_date,subscription_amount,subscription_currency,payment_failed_at'
       )
       .or('subscription_tier.neq.free,stripe_subscription_id.not.is.null')
       .order('id')
@@ -46,6 +46,7 @@ async function liveRow(stripe: Stripe, user: BillingUser, now: number) {
       amount: null,
       currency: '',
       interval: '',
+      startedAt: null,
       periodEnd: null,
       cancelAtPeriodEnd: false,
       invoice: null,
@@ -71,7 +72,12 @@ export async function loadPaymentOverview(stripe: Stripe, db: SupabaseClient) {
       ))
     );
   }
-  const subscriptions = rows.filter((row): row is NonNullable<typeof row> => row !== null);
+  // Newest subscriptions first; rows without a known start sink to the bottom.
+  const startedMs = (row: { startedAt?: string | null }) =>
+    row.startedAt ? Date.parse(row.startedAt) : 0;
+  const subscriptions = rows
+    .filter((row): row is NonNullable<typeof row> => row !== null)
+    .sort((a, b) => startedMs(b) - startedMs(a));
   const summary = summarizeSubscriptions(subscriptions);
   return {
     observedAt,

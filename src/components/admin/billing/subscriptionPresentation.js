@@ -34,3 +34,6 @@ export const periodLabel = (row) => {
   if (row.status === 'active') return 'Renews';
   return 'Billing period ends';
 };
+
+/** Newest subscription first; rows with no known start date keep their order at the end. */
+export const byNewest = (a, b) => (Date.parse(b.startedAt) || 0) - (Date.parse(a.startedAt) || 0);

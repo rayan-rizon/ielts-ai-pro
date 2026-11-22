@@ -1,12 +1,13 @@
+import { ChevronRight } from 'lucide-react';
 import { Pill, NUM, MICRO, MUTED, PANEL } from '@/features/dashboard/components/primitives';
 import { formatDate, formatMoney } from './billingFormat';
 import { SUBSCRIPTION_STATUS, periodLabel } from './subscriptionPresentation';
 import { AdminButton } from '../ui/primitives';
 
-function SubscriptionState({ row }) {
+function SubscriptionState({ row, align }) {
   const [label, tone] = SUBSCRIPTION_STATUS[row.status] || [row.status, 'neutral'];
   return (
-    <div className="space-y-1">
+    <div className={`shrink-0 space-y-1 ${align === 'end' ? 'text-right' : ''}`}>
       <Pill tone={tone}>{label}</Pill>
       {row.cancelAtPeriodEnd && <p className={`text-[11px] ${MUTED}`}>Ends at period end</p>}
     </div>
@@ -36,9 +37,9 @@ function SubscriptionIdentity({ row }) {
     </div>
   );
 }
-function SubscriptionPeriod({ row }) {
+function SubscriptionPeriod({ row, align }) {
   return (
-    <div>
+    <div className={align === 'end' ? 'text-right' : ''}>
       <p className={`text-[10px] ${MUTED}`}>{periodLabel(row)}</p>
       <p className={`text-xs ${NUM}`}>{formatDate(row.periodEnd)}</p>
     </div>
@@ -85,23 +86,35 @@ export default function SubscriptionTable({ rows, onReview }) {
           </tbody>
         </table>
       </div>
-      <div className="divide-y divide-[#e4e2f0] dark:divide-white/[0.07] md:hidden">
+      <ul className="divide-y divide-[#e4e2f0] dark:divide-white/[0.07] md:hidden">
         {rows.map((row) => (
-          <article key={row.id} className="space-y-3 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <SubscriptionIdentity row={row} />
-              <SubscriptionState row={row} />
-            </div>
-            <div className="flex items-end justify-between gap-3">
-              <SubscriptionPrice row={row} />
-              <SubscriptionPeriod row={row} />
-            </div>
-            <AdminButton variant="outline" onClick={() => onReview(row.userId)}>
-              Review billing
-            </AdminButton>
-          </article>
+          <li key={row.id}>
+            <button
+              type="button"
+              aria-label={`Review billing for ${row.name}`}
+              onClick={() => onReview(row.userId)}
+              className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors active:bg-[#f4f3fb] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#5a63df] dark:active:bg-white/[0.05]"
+            >
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <SubscriptionIdentity row={row} />
+                  <SubscriptionState row={row} align="end" />
+                </div>
+                <div className="flex items-end justify-between gap-3">
+                  <SubscriptionPrice row={row} />
+                  <SubscriptionPeriod row={row} align="end" />
+                </div>
+                {row.startedAt && (
+                  <p className={`${MICRO} ${MUTED} !text-[9px]`}>
+                    Started {formatDate(row.startedAt)}
+                  </p>
+                )}
+              </div>
+              <ChevronRight className={`size-4 shrink-0 ${MUTED}`} aria-hidden="true" />
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }

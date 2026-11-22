@@ -23,6 +23,7 @@ export type StripeSubscription = {
   status: string;
   currency: string;
   cancel_at_period_end: boolean;
+  created?: number | null;
   current_period_end?: number | null;
   metadata?: Record<string, string> | null;
   items: { data: Array<{ price?: StripePrice | null }> };
@@ -36,6 +37,7 @@ export type BillingUser = {
   email: string | null;
   subscription_tier: string;
   stripe_subscription_id?: string | null;
+  subscription_start_date?: string | null;
   subscription_end_date?: string | null;
   subscription_amount?: number | null;
   subscription_currency?: string | null;
@@ -94,6 +96,7 @@ export function subscriptionRow(user: BillingUser, sub: StripeSubscription) {
     provider: 'stripe',
     status: sub.status,
     tier: sub.metadata?.tier || user.subscription_tier,
+    startedAt: iso(sub.created),
     periodEnd: periodEnd(sub),
     cancelAtPeriodEnd: sub.cancel_at_period_end,
     invoice: invoiceDetails(sub.latest_invoice),
@@ -112,6 +115,7 @@ export function manualSubscriptionRow(user: BillingUser, now: number) {
     amount: user.subscription_amount ?? null,
     currency: user.subscription_currency || 'BDT',
     interval: 'prepaid',
+    startedAt: user.subscription_start_date ?? null,
     periodEnd: user.subscription_end_date,
     cancelAtPeriodEnd: false,
     invoice: null,
