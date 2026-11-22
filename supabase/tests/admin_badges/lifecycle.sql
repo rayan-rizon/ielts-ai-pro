@@ -14,6 +14,10 @@ insert into public.payment_requests (status,payment_method,created_at) values
  ('pending','manual',now()-interval '2 days'),
  ('approved','stripe',now()+interval '1 day');
 update public.users set payment_failed_at=now()-interval '20 minutes' where role='user';
+insert into public.stripe_events (id, type, processed_at, metadata)
+select 'evt_first_failure', 'invoice.payment_failed', now()-interval '20 minutes',
+       jsonb_build_object('user_id', id, 'invoice_id', 'in_retry', 'attempt_count', 1)
+from public.users where role='user';
 insert into public.feature_requests (status) values ('pending'),('pending'),('approved'),('declined');
 insert into public.test_issue_reports (status) values ('open'),('reviewing'),('resolved'),('dismissed');
 insert into public.institution_applications (status) values ('pending'),('approved'),('declined');
@@ -33,6 +37,21 @@ do $$ declare r jsonb; begin
  exception when invalid_parameter_value then null; end;
 end $$;
 reset role;
+
+-- A retry refreshes the learner's dunning flag but must not re-alert the admin.
+update public.users set payment_failed_at=now()-interval '5 minutes' where role='user';
+insert into public.stripe_events (id, type, processed_at, metadata)
+select 'evt_retry_failure', 'invoice.payment_failed', now()-interval '5 minutes',
+       jsonb_build_object('user_id', id, 'invoice_id', 'in_retry', 'attempt_count', 2)
+from public.users where role='user';
+set local role authenticated;
+do $$ declare r jsonb; begin
+ r:=public.get_admin_sidebar_badges();
+ assert r->>'stripeFailureCount'='0', 'Failed retry resurfaced an acknowledged payment alert';
+ assert r->>'pendingCount'='1', 'Failed retry affected unread manual payments';
+end $$;
+reset role;
+
 do $$ declare old_xmin xid; old_updated timestamptz; begin
  select xmin,updated_at into old_xmin,old_updated from public.admin_payment_alert_reads where admin_id=auth.uid();
  perform public.get_admin_sidebar_badges(); perform public.get_admin_sidebar_badges();
@@ -52,7 +71,15 @@ insert into public.test_issue_reports(status) select 'open' from generate_series
 insert into public.institution_applications(status) select 'pending' from generate_series(1,1000);
 insert into public.payment_requests(status,payment_method,created_at) select 'pending','manual',now()-interval '1 minute' from generate_series(1,1000);
 insert into public.payment_requests(status,payment_method,created_at) select 'approved','stripe',now()-interval '1 minute' from generate_series(1,1000);
-insert into public.users(role,payment_failed_at) select 'user',now()-interval '1 minute' from generate_series(1,1000);
+with new_users as (
+ insert into public.users(role,payment_failed_at)
+ select 'user',now()-interval '1 minute' from generate_series(1,1000)
+ returning id, payment_failed_at
+)
+insert into public.stripe_events (id, type, processed_at, metadata)
+select 'evt_' || id, 'invoice.payment_failed', payment_failed_at,
+       jsonb_build_object('user_id', id, 'attempt_count', 1)
+from new_users;
 do $$ declare r jsonb; key text; begin
  r:=public.get_admin_sidebar_badges();
  foreach key in array array['pendingCount','stripePaymentCount','stripeFailureCount','featureRequestCount','testReportCount','institutionRequestCount'] loop

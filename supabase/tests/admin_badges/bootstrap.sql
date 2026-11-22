@@ -16,6 +16,10 @@ $$;
 create table public.payment_requests (
   id uuid primary key default gen_random_uuid(), status text, payment_method text, created_at timestamptz
 );
+create table public.stripe_events (
+  id text primary key, type text not null, processed_at timestamptz default now(),
+  status text default 'processed', metadata jsonb
+);
 create table public.feature_requests (id uuid primary key default gen_random_uuid(), status text, created_at timestamptz default now());
 create table public.test_issue_reports (id uuid primary key default gen_random_uuid(), status text, created_at timestamptz default now());
 create table public.institution_applications (id uuid primary key default gen_random_uuid(), status text, created_at timestamptz default now());

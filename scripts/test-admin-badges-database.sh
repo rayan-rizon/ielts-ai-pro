@@ -11,7 +11,9 @@ mkdir "$scratch/socket"
 "$pg_bin/initdb" -D "$scratch/data" -A trust --no-locale >"$scratch/init.log"
 "$pg_bin/pg_ctl" -D "$scratch/data" -l "$scratch/server.log" -o "-p 54440 -k $scratch/socket -c listen_addresses=''" start >/dev/null
 badge_migration="$(find "$repo_root/supabase/migrations" -name '*_admin_sidebar_badge_summary.sql')"
+retry_migration="$(find "$repo_root/supabase/migrations" -name '*_suppress_admin_badges_for_failed_stripe_retries.sql')"
 "$pg_bin/psql" -h "$scratch/socket" -p 54440 -d postgres -v ON_ERROR_STOP=1 -q \
  -f "$repo_root/supabase/tests/admin_badges/bootstrap.sql" \
  -f "$badge_migration" \
+ -f "$retry_migration" \
  -f "$repo_root/supabase/tests/admin_badges/lifecycle.sql"
