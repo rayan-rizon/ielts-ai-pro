@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ManualPayment from '@/features/subscription/components/ManualPayment';
 import { supabase } from '@/lib/supabase';
 import { trackAppEvent } from '@/lib/tracking';
+import { toast } from 'sonner';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -21,6 +22,10 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/tracking', () => ({
   trackAppEvent: vi.fn(),
+}));
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 describe('ManualPayment Modal', () => {
@@ -145,5 +150,36 @@ describe('ManualPayment Modal', () => {
         policy_version: '2026-09-22',
       })
     );
+  });
+
+  it('explains a repeated transaction ID instead of showing the database error', async () => {
+    const insertMock = vi.fn(() =>
+      Promise.resolve({
+        data: null,
+        error: {
+          code: '23505',
+          message:
+            'duplicate key value violates unique constraint "payment_requests_transaction_id_key"',
+        },
+      })
+    );
+    vi.mocked(supabase.from).mockReturnValue({ insert: insertMock });
+
+    render(<ManualPayment isOpen={true} onClose={vi.fn()} planData={planData} userId="usr-123" />);
+    fireEvent.change(screen.getByPlaceholderText('01XXXXXXXXX'), {
+      target: { value: '01711223344' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('e.g. BL9A4K8...'), {
+      target: { value: 'TRX12345678' },
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Accept Bangladesh payment policies/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Submit Payment Request/i }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    const message = vi.mocked(toast.error).mock.calls[0][0];
+    expect(message).not.toMatch(/duplicate key|constraint/i);
+    expect(message).toMatch(/already/i);
+    expect(message).toMatch(/do not send the money again/i);
+    expect(screen.queryByText('Payment Request Submitted')).not.toBeInTheDocument();
   });
 });

@@ -159,6 +159,30 @@ describe('marketing delivery reservations', () => {
     ).toBe(true);
   });
 
+  it('retries a history page once when the database cancels it for a statement timeout', async () => {
+    const timeout = { code: '57014', message: 'canceling statement due to statement timeout' };
+    let calls = 0;
+    const db = {
+      rpc: () => ({
+        order: () => ({
+          range: async () =>
+            ++calls === 1
+              ? { data: null, error: timeout }
+              : { data: calls === 2 ? [{ id: 'a' }] : [], error: null },
+        }),
+      }),
+    };
+    expect(await readMarketingDispatchHistory(db, 'campaign', ['learner'])).toEqual([{ id: 'a' }]);
+  });
+
+  it('still fails closed when a history page keeps timing out', async () => {
+    const timeout = { code: '57014', message: 'canceling statement due to statement timeout' };
+    const range = vi.fn(async () => ({ data: null, error: timeout }));
+    const db = { rpc: () => ({ order: () => ({ range }) }) };
+    await expect(readMarketingDispatchHistory(db, 'campaign', ['learner'])).rejects.toBe(timeout);
+    expect(range).toHaveBeenCalledTimes(2);
+  });
+
   it('does not query compact history for an empty audience', async () => {
     const rpc = vi.fn();
     expect(await readMarketingDispatchHistory({ rpc }, 'campaign', [])).toEqual([]);

@@ -233,6 +233,13 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
             : `${OUTAGE_COPY.body} Please keep your transaction ID and try again in a few minutes — do NOT send the money again.`,
           { duration: 12000 }
         );
+      } else if (err?.code === '23505') {
+        // The transaction ID is unique. A repeat means it was already sent
+        // (a second tap, or a retry) — say so rather than show a database error.
+        toast.error(
+          'We already have a payment request with this Transaction ID. It is being reviewed, so do not send the money again. Check the ID if it is not yours.',
+          { duration: 10000 }
+        );
       } else {
         toast.error(err.message || 'Failed to submit payment request');
       }

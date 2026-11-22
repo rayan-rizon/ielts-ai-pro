@@ -28,6 +28,24 @@ export async function readMarketingAudienceRows(
   return rows;
 }
 
+// PostgREST cancels any call that runs past its statement timeout. The cron
+// dispatch overlaps with other heavy jobs, so a page that normally takes well
+// under a second can occasionally be cancelled; one retry clears it. Every
+// other error, and a second timeout, still fails the run (fail closed).
+const STATEMENT_TIMEOUT = '57014';
+
+async function readHistoryPage(db: any, campaignId: string, batch: string[], offset: number) {
+  for (let attempt = 0; ; attempt++) {
+    const result = await db
+      .rpc('marketing_dispatch_history', { p_campaign_id: campaignId, p_user_ids: batch })
+      .order('id')
+      .range(offset, offset + 499);
+    if (!result.error) return result;
+    if (result.error.code !== STATEMENT_TIMEOUT || attempt >= 1) throw result.error;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+}
+
 // Compact history is computed fresh in Postgres. Keep complete pagination:
 // successful contacts and non-failed campaign rows must never be truncated.
 export async function readMarketingDispatchHistory(
@@ -40,11 +58,7 @@ export async function readMarketingDispatchHistory(
   for (let start = 0; start < ids.length; start += 100) {
     const batch = ids.slice(start, start + 100);
     for (let offset = 0; ;) {
-      const { data, error } = await db
-        .rpc('marketing_dispatch_history', { p_campaign_id: campaignId, p_user_ids: batch })
-        .order('id')
-        .range(offset, offset + 499);
-      if (error) throw error;
+      const { data } = await readHistoryPage(db, campaignId, batch, offset);
       if (!data?.length) break;
       rows.push(...data);
       offset += data.length;
