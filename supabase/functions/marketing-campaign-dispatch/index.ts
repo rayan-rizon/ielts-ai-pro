@@ -4,6 +4,7 @@ import { sendEmail, unsubscribeHeaders } from '../_shared/resend.ts';
 import { isUndeliverableEmail } from '../_shared/emailAddress.ts';
 import { getCampaignTemplate } from '../_shared/templates.ts';
 import { getCampaignAction } from '../_shared/marketingOfferAction.ts';
+import { countdownImageUrl } from '../_shared/countdownGif.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import {
   checkoutPlanFor,
@@ -72,6 +73,11 @@ const campaignEmail = (
     subject: campaign.subject || campaign.title,
     objective: campaign.objective,
     lifecycleStage: campaign.metadata?.lifecycle_stage,
+    plan: campaign.plan,
+    countdownImageUrl:
+      campaign.metadata?.lifecycle_stage === 'checkout'
+        ? countdownImageUrl(`${supabaseUrl}/functions/v1`, offer?.expiresAt)
+        : null,
     ctaLabel: campaign.cta_label,
     recipientName: recipient.username?.trim() || 'there',
     clickUrl,
@@ -667,7 +673,7 @@ async function dispatchCampaignWithTiming(
 
       const unsubscribeUrl = unsubscribeEndpoint(delivery.id, delivery.tracking_token);
       const email = campaignEmail(
-        { ...campaign, cta_label: action.label },
+        { ...campaign, cta_label: action.label, plan },
         recipient,
         offer,
         trackingEndpoint(delivery.id, delivery.tracking_token, 'click', destination.toString()),

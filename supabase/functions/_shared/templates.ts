@@ -1,3 +1,6 @@
+import { planName } from './marketingOfferAction.ts';
+import { COUNTDOWN_SIZE } from './countdownGif.ts';
+
 export interface EmailTemplate {
   subject: string;
   html: string;
@@ -700,6 +703,10 @@ export function getCampaignTemplate(input: {
    * and the URL used in the List-Unsubscribe header.
    */
   unsubscribeUrl?: string;
+  /** A live countdown image (see email-countdown). When set it replaces the static tiles. */
+  countdownImageUrl?: string | null;
+  /** The plan the learner chose, for the checkout-recovery email. */
+  plan?: { tier?: string | null; interval?: string | null } | null;
   offer?: {
     code: string;
     discountPercent?: number | null;
@@ -780,6 +787,17 @@ export function getCampaignTemplate(input: {
     offer || stageItems
       ? ''
       : 'Pick up where you left off, review your recent feedback, and choose one thing to work on next.';
+  const chosenPlan = input.lifecycleStage === 'checkout' ? planName(input.plan?.tier) : null;
+  const planPeriod = input.plan?.interval === 'quarterly' ? 'Quarterly' : 'Monthly';
+  const planBlock = chosenPlan
+    ? `
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:18px 0 0;border-collapse:separate;background:#f6f4ff;border:1px solid #e4e2f0;border-radius:14px">
+  <tr><td style="padding:12px 16px">
+    <p style="margin:0;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#68657a">Your selected plan</p>
+    <p style="margin:3px 0 0;font-size:18px;font-weight:800;letter-spacing:-.01em;color:#262438">${escapeHtml(chosenPlan)} <span style="font-weight:600;color:#68657a">· ${planPeriod}</span></p>
+  </td></tr>
+</table>`
+    : '';
   const progressParagraph = stageItems
     ? checklist(stageItems.map((item) => escapeHtml(item)))
     : progressText
@@ -801,6 +819,12 @@ export function getCampaignTemplate(input: {
   const offerSubline = offer?.firstPaymentOnly
     ? 'First subscription payment, once per account'
     : 'Applied when you choose your plan';
+  // The live countdown is an image the mail client loads on open, so the clock
+  // starts at the time that is really left. The alt text is the send-time fallback.
+  const countdownImage =
+    input.countdownImageUrl && countdown
+      ? `<img src="${escapeHtml(input.countdownImageUrl)}" width="${COUNTDOWN_SIZE.width / 2}" height="${COUNTDOWN_SIZE.height / 2}" alt="${escapeHtml(countdownText)}" style="display:block;width:100%;max-width:${COUNTDOWN_SIZE.width / 2}px;height:auto;border:0;margin:0 auto" />`
+      : null;
   const offerBlock = offer
     ? `
 <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:22px 0 0;border-collapse:separate;background:#fdf5f4;border:1px solid #f1cfcb;border-radius:20px;table-layout:fixed">
@@ -825,8 +849,8 @@ export function getCampaignTemplate(input: {
     ${
       countdown
         ? `
-    <p style="margin:12px 0 6px;font-size:12px;font-weight:700;color:${OFFER_RED}">Ends in${remainingMinutes === 0 ? ' less than 1 minute' : ''} <span style="font-weight:500;color:#68657a">· time remaining when sent</span></p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;border-spacing:0"><tr>${countdown.map(({ value, label }) => `<td align="center" style="padding:7px 4px;background:#ffffff;border:1px solid #efe1df;border-radius:10px;text-align:center"><span style="display:block;font-family:Consolas,Menlo,Monaco,monospace;font-size:21px;font-weight:700;line-height:1.15;color:#262438">${String(value).padStart(2, '0')}</span><span style="display:block;margin-top:1px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#68657a">${label}</span></td>`).join('<td width="6" style="width:6px"></td>')}</tr></table>
+    <p style="margin:12px 0 6px;font-size:12px;font-weight:700;color:${OFFER_RED}">Ends in${remainingMinutes === 0 ? ' less than 1 minute' : ''} <span style="font-weight:500;color:#68657a">· ${countdownImage ? 'live countdown' : 'time remaining when sent'}</span></p>
+    ${countdownImage ?? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;border-spacing:0"><tr>${countdown.map(({ value, label }) => `<td align="center" style="padding:7px 4px;background:#ffffff;border:1px solid #efe1df;border-radius:10px;text-align:center"><span style="display:block;font-family:Consolas,Menlo,Monaco,monospace;font-size:21px;font-weight:700;line-height:1.15;color:#262438">${String(value).padStart(2, '0')}</span><span style="display:block;margin-top:1px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#68657a">${label}</span></td>`).join('<td width="6" style="width:6px"></td>')}</tr></table>`}
     <p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#68657a">${escapeHtml(offerWindow)}</p>`
         : ''
     }
@@ -843,6 +867,7 @@ ${heading(title)}
 ${lead(`Hi ${name},`)}
 ${paragraph(message)}
 ${progressParagraph}
+${planBlock}
 ${offerBlock}
 ${button(input.clickUrl, ctaLabel)}
 ${footnote('Your progress and practice history stay saved in your account, so you can return whenever you are ready.')}`;
@@ -875,7 +900,9 @@ Your progress and practice history stay saved in your account, so you can return
     'Account tips and offers from IELTS AI Pro. You can unsubscribe from these emails using the link below.';
 
   return {
-    subject: input.subject || input.title,
+    subject: chosenPlan
+      ? `Your ${chosenPlan} plan is saved — finish in one click`
+      : input.subject || input.title,
     html: wrapTemplate(html, input.message, baseUrl, consentLine, input.unsubscribeUrl).replace(
       '</body>',
       `${trackingPixel}</body>`

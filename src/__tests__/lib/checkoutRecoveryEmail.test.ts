@@ -144,6 +144,82 @@ describe('checkout recovery email', () => {
   });
 });
 
+describe('checkout recovery email: selected plan and live countdown', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(now));
+  });
+  afterEach(() => vi.useRealTimers());
+  const base = {
+    title: 'You were one step away',
+    message: 'You started checkout but did not finish.',
+    subject: 'Your plan is saved — finish in one click',
+    objective: 'paid_conversion',
+    lifecycleStage: 'checkout',
+    ctaLabel: 'Continue',
+    recipientName: 'amina',
+    clickUrl: 'https://www.ieltsai.pro/t/click',
+    unsubscribeUrl: 'https://www.ieltsai.pro/unsubscribe',
+  };
+  it.each([
+    ['pro', 'monthly', 'Pro', 'Monthly'],
+    ['premium', 'quarterly', 'Premium', 'Quarterly'],
+  ])('shows the plan the learner chose: %s %s', (tier, interval, name, period) => {
+    const { html, subject } = getCampaignTemplate({ ...base, plan: { tier, interval } });
+    expect(subject).toBe(`Your ${name} plan is saved — finish in one click`);
+    expect(html).toContain('Your selected plan');
+    expect(html).toContain(`${name} <span`);
+    expect(html).toContain(`· ${period}`);
+    const other = name === 'Pro' ? 'Premium' : 'Pro';
+    expect(html).not.toContain(`>${other} <span`);
+  });
+  it('shows no plan card and keeps the generic subject when the plan is unknown', () => {
+    for (const plan of [null, undefined, { tier: 'enterprise', interval: 'monthly' }]) {
+      const { html, subject } = getCampaignTemplate({ ...base, plan });
+      expect(html).not.toContain('Your selected plan');
+      expect(subject).toBe('Your plan is saved — finish in one click');
+    }
+  });
+  it('does not show a plan card outside the checkout stage', () => {
+    const { html } = getCampaignTemplate({
+      ...base,
+      lifecycleStage: 'signup',
+      plan: { tier: 'pro', interval: 'monthly' },
+    });
+    expect(html).not.toContain('Your selected plan');
+  });
+  it('embeds the live countdown image with a send-time fallback in the alt text', () => {
+    const offer = {
+      code: 'START20A7C4E92B',
+      discountPercent: 20,
+      expiresAt: '2026-11-24T00:00:00Z',
+      firstPaymentOnly: true,
+    };
+    const live = getCampaignTemplate({
+      ...base,
+      offer,
+      countdownImageUrl: 'https://x.supabase.co/functions/v1/email-countdown?e=1795478400',
+    });
+    expect(live.html).toContain(
+      '<img src="https://x.supabase.co/functions/v1/email-countdown?e=1795478400"'
+    );
+    expect(live.html).toContain('alt="Time remaining when sent: 12 hours, 0 minutes."');
+    expect(live.html).toContain('live countdown');
+    expect(live.html).not.toMatch(/>12<\/span><span[^>]*>Hours<\/span>/);
+    const still = getCampaignTemplate({ ...base, offer });
+    expect(still.html).not.toContain('email-countdown');
+    expect(still.html).toMatch(/>12<\/span><span[^>]*>Hours<\/span>/);
+  });
+  it('drops the countdown image when the offer has ended', () => {
+    const ended = getCampaignTemplate({
+      ...base,
+      offer: { code: 'START20A7C4E92B', discountPercent: 20, expiresAt: '2026-11-23T11:00:00Z' },
+      countdownImageUrl: 'https://x.supabase.co/functions/v1/email-countdown?e=1',
+    });
+    expect(ended.html).not.toContain('email-countdown');
+  });
+});
+
 describe('checkout recovery migration', () => {
   const sql = readFileSync(
     'supabase/migrations/20261123060000_checkout_recovery_email.sql',

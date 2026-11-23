@@ -5,6 +5,8 @@ type CheckoutPlan = { tier?: string | null; interval?: string | null };
 const PLAN_NAMES: Record<string, string> = { pro: 'Pro', premium: 'Premium' };
 const INTERVALS = ['monthly', 'quarterly'];
 
+export const planName = (tier?: string | null) => PLAN_NAMES[tier || ''] || null;
+
 const hasLiveTwentyPercentOffer = (offer: Offer | null, now: number) =>
   Boolean(
     offer?.code &&
