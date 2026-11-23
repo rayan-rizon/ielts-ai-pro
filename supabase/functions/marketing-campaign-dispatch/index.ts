@@ -7,6 +7,7 @@ import { getCampaignAction } from '../_shared/marketingOfferAction.ts';
 import { countdownImageUrl } from '../_shared/countdownGif.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import {
+  checkoutLastChanceOffer,
   checkoutPlanFor,
   nextMarketingAttempt,
   readMarketingAudienceRows,
@@ -579,6 +580,8 @@ async function dispatchCampaignWithTiming(
           continue;
         }
       }
+      // A checkout-recovery learner whose own code has lapsed gets one last-chance code.
+      offer ??= await checkoutLastChanceOffer(admin, campaign, member.user_id, delivery.id);
       if (!issuesSignupOffer && issuesCheckoutRecoveryOffer && channel === 'email') {
         const { data: recoveryOffer, error: recoveryOfferError } = await admin.rpc(
           'provision_checkout_recovery_offer',

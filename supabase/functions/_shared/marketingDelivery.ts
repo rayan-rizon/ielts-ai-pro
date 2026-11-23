@@ -174,3 +174,36 @@ export async function checkoutPlanFor(
   if (error) throw error;
   return data ? { tier: data.plan_tier, interval: data.billing_interval } : null;
 }
+
+// One fresh 20% code for a checkout-recovery learner whose own code has lapsed unused.
+// The database decides eligibility; null means no offer, and the email goes without one.
+export async function checkoutLastChanceOffer(
+  db: any,
+  campaign: {
+    id: string;
+    metadata?: { lifecycle_stage?: string; last_chance_offer_percent?: number };
+  },
+  userId: string,
+  deliveryId: string
+): Promise<{
+  code: string;
+  discountPercent: number;
+  expiresAt: string;
+  firstPaymentOnly: boolean;
+} | null> {
+  if (campaign.metadata?.lifecycle_stage !== 'checkout') return null;
+  if (Number(campaign.metadata?.last_chance_offer_percent) !== 20) return null;
+  const { data, error } = await db.rpc('provision_checkout_last_chance_offer', {
+    p_campaign_id: campaign.id,
+    p_user_id: userId,
+    p_delivery_id: deliveryId,
+  });
+  if (error) throw error;
+  if (!data?.available || !data.code) return null;
+  return {
+    code: data.code,
+    discountPercent: 20,
+    expiresAt: data.expires_at,
+    firstPaymentOnly: true,
+  };
+}

@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { getCampaignAction } from '../../../supabase/functions/_shared/marketingOfferAction';
-import { checkoutPlanFor } from '../../../supabase/functions/_shared/marketingDelivery';
+import {
+  checkoutLastChanceOffer,
+  checkoutPlanFor,
+} from '../../../supabase/functions/_shared/marketingDelivery';
 import { getCampaignTemplate } from '../../../supabase/functions/_shared/templates';
 
 const campaign = {
@@ -242,6 +245,83 @@ describe('payment attribution and open-time countdown migration', () => {
       'GRANT EXECUTE ON FUNCTION public.start_offer_countdown(uuid, uuid) TO service_role'
     );
     expect(sql).toContain("auth.role() IS DISTINCT FROM 'service_role'");
+  });
+});
+
+describe('last-chance offer', () => {
+  const stage = {
+    id: 'c1',
+    metadata: { lifecycle_stage: 'checkout', last_chance_offer_percent: 20 },
+  };
+  const rpcDb = (result: any) => {
+    const calls: any[] = [];
+    return { calls, rpc: async (...a: any[]) => (calls.push(a), result) };
+  };
+  it('asks the database only for the checkout stage with the offer enabled', async () => {
+    for (const campaign of [
+      { id: 'c1', metadata: { lifecycle_stage: 'signup', last_chance_offer_percent: 20 } },
+      { id: 'c1', metadata: { lifecycle_stage: 'checkout' } },
+    ]) {
+      const db = rpcDb({ data: null, error: null });
+      expect(await checkoutLastChanceOffer(db, campaign, 'u', 'd')).toBeNull();
+      expect(db.calls).toHaveLength(0);
+    }
+  });
+  it('returns the issued code with its deadline', async () => {
+    const db = rpcDb({
+      data: { available: true, code: 'BACK20-ABC', expires_at: '2026-11-24T10:00:00Z' },
+      error: null,
+    });
+    expect(await checkoutLastChanceOffer(db, stage, 'u', 'd')).toEqual({
+      code: 'BACK20-ABC',
+      discountPercent: 20,
+      expiresAt: '2026-11-24T10:00:00Z',
+      firstPaymentOnly: true,
+    });
+    expect(db.calls[0]).toEqual([
+      'provision_checkout_last_chance_offer',
+      { p_campaign_id: 'c1', p_user_id: 'u', p_delivery_id: 'd' },
+    ]);
+  });
+  it('sends no offer when unavailable, and fails closed on an error', async () => {
+    expect(
+      await checkoutLastChanceOffer(
+        rpcDb({ data: { available: false, reason: 'already_paid' }, error: null }),
+        stage,
+        'u',
+        'd'
+      )
+    ).toBeNull();
+    await expect(
+      checkoutLastChanceOffer(rpcDb({ data: null, error: new Error('boom') }), stage, 'u', 'd')
+    ).rejects.toThrow('boom');
+  });
+  const sql = readFileSync(
+    'supabase/migrations/20261123080000_checkout_last_chance_offer.sql',
+    'utf8'
+  );
+  it('is limited to unpaid learners with a recent checkout and no live code', () => {
+    for (const guard of [
+      "'already_paid'",
+      "'payment_already_started'",
+      "'no_recent_checkout'",
+      "'live_offer_exists'",
+      "'other_promo_used'",
+      "'last_chance_used'",
+    ]) {
+      expect(sql).toContain(guard);
+    }
+    expect(sql).toContain("interval '14 days'");
+  });
+  it('issues one code per learner per campaign and only the service role can call it', () => {
+    expect(sql).toContain('assigned_user_id = u.id AND marketing_campaign_id = p_campaign_id');
+    expect(sql).toContain('TO service_role');
+    expect(sql).toContain("auth.role() IS DISTINCT FROM 'service_role'");
+  });
+  it('only ignores an expired personal code when redeeming', () => {
+    expect(sql).toContain(
+      'id<>v_promo.id AND (offer_expires_at IS NULL OR offer_expires_at > now())'
+    );
   });
 });
 

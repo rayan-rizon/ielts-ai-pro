@@ -3,6 +3,7 @@ import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 import { getCampaignAction } from '../../../supabase/functions/_shared/marketingOfferAction';
 import {
+  checkoutLastChanceOffer,
   checkoutPlanFor,
   nextMarketingAttempt,
   skipReservedDelivery,
@@ -21,6 +22,14 @@ const code = ts.transpileModule(
   source.slice(source.indexOf('async function mapLimit'), source.indexOf('\nserve(')),
   { compilerOptions: { target: ts.ScriptTarget.ES2022 } }
 ).outputText;
+
+// The delivery helpers the dispatcher imports, injected by name into the sandbox.
+const DELIVERY_HELPERS = {
+  skipReservedDelivery,
+  terminallySkippedUsers,
+  checkoutPlanFor,
+  checkoutLastChanceOffer,
+};
 
 function setup(
   options: {
@@ -65,9 +74,7 @@ function setup(
     'readMarketingDispatchHistory',
     'reserveMarketingDelivery',
     'nextMarketingAttempt',
-    'skipReservedDelivery',
-    'terminallySkippedUsers',
-    'checkoutPlanFor',
+    ...Object.keys(DELIVERY_HELPERS),
     'isUndeliverableEmail',
     'sendEmail',
     'getCampaignAction',
@@ -80,9 +87,7 @@ function setup(
     () => read(db, 'marketing_deliveries'),
     reserve,
     nextMarketingAttempt,
-    skipReservedDelivery,
-    terminallySkippedUsers,
-    checkoutPlanFor,
+    ...Object.values(DELIVERY_HELPERS),
     () => false,
     send,
     getCampaignAction,
