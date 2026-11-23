@@ -2,7 +2,8 @@ import React from 'react';
 import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import OfferCountdownBanner from '@/features/subscription/components/OfferCountdownBanner';
-import { countdownUnits } from '@/features/subscription/offerCountdown';
+import OfferStrip from '@/features/subscription/components/OfferStrip';
+import { countdownUnits, formatClock } from '@/features/subscription/offerCountdown';
 import { useOfferBanner } from '@/features/subscription/hooks/useOfferBanner';
 
 const NOW = Date.parse('2026-11-23T12:00:00Z');
@@ -101,5 +102,37 @@ describe('useOfferBanner', () => {
     await waitFor(() => expect(result.current.offer).not.toBeNull());
     act(() => result.current.dismiss());
     expect(result.current.offer).toBeNull();
+  });
+});
+
+describe('offer strip inside a plan card', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('shows a limited-offer badge, the value, a ticking clock and a copyable code', () => {
+    render(<OfferStrip code="START20ABC" percent={20} expiresAt={at(3_725_000)} />);
+    expect(screen.getByText(/Limited offer · 20% off/)).toBeTruthy();
+    expect(screen.getByText('START20ABC')).toBeTruthy();
+    expect(screen.getByRole('timer').textContent).toBe('01:02:05');
+    act(() => vi.advanceTimersByTime(5000));
+    expect(screen.getByRole('timer').textContent).toBe('01:02:00');
+  });
+
+  it('shows days and minutes when a day or more is left', () => {
+    expect(formatClock(2 * 86_400_000 + 5 * 3_600_000 + 9 * 60_000)).toBe('2d 05:09');
+    expect(formatClock(59_000)).toBe('00:00:59');
+  });
+
+  it('calls onExpire and disappears at zero', () => {
+    const onExpire = vi.fn();
+    const { container } = render(
+      <OfferStrip code="START20ABC" percent={20} expiresAt={at(1500)} onExpire={onExpire} />
+    );
+    act(() => vi.advanceTimersByTime(2000));
+    expect(onExpire).toHaveBeenCalled();
+    expect(container.textContent).toBe('');
   });
 });

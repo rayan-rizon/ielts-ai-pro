@@ -33,7 +33,6 @@ import {
 import PricingCard from '../components/PricingCard';
 import FAQSection from '../components/FAQSection';
 import PricingHeaderSection from '../components/PricingHeaderSection';
-import OfferCountdownBanner from '../components/OfferCountdownBanner';
 import { useOfferBanner } from '../hooks/useOfferBanner';
 import SubscriptionManagementBanner from '../components/SubscriptionManagementBanner';
 
@@ -302,6 +301,8 @@ function PricingPlansGrid({
   isLoading,
   isPricingLoading,
   onUpgrade,
+  offer,
+  onOfferExpired,
 }) {
   const isSubscribed = Boolean(user && user.subscription_tier !== 'free');
 
@@ -338,6 +339,8 @@ function PricingPlansGrid({
             isLoading={isLoading}
             isPricingLoading={isPricingLoading}
             onUpgrade={onUpgrade}
+            offer={promoForPlan(promoDiscount, plan.tier) ? offer : null}
+            onOfferExpired={onOfferExpired}
           />
         );
       })}
@@ -791,7 +794,7 @@ export default function Pricing() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative mx-auto max-w-7xl space-y-5 px-4 pb-14 pt-4 md:space-y-6 md:px-8 md:pt-8"
+          className="relative mx-auto max-w-7xl space-y-4 px-4 pb-14 pt-2 md:space-y-5 md:px-8 md:pt-3"
         >
           <PricingHeaderSection
             billingInterval={billingInterval}
@@ -800,15 +803,6 @@ export default function Pricing() {
             onPromoApplied={handlePromoApplied}
             coverageNote={coverageNote}
           />
-
-          {offerBanner && (
-            <OfferCountdownBanner
-              code={offerBanner.code}
-              percent={offerBanner.percent}
-              expiresAt={offerBanner.expiresAt}
-              onExpire={handleOfferExpired}
-            />
-          )}
 
           <PricingPlansGrid
             plans={plans}
@@ -819,6 +813,8 @@ export default function Pricing() {
             isLoading={isLoading}
             isPricingLoading={isPricingLoading}
             onUpgrade={handleUpgrade}
+            offer={offerBanner}
+            onOfferExpired={handleOfferExpired}
           />
 
           <SubscriptionManagementBanner

@@ -24,3 +24,12 @@ export function countdownUnits(remainingMs) {
         [seconds, 'sec'],
       ];
 }
+
+/** "23:58:28", or "2d 05:09" once a day or more is left. */
+export function formatClock(remainingMs) {
+  const { days, hours, minutes, seconds } = splitRemaining(remainingMs);
+  const pad = (n) => String(n).padStart(2, '0');
+  return days > 0
+    ? `${days}d ${pad(hours)}:${pad(minutes)}`
+    : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}

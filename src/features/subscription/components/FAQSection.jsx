@@ -34,11 +34,6 @@ const faqs = [
     answer:
       'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
   },
-  {
-    question: 'How many Practice Lab sets can I do?',
-    answer:
-      'Free accounts can start 2 Practice Lab sets per day. The daily allowance resets at 00:00 UTC. Pro and Premium include unlimited Practice Lab sets. All learners can return to saved sets at any time.',
-  },
 ];
 
 export default function FAQSection() {

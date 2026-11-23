@@ -3,16 +3,7 @@ import { Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { NUM, MICRO } from '@/features/dashboard/components/primitives';
 import { countdownUnits } from '../offerCountdown';
-
-/** Milliseconds left until `end`, re-read every second. */
-function useRemaining(end) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return end - now;
-}
+import { useOfferRemaining } from '../hooks/useOfferRemaining';
 
 function CopyCode({ code }) {
   const [copied, setCopied] = useState(false);
@@ -73,7 +64,7 @@ function Clock({ remaining }) {
  */
 export default function OfferCountdownBanner({ code, percent, expiresAt, onExpire, className }) {
   const end = useMemo(() => new Date(expiresAt).getTime(), [expiresAt]);
-  const remaining = useRemaining(end);
+  const remaining = useOfferRemaining(end);
   const live = Boolean(code) && Number.isFinite(end) && remaining > 0;
 
   useEffect(() => {

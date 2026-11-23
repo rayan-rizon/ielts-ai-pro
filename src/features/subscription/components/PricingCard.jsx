@@ -1,3 +1,4 @@
+import OfferStrip from './OfferStrip';
 import React from 'react';
 import { m } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -210,6 +211,8 @@ export default function PricingCard({
   isLoading,
   isPricingLoading,
   onUpgrade,
+  offer = null,
+  onOfferExpired,
 }) {
   const isPro = plan.tier === 'pro';
 
@@ -224,6 +227,15 @@ export default function PricingCard({
             : 'hover:border-[#cfd0f5] dark:hover:border-white/15'
         )}
       >
+        {offer && (
+          <OfferStrip
+            code={offer.code}
+            percent={offer.percent}
+            expiresAt={offer.expiresAt}
+            onExpire={onOfferExpired}
+          />
+        )}
+
         <div className="@container p-5 pb-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">

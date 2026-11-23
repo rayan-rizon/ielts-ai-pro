@@ -2,7 +2,6 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { CalendarCheck2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { MICRO } from '@/features/dashboard/components/primitives';
 import PromoCodeRedemption from '@/components/PromoCodeRedemption';
 import { EXAM_PASS_DISCOUNT_PERCENT, EXAM_PASS_MONTHS } from '@/lib/pricingUtils';
 import { SwapLine } from './pricingMotion';
@@ -46,17 +45,8 @@ export default function PricingHeaderSection({
   const isPass = billingInterval === 'quarterly';
 
   return (
-    <header className="flex flex-col items-center gap-2.5 text-center">
-      <p
-        className={cn(
-          MICRO,
-          'inline-flex items-center gap-2 rounded-full border border-[#e4e2f0] bg-white px-3 py-1.5 text-slate-500 dark:border-white/10 dark:bg-white/4 dark:text-slate-400'
-        )}
-      >
-        <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df]" aria-hidden="true" />
-        Plans &amp; pricing
-      </p>
-      <h1 className="max-w-3xl text-balance text-[32px] font-extrabold leading-[1.05] tracking-[-0.04em] text-slate-900 dark:text-white sm:text-[44px] md:text-[52px]">
+    <header className="flex flex-col items-center gap-2 text-center">
+      <h1 className="max-w-3xl text-balance text-[28px] font-extrabold leading-[1.05] tracking-[-0.04em] text-slate-900 dark:text-white sm:text-[36px] md:text-[42px]">
         Your dream starts with{' '}
         <span className="text-[#5a63df] dark:text-[#a9afff]">the right band score</span>
       </h1>
