@@ -91,6 +91,12 @@ describe('countdown gif', () => {
     expect(countdownImageUrl('https://x.supabase.co/functions/v1/', '2026-11-24T00:00:00Z')).toBe(
       'https://x.supabase.co/functions/v1/email-countdown?e=1795478400'
     );
+    expect(
+      countdownImageUrl('https://x.supabase.co/functions/v1', '2026-11-24T00:00:00Z', {
+        id: 'd-1',
+        token: 't-1',
+      })
+    ).toBe('https://x.supabase.co/functions/v1/email-countdown?e=1795478400&d=d-1&t=t-1');
     expect(countdownImageUrl('https://x.supabase.co/functions/v1', 'nope')).toBeNull();
     expect(countdownImageUrl('https://x.supabase.co/functions/v1', null)).toBeNull();
     expect(countdownImageUrl('', '2026-11-24T00:00:00Z')).toBeNull();

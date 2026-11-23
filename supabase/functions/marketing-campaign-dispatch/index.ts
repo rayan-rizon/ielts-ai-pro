@@ -76,7 +76,7 @@ const campaignEmail = (
     plan: campaign.plan,
     countdownImageUrl:
       campaign.metadata?.lifecycle_stage === 'checkout'
-        ? countdownImageUrl(`${supabaseUrl}/functions/v1`, offer?.expiresAt)
+        ? countdownImageUrl(`${supabaseUrl}/functions/v1`, offer?.expiresAt, campaign.delivery)
         : null,
     ctaLabel: campaign.cta_label,
     recipientName: recipient.username?.trim() || 'there',
@@ -673,7 +673,12 @@ async function dispatchCampaignWithTiming(
 
       const unsubscribeUrl = unsubscribeEndpoint(delivery.id, delivery.tracking_token);
       const email = campaignEmail(
-        { ...campaign, cta_label: action.label, plan },
+        {
+          ...campaign,
+          cta_label: action.label,
+          plan,
+          delivery: { id: delivery.id, token: delivery.tracking_token },
+        },
         recipient,
         offer,
         trackingEndpoint(delivery.id, delivery.tracking_token, 'click', destination.toString()),

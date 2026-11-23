@@ -201,6 +201,8 @@ describe('checkout recovery email: selected plan and live countdown', () => {
     );
     expect(live.html).toContain('alt="Time remaining when sent: 12 hours, 0 minutes."');
     expect(live.html).toContain('live countdown');
+    expect(live.html).toContain('Your 24 hours start when you open this email.');
+    expect(live.html).not.toContain('Expires Nov 24');
     expect(live.html).not.toMatch(/>12<\/span><span[^>]*>Hours<\/span>/);
     const still = getCampaignTemplate({ ...base, offer });
     expect(still.html).not.toContain('email-countdown');
@@ -213,6 +215,33 @@ describe('checkout recovery email: selected plan and live countdown', () => {
       countdownImageUrl: 'https://x.supabase.co/functions/v1/email-countdown?e=1',
     });
     expect(ended.html).not.toContain('email-countdown');
+  });
+});
+
+describe('payment attribution and open-time countdown migration', () => {
+  const sql = readFileSync(
+    'supabase/migrations/20261123070000_payment_attribution_and_open_countdown.sql',
+    'utf8'
+  );
+  it('credits a payment to the email that issued its code, on both payment tables', () => {
+    expect(sql).toContain('BEFORE INSERT ON public.billing_history');
+    expect(sql).toContain('BEFORE INSERT ON public.payment_requests');
+    expect(sql).toContain('p.marketing_delivery_id IS NOT NULL');
+  });
+  it('never overwrites an attribution that came from the checkout link', () => {
+    expect(sql).toContain('IF NEW.marketing_delivery_id IS NOT NULL THEN RETURN NEW; END IF;');
+  });
+  it('starts the offer clock once, never shortens it and never revives an ended or used code', () => {
+    expect(sql).toContain("GREATEST(p.offer_expires_at, now() + interval '24 hours')");
+    expect(sql).toContain("IF d.content ? 'countdown_started_at' THEN RETURN p.offer_expires_at");
+    expect(sql).toContain('p.offer_expires_at <= now()');
+    expect(sql).toContain('COALESCE(p.current_uses, 0) > 0');
+  });
+  it('is callable only by the service role', () => {
+    expect(sql).toContain(
+      'GRANT EXECUTE ON FUNCTION public.start_offer_countdown(uuid, uuid) TO service_role'
+    );
+    expect(sql).toContain("auth.role() IS DISTINCT FROM 'service_role'");
   });
 });
 

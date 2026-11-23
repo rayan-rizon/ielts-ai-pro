@@ -211,9 +211,22 @@ export function renderCountdownGif(secondsLeft: number, seconds = 60): Uint8Arra
   return encodeGif({ width: W, height: H, palette: PALETTE, frames });
 }
 
-/** The email-countdown URL for an offer deadline, or null when there is no valid deadline. */
-export function countdownImageUrl(functionsBaseUrl: string, expiresAt?: string | null) {
+/**
+ * The email-countdown URL for an offer deadline, or null when there is no valid deadline.
+ * With a delivery, loading the image also starts the offer's 24 hours (see the function).
+ */
+export function countdownImageUrl(
+  functionsBaseUrl: string,
+  expiresAt?: string | null,
+  delivery?: { id: string; token: string } | null
+) {
   const seconds = expiresAt ? Math.floor(Date.parse(expiresAt) / 1000) : NaN;
   if (!functionsBaseUrl || !Number.isFinite(seconds)) return null;
-  return `${functionsBaseUrl.replace(/\/$/, '')}/email-countdown?e=${seconds}`;
+  const url = new URL(`${functionsBaseUrl.replace(/\/$/, '')}/email-countdown`);
+  url.searchParams.set('e', String(seconds));
+  if (delivery) {
+    url.searchParams.set('d', delivery.id);
+    url.searchParams.set('t', delivery.token);
+  }
+  return url.toString();
 }

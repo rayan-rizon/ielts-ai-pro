@@ -841,7 +841,7 @@ export function getCampaignTemplate(input: {
         ? `
     <p style="margin:12px 0 6px;font-size:12px;font-weight:700;color:${OFFER_RED}">Ends in${remainingMinutes === 0 ? ' less than 1 minute' : ''} <span style="font-weight:500;color:#68657a">· ${countdownImage ? 'live countdown' : 'time remaining when sent'}</span></p>
     ${countdownImage ?? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;border-spacing:0"><tr>${countdown.map(({ value, label }) => `<td align="center" style="padding:7px 4px;background:#ffffff;border:1px solid #efe1df;border-radius:10px;text-align:center"><span style="display:block;font-family:Consolas,Menlo,Monaco,monospace;font-size:21px;font-weight:700;line-height:1.15;color:#262438">${String(value).padStart(2, '0')}</span><span style="display:block;margin-top:1px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#68657a">${label}</span></td>`).join('<td width="6" style="width:6px"></td>')}</tr></table>`}
-    <p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#68657a">${escapeHtml(offerWindow)}</p>`
+    <p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#68657a">${escapeHtml(countdownImage ? 'Your 24 hours start when you open this email.' : offerWindow)}</p>`
         : ''
     }
     <p style="margin:12px 0 5px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#68657a;text-align:center">Copy the code below</p>
