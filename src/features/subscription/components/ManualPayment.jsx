@@ -19,6 +19,7 @@ import { OUTAGE_COPY, isServiceOutageError, trackServiceError } from '@/lib/serv
 import { savePendingManualPayment } from '@/features/subscription/services/pendingManualPayment';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/cn';
+import OfferCountdownBanner from './OfferCountdownBanner';
 import { trackAppEvent } from '@/lib/tracking';
 import {
   getNagadAvailability,
@@ -57,7 +58,7 @@ const PAYMENT_METHODS = [
 
 const BANGLADESH_POLICY_VERSION = '2026-09-22';
 
-export default function ManualPayment({ isOpen, onClose, planData: data, userId }) {
+export default function ManualPayment({ isOpen, onClose, planData: data, userId, offer = null }) {
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS[0]);
   const [txnId, setTxnId] = useState('');
   const [phone, setPhone] = useState('');
@@ -358,6 +359,13 @@ export default function ManualPayment({ isOpen, onClose, planData: data, userId 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 sm:px-5 sm:py-3.5 space-y-3">
           {!isSuccess ? (
             <form onSubmit={isInstant ? handleNagadPay : handleSubmit} className="space-y-3">
+              {offer && (
+                <OfferCountdownBanner
+                  code={offer.code}
+                  percent={offer.percent}
+                  expiresAt={offer.expiresAt}
+                />
+              )}
               {/* Plan Info Card */}
               <div
                 className={cn(

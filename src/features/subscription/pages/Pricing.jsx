@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import DocumentHead from '@/components/shared/DocumentHead';
 import {
@@ -33,6 +33,8 @@ import {
 import PricingCard from '../components/PricingCard';
 import FAQSection from '../components/FAQSection';
 import PricingHeaderSection from '../components/PricingHeaderSection';
+import OfferCountdownBanner from '../components/OfferCountdownBanner';
+import { useOfferBanner } from '../hooks/useOfferBanner';
 import SubscriptionManagementBanner from '../components/SubscriptionManagementBanner';
 
 const containerVariants = {
@@ -731,6 +733,12 @@ export default function Pricing() {
     await startStripeCheckoutSession(planTier, meta.plan, meta.chargeAmount, checkoutRequest);
   };
 
+  const { offer: offerBanner, dismiss: dismissOfferBanner } = useOfferBanner(promoDiscount);
+  const handleOfferExpired = useCallback(() => {
+    dismissOfferBanner();
+    setPromoDiscount(null);
+  }, [dismissOfferBanner]);
+
   useOfferCheckoutLink({
     user,
     plans,
@@ -793,6 +801,15 @@ export default function Pricing() {
             coverageNote={coverageNote}
           />
 
+          {offerBanner && (
+            <OfferCountdownBanner
+              code={offerBanner.code}
+              percent={offerBanner.percent}
+              expiresAt={offerBanner.expiresAt}
+              onExpire={handleOfferExpired}
+            />
+          )}
+
           <PricingPlansGrid
             plans={plans}
             billingInterval={billingInterval}
@@ -819,6 +836,7 @@ export default function Pricing() {
               isOpen={showManualPayment}
               onClose={() => setShowManualPayment(false)}
               planData={manualPaymentData}
+              offer={offerBanner}
               userId={user?.auth_id}
             />
           )}
