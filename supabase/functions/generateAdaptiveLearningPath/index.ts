@@ -26,6 +26,7 @@ import {
   buildRoadmap,
   buildPlanSchedule,
   findRecurringObjectiveMistakes,
+  getModuleBandGaps,
   fingerprintLearningPathInputs,
   LEARNING_PATH_GENERATOR_VERSION,
   normalizeStudyAvailability,
@@ -263,6 +264,30 @@ function mergeRecoveryTasks(schedule: Record<string, any[]>, previousPath: any, 
   return merged;
 }
 
+/** Whole days from the learner's today to their test; null with no date or once it has passed. */
+function daysUntilTest(goal: any): number | null {
+  if (!goal?.test_date) return null;
+  const today = studyDateKey(new Date(), goal.study_availability?.timezone || 'UTC');
+  const days = Math.round(
+    (Date.parse(`${String(goal.test_date).slice(0, 10)}T00:00:00Z`) -
+      Date.parse(`${today}T00:00:00Z`)) /
+      86400000
+  );
+  return Number.isFinite(days) && days >= 0 ? days : null;
+}
+
+/** Modules whose median sits below target, largest gap first. Observed scores only. */
+function modulesBelowTarget(readiness: any, targetBand: number) {
+  return Object.entries(getModuleBandGaps(readiness, targetBand))
+    .filter(([, gap]) => gap > 0)
+    .map(([module, gap]) => ({
+      module,
+      medianBand: readiness.modules[module].median,
+      bandsBelowTarget: gap,
+    }))
+    .sort((a, b) => b.bandsBelowTarget - a.bandsBelowTarget);
+}
+
 async function buildCoachSummary({
   openRouterApiKey,
   deepseekApiKey,
@@ -287,11 +312,20 @@ async function buildCoachSummary({
     generatorVersion: LEARNING_PATH_GENERATOR_VERSION,
     cacheStatus: 'miss',
   };
+  const daysLeft = daysUntilTest(goal);
+  const belowTarget = modulesBelowTarget(readiness, Number(goal.target_band || 7));
+  const countdown =
+    daysLeft !== null && daysLeft <= 14
+      ? daysLeft <= 1
+        ? 'Your test is almost here. '
+        : `${daysLeft} days to your test. `
+      : '';
   const fallback = {
     headline:
-      evidence.measured_priorities.length > 0
+      countdown +
+      (evidence.measured_priorities.length > 0
         ? 'Start with the clearest confirmed focus, then protect review time.'
-        : 'Measure first, then personalize from trustworthy results.',
+        : 'Measure first, then personalize from trustworthy results.'),
     explanation: readiness.overall.available
       ? `Your current practice evidence spans Band ${readiness.overall.range[0]}–${readiness.overall.range[1]}. This is an observed range, not a prediction.`
       : readiness.overall.disclaimer,
@@ -371,12 +405,15 @@ async function buildCoachSummary({
     const prompt = `You are an IELTS coach ranking a safe, pre-validated study plan.
 Use aggregate evidence only. Never invent activities, keys, evidence, routes, scores, or capacity.
 Never predict improvement, promise a score, or call level-check/needs-more-results skills weaknesses.
+If daysUntilExam is 14 or fewer, say how many days remain. If modulesBelowTarget is not empty, name the module with the largest gap as the main focus; if it is empty, do not suggest the learner is behind. Report only the observed gaps given, never a forecast.
 Choose at most three provided activityIndex values, most useful first. Return JSON only: {"headline":"max 18 words","explanation":"max 65 words","rankedActivityIndices":[0,1,2]}.
 
 <aggregate_evidence>
 ${JSON.stringify({
   targetBand: goal.target_band,
   examDate: goal.test_date,
+  daysUntilExam: daysLeft,
+  modulesBelowTarget: belowTarget,
   weeklyCapacityMinutes: goal.weekly_capacity_minutes,
   evidenceConfidence: evidence.confidence_label,
   measuredPriorityCount: evidence.measured_priorities.length,
@@ -687,7 +724,10 @@ const handleRequest = async (req: Request) => {
       profile.test_date && new Date(profile.test_date).getTime() >= new Date(localToday).getTime()
         ? profile.test_date
         : null;
-    const roadmap = buildRoadmap(planningTestDate, localToday);
+    const roadmap = buildRoadmap(planningTestDate, localToday, {
+      targetBand: Number(profile.target_band_score || 7),
+      readiness,
+    });
     const scheduleInput = {
       availability,
       evidence,

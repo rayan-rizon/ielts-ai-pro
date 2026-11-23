@@ -412,7 +412,7 @@ describe('Learning Path main page composition', () => {
     const path = {
       version: 2,
       input_fingerprint: 'same-inputs',
-      generator_version: '2.5.0',
+      generator_version: '2.5.1',
       generated_at: '2026-07-23T09:00:00.000Z',
       goal_snapshot: {
         target_band: 7,

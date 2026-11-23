@@ -32,7 +32,7 @@ const availability = normalizeStudyAvailability({
 });
 const plan = {
   version: 2,
-  generator_version: '2.5.0',
+  generator_version: '2.5.1',
   input_fingerprint: 'same',
   generated_at: '2026-09-17T00:00:00Z',
   goal_snapshot: { target_band: 7, test_date: null, study_availability: availability },
@@ -225,7 +225,9 @@ describe('Practice Mode to Exam Mode progression', () => {
     expect(recommendAssessmentMode({ sample_count: 2, median: 5 }, 7).mode).toBe('practice');
     expect(recommendAssessmentMode({ sample_count: 3, median: 6 }, 7).mode).toBe('exam');
     expect(recommendAssessmentMode({ sample_count: 5, median: 4 }, 7).mode).toBe('exam');
-    expect(recommendAssessmentMode({ sample_count: 2, median: 5 }, 7, 10).mode).toBe('exam');
+    // Two bands short with ten days left: feedback first, no-hints attempts later.
+    expect(recommendAssessmentMode({ sample_count: 2, median: 5 }, 7, 10).mode).toBe('practice');
+    expect(recommendAssessmentMode({ sample_count: 2, median: 6 }, 7, 10).mode).toBe('exam');
   });
 
   it('covers missing subjects without inventing strengths or incompatible skill targets', () => {

@@ -1,6 +1,6 @@
 import { reconcileObjectiveResultEvidence } from './objective-scoring/resultEvidence.js';
 
-export const LEARNING_PATH_GENERATOR_VERSION = '2.5.0';
+export const LEARNING_PATH_GENERATOR_VERSION = '2.5.1';
 
 export const STUDY_DAYS = [
   'monday',
@@ -604,11 +604,16 @@ export function aggregateReadiness(sessions: any[], now: Date | string = new Dat
   return { window_days: 90, modules, overall, missing_diagnostics };
 }
 
-export function buildRoadmap(testDate: string | null | undefined, now: Date | string = new Date()) {
+export function buildRoadmap(
+  testDate: string | null | undefined,
+  now: Date | string = new Date(),
+  context: { targetBand?: number; readiness?: any } = {}
+) {
   const start = startOfUtcDay(now);
   const parsedExam = testDate ? startOfUtcDay(testDate) : null;
+  // An exam today is still a dated exam: it must not fall back to a 12-week journey.
   const hasScheduledExam = Boolean(
-    parsedExam && !Number.isNaN(parsedExam.getTime()) && parsedExam.getTime() > start.getTime()
+    parsedExam && !Number.isNaN(parsedExam.getTime()) && parsedExam.getTime() >= start.getTime()
   );
   // Keep a planning horizon for task allocation when a date is missing or expired, but do not
   // surface that internal horizon as a learner's exam timeline.
@@ -642,14 +647,30 @@ export function buildRoadmap(testDate: string | null | undefined, now: Date | st
     },
   ];
 
+  // A short runway normally skips the early stages. It must not skip the work a
+  // learner still needs: no scored results means measure first, and a module more
+  // than a band below target means repair before timed integration.
+  const readiness = context.readiness;
+  const needsFoundation = Boolean(readiness?.missing_diagnostics?.length);
+  const largestGap = Math.max(
+    0,
+    ...Object.values(getModuleBandGaps(readiness, context.targetBand))
+  );
+  const needsRepair = !needsFoundation && largestGap > 1;
+  const leadStage = needsFoundation ? templates[0] : needsRepair ? templates[1] : null;
+
   const activeTemplates =
-    totalDays <= 7
-      ? templates.slice(3)
-      : totalDays <= 14
-        ? templates.slice(2)
-        : totalDays <= 30
-          ? templates.slice(1)
-          : templates;
+    hasScheduledExam && leadStage && totalDays >= 5 && totalDays <= 14
+      ? [leadStage, templates[3]]
+      : hasScheduledExam && needsFoundation && totalDays > 14 && totalDays <= 30
+        ? templates
+        : totalDays <= 7
+          ? templates.slice(3)
+          : totalDays <= 14
+            ? templates.slice(2)
+            : totalDays <= 30
+              ? templates.slice(1)
+              : templates;
   const weights =
     activeTemplates.length === 4
       ? [0.2, 0.4, 0.25, 0.15]
@@ -682,14 +703,69 @@ export function buildRoadmap(testDate: string | null | undefined, now: Date | st
   });
 }
 
-export function getAllocation(daysUntilExam: number | null) {
-  if (daysUntilExam !== null && daysUntilExam <= 14) {
-    return { measured_priority: 25, due_review: 15, assessment: 45, maintenance: 15 };
+const isScoredMedian = (median: unknown) =>
+  median !== null && median !== undefined && Number.isFinite(Number(median));
+
+/** How far each scored module's median sits below the target band (0 when at or above it). */
+export function getModuleBandGaps(readiness: any, targetBand = 7) {
+  const gaps: Record<string, number> = {};
+  IELTS_MODULES.forEach((module) => {
+    const median = readiness?.modules?.[module]?.median;
+    if (isScoredMedian(median)) gaps[module] = Math.max(0, roundBand(targetBand - Number(median)));
+  });
+  return gaps;
+}
+
+/** The mean shortfall across scored modules; 0 when nothing is scored yet. */
+export function getAverageBandGap(readiness: any, targetBand = 7) {
+  const gaps = Object.values(getModuleBandGaps(readiness, targetBand));
+  return gaps.length ? gaps.reduce((total, gap) => total + gap, 0) / gaps.length : 0;
+}
+
+/**
+ * Where study minutes go. A close exam leans on timed assessment, but only for a
+ * learner who is near the target: someone a band or more short needs the time for
+ * repair, so the assessment share is traded for focused practice.
+ */
+export function getAllocation(daysUntilExam: number | null, bandGap = 0) {
+  const farBelow = bandGap >= 1;
+  const within = (days: number) => daysUntilExam !== null && daysUntilExam <= days;
+  if (within(14)) {
+    return farBelow
+      ? { measured_priority: 40, due_review: 15, assessment: 30, maintenance: 15 }
+      : { measured_priority: 25, due_review: 15, assessment: 45, maintenance: 15 };
   }
-  if (daysUntilExam !== null && daysUntilExam <= 30) {
+  if (within(30) && !farBelow) {
     return { measured_priority: 35, due_review: 20, assessment: 30, maintenance: 15 };
   }
   return { measured_priority: 45, due_review: 20, assessment: 20, maintenance: 15 };
+}
+
+/**
+ * Mode for a learner whose test is within two weeks and who has scored results.
+ * Someone more than a band short gets more from feedback than from a no-hints
+ * attempt, until the final week, when pacing rehearsal matters too.
+ */
+function closeExamMode(median: number, targetBand: number, daysUntilExam: number, count: number) {
+  if (median >= targetBand - 1) {
+    return {
+      mode: 'exam',
+      reason:
+        'You have starting scores and your test is close. Try Exam Mode to check pacing without hints.',
+    };
+  }
+  if (daysUntilExam <= 7 && count >= 3) {
+    return {
+      mode: 'exam',
+      reason:
+        'Your test is within a week. Use Exam Mode once to rehearse pacing, then review the feedback.',
+    };
+  }
+  return {
+    mode: 'practice',
+    reason:
+      'This module is more than a band below your target. Practice Mode feedback will help more than a no-hints attempt for now; move to Exam Mode once you are within one band.',
+  };
 }
 
 /** Progress per subject: learn with feedback first, then check transfer under exam conditions. */
@@ -706,11 +782,7 @@ export function recommendAssessmentMode(
       reason: 'Start in Practice Mode to build two scored results with feedback.',
     };
   if (daysUntilExam !== null && daysUntilExam >= 0 && daysUntilExam <= 14) {
-    return {
-      mode: 'exam',
-      reason:
-        'You have starting scores and your test is close. Try Exam Mode to check pacing without hints.',
-    };
+    return closeExamMode(medianScore, targetBand, daysUntilExam, count);
   }
   if ((count >= 3 && medianScore >= targetBand - 1) || count >= 5) {
     return {
@@ -921,6 +993,35 @@ export type PlanCarry = {
   categoryCursors: Record<string, number>;
 };
 
+/**
+ * The eligible category furthest below its share of the minutes planned so far.
+ * Shares are renormalised over eligible categories only: otherwise an empty
+ * category keeps the biggest unspent deficit, loses every round to 'assessment',
+ * and starves maintenance.
+ */
+function pickCategory(
+  allocation: Record<string, number>,
+  eligible: string[],
+  allocatedMinutes: Record<string, number>,
+  plannedMinutes: number
+) {
+  const eligibleShare = eligible.reduce((total, key) => total + allocation[key], 0);
+  const deficit = (key: string) =>
+    (allocation[key] / eligibleShare) * plannedMinutes - allocatedMinutes[key];
+  return [...eligible].sort((a, b) => deficit(b) - deficit(a))[0];
+}
+
+/** The day before the test, or the day itself: a short recap, never a no-hints attempt. */
+function asEveRecap<T extends Record<string, any>>(base: T): T {
+  return {
+    ...base,
+    requested_mode: 'practice',
+    reason:
+      'Your test is tomorrow or today. Keep this light: a short Practice Mode review, no full Exam Mode attempt.',
+    success_criterion: 'Review your feedback and stop early; rest matters more today.',
+  };
+}
+
 export function buildSevenDaySchedule({
   availability,
   evidence,
@@ -947,7 +1048,7 @@ export function buildSevenDaySchedule({
   const daysUntilExam = testDate
     ? Math.ceil((startOfUtcDay(testDate).getTime() - start.getTime()) / 86400000)
     : null;
-  const allocation = getAllocation(daysUntilExam);
+  const allocation = getAllocation(daysUntilExam, getAverageBandGap(readiness, targetBand));
   const weeklyCapacity = getWeeklyCapacity(availability);
   const plannedMinutes = STUDY_DAYS.reduce((total, day) => {
     const capacity = numberOr(availability.days[day], 0);
@@ -972,6 +1073,21 @@ export function buildSevenDaySchedule({
   let grammarRepairsSinceRetest = carry?.grammarRepairsSinceRetest ?? 0;
   let writingTaskCursor = carry?.writingTaskCursor ?? 0;
 
+  // Each day's primary session is a different focus: a category with two skills
+  // leads two days a week, then yields to assessment instead of repeating the
+  // same drill. Optional blocks may revisit a skill (Grammar repeats on purpose).
+  const primaryPicks: Record<string, number> = {};
+  const evidencePool: Record<string, number> = {
+    measured_priority: evidence.measured_priorities.length,
+    due_review: evidence.due_reviews.length,
+    maintenance: evidence.maintenance.filter((skill: any) => IELTS_MODULES.includes(skill.module))
+      .length,
+  };
+  const hasEvidenceFor = (category: string, isPrimary: boolean) => {
+    if (category === 'assessment') return true;
+    const pool = evidencePool[category] || 0;
+    return isPrimary ? (primaryPicks[category] || 0) < pool : pool > 0;
+  };
   const schedule: Record<string, any[]> = {};
   let taskCursor = carry?.taskCursor ?? 0;
   const categoryCursors: Record<string, number> = { ...(carry?.categoryCursors || {}) };
@@ -982,6 +1098,11 @@ export function buildSevenDaySchedule({
     const capacity = numberOr(availability.days[day], 0);
     schedule[day] = [];
     if (capacity < 20) continue;
+    // Counted from the day itself, since a week is planned from its first day. The
+    // day before the test (or the day itself) is a short recap, never a full
+    // no-hints attempt that could leave the learner tired or shaken.
+    const daysLeft = daysUntilExam === null ? null : daysUntilExam - offset;
+    const eveOfTest = daysLeft !== null && daysLeft <= 1;
 
     const blockCount = capacity >= 80 ? 3 : capacity >= 60 ? 2 : 1;
     const primaryMinutes = clamp(
@@ -1001,22 +1122,21 @@ export function buildSevenDaySchedule({
         capacity - usedToday,
         block === 0 ? primaryMinutes : clamp(optionalMinutes, 20, 60)
       );
+      if (eveOfTest) {
+        if (block > 0) continue;
+        minutes = Math.min(minutes, 30);
+      }
       if (minutes < 20) continue;
-      let category = Object.keys(allocation).sort((a, b) => {
-        const deficitA =
-          ((allocation as Record<string, number>)[a] / 100) * (assignedMinutes + minutes) -
-          allocatedMinutes[a];
-        const deficitB =
-          ((allocation as Record<string, number>)[b] / 100) * (assignedMinutes + minutes) -
-          allocatedMinutes[b];
-        return deficitB - deficitA;
-      })[0];
-      if (
-        (category === 'measured_priority' && !evidence.measured_priorities.length) ||
-        (category === 'due_review' && !evidence.due_reviews.length) ||
-        (category === 'maintenance' && !evidence.maintenance.length)
-      )
-        category = 'assessment';
+      // Only categories with evidence compete for minutes, and their shares are
+      // renormalised. Otherwise an empty category keeps the biggest unspent
+      // deficit, loses every round to 'assessment', and starves maintenance.
+      const category = pickCategory(
+        allocation as Record<string, number>,
+        Object.keys(allocation).filter((key) => hasEvidenceFor(key, block === 0)),
+        allocatedMinutes,
+        assignedMinutes + minutes
+      );
+      if (block === 0) primaryPicks[category] = (primaryPicks[category] || 0) + 1;
       const categoryIndex = categoryCursors[category] || 0;
       categoryCursors[category] = categoryIndex + 1;
       let base = activityForCategory(category, evidence, readiness, categoryIndex, targetBand);
@@ -1093,12 +1213,14 @@ export function buildSevenDaySchedule({
         const progression = recommendAssessmentMode(
           readiness.modules?.[base.module],
           targetBand,
-          daysUntilExam
+          daysLeft
         );
         const examMinutes = (
           { reading: 60, writing: 60, listening: 40, speaking: 20 } as Record<string, number>
         )[base.module];
-        if (progression.mode === 'exam' && capacity - usedToday >= examMinutes) {
+        if (eveOfTest) {
+          base = asEveRecap(base);
+        } else if (progression.mode === 'exam' && capacity - usedToday >= examMinutes) {
           minutes = Math.max(minutes, examMinutes);
           base = {
             ...base,

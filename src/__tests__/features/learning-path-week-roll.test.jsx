@@ -48,7 +48,7 @@ const schedule = (start) =>
 const tasksOf = (weekly) => Object.values(weekly).flat();
 const plan = (start, extra = {}) => ({
   version: 2,
-  generator_version: '2.5.0',
+  generator_version: '2.5.1',
   input_fingerprint: 'same',
   generated_at: `${start}T02:00:00Z`,
   schedule_start_date: start,

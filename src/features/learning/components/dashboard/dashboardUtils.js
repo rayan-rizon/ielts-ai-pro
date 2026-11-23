@@ -1374,6 +1374,7 @@ export function computeDashboardSnapshot(path, user = {}, stats = {}) {
     examDatePassed,
     currentExamDate,
     savedExamDate,
+    context: { targetBand, readiness },
   });
 
   return { readiness, roadmap, targetBand, examDate, daysLeft, examDatePassed };
@@ -1386,9 +1387,10 @@ const resolveSnapshotRoadmap = ({
   examDatePassed,
   currentExamDate,
   savedExamDate,
+  context,
 }) =>
   examDatePassed || currentExamDate !== savedExamDate
-    ? buildRoadmap(examDate)
+    ? buildRoadmap(examDate, new Date(), context)
     : getSnapshotRoadmap(path?.roadmap, user.test_date);
 
 const normalizeGoalDate = (value) => (value ? String(value).slice(0, 10) : '');
