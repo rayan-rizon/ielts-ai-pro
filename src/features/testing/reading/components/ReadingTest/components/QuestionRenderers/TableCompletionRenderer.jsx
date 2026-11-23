@@ -26,6 +26,7 @@ const TableCompletionRenderer = React.memo(
     explanationData,
     openDeepDive,
     setOpenDeepDive,
+    AnswerInput = DebouncedInput,
   }) => {
     // Use computed display numbers (like Listening version)
     const displayStart =
@@ -203,7 +204,7 @@ const TableCompletionRenderer = React.memo(
                                     data-oid="3qhezj1"
                                   />
 
-                                  <DebouncedInput
+                                  <AnswerInput
                                     value={value}
                                     onChange={(val) => onAnswerChange?.(inputId, val)}
                                     className={getInputStyles(isCorrect, value)}
@@ -311,7 +312,7 @@ const TableCompletionRenderer = React.memo(
                               data-oid="_rc53d-"
                             />
 
-                            <DebouncedInput
+                            <AnswerInput
                               value={value}
                               onChange={(val) => onAnswerChange?.(inputId, val)}
                               className={getInputStyles(isCorrect, value)}

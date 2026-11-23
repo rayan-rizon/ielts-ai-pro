@@ -39,7 +39,7 @@ import {
   STAGGER_CONTAINER,
   FADE_UP,
 } from '@/features/dashboard/components/primitives.jsx';
-import { focusLabel } from '../practiceLabels';
+import { focusLabel, groupCategory } from '../practiceLabels';
 import ResumeList from './ResumeList';
 
 const subject = (focus = '') => (focus.startsWith('listening:') ? 'Listening' : 'Reading');
@@ -88,7 +88,7 @@ function usePickerDismiss(pickerRef, listRef, triggerRef, setOpen) {
 }
 
 function SourceSetOption({ set, index, isActive, isSelected, onSelect, setOptionRef }) {
-  const optionLabel = `${set.title} · ${focusLabel(set.focus)} · ${familiarity(set.familiarity)}`;
+  const optionLabel = `${set.title} · ${focusLabel(groupCategory(set))} · ${familiarity(set.familiarity)}`;
   const badgeClass = getFamiliarityColorClass(set.familiarity);
   const stateClass = isSelected
     ? 'bg-[#5a63df]/10 font-bold text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]'
@@ -109,7 +109,7 @@ function SourceSetOption({ set, index, isActive, isSelected, onSelect, setOption
       <span className="min-w-0">
         <span className="block font-semibold text-slate-800 dark:text-slate-100">{set.title}</span>
         <span className={`mt-0.5 block text-[11px] ${MUTED}`}>
-          {focusLabel(set.focus)} ·{' '}
+          {focusLabel(groupCategory(set))} ·{' '}
           <span className={badgeClass}>{familiarity(set.familiarity)}</span>
         </span>
       </span>
@@ -189,7 +189,7 @@ function SourceSetPicker({ sets, value, onChange }) {
     const term = query.trim().toLowerCase();
     if (!term) return sets;
     return sets.filter((set) =>
-      `${set.title} ${focusLabel(set.focus)} ${familiarity(set.familiarity)}`
+      `${set.title} ${focusLabel(groupCategory(set))} ${familiarity(set.familiarity)}`
         .toLowerCase()
         .includes(term)
     );
@@ -373,21 +373,24 @@ export default function PracticeHome({
     (g) => subjectFilter === 'all' || g.focus.startsWith(`${subjectFilter}:`)
   );
   const needs = data.recommendations || [];
-  const availableFocus = [...new Set(groups.map((g) => g.focus))].sort((a, b) => {
+  const availableFocus = [...new Set(groups.map(groupCategory))].sort((a, b) => {
     const rank = (f) => needs.findIndex((n) => n.focus === f);
     return (rank(a) < 0 ? 999 : rank(a)) - (rank(b) < 0 ? 999 : rank(b));
   });
-  const requestedUnavailable = focus && !allGroups.some((g) => g.focus === focus);
-  const selected = availableFocus.includes(focus) ? focus : availableFocus[0];
-  const need = needs.find((n) => n.focus === selected);
+  const requestedUnavailable =
+    focus && !allGroups.some((g) => g.focus === focus || groupCategory(g) === focus);
+  const selected = availableFocus.includes(focus)
+    ? focus
+    : groupCategory(groups.find((g) => g.focus === focus)) || availableFocus[0];
   const sets = groups
-    .filter((g) => g.focus === selected)
+    .filter((g) => groupCategory(g) === selected)
     .sort(
       (a, b) =>
         ({ new: 0, familiar: 1, repeated: 2 })[a.familiarity] -
         { new: 0, familiar: 1, repeated: 2 }[b.familiarity]
     );
   const next = sets.find((g) => g.id === groupId) || sets[0];
+  const need = needs.find((n) => n.focus === selected);
   const sessions = data.sessions || [];
   const continuing = sessions.filter((s) => !s.completed_at);
   const groupTitles = new Map(allGroups.map((group) => [group.id, group.title]));
@@ -505,7 +508,7 @@ export default function PracticeHome({
               tone="sky"
               icon={ReiconTarget}
               label="Question types"
-              value={new Set(allGroups.map((g) => g.focus)).size}
+              value={new Set(allGroups.map(groupCategory)).size}
               sub={
                 data.enabled
                   ? `${allGroups.length} available library sets`
@@ -734,7 +737,7 @@ export default function PracticeHome({
                             {next.title}
                           </p>
                           <p className={`mt-1 text-xs ${MUTED}`}>
-                            {focusLabel(next.focus)} ·{' '}
+                            {focusLabel(groupCategory(next))} ·{' '}
                             <span className={`${NUM} font-bold text-slate-800 dark:text-slate-100`}>
                               {next.total}
                             </span>{' '}
@@ -1117,7 +1120,8 @@ export default function PracticeHome({
               <AnimatePresence initial={false}>
                 {availableFocus.map((f) => {
                   const result = needs.find((n) => n.focus === f);
-                  const available = groups.filter((g) => g.focus === f);
+                  const available = groups.filter((g) => groupCategory(g) === f);
+                  const total = available.reduce((sum, group) => sum + (group.total ?? 0), 0);
                   const fresh = available.filter((g) => g.familiarity === 'new').length;
                   const Icon = f.startsWith('listening:') ? Headphones : BookOpen;
                   const isSelected = selected === f;
@@ -1167,6 +1171,9 @@ export default function PracticeHome({
                         ) : null}
                       </div>
                       <h3 className={`${TITLE} mt-2 text-sm`}>{focusLabel(f)}</h3>
+                      {data.categoryTips?.[f] && (
+                        <p className={`mt-1 text-xs ${MUTED}`}>{data.categoryTips[f]}</p>
+                      )}
                       <div
                         className={`mt-2 flex flex-wrap justify-between items-center gap-1 text-[11px] ${MUTED}`}
                       >
@@ -1174,7 +1181,9 @@ export default function PracticeHome({
                           <span className={`${NUM} font-bold text-slate-800 dark:text-slate-200`}>
                             {available.length}
                           </span>{' '}
-                          sets ·{' '}
+                          {available.length === 1 ? 'set' : 'sets'} ·{' '}
+                          <span className={`${NUM} font-medium`}>{total}</span>{' '}
+                          {total === 1 ? 'question' : 'questions'} ·{' '}
                           <span className={`${NUM} font-medium text-slate-700 dark:text-slate-300`}>
                             {fresh}
                           </span>{' '}

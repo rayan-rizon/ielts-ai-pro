@@ -98,6 +98,108 @@ beforeEach(() => {
   });
 });
 describe('library practice page', () => {
+  it('submits the latest typed Reading note even before the input loses focus', async () => {
+    const question = {
+      id: 'notes',
+      type: 'notes_completion',
+      question_number: 31,
+      gap_fill: { structured_text: 'Writer [31]' },
+    };
+    invoke.mockResolvedValue({
+      data: { ...session, stage: 2, focus: 'reading:notes_completion', questions: [question] },
+    });
+    mount('/practice-lab/session/session');
+    fireEvent.change(await screen.findByRole('textbox'), { target: { value: 'Ada' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check my answers' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith(
+        'skill-lab',
+        expect.objectContaining({
+          body: expect.objectContaining({ action: 'submit', answers: { notes_gap_31: 'Ada' } }),
+        })
+      )
+    );
+  });
+  it('saves both blanks when the source Reading short answer awards one combined mark', async () => {
+    const question = {
+      id: 'short',
+      question_number: 23,
+      type: 'short_answer',
+      question_text: 'The writer travelled from _____ to _____.',
+    };
+    invoke.mockResolvedValue({
+      data: { ...session, stage: 2, focus: 'reading:short_answer', questions: [question] },
+    });
+    mount('/practice-lab/session/session');
+    const inputs = await screen.findAllByRole('textbox', { name: /question 23/i });
+    expect(inputs).toHaveLength(2);
+    fireEvent.change(inputs[0], { target: { value: 'York' } });
+    fireEvent.change(inputs[1], { target: { value: 'Leeds' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check my answers' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith(
+        'skill-lab',
+        expect.objectContaining({
+          body: expect.objectContaining({
+            action: 'submit',
+            answers: { short_blank_1: 'York', short_blank_2: 'Leeds' },
+          }),
+        })
+      )
+    );
+  });
+  it('shows separate Listening MCQ cards with their question totals and opens the chosen set', async () => {
+    const single = { ...group, id: 'single', focus: 'listening:multiple_choice', total: 3 };
+    const multi = {
+      ...single,
+      id: 'multi',
+      category: 'listening:multiple_choice_multiple',
+      total: 2,
+    };
+    invoke.mockImplementation(async (_, { body }) =>
+      body.action === 'dashboard'
+        ? { data: { enabled: true, remaining: 2, limit: 2, groups: [single, multi] } }
+        : { data: session }
+    );
+    mount('/practice-lab?module=listening&focus=listening%3Amultiple_choice');
+    const multiCard = await screen.findByRole('button', {
+      name: /Choose Multiple choice \(multiple answers\)/i,
+    });
+    expect(multiCard).toHaveTextContent('1 set · 2 questions');
+    fireEvent.click(multiCard);
+    const selected = screen.getByRole('region', { name: 'Selected question type' });
+    fireEvent.click(within(selected).getByRole('button', { name: 'Review and practise' }));
+    expect(invoke).toHaveBeenCalledWith(
+      'skill-lab',
+      expect.objectContaining({
+        body: expect.objectContaining({ action: 'start', groupId: 'multi' }),
+      })
+    );
+  });
+
+  it('renders the original Reading short answer and sends a fast submit with the word entered', async () => {
+    const question = {
+      id: 'short',
+      question_number: 13,
+      type: 'short_answer',
+      question_text: 'Who wrote the letter?',
+    };
+    invoke.mockResolvedValue({
+      data: { ...session, stage: 2, focus: 'reading:short_answer', questions: [question] },
+    });
+    mount('/practice-lab/session/session');
+    const input = await screen.findByRole('textbox', { name: /Question 13/i });
+    fireEvent.change(input, { target: { value: 'Ada' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check my answers' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith(
+        'skill-lab',
+        expect.objectContaining({
+          body: expect.objectContaining({ action: 'submit', answers: { short: 'Ada' } }),
+        })
+      )
+    );
+  });
   it.each(['pro', 'premium'])('starts a set without a daily allowance for %s', async (tier) => {
     invoke.mockImplementation(async (_, { body }) =>
       body.action === 'dashboard'

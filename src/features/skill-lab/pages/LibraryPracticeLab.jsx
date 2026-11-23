@@ -25,13 +25,20 @@ import {
 import MatchingRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/MatchingRenderer';
 import MultipleChoiceRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/MultipleChoiceRenderer';
 import TrueFalseRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/TrueFalseRenderer';
+import {
+  FlowchartRenderer,
+  NotesCompletionRenderer,
+  TableCompletionRenderer,
+} from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers';
 import ListeningQuestions from '@/features/testing/listening/components/ListeningTest/components/QuestionRendererDispatcher';
+import QuestionInput from '@/features/testing/reading/components/ReadingTest/components/QuestionInput';
+import { Input } from '@/components/ui/input';
 
 const title = focusLabel;
 async function action(actionName, data = {}) {
   const { data: result, error } = await supabase.functions.invoke('skill-lab', {
     headers: getSupabaseFunctionHeaders(),
-    body: { library: true, action: actionName, ...data },
+    body: { library: true, catalogueVersion: 2, action: actionName, ...data },
   });
   if (error || result?.error) {
     let message = result?.error;
@@ -158,6 +165,32 @@ export function QuestionGroupInstructions({ instructions }) {
   );
 }
 
+function ImmediateAnswerInput({ onChange, ...props }) {
+  return <Input {...props} onChange={(event) => onChange(event.target.value)} />;
+}
+
+function ReadingShortAnswer({ question, ...props }) {
+  const text = question.question_text || '';
+  return (
+    <QuestionInput
+      {...props}
+      text={/_____|\[\d+\]/.test(text) ? text : `${text} [${question.question_number}]`}
+      questionId={question.id}
+      globalNum={question.question_number}
+    />
+  );
+}
+
+const READING_QUESTION_RENDERERS = {
+  multiple_choice: MultipleChoiceRenderer,
+  true_false_not_given: TrueFalseRenderer,
+  yes_no_not_given: TrueFalseRenderer,
+  notes_completion: NotesCompletionRenderer,
+  table_completion: TableCompletionRenderer,
+  flowchart: FlowchartRenderer,
+  short_answer: ReadingShortAnswer,
+};
+
 function QuestionBody({ module, question, props }) {
   if (module === 'listening') return <ListeningQuestions {...props} />;
   if (question.type.startsWith('matching')) {
@@ -170,11 +203,21 @@ function QuestionBody({ module, question, props }) {
       </p>
     );
   }
-  if (question.type === 'multiple_choice') return <MultipleChoiceRenderer {...props} />;
-  if (['true_false_not_given', 'yes_no_not_given'].includes(question.type)) {
-    return <TrueFalseRenderer {...props} />;
-  }
-  return <p className={MUTED}>Open this question type in the test library.</p>;
+  const Renderer = READING_QUESTION_RENDERERS[question.type];
+  return Renderer ? (
+    <Renderer {...props} />
+  ) : (
+    <p className={MUTED}>Open this question type in the test library.</p>
+  );
+}
+
+function ReadingQuestionPrompt({ question }) {
+  if (question.type === 'short_answer' || !question.question_text) return null;
+  return (
+    <p className="text-sm font-semibold leading-snug">
+      {question.question_number}. {question.question_text}
+    </p>
+  );
 }
 
 function Questions({ questions, module, answers, onChange }) {
@@ -191,6 +234,7 @@ function Questions({ questions, module, answers, onChange }) {
       isFinished: false,
       validationMap: {},
       correctAnswersMap: {},
+      AnswerInput: ImmediateAnswerInput,
       handleMultiSelectChange: (id, value, checked, limit) => {
         const previous = Array.isArray(answers[id]) ? answers[id] : [];
         const next = checked
@@ -210,11 +254,7 @@ function Questions({ questions, module, answers, onChange }) {
             <QuestionGroupInstructions instructions={question.group_instructions} />
           )}
         {/* The listening renderer already prints the question; repeating it doubled the heading. */}
-        {!isListening && question.question_text && (
-          <p className="text-sm font-semibold leading-snug">
-            {question.question_number}. {question.question_text}
-          </p>
-        )}
+        {!isListening && <ReadingQuestionPrompt question={question} />}
         <QuestionBody module={module} question={question} props={props} />
       </article>
     );
@@ -549,7 +589,9 @@ export default function LibraryPracticeLab() {
       run(async () => {
         await flushAutosave().catch(() => {});
         await action('save', { sessionId, answers, stage: reviewing ? 0 : 2 });
-        navigate(`/practice-lab?module=${module}&focus=${encodeURIComponent(data.focus)}`);
+        navigate(
+          `/practice-lab?module=${module}&focus=${encodeURIComponent(data.category || data.focus)}`
+        );
       });
     return (
       <main className="mx-auto max-w-7xl space-y-2.5 px-3 py-2 pb-16 md:px-5 md:py-3 md:pb-16">
@@ -580,7 +622,7 @@ export default function LibraryPracticeLab() {
 
           {/* Row 2: Title and session progress */}
           <div className="min-w-0">
-            <p className={MICRO}>Practice Lab · {title(data.focus)}</p>
+            <p className={MICRO}>Practice Lab · {title(data.category || data.focus)}</p>
             <h1
               className="max-w-[42rem] break-words text-lg font-semibold leading-tight sm:text-xl"
               tabIndex={-1}

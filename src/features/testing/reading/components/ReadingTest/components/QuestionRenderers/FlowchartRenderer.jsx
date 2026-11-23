@@ -64,6 +64,7 @@ function FlowchartStepGap({
   explanationData,
   openDeepDive,
   setOpenDeepDive,
+  AnswerInput,
 }) {
   const gapIndex = stepStartOffset + index;
   const gapNumber = step.gap_numbers?.[index] ?? Number(question.question_number || 1) + gapIndex;
@@ -84,7 +85,7 @@ function FlowchartStepGap({
           status={status}
           size="sm"
         />
-        <DebouncedInput
+        <AnswerInput
           value={value}
           onChange={(nextValue) => onAnswerChange?.(answerKey, nextValue)}
           disabled={disabled}
@@ -120,6 +121,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
   explanationData,
   openDeepDive,
   setOpenDeepDive,
+  AnswerInput = DebouncedInput,
 }) {
   const flowchart = question.flowchart;
   if (!flowchart?.steps?.length) return null;
@@ -150,6 +152,7 @@ const FlowchartRenderer = React.memo(function FlowchartRenderer({
           explanationData={explanationData}
           openDeepDive={openDeepDive}
           setOpenDeepDive={setOpenDeepDive}
+          AnswerInput={AnswerInput}
         />
       );
     });

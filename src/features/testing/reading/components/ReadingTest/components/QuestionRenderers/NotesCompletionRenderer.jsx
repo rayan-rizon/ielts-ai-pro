@@ -20,6 +20,7 @@ const NotesCompletionRenderer = React.memo(
     explanationData,
     openDeepDive,
     setOpenDeepDive,
+    AnswerInput = DebouncedInput,
   }) => {
     const { gap_fill } = question;
     const { title, text: structuredText } = readingNotesPresentation(
@@ -98,7 +99,7 @@ const NotesCompletionRenderer = React.memo(
                     data-oid="b4m65j3"
                   />
 
-                  <DebouncedInput
+                  <AnswerInput
                     className={getInputStyles(isCorrect, value)}
                     value={value}
                     onChange={(val) => onAnswerChange?.(answerKey, val)}

@@ -21,6 +21,7 @@ const QuestionInput = memo(function QuestionInput({
   explanationData,
   openDeepDive,
   setOpenDeepDive,
+  AnswerInput = DebouncedInput,
 }) {
   if (!text) return null;
 
@@ -88,7 +89,7 @@ const QuestionInput = memo(function QuestionInput({
                 data-oid="e8..gw8"
               />
 
-              <DebouncedInput
+              <AnswerInput
                 value={answers?.[answerKey] || ''}
                 onChange={(value) => onAnswerChange?.(answerKey, value)}
                 disabled={disabled}

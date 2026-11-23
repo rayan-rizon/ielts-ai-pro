@@ -28,8 +28,10 @@ function fixtureSummaries() {
     }));
 }
 
-function makeClient(options: { history?: any[] } = {}) {
+function makeClient(options: { history?: any[]; groups?: any[]; sessions?: any[] } = {}) {
   const rpcCalls: Array<{ name: string; args: any }> = [];
+  const sessions = options.sessions ?? [];
+  const groups = options.groups ?? fixtureSummaries();
   let indexedGroup: any = null;
 
   const client = {
@@ -37,7 +39,7 @@ function makeClient(options: { history?: any[] } = {}) {
       rpcCalls.push({ name, args });
       if (name === 'practice_library_state') {
         if (args.p_action === 'dashboard') {
-          return { data: { exposures: [], sessions: [] }, error: null };
+          return { data: { exposures: [], sessions }, error: null };
         }
         return {
           data: {
@@ -57,8 +59,8 @@ function makeClient(options: { history?: any[] } = {}) {
           error: null,
         };
       }
-      if (name === 'practice_library_dashboard_groups') {
-        return { data: fixtureSummaries(), error: null };
+      if (name.startsWith('practice_library_dashboard_groups')) {
+        return { data: groups, error: null };
       }
       if (name === 'practice_library_history') {
         return { data: options.history ?? [], error: null };
@@ -97,18 +99,54 @@ async function runDashboard(history?: any[]) {
   const { client, rpcCalls } = makeClient({ history });
   const result = await handleLibraryPractice(client as any, 'auth-fixture', {
     action: 'dashboard',
+    catalogueVersion: 2,
   });
   return { result, rpcCalls };
 }
 
 describe('skill lab targeted catalogue payloads', () => {
+  it('attributes results to the actual Listening subtype instead of combining all gap-fill sets', async () => {
+    const focus = 'listening:gap_fill';
+    const groups = [
+      { id: 'form', focus, category: 'listening:form_completion', sourceId: 'paper-1' },
+      { id: 'notes', focus, category: 'listening:note_completion', sourceId: 'paper-2' },
+    ];
+    const sessions = groups.map((group, index) => ({
+      id: 'practice-' + index,
+      group_id: group.id,
+      focus,
+      source_id: group.sourceId,
+      completed_at: new Date(Date.now() - 60_000).toISOString(),
+      familiarity: 'new',
+      result: { responses: [{ questionId: group.id, isCorrect: index === 0 }] },
+    }));
+    const { client } = makeClient({ groups, sessions });
+    const result = await handleLibraryPractice(client, 'auth-fixture', {
+      action: 'dashboard',
+      catalogueVersion: 2,
+    });
+    expect(result.recommendations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ focus: 'listening:form_completion', total: 1, correct: 1 }),
+        expect.objectContaining({ focus: 'listening:note_completion', total: 1, correct: 0 }),
+      ])
+    );
+  });
+  it('only exposes the expanded catalogue to clients that can render it', async () => {
+    const { client, rpcCalls } = makeClient();
+    await handleLibraryPractice(client as any, 'auth-fixture', { action: 'dashboard' });
+    expect(rpcCalls.map((call) => call.name)).toContain('practice_library_dashboard_groups');
+    expect(rpcCalls.map((call) => call.name)).not.toContain('practice_library_dashboard_groups_v2');
+  });
   it('loads pre-grouped dashboard metadata without downloading the catalogue', async () => {
     const { result, rpcCalls } = await runDashboard();
 
     expect((result as any).groups).toEqual(
       fixtureSummaries().map((group) => ({ ...group, familiarity: 'new' }))
     );
-    expect(rpcCalls.some((call) => call.name === 'practice_library_dashboard_groups')).toBe(true);
+    expect(rpcCalls.some((call) => call.name === 'practice_library_dashboard_groups_v2')).toBe(
+      true
+    );
     expect(rpcCalls.some((call) => call.name === 'practice_library_catalogue_static')).toBe(false);
     expect(rpcCalls.some((call) => call.name === 'practice_library_catalogue')).toBe(false);
     expect(rpcCalls.some((call) => call.name === 'practice_library_catalogue_for_sources')).toBe(

@@ -65,6 +65,9 @@ function nestedQuestionList(question) {
 }
 
 export function questionSpan(question) {
+  if (question.practice_items?.length) {
+    return new Set(question.practice_items.map((item) => item.number)).size;
+  }
   const nested = nestedQuestionList(question);
   if (nested) return nested.length;
   const paragraphs = question.matching_data?.paragraphs;
@@ -74,8 +77,11 @@ export function questionSpan(question) {
 /** "Questions 25–30" for the questions in a set, or null when numbers are missing. */
 export function questionRangeLabel(questions) {
   const numbers = (questions || []).flatMap((question) => {
+    if (question.practice_items?.length) {
+      return question.practice_items.map((item) => Number(item.number)).filter(Number.isFinite);
+    }
     const start = Number(question.question_number);
-    return Number.isFinite(start) ? [start, start + questionSpan(question) - 1] : [];
+    return start > 0 ? [start, start + questionSpan(question) - 1] : [];
   });
   if (!numbers.length) return null;
   const first = Math.min(...numbers);
@@ -122,6 +128,12 @@ function selectionItems(question) {
 }
 
 export function reviewItems(question) {
+  if (question.practice_items?.length) {
+    return question.practice_items.map((item) => ({
+      ...item,
+      prompt: question.question_text || `Question ${item.number}`,
+    }));
+  }
   return (
     nestedItems(question) ||
     paragraphItems(question) ||
@@ -143,7 +155,10 @@ export function numberedExplanations(text) {
 
 function entriesFor(question, result) {
   return Object.entries(result?.answers || {}).filter(
-    ([id]) => id === question.id || id.startsWith(`${question.id}_`)
+    ([id]) =>
+      id === question.id ||
+      id.startsWith(`${question.id}_`) ||
+      question.practice_items?.some((item) => item.id === id)
   );
 }
 

@@ -23,6 +23,83 @@ const attempt = (id, extra = {}) => ({
   ...extra,
 });
 describe('library-backed personal practice', () => {
+  it('catalogues a Listening form as one set with every scored blank', () => {
+    const passage = {
+      id: 'audio',
+      title: 'Practice audio',
+      is_active: true,
+      test_type: 'listening',
+      content: JSON.stringify([{ section_number: 2, audio_url: 'part2.mp3' }]),
+    };
+    const question = {
+      id: 'form',
+      passage_id: passage.id,
+      type: 'gap_fill',
+      section: 2,
+      question_number: 11,
+      group_instructions: 'Complete the form below.\nWrite ONE WORD for each answer.',
+      gap_fill: { text: 'Name: [gap]\nTown: [gap]', answers: { 0: 'Ada', 1: 'Leeds' } },
+    };
+    const [group] = buildLibraryGroups(passage, [question]);
+    expect(group).toMatchObject({
+      id: 'audio:form',
+      category: 'listening:form_completion',
+      total: 2,
+      eligible: true,
+    });
+    expect(
+      scoreLibraryGroup('listening', group.questions, { form_0: 'Ada', form_1: 'York' })
+    ).toMatchObject({ correct: 1, total: 2 });
+  });
+
+  it('retains the existing MCQ focus and group ID when labelling a multiple-answer set', () => {
+    const passage = {
+      id: 'audio',
+      title: 'Practice audio',
+      is_active: true,
+      test_type: 'listening',
+      audio_url: 'full.mp3',
+    };
+    const question = {
+      id: 'mcq',
+      passage_id: passage.id,
+      type: 'multiple_choice',
+      question_number: 21,
+      allow_multiple: true,
+      question_count: 2,
+      options: ['A. Red', 'B. Green', 'C. Blue'],
+      correct_answer: '["A", "B"]',
+    };
+    expect(buildLibraryGroups(passage, [question])[0]).toMatchObject({
+      id: 'audio:mcq',
+      focus: 'listening:multiple_choice',
+      category: 'listening:multiple_choice_multiple',
+    });
+  });
+
+  it('publishes Reading structured notes only when each visible blank has an answer key', () => {
+    const passage = {
+      id: 'paper',
+      title: 'Practice text',
+      is_active: true,
+      test_type: 'reading',
+      content: 'Original text',
+    };
+    const question = {
+      id: 'notes',
+      passage_id: passage.id,
+      type: 'notes_completion',
+      question_number: 31,
+      gap_fill: { structured_text: 'Writer [31]\nDate [32]', answers: { 31: 'Ada', 32: '1843' } },
+    };
+    const [group] = buildLibraryGroups(passage, [question]);
+    expect(group).toMatchObject({ eligible: true, total: 2 });
+    expect(
+      buildLibraryGroups(passage, [
+        { ...question, gap_fill: { ...question.gap_fill, answers: { 31: 'Ada' } } },
+      ])[0].eligible
+    ).toBe(false);
+  });
   it('uses only the matching original section and never includes embedded answers as passage text', () => {
     const passage = {
       id: 'p',

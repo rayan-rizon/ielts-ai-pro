@@ -34,6 +34,25 @@ export function questionFocus(module, question) {
   return `${module}:${type}`;
 }
 
+function listeningGapCategory(question) {
+  const instructions = `${question.group_instructions || ''} ${question.mcq_title || ''}`;
+  const match = /(?:complet|fill).{0,18}\b(notes?|forms?|sentences?|summar(?:y|ies))\b/i.exec(
+    instructions
+  );
+  if (!match) return 'listening:gap_fill';
+  const noun = match[1].toLowerCase().replace(/ies$/, 'y').replace(/s$/, '');
+  return `listening:${noun}_completion`;
+}
+
+export function libraryGroupCategory(focus, questions = []) {
+  if (!questions?.length) return focus;
+  if (focus === 'listening:gap_fill') return listeningGapCategory(questions[0]);
+  if (focus === 'listening:multiple_choice' && questions.every((q) => q.allow_multiple)) {
+    return 'listening:multiple_choice_multiple';
+  }
+  return focus;
+}
+
 function computeGroupResults(module, questions, answers) {
   if (module === 'reading') {
     return calculateTestResults(questions, answers);
@@ -266,6 +285,7 @@ const publicFields = new Set([
   'row',
   'col',
   'steps',
+  'gap_numbers',
   'nodes',
   'edges',
   'image_url',
@@ -432,9 +452,43 @@ const SUPPORTED_READING_TYPES = new Set([
   'multiple_choice',
   'true_false_not_given',
   'yes_no_not_given',
+  'notes_completion',
+  'short_answer',
+  'table_completion',
+  'flowchart',
 ]);
 
-const SUPPORTED_LISTENING_TYPES = new Set(['matching_features', 'multiple_choice']);
+const SUPPORTED_LISTENING_TYPES = new Set([
+  'matching_features',
+  'multiple_choice',
+  'gap_fill',
+  'map_labeling',
+  'table_completion',
+  'flowchart',
+]);
+
+const STRUCTURED_PRACTICE_TYPES = new Set([
+  'gap_fill',
+  'map_labeling',
+  'notes_completion',
+  'table_completion',
+  'flowchart',
+]);
+
+const REQUIRED_PRACTICE_CONTENT = {
+  gap_fill: (q) => q.gap_fill?.text || q.gap_fill?.content,
+  map_labeling: (q) => q.map_labeling?.image_url && q.map_labeling?.questions?.length,
+  table_completion: (q) => q.table_data?.rows?.length || q.table_data?.table_rows?.length,
+  flowchart: (q) => q.flowchart?.steps?.length,
+  notes_completion: (q) => q.gap_fill?.structured_text,
+  short_answer: (q) => q.question_text?.trim(),
+};
+
+function canRenderPracticeQuestion(module, question) {
+  if (!isQuestionTypeSupported(module, question.type)) return false;
+  const requiredContent = REQUIRED_PRACTICE_CONTENT[question.type];
+  return !requiredContent || Boolean(requiredContent(question));
+}
 
 function isQuestionTypeSupported(testType, type) {
   return testType === 'reading'
@@ -488,7 +542,11 @@ function groupQuestionsByBucket(passage, questions) {
   for (const question of orderedPassageQuestions(passage, questions)) {
     const focus = questionFocus(passage.test_type, question);
     if (!focus) continue;
-    const scope = [questionSection(question), focus, instructionKey(passage.test_type, question)];
+    // The imported block already represents a complete task, with its own numbered inputs.
+    const instructions = STRUCTURED_PRACTICE_TYPES.has(question.type)
+      ? question.id
+      : instructionKey(passage.test_type, question);
+    const scope = [questionSection(question), focus, instructions];
     const key = `${scope.join('|')}|${headingRun(headings, scope.join('|'), question.mcq_title)}`;
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(question);
@@ -517,7 +575,7 @@ function determineGroupEligibility(passage, source, keys, rows) {
   const hasContext =
     passage.test_type === 'reading' ? Boolean(source.content.trim()) : Boolean(source.audio_url);
   const hasKeys = hasCompleteAnswerKeys(keys);
-  const supported = rows.every((q) => isQuestionTypeSupported(passage.test_type, q.type));
+  const supported = rows.every((q) => canRenderPracticeQuestion(passage.test_type, q));
   const eligible = hasContext && hasKeys && supported;
   const exclusion = resolveGroupExclusion(hasContext, hasKeys, supported);
 
@@ -534,18 +592,41 @@ export function buildLibraryGroups(passage, questions) {
     const keys = Object.values(score.answers || {});
     const source = libraryGroupSource(passage, rows);
     const { eligible, exclusion } = determineGroupEligibility(passage, source, keys, rows);
+    const focus = questionFocus(passage.test_type, rows[0]);
 
     return {
       id: `${passage.id}:${rows[0].id}`,
       sourceId: passage.id,
       title: passage.title,
-      focus: questionFocus(passage.test_type, rows[0]),
+      focus,
+      category: libraryGroupCategory(focus, rows),
       accessTier: passage.access_tier,
       questions: rows,
       source,
       total: score.total,
       eligible,
       exclusion,
+    };
+  });
+}
+
+export function publicLibraryQuestions(module, questions = []) {
+  return (questions || []).map((question) => {
+    const safe = publicPracticeContent(question);
+    if (!STRUCTURED_PRACTICE_TYPES.has(question.type) && question.type !== 'short_answer')
+      return safe;
+    const base = Number(question.question_number) || 1;
+    const items = Object.entries(scoreLibraryGroup(module, [question], {}).answers);
+    return {
+      ...safe,
+      _displayStartNumber: base,
+      practice_items: items.map(([id, item]) => ({
+        id,
+        number:
+          module === 'listening' && question.type !== 'map_labeling'
+            ? base + Number(item.questionNumber) - 1
+            : item.questionNumber,
+      })),
     };
   });
 }
@@ -764,6 +845,17 @@ const GENERAL_TIPS = [
 ];
 
 const TIPS_BY_TYPE = {
+  note_completion: ['Use the note headings to predict what each missing word describes.'],
+  notes_completion: ['Use the note headings to predict what each missing word describes.'],
+  form_completion: [
+    'Decide if each field needs a name, number, date, or other detail before listening.',
+  ],
+  sentence_completion: ['Read the whole sentence and predict the word form that fits the gap.'],
+  table_completion: ['Use the row and column headings to work out what each missing cell needs.'],
+  flowchart: ['Follow the arrows and predict the next step before filling each gap.'],
+  map_labeling: ['Locate the starting point and orientation of the map before listening.'],
+  short_answer: ['Find the exact detail the question asks for and check the word limit.'],
+  multiple_choice_multiple: ['Check how many answers to choose before comparing the options.'],
   true_false_not_given: [
     'Find the part of the passage that discusses the statement. Check its whole meaning.',
     'Choose False or No only when the passage says the opposite. Missing information means Not Given.',

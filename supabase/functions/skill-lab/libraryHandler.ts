@@ -6,7 +6,16 @@ import {
   practiceTips,
   libraryGroupSource,
   savedLibraryExplanations,
+  publicLibraryQuestions,
+  libraryGroupCategory,
 } from '../_shared/skill-lab/libraryPractice.js';
+
+type PracticeMistake = {
+  sessionId: string;
+  groupId: string;
+  sourceId: string;
+  practice?: boolean;
+};
 
 const CATALOGUE_CACHE_TTL_MS = 30 * 60 * 1000;
 const CATALOGUE_CACHE_MAX_ENTRIES = 8;
@@ -94,11 +103,13 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
   };
   const view = async (s: any) => {
     const snapshot = s.snapshot || {};
+    const category = libraryGroupCategory(s.focus, snapshot.questions);
     const source = await enrichPassageTitle(snapshot.source, snapshot.questions);
     const mistakeSource = await enrichPassageTitle(snapshot.mistake, snapshot.mistake?.questions);
     return {
       id: s.id,
       focus: s.focus,
+      category,
       answers: s.answers,
       stage: s.stage,
       completed_at: s.completed_at,
@@ -108,8 +119,8 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
       activity_id: s.activity_id,
       source_session_id: s.source_session_id,
       source: { ...source, content: publicPracticeContent(source.content) },
-      questions: publicPracticeContent(snapshot.questions),
-      tips: practiceTips(s.focus),
+      questions: publicLibraryQuestions(s.focus.split(':')[0], snapshot.questions),
+      tips: practiceTips(category),
       result: s.result,
       // Only previously answered material may include an answer/explanation before submission.
       mistake: mistakeSource.id ? { ...snapshot.mistake, ...mistakeSource } : null,
@@ -134,9 +145,13 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
     return await view(await state('complete', { answers: body.answers, result }));
   }
   if (!['dashboard', 'start'].includes(body.action)) throw new Error('Unknown practice action');
+  const groupsRpc =
+    body.catalogueVersion === 2
+      ? 'practice_library_dashboard_groups_v2'
+      : 'practice_library_dashboard_groups';
   const [dashboard, rawSummaries, history] = await Promise.all([
     state('dashboard'),
-    rpc('practice_library_dashboard_groups', { p_auth: authId }),
+    rpc(groupsRpc, { p_auth: authId }),
     rpc('practice_library_history', { p_auth: authId }),
   ]);
   const historyRows = history || [];
@@ -163,6 +178,10 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
         ? 'familiar'
         : 'new',
   }));
+  const categoryByGroup = new Map<string, string>(
+    summaries.map((group: any) => [group.id, group.category || group.focus])
+  );
+  const categories = new Set(categoryByGroup.values());
   const attempts: any[] = [];
   for (const old of historyRows) {
     const answers = old.content_data?.savedAnswers;
@@ -173,7 +192,7 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
     )) {
       const scored = scoreLibraryGroup(old.test_type, group.questions, answers);
       attempts.push({
-        focus: group.focus,
+        focus: categoryByGroup.get(group.id) || group.focus,
         sourceId: group.sourceId,
         groupId: group.id,
         sessionId: old.id,
@@ -187,7 +206,7 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
     if (s.completed_at && s.result)
       attempts.push({
         practice: true,
-        focus: s.focus,
+        focus: categoryByGroup.get(s.group_id) || s.focus,
         sourceId: s.source_id,
         groupId: s.group_id,
         sessionId: s.id,
@@ -198,16 +217,19 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
         familiar: s.familiarity === 'familiar',
         ...s.result,
       });
-  const recommendations = rankPracticeNeeds(attempts).filter((r: any) =>
-    summaries.some((g: any) => g.focus === r.focus)
-  );
-  if (body.action === 'dashboard') return { ...dashboard, groups: summaries, recommendations };
+  const recommendations = rankPracticeNeeds(attempts).filter((r: any) => categories.has(r.focus));
+  if (body.action === 'dashboard') {
+    const categoryTips = Object.fromEntries(
+      Array.from(categories, (category) => [category, practiceTips(category)[0]])
+    );
+    return { ...dashboard, groups: summaries, recommendations, categoryTips };
+  }
   const summaryGroup = summaries.find((g: any) => g.id === body.groupId);
   if (!summaryGroup)
     throw new Error('This question set is unavailable. Choose another library set.');
-  const need = recommendations.find((r: any) => r.focus === summaryGroup.focus);
-  const mistakeRef = need?.mistakes.find(
-    (m: any) => !body.sourceSessionId || m.sessionId === body.sourceSessionId
+  const need = recommendations.find((r: any) => r.focus === categoryByGroup.get(summaryGroup.id));
+  const mistakeRef = (need?.mistakes as PracticeMistake[] | undefined)?.find(
+    (m) => !body.sourceSessionId || m.sessionId === body.sourceSessionId
   );
   const requestedSourceIds = [
     ...new Set(
@@ -244,7 +266,10 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
       snapshot.mistake = {
         ...previous.snapshot.source,
         content: publicPracticeContent(previous.snapshot.source.content),
-        questions: publicPracticeContent(previous.snapshot.questions),
+        questions: publicLibraryQuestions(
+          previous.focus.split(':')[0],
+          previous.snapshot.questions
+        ),
         answers: previous.answers,
         result: previous.result,
         explanations: savedLibraryExplanations(previous.snapshot.questions),
@@ -262,7 +287,7 @@ export async function handleLibraryPractice(client: any, authId: string, body: a
       );
       snapshot.mistake = {
         ...libraryGroupSource(oldSource, original.questions),
-        questions: publicPracticeContent(original.questions),
+        questions: publicLibraryQuestions(old.test_type, original.questions),
         answers: old.content_data.savedAnswers,
         result,
         explanations: savedLibraryExplanations(original.questions),
