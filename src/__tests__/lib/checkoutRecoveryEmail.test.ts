@@ -325,6 +325,29 @@ describe('last-chance offer', () => {
   });
 });
 
+describe('live countdown outside checkout recovery', () => {
+  it('shows the live image and the real deadline for other offer emails', () => {
+    const { html } = getCampaignTemplate({
+      title: 'Welcome',
+      message: 'Start.',
+      lifecycleStage: 'signup',
+      recipientName: 'amina',
+      clickUrl: 'https://www.ieltsai.pro/c',
+      unsubscribeUrl: 'https://www.ieltsai.pro/u',
+      countdownImageUrl: 'https://x.supabase.co/functions/v1/email-countdown?e=1795478400',
+      offer: {
+        code: 'START20A7C4E92B',
+        discountPercent: 20,
+        expiresAt: '2026-11-24T00:00:00Z',
+        firstPaymentOnly: true,
+      },
+    });
+    expect(html).toContain('email-countdown?e=1795478400');
+    expect(html).toContain('Expires Nov 24, 2026, 12:00 AM UTC.');
+    expect(html).not.toContain('start when you open');
+  });
+});
+
 describe('checkout recovery migration', () => {
   const sql = readFileSync(
     'supabase/migrations/20261123060000_checkout_recovery_email.sql',

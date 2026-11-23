@@ -75,10 +75,13 @@ const campaignEmail = (
     objective: campaign.objective,
     lifecycleStage: campaign.metadata?.lifecycle_stage,
     plan: campaign.plan,
-    countdownImageUrl:
-      campaign.metadata?.lifecycle_stage === 'checkout'
-        ? countdownImageUrl(`${supabaseUrl}/functions/v1`, offer?.expiresAt, campaign.delivery)
-        : null,
+    // Every offer email gets the live countdown. Only checkout recovery also lets the
+    // image start the offer's 24 hours when the email is opened.
+    countdownImageUrl: countdownImageUrl(
+      `${supabaseUrl}/functions/v1`,
+      offer?.expiresAt,
+      campaign.metadata?.lifecycle_stage === 'checkout' ? campaign.delivery : null
+    ),
     ctaLabel: campaign.cta_label,
     recipientName: recipient.username?.trim() || 'there',
     clickUrl,
