@@ -6,6 +6,7 @@ import { getCampaignTemplate } from '../_shared/templates.ts';
 import { getCampaignAction } from '../_shared/marketingOfferAction.ts';
 import { errorResponse, getCorsHeaders, handleCorsPrelight } from '../_shared/security.ts';
 import {
+  checkoutPlanFor,
   nextMarketingAttempt,
   readMarketingAudienceRows,
   readMarketingDispatchHistory,
@@ -313,7 +314,7 @@ async function dispatchCampaignWithTiming(
   const issuesSignupOffer =
     campaign.promo?.is_signup_offer_template ||
     (Number(campaign.metadata?.signup_offer_percent) === 20 &&
-      ['signup', 'first_result', 'quota'].includes(campaign.metadata?.lifecycle_stage));
+      ['signup', 'first_result', 'quota', 'checkout'].includes(campaign.metadata?.lifecycle_stage));
   const stats = { accepted: 0, skipped: 0, failed: 0 };
   const processMember = async (member: any) => {
     const preference = preferenceByUser.get(member.user_id);
@@ -561,7 +562,7 @@ async function dispatchCampaignWithTiming(
               firstPaymentOnly: true,
             }
           : null;
-        if (!offer && campaign.metadata?.lifecycle_stage !== 'signup') {
+        if (!offer && !['signup', 'checkout'].includes(campaign.metadata?.lifecycle_stage)) {
           stats.skipped += 1;
           await skipReservedDelivery(
             admin,
@@ -613,7 +614,8 @@ async function dispatchCampaignWithTiming(
         };
       }
 
-      const action = getCampaignAction(campaign, offer);
+      const plan = await checkoutPlanFor(admin, campaign, member.user_id);
+      const action = getCampaignAction(campaign, offer, Date.now(), plan);
       const destination = new URL(action.url, 'https://www.ieltsai.pro');
       destination.searchParams.set('campaign_id', campaign.id);
       destination.searchParams.set('delivery_id', delivery.id);

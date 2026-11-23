@@ -745,6 +745,7 @@ export function getCampaignTemplate(input: {
     signup: 'First steps',
     first_result: 'Your next step',
     quota: 'More room to practise',
+    checkout: 'Your plan is saved',
   };
   const objective = escapeHtml(
     stageLabels[input.lifecycleStage || ''] || (input.objective || 'update').replaceAll('_', ' ')
@@ -767,6 +768,11 @@ export function getCampaignTemplate(input: {
       'Choose Pro for a regular feedback routine, or Premium for higher practice capacity.',
       'Compare your regional prices and exact allowances before paying.',
       'Your saved results stay in your account when you upgrade.',
+    ],
+    checkout: [
+      'The plan and billing period you chose are ready to continue.',
+      'Check your regional price and exact allowances on the plan page before you pay.',
+      'Manage or cancel your subscription from your account settings whenever you need.',
     ],
   };
   const stageItems = lifecycleItems[input.lifecycleStage || ''];

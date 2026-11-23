@@ -154,3 +154,23 @@ export async function reserveMarketingDelivery(db: any, record: Record<string, a
   if (error) throw error;
   return data;
 }
+
+// The plan a learner chose when they last started checkout, so the recovery email
+// can send them straight back to it. Only the checkout-recovery stage asks.
+export async function checkoutPlanFor(
+  db: any,
+  campaign: { metadata?: { lifecycle_stage?: string } },
+  userId: string
+): Promise<{ tier: string; interval: string } | null> {
+  if (campaign.metadata?.lifecycle_stage !== 'checkout') return null;
+  const { data, error } = await db
+    .from('marketing_checkout_intents')
+    .select('plan_tier,billing_interval')
+    .eq('user_id', userId)
+    .eq('status', 'initiated')
+    .order('initiated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? { tier: data.plan_tier, interval: data.billing_interval } : null;
+}

@@ -3,6 +3,7 @@ import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 import { getCampaignAction } from '../../../supabase/functions/_shared/marketingOfferAction';
 import {
+  checkoutPlanFor,
   nextMarketingAttempt,
   skipReservedDelivery,
   terminallySkippedUsers,
@@ -66,6 +67,7 @@ function setup(
     'nextMarketingAttempt',
     'skipReservedDelivery',
     'terminallySkippedUsers',
+    'checkoutPlanFor',
     'isUndeliverableEmail',
     'sendEmail',
     'getCampaignAction',
@@ -80,6 +82,7 @@ function setup(
     nextMarketingAttempt,
     skipReservedDelivery,
     terminallySkippedUsers,
+    checkoutPlanFor,
     () => false,
     send,
     getCampaignAction,
