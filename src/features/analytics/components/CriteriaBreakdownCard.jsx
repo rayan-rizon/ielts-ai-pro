@@ -26,39 +26,39 @@ const MODULE_CRITERIA = {
     {
       key: 'taskAchievement',
       label: 'Task Response / Achievement',
-      hint: 'How fully you answer Task 1 or develop your Task 2 response',
+      hint: 'How fully you answer the task',
     },
     {
       key: 'coherence',
       label: 'Coherence & Cohesion',
-      hint: 'How clearly your ideas connect and flow',
+      hint: 'How well your ideas connect',
     },
     {
       key: 'lexicalResource',
       label: 'Lexical Resource',
-      hint: 'Your range and accuracy of vocabulary',
+      hint: 'Range and accuracy of your words',
     },
     {
       key: 'grammar',
       label: 'Grammatical Range',
-      hint: 'Your range and accuracy of sentence structures',
+      hint: 'Range and accuracy of your grammar',
     },
   ],
   speaking: [
     {
       key: 'fluency',
       label: 'Fluency & Coherence',
-      hint: 'How smoothly and clearly you speak',
+      hint: 'How smoothly you speak',
     },
     {
       key: 'lexicalResource',
       label: 'Lexical Resource',
-      hint: 'Your range and accuracy of vocabulary',
+      hint: 'Range and accuracy of your words',
     },
     {
       key: 'grammar',
       label: 'Grammatical Range',
-      hint: 'Your range and accuracy of sentence structures',
+      hint: 'Range and accuracy of your grammar',
     },
     {
       key: 'pronunciation',
@@ -88,8 +88,8 @@ function CriterionMeter({ criterion }) {
     <Tip
       content={
         score == null
-          ? `${hint}. No marked ${criterion.moduleName} test has scored this yet.`
-          : `${hint}. Averaged from ${sampleCount} evaluation${sampleCount === 1 ? '' : 's'} marked with the current scheme; reports from older marking are not included.`
+          ? `${hint}. Not scored yet.`
+          : `${hint}. Average of ${sampleCount} marked test${sampleCount === 1 ? '' : 's'}.`
       }
     >
       <div>

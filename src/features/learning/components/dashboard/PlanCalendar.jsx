@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { NUM } from '@/features/dashboard/components/primitives';
 import { CARD, INSET, SECONDARY_TEXT } from './PlanCard';
@@ -13,9 +13,9 @@ const shortDate = (dateKey) =>
   new Date(`${dateKey}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
 const COLUMN =
-  'flex flex-col rounded-xl md:min-h-[200px] border border-slate-100 bg-slate-50/60 transition-colors duration-150 dark:border-white/[0.06] dark:bg-white/[0.02]';
+  'flex flex-col rounded-2xl md:min-h-[200px] border border-[#e4e2f0] bg-[#f4f3fb] transition-colors duration-150 dark:border-white/[0.07] dark:bg-white/[0.03]';
 const HATCH =
-  'bg-[repeating-linear-gradient(135deg,transparent_0_8px,rgb(100_116_139/0.07)_8px_9px)]';
+  'bg-[repeating-linear-gradient(135deg,transparent_0_8px,rgb(90_99_223/0.06)_8px_9px)] dark:bg-[repeating-linear-gradient(135deg,transparent_0_8px,rgba(255_255_255/0.035)_8px_9px)]';
 
 function TaskBlock({ task, selected, draggable, onSelect, onDragStart, onDragEnd }) {
   const Icon = getModuleStyle(task.module).icon;
@@ -30,31 +30,43 @@ function TaskBlock({ task, selected, draggable, onSelect, onDragStart, onDragEnd
       onClick={() => onSelect(task)}
       aria-pressed={selected}
       className={cn(
-        'relative grid w-full min-w-0 content-start gap-1.5 rounded-lg border bg-white p-2.5 text-left transition-[transform,border-color,box-shadow] duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:bg-[#1b1a22]',
-        selected
-          ? 'border-[#5a63df] shadow-[0_0_0_3px_rgb(90_99_223/0.14)] dark:border-[#8f97ff]'
-          : 'border-slate-200 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20',
+        'group relative flex w-full min-w-0 flex-col gap-2 rounded-lg border border-[#e4e2f0] bg-white p-3 text-left shadow-[0_1px_2px_rgb(30_27_75/0.04)] transition-[transform,box-shadow,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/[0.07] dark:bg-white/[0.07] dark:shadow-none [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-px [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-[0_4px_12px_rgb(30_27_75/0.09)] dark:[@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/[0.1] dark:[@media(hover:hover)_and_(pointer:fine)]:hover:shadow-none',
+        selected && 'ring-1 ring-[#5a63df] dark:ring-[#8f97ff]',
         draggable && 'cursor-grab',
-        done && 'bg-slate-50 dark:bg-white/[0.03]'
+        done && 'bg-transparent opacity-60 shadow-none dark:bg-transparent'
       )}
     >
-      <span className="flex items-center justify-between gap-1">
-        <Icon className="h-3.5 w-3.5 text-slate-400" strokeWidth={2.25} aria-hidden="true" />
+      <span className="flex items-center justify-between gap-1.5">
+        <span
+          className={cn(
+            'flex min-w-0 items-center gap-1.5 text-[11px] font-semibold',
+            SECONDARY_TEXT
+          )}
+        >
+          <Icon
+            className="h-3.5 w-3.5 shrink-0 text-[#5a63df] dark:text-[#afb5ff]"
+            strokeWidth={2.25}
+            aria-hidden="true"
+          />
+          <span className="truncate">{getModuleStyle(task.module).label}</span>
+        </span>
         {done && (
-          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[rgb(var(--signal-ok))] text-white dark:text-[#0b0b14]">
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[rgb(var(--signal-ok))] text-white">
             <Check className="h-2.5 w-2.5" strokeWidth={3.5} aria-label="Done" />
           </span>
         )}
       </span>
       <span
         className={cn(
-          'text-xs font-semibold leading-snug text-slate-900 [overflow-wrap:anywhere] dark:text-white',
-          done && 'font-medium text-slate-500 line-through dark:text-slate-400'
+          'text-xs font-semibold leading-snug tracking-tight text-slate-900 [overflow-wrap:anywhere] dark:text-white',
+          done &&
+            'font-medium text-slate-500 line-through decoration-slate-400/60 dark:text-slate-400'
         )}
       >
         {getFriendlyTaskTitle(task)}
       </span>
-      <span className={cn(NUM, 'text-[11px]', SECONDARY_TEXT)}>
+      <span className={cn(NUM, 'mt-auto flex items-center gap-1 text-[10px]', SECONDARY_TEXT)}>
+        <Clock className="h-2.5 w-2.5" strokeWidth={2.25} aria-hidden="true" />
         {formatMinutes(taskMinutes(task))}
         {task.is_optional ? ' · optional' : ''}
       </span>
@@ -82,8 +94,9 @@ function PlanDay({ day, today, selectedKey, canReschedule, drag, onSelect, onDro
       className={cn(
         COLUMN,
         !day.tasks.length && HATCH,
-        over && 'border-[#5a63df] bg-[#5a63df]/[0.06]',
-        isToday && 'border-slate-300 bg-white dark:border-white/20 dark:bg-white/[0.04]'
+        isToday && 'bg-[#5a63df]/[0.09] dark:bg-[#8f97ff]/[0.1]',
+        over &&
+          'border-[#5a63df] bg-[#5a63df]/[0.12] dark:border-[#8f97ff] dark:bg-[#8f97ff]/[0.16]'
       )}
     >
       <header className="flex items-center justify-between px-2.5 pb-1.5 pt-2.5 md:flex-col md:items-start md:gap-1">
@@ -94,7 +107,7 @@ function PlanDay({ day, today, selectedKey, canReschedule, drag, onSelect, onDro
           className={cn(
             NUM,
             'flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-sm font-bold',
-            isToday ? 'bg-[#5a63df] text-white dark:bg-[#8f97ff] dark:text-[#0b0b14]' : ''
+            isToday ? 'bg-[#5a63df] text-white' : ''
           )}
         >
           {day.date.getDate()}
@@ -157,7 +170,7 @@ function HistoryDay({ day }) {
       </header>
       <div className="flex flex-1 flex-col gap-1.5 px-2 pb-2">
         {day.status === 'practised' && (
-          <div className="grid gap-1 rounded-lg border border-slate-200 bg-white p-2.5 dark:border-white/10 dark:bg-[#1b1a22]">
+          <div className="grid gap-1 rounded-lg border border-[#ebeaf7] bg-white p-2.5 dark:border-white/10 dark:bg-white/[0.035]">
             <span className="flex items-center gap-1 text-xs font-semibold text-[rgb(var(--signal-ok))]">
               <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
               Practised
@@ -189,7 +202,7 @@ function HistoryDay({ day }) {
 }
 
 const NAV_BUTTON =
-  'flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-[transform,border-color] duration-150 hover:border-[#5a63df] active:scale-[0.95] disabled:pointer-events-none disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300';
+  'flex h-8 w-8 items-center justify-center rounded-lg border border-[#e4e2f0] bg-white text-slate-700 transition-[transform,border-color,color] duration-150 hover:border-[#5a63df] hover:text-[#5a63df] active:scale-[0.95] disabled:pointer-events-none disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:border-[#8f97ff] dark:hover:text-[#afb5ff]';
 
 const WEEK = 7;
 const chunk = (items, size) =>
@@ -241,7 +254,7 @@ const monthName = (monthKey) =>
   });
 
 const CELL_BASE =
-  'relative flex min-h-[64px] flex-col gap-1.5 rounded-xl border p-1.5 transition-colors duration-150 sm:min-h-[96px] sm:p-2';
+  'relative flex min-h-[64px] flex-col gap-1.5 rounded-xl p-1.5 transition-colors duration-150 sm:min-h-[96px]';
 
 function MonthChip({ task, selected, onSelect }) {
   const done = Boolean(task.is_completed);
@@ -255,10 +268,10 @@ function MonthChip({ task, selected, onSelect }) {
       aria-pressed={selected}
       title={getFriendlyTaskTitle(task)}
       className={cn(
-        'group/chip grid min-w-0 gap-0.5 rounded-lg border px-1.5 py-1 text-left transition-[border-color,box-shadow,transform] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] max-sm:h-1.5 max-sm:gap-0 max-sm:overflow-hidden max-sm:rounded-full max-sm:border-0 max-sm:p-0',
+        'group/chip grid min-w-0 gap-0.5 rounded-md px-1.5 py-1 text-left transition-[background-color,box-shadow,transform] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] max-sm:h-1.5 max-sm:gap-0 max-sm:overflow-hidden max-sm:rounded-full max-sm:border-0 max-sm:p-0',
         selected
-          ? 'border-[#5a63df] bg-[#5a63df]/[0.07] shadow-[0_0_0_2px_rgb(90_99_223/0.14)] dark:border-[#8f97ff] max-sm:bg-[#5a63df]'
-          : 'border-slate-200 bg-slate-50 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white/20 max-sm:bg-slate-400',
+          ? 'bg-[#5a63df]/[0.1] ring-1 ring-[#5a63df] dark:bg-[#8f97ff]/[0.2] dark:ring-[#8f97ff] max-sm:bg-[#5a63df]'
+          : 'bg-[#eceaf8] hover:bg-[#e2e0f4] dark:bg-white/[0.08] dark:hover:bg-white/[0.12] max-sm:bg-slate-400',
         done && 'opacity-60'
       )}
     >
@@ -289,7 +302,7 @@ function MonthChip({ task, selected, onSelect }) {
 
 function MonthCell({ cell, selectedKey, onSelect }) {
   if (!cell.dateKey) {
-    return <div aria-hidden="true" className="rounded-xl bg-slate-50/50 dark:bg-white/[0.015]" />;
+    return <div aria-hidden="true" className="rounded-xl bg-[#f4f3fb]/50 dark:bg-white/[0.015]" />;
   }
   const missed = cell.status === 'missed';
   const practised = cell.status === 'practised';
@@ -300,12 +313,11 @@ function MonthCell({ cell, selectedKey, onSelect }) {
       className={cn(
         CELL_BASE,
         past
-          ? 'border-slate-100 bg-slate-50/70 dark:border-white/[0.05] dark:bg-white/[0.015]'
-          : 'border-slate-200 bg-white dark:border-white/[0.08] dark:bg-white/[0.03]',
-        cell.isToday &&
-          'border-[#5a63df] bg-[#5a63df]/[0.04] shadow-[0_0_0_1px_#5a63df] dark:border-[#8f97ff] dark:shadow-[0_0_0_1px_#8f97ff]',
-        missed && 'border-[rgb(var(--signal-fault)/0.35)] bg-[rgb(var(--signal-fault)/0.05)]',
-        cell.isExamDay && 'border-[#5a63df]/50 bg-[#5a63df]/[0.07]'
+          ? 'bg-[#f7f6fc] dark:bg-white/[0.02]'
+          : 'border border-[#e4e2f0] bg-white dark:border-white/[0.07] dark:bg-white/[0.03]',
+        cell.isToday && 'border-transparent bg-[#5a63df]/[0.1] dark:bg-[#8f97ff]/[0.12]',
+        missed && 'bg-[rgb(var(--signal-fault)/0.07)]',
+        cell.isExamDay && 'border-0 bg-[#5a63df]/[0.08] dark:bg-[#8f97ff]/[0.1]'
       )}
     >
       <div className="flex items-start justify-between gap-1">
@@ -314,7 +326,7 @@ function MonthCell({ cell, selectedKey, onSelect }) {
             NUM,
             'flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[13px] font-semibold leading-none',
             cell.isToday
-              ? 'bg-[#5a63df] text-white dark:bg-[#8f97ff] dark:text-[#0b0b14]'
+              ? 'bg-[#5a63df] text-white shadow-xs'
               : past
                 ? 'text-slate-400 dark:text-slate-500'
                 : 'text-slate-800 dark:text-slate-100'
@@ -446,7 +458,7 @@ export default function PlanCalendar({
 
   return (
     <section className={cn(CARD, 'min-w-0')} aria-label="Study calendar">
-      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-white/[0.06]">
+      <div className="flex flex-wrap items-center gap-2.5 border-b border-[#eceafa] px-3.5 py-3 dark:border-white/[0.07]">
         <div
           className={cn('relative inline-grid grid-cols-2 rounded-[10px] p-[3px]', INSET)}
           role="group"
@@ -454,7 +466,7 @@ export default function PlanCalendar({
         >
           <span
             aria-hidden="true"
-            className="absolute inset-y-[3px] left-[3px] w-[calc(50%-3px)] rounded-lg bg-white shadow-[0_0_0_1px_#e2e8f0] transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none dark:bg-[#26252e] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
+            className="absolute inset-y-[3px] left-[3px] w-[calc(50%-3px)] rounded-lg bg-white shadow-[0_0_0_1px_#e4e2f0] transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none dark:bg-white/10 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
             style={{ transform: `translateX(${inMonth ? '100%' : '0%'})` }}
           />
           {[

@@ -30,7 +30,7 @@ import {
  */
 function ContextStat({ icon, tone, label, value, sub, delta, tip }) {
   return (
-    <div className="flex flex-1 items-center justify-between gap-3 px-1 py-2.5 sm:flex-col sm:items-stretch sm:justify-start sm:gap-1.5 sm:px-4 sm:first:pl-0 sm:last:pr-0">
+    <div className="flex flex-1 items-center justify-between gap-3 px-1 py-1.5 sm:flex-col sm:items-stretch sm:justify-center sm:gap-0.5 sm:px-3.5 sm:first:pl-0 sm:last:pr-0">
       <div className="flex min-w-0 items-center gap-2.5 sm:block">
         <IconChip icon={icon} tone={tone} size="sm" className="sm:hidden" />
         <div className="min-w-0 space-y-0.5">
@@ -46,7 +46,7 @@ function ContextStat({ icon, tone, label, value, sub, delta, tip }) {
         <span
           className={cn(
             NUM,
-            'text-xl font-extrabold leading-none text-slate-900 dark:text-slate-50'
+            'text-lg font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50'
           )}
         >
           {value}
@@ -122,10 +122,15 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
     : `${totalTests} session${totalTests === 1 ? '' : 's'} in this period`;
 
   return (
-    <m.section variants={ITEM_VARIANTS} className="space-y-3">
-      <div className="grid grid-cols-12 items-start gap-3">
+    <m.section variants={ITEM_VARIANTS} className={cn(PANEL, 'relative overflow-hidden')}>
+      <div className="grid grid-cols-12 items-stretch">
         {/* Headline band — the answer to "what band am I at?" and nothing else. */}
-        <div className={cn(PANEL, 'col-span-12 px-3.5 py-3 lg:col-span-5')}>
+        <div
+          className={cn(
+            'col-span-12 flex flex-col justify-center border-b px-3.5 py-2 lg:col-span-5 lg:border-b-0 lg:border-r',
+            'border-[#e4e2f0] dark:border-white/[0.07]'
+          )}
+        >
           <div className="flex items-center gap-1.5">
             <IconChip icon={Award} tone="accent" size="sm" />
             <p className={cn(MICRO, MUTED)}>
@@ -140,26 +145,32 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             </InfoTip>
           </div>
 
-          <div className="mt-1.5 flex items-baseline gap-2">
+          <div className="mt-1 flex items-baseline gap-2">
             <span
               className={cn(
                 NUM,
-                'text-3xl font-extrabold leading-none text-slate-900 dark:text-slate-50'
+                'text-3xl font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50'
               )}
             >
               <AnimatedNumber value={displayScore} decimals={1} />
             </span>
-            <Pill tone={targetReached ? 'ok' : 'accent'}>{currentLabel}</Pill>
+            {hasScoreData && (
+              <span className={cn(NUM, 'text-sm font-bold text-slate-400 dark:text-slate-500')}>
+                / 9
+              </span>
+            )}
+            <Pill tone={targetReached ? 'ok' : 'accent'} className="self-center">
+              {currentLabel}
+            </Pill>
           </div>
 
-          <p className={cn(MICRO, MUTED, 'mt-1.5')}>{scoreSubtitle}</p>
+          <p className={cn(MICRO, MUTED, 'mt-1')}>{scoreSubtitle}</p>
         </div>
 
         {/* Supporting context — one panel, three metrics, hairline-divided. */}
         <div
           className={cn(
-            PANEL,
-            'col-span-12 flex flex-col divide-y divide-[#eceafa] px-3.5 py-1 dark:divide-white/[0.07] sm:flex-row sm:divide-x sm:divide-y-0 sm:px-4 sm:py-2 lg:col-span-7'
+            'col-span-12 flex flex-col divide-y divide-[#e4e2f0] px-3.5 py-0.5 dark:divide-white/[0.07] sm:flex-row sm:divide-x sm:divide-y-0 sm:py-2 lg:col-span-7'
           )}
         >
           <ContextStat
@@ -172,7 +183,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
           />
           <ContextStat
             icon={Timer}
-            tone="sky"
+            tone="accent"
             label="Study Effort"
             value={
               Number(stats.studyMinutes) > 0 && Number(stats.studyMinutes) < 60
@@ -184,7 +195,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
               stats.studyHoursTrend != null && stats.studyHoursTrend !== 0 ? (
                 // Studying less this period is worth noticing, not alarming — amber.
                 <Pill tone={stats.studyHoursTrend >= 0 ? 'ok' : 'warn'}>
-                  {`${stats.studyHoursTrend >= 0 ? '+' : ''}${stats.studyHoursTrend}%`}
+                  {`${stats.studyHoursTrend >= 0 ? '▲' : '▼'} ${Math.abs(stats.studyHoursTrend)}%`}
                 </Pill>
               ) : null
             }
@@ -192,7 +203,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
           />
           <ContextStat
             icon={BookMarked}
-            tone="emerald"
+            tone="accent"
             label="Saved Vocabulary"
             value={<AnimatedNumber value={stats.vocabCount} decimals={0} />}
             sub="Active vocabulary entries"
@@ -201,8 +212,8 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
         </div>
       </div>
 
-      {/* Distance to target, drawn rather than described — full width, its own row. */}
-      <div className={cn(PANEL, 'px-3.5 py-2.5')}>
+      {/* Distance to target — the footer of the same unit, split by a hairline. */}
+      <div className={cn('border-t px-3.5 py-2', 'border-[#e4e2f0] dark:border-white/[0.07]')}>
         <div className="flex items-center justify-between gap-2">
           <span className={cn(MICRO, MUTED, 'flex items-center gap-1')}>
             {hasTarget ? 'Progress to target' : 'Target not set'}
@@ -211,24 +222,48 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             </InfoTip>
           </span>
           {hasTarget && hasScoreData ? (
-            <span className={cn(MICRO, targetReached ? 'text-[rgb(var(--signal-ok))]' : MUTED)}>
-              <span className={cn(NUM, 'font-bold')}>
-                <AnimatedNumber value={trackPct} decimals={0} />
+            <span
+              className={cn(
+                MICRO,
+                'flex items-center gap-1.5',
+                targetReached ? 'text-[rgb(var(--signal-ok))]' : MUTED
+              )}
+            >
+              {targetReached && gap < 0 ? (
+                <Pill tone="ok">{`+${formatBand(-gap)} above`}</Pill>
+              ) : null}
+              <span>
+                <span className={cn(NUM, 'font-bold')}>
+                  <AnimatedNumber value={trackPct} decimals={0} />
+                </span>
+                % of the way
               </span>
-              % of the way
             </span>
           ) : null}
         </div>
-        <div className={cn('relative mt-1.5 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
+        <div className={cn('relative mt-1 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
           <div
             className={cn(
-              'h-full rounded-full transition-[width] duration-700 ease-out',
-              targetReached ? 'bg-[rgb(var(--signal-ok))]' : 'bg-[#5a63df]'
+              'h-full origin-left rounded-full transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none',
+              targetReached
+                ? 'bg-[rgb(var(--signal-ok))]'
+                : 'bg-gradient-to-r from-[#5a63df]/70 to-[#5a63df]'
             )}
-            style={{ width: `${trackPct}%` }}
+            style={{ width: '100%', transform: `scaleX(${trackPct / 100})` }}
           />
+          {/* One tick per band up to the target, so the fill reads as steps, not a smear. */}
+          {hasTarget && parsedTarget <= 9
+            ? Array.from({ length: Math.ceil(parsedTarget) - 1 }, (_, i) => (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  className="absolute inset-y-0 w-px bg-white/70 dark:bg-black/40"
+                  style={{ left: `${((i + 1) / parsedTarget) * 100}%` }}
+                />
+              ))
+            : null}
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <span className={cn(MICRO, MUTED)}>
             Now{' '}
             <span className={cn(NUM, 'font-bold')}>

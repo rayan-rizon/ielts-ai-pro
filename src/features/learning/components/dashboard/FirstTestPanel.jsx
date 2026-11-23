@@ -54,7 +54,7 @@ export default function FirstTestPanel({
       <Pill tone="accent">Your Learning Path</Pill>
       <h1
         id="first-test-title"
-        className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white"
+        className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50"
       >
         {awaitingScore
           ? 'Your plan starts with your scored result'

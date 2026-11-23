@@ -23,9 +23,9 @@ function whenLabel(task, day, todayKey) {
 }
 
 const PRIMARY_BUTTON =
-  'h-10 w-full rounded-xl bg-[#5a63df] text-sm font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-[#4a52c9] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:bg-[#8f97ff] dark:text-[#0b0b14] dark:hover:bg-[#afb5ff]';
+  'h-10 w-full rounded-xl bg-[#5a63df] text-sm font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-[#4a52c9] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2';
 const SECONDARY_BUTTON =
-  'h-9 w-full rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 transition-[transform,border-color] duration-150 hover:border-[#5a63df] active:scale-[0.97] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200';
+  'h-9 w-full rounded-lg border border-[#e4e2f0] bg-white text-xs font-semibold text-slate-700 transition-all duration-150 hover:border-[#5a63df]/35 hover:text-[#5a63df] active:scale-[0.97] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-[#b8bdff]';
 
 const MOVE_CHIPS = 7;
 
@@ -48,7 +48,7 @@ function MoveRow({ task, days, todayKey, onReschedule }) {
               max={(bookable.at(-1) || lastDay).dateKey}
               value=""
               onChange={(event) => event.target.value && onReschedule(task, event.target.value)}
-              className="h-7 rounded-md border border-slate-200 bg-white px-1.5 text-[11px] text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+              className="h-7 rounded-md border border-[#e4e2f0] bg-white px-1.5 text-[11px] text-slate-700 transition-colors focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
             />
           </label>
         )}
@@ -64,10 +64,10 @@ function MoveRow({ task, days, todayKey, onReschedule }) {
               aria-label={`Move to ${dayName(day.date)}`}
               onClick={() => !current && onReschedule(task, day.dateKey)}
               className={cn(
-                'flex h-9 flex-col items-center justify-center rounded-lg border text-[10px] font-bold uppercase leading-tight transition-[transform,background-color,border-color] duration-150 active:scale-[0.95]',
+                'flex h-9 flex-col items-center justify-center rounded-lg border text-[10px] font-bold uppercase leading-tight transition-[transform,background-color,border-color,color] duration-150 active:scale-[0.95]',
                 current
-                  ? 'border-[#5a63df] bg-[#5a63df] text-white dark:border-[#8f97ff] dark:bg-[#8f97ff] dark:text-[#0b0b14]'
-                  : 'border-slate-200 bg-white text-slate-500 hover:border-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400'
+                  ? 'border-[#5a63df] bg-[#5a63df] text-white shadow-xs'
+                  : 'border-[#e4e2f0] bg-white text-slate-600 hover:border-[#5a63df] hover:text-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
               )}
             >
               {day.dateKey === todayKey
@@ -85,8 +85,7 @@ function MoveRow({ task, days, todayKey, onReschedule }) {
 const STEP_ICON = {
   done: {
     node: <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden="true" />,
-    style:
-      'border-[rgb(var(--signal-ok))] bg-[rgb(var(--signal-ok))] text-white dark:text-[#0b0b14]',
+    style: 'border-[rgb(var(--signal-ok))] bg-[rgb(var(--signal-ok))] text-white',
     text: 'Done',
   },
   missed: {
@@ -117,7 +116,7 @@ function SessionChecklist({ task, goal }) {
   const anyAuto = steps.some((step) => step.auto);
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 dark:border-white/[0.06] dark:bg-white/[0.03]">
+    <div className="rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] p-3.5 dark:border-white/[0.07] dark:bg-white/[0.035]">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">In this session</p>
         <p className={cn(NUM, 'text-[11px]', SECONDARY_TEXT)}>
@@ -136,14 +135,14 @@ function SessionChecklist({ task, goal }) {
               {!last && (
                 <span
                   aria-hidden="true"
-                  className="absolute left-[7.5px] top-5 bottom-0 w-px bg-slate-200 dark:bg-white/10"
+                  className="absolute left-[7.5px] top-5 bottom-0 w-px bg-[#e4e2f0] dark:bg-white/10"
                 />
               )}
               <span
                 role="img"
                 aria-label={icon.text}
                 className={cn(
-                  'relative mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-[1.5px] bg-white transition-colors duration-200 dark:bg-[#131217]',
+                  'relative mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-[1.5px] bg-white transition-colors duration-200 dark:bg-white/10',
                   icon.style
                 )}
               >
@@ -173,7 +172,7 @@ function SessionChecklist({ task, goal }) {
         })}
       </ol>
       {(goal || anyAuto) && (
-        <div className="mt-3 grid gap-1 border-t border-slate-100 pt-2.5 dark:border-white/[0.06]">
+        <div className="mt-3 grid gap-1 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
           {goal && (
             <p className={cn('text-[12px] leading-snug', SECONDARY_TEXT)}>
               <span className="font-semibold text-slate-700 dark:text-slate-200">How: </span>
@@ -231,7 +230,7 @@ export default function TaskPanel({
               'rounded-md px-2 py-0.5 font-semibold',
               when.tone === 'ok'
                 ? 'bg-[rgb(var(--signal-ok)/0.1)] text-[rgb(var(--signal-ok))]'
-                : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]'
+                : 'bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]'
             )}
           >
             {when.text}
@@ -286,7 +285,7 @@ export default function TaskPanel({
         </div>
 
         {canReschedule && task.id && !task.is_completed && (
-          <div className="border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+          <div className="border-t border-[#eceafa] pt-4 dark:border-white/[0.07]">
             <MoveRow task={task} days={days} todayKey={todayKey} onReschedule={onReschedule} />
           </div>
         )}

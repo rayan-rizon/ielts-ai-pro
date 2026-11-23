@@ -13,7 +13,6 @@ import {
   MUTED,
   NUM,
   TITLE,
-  AiBadge,
   Pill,
 } from '@/features/dashboard/components/primitives';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -82,7 +81,7 @@ function Skeleton() {
   );
 }
 
-function LessonCard({ lesson, onStart, busy, remaining }) {
+function LessonCard({ lesson, onStart, disabled }) {
   return (
     <article
       className={`${PANEL} flex flex-col gap-3 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12`}
@@ -97,7 +96,7 @@ function LessonCard({ lesson, onStart, busy, remaining }) {
       <Button
         className="mt-auto"
         variant="outline"
-        disabled={busy || remaining <= 0}
+        disabled={disabled}
         onClick={() => onStart(lesson.skill)}
       >
         Start learning
@@ -383,7 +382,7 @@ function resolveTopRecommended(recommendations) {
     .filter(Boolean);
 }
 
-function DashboardBanners({ enabled, remaining, error }) {
+function DashboardBanners({ enabled, quotaExhausted, error }) {
   return (
     <>
       {!enabled && (
@@ -396,7 +395,7 @@ function DashboardBanners({ enabled, remaining, error }) {
           {error}
         </p>
       )}
-      {remaining === 0 && (
+      {quotaExhausted && (
         <p className={`${WELL} p-3 text-sm`}>
           You have used today’s lessons. Your saved explanations and progress are still available.
         </p>
@@ -405,8 +404,7 @@ function DashboardBanners({ enabled, remaining, error }) {
   );
 }
 
-function DashboardDueSection({ due, onStart, busy, remaining, enabled }) {
-  const isActionDisabled = busy || !enabled;
+function DashboardDueSection({ due, onStart, disabled }) {
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 text-lg font-semibold">
@@ -416,13 +414,7 @@ function DashboardDueSection({ due, onStart, busy, remaining, enabled }) {
       {due.length ? (
         <div className="grid gap-3 md:grid-cols-3">
           {due.map((l) => (
-            <LessonCard
-              key={l.skill}
-              lesson={l}
-              onStart={onStart}
-              busy={isActionDisabled}
-              remaining={remaining}
-            />
+            <LessonCard key={l.skill} lesson={l} onStart={onStart} disabled={disabled} />
           ))}
         </div>
       ) : (
@@ -436,16 +428,7 @@ function DashboardDueSection({ due, onStart, busy, remaining, enabled }) {
 
 const SUBJECT_OPTIONS = ['all', 'reading', 'listening', 'writing', 'speaking'];
 
-function DashboardExploreSection({
-  recommendations,
-  filter,
-  setFilter,
-  onStart,
-  busy,
-  remaining,
-  enabled,
-}) {
-  const isActionDisabled = busy || !enabled;
+function DashboardExploreSection({ recommendations, filter, setFilter, onStart, disabled }) {
   const filteredLessons = recommendations.filter((l) => filter === 'all' || l.module === filter);
 
   return (
@@ -470,13 +453,7 @@ function DashboardExploreSection({
       </div>
       <div className="grid gap-3 md:grid-cols-3">
         {filteredLessons.map((l) => (
-          <LessonCard
-            key={l.skill}
-            lesson={l}
-            onStart={onStart}
-            busy={isActionDisabled}
-            remaining={remaining}
-          />
+          <LessonCard key={l.skill} lesson={l} onStart={onStart} disabled={disabled} />
         ))}
       </div>
     </section>
@@ -506,50 +483,41 @@ function DashboardSavedLessonsSection({ sessions, lessons }) {
   );
 }
 
-function DashboardHeader({ remaining, limit, resetAt }) {
+function DashboardHeader({ remaining, limit, resetAt, unlimited }) {
   return (
     <header className={`${PANEL} flex flex-wrap items-center justify-between gap-4 p-5`}>
       <div>
         <p className={`${MICRO} text-[#5a63df]`}>Your next step</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Practice Lab</h1>
-          <AiBadge active />
         </div>
         <p className={`mt-2 text-sm ${MUTED}`}>
           Understand a mistake. Try a new approach. See your progress.
         </p>
       </div>
-      <div className={`${WELL} min-w-40 rounded-lg p-3`}>
-        <p className={MICRO}>Lessons left today</p>
-        <p className={`${NUM} mt-1 text-2xl`}>
-          {remaining}
-          <span className="text-sm"> / {limit}</span>
-        </p>
-        <p className={`mt-1 text-xs ${MUTED}`}>
-          Resets {new Date(resetAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </p>
-      </div>
+      {!unlimited && (
+        <div className={`${WELL} min-w-40 rounded-lg p-3`}>
+          <p className={MICRO}>Lessons left today</p>
+          <p className={`${NUM} mt-1 text-2xl`}>
+            {remaining}
+            <span className="text-sm"> / {limit}</span>
+          </p>
+          <p className={`mt-1 text-xs ${MUTED}`}>
+            Resets{' '}
+            {new Date(resetAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      )}
     </header>
   );
 }
 
-function DashboardSelectedSkillSection({
-  selectedSkill,
-  selectedLesson,
-  onStart,
-  isActionDisabled,
-  remaining,
-}) {
+function DashboardSelectedSkillSection({ selectedSkill, selectedLesson, onStart, disabled }) {
   if (selectedLesson) {
     return (
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">The skill you chose</h2>
-        <LessonCard
-          lesson={selectedLesson}
-          onStart={onStart}
-          busy={isActionDisabled}
-          remaining={remaining}
-        />
+        <LessonCard lesson={selectedLesson} onStart={onStart} disabled={disabled} />
       </section>
     );
   }
@@ -582,15 +550,10 @@ function DashboardOngoingSection({ ongoing, lessons }) {
   );
 }
 
-function DashboardStartingCheck({ hasSessions, busy, enabled, remaining, onStart, defaultSkill }) {
+function DashboardStartingCheck({ hasSessions, disabled, onStart, defaultSkill }) {
   if (hasSessions) return null;
-  const isStartDisabled = busy || !enabled || remaining <= 0;
   return (
-    <Button
-      variant="outline"
-      disabled={isStartDisabled}
-      onClick={() => onStart(defaultSkill, 'check')}
-    >
+    <Button variant="outline" disabled={disabled} onClick={() => onStart(defaultSkill, 'check')}>
       Try a five-question starting check
     </Button>
   );
@@ -609,47 +572,39 @@ function SkillLabDashboard({ data, selectedSkill, filter, setFilter, busy, onSta
   const due = resolveDueLessons(recommendations, latest);
   const topRecommended = resolveTopRecommended(recommendations);
   const hasSessions = data.sessions.length > 0;
-  const isActionDisabled = busy || !data.enabled;
+  const quotaExhausted = !data.unlimited && data.remaining <= 0;
+  const isActionDisabled = busy || !data.enabled || quotaExhausted;
 
   return (
     <main className="mx-auto max-w-6xl space-y-5 p-4 text-slate-900 dark:text-slate-100">
-      <DashboardHeader remaining={data.remaining} limit={data.limit} resetAt={data.reset_at} />
+      <DashboardHeader
+        remaining={data.remaining}
+        limit={data.limit}
+        resetAt={data.reset_at}
+        unlimited={data.unlimited}
+      />
 
-      <DashboardBanners enabled={data.enabled} remaining={data.remaining} error={error} />
+      <DashboardBanners enabled={data.enabled} quotaExhausted={quotaExhausted} error={error} />
 
       <DashboardSelectedSkillSection
         selectedSkill={selectedSkill}
         selectedLesson={selectedLesson}
         onStart={onStart}
-        isActionDisabled={isActionDisabled}
-        remaining={data.remaining}
+        disabled={isActionDisabled}
       />
 
       <DashboardOngoingSection ongoing={ongoing} lessons={data.lessons} />
 
-      <RecommendedLesson
-        lessons={topRecommended}
-        onStart={onStart}
-        busy={isActionDisabled}
-        remaining={data.remaining}
-      />
+      <RecommendedLesson lessons={topRecommended} onStart={onStart} disabled={isActionDisabled} />
 
-      <DashboardDueSection
-        due={due}
-        onStart={onStart}
-        busy={busy}
-        remaining={data.remaining}
-        enabled={data.enabled}
-      />
+      <DashboardDueSection due={due} onStart={onStart} disabled={isActionDisabled} />
 
       <DashboardExploreSection
         recommendations={recommendations}
         filter={filter}
         setFilter={setFilter}
         onStart={onStart}
-        busy={busy}
-        remaining={data.remaining}
-        enabled={data.enabled}
+        disabled={isActionDisabled}
       />
 
       {!hasSessions && (
@@ -673,9 +628,7 @@ function SkillLabDashboard({ data, selectedSkill, filter, setFilter, busy, onSta
 
       <DashboardStartingCheck
         hasSessions={hasSessions}
-        busy={busy}
-        enabled={data.enabled}
-        remaining={data.remaining}
+        disabled={isActionDisabled}
         onStart={onStart}
         defaultSkill={selectedLesson?.skill || 'reading_true_false_not_given'}
       />

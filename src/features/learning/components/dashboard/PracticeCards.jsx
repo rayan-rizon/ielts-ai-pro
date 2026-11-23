@@ -11,7 +11,7 @@ const shortDate = (dateKey) =>
 
 const ACCENT = 'bg-[#5a63df] dark:bg-[#8f97ff]';
 const HEAT_LEVEL = [
-  'bg-slate-100 dark:bg-white/[0.06]',
+  'bg-[#f4f3fb] dark:bg-white/[0.06]',
   'bg-[#5a63df]/25 dark:bg-[#8f97ff]/30',
   'bg-[#5a63df]/55 dark:bg-[#8f97ff]/60',
   ACCENT,
@@ -52,7 +52,8 @@ export function ConsistencyCard({ heatmap, streak, daysSincePractice }) {
                 className={cn(
                   'h-3.5 rounded-[4px]',
                   HEAT_LEVEL[cell.level],
-                  cell.isToday && 'outline-2 outline-offset-1 outline-slate-900 dark:outline-white'
+                  cell.isToday &&
+                    'ring-1 ring-[#5a63df] ring-offset-1 dark:ring-[#8f97ff] dark:ring-offset-[#141319]'
                 )}
               />
             ))}
@@ -63,7 +64,7 @@ export function ConsistencyCard({ heatmap, streak, daysSincePractice }) {
         <span>Oldest</span>
         <span>Today</span>
       </div>
-      <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
+      <div className="grid grid-cols-3 gap-2 border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
         <MiniStat value={streak} label="day streak" />
         <MiniStat value={activeDays} label="active days" />
         <MiniStat
@@ -136,9 +137,7 @@ function RecentRow({ session, dateText, targetBand }) {
     <li className={cn('flex items-center gap-3 py-2.5', ROW_RULE)}>
       <span
         className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-          INSET,
-          'text-slate-500 dark:text-slate-400'
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#ebeaf7] bg-[#f4f3fb] text-slate-500 dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-slate-400'
         )}
       >
         <Icon className="h-4 w-4" aria-hidden="true" />

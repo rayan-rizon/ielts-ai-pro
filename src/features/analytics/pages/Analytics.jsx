@@ -139,7 +139,7 @@ export default function Analytics() {
           >
             <AnalyticsError retry={() => data.retry?.()} />
           </m.div>
-        ) : !data.stats?.totalTests ? (
+        ) : !data.stats?.totalTests && !data.hasAnyHistory ? (
           <m.div
             key="analytics-empty"
             initial={{ opacity: 0, y: 6 }}
@@ -172,6 +172,7 @@ export default function Analytics() {
               chartData={data.chartData}
               user={data.user}
               isPremium={isPremium}
+              windowEmpty={!data.stats?.totalTests}
               aiLoading={data.learningPathLoading}
               progressToTarget={getProgressToTarget(data.stats)}
             />

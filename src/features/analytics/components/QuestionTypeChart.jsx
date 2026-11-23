@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { BookOpen, Headphones, Mic2, PenLine, Target } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { BookOpen, ChevronDown, Headphones, Mic2, PenLine, Target } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Empty, MICRO, MUTED, NUM, Tip, WELL } from '@/features/dashboard/components/primitives';
 import { marksLost, questionTypeVerdict } from './questionTypeHelpers';
@@ -10,6 +10,10 @@ const MODULE_ICONS = {
   writing: PenLine,
   speaking: Mic2,
 };
+
+// Top formats by marks lost carry the story; the long tail sits behind a toggle
+// so this card stops setting the height of the whole row.
+const VISIBLE_ROWS = 6;
 
 const formatType = (type) =>
   String(type)
@@ -87,11 +91,8 @@ function TypeRow({ item, maxTotal }) {
             className="absolute inset-y-0 left-0 flex overflow-hidden rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `${volumePct}%` }}
           >
-            <div
-              className="h-full bg-[rgb(var(--signal-ok))]"
-              style={{ width: `${correctPct}%` }}
-            />
-            <div className="h-full flex-1 bg-[rgb(var(--signal-fault)/0.35)]" />
+            <div className="h-full bg-[#5a63df]" style={{ width: `${correctPct}%` }} />
+            <div className="h-full flex-1 bg-slate-300 dark:bg-white/[0.16]" />
           </div>
         </div>
       </div>
@@ -113,6 +114,9 @@ const QuestionTypeChart = React.memo(function QuestionTypeChart({ data }) {
     () => [...(data || [])].sort((a, b) => marksLost(b) - marksLost(a) || a.accuracy - b.accuracy),
     [data]
   );
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = Math.max(0, ordered.length - VISIBLE_ROWS);
+  const visible = expanded ? ordered : ordered.slice(0, VISIBLE_ROWS);
   const maxTotal = useMemo(
     () => ordered.reduce((max, item) => Math.max(max, Number(item.total) || 0), 0),
     [ordered]
@@ -120,7 +124,7 @@ const QuestionTypeChart = React.memo(function QuestionTypeChart({ data }) {
 
   if (!ordered.length) {
     return (
-      <Empty icon={Target} className="h-full content-center">
+      <Empty icon={Target} title="No question data yet" className="h-full">
         Complete a graded Reading or Listening test to see accuracy per question type.
       </Empty>
     );
@@ -130,21 +134,42 @@ const QuestionTypeChart = React.memo(function QuestionTypeChart({ data }) {
     <div className="flex h-full flex-col">
       <div className="mb-2.5 flex shrink-0 items-center gap-3">
         <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
-          <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-ok))]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#5a63df]" />
           Correct
         </span>
         <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
-          <span className="h-1.5 w-1.5 rounded-full bg-[rgb(var(--signal-fault)/0.55)]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-white/[0.16]" />
           Missed
         </span>
         <span className={cn(MICRO, MUTED, 'ml-auto')}>bar = questions sat</span>
       </div>
 
-      <div className="flex flex-1 flex-col justify-between gap-2.5">
-        {ordered.map((item) => (
+      <div className="flex flex-1 flex-col justify-between gap-3">
+        {visible.map((item) => (
           <TypeRow key={`${item.module}:${item.type}`} item={item} maxTotal={maxTotal} />
         ))}
       </div>
+
+      {hiddenCount > 0 ? (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((v) => !v)}
+          className={cn(
+            MICRO,
+            MUTED,
+            'mt-2.5 flex w-full shrink-0 items-center justify-center gap-1 rounded-md border border-[#e4e2f0] py-1.5 transition-[transform,color] duration-150 ease-out active:scale-[0.98] dark:border-white/[0.07] [@media(hover:hover)]:hover:text-slate-900 dark:[@media(hover:hover)]:hover:text-slate-50'
+          )}
+        >
+          {expanded ? 'Show top 6' : `Show ${hiddenCount} more`}
+          <ChevronDown
+            className={cn(
+              'h-3 w-3 transition-transform duration-200 ease-out',
+              expanded && 'rotate-180'
+            )}
+          />
+        </button>
+      ) : null}
     </div>
   );
 });

@@ -11,7 +11,7 @@ import {
   IconChip,
 } from '@/features/dashboard/components/primitives';
 
-export default function RecommendedLesson({ lessons, busy, remaining, onStart }) {
+export default function RecommendedLesson({ lessons, disabled, onStart }) {
   const [first, ...next] = lessons;
   if (!first) return null;
   return (
@@ -73,7 +73,7 @@ export default function RecommendedLesson({ lessons, busy, remaining, onStart })
           </ol>
           <Button
             className="h-10 w-full bg-[#5a63df] text-white hover:bg-[#4c55cb] sm:w-auto"
-            disabled={busy || remaining <= 0}
+            disabled={disabled}
             onClick={() => onStart(first.skill)}
           >
             Start this lesson <ArrowRight className="ml-2 h-4 w-4" />
@@ -96,7 +96,7 @@ export default function RecommendedLesson({ lessons, busy, remaining, onStart })
                 </p>
                 <button
                   type="button"
-                  disabled={busy || remaining <= 0}
+                  disabled={disabled}
                   onClick={() => onStart(lesson.skill)}
                   className="mt-3 inline-flex min-h-9 items-center gap-2 rounded text-xs font-semibold text-[#5a63df] hover:underline disabled:opacity-50"
                 >

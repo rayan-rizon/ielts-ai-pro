@@ -24,7 +24,7 @@ const BODY_TEXT = 'text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-
 const FOOTNOTE = cn('text-[11px] leading-relaxed', SECONDARY_TEXT);
 
 const SMALL_BUTTON =
-  'h-7 shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-700 transition-[transform,border-color] duration-150 hover:border-[#5a63df] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200';
+  'h-7 shrink-0 rounded-lg border border-[#e4e2f0] bg-white px-2.5 text-[11px] font-semibold text-slate-700 transition-all duration-150 hover:border-[#5a63df]/35 hover:text-[#5a63df] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-[#b8bdff]';
 
 function SkillRow({ skill, onStart }) {
   const style = getModuleStyle(skill.module);
@@ -191,11 +191,11 @@ export function ScoresCard({ readiness, targetBand, moduleTrends = {} }) {
 const MARKER_BASE =
   'relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors duration-200';
 const MARKER_TONE = {
-  done: 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900',
+  done: 'border-[rgb(var(--signal-ok)/0.35)] bg-[rgb(var(--signal-ok)/0.14)] text-[rgb(var(--signal-ok))]',
   current:
-    'border-[#5a63df] bg-white text-[#5a63df] shadow-[0_0_0_3px_rgb(90_99_223/0.14)] dark:bg-[#131217] dark:border-[#8f97ff] dark:text-[#afb5ff]',
+    'border-[#5a63df] bg-[#5a63df]/10 text-[#4a52c9] dark:border-[#8f97ff] dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]',
   later:
-    'border-slate-200 bg-white text-slate-400 dark:border-white/15 dark:bg-[#131217] dark:text-slate-500',
+    'border-[#e4e2f0] bg-white text-slate-400 dark:border-white/15 dark:bg-white/[0.04] dark:text-slate-500',
 };
 
 function StageMarker({ state, index }) {
@@ -228,7 +228,7 @@ function PathStage({ phase, index, current, last }) {
           aria-hidden="true"
           className={cn(
             'absolute left-[11.5px] top-6 bottom-0 w-px',
-            done ? 'bg-slate-900/70 dark:bg-white/60' : 'bg-slate-200 dark:bg-white/10'
+            done ? 'bg-[rgb(var(--signal-ok)/0.4)]' : 'bg-[#e4e2f0] dark:bg-white/10'
           )}
         />
       )}
@@ -236,7 +236,7 @@ function PathStage({ phase, index, current, last }) {
       <div
         className={cn(
           'min-w-0 rounded-xl',
-          current && '-mt-1.5 -mb-1.5 bg-[#5a63df]/[0.05] px-3 py-2 dark:bg-[#8f97ff]/[0.07]'
+          current && '-mt-1.5 -mb-1.5 bg-[#5a63df]/[0.06] px-3 py-2 dark:bg-[#8f97ff]/[0.09]'
         )}
       >
         <div className="flex items-baseline justify-between gap-2">
@@ -290,7 +290,7 @@ function PathOverview({ phases, percent, cleared }) {
             <div
               className={cn(
                 'h-full rounded-full transition-[width] duration-500 ease-out',
-                Number(phase.progressPercent) >= 100 ? 'bg-slate-900 dark:bg-white' : ACCENT_FILL
+                Number(phase.progressPercent) >= 100 ? 'bg-[rgb(var(--signal-ok))]' : ACCENT_FILL
               )}
               style={{ width: `${Math.min(100, Math.round(phase.progressPercent || 0))}%` }}
             />
@@ -345,7 +345,7 @@ function FigureValue({ value }) {
 
 function RunwayFigure({ value, label }) {
   return (
-    <div className={cn(INSET, 'min-w-0 rounded-xl px-3 py-2.5')}>
+    <div className="min-w-0 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
       <p className={cn(NUM, 'truncate text-xl font-semibold leading-none')}>
         <FigureValue value={value} />
       </p>
@@ -422,7 +422,7 @@ export function TimeLeftCard({
               </ul>
             )}
           </div>
-          <p className={cn(FOOTNOTE, 'border-t border-slate-100 pt-3 dark:border-white/[0.06]')}>
+          <p className={cn(FOOTNOTE, 'border-t border-[#eceafa] pt-3 dark:border-white/[0.07]')}>
             Sessions and study time follow the weekly availability you set.
           </p>
         </>
@@ -445,13 +445,13 @@ function TimelineItem({ title, detail, trailing, current, last }) {
       {!last && (
         <span
           aria-hidden="true"
-          className="absolute left-[6px] top-[calc(50%+7px)] h-[calc(100%-14px)] w-px bg-slate-200 dark:bg-white/10"
+          className="absolute left-[6px] top-[calc(50%+7px)] h-[calc(100%-14px)] w-px bg-[#e4e2f0] dark:bg-white/10"
         />
       )}
       <span
         aria-hidden="true"
         className={cn(
-          'relative h-3.5 w-3.5 shrink-0 rounded-full border-2 bg-white dark:bg-[#131217]',
+          'relative h-3.5 w-3.5 shrink-0 rounded-full border-2 bg-white dark:bg-white/10',
           current
             ? 'border-[#5a63df] dark:border-[#8f97ff]'
             : 'border-slate-300 dark:border-white/25'

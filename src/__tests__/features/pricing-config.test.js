@@ -53,9 +53,9 @@ describe('pricing plan configuration', () => {
       'Advanced Weakness & Readiness Analytics'
     );
     const practiceLabels = [
-      '2 Practice Lab AI Tests/Day',
-      '10 Practice Lab AI Tests/Day',
-      '20 Practice Lab AI Tests/Day',
+      '2 Practice Lab Sets/Day',
+      'Unlimited Practice Lab Sets',
+      'Unlimited Practice Lab Sets',
     ];
     expect(DEFAULT_PRICING_PLANS.find(({ tier }) => tier === 'free').features).toContain(
       practiceLabels[0]

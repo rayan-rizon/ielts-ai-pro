@@ -76,7 +76,6 @@ const PLAN_OPTIONS = {
   pro: {
     name: 'Pro',
     icon: ReiconSparkle,
-    includes: 'Everything in Free, plus',
     extra: 'Adaptive Study plan',
   },
   premium: {
@@ -88,8 +87,8 @@ const PLAN_OPTIONS = {
 };
 const BILLING_INTERVALS = ['monthly', 'quarterly'];
 // The few price-book lines that actually separate the tiers, in the order a
-// card lists them: the AI marking learners pay for first, daily drills last.
-const FEATURE_ORDER = [/AI Writing Evaluation/, /AI Speaking Session/, /Practice Lab AI Test/];
+// card lists them: the AI marking learners pay for first, practice sets last.
+const FEATURE_ORDER = [/AI Writing Evaluation/, /AI Speaking Session/, /Practice Lab Set/];
 const pickFeatures = (features = []) =>
   FEATURE_ORDER.map((pattern) => features.find((feature) => pattern.test(feature))).filter(Boolean);
 

@@ -23,6 +23,38 @@ const ChartSkeleton = React.memo(function ChartSkeleton({ className = 'h-full mi
   return <div className={cn(PANEL, className, 'w-full animate-pulse')} />;
 });
 
+const TIMEFRAME_COPY = {
+  '7d': 'the last 7 days',
+  '30d': 'the last 30 days',
+  '90d': 'the last 90 days',
+};
+
+function EmptyWindowNotice({ timeframe, onWiden, isPremium }) {
+  const next = timeframe === '7d' ? '30d' : isPremium ? 'all' : null;
+  return (
+    <div
+      role="status"
+      className={cn(PANEL, 'flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5')}
+    >
+      <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+        No scored tests in {TIMEFRAME_COPY[timeframe] ?? 'this period'}.{' '}
+        <span className="font-medium text-slate-500 dark:text-slate-400">
+          Your earlier results are still saved.
+        </span>
+      </p>
+      {next ? (
+        <button
+          type="button"
+          onClick={() => onWiden?.(next)}
+          className="rounded-md bg-[#5a63df] px-2.5 py-1 text-[11px] font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97]"
+        >
+          {next === 'all' ? 'Show all time' : 'Show last 30 days'}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Reading order is priority order, densest first — the same three-column
  * rhythm the learner dashboard uses (5 / 4 / 3), so the two pages feel like
@@ -45,6 +77,7 @@ export default function AnalyticsReport({
   chartData,
   user,
   isPremium,
+  windowEmpty = false,
   aiLoading,
   progressToTarget,
 }) {
@@ -59,6 +92,14 @@ export default function AnalyticsReport({
         className="relative z-10 mx-auto min-w-0 max-w-[1600px] space-y-3"
       >
         <AnalyticsHeader {...headerProps} />
+
+        {windowEmpty ? (
+          <EmptyWindowNotice
+            timeframe={headerProps.selectedTimeframe}
+            onWiden={headerProps.setSelectedTimeframe}
+            isPremium={isPremium}
+          />
+        ) : null}
 
         <StatCards stats={stats} progressToTarget={progressToTarget} />
 

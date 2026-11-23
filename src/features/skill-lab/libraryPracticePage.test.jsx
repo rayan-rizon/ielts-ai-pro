@@ -98,6 +98,44 @@ beforeEach(() => {
   });
 });
 describe('library practice page', () => {
+  it.each(['pro', 'premium'])('starts a set without a daily allowance for %s', async (tier) => {
+    invoke.mockImplementation(async (_, { body }) =>
+      body.action === 'dashboard'
+        ? {
+            data: {
+              enabled: true,
+              tier,
+              unlimited: true,
+              remaining: 1,
+              limit: 10,
+              groups: [group],
+            },
+          }
+        : { data: session }
+    );
+    mount();
+    const start = await screen.findByRole('button', { name: 'Review and practise' });
+    expect(start).toBeEnabled();
+    expect(screen.queryByText('Sets left today')).not.toBeInTheDocument();
+    fireEvent.click(start);
+    expect(invoke).toHaveBeenCalledWith(
+      'skill-lab',
+      expect.objectContaining({
+        body: expect.objectContaining({ action: 'start', groupId: group.id }),
+      })
+    );
+  });
+
+  it('blocks new sets when the Free daily allowance is exhausted', async () => {
+    invoke.mockResolvedValue({
+      data: { enabled: true, tier: 'free', remaining: 0, limit: 2, groups: [group] },
+    });
+    mount();
+    expect(await screen.findByRole('button', { name: 'Review and practise' })).toBeDisabled();
+    expect(screen.getByText('Sets left today')).toBeInTheDocument();
+    expect(screen.getByText(/You have used all 2 sets/)).toBeInTheDocument();
+  });
+
   it('shows real source selection without inventing a weakness for a new student', async () => {
     mount();
     expect(

@@ -33,11 +33,11 @@ const viewport = { once: true, amount: 0.12 };
 const faqs = [
   {
     q: 'What can I practice for free?',
-    a: 'The Free plan includes unlimited Cambridge IELTS Reading and Listening practice tests, 2 Practice Lab AI tests per day, 1 AI Writing evaluation per month, vocabulary tools, and basic progress analytics.',
+    a: 'The Free plan includes Cambridge IELTS Reading and Listening practice tests, 2 Practice Lab sets per day, 1 AI Writing evaluation per month, vocabulary tools, and basic progress analytics.',
   },
   {
-    q: 'How do daily Practice Lab limits work?',
-    a: 'Full Cambridge IELTS practice tests are always 100% free and unlimited for all learners. Daily limits only apply to Practice Lab AI tests, which provide targeted question sets and AI diagnostic feedback. Free accounts include 2 Practice Lab AI tests/day, Pro includes 10/day with personalised AI explanations, and Premium includes 20/day.',
+    q: 'How many Practice Lab sets can I do?',
+    a: 'Free accounts can start 2 Practice Lab sets per day. The daily allowance resets at 00:00 UTC. Pro and Premium include unlimited Practice Lab sets. All learners can return to saved sets at any time.',
   },
   {
     q: 'How does the IELTS Writing feedback work?',

@@ -55,19 +55,28 @@ function ModuleRow({ module, isWeakest, isBest }) {
 
   return (
     <Tip content={tipContent}>
-      <div className="flex items-center gap-2.5">
+      <div className="flex h-full w-full items-center gap-2.5">
         <IconChip icon={config.icon} tone="neutral" size="sm" />
-        <div className={cn('relative h-8 flex-1 overflow-hidden rounded-md', WELL)}>
+        <div
+          className={cn('relative h-full max-h-14 min-h-9 flex-1 overflow-hidden rounded-md', WELL)}
+        >
           <div
             className={cn(
-              'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+              'absolute inset-0 origin-left rounded-md transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none',
               isWeakest ? 'bg-[rgb(var(--signal-warn)/0.24)]' : 'bg-[#5a63df]/16'
             )}
-            style={{ width: `${pct}%` }}
+            style={{ transform: `scaleX(${pct / 100})` }}
           />
           <div className="relative flex h-full items-center justify-between gap-2 px-3">
-            <span className="truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
-              {config.label}
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="truncate text-xs font-extrabold text-slate-800 dark:text-slate-100">
+                {config.label}
+              </span>
+              {isWeakest ? (
+                <Pill tone="warn">Focus</Pill>
+              ) : isBest ? (
+                <Pill tone="ok">Best</Pill>
+              ) : null}
             </span>
             <span className={cn(MICRO, MUTED, 'shrink-0')}>
               {module.count ? (
@@ -83,16 +92,13 @@ function ModuleRow({ module, isWeakest, isBest }) {
         <span
           className={cn(
             NUM,
-            'w-9 shrink-0 text-right text-sm font-bold',
+            'w-10 shrink-0 text-right text-base font-bold',
             score == null
               ? 'text-slate-400 dark:text-slate-500'
               : 'text-slate-900 dark:text-slate-50'
           )}
         >
           {score == null ? '—' : formatBand(score)}
-        </span>
-        <span className="w-[52px] shrink-0 text-right">
-          {isWeakest ? <Pill tone="warn">Focus</Pill> : isBest ? <Pill tone="ok">Best</Pill> : null}
         </span>
       </div>
     </Tip>
@@ -239,18 +245,19 @@ export default function ModuleRankingCard({ moduleStats = [], targetScore }) {
           </Empty>
         ) : (
           <>
-            <div className="space-y-2">
+            {/* Rows share the leftover height, so the card never ends in dead air. */}
+            <div className="mt-3 flex flex-1 flex-col gap-2">
               {ordered.map((module) => (
-                <ModuleRow
-                  key={module.type}
-                  module={module}
-                  isWeakest={weakestModule?.type === module.type}
-                  isBest={scoredModules.length > 1 && bestModule?.type === module.type}
-                />
+                <div key={module.type} className="flex min-h-9 flex-1">
+                  <ModuleRow
+                    module={module}
+                    isWeakest={weakestModule?.type === module.type}
+                    isBest={scoredModules.length > 1 && bestModule?.type === module.type}
+                  />
+                </div>
               ))}
             </div>
             <BandScale modules={scalePoints} target={hasTarget ? parsedTarget : null} />
-            <div className="flex-1" />
           </>
         )}
 

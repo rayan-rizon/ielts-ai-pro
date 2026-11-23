@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import SubscriptionSection from '@/features/settings/components/Sections/SubscriptionSection';
 import PricingCard from '@/features/subscription/components/PricingCard';
+import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 
 const baseUser = {
   subscription_tier: 'premium',
@@ -117,4 +118,20 @@ it('offers a Free-plan action for paid learners without claiming it already chan
   fireEvent.click(screen.getByRole('button', { name: 'Move to Free' }));
   expect(onUpgrade).toHaveBeenCalledWith('free');
   expect(screen.queryByRole('button', { name: 'Current plan' })).not.toBeInTheDocument();
+});
+
+it('does not render "Everything in Free, plus" on the Pro pricing card', () => {
+  const proPlan = DEFAULT_PRICING_PLANS.find((plan) => plan.tier === 'pro');
+  render(
+    <PricingCard
+      plan={proPlan}
+      displayPrice={9.99}
+      isActive={false}
+      isSubscribed={false}
+      isLoading={false}
+      isPricingLoading={false}
+      onUpgrade={vi.fn()}
+    />
+  );
+  expect(screen.queryByText(/Everything in Free/i)).not.toBeInTheDocument();
 });

@@ -139,7 +139,8 @@ describe('onboarding plan-ready experience', () => {
     expect(items('Pro')[0]).toMatch(/AI Writing Evaluation/);
     expect(items('Premium')[0]).toMatch(/AI Writing Evaluation/);
     expect(items('Pro').at(-1)).toMatch(/Practice Lab|Learning Path/);
-    expect(card('Pro')).toHaveTextContent('Everything in Free, plus');
+    expect(card('Pro')).not.toHaveTextContent('Everything in Free, plus');
+    expect(card('Premium')).toHaveTextContent('Everything in Pro, plus');
     expect(card('Free')).not.toHaveTextContent(/Unlimited/);
     expect(card('Free')).toHaveTextContent('Not included: AI Study Plan Made for You');
   });

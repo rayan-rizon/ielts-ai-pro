@@ -84,7 +84,7 @@ const CAPABILITIES = [
     highlights: [
       'Unlimited Reading Assistant translations & clause breakdowns',
       'Curated Band 7, 8 & 9 topic vocabulary collections',
-      'Complete grammar guides & expanded Practice Lab access',
+      'Complete grammar guides & unlimited Practice Lab sets',
     ],
   },
 ];

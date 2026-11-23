@@ -66,11 +66,16 @@ function EmptyTrack({ overall, qualified }) {
         'flex h-[210px] flex-col items-center justify-center rounded-lg px-5 text-center'
       )}
     >
-      {locked ? (
-        <LockKeyhole className="mb-2 h-5 w-5 text-slate-400 dark:text-slate-500" />
-      ) : (
-        <LineChartIcon className="mb-2 h-5 w-5 text-slate-400 dark:text-slate-500" />
-      )}
+      <span
+        aria-hidden="true"
+        className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-[#d9d6ee] bg-[#f6f5fd] text-[#5a63df]/70 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-[#8f96f5]/70"
+      >
+        {locked ? (
+          <LockKeyhole className="h-[18px] w-[18px]" />
+        ) : (
+          <LineChartIcon className="h-[18px] w-[18px]" />
+        )}
+      </span>
       <p className="text-xs font-extrabold text-slate-800 dark:text-slate-100">
         {locked ? 'Overall needs all four modules' : 'No scored result in this period'}
       </p>

@@ -35,9 +35,9 @@ const faqs = [
       'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
   },
   {
-    question: 'How do daily Practice Lab limits work?',
+    question: 'How many Practice Lab sets can I do?',
     answer:
-      'Full Cambridge IELTS practice tests are always 100% free and unlimited for all learners. Daily limits only apply to Practice Lab AI tests, which provide targeted question sets and AI diagnostic feedback. Free accounts include 2 Practice Lab AI tests/day, Pro includes 10/day with personalised AI explanations, and Premium includes 20/day. Limits reset at 00:00 UTC, and previously completed tests and feedback remain free to revisit anytime.',
+      'Free accounts can start 2 Practice Lab sets per day. The daily allowance resets at 00:00 UTC. Pro and Premium include unlimited Practice Lab sets. All learners can return to saved sets at any time.',
   },
 ];
 
@@ -53,7 +53,7 @@ export default function FAQSection() {
             <AccordionItem
               key={i}
               value={`item-${i}`}
-              className="border-b-[#eeedf7] dark:border-b-white/[0.07]"
+              className="border-b-[#eeedf7] dark:border-b-white/[0.07] last:border-b-0"
             >
               <AccordionTrigger className="text-left text-sm font-bold text-slate-800 transition-colors hover:text-[#5a63df] dark:text-slate-100 dark:hover:text-[#a9afff] sm:text-base">
                 {faq.question}
@@ -64,17 +64,6 @@ export default function FAQSection() {
             </AccordionItem>
           ))}
         </Accordion>
-        <div className="border-t border-[#eeedf7] py-4 text-center dark:border-white/[0.07]">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Still have questions?{' '}
-            <a
-              href="mailto:support@ieltsai.pro"
-              className="font-bold text-[#5a63df] hover:underline"
-            >
-              Contact support
-            </a>
-          </p>
-        </div>
       </div>
     </section>
   );

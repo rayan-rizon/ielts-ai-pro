@@ -133,7 +133,7 @@ export default function ErrorAudit({
                 <span
                   className={cn(
                     NUM,
-                    'text-2xl font-extrabold leading-none text-slate-900 dark:text-white'
+                    'text-3xl font-extrabold leading-none text-slate-900 dark:text-white'
                   )}
                 >
                   <AnimatedNumber value={totalPointsLost} decimals={0} />
@@ -142,31 +142,37 @@ export default function ErrorAudit({
                   Mistakes
                 </span>
               </div>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={44}
-                    outerRadius={60}
-                    paddingAngle={4}
-                    dataKey="value"
-                    stroke="none"
-                    onClick={handleCellClick}
-                    className="cursor-pointer"
-                  >
-                    {data.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={MISTAKE_COLORS[entry.name] || entry.color || '#5a63df'}
-                        className="outline-none transition-opacity hover:opacity-80"
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 100 }} offset={12} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="absolute left-1/2 top-1/2 aspect-square h-full max-h-[176px] -translate-x-1/2 -translate-y-1/2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="70%"
+                      outerRadius="94%"
+                      paddingAngle={4}
+                      dataKey="value"
+                      stroke="none"
+                      onClick={handleCellClick}
+                      className="cursor-pointer"
+                    >
+                      {data.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={MISTAKE_COLORS[entry.name] || entry.color || '#5a63df'}
+                          className="outline-none transition-opacity hover:opacity-80"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      wrapperStyle={{ zIndex: 100 }}
+                      offset={12}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {getSmartDescription() && (
@@ -215,7 +221,7 @@ export default function ErrorAudit({
             </div>
           </div>
         ) : (
-          <Empty icon={PieIcon} className="flex-1 content-center">
+          <Empty icon={PieIcon} title="No mistakes to analyse" className="flex-1">
             Complete a graded test to see a breakdown of your mistakes.
           </Empty>
         )}

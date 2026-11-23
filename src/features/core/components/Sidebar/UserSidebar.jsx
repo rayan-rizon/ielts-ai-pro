@@ -36,10 +36,7 @@ const COLLAPSIBLE_DETAILS =
 const NavItem = memo(({ item, isActive }) => {
   const { isMobile, setOpenMobile } = useSidebar();
   const hasAiBadge =
-    item.title === 'Writing Practice' ||
-    item.title === 'AI Coach' ||
-    item.title === 'Study plan' ||
-    item.title === 'Practice Lab';
+    item.title === 'Writing Practice' || item.title === 'AI Coach' || item.title === 'Study plan';
 
   return (
     <SidebarMenuItem>

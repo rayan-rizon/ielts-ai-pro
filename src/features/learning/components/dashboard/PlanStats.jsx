@@ -1,27 +1,40 @@
 import React from 'react';
+import { Calendar, Clock3, Flame, Target } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { NUM } from '@/features/dashboard/components/primitives';
+import { IconChip, MICRO, MUTED, NUM } from '@/features/dashboard/components/primitives';
 import { CARD, INSET, SECONDARY_TEXT } from './PlanCard';
 import { formatMinutes } from './dashboardUtils';
 
-function StatTile({ label, children, footer, tone }) {
+function StatTile({ icon, tone = 'accent', label, children, footer, valueTone }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 p-4">
-      <p className={cn('text-xs font-medium', SECONDARY_TEXT)}>{label}</p>
-      <p
-        className={cn(
-          NUM,
-          'text-[26px] font-semibold leading-none',
-          tone === 'fault'
-            ? 'text-[rgb(var(--signal-fault))]'
-            : tone === 'warn'
-              ? 'text-[rgb(var(--signal-warn))]'
-              : 'text-slate-900 dark:text-white'
-        )}
-      >
-        {children}
-      </p>
-      {footer}
+    <div
+      className={cn(
+        CARD,
+        'flex min-w-0 flex-col justify-between px-3 py-2 sm:px-3.5 sm:py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs dark:hover:border-white/18'
+      )}
+    >
+      <div>
+        <div className="flex items-center gap-1.5 min-w-0">
+          {icon && <IconChip icon={icon} tone={tone} size="sm" />}
+          <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
+        </div>
+        <p
+          className={cn(
+            NUM,
+            'mt-1 text-xl sm:text-[22px] font-extrabold leading-tight tracking-tight',
+            valueTone === 'fault'
+              ? 'text-[rgb(var(--signal-fault))]'
+              : valueTone === 'warn'
+                ? 'text-[rgb(var(--signal-warn))]'
+                : 'text-slate-900 dark:text-slate-50'
+          )}
+        >
+          {children}
+        </p>
+      </div>
+      <div className="mt-1.5 pt-1.5 border-t border-[#eceafa] dark:border-white/[0.07]">
+        {footer}
+      </div>
     </div>
   );
 }
@@ -65,20 +78,16 @@ export default function PlanStats({
   const quiet = daysSincePractice !== null && daysSincePractice >= 3;
 
   return (
-    <section
-      className={cn(
-        CARD,
-        'grid grid-cols-2 divide-slate-100 max-lg:[&>*:nth-child(n+3)]:border-t max-lg:[&>*:nth-child(even)]:border-l lg:grid-cols-4 lg:divide-x dark:divide-white/[0.06] max-lg:[&>*]:border-slate-100 dark:max-lg:[&>*]:border-white/[0.06]'
-      )}
-      aria-label="Plan summary"
-    >
+    <section className="grid grid-cols-2 gap-1.5 lg:grid-cols-4" aria-label="Plan summary">
       <StatTile
+        icon={Target}
+        tone="accent"
         label="Target band"
         footer={
-          <p className={cn('text-[11.5px]', SECONDARY_TEXT)}>
+          <p className={cn('text-[11px] leading-tight truncate', SECONDARY_TEXT)}>
             {overallRange
-              ? `Recent practice: ${overallRange[0]}–${overallRange[1]} overall`
-              : 'Take a test in each subject to see your level'}
+              ? `Recent: ${overallRange[0]}–${overallRange[1]} overall`
+              : 'Take a test in each subject'}
           </p>
         }
       >
@@ -87,22 +96,30 @@ export default function PlanStats({
 
       {examDate && !examDatePassed ? (
         <StatTile
+          icon={Calendar}
+          tone="sky"
           label="Exam countdown"
-          footer={<p className={cn('text-[11.5px]', SECONDARY_TEXT)}>{formatExamDate(examDate)}</p>}
+          footer={
+            <p className={cn('text-[11px] leading-tight truncate', SECONDARY_TEXT)}>
+              {formatExamDate(examDate)}
+            </p>
+          }
         >
           {daysLeft}
           <Unit>{daysLeft === 1 ? 'day' : 'days'}</Unit>
         </StatTile>
       ) : (
         <StatTile
+          icon={Calendar}
+          tone="sky"
           label="Exam countdown"
           footer={
             <button
               type="button"
               onClick={onCustomize}
-              className="text-left text-[11.5px] font-bold text-[#5a63df] hover:underline dark:text-[#afb5ff]"
+              className="text-left text-[11px] leading-tight font-bold text-[#5a63df] hover:underline dark:text-[#afb5ff] truncate block"
             >
-              {examDatePassed ? 'Exam date has passed. Set a new one' : 'Set your exam date'}
+              {examDatePassed ? 'Exam passed. Set new' : 'Set your exam date'}
             </button>
           }
         >
@@ -111,10 +128,12 @@ export default function PlanStats({
       )}
 
       <StatTile
+        icon={Clock3}
+        tone="amber"
         label="This week's study time"
         footer={
           <div
-            className={cn('mt-1 h-1.5 w-full overflow-hidden rounded-full', INSET)}
+            className={cn('h-1.5 w-full overflow-hidden rounded-full', INSET)}
             role="progressbar"
             aria-valuenow={Math.round(weekPercent)}
             aria-valuemin={0}
@@ -128,15 +147,17 @@ export default function PlanStats({
         }
       >
         {formatMinutes(doneMinutes)}
-        <Unit>of {formatMinutes(plannedMinutes)} planned</Unit>
+        <Unit>of {formatMinutes(plannedMinutes)}</Unit>
       </StatTile>
 
       <StatTile
+        icon={Flame}
+        tone={quiet ? (daysSincePractice >= 7 ? 'rose' : 'amber') : 'emerald'}
         label="Consistency"
-        tone={quiet ? (daysSincePractice >= 7 ? 'fault' : 'warn') : undefined}
+        valueTone={quiet ? (daysSincePractice >= 7 ? 'fault' : 'warn') : undefined}
         footer={
           <>
-            <div className="mt-1 flex gap-1" role="img" aria-label="Practice in the last 7 days">
+            <div className="flex gap-1" role="img" aria-label="Practice in the last 7 days">
               {recentDays.map((day) => (
                 <span
                   key={day.dateKey}
@@ -145,13 +166,14 @@ export default function PlanStats({
                     'h-1.5 flex-1 rounded-full',
                     day.count
                       ? 'bg-[#5a63df] dark:bg-[#8f97ff]'
-                      : 'bg-slate-100 dark:bg-white/[0.07]',
-                    day.isToday && 'outline-1 outline-offset-1 outline-[#5a63df]'
+                      : 'bg-[#e4e2f0] dark:bg-white/[0.07]',
+                    day.isToday &&
+                      'outline-1 outline-offset-1 outline-[#5a63df] dark:outline-[#8f97ff]'
                   )}
                 />
               ))}
             </div>
-            <p className={cn('text-[11.5px]', SECONDARY_TEXT)}>
+            <p className={cn('text-[11px] leading-tight mt-1 truncate', SECONDARY_TEXT)}>
               {lastPracticedText(daysSincePractice)}
             </p>
           </>

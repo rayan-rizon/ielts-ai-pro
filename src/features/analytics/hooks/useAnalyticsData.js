@@ -38,6 +38,7 @@ export default function useAnalyticsData(selectedTimeframe) {
     hasAdvancedAccess,
     isLoading: authLoading || (Boolean(userId) && queries.isLoading),
     rawSessions: queries.rawSessions,
+    hasAnyHistory: queries.hasAnyHistory,
     stats: viewModel.stats,
     chartData: viewModel.chartData,
     learningPathLoading: queries.learningPathLoading,

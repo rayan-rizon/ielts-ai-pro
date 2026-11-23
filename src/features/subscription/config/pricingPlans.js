@@ -7,7 +7,7 @@ export const DEFAULT_PRICING_PLANS = [
     features: [
       'Reading & Listening practice tests',
       '5 AI Reading Assistant requests/day',
-      ...(SKILL_LAB_ENABLED ? ['2 Practice Lab AI Tests/Day'] : []),
+      ...(SKILL_LAB_ENABLED ? ['2 Practice Lab Sets/Day'] : []),
       '0 AI Speaking Sessions/month',
       '1 AI Writing Evaluation/month',
       'Grammar Units 1–3 + 5 Questions/Day',
@@ -23,13 +23,10 @@ export const DEFAULT_PRICING_PLANS = [
     basePrice: 9.99,
     description: 'Get more AI help and a study plan that fits your needs.',
     features: [
-      'Everything in Free',
       'Unlimited Reading & Listening tests',
       'Unlimited AI Reading Assistant',
       'Simplify, translate & break down sentences',
-      ...(SKILL_LAB_ENABLED
-        ? ['10 Practice Lab AI Tests/Day', 'Personalised AI Explanations']
-        : []),
+      ...(SKILL_LAB_ENABLED ? ['Unlimited Practice Lab Sets'] : []),
       '100 AI Writing Evaluations/month',
       '50 AI Speaking Sessions/month',
       'All Grammar Guides + Unlimited Practice',
@@ -52,7 +49,7 @@ export const DEFAULT_PRICING_PLANS = [
       'Everything in Pro',
       'Unlimited AI Reading Assistant',
       'Simplify, translate & break down sentences',
-      ...(SKILL_LAB_ENABLED ? ['20 Practice Lab AI Tests/Day'] : []),
+      ...(SKILL_LAB_ENABLED ? ['Unlimited Practice Lab Sets'] : []),
       '200 AI Writing Evaluations/month',
       '100 AI Speaking Sessions/month',
       'Study Plan Updates as You Improve',

@@ -14,7 +14,7 @@ import { buildPracticeHistory, getPlanAttention, summarizeWeek, taskKey } from '
 import { useLearningPathDashboard } from './useLearningPathDashboard';
 
 const SKELETON_BLOCK =
-  'animate-pulse rounded-2xl border border-slate-200/80 bg-slate-100 motion-reduce:animate-none dark:border-white/[0.07] dark:bg-white/4';
+  'animate-pulse rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] motion-reduce:animate-none dark:border-white/[0.07] dark:bg-white/4';
 
 /** Mirrors the real layout so nothing reflows when the plan arrives. */
 function StudyPlanLoadingView() {
@@ -38,14 +38,14 @@ function StudyPlanLoadingView() {
 
 function PageHeader({ refreshing, planUpdateAvailable, onRefresh, onCustomize }) {
   const button =
-    'h-8 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-[transform,border-color] duration-150 hover:border-[#5a63df] active:scale-[0.97] disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200';
+    'inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[#e4e2f0] bg-white px-2.5 text-[11px] font-bold text-slate-600 transition-all duration-150 ease-smooth-out hover:border-[#5a63df]/35 hover:text-[#5a63df] hover:-translate-y-0.5 hover:shadow-xs active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/50 disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-[#b8bdff]';
   return (
     <header className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
           Study plan
         </h1>
-        <p className={cn('mt-1 max-w-2xl text-sm font-medium', MUTED)}>
+        <p className={cn('mt-1 max-w-2xl text-xs font-medium', MUTED)}>
           Built from your recent scores, target band, exam date, and free time.
         </p>
       </div>
@@ -53,10 +53,7 @@ function PageHeader({ refreshing, planUpdateAvailable, onRefresh, onCustomize })
         {planUpdateAvailable && <Pill tone="accent">New results to apply</Pill>}
         <button type="button" className={button} onClick={onRefresh} disabled={refreshing}>
           <RefreshCw
-            className={cn(
-              'mr-1.5 inline h-3 w-3',
-              refreshing && 'animate-spin motion-reduce:animate-none'
-            )}
+            className={cn('h-3 w-3', refreshing && 'animate-spin motion-reduce:animate-none')}
             aria-hidden="true"
           />
           {refreshing ? 'Checking…' : 'Check for updates'}

@@ -2,18 +2,21 @@ import React from 'react';
 import { cn } from '@/lib/cn';
 
 /**
- * The page's one card surface: flat, neutral hairline, no tint. Colour on this
- * page is reserved for state (done, skipped, selected), so the surface itself
- * stays out of the way and lets the data carry the hierarchy.
+ * Learner panel card surface — matching the dashboard's hairline elevation system:
+ * crisp lavender-tinged white gradient in light mode, obsidian surface in dark mode.
  */
 export const CARD =
-  'rounded-2xl border border-slate-200/80 bg-white dark:border-white/[0.08] dark:bg-[#131217]';
+  'rounded-xl border border-[#e4e2f0] dark:border-white/[0.07] bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15]';
 
-/** Hairline between rows inside a card. */
-export const ROW_RULE = 'border-t border-slate-100 first:border-t-0 dark:border-white/[0.06]';
+/** Hairline between rows inside a card matching dashboard primitives. */
+export const ROW_RULE = 'border-t border-[#eceafa] first:border-t-0 dark:border-white/[0.07]';
 
-/** Quiet inset surface for tiles and tracks. */
-export const INSET = 'bg-slate-50 dark:bg-white/[0.04]';
+/** Quiet inset surface for tiles and tracks — matching dashboard WELL. */
+export const INSET = 'bg-[#f4f3fb] dark:bg-white/[0.07]';
+
+/** Secondary nested tile surface — matching dashboard TILE. */
+export const TILE =
+  'rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] transition-colors duration-150 dark:border-white/11 dark:bg-white/5.5';
 
 export const SECONDARY_TEXT = 'text-slate-500 dark:text-slate-400';
 
@@ -25,15 +28,25 @@ export function PlanCard({ as: Tag = 'section', className, children, ...rest }) 
   );
 }
 
-/** Title is the loudest thing in a card; the aside is the quietest. */
-export function CardHeader({ title, aside, children }) {
+/** Title is the loudest thing in a card; the aside is the quietest. Anchored with an accent rail matching PanelTitle. */
+export function CardHeader({ title, aside, children, accent = true }) {
   return (
-    <header className="flex items-baseline justify-between gap-3">
-      <h2 className="text-sm font-semibold tracking-tight text-slate-900 dark:text-white">
-        {title}
-      </h2>
+    <header className="flex items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        {accent && (
+          <span
+            className="h-3.5 w-[3px] shrink-0 rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
+            aria-hidden="true"
+          />
+        )}
+        <h2 className="truncate text-[13px] font-extrabold tracking-tight text-slate-800 dark:text-slate-100">
+          {title}
+        </h2>
+      </div>
       {aside ? (
-        <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">{aside}</span>
+        <span className="shrink-0 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+          {aside}
+        </span>
       ) : null}
       {children}
     </header>

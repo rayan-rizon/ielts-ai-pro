@@ -10,7 +10,7 @@ import { cn } from '@/lib/cn';
 import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
 const PAGE_SHELL =
-  'relative min-h-full overflow-hidden bg-[#f7f7f9] px-3 py-3 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-4';
+  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5';
 
 const LearningPathError = ({ onRetry }) => (
   <section className={cn(PANEL, 'mx-auto w-full max-w-lg p-6 text-center')}>
@@ -22,7 +22,7 @@ const LearningPathError = ({ onRetry }) => (
     <button
       type="button"
       onClick={onRetry}
-      className="mt-4 h-9 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white hover:bg-[#4a52c9]"
+      className="mt-4 h-9 rounded-lg bg-[#5a63df] px-4 text-xs font-bold text-white transition-all duration-150 ease-smooth-out hover:bg-[#4a52c9] active:scale-95"
     >
       Retry study plan
     </button>
@@ -51,6 +51,12 @@ export default function LearningPath() {
         description="An evidence-aware IELTS roadmap and realistic seven-day study schedule based on your exam date and availability."
       />
       <main className={PAGE_SHELL}>
+        {/* Subtle dot grid runs the full page matching Dashboard theme */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
+        />
+
         <div
           className={cn(
             'relative z-10 mx-auto max-w-[1440px]',

@@ -64,7 +64,7 @@ export default function ExamReadinessCard({ readiness, targetScore, modulesWithD
       <m.div variants={ITEM_VARIANTS} className="h-full">
         <section className={cn(PANEL, 'flex h-full flex-col p-4')}>
           <PanelTitle label="Exam readiness" accent />
-          <Empty icon={Gauge} className="flex-1 content-center">
+          <Empty icon={Gauge} title="No readiness check yet" className="flex-1">
             {emptyCopy}
           </Empty>
         </section>
@@ -96,19 +96,19 @@ export default function ExamReadinessCard({ readiness, targetScore, modulesWithD
           }
         />
 
-        <div className="flex items-center gap-4">
+        <div className="mt-1 flex flex-1 flex-col gap-4">
           <Tip content="Equal average of the four signals to the right.">
-            <span>
+            <span className="mx-auto">
               <Ring
                 value={score}
-                size={80}
-                stroke={7}
+                size={112}
+                stroke={9}
                 label={<AnimatedNumber value={score} decimals={0} />}
                 sublabel="/ 100"
               />
             </span>
           </Tip>
-          <div className="min-w-0 flex-1 space-y-2.5">
+          <div className="flex min-w-0 flex-1 flex-col justify-evenly gap-2.5">
             {READINESS_FACTORS.map((factor) => {
               const value = factors[factor.key];
               return (
@@ -127,10 +127,10 @@ export default function ExamReadinessCard({ readiness, targetScore, modulesWithD
                       {value == null ? '—' : <AnimatedNumber value={value} decimals={0} />}
                     </span>
                   </div>
-                  <div className={cn('mt-1 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
+                  <div className={cn('mt-1.5 h-1.5 w-full overflow-hidden rounded-full', WELL)}>
                     <div
-                      className="h-full rounded-full bg-[#5a63df] transition-[width] duration-700 ease-out"
-                      style={{ width: `${value ?? 0}%` }}
+                      className="h-full w-full origin-left rounded-full bg-[#5a63df] transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+                      style={{ transform: `scaleX(${(value ?? 0) / 100})` }}
                     />
                   </div>
                 </div>
@@ -149,16 +149,14 @@ export default function ExamReadinessCard({ readiness, targetScore, modulesWithD
               <span className="font-extrabold text-slate-800 dark:text-slate-100">
                 {lowestFactor.factor.label}
               </span>{' '}
-              is your lowest signal at{' '}
+              is lowest at{' '}
               <span className={cn(NUM, 'font-bold text-slate-800 dark:text-slate-100')}>
                 <AnimatedNumber value={lowestFactor.value} decimals={0} />
               </span>
-              . {lowestFactor.factor.hint}
+              .
             </p>
           </div>
         ) : null}
-
-        <div className="flex-1" />
 
         <PanelFootnote>All four modules scored. Coverage is complete.</PanelFootnote>
       </section>

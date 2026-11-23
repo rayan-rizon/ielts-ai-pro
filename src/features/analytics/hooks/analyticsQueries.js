@@ -47,6 +47,21 @@ export const fetchSessions = async (userId, selectedTimeframe = '30d', now = Dat
   return sessions;
 };
 
+// One-row probe: does this learner have ANY scored history, regardless of the
+// selected window? Lets an empty 7-day window read as "nothing recently"
+// instead of the first-time onboarding view.
+export const fetchHasAnyHistory = async (userId) => {
+  const { data, error } = await supabase.rpc('get_learner_analytics_page', {
+    p_user_id: userId,
+    p_cutoff: null,
+    p_before_date: null,
+    p_before_id: null,
+    p_limit: 1,
+  });
+  if (error) throw error;
+  return (data ?? []).length > 0;
+};
+
 const fetchLearningPathEvidence = async (userId) => {
   const { data, error } = await supabase
     .from('learning_paths')
@@ -85,6 +100,14 @@ const useSessionsQuery = (userId, selectedTimeframe) =>
   useQuery({
     queryKey: ['analytics', 'sessions', userId, selectedTimeframe],
     queryFn: () => fetchSessions(userId, selectedTimeframe),
+    enabled: enabledFor(userId),
+    staleTime: STALE_TIME,
+  });
+
+const useHistoryProbeQuery = (userId) =>
+  useQuery({
+    queryKey: ['analytics', 'hasAnyHistory', userId],
+    queryFn: () => fetchHasAnyHistory(userId),
     enabled: enabledFor(userId),
     staleTime: STALE_TIME,
   });
@@ -130,16 +153,18 @@ export function useAnalyticsQueries(
 ) {
   const sessions = useSessionsQuery(userId, selectedTimeframe);
   const vocabulary = useVocabularyQuery(userId);
+  const history = useHistoryProbeQuery(userId);
   const learningPath = useLearningPathEvidenceQuery(userId, includeAdvancedInsights);
   const grammar = useGrammarQuery(userId, includeAdvancedInsights, selectedTimeframe);
   const skills = useSkillQuery(userId, includeAdvancedInsights);
-  const core = [sessions, vocabulary];
+  const core = [sessions, vocabulary, history];
   const advanced = includeAdvancedInsights ? [learningPath, grammar, skills] : [];
   const active = [...core, ...advanced];
 
   return {
     rawSessions: sessions.data ?? [],
     vocabCount: vocabulary.data ?? 0,
+    hasAnyHistory: history.data ?? false,
     learningPathEvidence: includeAdvancedInsights ? (learningPath.data ?? null) : null,
     grammarAttempts: includeAdvancedInsights ? (grammar.data ?? []) : [],
     skillProficiency: includeAdvancedInsights ? (skills.data ?? []) : [],

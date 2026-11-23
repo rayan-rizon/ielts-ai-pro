@@ -418,9 +418,11 @@ export default function PracticeHome({
   // of this, which disabled the CTA even though `selected` had already fallen back to
   // an available type — arriving from a Learning Path task for a focus with no sets
   // left the whole page unusable. The CTA acts on `next`, so `next` is what gates it.
-  const canStart = Boolean(data.enabled && data.remaining && next);
+  const hasDailyLimit = !data.unlimited;
+  const quotaExhausted = hasDailyLimit && !data.remaining;
+  const canStart = Boolean(data.enabled && !quotaExhausted && next);
   const blockedReason = data.enabled
-    ? !data.remaining
+    ? quotaExhausted
       ? `You have used all ${data.limit} sets for today. Your allowance resets at ${reset}.`
       : !next
         ? 'No library set is available for this question type yet.'
@@ -485,17 +487,19 @@ export default function PracticeHome({
           <motion.div
             variants={itemVariants}
             aria-label="Practice metrics"
-            className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4"
+            className={`grid grid-cols-2 gap-2.5 sm:gap-3 ${hasDailyLimit ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}
           >
-            <Stat
-              size="sm"
-              tone="accent"
-              icon={Layers}
-              label="Sets left today"
-              value={data.enabled ? `${data.remaining ?? 0} / ${data.limit ?? 0}` : '—'}
-              sub={data.enabled ? `Resets ${reset}` : 'Paused — nothing is being used'}
-              tip="Daily allowance of targeted question sets with AI diagnostic feedback"
-            />
+            {hasDailyLimit && (
+              <Stat
+                size="sm"
+                tone="accent"
+                icon={Layers}
+                label="Sets left today"
+                value={data.enabled ? `${data.remaining ?? 0} / ${data.limit ?? 0}` : '—'}
+                sub={data.enabled ? `Resets ${reset}` : 'Practice is paused'}
+                tip="Daily allowance of targeted question sets"
+              />
+            )}
             <Stat
               size="sm"
               tone="sky"
@@ -787,12 +791,6 @@ export default function PracticeHome({
                             {blockedReason}
                           </p>
                         ) : null}
-                        {!data.remaining && (
-                          <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                            Today’s allowance is used. Resets at {reset}; resuming saved work is
-                            free.
-                          </p>
-                        )}
                       </div>
                     </div>
                   ) : (

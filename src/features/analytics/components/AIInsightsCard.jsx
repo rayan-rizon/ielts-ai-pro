@@ -101,7 +101,7 @@ function EvidenceSummary({ counts }) {
           style={{ width: `${earlyPct}%` }}
         />
       </div>
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 divide-x divide-[#e4e2f0] dark:divide-white/[0.07]">
         {[
           {
             label: 'Confirmed',
@@ -120,8 +120,8 @@ function EvidenceSummary({ counts }) {
           },
         ].map((item) => (
           <Tip key={item.label} content={item.hint}>
-            <div className="text-center">
-              <p className={cn(NUM, 'text-xs font-extrabold text-slate-900 dark:text-slate-50')}>
+            <div className="space-y-0.5 px-1 text-center">
+              <p className={cn(NUM, 'text-sm font-extrabold text-slate-900 dark:text-slate-50')}>
                 {item.value}
               </p>
               <p className={cn(MICRO, MUTED, 'truncate')}>{item.label}</p>
@@ -139,32 +139,28 @@ function FocusAreaLink({ to, icon: Icon, title, tag, tagTone = 'accent', subtitl
       to={to}
       className={cn(
         TILE,
-        'group flex items-start justify-between gap-2 p-2.5',
-        'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
+        'group flex items-center gap-2.5 p-2.5',
+        'transition-[transform,border-color] duration-200 ease-out hover:-translate-y-px dark:hover:border-white/12'
       )}
     >
-      {/* The title used to share one line with the tag pill and be `truncate`d,
-          which in this narrow column left every entry reading "Reading — Matchi…".
-          The pill and the mastery figure moved to their own row underneath, so
-          the title gets the full width and wraps to a second line if it needs it. */}
-      <div className="flex min-w-0 items-start gap-2.5">
-        <IconChip icon={Icon} tone="accent" size="md" className="mt-0.5" />
-        <div className="min-w-0">
-          <p className="line-clamp-2 text-[11px] font-extrabold leading-snug text-slate-800 dark:text-slate-100">
-            {title}
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
-            <Pill tone={tagTone}>{tag}</Pill>
-            {mastery != null ? (
-              <span className={cn(NUM, 'text-[10px] font-bold text-[#5a63df] dark:text-[#a9afff]')}>
-                {mastery}% estimated progress
-              </span>
-            ) : null}
-          </div>
-          <p className={cn(MICRO, MUTED, 'mt-1 line-clamp-2 leading-snug')}>{subtitle}</p>
+      <IconChip icon={Icon} tone="accent" size="md" className="shrink-0" />
+      {/* Title gets the full width; the tag and the one-line context share a
+          single meta row so each entry is a title plus one line, not four. */}
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className="line-clamp-2 text-xs font-extrabold leading-snug text-slate-800 dark:text-slate-100">
+          {title}
+        </p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Pill tone={tagTone}>{tag}</Pill>
+          {mastery != null ? (
+            <span className={cn(NUM, 'text-[10px] font-bold text-[#5a63df] dark:text-[#a9afff]')}>
+              {mastery}% progress
+            </span>
+          ) : null}
         </div>
+        <p className={cn(MICRO, MUTED, 'line-clamp-2 leading-snug')}>{subtitle}</p>
       </div>
-      <ChevronRight className="mt-1 h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-500" />
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-500" />
     </Link>
   );
 }

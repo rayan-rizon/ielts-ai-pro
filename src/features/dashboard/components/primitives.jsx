@@ -578,14 +578,30 @@ export const FootNum = ({ children }) => (
 );
 
 export const Empty = ({ icon: Icon, title, message, children, className }) => (
-  <div className={cn('flex flex-col items-center gap-1.5 py-6 text-center', className)}>
-    {Icon && <Icon className={cn('h-5 w-5', FAINT)} />}
-    {title && <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{title}</p>}
-    {(children || message) && (
-      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-        {children || message}
-      </p>
+  <div
+    className={cn(
+      'flex flex-col items-center justify-center gap-3 px-4 py-6 text-center',
+      className
     )}
+  >
+    {Icon && (
+      <span
+        aria-hidden="true"
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-[#d9d6ee] bg-[#f6f5fd] text-[#5a63df]/70 dark:border-white/[0.12] dark:bg-white/[0.03] dark:text-[#8f96f5]/70"
+      >
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+    )}
+    <div className="space-y-1">
+      {title && (
+        <p className="text-xs font-extrabold text-slate-800 dark:text-slate-100">{title}</p>
+      )}
+      {(children || message) && (
+        <p className="mx-auto max-w-[30ch] text-balance text-[11px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+          {children || message}
+        </p>
+      )}
+    </div>
   </div>
 );
 
