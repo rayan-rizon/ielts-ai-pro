@@ -71,6 +71,74 @@ export function nextMarketingAttempt(rows: { attempt: number }[]): number {
   return rows.reduce((max, row) => Math.max(max, Number(row.attempt) || 0), 0) + 1;
 }
 
+// Offer outcomes that never reverse for a campaign: the learner is too old for
+// the starter offer, already paid, or the offer already ended / was used. Once
+// one is recorded, later scans must not reserve (and log) another row.
+export const TERMINAL_OFFER_SKIP_REASONS: ReadonlySet<string> = new Set([
+  'not_eligible',
+  'already_paid',
+  'starter_offer_used',
+  'starter_offer_ended',
+  'another_offer_assigned',
+  'another_offer_applied',
+  'account_promo_already_used',
+  'offer_assigned_to_another_account',
+]);
+
+export function hasRecordedSkip(
+  rows: { status: string; failure_reason?: string | null }[],
+  reason?: string
+): boolean {
+  return rows.some(
+    (row) =>
+      row.status === 'skipped' &&
+      (reason
+        ? row.failure_reason === reason
+        : TERMINAL_OFFER_SKIP_REASONS.has(row.failure_reason || ''))
+  );
+}
+
+export function terminallySkippedUsers(
+  history: {
+    user_id: string;
+    campaign_id: string;
+    status: string;
+    failure_reason?: string | null;
+  }[],
+  campaignId: string
+): Set<string> {
+  return new Set(
+    history
+      .filter((row) => row.campaign_id === campaignId && hasRecordedSkip([row]))
+      .map((row) => row.user_id)
+  );
+}
+
+// Record a skip for a reserved delivery. The history already holds one skipped
+// row per reason, so a repeat is released instead of stored: the quarter-hour
+// scan would otherwise add a new row per ineligible learner on every run.
+export async function skipReservedDelivery(
+  db: any,
+  deliveryId: string,
+  priorRows: { status: string; failure_reason?: string | null }[],
+  reason: string
+) {
+  if (hasRecordedSkip(priorRows, reason)) {
+    const { error } = await db
+      .from('marketing_deliveries')
+      .delete()
+      .eq('id', deliveryId)
+      .eq('status', 'processing');
+    if (error) throw error;
+    return;
+  }
+  const { error } = await db
+    .from('marketing_deliveries')
+    .update({ status: 'skipped', failure_reason: reason })
+    .eq('id', deliveryId);
+  if (error) throw error;
+}
+
 // A unique delivery is the send reservation. Only the request that inserted it
 // may send; an overlapping request gets null and must skip. Never merge content
 // into an existing accepted/processing delivery.

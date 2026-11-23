@@ -2,7 +2,11 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 import { getCampaignAction } from '../../../supabase/functions/_shared/marketingOfferAction';
-import { nextMarketingAttempt } from '../../../supabase/functions/_shared/marketingDelivery';
+import {
+  nextMarketingAttempt,
+  skipReservedDelivery,
+  terminallySkippedUsers,
+} from '../../../supabase/functions/_shared/marketingDelivery';
 
 import {
   countsAsMarketingContact,
@@ -60,6 +64,8 @@ function setup(
     'readMarketingDispatchHistory',
     'reserveMarketingDelivery',
     'nextMarketingAttempt',
+    'skipReservedDelivery',
+    'terminallySkippedUsers',
     'isUndeliverableEmail',
     'sendEmail',
     'getCampaignAction',
@@ -72,6 +78,8 @@ function setup(
     () => read(db, 'marketing_deliveries'),
     reserve,
     nextMarketingAttempt,
+    skipReservedDelivery,
+    terminallySkippedUsers,
     () => false,
     send,
     getCampaignAction,
@@ -113,17 +121,31 @@ describe('marketing journey scan', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('keeps email consent enforced and deduplicates an already recorded skip', async () => {
-    const { run, read, reserve } = setup({
-      channels: ['email'],
-      members: [{ user_id: 'learner', consent_marketing: false }],
+  it.each([
+    [
+      'email',
+      'no_eligible_channel',
+      false,
+      'keeps email consent enforced and deduplicates an already recorded skip',
+    ],
+    [
+      'in_app',
+      'starter_offer_ended',
+      true,
+      'does not reserve another row for an offer-ineligible learner',
+    ],
+  ])('%s: %s skip is recorded once (%#)', async (channel, failure_reason, consent) => {
+    const { run, read, reserve, send } = setup({
+      channels: [channel],
+      members: [{ user_id: 'learner', consent_marketing: consent }],
       history: [
         {
           user_id: 'learner',
-          channel: 'email',
+          channel,
           campaign_id: 'campaign',
           status: 'skipped',
-          failure_reason: 'no_eligible_channel',
+          failure_reason,
+          attempt: 7,
           created_at: '2020-01-01',
         },
       ],
@@ -131,6 +153,7 @@ describe('marketing journey scan', () => {
     expect(await run()).toMatchObject({ accepted: 0, skipped: 1 });
     expect(profileReads(read)).toHaveLength(0);
     expect(reserve).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('does not resend a bounced provider-accepted campaign', async () => {

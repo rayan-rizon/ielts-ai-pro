@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import {
+  hasRecordedSkip,
+  skipReservedDelivery,
   nextMarketingAttempt,
   readMarketingAudienceRows,
   readMarketingDispatchHistory,
@@ -222,5 +224,47 @@ describe('marketing delivery reservations', () => {
     expect(String(url)).toContain('offset=0');
     expect(String(url)).toContain('limit=500');
     expect(JSON.parse(request.body)).toEqual({ p_campaign_id: 'campaign', p_user_ids: ['user'] });
+  });
+});
+
+describe('repeat offer skips', () => {
+  const chain = (calls: any[]) => ({
+    from: () => ({
+      delete: () => ({
+        eq: (...a: any[]) => ({
+          eq: (...b: any[]) => (calls.push(['delete', a, b]), Promise.resolve({ error: null })),
+        }),
+      }),
+      update: (patch: any) => ({
+        eq: (...a: any[]) => (calls.push(['update', patch, a]), Promise.resolve({ error: null })),
+      }),
+    }),
+  });
+
+  it('recognises a terminal offer skip but not a transient one', () => {
+    expect(hasRecordedSkip([{ status: 'skipped', failure_reason: 'not_eligible' }])).toBe(true);
+    expect(hasRecordedSkip([{ status: 'skipped', failure_reason: 'starter_offer_ended' }])).toBe(
+      true
+    );
+    expect(hasRecordedSkip([{ status: 'skipped', failure_reason: 'offer_paused' }])).toBe(false);
+    expect(hasRecordedSkip([{ status: 'accepted', failure_reason: 'not_eligible' }])).toBe(false);
+    expect(
+      hasRecordedSkip([{ status: 'skipped', failure_reason: 'offer_paused' }], 'offer_paused')
+    ).toBe(true);
+  });
+
+  it('stores the first skip and releases the reservation for a repeat', async () => {
+    const calls: any[] = [];
+    await skipReservedDelivery(chain(calls), 'd1', [], 'offer_paused');
+    expect(calls[0][0]).toBe('update');
+    expect(calls[0][1]).toEqual({ status: 'skipped', failure_reason: 'offer_paused' });
+    await skipReservedDelivery(
+      chain(calls),
+      'd2',
+      [{ status: 'skipped', failure_reason: 'offer_paused' }],
+      'offer_paused'
+    );
+    expect(calls[1][0]).toBe('delete');
+    expect(calls[1][2]).toEqual(['status', 'processing']);
   });
 });

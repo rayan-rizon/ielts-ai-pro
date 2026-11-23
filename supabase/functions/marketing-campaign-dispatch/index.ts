@@ -10,6 +10,8 @@ import {
   readMarketingAudienceRows,
   readMarketingDispatchHistory,
   reserveMarketingDelivery,
+  skipReservedDelivery,
+  terminallySkippedUsers,
 } from '../_shared/marketingDelivery.ts';
 
 import {
@@ -481,10 +483,12 @@ async function dispatchCampaignWithTiming(
 
       if (campaign.promo?.assigned_user_id && campaign.promo.assigned_user_id !== member.user_id) {
         stats.skipped += 1;
-        await admin
-          .from('marketing_deliveries')
-          .update({ status: 'skipped', failure_reason: 'offer_assigned_to_another_account' })
-          .eq('id', delivery.id);
+        await skipReservedDelivery(
+          admin,
+          delivery.id,
+          allCampaignRows,
+          'offer_assigned_to_another_account'
+        );
         continue;
       }
       let offer: CampaignOffer | null = staticOffer;
@@ -505,10 +509,12 @@ async function dispatchCampaignWithTiming(
               Number(personalOffer.discount_value) !== staticOffer.discountPercent))
         ) {
           stats.skipped += 1;
-          await admin
-            .from('marketing_deliveries')
-            .update({ status: 'skipped', failure_reason: 'account_offer_conflict_or_expired' })
-            .eq('id', delivery.id);
+          await skipReservedDelivery(
+            admin,
+            delivery.id,
+            allCampaignRows,
+            'account_offer_conflict_or_expired'
+          );
           continue;
         }
         if (personalOffer)
@@ -526,10 +532,12 @@ async function dispatchCampaignWithTiming(
         account?.promo_discount?.code !== offer.code
       ) {
         stats.skipped += 1;
-        await admin
-          .from('marketing_deliveries')
-          .update({ status: 'skipped', failure_reason: 'account_promo_already_used' })
-          .eq('id', delivery.id);
+        await skipReservedDelivery(
+          admin,
+          delivery.id,
+          allCampaignRows,
+          'account_promo_already_used'
+        );
         continue;
       }
       if (issuesSignupOffer) {
@@ -555,13 +563,12 @@ async function dispatchCampaignWithTiming(
           : null;
         if (!offer && campaign.metadata?.lifecycle_stage !== 'signup') {
           stats.skipped += 1;
-          await admin
-            .from('marketing_deliveries')
-            .update({
-              status: 'skipped',
-              failure_reason: signupOffer?.reason || 'signup_offer_unavailable',
-            })
-            .eq('id', delivery.id);
+          await skipReservedDelivery(
+            admin,
+            delivery.id,
+            allCampaignRows,
+            signupOffer?.reason || 'signup_offer_unavailable'
+          );
           continue;
         }
       }
@@ -702,7 +709,12 @@ async function dispatchCampaignWithTiming(
       }
     }
   };
-  await timed('processing_ms', () => mapLimit(audience, 5, processMember));
+  // A terminal offer skip (too old, already paid, offer ended) is recorded once.
+  // Re-checking it every quarter hour only grows the table.
+  const settled = terminallySkippedUsers(history, campaign.id);
+  const pending = audience.filter((member: any) => !settled.has(member.user_id));
+  stats.skipped += audience.length - pending.length;
+  await timed('processing_ms', () => mapLimit(pending, 5, processMember));
 
   await timed('activation_ms', () =>
     admin
