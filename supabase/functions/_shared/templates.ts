@@ -788,16 +788,6 @@ export function getCampaignTemplate(input: {
       ? ''
       : 'Pick up where you left off, review your recent feedback, and choose one thing to work on next.';
   const chosenPlan = input.lifecycleStage === 'checkout' ? planName(input.plan?.tier) : null;
-  const planPeriod = input.plan?.interval === 'quarterly' ? 'Quarterly' : 'Monthly';
-  const planBlock = chosenPlan
-    ? `
-<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin:18px 0 0;border-collapse:separate;background:#f6f4ff;border:1px solid #e4e2f0;border-radius:14px">
-  <tr><td style="padding:12px 16px">
-    <p style="margin:0;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#68657a">Your selected plan</p>
-    <p style="margin:3px 0 0;font-size:18px;font-weight:800;letter-spacing:-.01em;color:#262438">${escapeHtml(chosenPlan)} <span style="font-weight:600;color:#68657a">· ${planPeriod}</span></p>
-  </td></tr>
-</table>`
-    : '';
   const progressParagraph = stageItems
     ? checklist(stageItems.map((item) => escapeHtml(item)))
     : progressText
@@ -867,7 +857,6 @@ ${heading(title)}
 ${lead(`Hi ${name},`)}
 ${paragraph(message)}
 ${progressParagraph}
-${planBlock}
 ${offerBlock}
 ${button(input.clickUrl, ctaLabel)}
 ${footnote('Your progress and practice history stay saved in your account, so you can return whenever you are ready.')}`;
