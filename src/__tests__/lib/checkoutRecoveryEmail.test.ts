@@ -326,6 +326,12 @@ describe('last-chance offer', () => {
 });
 
 describe('live countdown outside checkout recovery', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(now));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('shows the live image and the real deadline for other offer emails', () => {
     const { html } = getCampaignTemplate({
       title: 'Welcome',
