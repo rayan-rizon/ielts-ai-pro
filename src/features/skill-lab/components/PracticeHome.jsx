@@ -465,7 +465,7 @@ export default function PracticeHome({
                 {['pro', 'premium'].includes(data.tier) ? <TierBadge tier={data.tier} /> : null}
               </div>
               <p className={`mt-1 text-xs sm:text-[13px] font-medium leading-relaxed ${MUTED}`}>
-                Understand your mistakes. Practise one question type with real library questions.
+                Fix your mistakes with real library questions.
               </p>
             </div>
 
@@ -478,7 +478,7 @@ export default function PracticeHome({
                 className="text-[#5a63df] dark:text-[#afb5ff] transition-transform duration-300 group-hover:rotate-45"
                 aria-hidden="true"
               />
-              <span>Your learning path</span>
+              <span>Your study plan</span>
               <ArrowRight
                 size={12}
                 className="text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff]"
@@ -490,24 +490,24 @@ export default function PracticeHome({
           <motion.div
             variants={itemVariants}
             aria-label="Practice metrics"
-            className={`grid grid-cols-2 gap-2.5 sm:gap-3 ${hasDailyLimit ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}
+            className={`${PANEL} grid divide-x divide-[#e4e2f0] dark:divide-white/[0.07] ${hasDailyLimit ? 'grid-cols-2 sm:grid-cols-4 [&>*:nth-child(n+3)]:border-t [&>*:nth-child(n+3)]:border-[#e4e2f0] sm:[&>*:nth-child(n+3)]:border-t-0' : 'grid-cols-3'} [&_span.leading-tight]:hidden sm:[&_span.leading-tight]:inline`}
           >
             {hasDailyLimit && (
               <Stat
-                size="sm"
+                bare
                 tone="accent"
                 icon={Layers}
-                label="Sets left today"
+                label="Left today"
                 value={data.enabled ? `${data.remaining ?? 0} / ${data.limit ?? 0}` : '—'}
                 sub={data.enabled ? `Resets ${reset}` : 'Practice is paused'}
                 tip="Daily allowance of targeted question sets"
               />
             )}
             <Stat
-              size="sm"
+              bare
               tone="sky"
               icon={ReiconTarget}
-              label="Question types"
+              label="Types"
               value={new Set(allGroups.map(groupCategory)).size}
               sub={
                 data.enabled
@@ -517,10 +517,10 @@ export default function PracticeHome({
               tip="Targeted Reading and Listening question formats from Cambridge tests"
             />
             <Stat
-              size="sm"
+              bare
               tone="emerald"
               icon={CheckCircle2}
-              label="Sets completed"
+              label="Completed"
               value={sessions.filter((s) => s.completed_at).length}
               sub="Saved diagnostic sessions"
               tip="Completed practice sets with recorded diagnostic answers"
@@ -528,10 +528,10 @@ export default function PracticeHome({
               className="cursor-pointer"
             />
             <Stat
-              size="sm"
+              bare
               tone={due.length > 0 ? 'amber' : 'emerald'}
               icon={RotateCcw}
-              label="Ready to review"
+              label="To review"
               value={due.length}
               sub={
                 due.length === 1

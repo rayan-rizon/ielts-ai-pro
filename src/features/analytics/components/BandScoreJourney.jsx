@@ -63,7 +63,7 @@ function EmptyTrack({ overall, qualified }) {
     <div
       className={cn(
         WELL,
-        'flex h-[210px] flex-col items-center justify-center rounded-lg px-5 text-center'
+        'flex min-h-[176px] flex-col items-center justify-center rounded-lg px-4 py-6 text-center sm:h-[210px] sm:px-5'
       )}
     >
       <span
@@ -155,7 +155,7 @@ export default function BandScoreJourney({
           role="tablist"
           aria-label="Band progress module"
           onKeyDown={onKeyDown}
-          className="no-scrollbar mt-3 flex items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4"
+          className="no-scrollbar mt-3 grid grid-cols-5 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4"
         >
           {BAND_PROGRESS_TABS.map((tab) => {
             const isActive = activeTab === tab;
@@ -169,7 +169,7 @@ export default function BandScoreJourney({
                 data-band-tab={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  'relative z-10 min-w-[70px] flex-1 shrink-0 rounded-md px-2.5 py-1.5 text-center text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+                  'relative z-10 min-h-9 min-w-0 truncate rounded-md px-1 py-1.5 text-center text-[10px] font-extrabold uppercase tracking-normal transition-colors duration-200 sm:px-2.5 sm:text-[11px] sm:tracking-wider',
                   isActive
                     ? 'bg-[#5a63df] text-white'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white'
@@ -198,14 +198,23 @@ export default function BandScoreJourney({
                   </Pill>
                 ) : null}
               </div>
-              <div className="h-[190px]" aria-label={`${LABELS[activeTab]} score history`}>
+              <div
+                className="h-[180px] sm:h-[220px]"
+                aria-label={`${LABELS[activeTab]} score history`}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={view.series}
                     margin={{ top: 10, right: 12, left: -20, bottom: 0 }}
                   >
                     <CartesianGrid {...GRID_PROPS} />
-                    <XAxis dataKey="date" tick={AXIS_TICK} tickLine={false} axisLine={false} />
+                    <XAxis
+                      dataKey="date"
+                      tick={AXIS_TICK}
+                      tickLine={false}
+                      axisLine={false}
+                      minTickGap={28}
+                    />
                     <YAxis
                       domain={[0, 9]}
                       ticks={[0, 3, 5, 7, 9]}

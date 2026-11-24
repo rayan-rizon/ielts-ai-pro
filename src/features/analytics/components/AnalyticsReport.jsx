@@ -19,7 +19,9 @@ const ErrorAudit = React.lazy(() => import('./ErrorAudit'));
 const ErrorDrilldownModal = React.lazy(() => import('./ErrorDrilldownModal'));
 const ExamReadinessCard = React.lazy(() => import('./ExamReadinessCard'));
 
-const ChartSkeleton = React.memo(function ChartSkeleton({ className = 'h-full min-h-[340px]' }) {
+const ChartSkeleton = React.memo(function ChartSkeleton({
+  className = 'h-full min-h-[240px] sm:min-h-[340px]',
+}) {
   return <div className={cn(PANEL, className, 'w-full animate-pulse')} />;
 });
 
@@ -46,7 +48,7 @@ function EmptyWindowNotice({ timeframe, onWiden, isPremium }) {
         <button
           type="button"
           onClick={() => onWiden?.(next)}
-          className="rounded-md bg-[#5a63df] px-2.5 py-1 text-[11px] font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97]"
+          className="rounded-md bg-[#5a63df] min-h-8 px-3 py-1.5 text-[11px] font-bold text-white transition-transform duration-150 ease-out active:scale-[0.97]"
         >
           {next === 'all' ? 'Show all time' : 'Show last 30 days'}
         </button>

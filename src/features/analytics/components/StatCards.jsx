@@ -28,30 +28,27 @@ import {
  * neighbour, which only traded "three small boxes" for "one box with dead air
  * in it".
  */
-function ContextStat({ icon, tone, label, value, sub, delta, tip }) {
+function ContextStat({ icon, tone, label, shortLabel, value, sub, delta, tip }) {
   return (
-    <div className="flex flex-1 items-center justify-between gap-3 px-1 py-1.5 sm:flex-col sm:items-stretch sm:justify-center sm:gap-0.5 sm:px-3.5 sm:first:pl-0 sm:last:pr-0">
-      <div className="flex min-w-0 items-center gap-2.5 sm:block">
-        <IconChip icon={icon} tone={tone} size="sm" className="sm:hidden" />
-        <div className="min-w-0 space-y-0.5">
-          <div className="flex items-center gap-1.5">
-            <IconChip icon={icon} tone={tone} size="sm" className="hidden sm:inline-flex" />
-            <p className={cn(MICRO, MUTED)}>{label}</p>
-            {tip && <InfoTip>{tip}</InfoTip>}
-          </div>
-          {sub && <p className={cn(MICRO, MUTED, 'truncate sm:hidden')}>{sub}</p>}
-        </div>
+    <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-2.5 py-2 first:pl-0 last:pr-0 sm:px-3.5">
+      <div className="flex items-center gap-1.5">
+        <IconChip icon={icon} tone={tone} size="sm" className="hidden sm:inline-flex" />
+        <p className={cn(MICRO, MUTED, 'truncate')}>
+          <span className="sm:hidden">{shortLabel || label}</span>
+          <span className="hidden sm:inline">{label}</span>
+        </p>
+        {tip && <InfoTip>{tip}</InfoTip>}
       </div>
-      <div className="flex shrink-0 items-baseline gap-1.5">
+      <div className="flex items-baseline gap-1.5">
         <span
           className={cn(
             NUM,
-            'text-lg font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50'
+            'text-base font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50 sm:text-lg'
           )}
         >
           {value}
         </span>
-        {delta}
+        {delta ? <span className="hidden sm:inline-flex">{delta}</span> : null}
       </div>
       {sub && <p className={cn(MICRO, MUTED, 'hidden sm:block')}>{sub}</p>}
     </div>
@@ -127,7 +124,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
         {/* Headline band — the answer to "what band am I at?" and nothing else. */}
         <div
           className={cn(
-            'col-span-12 flex flex-col justify-center border-b px-3.5 py-2 lg:col-span-5 lg:border-b-0 lg:border-r',
+            'col-span-12 flex flex-col justify-center border-b px-3.5 py-2 xl:col-span-5 xl:border-b-0 xl:border-r',
             'border-[#e4e2f0] dark:border-white/[0.07]'
           )}
         >
@@ -145,7 +142,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             </InfoTip>
           </div>
 
-          <div className="mt-1 flex items-baseline gap-2">
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
             <span
               className={cn(
                 NUM,
@@ -164,19 +161,20 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             </Pill>
           </div>
 
-          <p className={cn(MICRO, MUTED, 'mt-1')}>{scoreSubtitle}</p>
+          <p className={cn(MICRO, MUTED, 'mt-1 hidden sm:block')}>{scoreSubtitle}</p>
         </div>
 
         {/* Supporting context — one panel, three metrics, hairline-divided. */}
         <div
           className={cn(
-            'col-span-12 flex flex-col divide-y divide-[#e4e2f0] px-3.5 py-0.5 dark:divide-white/[0.07] sm:flex-row sm:divide-x sm:divide-y-0 sm:py-2 lg:col-span-7'
+            'col-span-12 flex divide-x divide-[#e4e2f0] px-3.5 py-0 dark:divide-white/[0.07] sm:py-2 xl:col-span-7'
           )}
         >
           <ContextStat
             icon={ClipboardCheck}
             tone="accent"
             label="Tests Counted"
+            shortLabel="Tests"
             value={<AnimatedNumber value={sat} decimals={0} />}
             sub={satSubtitle}
             tip="Sessions actually sat and scored in this period. Tests left early are tracked separately and kept out of every average on this page."
@@ -185,6 +183,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             icon={Timer}
             tone="accent"
             label="Study Effort"
+            shortLabel="Study"
             value={
               Number(stats.studyMinutes) > 0 && Number(stats.studyMinutes) < 60
                 ? `${stats.studyMinutes}m`
@@ -205,6 +204,7 @@ export default function StatCards({ stats, progressToTarget = 0 }) {
             icon={BookMarked}
             tone="accent"
             label="Saved Vocabulary"
+            shortLabel="Vocab"
             value={<AnimatedNumber value={stats.vocabCount} decimals={0} />}
             sub="Active vocabulary entries"
             tip="Words currently saved to your vocabulary list, not limited to this timeframe."
