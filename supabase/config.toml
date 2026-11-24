@@ -382,6 +382,9 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 [functions.paired-tests]
 verify_jwt = false # Handler validates the bearer token with auth.getUser().
 
+[functions.paired-tests-native]
+verify_jwt = false # The shared handler verifies the Supabase user before room access.
+
 [functions.skill-lab]
 verify_jwt = true
 
