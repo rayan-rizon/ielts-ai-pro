@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   GraduationCap,
   Loader2,
@@ -41,12 +41,39 @@ export default function TestModeHeaderControl({
   isAwaitingStart = true,
 }) {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [arrowRight, setArrowRight] = useState(null);
 
-  const showHeaderGuide = isAwaitingStart;
+  const containerRef = useRef(null);
+  const practiceBtnRef = useRef(null);
+  const examBtnRef = useRef(null);
+
+  const showHeaderGuide = isAwaitingStart && !isDismissed;
+
+  useEffect(() => {
+    if (!showHeaderGuide) return;
+
+    const updateArrow = () => {
+      if (!containerRef.current) return;
+      const targetBtn = selectedMode === 'exam' ? examBtnRef.current : practiceBtnRef.current;
+      if (!targetBtn) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const btnRect = targetBtn.getBoundingClientRect();
+      // Distance from container's right edge to the active button's center
+      const btnCenterFromRight = containerRect.right - (btnRect.left + btnRect.width / 2);
+      // Half width of 12px arrow (w-3) is 6px
+      setArrowRight(Math.round(btnCenterFromRight - 6));
+    };
+
+    updateArrow();
+    window.addEventListener('resize', updateArrow);
+    return () => window.removeEventListener('resize', updateArrow);
+  }, [selectedMode, showHeaderGuide]);
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="relative flex items-center gap-1.5 sm:gap-2">
+      <div ref={containerRef} className="relative flex items-center gap-1.5 sm:gap-2">
         {/* Mode Selector Radio Group */}
         <div
           className="relative flex items-center rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/10 dark:bg-white/5.5"
@@ -57,10 +84,12 @@ export default function TestModeHeaderControl({
             const selected = selectedMode === id;
             const disabled = id === 'exam' && !examEligibility?.eligible;
             const unavailableReason = disabled ? examEligibility?.reason : undefined;
+            const btnRef = id === 'exam' ? examBtnRef : practiceBtnRef;
 
             return (
               <button
                 key={id}
+                ref={btnRef}
                 type="button"
                 role="radio"
                 aria-checked={selected}
@@ -111,11 +140,11 @@ export default function TestModeHeaderControl({
           <PopoverContent
             side="bottom"
             align="end"
-            className="z-50 w-80 rounded-xl border border-[#e4e2f0] bg-white p-4 shadow-xl dark:border-white/12 dark:bg-[#131315]"
+            className="z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-80 rounded-xl border border-[#e4e2f0] bg-white p-4 shadow-xl dark:border-white/12 dark:bg-[#131315]"
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2.5 mb-3">
               <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-indigo-600 dark:text-slate-200" />
+                <Info className="h-4 w-4 text-[#5a63df] dark:text-[#8f97ff]" />
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   Test Mode Guide
                 </h4>
@@ -132,7 +161,7 @@ export default function TestModeHeaderControl({
 
             <div className="space-y-3 text-xs">
               <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/10 dark:bg-white/5.5">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-slate-200 mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-[#5a63df] dark:text-[#8f97ff] mb-1">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Practice Mode</span>
                 </div>
@@ -144,7 +173,7 @@ export default function TestModeHeaderControl({
               </div>
 
               <div className="rounded-lg border border-[#ebeaf7] bg-[#fbfbfe] p-2.5 dark:border-white/10 dark:bg-white/5.5">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-slate-200 mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-[#5a63df] dark:text-[#8f97ff] mb-1">
                   <GraduationCap className="h-3.5 w-3.5" />
                   <span>Exam Mode</span>
                 </div>
@@ -158,7 +187,7 @@ export default function TestModeHeaderControl({
 
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/10 text-[11px] text-center font-medium text-slate-500 dark:text-slate-400">
               Select your mode above and click{' '}
-              <span className="font-bold text-indigo-600 dark:text-slate-200">Start Test</span> to
+              <span className="font-bold text-[#5a63df] dark:text-[#8f97ff]">Start Test</span> to
               begin.
             </div>
           </PopoverContent>
@@ -191,56 +220,96 @@ export default function TestModeHeaderControl({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-xs sm:w-76 rounded-[22px] border border-[#dce0f2] dark:border-white/10 bg-linear-to-br/srgb from-white via-[#faf9ff] to-[#f2f0ff] dark:from-[#111214] dark:via-[#191b1f] dark:to-[#111214] p-3.5 text-left shadow-[0_20px_50px_-25px_rgba(15,23,42,0.35)] dark:shadow-black/60 backdrop-blur-xl"
+              className="absolute right-0 top-full mt-2.5 z-50 w-[calc(100vw-2rem)] max-w-[316px] sm:w-80 rounded-2xl border border-[#e4e2f0] dark:border-white/10 bg-linear-to-b from-white to-[#faf9ff] dark:from-[#141319] dark:to-[#100f15] p-3 sm:p-3.5 text-left shadow-xl dark:shadow-black/60"
             >
               {/* Arrow dynamically pointing up to active mode toggle pill (Practice vs Exam) */}
               <div
+                style={arrowRight != null ? { right: `${arrowRight}px` } : undefined}
                 className={cn(
-                  'absolute -top-1.5 h-3 w-3 rotate-45 border-l border-t border-[#dce0f2] bg-white dark:border-white/10 dark:bg-[#111214] transition-all duration-300',
-                  selectedMode === 'exam' ? 'left-[92px] sm:left-[112px]' : 'left-7 sm:left-9'
+                  'absolute -top-1.5 h-3 w-3 rotate-45 border-l border-t border-[#e4e2f0] bg-white dark:border-white/10 dark:bg-[#141319] transition-all duration-300 pointer-events-none',
+                  arrowRight == null &&
+                    (selectedMode === 'exam'
+                      ? 'right-[144px] sm:right-[188px]'
+                      : 'right-[194px] sm:right-[272px]')
                 )}
               />
 
               <div className="flex items-center gap-2 relative z-10 border-b border-slate-100 dark:border-white/10 pb-2 mb-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 dark:bg-white/10 dark:text-slate-100 text-xs font-bold shrink-0">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#5a63df]/10 text-[#5a63df] dark:bg-white/10 dark:text-slate-100 text-xs font-bold shrink-0">
                   💡
                 </span>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                     Choose Your Test Mode
                   </h4>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">
                     Select Practice or Exam before starting
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDismissed(true)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-md cursor-pointer transition-colors shrink-0"
+                  aria-label="Close guidance callout"
+                  title="Dismiss"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               <div className="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-300 relative z-10">
                 <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onModeChange('practice')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onModeChange('practice');
+                    }
+                  }}
                   className={cn(
-                    'flex items-start gap-1.5 p-1.5 rounded-xl transition-all duration-200',
+                    'flex items-start gap-2 p-2 rounded-xl transition-all duration-200 cursor-pointer border',
                     selectedMode === 'practice'
-                      ? 'bg-indigo-500/10 dark:bg-white/8 text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
-                      : 'opacity-70'
+                      ? 'bg-[#5a63df]/10 dark:bg-white/8 text-indigo-950 dark:text-slate-100 font-medium border-[#5a63df]/25 dark:border-white/[0.14] shadow-xs'
+                      : 'border-transparent bg-slate-50/50 dark:bg-white/[0.02] opacity-75 hover:opacity-100 hover:bg-slate-100/60 dark:hover:bg-white/5'
                   )}
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-indigo-500 dark:text-slate-300 shrink-0 mt-0.5" />
-                  <div>
+                  <Sparkles className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#8f97ff] shrink-0 mt-0.5" />
+                  <div className="leading-snug">
                     <strong className="text-slate-900 dark:text-white">Practice:</strong> Untimed
                     practice with instant answer checks & detailed hints.
                   </div>
                 </div>
 
                 <div
+                  role="button"
+                  tabIndex={examEligibility?.eligible ? 0 : -1}
+                  onClick={() => {
+                    if (examEligibility?.eligible) {
+                      onModeChange('exam');
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && examEligibility?.eligible) {
+                      e.preventDefault();
+                      onModeChange('exam');
+                    }
+                  }}
                   className={cn(
-                    'flex items-start gap-1.5 p-1.5 rounded-xl transition-all duration-200',
+                    'flex items-start gap-2 p-2 rounded-xl transition-all duration-200 border',
+                    !examEligibility?.eligible
+                      ? 'cursor-not-allowed opacity-40 border-transparent bg-slate-50/30 dark:bg-white/[0.01]'
+                      : 'cursor-pointer',
                     selectedMode === 'exam'
-                      ? 'bg-indigo-500/10 dark:bg-white/8 text-indigo-950 dark:text-slate-100 font-medium border border-indigo-500/20 dark:border-white/[0.14] shadow-xs'
-                      : 'opacity-70'
+                      ? 'bg-[#5a63df]/10 dark:bg-white/8 text-indigo-950 dark:text-slate-100 font-medium border-[#5a63df]/25 dark:border-white/[0.14] shadow-xs opacity-100'
+                      : examEligibility?.eligible
+                        ? 'border-transparent bg-slate-50/50 dark:bg-white/[0.02] opacity-75 hover:opacity-100 hover:bg-slate-100/60 dark:hover:bg-white/5'
+                        : ''
                   )}
                 >
-                  <GraduationCap className="h-3.5 w-3.5 text-indigo-500 dark:text-slate-300 shrink-0 mt-0.5" />
-                  <div>
+                  <GraduationCap className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#8f97ff] shrink-0 mt-0.5" />
+                  <div className="leading-snug">
                     <strong className="text-slate-900 dark:text-white">Exam:</strong> Strict IELTS
                     timed test simulation & official score recording.
                   </div>
@@ -256,7 +325,7 @@ export default function TestModeHeaderControl({
 
               <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/10 text-[10px] text-center font-medium text-slate-500 dark:text-slate-400">
                 Click{' '}
-                <span className="font-bold text-indigo-600 dark:text-slate-200">Start Test</span>{' '}
+                <span className="font-bold text-[#5a63df] dark:text-[#8f97ff]">Start Test</span>{' '}
                 when you are ready to begin.
               </div>
             </motion.div>

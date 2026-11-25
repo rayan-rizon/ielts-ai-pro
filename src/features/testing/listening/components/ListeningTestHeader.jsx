@@ -79,7 +79,7 @@ const ListeningTestHeader = ({
         )}
         data-oid="btq_4pq"
       >
-        <div className="flex items-center gap-2 shrink-0" data-oid="246o-4l">
+        <div className="flex items-center gap-2 min-w-0 flex-1 sm:flex-initial" data-oid="246o-4l">
           <Button
             variant="ghost"
             size="icon"
@@ -109,7 +109,7 @@ const ListeningTestHeader = ({
             description="Your progress will be saved, but the timer will continue running if you return later."
           />
 
-          <div className="flex items-center gap-2 sm:gap-3" data-oid=".:xhcj4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0" data-oid=".:xhcj4">
             {/* Title & Badge */}
             <div
               className="flex flex-col min-w-0 max-w-[170px] min-[480px]:max-w-[240px] sm:max-w-[340px] md:max-w-[440px] lg:max-w-[560px]"

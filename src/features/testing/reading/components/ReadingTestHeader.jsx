@@ -209,7 +209,10 @@ const ReadingTestHeader = ({
         )}
         data-oid="1i74cg9"
       >
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0" data-oid="8kvko2h">
+        <div
+          className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial"
+          data-oid="8kvko2h"
+        >
           <Button
             variant="ghost"
             size="icon"
@@ -239,7 +242,7 @@ const ReadingTestHeader = ({
             description="Your progress will be saved. You can resume this test later from the Reading Library."
           />
 
-          <div className="flex items-center gap-2 sm:gap-3" data-oid="crpg:ah">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0" data-oid="crpg:ah">
             {/* Title & Badge */}
             <div
               className="flex flex-col min-w-0 max-w-[170px] min-[480px]:max-w-[240px] sm:max-w-[340px] md:max-w-[440px] lg:max-w-[560px]"
