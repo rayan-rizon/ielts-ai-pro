@@ -1,4 +1,3 @@
-import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React, { memo } from 'react';
 import { cn } from '@/lib/cn';
 import { TestCardStatusBadge, TestCardMetaBar, TestCardActions } from './ListeningCardComponents';
@@ -101,7 +100,6 @@ function TestCard({
           completedSession={completedSession}
         />
       </div>
-      <TakeWithFriend test={test} type="listening" isLocked={startLocked} />
     </div>
   );
 }

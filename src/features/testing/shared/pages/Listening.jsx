@@ -8,7 +8,6 @@ import {
   ListeningSkeletonGrid,
   ListeningTestsGrid,
 } from '@/features/testing/listening/ListeningGrid';
-import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 import ObjectiveLibraryResults from '@/features/testing/shared/components/ObjectiveLibraryResults';
 import { ObjectiveLimitDialog } from '@/features/testing/shared/components/ObjectiveQuotaControls';
 
@@ -107,8 +106,6 @@ export default function Listening() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
-
-        <PairedPracticeSpotlight type="listening" />
 
         <div id="available-tests" className="scroll-mt-4">
           <ObjectiveLibraryResults

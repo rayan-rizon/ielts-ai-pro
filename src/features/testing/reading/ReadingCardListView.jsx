@@ -48,15 +48,17 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
     <div
       className={cn(
         TILE,
-        'flex items-center justify-between px-2.5 py-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
+        'flex items-center justify-between gap-2 px-2.5 py-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:hover:border-white/12'
       )}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5">
         <ContainerLink {...linkProps} className="block min-w-0">
           <span className="block truncate text-xs font-bold text-slate-800 transition-colors duration-200 ease-smooth-out group-hover/row:text-[#5a63df] dark:text-slate-200 dark:group-hover/row:text-[#afb5ff]">
             {testName}
             {test.partly_practised && (
-              <span className="block font-normal text-muted-foreground">Partly practised</span>
+              <span className="block truncate text-[10px] font-normal text-muted-foreground">
+                Partly practised
+              </span>
             )}
           </span>
         </ContainerLink>
@@ -71,7 +73,7 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
         />
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1">
         <TestRowAction
           startLocked={startLocked}
           isLocked={isLocked}
@@ -80,9 +82,8 @@ function BookTestRow({ test, sessions, userData, isAdmin, questionCounts }) {
           testSession={testSession}
           test={test}
         />
+        <TakeWithFriend test={test} type="reading" isLocked={startLocked} compact />
       </div>
-
-      <TakeWithFriend test={test} type="reading" isLocked={startLocked} compact />
     </div>
   );
 }

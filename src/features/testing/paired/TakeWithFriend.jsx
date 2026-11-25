@@ -4,7 +4,13 @@ import { ArrowRight, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Pill, TILE } from '@/features/dashboard/components/primitives';
 
-export default function TakeWithFriend({ test, type, isLocked = false, compact = false }) {
+export default function TakeWithFriend({
+  test,
+  type,
+  isLocked = false,
+  compact = false,
+  iconOnly = false,
+}) {
   const totalQuestions = Number(test?.total_questions ?? test?.question_count ?? 40);
   const testType = type || test?.test_type;
   if (
@@ -17,16 +23,28 @@ export default function TakeWithFriend({ test, type, isLocked = false, compact =
 
   const destination = `/${testType}-test/${test.id}?together=true`;
 
+  if (iconOnly) {
+    return (
+      <Link
+        to={destination}
+        aria-label="Take with a friend"
+        title="Take with a friend"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/25 bg-[#5a63df]/[0.06] text-[#5a63df] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/45 hover:bg-[#5a63df]/[0.11] active:scale-[0.98] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08] dark:text-[#b4b9ff] dark:hover:border-[#8f97ff]/45 dark:hover:bg-[#8f97ff]/[0.14]"
+      >
+        <Users className="h-4 w-4" />
+      </Link>
+    );
+  }
+
   if (compact) {
     return (
       <Link
         to={destination}
         aria-label={`Take ${test.title || 'this test'} with a friend`}
         title="Take with a friend"
-        className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-[#5a63df]/25 bg-[#5a63df]/[0.06] px-2 text-[10px] font-bold text-[#4f57cf] transition-colors hover:border-[#5a63df]/45 hover:bg-[#5a63df]/[0.11] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08] dark:text-[#b4b9ff]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#5a63df]/25 bg-[#5a63df]/[0.06] text-[#5a63df] transition-all duration-200 hover:border-[#5a63df]/45 hover:bg-[#5a63df]/[0.11] active:scale-[0.98] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.08] dark:text-[#b4b9ff] dark:hover:border-[#8f97ff]/45 dark:hover:bg-[#8f97ff]/[0.14]"
       >
-        <Users className="h-3 w-3" />
-        <span className="hidden sm:inline">Together</span>
+        <Users className="h-3.5 w-3.5" />
       </Link>
     );
   }

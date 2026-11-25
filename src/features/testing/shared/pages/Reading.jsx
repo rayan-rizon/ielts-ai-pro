@@ -9,7 +9,6 @@ import { useReadingData } from '@/features/testing/reading/useReadingData';
 import { filterReadingTests } from '@/features/testing/reading/readingFilterUtils';
 import { MICRO, MUTED } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
-import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 import ObjectiveLibraryResults from '@/features/testing/shared/components/ObjectiveLibraryResults';
 import { ObjectiveLimitDialog } from '@/features/testing/shared/components/ObjectiveQuotaControls';
 
@@ -65,8 +64,6 @@ export default function Reading() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
-
-        <PairedPracticeSpotlight type="reading" />
 
         <div id="available-tests" className="scroll-mt-4">
           <ObjectiveLibraryResults

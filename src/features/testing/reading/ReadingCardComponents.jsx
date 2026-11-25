@@ -19,6 +19,7 @@ import {
   RetakeLink,
 } from '@/features/testing/shared/components/ObjectiveQuotaControls';
 import { useQuotaLock } from '@/features/testing/shared/quota/useObjectiveTestQuota';
+import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 
 // ---------------------------------------------------------------------------
 // Grid Sub-components
@@ -156,6 +157,7 @@ export function GridActions({
             Resume Test <Play className="h-3.5 w-3.5 fill-current" />
           </button>
         </Link>
+        <TakeWithFriend test={test} type="reading" isLocked={startLocked} iconOnly />
         <RetakeLink
           test={test}
           path="/reading-test"
@@ -186,6 +188,7 @@ export function GridActions({
             {pairedRoomId ? <Users className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </button>
         </Link>
+        <TakeWithFriend test={test} type="reading" isLocked={startLocked} iconOnly />
         <RetakeLink
           test={test}
           path="/reading-test"
@@ -199,18 +202,28 @@ export function GridActions({
   }
   if (quotaLock.locked) {
     return (
-      <LimitReachedButton test={test} quotaLock={quotaLock} className={cn(PRIMARY_BTN, 'w-full')} />
+      <div className="flex gap-2">
+        <LimitReachedButton
+          test={test}
+          quotaLock={quotaLock}
+          className={cn(PRIMARY_BTN, 'w-full')}
+        />
+        <TakeWithFriend test={test} type="reading" isLocked={startLocked} iconOnly />
+      </div>
     );
   }
   return (
-    <Link to={withLearningActivity(`/reading-test?test-id=${test.id}`)} className="block">
-      <button
-        type="button"
-        className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
-      >
-        Start Practice <ChevronRight className="h-4 w-4" />
-      </button>
-    </Link>
+    <div className="flex gap-2">
+      <Link to={withLearningActivity(`/reading-test?test-id=${test.id}`)} className="flex-1">
+        <button
+          type="button"
+          className={cn(PRIMARY_BTN, 'w-full bg-[#5a63df] text-white hover:bg-[#484FB2]')}
+        >
+          Start Practice <ChevronRight className="h-4 w-4" />
+        </button>
+      </Link>
+      <TakeWithFriend test={test} type="reading" isLocked={startLocked} iconOnly />
+    </div>
   );
 }
 
@@ -290,7 +303,7 @@ export function TestRowBadge({ isLocked, isCompleted, isResuming, progress, scor
 }
 
 const ROW_PRIMARY_BTN =
-  'flex h-8 w-[92px] shrink-0 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all duration-200 ease-smooth-out active:scale-[0.98] cursor-pointer';
+  'flex h-8 w-[82px] shrink-0 items-center justify-center gap-1 rounded-lg text-xs font-bold transition-all duration-200 ease-smooth-out active:scale-[0.98] cursor-pointer';
 const ROW_ICON_BTN = cn(
   TILE,
   'flex h-8 w-8 shrink-0 items-center justify-center text-slate-500 transition-all duration-200 hover:text-[#5a63df] hover:border-[#5a63df]/35 active:scale-[0.98] dark:text-slate-400 dark:hover:text-[#a9afff] cursor-pointer'
@@ -338,7 +351,7 @@ export function TestRowAction({
             type="button"
             className={cn(
               TILE,
-              'flex h-8 w-[92px] shrink-0 items-center justify-center gap-1.5 rounded-lg text-xs font-bold text-slate-700 transition-all active:scale-95 dark:text-slate-200 cursor-pointer'
+              'flex h-8 w-[82px] shrink-0 items-center justify-center gap-1 rounded-lg text-xs font-bold text-slate-700 transition-all active:scale-95 dark:text-slate-200 cursor-pointer'
             )}
           >
             Results <ArrowRight className="h-3 w-3" />

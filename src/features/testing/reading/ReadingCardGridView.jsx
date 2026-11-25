@@ -1,4 +1,3 @@
-import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
 import React from 'react';
 import { cn } from '@/lib/cn';
 import { GridStatusBadge, GridMetaBar, GridActions } from './ReadingCardComponents';
@@ -113,7 +112,6 @@ export default function ReadingCardGridView(props) {
           completedSession={completedSession}
         />
       </div>
-      <TakeWithFriend test={test} type="reading" isLocked={startLocked} />
     </div>
   );
 }

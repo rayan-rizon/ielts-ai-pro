@@ -21,7 +21,6 @@ import PairedRoomHeader from '@/features/testing/paired/components/PairedRoomHea
 import ParticipantCard from '@/features/testing/paired/components/ParticipantCard';
 import SessionSteps from '@/features/testing/paired/components/SessionSteps';
 import TakeWithFriend from '@/features/testing/paired/TakeWithFriend';
-import PairedPracticeSpotlight from '@/features/testing/paired/PairedPracticeSpotlight';
 import PairedTestGate from '@/features/testing/paired/PairedTestGate';
 
 vi.mock('@/features/auth/context/AuthContext', () => ({
@@ -372,23 +371,18 @@ describe('test-page entry points', () => {
     expect(invitationPath({ ...room, invite_token: undefined })).toBe('');
   });
 
-  it.each(['reading', 'listening'])(
-    'shows the new paired-practice discovery and a working %s card action',
-    (type) => {
-      render(
-        <MemoryRouter>
-          <PairedPracticeSpotlight type={type} />
-          <TakeWithFriend test={{ id: 'test', title: 'Practice Test' }} type={type} />
-        </MemoryRouter>
-      );
+  it.each(['reading', 'listening'])('renders a working %s card action', (type) => {
+    render(
+      <MemoryRouter>
+        <TakeWithFriend test={{ id: 'test', title: 'Practice Test' }} type={type} />
+      </MemoryRouter>
+    );
 
-      expect(screen.getByText(`Take a ${type} test with a friend`)).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Take with a friend' })).toHaveAttribute(
-        'href',
-        `/${type}-test/test?together=true`
-      );
-    }
-  );
+    expect(screen.getByRole('link', { name: 'Take with a friend' })).toHaveAttribute(
+      'href',
+      `/${type}-test/test?together=true`
+    );
+  });
 
   it('shows the paired action for the repaired Cambridge 21 Listening Test 4 catalog total', () => {
     render(
