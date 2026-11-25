@@ -1,1344 +1,311 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Compass } from 'lucide-react';
+import { cn } from '@/lib/cn';
 import {
-  ArrowRight,
-  BookOpen,
-  Headphones,
-  CheckCircle2,
-  RotateCcw,
-  Layers,
-  ChevronDown,
-  History,
-  Search,
-  PenTool,
-  Mic,
-  Check,
-  Compass,
-  Lightbulb,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { ReiconTarget } from '@/components/icons/ReiconTarget';
-import {
-  PANEL,
-  WELL,
-  TILE,
-  MICRO,
-  TITLE,
   MUTED,
   NUM,
-  Pill,
-  Stat,
-  Bar,
-  PanelTitle,
-  IconChip,
-  Empty,
-  TierBadge,
+  TILE,
+  WELL,
   STAGGER_CONTAINER,
   FADE_UP,
 } from '@/features/dashboard/components/primitives.jsx';
 import { focusLabel, groupCategory } from '../practiceLabels';
-import ResumeList from './ResumeList';
+import SourceSetPicker, { focusRing, subject } from './home/SourceSetPicker';
+import StartHereCard from './home/StartHereCard';
+import QueuePanels from './home/QueuePanels';
+import TypeCards from './home/TypeCards';
+import { LINK, SetNote, StartButton } from './home/shared';
 
-const subject = (focus = '') => (focus.startsWith('listening:') ? 'Listening' : 'Reading');
-const date = (value) =>
-  new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-const familiarity = (value) =>
-  ({ new: 'New questions', familiar: 'Familiar passage or audio', repeated: 'Practise again' })[
-    value
-  ] || 'Library questions';
-const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131315]';
+const FAMILIARITY_ORDER = { new: 0, familiar: 1, repeated: 2 };
 
-function getFamiliarityColorClass(value) {
-  if (value === 'new') return 'font-medium text-emerald-600 dark:text-emerald-400';
-  if (value === 'familiar') return 'font-medium text-amber-600 dark:text-amber-400';
-  return 'font-normal text-slate-400 dark:text-slate-500';
+const setsFor = (groups, type) =>
+  groups
+    .filter((group) => groupCategory(group) === type)
+    .sort((a, b) => FAMILIARITY_ORDER[a.familiarity] - FAMILIARITY_ORDER[b.familiarity]);
+
+/** Question types, the ones the learner struggles with first. */
+function rankedTypes(groups, needs) {
+  const rank = (type) => {
+    const index = needs.findIndex((need) => need.focus === type);
+    return index < 0 ? needs.length : index;
+  };
+  return [...new Set(groups.map(groupCategory))].sort((a, b) => rank(a) - rank(b));
 }
 
-function computeNextNavIndex(key, currentIndex, length) {
-  if (key === 'Home') return 0;
-  if (key === 'End') return length - 1;
-  const delta = key === 'ArrowDown' ? 1 : -1;
-  return (currentIndex + delta + length) % length;
+const inSubject = (groups, filter) =>
+  groups.filter((group) => filter === 'all' || group.focus.startsWith(`${filter}:`));
+
+/** The type the main card is about: the requested one if it exists, else the top need. */
+function suggestedType(groups, needs, focus, module) {
+  const types = rankedTypes(groups, needs);
+  if (types.includes(focus)) return focus;
+  const requested = groups.find((group) => group.focus === focus);
+  if (requested) return groupCategory(requested);
+  return rankedTypes(inSubject(groups, module || 'all'), needs)[0] ?? types[0];
 }
 
-function usePickerDismiss(pickerRef, listRef, triggerRef, setOpen) {
-  useEffect(() => {
-    const isInside = (node) =>
-      Boolean(pickerRef.current?.contains(node) || listRef.current?.contains(node));
-    const handlePointerDown = (event) => {
-      if (!isInside(event.target)) setOpen(false);
-    };
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && isInside(event.target)) {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [pickerRef, listRef, triggerRef, setOpen]);
-}
-
-function SourceSetOption({ set, index, isActive, isSelected, onSelect, setOptionRef }) {
-  const optionLabel = `${set.title} · ${focusLabel(groupCategory(set))} · ${familiarity(set.familiarity)}`;
-  const badgeClass = getFamiliarityColorClass(set.familiarity);
-  const stateClass = isSelected
-    ? 'bg-[#5a63df]/10 font-bold text-[#5a63df] dark:bg-[#5a63df]/20 dark:text-[#afb5ff]'
-    : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/[0.06]';
-
-  return (
-    <button
-      id={`practice-source-option-${set.id}`}
-      ref={(element) => setOptionRef(index, element)}
-      tabIndex={isActive ? 0 : -1}
-      type="button"
-      role="option"
-      aria-label={optionLabel}
-      aria-selected={isSelected}
-      onClick={() => onSelect(set.id)}
-      className={`${focusRing} flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${stateClass}`}
-    >
-      <span className="min-w-0">
-        <span className="block font-semibold text-slate-800 dark:text-slate-100">{set.title}</span>
-        <span className={`mt-0.5 block text-[11px] ${MUTED}`}>
-          {focusLabel(groupCategory(set))} ·{' '}
-          <span className={badgeClass}>{familiarity(set.familiarity)}</span>
-        </span>
-      </span>
-      {isSelected && <Check size={14} className="shrink-0 text-[#5a63df] dark:text-[#afb5ff]" />}
-    </button>
-  );
-}
-
-/**
- * Positions the listbox against the trigger in viewport coordinates.
- *
- * The listbox is rendered through a portal on `document.body` rather than next
- * to the trigger. Inside Practice Lab the picker sits several levels deep in a
- * framer-motion panel, inside the app's scrolling content column — the old
- * absolutely-positioned panel was painted under the Question Type Library below
- * it, and raising z-index did nothing because the panels above it sit in their
- * own stacking contexts. A portal has no ancestor that can clip or out-paint it.
- */
-function useAnchoredPosition(triggerRef, open, optionCount) {
-  const [style, setStyle] = useState(null);
-
-  useEffect(() => {
-    if (!open) {
-      setStyle(null);
-      return undefined;
-    }
-
-    const place = () => {
-      const trigger = triggerRef.current;
-      if (!trigger) return;
-      const rect = trigger.getBoundingClientRect();
-      const gutter = 8;
-      const below = window.innerHeight - rect.bottom - gutter;
-      const above = rect.top - gutter;
-      // Roughly 49px per row plus the filter box, capped so the list never eats
-      // the whole viewport.
-      const wanted = Math.min(320, optionCount * 49 + 56);
-      const flip = below < Math.min(wanted, 200) && above > below;
-      setStyle({
-        position: 'fixed',
-        left: rect.left,
-        width: rect.width,
-        maxHeight: Math.max(160, Math.min(wanted, flip ? above : below)),
-        ...(flip ? { bottom: window.innerHeight - rect.top + 6 } : { top: rect.bottom + 6 }),
-      });
-    };
-
-    place();
-    // Any scroll in any container moves the trigger, so recompute on capture.
-    window.addEventListener('scroll', place, true);
-    window.addEventListener('resize', place);
-    return () => {
-      window.removeEventListener('scroll', place, true);
-      window.removeEventListener('resize', place);
-    };
-  }, [triggerRef, open, optionCount]);
-
-  return style;
-}
-
-function SourceSetPicker({ sets, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const pickerRef = useRef(null);
-  const listRef = useRef(null);
-  const triggerRef = useRef(null);
-  const searchRef = useRef(null);
-  const optionRefs = useRef([]);
-  const [activeIndex, setActiveIndex] = useState(0);
-  // Two pickers render on this page; a shared literal id made `aria-controls`
-  // and every `aria-activedescendant` ambiguous.
-  const listboxId = `practice-source-options-${useId()}`;
-  const selected = sets.find((set) => set.id === value) || sets[0];
-
-  // 40+ source sets is a scroll-and-hope list without a filter.
-  const visibleSets = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (!term) return sets;
-    return sets.filter((set) =>
-      `${set.title} ${focusLabel(groupCategory(set))} ${familiarity(set.familiarity)}`
-        .toLowerCase()
-        .includes(term)
-    );
-  }, [sets, query]);
-
-  usePickerDismiss(pickerRef, listRef, triggerRef, setOpen);
-
-  const position = useAnchoredPosition(triggerRef, open, visibleSets.length);
-
-  useEffect(() => {
-    if (open) optionRefs.current[activeIndex]?.focus();
-  }, [open, activeIndex, visibleSets.length]);
-
-  useEffect(() => {
-    if (!open) setQuery('');
-  }, [open]);
-
-  const selectedIndex = Math.max(
-    0,
-    visibleSets.findIndex((set) => set.id === selected?.id)
-  );
-
-  const openPicker = () => {
-    setActiveIndex(Math.max(0, selectedIndex));
-    setOpen((prev) => !prev);
-  };
-
-  const closePicker = () => {
-    setOpen(false);
-    triggerRef.current?.focus();
-  };
-
-  const handleTriggerKeyDown = (event) => {
-    if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
-      event.preventDefault();
-      setActiveIndex(Math.max(0, selectedIndex));
-      setOpen(true);
-    }
-  };
-
-  const handleListboxKeyDown = (event) => {
-    if (event.key === 'Tab') {
-      closePicker();
-      return;
-    }
-    const navKeys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
-    if (!navKeys.includes(event.key)) return;
-    event.preventDefault();
-    if (!visibleSets.length) return;
-    setActiveIndex((prev) => computeNextNavIndex(event.key, prev, visibleSets.length));
-  };
-
-  const handleSelect = (id) => {
-    onChange(id);
-    setOpen(false);
-    triggerRef.current?.focus();
-  };
-
-  const setOptionRef = (index, element) => {
-    optionRefs.current[index] = element;
-  };
-
-  const activeOptionId =
-    open && visibleSets[activeIndex]
-      ? `practice-source-option-${visibleSets[activeIndex].id}`
-      : undefined;
-  const triggerBorderClass = open
-    ? 'border-[#5a63df] ring-2 ring-[#5a63df]/20 dark:border-[#8f97ff] dark:ring-[#8f97ff]/25'
-    : '';
-
-  const listbox = (
-    <div
-      ref={listRef}
-      id={listboxId}
-      role="listbox"
-      aria-label="Available source sets"
-      onKeyDown={handleListboxKeyDown}
-      style={position ?? undefined}
-      className="z-[100] flex flex-col overflow-hidden rounded-xl border border-[#cfcddf] bg-white shadow-2xl dark:border-white/15 dark:bg-[#15141c]"
-    >
-      {sets.length > 6 && (
-        <div className="shrink-0 border-b border-[#eeedf7] p-2 dark:border-white/10">
-          <div className="relative">
-            <Search
-              size={13}
-              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-              aria-hidden="true"
-            />
-            <input
-              ref={searchRef}
-              type="text"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setActiveIndex(0);
-              }}
-              placeholder={`Filter ${sets.length} source sets…`}
-              aria-label="Filter source sets"
-              className={`${focusRing} w-full rounded-md border border-[#e2e5f2] bg-[#fbfbfe] py-1.5 pl-7 pr-2 text-xs font-medium text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-100`}
-            />
-          </div>
-        </div>
-      )}
-      <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
-        {visibleSets.length === 0 ? (
-          <p className={`px-2.5 py-3 text-xs ${MUTED}`}>No source set matches “{query}”.</p>
-        ) : (
-          visibleSets.map((set, index) => (
-            <SourceSetOption
-              key={set.id}
-              set={set}
-              index={index}
-              isActive={index === activeIndex}
-              isSelected={set.id === selected?.id}
-              onSelect={handleSelect}
-              setOptionRef={setOptionRef}
-            />
-          ))
-        )}
-      </div>
-    </div>
-  );
-
-  return (
-    <div ref={pickerRef} className="relative">
-      <button
-        ref={triggerRef}
-        type="button"
-        role="combobox"
-        aria-label="Choose a source set"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        aria-activedescendant={activeOptionId}
-        onClick={openPicker}
-        onKeyDown={handleTriggerKeyDown}
-        className={`${focusRing} flex min-h-[42px] w-full items-center justify-between gap-3 rounded-lg border border-[#cfcddf] bg-white px-3 py-2 text-left text-xs shadow-xs transition-all duration-150 hover:border-[#5a63df] hover:shadow-sm dark:border-white/20 dark:bg-[#15141c] dark:hover:border-[#8f97ff] ${triggerBorderClass}`}
-      >
-        <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-          <span className="truncate font-semibold text-slate-800 dark:text-slate-100">
-            {selected ? selected.title : 'Choose a source set'}
-          </span>
-          {selected && (
-            <span className="shrink-0 rounded-full border border-slate-200/80 bg-slate-100 px-2.5 py-0.5 text-[10.5px] font-medium text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
-              {familiarity(selected.familiarity)}
-            </span>
-          )}
-        </div>
-        <ChevronDown
-          size={15}
-          className={`shrink-0 text-slate-500 transition-transform duration-200 dark:text-slate-400 ${
-            open ? 'rotate-180 text-[#5a63df] dark:text-[#afb5ff]' : ''
-          }`}
-        />
-      </button>
-      {open && position && typeof document !== 'undefined'
-        ? createPortal(listbox, document.body)
-        : null}
-    </div>
-  );
-}
-
-export default function PracticeHome({
-  data,
-  focus,
-  setFocus,
-  module,
-  activityId,
-  busy,
-  error,
-  start,
-}) {
-  const [groupId, setGroupId] = useState('');
-  const [subjectFilter, setSubjectFilter] = useState(module || 'all');
-  const [exploreFocus, setExploreFocus] = useState(null);
-  const exploreActionRef = useRef(null);
-  const shouldReduceMotion = useReducedMotion();
-
-  const allGroups = data.groups || [];
-  const groups = allGroups.filter(
-    (g) => subjectFilter === 'all' || g.focus.startsWith(`${subjectFilter}:`)
-  );
-  const needs = data.recommendations || [];
-  const availableFocus = [...new Set(groups.map(groupCategory))].sort((a, b) => {
-    const rank = (f) => needs.findIndex((n) => n.focus === f);
-    return (rank(a) < 0 ? 999 : rank(a)) - (rank(b) < 0 ? 999 : rank(b));
-  });
-  const requestedUnavailable =
-    focus && !allGroups.some((g) => g.focus === focus || groupCategory(g) === focus);
-  const selected = availableFocus.includes(focus)
-    ? focus
-    : groupCategory(groups.find((g) => g.focus === focus)) || availableFocus[0];
-  const sets = groups
-    .filter((g) => groupCategory(g) === selected)
-    .sort(
-      (a, b) =>
-        ({ new: 0, familiar: 1, repeated: 2 })[a.familiarity] -
-        { new: 0, familiar: 1, repeated: 2 }[b.familiarity]
-    );
-  const next = sets.find((g) => g.id === groupId) || sets[0];
-  const need = needs.find((n) => n.focus === selected);
-  const sessions = data.sessions || [];
-  const continuing = sessions.filter((s) => !s.completed_at);
-  const groupTitles = new Map(allGroups.map((group) => [group.id, group.title]));
-  const due = needs.filter((n) => n.due);
-  const [asideTab, setAsideTab] = useState(() => (due.length > 0 ? 'review' : 'history'));
-
-  const choose = (value) => {
-    setFocus(value);
-    setGroupId('');
-    setExploreFocus(value);
-  };
-
-  useEffect(() => {
-    if (!exploreFocus) return;
-    // Keep keyboard users with the action that appeared beside the card they chose.
-    // Do not move the page to the top source picker on a card click.
-    window.requestAnimationFrame?.(() => {
-      exploreActionRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-      exploreActionRef.current?.focus({ preventScroll: true });
-    });
-  }, [exploreFocus, next?.id]);
-
+// One gate for every "start a set" button. A missing requested focus must not be
+// part of it: the page falls back to an available type, which has to stay startable.
+function startGate(data, hasSet) {
+  const exhausted = !data.unlimited && !data.remaining;
   const reset = data.reset_at
     ? new Date(data.reset_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '00:00 UTC';
+  let blockedReason = '';
+  if (!data.enabled) {
+    blockedReason = 'New practice sets are paused right now, so this cannot be started.';
+  } else if (exhausted) {
+    blockedReason = `You have used all ${data.limit} sets for today. Your allowance resets at ${reset}.`;
+  } else if (!hasSet) {
+    blockedReason = 'No library set is available for this question type yet.';
+  }
+  return { canStart: !blockedReason, blockedReason };
+}
 
-  // One gate for every "start a set" button. `requestedUnavailable` used to be part
-  // of this, which disabled the CTA even though `selected` had already fallen back to
-  // an available type — arriving from a Learning Path task for a focus with no sets
-  // left the whole page unusable. The CTA acts on `next`, so `next` is what gates it.
-  const hasDailyLimit = !data.unlimited;
-  const quotaExhausted = hasDailyLimit && !data.remaining;
-  const canStart = Boolean(data.enabled && !quotaExhausted && next);
-  const blockedReason = data.enabled
-    ? quotaExhausted
-      ? `You have used all ${data.limit} sets for today. Your allowance resets at ${reset}.`
-      : !next
-        ? 'No library set is available for this question type yet.'
-        : ''
-    : 'New practice sets are paused right now, so this cannot be started.';
+function PageHeader({ data }) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-50">
+          Practice Lab
+        </h1>
+        <p className={`mt-0.5 text-sm ${MUTED}`}>
+          Work on the question types you get wrong, one short set at a time.
+        </p>
+        {!data.unlimited && (
+          <p className={`mt-0.5 text-xs ${MUTED}`}>
+            Sets left today:{' '}
+            <strong className={NUM}>
+              {data.remaining} / {data.limit}
+            </strong>
+          </p>
+        )}
+      </div>
+      <Link
+        to="/learning-path"
+        className={cn(
+          TILE,
+          focusRing,
+          'hidden items-center gap-1.5 self-start rounded-lg px-3 py-1.5 text-xs font-bold sm:inline-flex'
+        )}
+      >
+        <Compass className="h-3.5 w-3.5" aria-hidden="true" />
+        Your study plan
+        <ArrowRight className="h-3 w-3" aria-hidden="true" />
+      </Link>
+    </div>
+  );
+}
 
-  const containerVariants = shouldReduceMotion ? undefined : STAGGER_CONTAINER;
-  const itemVariants = shouldReduceMotion ? undefined : FADE_UP;
+function PausedNotice() {
+  return (
+    <div
+      role="status"
+      className={`${WELL} rounded-lg border border-amber-500/20 p-3 text-xs leading-relaxed`}
+    >
+      <strong>New practice sets are currently unavailable.</strong> Your saved work is still
+      accessible. In the meantime, practise in the{' '}
+      <Link className={cn(LINK, 'underline')} to="/reading">
+        Reading library
+      </Link>{' '}
+      or{' '}
+      <Link className={cn(LINK, 'underline')} to="/listening">
+        Listening library
+      </Link>
+      .
+    </div>
+  );
+}
+
+function SubstitutedNotice({ focus, selected, activityId }) {
+  return (
+    <p role="status" className={`${WELL} rounded-lg border border-amber-500/20 p-3 text-xs`}>
+      There is no separate set for {focusLabel(focus)} yet, so we have selected{' '}
+      <strong className="font-semibold">{focusLabel(selected)}</strong> instead. Pick a different
+      question type below if you would rather practise something else.
+      {activityId && ' This other set will not complete your Learning Path task.'}
+    </p>
+  );
+}
+
+function TypePanel({ type, sets, data, busy, start }) {
+  const [setId, setSetId] = useState('');
+  const set = sets.find((item) => item.id === setId) || sets[0];
+  const gate = startGate(data, Boolean(set));
+  return (
+    <section
+      aria-label="Selected question type"
+      aria-live="polite"
+      className={`${WELL} rounded-xl border border-[#5a63df]/40 p-3.5`}
+    >
+      <p className="text-[13px] font-extrabold text-slate-900 dark:text-slate-100">
+        {focusLabel(type)}, {subject(type)}. Choose a test
+      </p>
+      {set && (
+        <div className="mt-2.5 flex flex-col gap-2.5 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SourceSetPicker sets={sets} value={set.id} onChange={setSetId} />
+          </div>
+          <StartButton set={set} busy={busy} canStart={gate.canStart} onStart={start} />
+        </div>
+      )}
+      {set && (
+        <div className="mt-2">
+          <SetNote set={set} />
+        </div>
+      )}
+      {gate.blockedReason && <p className={`mt-2 text-[11px] ${MUTED}`}>{gate.blockedReason}</p>}
+    </section>
+  );
+}
+
+function ToolLinks() {
+  return (
+    <p className={`text-xs ${MUTED}`}>
+      Writing and speaking have their own practice:{' '}
+      <Link className={LINK} to="/writing">
+        Writing practice
+      </Link>{' '}
+      and{' '}
+      <Link className={LINK} to="/speaking">
+        Speaking practice
+      </Link>
+    </p>
+  );
+}
+
+/** Which type card is open, and the subject filter around it. */
+function useTypeBrowser(module, reducedMotion) {
+  const [subjectFilter, setSubjectFilter] = useState(module || 'all');
+  const [openFocus, setOpenFocus] = useState(null);
+  const [reviewRequest, setReviewRequest] = useState(null);
+
+  // Only a Review press moves the page. A card click keeps focus where it is.
+  useEffect(() => {
+    if (!reviewRequest) return;
+    const card = document.querySelector(`[data-type="${reviewRequest.focus}"]`);
+    card?.scrollIntoView?.({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+    card?.focus({ preventScroll: true });
+  }, [reviewRequest, reducedMotion]);
+
+  return {
+    subjectFilter,
+    openFocus,
+    review: (type) => {
+      setSubjectFilter('all');
+      setOpenFocus(type);
+      setReviewRequest({ focus: type });
+    },
+    changeSubject: (value) => {
+      setSubjectFilter(value);
+      setOpenFocus(null);
+    },
+    toggle: (type) => setOpenFocus((open) => (open === type ? null : type)),
+  };
+}
+
+const hasType = (groups, type) =>
+  groups.some((group) => group.focus === type || groupCategory(group) === type);
+
+/** What the main card suggests, with the sets it can start. */
+function useSuggestion(groups, needs, focus, module) {
+  const [setId, setSetId] = useState('');
+  const selected = suggestedType(groups, needs, focus, module);
+  const sets = setsFor(groups, selected);
+  return {
+    selected,
+    sets,
+    set: sets.find((item) => item.id === setId) || sets[0],
+    setSetId,
+    substituted: Boolean(focus) && !hasType(groups, focus),
+  };
+}
+
+export default function PracticeHome({ data, focus, module, activityId, busy, error, start }) {
+  const reducedMotion = useReducedMotion();
+  const browser = useTypeBrowser(module, reducedMotion);
+  const groups = data.groups || [];
+  const needs = data.recommendations || [];
+  const { selected, sets, set, setSetId, substituted } = useSuggestion(
+    groups,
+    needs,
+    focus,
+    module
+  );
+  const visibleGroups = inSubject(groups, browser.subjectFilter);
+  const types = rankedTypes(visibleGroups, needs);
+  const due = needs.filter((need) => need.due && hasType(groups, need.focus));
 
   return (
-    <TooltipProvider delayDuration={150}>
-      <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.10] dark:opacity-[0.14]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 z-0 h-112 w-112 rounded-full bg-[radial-gradient(circle,rgba(210,204,255,0.55),transparent_70%)] dark:bg-[radial-gradient(circle,rgba(90,99,223,0.16),transparent_70%)]"
-        />
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="relative z-10 mx-auto max-w-7xl space-y-3.5"
-        >
-          <motion.header
-            variants={itemVariants}
-            className="flex flex-col gap-3 pb-3 border-b border-[#eeedf7] dark:border-white/[0.07] sm:flex-row sm:items-end sm:justify-between"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 sm:text-2xl">
-                  Practice Lab
-                </h1>
-                {['pro', 'premium'].includes(data.tier) ? <TierBadge tier={data.tier} /> : null}
-              </div>
-              <p className={`mt-1 text-xs sm:text-[13px] font-medium leading-relaxed ${MUTED}`}>
-                Fix your mistakes with real library questions.
-              </p>
-            </div>
-
-            <Link
-              to="/learning-path"
-              className={`group inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#cfcddf] bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:border-[#5a63df]/50 hover:bg-[#faf9ff] hover:text-[#5a63df] hover:shadow-sm active:scale-[0.99] dark:border-white/15 dark:bg-[#15141c] dark:text-slate-200 dark:hover:border-[#8f97ff]/50 dark:hover:bg-white/[0.06] dark:hover:text-[#afb5ff] ${focusRing}`}
-            >
-              <Compass
-                size={13}
-                className="text-[#5a63df] dark:text-[#afb5ff] transition-transform duration-300 group-hover:rotate-45"
-                aria-hidden="true"
-              />
-              <span>Your study plan</span>
-              <ArrowRight
-                size={12}
-                className="text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff]"
-                aria-hidden="true"
-              />
-            </Link>
-          </motion.header>
-
-          <motion.div
-            variants={itemVariants}
-            aria-label="Practice metrics"
-            className={`${PANEL} grid divide-x divide-[#e4e2f0] dark:divide-white/[0.07] ${hasDailyLimit ? 'grid-cols-2 sm:grid-cols-4 [&>*:nth-child(n+3)]:border-t [&>*:nth-child(n+3)]:border-[#e4e2f0] sm:[&>*:nth-child(n+3)]:border-t-0' : 'grid-cols-3'} [&_span.leading-tight]:hidden sm:[&_span.leading-tight]:inline`}
-          >
-            {hasDailyLimit && (
-              <Stat
-                bare
-                tone="accent"
-                icon={Layers}
-                label="Left today"
-                value={data.enabled ? `${data.remaining ?? 0} / ${data.limit ?? 0}` : '—'}
-                sub={data.enabled ? `Resets ${reset}` : 'Practice is paused'}
-                tip="Daily allowance of targeted question sets"
+    <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
+      <motion.div
+        variants={reducedMotion ? undefined : STAGGER_CONTAINER}
+        initial={reducedMotion ? false : 'hidden'}
+        animate="visible"
+        className="mx-auto w-full max-w-6xl space-y-3.5"
+      >
+        {[
+          <PageHeader key="header" data={data} />,
+          error,
+          !data.enabled && <PausedNotice key="paused" />,
+          substituted && (
+            <SubstitutedNotice
+              key="substituted"
+              focus={focus}
+              selected={selected}
+              activityId={activityId}
+            />
+          ),
+          <StartHereCard
+            key="start"
+            focus={selected}
+            need={needs.find((need) => need.focus === selected)}
+            sets={sets}
+            set={set}
+            onSetChange={setSetId}
+            busy={busy}
+            onStart={start}
+            {...startGate(data, Boolean(set))}
+          />,
+          <QueuePanels
+            key="queue"
+            sessions={(data.sessions || []).filter((session) => !session.completed_at)}
+            groupsById={new Map(groups.map((group) => [group.id, group]))}
+            due={due}
+            onReview={browser.review}
+          />,
+          <TypeCards
+            key="types"
+            types={types}
+            groups={visibleGroups}
+            needs={needs}
+            tips={data.categoryTips}
+            subjectFilter={browser.subjectFilter}
+            onSubjectChange={browser.changeSubject}
+            openFocus={browser.openFocus}
+            onToggle={browser.toggle}
+            renderPanel={(type) => (
+              <TypePanel
+                key={type}
+                type={type}
+                sets={setsFor(visibleGroups, type)}
+                data={data}
+                busy={busy}
+                start={start}
               />
             )}
-            <Stat
-              bare
-              tone="sky"
-              icon={ReiconTarget}
-              label="Types"
-              value={new Set(allGroups.map(groupCategory)).size}
-              sub={
-                data.enabled
-                  ? `${allGroups.length} available library sets`
-                  : `${allGroups.length} library sets · paused`
-              }
-              tip="Targeted Reading and Listening question formats from Cambridge tests"
-            />
-            <Stat
-              bare
-              tone="emerald"
-              icon={CheckCircle2}
-              label="Completed"
-              value={sessions.filter((s) => s.completed_at).length}
-              sub="Saved diagnostic sessions"
-              tip="Completed practice sets with recorded diagnostic answers"
-              onClick={() => setAsideTab('history')}
-              className="cursor-pointer"
-            />
-            <Stat
-              bare
-              tone={due.length > 0 ? 'amber' : 'emerald'}
-              icon={RotateCcw}
-              label="To review"
-              value={due.length}
-              sub={
-                due.length === 1
-                  ? '1 question type due'
-                  : due.length > 0
-                    ? `${due.length} question types due`
-                    : 'All caught up'
-              }
-              tip="Question types due for spaced repetition review"
-              onClick={() => setAsideTab('review')}
-              className="cursor-pointer"
-            />
-          </motion.div>
-
-          {error}
-
-          {!data.enabled && (
-            <motion.div
-              variants={itemVariants}
-              role="status"
-              className={`${WELL} rounded-lg border border-amber-500/20 p-3 text-xs leading-relaxed`}
-            >
-              <strong>New practice sets are currently unavailable.</strong> Your saved work is still
-              accessible. In the meantime, practise in the{' '}
-              <Link
-                className="font-semibold text-[#5a63df] underline dark:text-[#afb5ff]"
-                to="/reading"
-              >
-                Reading library
-              </Link>{' '}
-              or{' '}
-              <Link
-                className="font-semibold text-[#5a63df] underline dark:text-[#afb5ff]"
-                to="/listening"
-              >
-                Listening library
-              </Link>
-              .
+          />,
+          <ToolLinks key="tools" />,
+        ].map((node, index) =>
+          node ? (
+            <motion.div key={index} variants={reducedMotion ? undefined : FADE_UP}>
+              {node}
             </motion.div>
-          )}
-
-          {continuing.length > 0 && (
-            <motion.section variants={itemVariants} className={`${PANEL} p-4`}>
-              <PanelTitle
-                label="Continue practising"
-                accent
-                action={
-                  <span className={`${MICRO} ${MUTED}`}>{continuing.length} in progress</span>
-                }
-              />
-              <ResumeList sessions={continuing} titles={groupTitles} />
-            </motion.section>
-          )}
-
-          {requestedUnavailable && (
-            <motion.p
-              variants={itemVariants}
-              role="status"
-              className={`${WELL} rounded-lg border border-amber-500/20 p-3 text-xs`}
-            >
-              There is no separate set for {focusLabel(focus)} yet, so we have selected{' '}
-              <strong className="font-semibold">{focusLabel(selected)}</strong> instead. Pick a
-              different question type below if you would rather practise something else.
-              {activityId && ' This other set will not complete your Learning Path task.'}
-            </motion.p>
-          )}
-
-          <motion.div variants={itemVariants} className="grid grid-cols-12 gap-3.5 items-stretch">
-            <section
-              className={`${PANEL} col-span-12 min-w-0 flex flex-col justify-between p-4 sm:p-5 lg:col-span-8`}
-              aria-label="Your next step"
-            >
-              <div>
-                <PanelTitle
-                  label={need?.mistakes?.length ? 'Your next step' : 'Find your starting point'}
-                  accent
-                  tip={
-                    need?.mistakes?.length
-                      ? 'Targeted drill based on questions you missed in past tests'
-                      : 'Select an IELTS question format to establish your diagnostic baseline'
-                  }
-                  action={selected ? <Pill tone="accent">{subject(selected)}</Pill> : null}
-                />
-                <div className="grid gap-3.5 sm:grid-cols-2 items-stretch">
-                  <div className="flex flex-col justify-between min-w-0 rounded-xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 shadow-3xs dark:border-white/[0.08] dark:from-[#15141c] dark:to-[#100f15]">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={`${MICRO} ${MUTED}`}>Suggested practice</p>
-                        {need?.mistakes?.length ? (
-                          <Pill tone="warn">{need.label}</Pill>
-                        ) : (
-                          <Pill tone="ok">Diagnostic</Pill>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg dark:text-slate-100">
-                          {selected ? focusLabel(selected) : 'Choose a library test'}
-                        </h3>
-                        {need?.total > 0 ? (
-                          <p className="mt-1 text-xs text-slate-700 sm:text-sm dark:text-slate-200">
-                            You missed{' '}
-                            <strong className={`${NUM} font-bold text-rose-600 dark:text-rose-400`}>
-                              {need.total - need.correct} of {need.total}
-                            </strong>{' '}
-                            questions in your recent results.
-                          </p>
-                        ) : (
-                          <p className={`mt-1 text-xs leading-relaxed ${MUTED}`}>
-                            Start with one original question set. Your answers will help us suggest
-                            what to work on next.
-                          </p>
-                        )}
-                      </div>
-                      {need?.sources?.length > 0 && (
-                        <details
-                          className={`group rounded-lg border border-[#e4e2f0] bg-white/90 p-2.5 text-xs ${MUTED} shadow-3xs dark:border-white/[0.08] dark:bg-white/[0.03]`}
-                        >
-                          <summary
-                            className={`flex cursor-pointer items-center justify-between font-medium text-slate-700 dark:text-slate-200 ${focusRing}`}
-                          >
-                            <span>See the results behind this suggestion</span>
-                            <ChevronDown
-                              size={14}
-                              className="transition-transform group-open:rotate-180"
-                            />
-                          </summary>
-                          <ul className="mt-2 space-y-1.5 border-t border-[#e4e2f0] pt-2 dark:border-white/[0.08]">
-                            {need.sources?.map((s, i) => (
-                              <li key={`${s.sessionId}-${i}`}>
-                                <Link
-                                  className="inline-flex items-center gap-1 text-[#5a63df] hover:underline dark:text-[#afb5ff]"
-                                  to={
-                                    s.practice
-                                      ? `/practice-lab/session/${s.sessionId}?library=1`
-                                      : `/${subject(selected).toLowerCase()}-test/${s.sessionId}?view-results=true`
-                                  }
-                                >
-                                  {s.title || 'View saved result'} · {date(s.completedAt)}
-                                  <ArrowRight size={11} aria-hidden="true" />
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </details>
-                      )}
-                    </div>
-                    <div className="mt-3.5 pt-2.5 border-t border-[#eeedf7] dark:border-white/[0.08]">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <p className={`${MICRO} ${MUTED}`}>Practice Workflow</p>
-                        <span className="rounded-full border border-[#5a63df]/20 bg-[#5a63df]/[0.08] px-2 py-0.5 text-[9.5px] font-bold text-[#5a63df] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/15 dark:text-[#afb5ff]">
-                          4 steps
-                        </span>
-                      </div>
-                      <ol aria-label="How practice works" className="grid grid-cols-4 gap-2">
-                        {[
-                          need?.mistakes?.length
-                            ? { num: '01', title: 'Review', sub: 'mistake', icon: History }
-                            : { num: '01', title: 'Start', sub: 'baseline', icon: ReiconTarget },
-                          { num: '02', title: 'Learn', sub: 'approach', icon: Lightbulb },
-                          { num: '03', title: 'Practise', sub: 'questions', icon: Check },
-                          { num: '04', title: 'Check', sub: 'answers', icon: CheckCircle2 },
-                        ].map((step) => {
-                          const StepIcon = step.icon;
-                          return (
-                            <li
-                              key={step.title}
-                              className="group relative flex flex-col items-center justify-center rounded-lg border border-[#e4e2f0] bg-white/95 px-1.5 py-1.5 text-center shadow-3xs transition-all duration-150 hover:-translate-y-0.5 hover:border-[#5a63df]/35 dark:border-white/[0.08] dark:bg-white/[0.04]"
-                            >
-                              <div className="flex items-center justify-center gap-1.5 leading-none">
-                                <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]">
-                                  <StepIcon size={9.5} strokeWidth={2.2} aria-hidden="true" />
-                                </span>
-                                <span
-                                  className={`${NUM} text-[10px] font-extrabold text-[#5a63df] dark:text-[#afb5ff] leading-none`}
-                                >
-                                  {step.num}
-                                </span>
-                              </div>
-                              <span className="mt-1 text-[11px] font-bold leading-tight text-slate-800 dark:text-slate-100">
-                                {step.title}
-                              </span>
-                              <span className={`text-[9.5px] font-medium leading-tight ${MUTED}`}>
-                                {step.sub}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ol>
-                    </div>
-                  </div>
-
-                  {next ? (
-                    <div className="flex flex-col justify-between min-w-0 rounded-xl border border-[#e4e2f0] bg-linear-to-b from-white to-[#faf9ff] p-3.5 sm:p-4 shadow-3xs dark:border-white/[0.08] dark:from-[#15141c] dark:to-[#100f15]">
-                      <div className="space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className={`${MICRO} ${MUTED}`}>Your practice set</p>
-                          <Pill tone={next.familiarity === 'new' ? 'ok' : 'neutral'}>
-                            {familiarity(next.familiarity)}
-                          </Pill>
-                        </div>
-                        <div>
-                          <p className={`${TITLE} text-sm leading-snug sm:text-base`}>
-                            {next.title}
-                          </p>
-                          <p className={`mt-1 text-xs ${MUTED}`}>
-                            {focusLabel(groupCategory(next))} ·{' '}
-                            <span className={`${NUM} font-bold text-slate-800 dark:text-slate-100`}>
-                              {next.total}
-                            </span>{' '}
-                            questions
-                          </p>
-                        </div>
-                        {sets.length > 1 && (
-                          <div className="block text-xs">
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">
-                              Choose a source set
-                            </span>
-                            <div className="mt-1.5">
-                              <SourceSetPicker sets={sets} value={next.id} onChange={setGroupId} />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-[#eeedf7] space-y-2.5 dark:border-white/[0.08]">
-                        <p
-                          className={`flex items-start gap-1.5 rounded-lg border px-2.5 py-2 text-[11px] leading-relaxed ${
-                            next.familiarity === 'new'
-                              ? 'border-amber-500/25 bg-amber-500/5 text-amber-700 dark:text-amber-300'
-                              : `border-transparent ${MUTED}`
-                          }`}
-                        >
-                          <Lightbulb className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-                          <span>
-                            {next.familiarity === 'new'
-                              ? 'Heads up: this marks the source Cambridge test as partly practised, so save it for a clean mock if you want one.'
-                              : next.familiarity === 'familiar'
-                                ? 'You have seen this passage or audio before.'
-                                : 'You have answered these questions before. Use them for revision.'}{' '}
-                            Your full-test result stays separate.
-                          </span>
-                        </p>
-                        <Button
-                          size="sm"
-                          className="group w-full bg-linear-to-r from-[#5a63df] to-[#6d75ed] font-bold text-white shadow-xs transition-all duration-150 hover:from-[#4f58d4] hover:to-[#5e66e0] hover:shadow-sm active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-[#5a63df]"
-                          disabled={busy || !canStart}
-                          onClick={() => start(next)}
-                        >
-                          {busy
-                            ? 'Opening your set…'
-                            : next.familiarity === 'repeated'
-                              ? 'Practise again'
-                              : 'Review and practise'}
-                          <ArrowRight
-                            size={14}
-                            className="ml-1.5 transition-transform duration-150 group-hover:translate-x-0.5"
-                          />
-                        </Button>
-                        {blockedReason ? (
-                          <p role="status" className={`text-[11px] leading-relaxed ${MUTED}`}>
-                            {blockedReason}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`${WELL} rounded-lg p-3 text-xs leading-relaxed`}>
-                      No suitable sets are available for this selection. Try the{' '}
-                      <Link
-                        className="font-semibold text-[#5a63df] underline dark:text-[#afb5ff]"
-                        to="/reading"
-                      >
-                        Reading library
-                      </Link>{' '}
-                      or{' '}
-                      <Link
-                        className="font-semibold text-[#5a63df] underline dark:text-[#afb5ff]"
-                        to="/listening"
-                      >
-                        Listening library
-                      </Link>
-                      .
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <aside className="col-span-12 min-w-0 lg:col-span-4">
-              <section
-                className={`${PANEL} flex h-full flex-col justify-between p-4 sm:p-5`}
-                aria-label="Performance and review"
-              >
-                <div>
-                  <PanelTitle
-                    label={asideTab === 'history' ? 'How you’re doing' : 'Ready to review'}
-                    accent
-                    tip={
-                      asideTab === 'history'
-                        ? 'Recent accuracy records for this question format'
-                        : 'Spaced repetition: question formats due for review'
-                    }
-                    action={
-                      <div
-                        role="tablist"
-                        aria-label="Performance and review switcher"
-                        className="relative flex items-center rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/[0.08] dark:bg-white/[0.04]"
-                      >
-                        <button
-                          type="button"
-                          role="tab"
-                          aria-selected={asideTab === 'history'}
-                          onClick={() => setAsideTab('history')}
-                          className={`${focusRing} relative inline-flex items-center justify-center rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors duration-150 ${
-                            asideTab === 'history'
-                              ? 'text-[#5a63df] dark:text-[#afb5ff]'
-                              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                          }`}
-                        >
-                          {asideTab === 'history' && (
-                            <motion.span
-                              layoutId="active-aside-tab-pill"
-                              className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
-                              transition={
-                                shouldReduceMotion
-                                  ? { duration: 0 }
-                                  : {
-                                      type: 'spring',
-                                      stiffness: 480,
-                                      damping: 32,
-                                    }
-                              }
-                            />
-                          )}
-                          <span className="relative z-10">History</span>
-                        </button>
-                        <button
-                          type="button"
-                          role="tab"
-                          aria-selected={asideTab === 'review'}
-                          onClick={() => setAsideTab('review')}
-                          className={`${focusRing} relative inline-flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors duration-150 ${
-                            asideTab === 'review'
-                              ? 'text-[#5a63df] dark:text-[#afb5ff]'
-                              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                          }`}
-                        >
-                          {asideTab === 'review' && (
-                            <motion.span
-                              layoutId="active-aside-tab-pill"
-                              className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
-                              transition={
-                                shouldReduceMotion
-                                  ? { duration: 0 }
-                                  : {
-                                      type: 'spring',
-                                      stiffness: 480,
-                                      damping: 32,
-                                    }
-                              }
-                            />
-                          )}
-                          <span className="relative z-10">Review</span>
-                          {due.length > 0 && (
-                            <span
-                              className={`relative z-10 rounded-full px-1.5 text-[9.5px] font-bold transition-colors ${
-                                asideTab === 'review'
-                                  ? 'bg-amber-500 text-white'
-                                  : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                              }`}
-                            >
-                              {due.length}
-                            </span>
-                          )}
-                        </button>
-                      </div>
-                    }
-                  />
-                  <p className={`-mt-1 mb-3 text-xs ${MUTED} transition-opacity duration-150`}>
-                    {asideTab === 'history'
-                      ? selected
-                        ? focusLabel(selected)
-                        : 'Your recent results'
-                      : due.length > 0
-                        ? `${due.length} question type${due.length === 1 ? '' : 's'} due for spaced repetition`
-                        : 'Spaced repetition schedule'}
-                  </p>
-
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={asideTab}
-                      initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={shouldReduceMotion ? undefined : { opacity: 0, y: -4 }}
-                      transition={
-                        shouldReduceMotion ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }
-                      }
-                      className="min-h-[210px] flex flex-col justify-start"
-                    >
-                      {asideTab === 'history' ? (
-                        <div className="space-y-2">
-                          {need?.history?.length ? (
-                            need.history.map((h, i) => {
-                              const pct = h.total > 0 ? Math.round((h.correct / h.total) * 100) : 0;
-                              const tone = pct >= 80 ? 'ok' : pct >= 50 ? 'warn' : 'fault';
-                              return (
-                                <div
-                                  key={i}
-                                  className={`${WELL} flex items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2 transition-all duration-150 hover:border-[#e4e2f0] dark:border-white/[0.04] dark:hover:border-white/[0.09]`}
-                                >
-                                  <div className="min-w-0">
-                                    <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-100">
-                                      {need.sources?.[i]?.title || h.kind}
-                                    </p>
-                                    <p className={`text-[11px] ${MUTED}`}>
-                                      {h.kind} · {date(h.completedAt)}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <Pill tone={tone} size="sm">
-                                      {pct}%
-                                    </Pill>
-                                    <strong
-                                      className={`${NUM} text-xs font-bold text-slate-900 dark:text-slate-100`}
-                                    >
-                                      {h.correct} / {h.total}
-                                    </strong>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <Empty
-                              icon={History}
-                              title="No recent results"
-                              message="Complete your first set to see your accuracy trend and diagnostic history here."
-                              className="py-6"
-                            />
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          {due.length ? (
-                            <div className="space-y-2">
-                              {due.map((n) => (
-                                <button
-                                  key={n.focus}
-                                  type="button"
-                                  className={`${TILE} ${focusRing} group flex w-full items-center justify-between gap-2 p-2.5 text-left text-xs transition-all duration-150 hover:-translate-y-0.5 hover:border-[#5a63df]/40 hover:shadow-xs active:scale-[0.99]`}
-                                  onClick={() => {
-                                    setSubjectFilter('all');
-                                    choose(n.focus);
-                                  }}
-                                >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <span
-                                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500 animate-pulse"
-                                      aria-hidden="true"
-                                    />
-                                    <span className="truncate font-semibold text-slate-800 dark:text-slate-100">
-                                      {focusLabel(n.focus)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <span
-                                      className={`${MICRO} font-bold text-amber-600 dark:text-amber-400`}
-                                    >
-                                      Due
-                                    </span>
-                                    <ArrowRight
-                                      size={13}
-                                      className="shrink-0 text-[#5a63df] transition-transform duration-150 group-hover:translate-x-0.5 dark:text-[#afb5ff]"
-                                    />
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <Empty
-                              icon={RotateCcw}
-                              title="Up to date"
-                              message="Nothing due today. After completing a set, we'll schedule spaced repetition for you."
-                              className="py-6"
-                            />
-                          )}
-                        </div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-[#eeedf7] dark:border-white/[0.08]">
-                  <p
-                    className={`text-[11px] leading-tight ${MUTED} transition-opacity duration-150`}
-                  >
-                    {asideTab === 'history'
-                      ? 'Correct answers for this question type. Full tests and Practice Lab results are labelled separately.'
-                      : 'Spaced repetition reviews reinforce question strategies before memory decays.'}
-                  </p>
-                </div>
-              </section>
-            </aside>
-          </motion.div>
-
-          <motion.section
-            layout
-            variants={itemVariants}
-            transition={
-              shouldReduceMotion
-                ? { duration: 0 }
-                : { layout: { duration: 0.25, ease: [0.23, 1, 0.32, 1] } }
-            }
-            className={`${PANEL} p-4 sm:p-5`}
-            aria-label="Choose something else"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <PanelTitle
-                  label="Question Type Library"
-                  accent
-                  tip="Select any IELTS Reading or Listening question type to practise with authentic test material"
-                />
-                <p className={`-mt-1 text-xs ${MUTED}`}>
-                  Select one question type to see its results and available sets.
-                </p>
-              </div>
-              <div
-                className={`${WELL} relative flex items-center gap-1 rounded-lg p-1`}
-                role="tablist"
-                aria-label="Filter by subject"
-              >
-                {[
-                  { value: 'all', label: 'All' },
-                  { value: 'reading', label: 'Reading' },
-                  { value: 'listening', label: 'Listening' },
-                ].map(({ value, label }) => {
-                  const isActive = subjectFilter === value;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      aria-pressed={isActive}
-                      onClick={() => {
-                        setSubjectFilter(value);
-                        setGroupId('');
-                        setExploreFocus(null);
-                      }}
-                      className={`${focusRing} relative inline-flex items-center justify-center rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors duration-200 ${
-                        isActive
-                          ? 'text-[#5a63df] dark:text-[#afb5ff]'
-                          : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                      }`}
-                    >
-                      {isActive && (
-                        <motion.span
-                          layoutId="active-subject-filter-pill"
-                          className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
-                          transition={
-                            shouldReduceMotion
-                              ? { duration: 0 }
-                              : {
-                                  type: 'spring',
-                                  stiffness: 480,
-                                  damping: 32,
-                                }
-                          }
-                        />
-                      )}
-                      <span className="relative z-10">{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <motion.div
-              layout
-              transition={
-                shouldReduceMotion
-                  ? { duration: 0 }
-                  : { layout: { duration: 0.25, ease: [0.23, 1, 0.32, 1] } }
-              }
-              className="mt-3.5 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3"
-            >
-              <AnimatePresence initial={false}>
-                {availableFocus.map((f) => {
-                  const result = needs.find((n) => n.focus === f);
-                  const available = groups.filter((g) => groupCategory(g) === f);
-                  const total = available.reduce((sum, group) => sum + (group.total ?? 0), 0);
-                  const fresh = available.filter((g) => g.familiarity === 'new').length;
-                  const Icon = f.startsWith('listening:') ? Headphones : BookOpen;
-                  const isSelected = selected === f;
-                  return (
-                    <motion.button
-                      layout
-                      key={f}
-                      initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.97 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.97 }}
-                      transition={
-                        shouldReduceMotion
-                          ? { duration: 0 }
-                          : { duration: 0.18, ease: [0.23, 1, 0.32, 1] }
-                      }
-                      type="button"
-                      aria-pressed={isSelected}
-                      aria-label={`Choose ${focusLabel(f)}. ${available.length} source sets available.`}
-                      onClick={() => choose(f)}
-                      className={`${TILE} ${focusRing} group relative min-w-0 p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99] ${
-                        isSelected
-                          ? 'border-[#5a63df] bg-linear-to-b from-[#5a63df]/[0.05] to-transparent ring-1 ring-[#5a63df]/35 dark:border-[#8f97ff] dark:from-[#8f97ff]/[0.08] dark:to-transparent'
-                          : 'hover:border-[#5a63df]/40'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`${MICRO} ${MUTED} flex items-center gap-1.5`}>
-                          <IconChip
-                            icon={Icon}
-                            tone={f.startsWith('listening:') ? 'sky' : 'accent'}
-                            size="sm"
-                          />
-                          {subject(f)}
-                        </span>
-                        {result?.total > 0 && result.correct / result.total < 0.5 ? (
-                          <Pill tone="fault">
-                            {result.repeatedDifficulty ? 'Repeated difficulty' : 'Needs work'}
-                          </Pill>
-                        ) : result?.total > 0 && result.correct / result.total < 0.8 ? (
-                          <Pill tone="warn">Worth practising</Pill>
-                        ) : result?.total > 0 ? (
-                          <Pill tone="ok">Strong</Pill>
-                        ) : isSelected ? (
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#5a63df] text-white shadow-3xs dark:bg-[#8f97ff] dark:text-slate-950">
-                            <Check size={10} strokeWidth={3} />
-                          </span>
-                        ) : null}
-                      </div>
-                      <h3 className={`${TITLE} mt-2 text-sm`}>{focusLabel(f)}</h3>
-                      {data.categoryTips?.[f] && (
-                        <p className={`mt-1 text-xs ${MUTED}`}>{data.categoryTips[f]}</p>
-                      )}
-                      <div
-                        className={`mt-2 flex flex-wrap justify-between items-center gap-1 text-[11px] ${MUTED}`}
-                      >
-                        <span>
-                          <span className={`${NUM} font-bold text-slate-800 dark:text-slate-200`}>
-                            {available.length}
-                          </span>{' '}
-                          {available.length === 1 ? 'set' : 'sets'} ·{' '}
-                          <span className={`${NUM} font-medium`}>{total}</span>{' '}
-                          {total === 1 ? 'question' : 'questions'} ·{' '}
-                          <span className={`${NUM} font-medium text-slate-700 dark:text-slate-300`}>
-                            {fresh}
-                          </span>{' '}
-                          new
-                        </span>
-                        {result?.total > 0 ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className={`${NUM} font-bold text-slate-800 dark:text-slate-200`}>
-                              {result.correct}/{result.total}
-                            </span>
-                            <Pill
-                              size="sm"
-                              tone={
-                                result.correct / result.total >= 0.8
-                                  ? 'ok'
-                                  : result.correct / result.total >= 0.5
-                                    ? 'warn'
-                                    : 'fault'
-                              }
-                            >
-                              {Math.round((result.correct / result.total) * 100)}%
-                            </Pill>
-                          </div>
-                        ) : (
-                          <span className={`${NUM} text-[10.5px]`}>No recent result</span>
-                        )}
-                      </div>
-                      {result?.total > 0 && (
-                        <div className="mt-2.5">
-                          <Bar value={(100 * result.correct) / result.total} />
-                        </div>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </AnimatePresence>
-            </motion.div>
-
-            {!availableFocus.length && (
-              <p className={`mt-3 text-xs ${MUTED}`}>
-                No available sets for this subject. Choose another subject or browse the library.
-              </p>
-            )}
-
-            <AnimatePresence>
-              {exploreFocus && selected === exploreFocus && next && (
-                <motion.section
-                  layout
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
-                  transition={
-                    shouldReduceMotion
-                      ? { duration: 0 }
-                      : { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
-                  }
-                  className={`${WELL} mt-3.5 grid gap-3 rounded-xl border border-[#5a63df]/30 p-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(15rem,1.2fr)] sm:items-end dark:border-[#8f97ff]/25`}
-                  aria-label="Selected question type"
-                  aria-live="polite"
-                >
-                  <div className="min-w-0">
-                    <p className={`${MICRO} font-bold text-[#5a63df] dark:text-[#afb5ff]`}>
-                      Selected question type
-                    </p>
-                    <p className={`${TITLE} mt-1 text-sm sm:text-base`}>
-                      {focusLabel(exploreFocus)}
-                    </p>
-                    <p className={`mt-1 text-xs ${MUTED}`}>
-                      Choose a real library set, then review your mistake and practise.
-                    </p>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                    {sets.length > 1 ? (
-                      <label className="min-w-0 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-                        Source set
-                        <span className="mt-1 block">
-                          <SourceSetPicker sets={sets} value={next.id} onChange={setGroupId} />
-                        </span>
-                      </label>
-                    ) : (
-                      <p className={`text-[11px] ${MUTED}`}>
-                        {next.title} · <span className={NUM}>{next.total}</span> questions
-                      </p>
-                    )}
-                    <Button
-                      ref={exploreActionRef}
-                      size="sm"
-                      disabled={busy || !canStart}
-                      onClick={() => start(next)}
-                      className="whitespace-nowrap bg-linear-to-r from-[#5a63df] to-[#6d75ed] font-bold text-white shadow-xs transition-all duration-150 hover:from-[#4f58d4] hover:to-[#5e66e0] active:scale-[0.99]"
-                    >
-                      {next.familiarity === 'repeated' ? 'Practise again' : 'Review and practise'}
-                      <ArrowRight size={14} className="ml-1.5" />
-                    </Button>
-                    {blockedReason ? (
-                      <p
-                        role="status"
-                        className={`text-[11px] leading-relaxed sm:col-span-2 ${MUTED}`}
-                      >
-                        {blockedReason}
-                      </p>
-                    ) : null}
-                  </div>
-                </motion.section>
-              )}
-            </AnimatePresence>
-          </motion.section>
-
-          <motion.div variants={itemVariants} className="grid gap-2.5 sm:grid-cols-2">
-            {[
-              {
-                label: 'Writing',
-                path: '/writing',
-                description: 'Work on essays, task response, structure, and clear explanations.',
-                badge: 'Essay Lab',
-                icon: PenTool,
-                tone: 'amber',
-              },
-              {
-                label: 'Speaking',
-                path: '/speaking',
-                description: 'Practise your spoken answers, fluency, and review AI feedback.',
-                badge: 'Speech AI',
-                icon: Mic,
-                tone: 'rose',
-              },
-            ].map(({ label, path, description, badge, icon: Icon, tone }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`${TILE} ${focusRing} group flex items-center justify-between gap-3 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/40 hover:shadow-xs active:scale-[0.99]`}
-              >
-                <div className="flex items-center gap-3">
-                  <IconChip icon={Icon} tone={tone} size="md" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className={`${TITLE} text-sm`}>{label} practice</p>
-                      <span
-                        className={`${MICRO} rounded-full border border-[#e4e2f0] px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:border-white/10 dark:text-slate-400`}
-                      >
-                        {badge}
-                      </span>
-                    </div>
-                    <p className={`mt-0.5 text-xs ${MUTED}`}>{description}</p>
-                  </div>
-                </div>
-                <ArrowRight
-                  size={15}
-                  className="shrink-0 text-slate-400 transition-colors group-hover:text-[#5a63df] dark:text-slate-500 dark:group-hover:text-[#afb5ff]"
-                />
-              </Link>
-            ))}
-          </motion.div>
-        </motion.div>
-      </main>
-    </TooltipProvider>
+          ) : null
+        )}
+      </motion.div>
+    </main>
   );
 }

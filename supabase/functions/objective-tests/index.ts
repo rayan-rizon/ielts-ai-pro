@@ -102,7 +102,10 @@ Deno.serve(async (req: Request) => {
     }
     // A practice Listening part shows its audioscript while it plays, as the
     // test page does; a timed exam keeps it back until the attempt is finished.
-    const safe = unfinishedSnapshot(snapshot, authorization.session?.test_mode);
+    const safe = unfinishedSnapshot(snapshot, authorization.session?.test_mode, {
+      includePracticeTranscriptEvidence: body.includePracticeTranscriptEvidence,
+      session: authorization.session,
+    });
     if (snapshot.testData.test_type === 'reading') safe.testData.content = '';
     return reply({
       snapshot: attempt?.completed_at || legacyReview ? snapshot : safe,

@@ -15,7 +15,14 @@ const listening = {
       },
     ],
   },
-  questions: [{ id: 'q1', correct_answer: 'Hello', explanation: 'private' }],
+  questions: [
+    {
+      id: 'q1',
+      correct_answer: 'Hello',
+      explanation: 'private',
+      transcript_highlights: ['private'],
+    },
+  ],
 };
 
 describe('unfinished objective snapshots', () => {
@@ -45,4 +52,24 @@ describe('unfinished objective snapshots', () => {
     const reading = { testData: { test_type: 'reading', content: [{ transcript: 'x' }] } };
     expect(unfinishedSnapshot(reading, 'practice').testData.content[0]).toEqual({});
   });
+});
+
+it('only returns curated evidence for an opted-in solo Listening practice session', () => {
+  const solo = { test_mode: 'practice', paired_room_id: null };
+  const reveal = (session) =>
+    unfinishedSnapshot(listening, session?.test_mode, {
+      includePracticeTranscriptEvidence: true,
+      session,
+    });
+  expect(reveal(solo).testData.content[0].transcript_highlights).toEqual([
+    { question_number: 1, phrase: 'Hello' },
+  ]);
+  expect(reveal(solo).questions[0]).toEqual({ id: 'q1' });
+  for (const session of [
+    null,
+    { ...solo, paired_room_id: 'room' },
+    { ...solo, test_mode: 'mock' },
+  ]) {
+    expect(reveal(session).testData.content[0]).not.toHaveProperty('transcript_highlights');
+  }
 });

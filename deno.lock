@@ -1,0 +1,190 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:@supabase/supabase-js@2.112.3": "2.112.3"
+  },
+  "npm": {
+    "@supabase/auth-js@2.112.3": {
+      "integrity": "sha512-NA0rsgAlWZPvbhw8aUdmgfpHVgUAcd8zK5ov43l++o1bLIPXZhRiAlRobhwF5AatQuovpqxsMH50F4oyyV4XZw==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@supabase/functions-js@2.112.3": {
+      "integrity": "sha512-gfv481mTOVWtZIJgXupxZpni2V2UWPf6jeF/jOK7HdMHdH+mt6sU0sHHwf0POsPip8ltlulu9OUHgwVzl5ddRw==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@supabase/phoenix@0.4.5": {
+      "integrity": "sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw=="
+    },
+    "@supabase/postgrest-js@2.112.3": {
+      "integrity": "sha512-+Mf6uCpzr00bqxwX8hTK2X2L9eAL/1vuOjdEjx6upz9ulb0RmQT16XeU/JkMUlVHw/B46ZnPa2busY4Kd9YCzw==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@supabase/realtime-js@2.112.3": {
+      "integrity": "sha512-E6wljXWs7DUOloyIB69i3YFInWE6IyCvgTAbQ0KYxOHv26FdA1KzEXTuzxrYEdf70t406Z9BRwUlGyclGF2FXA==",
+      "dependencies": [
+        "@supabase/phoenix",
+        "tslib"
+      ]
+    },
+    "@supabase/storage-js@2.112.3": {
+      "integrity": "sha512-oSK61tzlUvg+BWPqpKQCu9qqonsO26btaoAR9D6Gest2aj7xUqToj9rKyaoYOJczkhg9BjqA1REbYy9tPI4bDA==",
+      "dependencies": [
+        "iceberg-js",
+        "tslib"
+      ]
+    },
+    "@supabase/supabase-js@2.112.3": {
+      "integrity": "sha512-Jv1bxVQmEJNkjvPEhFaKjPzsh+Ozyew6lWGD+SoYcsclDEP1z7yEvKvfUQfzy0DkxRIQnZNxmmWtAzw5XLTQoA==",
+      "dependencies": [
+        "@supabase/auth-js",
+        "@supabase/functions-js",
+        "@supabase/postgrest-js",
+        "@supabase/realtime-js",
+        "@supabase/storage-js"
+      ]
+    },
+    "iceberg-js@0.8.1": {
+      "integrity": "sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA=="
+    },
+    "tslib@2.8.1": {
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@axe-core/playwright@^4.11.0",
+        "npm:@eslint/js@^9.19.0",
+        "npm:@hookform/resolvers@^4.1.2",
+        "npm:@lhci/cli@~0.15.1",
+        "npm:@playwright/test@^1.57.0",
+        "npm:@radix-ui/react-accordion@^1.2.3",
+        "npm:@radix-ui/react-alert-dialog@^1.1.6",
+        "npm:@radix-ui/react-aspect-ratio@^1.1.2",
+        "npm:@radix-ui/react-avatar@^1.1.3",
+        "npm:@radix-ui/react-checkbox@^1.1.4",
+        "npm:@radix-ui/react-collapsible@^1.1.3",
+        "npm:@radix-ui/react-context-menu@^2.2.6",
+        "npm:@radix-ui/react-dialog@^1.1.6",
+        "npm:@radix-ui/react-dropdown-menu@^2.1.6",
+        "npm:@radix-ui/react-hover-card@^1.1.6",
+        "npm:@radix-ui/react-label@^2.1.2",
+        "npm:@radix-ui/react-menubar@^1.1.6",
+        "npm:@radix-ui/react-navigation-menu@^1.2.5",
+        "npm:@radix-ui/react-popover@^1.1.6",
+        "npm:@radix-ui/react-progress@^1.1.2",
+        "npm:@radix-ui/react-radio-group@^1.2.3",
+        "npm:@radix-ui/react-scroll-area@^1.2.3",
+        "npm:@radix-ui/react-select@^2.1.6",
+        "npm:@radix-ui/react-separator@^1.1.2",
+        "npm:@radix-ui/react-slider@^1.2.3",
+        "npm:@radix-ui/react-slot@^1.1.2",
+        "npm:@radix-ui/react-switch@^1.1.3",
+        "npm:@radix-ui/react-tabs@^1.1.3",
+        "npm:@radix-ui/react-toggle-group@^1.1.2",
+        "npm:@radix-ui/react-toggle@^1.1.2",
+        "npm:@radix-ui/react-tooltip@^1.1.8",
+        "npm:@react-oauth/google@~0.13.4",
+        "npm:@sentry/react@^10.43.0",
+        "npm:@supabase/supabase-js@2.112.3",
+        "npm:@tailwindcss/container-queries@~0.1.1",
+        "npm:@tailwindcss/postcss@^4.3.3",
+        "npm:@tailwindcss/typography@~0.5.19",
+        "npm:@tanstack/react-query@^5.90.19",
+        "npm:@testing-library/jest-dom@^6.9.1",
+        "npm:@testing-library/react@^16.3.1",
+        "npm:@types/dompurify@^3.0.5",
+        "npm:@types/node@^22.19.7",
+        "npm:@types/react-dom@^18.3.7",
+        "npm:@types/react-router-dom@^5.3.3",
+        "npm:@types/react@^18.3.27",
+        "npm:@vitejs/plugin-react@^4.3.4",
+        "npm:axe-html-reporter@^2.2.11",
+        "npm:border-beam@^1.3.0",
+        "npm:class-variance-authority@~0.7.1",
+        "npm:clsx@^2.1.1",
+        "npm:cmdk@1",
+        "npm:cssnano@^7.1.2",
+        "npm:date-fns@^3.6.0",
+        "npm:dompurify@^3.4.13",
+        "npm:dotenv@^17.4.2",
+        "npm:embla-carousel-react@^8.5.2",
+        "npm:eslint-config-prettier@^10.1.8",
+        "npm:eslint-plugin-prettier@^5.5.4",
+        "npm:eslint-plugin-react-hooks@5",
+        "npm:eslint-plugin-react-refresh@~0.4.18",
+        "npm:eslint-plugin-react@^7.37.4",
+        "npm:eslint@^9.19.0",
+        "npm:framer-motion@^12.4.7",
+        "npm:globals@^15.14.0",
+        "npm:husky@^9.1.7",
+        "npm:input-otp@^1.4.2",
+        "npm:jsdom@28",
+        "npm:jspdf@^4.2.1",
+        "npm:levenshtein-edit-distance@^3.0.1",
+        "npm:lint-staged@^15.5.2",
+        "npm:lucide-react@0.475",
+        "npm:pdfjs-dist@5.5.207",
+        "npm:playwright@^1.57.0",
+        "npm:postcss@^8.5.3",
+        "npm:posthog-js@^1.417.4",
+        "npm:prettier@^3.7.4",
+        "npm:prop-types@^15.8.1",
+        "npm:quill@2.0.2",
+        "npm:react-confetti@^6.4.0",
+        "npm:react-day-picker@^8.10.1",
+        "npm:react-dom@^18.2.0",
+        "npm:react-helmet-async@^2.0.5",
+        "npm:react-hook-form@^7.54.2",
+        "npm:react-quill-new@3.7.0",
+        "npm:react-resizable-panels@^2.1.7",
+        "npm:react-router-dom@^7.18.2",
+        "npm:react-svg-worldmap@2.0.2",
+        "npm:react-use@^17.6.0",
+        "npm:react@^18.2.0",
+        "npm:recharts@^2.15.1",
+        "npm:rollup@^4.63.0",
+        "npm:sanitize-html@^2.17.6",
+        "npm:sonner@^2.0.1",
+        "npm:tailwind-merge@^3.0.2",
+        "npm:tailwindcss-animate@^1.0.7",
+        "npm:tailwindcss@^4.3.3",
+        "npm:terser@^5.46.0",
+        "npm:transitions-refine@~0.3.34",
+        "npm:typescript@^5.9.3",
+        "npm:vaul@^1.1.2",
+        "npm:vite-bundle-visualizer@^1.2.1",
+        "npm:vite-plugin-compression@~0.5.1",
+        "npm:vite@^6.1.0",
+        "npm:vitest@5.0.3",
+        "npm:wrangler@4.149.0",
+        "npm:zod@^3.24.2",
+        "npm:zustand@^5.0.9"
+      ],
+      "overrides": {
+        "whatwg-encoding": "3.1.1",
+        "lodash": "^4.17.21",
+        "brace-expansion": "^2.0.1",
+        "tmp": "^0.2.3",
+        "ws": "^8.21.0",
+        "undici": "^7.28.0",
+        "@babel/core": "^7.29.6",
+        "cookie": "^0.7.0",
+        "uuid": "^12.0.1",
+        "js-yaml": "^4.2.0",
+        "@lhci/utils": {
+          "js-yaml": "^3.15.0"
+        },
+        "nanoid": "^3.3.18",
+        "@puppeteer/browsers": "3.2.1",
+        "qs": "^6.16.0"
+      }
+    }
+  }
+}

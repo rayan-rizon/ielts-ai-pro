@@ -100,7 +100,7 @@ const HIDDEN = new Set([
 ]);
 /**
  * The audioscript a practice Listening part may show while it plays, as the
- * test page does. Its answer evidence (transcript_highlights) stays hidden.
+ * test page does.
  */
 export const PRACTICE_LISTENING_KEEP = new Set(['srt_content', 'transcript']);
 
@@ -115,11 +115,30 @@ export function withoutSolutions(value, keep = undefined) {
   );
 }
 
+function wantsPracticeEvidence({ includePracticeTranscriptEvidence, session }) {
+  return (
+    includePracticeTranscriptEvidence === true &&
+    session?.test_mode === 'practice' &&
+    !session.paired_room_id
+  );
+}
+
+function addSectionEvidence(safe, snapshot) {
+  if (!Array.isArray(safe.testData.content)) return;
+  safe.testData.content.forEach((section, index) => {
+    const highlights = snapshot.testData.content[index]?.transcript_highlights;
+    if (Array.isArray(highlights)) section.transcript_highlights = withoutSolutions(highlights);
+  });
+}
+
 /** Practice Listening keeps its audioscript; every other unfinished attempt hides it. */
-export function unfinishedSnapshot(snapshot, testMode) {
+export function unfinishedSnapshot(snapshot, testMode, options = {}) {
   const practiceListening =
     snapshot?.testData?.test_type === 'listening' && testMode === 'practice';
-  return withoutSolutions(snapshot, practiceListening ? PRACTICE_LISTENING_KEEP : undefined);
+  if (!practiceListening) return withoutSolutions(snapshot);
+  const safe = withoutSolutions(snapshot, PRACTICE_LISTENING_KEEP);
+  if (wantsPracticeEvidence(options)) addSectionEvidence(safe, snapshot);
+  return safe;
 }
 
 export function comparisonSummary(result) {

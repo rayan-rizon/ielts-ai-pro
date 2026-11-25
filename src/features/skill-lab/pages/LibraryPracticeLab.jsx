@@ -1,5 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import PracticeHome from '../components/PracticeHome';
+import SessionProgressBar from '../components/SessionProgressBar';
+import { questionSlots } from '../practiceHomeModel';
 import { ResultSummary, ReviewList } from '../components/PracticeResults';
 import { buildReviewRows, questionRangeLabel } from '../practiceReview';
 import { ArrowLeft, ArrowRight, Check, HelpCircle } from 'lucide-react';
@@ -13,15 +15,7 @@ import { formatLibraryText } from '../libraryText';
 import { getSupabaseFunctionHeaders } from '@/lib/csrf';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import {
-  PANEL,
-  WELL,
-  MICRO,
-  MUTED,
-  NUM,
-  TITLE,
-  Pill,
-} from '@/features/dashboard/components/primitives.jsx';
+import { PANEL, WELL, MICRO, MUTED, TITLE } from '@/features/dashboard/components/primitives.jsx';
 import MatchingRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/MatchingRenderer';
 import MultipleChoiceRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/MultipleChoiceRenderer';
 import TrueFalseRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/TrueFalseRenderer';
@@ -152,7 +146,6 @@ export function QuestionGroupInstructions({ instructions }) {
             {range || 'Task Instructions'}
           </h3>
         </div>
-        <Pill tone="accent">Directive</Pill>
       </div>
 
       {formattedHtml && (
@@ -247,6 +240,7 @@ function Questions({ questions, module, answers, onChange }) {
     return (
       <article
         key={question.id}
+        data-question-id={question.id}
         className={`min-w-0 overflow-x-auto border-b border-[#e4e2f0] py-2.5 space-y-2 last:border-0 dark:border-white/[0.07]`}
       >
         {question.group_instructions &&
@@ -260,7 +254,23 @@ function Questions({ questions, module, answers, onChange }) {
     );
   });
 }
-function Source({ source, questionRange }) {
+function AudioNote({ source, questionRange }) {
+  return (
+    <p className={`text-xs ${MUTED}`}>
+      {source.audio_scope === 'full_test'
+        ? 'The original full recording is provided because a separate section is unavailable. Listen for the part containing these questions.'
+        : 'Listen to the original recording for this part. Answer only the questions in your set.'}
+      {questionRange && (
+        <>
+          {' '}
+          Your set covers <strong className="font-semibold">{questionRange}</strong>
+          {source.section ? ` of Part ${source.section}` : ''}; the recording plays the whole part.
+        </>
+      )}
+    </p>
+  );
+}
+function Source({ source }) {
   const [audioError, setAudioError] = useState(false);
   const passageTitle = sourcePassageTitle(source);
   return (
@@ -275,21 +285,6 @@ function Source({ source, questionRange }) {
         </h2>
       </div>
       {source.audio_url && (
-        <p className={`text-xs ${MUTED}`}>
-          {source.audio_scope === 'full_test'
-            ? 'The original full recording is provided because a separate section is unavailable. Listen for the part containing these questions.'
-            : 'Listen to the original recording for this part. Answer only the questions in your set.'}
-          {questionRange && (
-            <>
-              {' '}
-              Your set covers <strong className="font-semibold">{questionRange}</strong>
-              {source.section ? ` of Part ${source.section}` : ''}; the recording plays the whole
-              part.
-            </>
-          )}
-        </p>
-      )}
-      {source.audio_url && (
         <>
           <audio
             controls
@@ -300,8 +295,8 @@ function Source({ source, questionRange }) {
           />
           {audioError && (
             <p role="alert">
-              Audio could not load. Your answers are saved when you go back to Practice Lab. Reload
-              to try again.
+              Audio could not load. Your answers are saved when you choose Save and exit. Reload to
+              try again.
             </p>
           )}
         </>
@@ -312,12 +307,6 @@ function Source({ source, questionRange }) {
           dangerouslySetInnerHTML={{ __html: formatLibraryText(source.content) }}
         />
       )}
-      <div className="mt-auto pt-2.5 border-t border-[#eeedf7] dark:border-white/[0.08] flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-        <span>{source.audio_url ? 'Listening Audio Source' : 'Reading Passage'}</span>
-        <span className={`${NUM} font-semibold text-[#5a63df] dark:text-[#afb5ff]`}>
-          {source.section ? `Part ${source.section}` : 'Reference'}
-        </span>
-      </div>
     </section>
   );
 }
@@ -337,6 +326,7 @@ export default function LibraryPracticeLab() {
   const [tab, setTab] = useState('questions');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [saveState, setSaveState] = useState('idle');
   const [completedResult, setCompletedResult] = useState(null);
   const shouldReduceMotion = useReducedMotion();
   const startId = useRef(null);
@@ -369,6 +359,7 @@ export default function LibraryPracticeLab() {
         // Server-saved answers remain available when browser storage is disabled.
       }
       hydratedSession.current = sessionId;
+      setSaveState('idle');
       answersRef.current = restored;
       setAnswers(restored);
       setChosenStep(null);
@@ -386,14 +377,20 @@ export default function LibraryPracticeLab() {
     const next = pendingAutosave.current;
     if (next === null) return saveQueue.current;
     pendingAutosave.current = null;
+    // An older request must not report "Saved" while newer answers are waiting.
+    const isLatest = () => pendingAutosave.current === null && answersRef.current === next;
     saveQueue.current = saveQueue.current
       .catch(() => {})
       .then(() => action('save', { sessionId, answers: next, stage: 2 }))
-      .catch(() =>
+      .then(() => {
+        if (isLatest()) setSaveState('saved');
+      })
+      .catch(() => {
+        if (isLatest()) setSaveState('error');
         setError(
-          'Your latest answers are saved in this tab. Check your connection, then go back to Practice Lab.'
-        )
-      );
+          'Your latest answers are saved in this tab. Check your connection, then choose Save and exit.'
+        );
+      });
     return saveQueue.current;
   }
 
@@ -409,6 +406,7 @@ export default function LibraryPracticeLab() {
     // Trailing debounce: the last answer state within the window is the one
     // that gets sent, so rapid typing costs one request instead of one per key.
     pendingAutosave.current = next;
+    setSaveState('saving');
     if (autosaveTimer.current !== null) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(() => {
       autosaveTimer.current = null;
@@ -483,23 +481,24 @@ export default function LibraryPracticeLab() {
             </div>
             <div className="h-8 w-32 rounded bg-slate-200 dark:bg-white/10" />
           </div>
-          {!sessionId && (
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className={`${PANEL} h-20`} />
-              ))}
+          {sessionId ? (
+            <div className="grid grid-cols-12 gap-3.5">
+              <div className={`${PANEL} col-span-12 h-80 lg:col-span-8`} />
+              <div className={`${PANEL} col-span-12 h-80 lg:col-span-4`} />
             </div>
-          )}
-          <div className="grid grid-cols-12 gap-3.5">
-            <div className={`${PANEL} col-span-12 h-80 lg:col-span-8`} />
-            <div className={`${PANEL} col-span-12 h-80 lg:col-span-4`} />
-          </div>
-          {!sessionId && (
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className={`${PANEL} h-28`} />
-              ))}
-            </div>
+          ) : (
+            <>
+              <div className={`${PANEL} h-56`} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className={`${PANEL} h-32`} />
+                <div className={`${PANEL} h-32`} />
+              </div>
+              <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className={`${PANEL} h-36`} />
+                ))}
+              </div>
+            </>
           )}
           <span className="sr-only">Loading your practice…</span>
         </div>
@@ -533,13 +532,14 @@ export default function LibraryPracticeLab() {
     const step =
       chosenStep || (gradedResult ? 'results' : hasMistake && !data.stage ? 'review' : 'practise');
     const steps = [
-      hasMistake && { id: 'review', label: 'Review your mistake' },
-      { id: 'practise', label: 'Practise this set' },
-      { id: 'results', label: 'Review your answers' },
+      hasMistake && { id: 'review', label: 'See your mistake' },
+      { id: 'practise', label: 'Try the questions' },
+      { id: 'results', label: 'Check answers' },
     ].filter(Boolean);
     const stepIndex = steps.findIndex((entry) => entry.id === step);
     const reviewing = step === 'review';
     const module = data.focus.split(':')[0];
+    const isListening = module === 'listening';
     const source = reviewing ? data.mistake : data.source;
     const reviewQuestions = reviewing ? data.mistake.questions : data.questions;
     const reviewRows =
@@ -557,6 +557,14 @@ export default function LibraryPracticeLab() {
       requestAnimationFrame(() =>
         document
           .getElementById(`review-q-${number}`)
+          ?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth', block: 'center' })
+      );
+    };
+    const jumpToQuestion = (slot) => {
+      setTab('questions');
+      requestAnimationFrame(() =>
+        document
+          .querySelector(`[data-question-id="${slot.questionId}"]`)
           ?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth', block: 'center' })
       );
     };
@@ -603,11 +611,10 @@ export default function LibraryPracticeLab() {
               disabled={busy}
               onClick={save}
               className="h-7 shrink-0 gap-1.5 px-2.5 text-xs shadow-none hover:translate-y-0 hover:shadow-none sm:px-3"
-              aria-label="Back to Practice Lab"
+              aria-label="Save and exit"
             >
               <ArrowLeft size={14} />
-              <span className="sm:hidden">Back</span>
-              <span className="hidden sm:inline">Back to Practice Lab</span>
+              Save and exit
             </Button>
             {data.source_session_id && (
               <Link
@@ -679,53 +686,61 @@ export default function LibraryPracticeLab() {
             onJump={jumpToAnswer}
           />
         )}
-        <div
-          className={`${WELL} relative flex gap-1 rounded-lg p-1 md:hidden`}
-          role="group"
-          aria-label="Content view"
-        >
-          {[
-            { id: 'passage', label: 'Passage / audio' },
-            { id: 'questions', label: reviewing || step === 'results' ? 'Answers' : 'Questions' },
-          ].map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              aria-pressed={tab === entry.id}
-              onClick={() => setTab(entry.id)}
-              className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
-                tab === entry.id
-                  ? 'text-[#5a63df] dark:text-[#afb5ff]'
-                  : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
-              }`}
-            >
-              {tab === entry.id && (
-                <motion.span
-                  layoutId="mobile-practice-active-tab"
-                  className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
-                  transition={
-                    shouldReduceMotion
-                      ? { duration: 0 }
-                      : { type: 'spring', stiffness: 480, damping: 32 }
-                  }
-                />
-              )}
-              <span className="relative z-10">{entry.label}</span>
-            </button>
-          ))}
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 md:items-stretch">
+        {isListening && (
+          <>
+            <AudioNote source={source} questionRange={questionRangeLabel(reviewQuestions)} />
+            <div data-testid="sticky-audio" className="sticky top-0 z-20">
+              <Source key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`} source={source} />
+            </div>
+          </>
+        )}
+        {!isListening && (
           <div
-            className={`${tab !== 'passage' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto h-full`}
+            className={`${WELL} relative flex gap-1 rounded-lg p-1 md:hidden`}
+            role="group"
+            aria-label="Content view"
           >
-            <Source
-              key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
-              source={source}
-              questionRange={module === 'listening' ? questionRangeLabel(reviewQuestions) : null}
-            />
+            {[
+              { id: 'passage', label: 'Passage / audio' },
+              { id: 'questions', label: reviewing || step === 'results' ? 'Answers' : 'Questions' },
+            ].map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                aria-pressed={tab === entry.id}
+                onClick={() => setTab(entry.id)}
+                className={`relative flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                  tab === entry.id
+                    ? 'text-[#5a63df] dark:text-[#afb5ff]'
+                    : `${MUTED} hover:text-slate-900 dark:hover:text-slate-100`
+                }`}
+              >
+                {tab === entry.id && (
+                  <motion.span
+                    layoutId="mobile-practice-active-tab"
+                    className="absolute inset-0 rounded-md bg-white shadow-xs dark:bg-white/10 dark:shadow-none"
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 480, damping: 32 }
+                    }
+                  />
+                )}
+                <span className="relative z-10">{entry.label}</span>
+              </button>
+            ))}
           </div>
+        )}
+        <div className={isListening ? 'grid gap-3' : 'grid gap-3 md:grid-cols-2 md:items-stretch'}>
+          {!isListening && (
+            <div
+              className={`${tab !== 'passage' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto h-full`}
+            >
+              <Source key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`} source={source} />
+            </div>
+          )}
           <div
-            className={`${tab !== 'questions' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} ${PANEL} min-w-0 p-3.5 sm:p-4 h-full`}
+            className={`${tab !== 'questions' && !isListening ? 'hidden md:flex md:flex-col' : 'flex flex-col'} ${PANEL} min-w-0 p-3.5 sm:p-4 h-full`}
           >
             {reviewing || step === 'results' ? (
               <>
@@ -765,17 +780,14 @@ export default function LibraryPracticeLab() {
           </div>
         )}
         {step === 'practise' && (
-          <div
-            className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3`}
-          >
-            <p className={`text-xs ${MUTED}`}>
-              Finished? Check your answers to see what to try next.
-            </p>
-            <Button disabled={busy} onClick={finish} className="ml-auto shrink-0 gap-1.5">
-              Check my answers
-              <ArrowRight size={14} />
-            </Button>
-          </div>
+          <SessionProgressBar
+            slots={questionSlots(data.questions, answers)}
+            answers={answers}
+            saveState={saveState}
+            busy={busy}
+            onJump={jumpToQuestion}
+            onSubmit={finish}
+          />
         )}
       </main>
     );
