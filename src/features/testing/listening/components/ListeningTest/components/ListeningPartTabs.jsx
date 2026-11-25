@@ -13,16 +13,13 @@ export default function ListeningPartTabs({
 }) {
   return (
     <div
-      className="relative bg-white/90 dark:bg-[#131315]/90 backdrop-blur-xl border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 sm:px-4 py-1.5 sm:py-2 shrink-0 relative z-20 shadow-2xs transition-all duration-300 w-full overflow-x-auto"
+      className="relative z-20 w-full shrink-0 overflow-x-auto border-b border-[#e4e2f0] bg-white px-3 py-2 transition-colors duration-200 dark:border-white/[0.07] dark:bg-[#141319] sm:px-4"
       style={{ scrollbarWidth: 'none' }}
       data-oid="v0bnih8"
     >
-      <div
-        className="flex items-center justify-start sm:justify-center min-w-max"
-        data-oid="ujg4x08"
-      >
+      <div className="flex items-center justify-center" data-oid="ujg4x08">
         <div
-          className="inline-flex p-1 bg-[#f4f3fb] dark:bg-white/4 rounded-xl sm:rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] relative z-0 backdrop-blur-sm"
+          className="relative z-0 grid w-full grid-cols-4 rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] p-1 dark:border-white/[0.07] dark:bg-white/[0.04] sm:inline-flex sm:w-auto sm:rounded-2xl"
           data-oid="2eggma3"
         >
           {displaySections.map((section, idx) => {
@@ -37,7 +34,7 @@ export default function ListeningPartTabs({
                 disabled={locked && !isActive}
                 onClick={() => dispatch({ type: ACTIONS.SET_ACTIVE_PART, payload: idx })}
                 className={cn(
-                  'relative px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-colors duration-200 ease-out flex items-center justify-center gap-1.5 sm:gap-2.5 z-10 select-none whitespace-nowrap',
+                  'relative px-2 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl transition-colors duration-200 ease-out flex items-center justify-center gap-1.5 sm:gap-2.5 z-10 select-none whitespace-nowrap',
                   isActive
                     ? 'text-white'
                     : locked

@@ -98,15 +98,28 @@ const HIDDEN = new Set([
   'other_accepted_answers',
   'sample_answer',
 ]);
-export function withoutSolutions(value) {
-  if (Array.isArray(value)) return value.map(withoutSolutions);
+/**
+ * The audioscript a practice Listening part may show while it plays, as the
+ * test page does. Its answer evidence (transcript_highlights) stays hidden.
+ */
+export const PRACTICE_LISTENING_KEEP = new Set(['srt_content', 'transcript']);
+
+export function withoutSolutions(value, keep = undefined) {
+  if (Array.isArray(value)) return value.map((item) => withoutSolutions(item, keep));
   if (typeof value === 'string') return value.replace(/\[\/?answer\b[^\]]*\]/gi, '');
   if (!value || typeof value !== 'object') return value;
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => !HIDDEN.has(key))
-      .map(([k, v]) => [k, withoutSolutions(v)])
+      .filter(([key]) => !HIDDEN.has(key) || Boolean(keep?.has(key)))
+      .map(([k, v]) => [k, withoutSolutions(v, keep)])
   );
+}
+
+/** Practice Listening keeps its audioscript; every other unfinished attempt hides it. */
+export function unfinishedSnapshot(snapshot, testMode) {
+  const practiceListening =
+    snapshot?.testData?.test_type === 'listening' && testMode === 'practice';
+  return withoutSolutions(snapshot, practiceListening ? PRACTICE_LISTENING_KEEP : undefined);
 }
 
 export function comparisonSummary(result) {

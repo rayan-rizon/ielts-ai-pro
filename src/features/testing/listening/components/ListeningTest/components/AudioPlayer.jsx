@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useImperativeHandle } 
 import { AlertCircle, Play, Pause, RotateCcw, RotateCw, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { cn } from '@/lib/cn';
 
 /**
  * Format raw seconds into MM:SS string display.
@@ -538,24 +539,39 @@ function AudioPrimaryControls({
   );
 }
 
+function RateSelectControl({ value, onChange, compact = false }) {
+  return (
+    <div className="relative flex items-center">
+      <select
+        aria-label="Audio playback speed"
+        className={cn(
+          'appearance-none bg-transparent border-none focus:ring-0 p-0 pr-4 text-slate-700 dark:text-slate-200 font-bold cursor-pointer outline-none',
+          compact ? 'text-[11px]' : 'text-xs'
+        )}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+      >
+        <option value="0.75">0.75x</option>
+        <option value="1">1.0x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2.0x</option>
+      </select>
+      <span className="pointer-events-none absolute right-0 text-[9px] text-slate-400 dark:text-slate-500">
+        ▾
+      </span>
+    </div>
+  );
+}
+
 /**
  * Mobile-only playback rate selector.
  */
 function AudioMobileRateSelect({ playbackRate, onChange }) {
   return (
     <div className="flex sm:hidden items-center" data-oid="mobile-rate">
-      <div className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2 py-1 transition-colors">
-        <select
-          aria-label="Audio playback speed"
-          className="text-[10px] bg-transparent border-none focus:ring-0 p-0 text-slate-600 dark:text-slate-300 font-bold cursor-pointer outline-none w-10"
-          value={playbackRate}
-          onChange={(e) => onChange(parseFloat(e.target.value))}
-        >
-          <option value="0.75">0.75x</option>
-          <option value="1">1.0x</option>
-          <option value="1.25">1.25x</option>
-          <option value="1.5">1.5x</option>
-        </select>
+      <div className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2.5 py-1.5 transition-colors">
+        <RateSelectControl value={playbackRate} onChange={onChange} compact />
       </div>
     </div>
   );
@@ -614,7 +630,7 @@ function AudioSecondaryControls({
   onPlaybackRateChange,
 }) {
   return (
-    <div className="flex items-center" data-oid="1dl5ed9">
+    <div className={cn('items-center', examMode ? 'flex' : 'hidden sm:flex')} data-oid="1dl5ed9">
       <div
         className="bg-[#f4f3fb] dark:bg-white/4 border border-[#e4e2f0] dark:border-white/[0.07] rounded-lg flex items-center px-2.5 py-1.5 transition-colors hover:border-[#5a63df]/30 dark:hover:border-[#5a63df]/30"
         data-oid="2ht8gpv"
@@ -636,29 +652,7 @@ function AudioSecondaryControls({
             className="w-20 accent-[#5a63df]"
           />
         ) : (
-          <select
-            aria-label="Audio playback speed"
-            className="text-xs bg-transparent border-none focus:ring-0 p-0 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer outline-none w-12"
-            value={playbackRate}
-            onChange={(e) => onPlaybackRateChange(parseFloat(e.target.value))}
-            data-oid="8n.ijd-"
-          >
-            <option value="0.75" data-oid="i70wglz">
-              0.75x
-            </option>
-            <option value="1" data-oid="erf126e">
-              1.0x
-            </option>
-            <option value="1.25" data-oid="9i1cfbt">
-              1.25x
-            </option>
-            <option value="1.5" data-oid="zw-:97l">
-              1.5x
-            </option>
-            <option value="2" data-oid=":0b834u">
-              2.0x
-            </option>
-          </select>
+          <RateSelectControl value={playbackRate} onChange={onPlaybackRateChange} />
         )}
       </div>
     </div>

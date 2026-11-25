@@ -4,7 +4,7 @@ import {
   prepareSnapshot,
   prepareObjectiveSnapshot,
   gradeSnapshot,
-  withoutSolutions,
+  unfinishedSnapshot,
   validateAnswers,
 } from '../_shared/objective-scoring/paired.js';
 
@@ -100,7 +100,9 @@ Deno.serve(async (req: Request) => {
           request_id: body.requestId,
         });
     }
-    const safe = withoutSolutions(snapshot);
+    // A practice Listening part shows its audioscript while it plays, as the
+    // test page does; a timed exam keeps it back until the attempt is finished.
+    const safe = unfinishedSnapshot(snapshot, authorization.session?.test_mode);
     if (snapshot.testData.test_type === 'reading') safe.testData.content = '';
     return reply({
       snapshot: attempt?.completed_at || legacyReview ? snapshot : safe,

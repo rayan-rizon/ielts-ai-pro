@@ -4,7 +4,8 @@ import { useSentenceAssistant } from '@/features/testing/reading/components/Read
 import SentenceAssistantPopover from '@/features/testing/reading/components/SentenceAssistantPopover';
 import QuestionHighlighter from '@/features/testing/shared/components/QuestionHighlighter';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Inbox, Lightbulb, ChevronLeft } from 'lucide-react';
+import { Inbox, Headphones, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TILE } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import ResizeHandle from '@/components/ui/resize-handle';
@@ -134,16 +135,27 @@ export default function ListeningTestMainContent({
           data-oid="1vkp36."
         >
           {isMobile && (
-            <div className="md:hidden px-4 pt-4">
-              <Button
-                variant="outline"
-                size="sm"
+            <div className="md:hidden border-b border-[#e4e2f0] bg-white px-3 py-2 dark:border-white/[0.07] dark:bg-[#141319]">
+              <button
+                type="button"
                 onClick={() => setLeftPanelWidth(100)}
-                className="h-9 w-full justify-start gap-2 rounded-xl border-slate-200 bg-white text-xs font-bold dark:border-white/[0.07] dark:bg-[#141319]"
+                className={cn(
+                  TILE,
+                  'flex w-full items-center justify-between gap-2 px-2.5 py-2 text-left transition-colors hover:border-[#5a63df]/35 active:scale-[0.99]'
+                )}
               >
-                <Lightbulb className="w-4 h-4 text-[#5a63df]" />
-                {isExamMode && !isFinished ? 'Show Audio' : 'Show Transcript & Audio'}
-              </Button>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/15 dark:text-[#adb3ff]">
+                    <Headphones className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {isExamMode && !isFinished ? 'Audio Player' : 'Transcript & Audio'}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#5a63df] dark:text-[#adb3ff]">
+                  Open <ChevronRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
             </div>
           )}
 
@@ -160,7 +172,7 @@ export default function ListeningTestMainContent({
           {/* Questions Scroll Area */}
           <div
             ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto min-h-0 p-2 md:p-4 custom-scrollbar"
+            className="flex-1 overflow-y-auto min-h-0 px-3 py-3 md:p-4 custom-scrollbar"
             data-oid="ei0mpxi"
           >
             <QuestionHighlighter
