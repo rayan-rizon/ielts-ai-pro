@@ -4,6 +4,8 @@ import { AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import useLearningPathData from '@/features/learning/hooks/useLearningPathData';
 import StudyPlanDashboard from '@/features/learning/components/dashboard/StudyPlanDashboard';
+import StudyPlanPaywall from '@/features/learning/components/dashboard/StudyPlanPaywall';
+import { hasPaidAccess } from '@/features/subscription/config/contentAccess';
 import DocumentHead from '@/components/shared/DocumentHead';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
@@ -30,8 +32,9 @@ const LearningPathError = ({ onRetry }) => (
 );
 
 export default function LearningPath() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const hasStudyPlanAccess = hasPaidAccess(user) || Boolean(isAdmin);
   const {
     learningPath,
     stats,
@@ -42,7 +45,7 @@ export default function LearningPath() {
     rescheduleActivity,
     hasError,
     retry,
-  } = useLearningPathData();
+  } = useLearningPathData({ enabled: hasStudyPlanAccess });
 
   return (
     <>
@@ -60,10 +63,14 @@ export default function LearningPath() {
         <div
           className={cn(
             'relative z-10 mx-auto max-w-[1440px]',
-            hasError && 'grid min-h-[70vh] place-items-center'
+            hasStudyPlanAccess && hasError && 'grid min-h-[70vh] place-items-center'
           )}
         >
-          {hasError ? (
+          {!hasStudyPlanAccess ? (
+            <TooltipProvider delayDuration={150}>
+              <StudyPlanPaywall user={user} />
+            </TooltipProvider>
+          ) : hasError ? (
             <LearningPathError onRetry={() => retry()} />
           ) : (
             <TooltipProvider delayDuration={150}>

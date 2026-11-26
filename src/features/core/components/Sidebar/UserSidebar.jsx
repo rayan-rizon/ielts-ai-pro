@@ -96,11 +96,7 @@ NavItem.displayName = 'NavItem';
 
 const isPremiumUser = hasPaidAccess;
 
-const resolveMainNavigation = (user) =>
-  userNavigationItems.map((item) => {
-    if (item.title !== 'Study plan' || isPremiumUser(user)) return item;
-    return { ...item, url: createPageUrl('Upgrade') };
-  });
+const resolveMainNavigation = () => userNavigationItems;
 
 const UserSidebarHeader = ({ institution }) => {
   const { state, isMobile } = useSidebar();
@@ -165,7 +161,7 @@ const LearnerNavigation = ({ user, currentPath }) => {
     <SidebarContent className="flex-1 px-3 py-2.5 gap-2 group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:pt-4">
       <NavigationSection
         label="Main menu"
-        items={resolveMainNavigation(user)}
+        items={resolveMainNavigation()}
         currentPath={currentPath}
       />
       <NavigationSection

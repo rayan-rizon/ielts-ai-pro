@@ -31,11 +31,11 @@ async function fetchLearningPathData(userId) {
  * still fires — this only covers the paths that invalidation cannot reach, like
  * a test finished in another tab.
  */
-const useLearningPathQuery = (userId) =>
+const useLearningPathQuery = (userId, enabled = true) =>
   useQuery({
     queryKey: ['learningPath', 'combined', userId ?? 'anonymous'],
     queryFn: () => fetchLearningPathData(userId),
-    enabled: Boolean(userId),
+    enabled: Boolean(userId) && enabled,
     staleTime: 30 * 1000,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
@@ -67,11 +67,11 @@ const useRescheduleActivity = (queryClient) =>
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['learningPath'] }),
   });
 
-export function useLearningPathData() {
+export function useLearningPathData({ enabled = true } = {}) {
   const { user, loading: userLoading } = useAuth();
   const queryClient = useQueryClient();
   const userId = user?.id;
-  const learningPathQuery = useLearningPathQuery(userId);
+  const learningPathQuery = useLearningPathQuery(userId, enabled);
   const pathData = learningPathQuery.data?.pathData ?? EMPTY_PATH_DATA;
   const toggleActivityMutation = useToggleActivity({
     userId,
@@ -82,7 +82,7 @@ export function useLearningPathData() {
 
   return {
     user: user ?? null,
-    isLoading: userLoading || (Boolean(userId) && learningPathQuery.isLoading),
+    isLoading: userLoading || (enabled && Boolean(userId) && learningPathQuery.isLoading),
     hasError: learningPathQuery.isError,
     errorMessage: learningPathQuery.error?.message ?? null,
     retry: learningPathQuery.refetch,

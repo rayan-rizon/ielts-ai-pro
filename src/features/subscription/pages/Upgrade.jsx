@@ -30,6 +30,11 @@ import { cn } from '@/lib/cn';
 import { createPageUrl } from '@/utils';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
 import { usePricing } from '@/features/subscription/hooks/usePricing';
+import {
+  detectIsBangladesh,
+  pricingDestination,
+  resolvePlanConfig,
+} from '@/features/subscription/utils/upgradePricing';
 
 const CAPABILITIES = [
   {
@@ -131,17 +136,6 @@ const ITEM_VARIANTS = {
   },
 };
 
-const TIER_DEFAULTS = {
-  BD: {
-    pro: { writing: 50, speaking: 25, price: 499, symbol: '৳' },
-    premium: { writing: 100, speaking: 50, price: 799, symbol: '৳' },
-  },
-  GLOBAL: {
-    pro: { writing: 100, speaking: 50, price: 9.99, symbol: '$' },
-    premium: { writing: 200, speaking: 100, price: 15.99, symbol: '$' },
-  },
-};
-
 const PLAN_CARD_CONFIGS = {
   pro: {
     targetBand: 'REGULAR PRACTICE',
@@ -189,64 +183,6 @@ const PLAN_CARD_CONFIGS = {
     ],
   },
 };
-
-function getDetectedCountry(pricingCountry, pricingConfig) {
-  if (pricingCountry) return pricingCountry.trim().toUpperCase();
-  if (pricingConfig?.userCountry) return pricingConfig.userCountry.trim().toUpperCase();
-  if (typeof localStorage !== 'undefined') {
-    const saved = localStorage.getItem('user_country');
-    if (saved) return saved.trim().toUpperCase();
-  }
-  return '';
-}
-
-function detectIsBangladesh(pricingCountry, pricingConfig) {
-  const country = getDetectedCountry(pricingCountry, pricingConfig);
-  if (country === 'BD' || country === 'BANGLADESH') {
-    return true;
-  }
-  if (!country && typeof Intl !== 'undefined') {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return tz === 'Asia/Dhaka' || tz === 'Asia/Chittagong';
-  }
-  return false;
-}
-
-function findTierPlan(tier, plans) {
-  if (Array.isArray(plans)) {
-    const matched = plans.find((p) => p.tier === tier);
-    if (matched) return matched;
-  }
-  return DEFAULT_PRICING_PLANS.find((p) => p.tier === tier);
-}
-
-function getRegionDefaults(tier, isBD) {
-  return isBD ? TIER_DEFAULTS.BD[tier] : TIER_DEFAULTS.GLOBAL[tier];
-}
-
-function getTierLimits(tier, pricingConfig) {
-  const limits = pricingConfig?.tierLimits?.[tier];
-  return limits || {};
-}
-
-function resolvePlanConfig(tier, plans, pricingConfig, isBD) {
-  const plan = findTierPlan(tier, plans);
-  const region = getRegionDefaults(tier, isBD);
-  const limits = getTierLimits(tier, pricingConfig);
-
-  const writingLimit = limits.writing_monthly_limit ?? region.writing;
-  const speakingLimit = limits.speaking_monthly_limit ?? region.speaking;
-  const symbol = plan.currencySymbol || region.symbol;
-  const price = plan.basePrice ?? region.price;
-
-  return {
-    writingLimit,
-    speakingLimit,
-    symbol,
-    price,
-    oldPrice: plan.oldPrice,
-  };
-}
 
 function UpgradeHeader({ focus }) {
   return (
@@ -345,19 +281,6 @@ function PlanPriceDisplay({ symbol, price, oldPrice }) {
       )}
     </div>
   );
-}
-
-function pricingDestination(search, tier) {
-  const incoming = new URLSearchParams(search);
-  const params = new URLSearchParams();
-  if (tier) params.set('plan', tier);
-  // Carry email attribution and any issued offer through the upgrade hub to
-  // the existing checkout flow instead of dropping them at the plan link.
-  ['campaign_id', 'delivery_id', 'promo'].forEach((key) => {
-    const value = incoming.get(key);
-    if (value) params.set(key, value);
-  });
-  return `${createPageUrl('Pricing')}${params.size ? `?${params}` : ''}`;
 }
 
 function PlanCard({ tier, planData }) {

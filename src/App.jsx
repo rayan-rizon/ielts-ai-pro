@@ -847,7 +847,7 @@ const getRoutes = () =>
     {
       path: '/learning-path',
       element: (
-        <ProtectedRoute requireOnboarding requirePro data-oid="ref7jz3">
+        <ProtectedRoute requireOnboarding data-oid="ref7jz3">
           <Layout currentPageName="LearningPath" data-oid="uaa5l7u">
             <LazyPage data-oid="9faz2x4">
               <LearningPath data-oid="sudqvrt" />
