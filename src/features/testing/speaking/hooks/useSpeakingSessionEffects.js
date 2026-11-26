@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-import { supabase } from '@/lib/supabase';
 import { callEdgeFunction } from '@/utils/api';
 
 export default function useSpeakingSessionEffects({
@@ -28,7 +27,6 @@ export default function useSpeakingSessionEffects({
     if (!useSpeakingV2) {
       callEdgeFunction('processSpeakingSession', { ping: true }).catch(() => {});
     }
-    supabase.functions.invoke('synthesizeSpeech', { body: { ping: true } }).catch(() => {});
   }, [testId, useSpeakingV2]);
 
   useEffect(() => {

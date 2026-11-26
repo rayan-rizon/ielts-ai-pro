@@ -1,11 +1,6 @@
-import { supabase } from '@/lib/supabase';
 import { callEdgeFunctionStream } from '@/utils/api';
 import { formatIeltsQuestion } from './speakingTestUtils';
 import { getSpeakingVoice } from './speakingAccents';
-
-// Practice uses the original British fallback. Exam voice selection comes from
-// the catalog below and uses the same key for prefetch and playback.
-export const SPEAKING_TTS_VOICE = 'en-GB-Neural2-C';
 
 const MAX_CACHED_REQUESTS = 40;
 const requestCache = new Map();
@@ -65,17 +60,9 @@ function shouldUseR2Route() {
   );
 }
 
-function cacheKey(text, voice, route) {
-  return `${route}::${voice}::${normalizeSpeakingTtsText(text)}`;
-}
-
 function evictOldestRequest() {
   const oldestKey = requestCache.keys().next().value;
   if (oldestKey) requestCache.delete(oldestKey);
-}
-
-function requestLegacyTts(cleanText, voice) {
-  return supabase.functions.invoke('synthesizeSpeech', { body: { text: cleanText, voice } });
 }
 
 function logPracticeTts(details) {
@@ -84,7 +71,7 @@ function logPracticeTts(details) {
 }
 
 /** A fresh phrase streams PCM; an R2 hit returns an audio URL. */
-async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
+async function requestPracticeTts(cleanText, mode, examVoice) {
   // Admin-only on the server; ignored for everyone else.
   const model = readLocalSetting(PRACTICE_OVERRIDE_MODEL_KEY);
   const voice = readLocalSetting(PRACTICE_OVERRIDE_VOICE_KEY);
@@ -137,8 +124,7 @@ async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
   } catch (error) {
     console.warn('[PracticeTTS] Speech request failed:', error?.message || error);
   }
-  if (mode === 'exam') return { data: null, error: new Error('Gemini exam voice unavailable') };
-  return requestLegacyTts(cleanText, legacyVoice);
+  return unavailableSpeech(mode);
 }
 
 /**
@@ -146,13 +132,13 @@ async function requestPracticeTts(cleanText, legacyVoice, mode, examVoice) {
  * prefetch parks the request for the one playback that follows; playback
  * takes it (removing it) or asks afresh without caching.
  */
-function requestPracticeOnce(key, cleanText, voice, { prefetch, mode, examVoice }) {
+function requestPracticeOnce(key, cleanText, { prefetch, mode, examVoice }) {
   const parked = requestCache.get(key);
   if (parked) {
     if (!prefetch) requestCache.delete(key);
     return parked;
   }
-  const request = requestPracticeTts(cleanText, voice, mode, examVoice);
+  const request = requestPracticeTts(cleanText, mode, examVoice);
   if (prefetch) {
     if (requestCache.size >= MAX_CACHED_REQUESTS) evictOldestRequest();
     requestCache.set(key, request);
@@ -163,53 +149,27 @@ function requestPracticeOnce(key, cleanText, voice, { prefetch, mode, examVoice 
   return request;
 }
 
-export function requestSpeakingTts(text, voice, options = {}) {
-  const cleanText = normalizeSpeakingTtsText(text);
-  if (!cleanText) return Promise.resolve({ data: null, error: null });
-
-  const selectedVoice = getActiveSpeakingVoice();
-  const legacyVoice = voice || selectedVoice.voice;
-  const useR2 = shouldUseR2Route();
-  const key = cacheKey(
-    cleanText,
-    legacyVoice,
-    useR2 ? `${ttsProfile}:${selectedVoice.id}` : 'standard'
-  );
-  if (useR2) {
-    return requestPracticeOnce(key, cleanText, legacyVoice, {
-      prefetch: Boolean(options.prefetch),
-      mode: ttsProfile,
-      examVoice: selectedVoice.id,
-    });
-  }
-
-  if (ttsProfile === 'exam') {
-    return Promise.resolve({ data: null, error: new Error('Gemini exam voice unavailable') });
-  }
-
-  const cached = requestCache.get(key);
-  if (cached) return cached;
-
-  if (requestCache.size >= MAX_CACHED_REQUESTS) evictOldestRequest();
-
-  const request = requestLegacyTts(cleanText, legacyVoice)
-    .then((result) => {
-      if (result?.error || !result?.data?.success || !result?.data?.audioUrl) {
-        if (requestCache.get(key) === request) requestCache.delete(key);
-      }
-      return result;
-    })
-    .catch((error) => {
-      if (requestCache.get(key) === request) requestCache.delete(key);
-      throw error;
-    });
-
-  requestCache.set(key, request);
-  return request;
+function unavailableSpeech(mode) {
+  const message =
+    mode === 'exam' ? 'Gemini exam voice unavailable' : 'Practice speech is unavailable';
+  return { data: null, error: new Error(message) };
 }
 
-export function prefetchSpeakingTts(text, voice) {
-  requestSpeakingTts(text, voice, { prefetch: true }).catch(() => {});
+export function requestSpeakingTts(text, { prefetch = false } = {}) {
+  const cleanText = normalizeSpeakingTtsText(text);
+  if (!cleanText) return Promise.resolve({ data: null, error: null });
+  if (!shouldUseR2Route()) return Promise.resolve(unavailableSpeech(ttsProfile));
+
+  const { id: examVoice } = getActiveSpeakingVoice();
+  return requestPracticeOnce(JSON.stringify([ttsProfile, examVoice, cleanText]), cleanText, {
+    prefetch,
+    mode: ttsProfile,
+    examVoice,
+  });
+}
+
+export function prefetchSpeakingTts(text) {
+  requestSpeakingTts(text, { prefetch: true }).catch(() => {});
 }
 
 export function clearSpeakingTtsRequestCache() {

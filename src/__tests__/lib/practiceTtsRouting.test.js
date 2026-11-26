@@ -23,7 +23,6 @@ import {
 } from '@/features/testing/speaking/utils/speakingTtsPrefetch';
 
 const cachedPractice = { success: true, audioUrl: 'https://media.ieltsai.pro/a.wav', cached: true };
-const legacyAudio = { success: true, audioUrl: 'data:audio/mpeg;base64,legacy' };
 
 const jsonResponse = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -38,7 +37,6 @@ describe('practice-mode TTS routing', () => {
     resetSpeakingTtsRoutingForTests();
     invoke.mockReset();
     callEdgeFunctionStream.mockReset();
-    invoke.mockResolvedValue({ data: legacyAudio, error: null });
     vi.stubEnv('VITE_PRACTICE_TTS', '');
   });
 
@@ -136,11 +134,13 @@ describe('practice-mode TTS routing', () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it('keeps practice mode on the standard voice when the build kill switch is set', async () => {
+  it('does not request a paid voice when the practice build kill switch is set', async () => {
     vi.stubEnv('VITE_PRACTICE_TTS', 'off');
     setSpeakingTtsProfile('practice');
-    await requestSpeakingTts('Do you work or study?');
+    const result = await requestSpeakingTts('Do you work or study?');
+    expect(result.data).toBeNull();
     expect(callEdgeFunctionStream).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('asks for a stream and hands back live PCM for a fresh phrase', async () => {
@@ -165,7 +165,7 @@ describe('practice-mode TTS routing', () => {
     expect(result.data.audioUrl).toBe(cachedPractice.audioUrl);
   });
 
-  it('falls back to the standard voice when the practice route fails or is missing', async () => {
+  it('returns unavailable without a legacy request when the practice route fails', async () => {
     setSpeakingTtsProfile('practice');
     callEdgeFunctionStream
       .mockResolvedValueOnce(
@@ -176,9 +176,10 @@ describe('practice-mode TTS routing', () => {
 
     for (const text of ['One.', 'Two.', 'Three.']) {
       const result = await requestSpeakingTts(text);
-      expect(result.data.audioUrl).toBe(legacyAudio.audioUrl);
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
     }
-    expect(invoke).toHaveBeenCalledTimes(3);
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('stops calling the practice route once the server excludes this learner', async () => {
@@ -189,7 +190,7 @@ describe('practice-mode TTS routing', () => {
     await requestSpeakingTts('First question.');
     await requestSpeakingTts('Second question.');
     expect(callEdgeFunctionStream).toHaveBeenCalledTimes(1);
-    expect(invoke).toHaveBeenCalledTimes(2);
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('hands a prefetched stream to exactly one playback', async () => {

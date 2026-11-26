@@ -623,7 +623,7 @@ serve(async (req: Request) => {
       pronunciationError,
       estimatedProviderCostUsd,
       examinerMode: 'deterministic-v1',
-      examinerVoice: 'en-GB-Neural2-C',
+      examinerVoice: 'british-female',
       speakingSessionId,
       response: responsePayload,
     });

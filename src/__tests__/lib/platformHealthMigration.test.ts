@@ -35,8 +35,8 @@ const writingFeedbackSource = readFileSync(
   resolve(process.cwd(), 'supabase/functions/_shared/writingEvaluation.ts'),
   'utf8'
 );
-const synthesizeSpeechSource = readFileSync(
-  resolve(process.cwd(), 'supabase/functions/synthesizeSpeech/index.ts'),
+const speakingTtsSource = readFileSync(
+  resolve(process.cwd(), 'supabase/functions/synthesizePracticeSpeech/index.ts'),
   'utf8'
 );
 const resendSource = readFileSync(
@@ -169,14 +169,14 @@ describe('platform health database contracts', () => {
   });
 
   it('never shows a cache-hit count the TTS usage table cannot produce', () => {
-    // synthesizeSpeech returns a cached phrase before reserving quota, so no
+    // The Gemini route returns a cached phrase before reserving quota, so no
     // ai_api_usage row exists for it and `cached` is always finalised false.
     expect(ttsCacheMigration).toContain("(service->'metrics') - 'cacheHits'");
     expect(ttsCacheMigration).toContain("'{contractVersion}', '7'::jsonb");
     expect(ttsCacheMigration).toContain('cache misses only');
     expect(ttsCacheMigration).toContain('does not mean the examiner voice was silent');
-    expect(synthesizeSpeechSource).toContain('cached: true');
-    expect(synthesizeSpeechSource).not.toMatch(/finalizeApiUsage\([^)]*,\s*true,/);
+    expect(speakingTtsSource).toContain('cached: true');
+    expect(speakingTtsSource).not.toMatch(/finalizeApiUsage\([^)]*,\s*true,/);
   });
 
   it('separates scoring failures from recovered text-provider fallbacks', () => {

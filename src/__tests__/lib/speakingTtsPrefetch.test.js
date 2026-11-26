@@ -27,11 +27,14 @@ import {
   SPEAKING_EXAMINER_VOICES,
 } from '@/features/testing/speaking/utils/speakingAccents';
 
+const practiceAudio = () =>
+  Response.json({ success: true, audioUrl: 'https://media.ieltsai.pro/practice.wav' });
+
 describe('speaking TTS prefetch cache', () => {
   beforeEach(() => {
     resetSpeakingTtsRoutingForTests();
     setSpeakingTtsProfile('practice');
-    vi.stubEnv('VITE_PRACTICE_TTS', 'off');
+    vi.stubEnv('VITE_PRACTICE_TTS', '');
     invoke.mockReset();
     callEdgeFunctionStream.mockReset();
   });
@@ -40,7 +43,7 @@ describe('speaking TTS prefetch cache', () => {
 
   it('shares one Edge invocation between prefetch and playback', async () => {
     let resolveRequest;
-    invoke.mockReturnValue(
+    callEdgeFunctionStream.mockReturnValue(
       new Promise((resolve) => {
         resolveRequest = resolve;
       })
@@ -49,14 +52,10 @@ describe('speaking TTS prefetch cache', () => {
     prefetchSpeakingTts('What do you do?');
     const playbackRequest = requestSpeakingTts('What do you do?');
 
-    expect(invoke).toHaveBeenCalledTimes(1);
-    resolveRequest({
-      data: { success: true, audioUrl: 'data:audio/mp3;base64,test' },
-      error: null,
-    });
+    expect(callEdgeFunctionStream).toHaveBeenCalledTimes(1);
+    resolveRequest(practiceAudio());
     await expect(playbackRequest).resolves.toMatchObject({ data: { success: true } });
-    await requestSpeakingTts('What do you do?');
-    expect(invoke).toHaveBeenCalledTimes(1);
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('shares a Gemini exam cache request between prefetch and playback', async () => {
@@ -88,16 +87,12 @@ describe('speaking TTS prefetch cache', () => {
   });
 
   it('normalizes equivalent IELTS question notation to the same cache key', async () => {
-    invoke.mockResolvedValue({
-      data: { success: true, audioUrl: 'data:audio/mp3;base64,test' },
-      error: null,
-    });
-
-    await requestSpeakingTts('[Why / Why not?]');
+    callEdgeFunctionStream.mockImplementation(async () => practiceAudio());
+    prefetchSpeakingTts('[Why / Why not?]');
     await requestSpeakingTts('Why, or why not?');
 
     expect(normalizeSpeakingTtsText('[Why / Why not?]')).toBe('Why, or why not?');
-    expect(invoke).toHaveBeenCalledTimes(1);
+    expect(callEdgeFunctionStream).toHaveBeenCalledTimes(1);
   });
 
   it('uses four distinct Gemini exam voices and keeps British female as the default', () => {
@@ -118,15 +113,17 @@ describe('speaking TTS prefetch cache', () => {
   });
 
   it('does not retain failed or graceful-fallback responses', async () => {
-    invoke.mockResolvedValueOnce({ data: { fallback: true }, error: null }).mockResolvedValueOnce({
-      data: { success: true, audioUrl: 'data:audio/mp3;base64,retry' },
-      error: null,
+    callEdgeFunctionStream
+      .mockResolvedValueOnce(Response.json({ fallback: true }))
+      .mockResolvedValueOnce(practiceAudio());
+
+    prefetchSpeakingTts('Retry me.');
+    await requestSpeakingTts('Retry me.');
+    await expect(requestSpeakingTts('Retry me.')).resolves.toMatchObject({
+      data: { success: true },
     });
 
-    await requestSpeakingTts('Retry me.');
-    await requestSpeakingTts('Retry me.');
-
-    expect(invoke).toHaveBeenCalledTimes(2);
+    expect(callEdgeFunctionStream).toHaveBeenCalledTimes(2);
   });
 
   it('routes initial greeting and question prefetches through the shared request cache', () => {
@@ -141,10 +138,7 @@ describe('speaking TTS prefetch cache', () => {
   });
 
   it('reuses prefetched announcement and question audio when the test starts', async () => {
-    invoke.mockResolvedValue({
-      data: { success: true, audioUrl: 'data:audio/mp3;base64,cached' },
-      error: null,
-    });
+    callEdgeFunctionStream.mockImplementation(async () => practiceAudio());
     const greeting = 'Welcome to the speaking test.';
     const question = 'Do you work or study?';
     prefetchSpeakingTts(greeting);
@@ -163,6 +157,6 @@ describe('speaking TTS prefetch cache', () => {
 
     // One synthesis request per unique phrase: start playback consumes the
     // prefetched promises and cannot double-charge the provider path.
-    expect(invoke).toHaveBeenCalledTimes(2);
+    expect(callEdgeFunctionStream).toHaveBeenCalledTimes(2);
   });
 });

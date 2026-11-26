@@ -18,7 +18,7 @@ import { getActivePcmPlayer, playPcmStream } from '../utils/pcmStreamPlayer';
 /**
  * useSpeechSynthesis
  *
- * Speaking TTS hook using Google Cloud TTS Neural2 (en-GB-Neural2-C) via a
+ * Speaking TTS hook using Gemini examiner and practice voices via a
  * Supabase Edge Function with content-addressed Supabase Storage caching.
  *
  * Key guarantees:

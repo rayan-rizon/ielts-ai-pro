@@ -393,7 +393,7 @@ serve(async (req: Request) => {
       return legacy('not_configured', corsHeaders);
 
     // 2. Miss: reserve against the shared TTS quota (the same daily and monthly
-    // limits as synthesizeSpeech), then synthesize once.
+    // limits as before), then synthesize once.
     const quota = await reserveDatabaseQuota(
       supabase,
       user.id,

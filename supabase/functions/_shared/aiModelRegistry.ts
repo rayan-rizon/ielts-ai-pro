@@ -136,15 +136,6 @@ export const MODELS: Record<string, ModelEntry> = {
     pricingSource:
       'OpenRouter catalog base price, verified 2026-09-28. The latency-sorted endpoint billed ~$0.00025 per coach reply, about 2x this rate; billed usage.cost wins when returned.',
   },
-  'google-tts-neural2': {
-    id: 'google-tts-neural2',
-    vendor: 'Google Cloud Text-to-Speech',
-    access: 'google-direct',
-    characterPricingPerMillion: 16,
-    pricingNote:
-      'Billed $16 per 1M characters (Neural2 tier). Results are cached by SHA-1 of voice+text.',
-    pricingSource: 'Google Cloud TTS Neural2 list price; matches synthesizeSpeech cost constant.',
-  },
   // Practice-mode examiner voice candidates, all reached through OpenRouter's
   // /api/v1/audio/speech endpoint. Gemini TTS is billed per token (text in,
   // audio out at ~25 tokens per second); the others are billed per character.
@@ -676,18 +667,6 @@ export const AI_ROUTES: AiRoute[] = [
     ],
   },
   {
-    id: 'text-to-speech',
-    surface: 'Listening / Speaking: examiner voice',
-    file: 'supabase/functions/synthesizeSpeech/index.ts',
-    steps: [
-      {
-        model: 'google-tts-neural2',
-        role: 'primary',
-        when: 'GOOGLE_TTS_API_KEY present. Default voice en-GB-Neural2-C.',
-      },
-    ],
-  },
-  {
     id: 'practice-text-to-speech',
     surface: 'Speaking exam: regional Gemini examiner voices; practice: Gemini coach voice',
     file: 'supabase/functions/synthesizePracticeSpeech/index.ts',
@@ -707,11 +686,6 @@ export const AI_ROUTES: AiRoute[] = [
         model: 'google/gemini-3.8-flash-lite-tts',
         role: 'fallback',
         when: 'Practice mode uses the same model through OpenRouter when GEMINI_API_KEY is missing or the browser did not ask for a stream, if OPENROUTER_API_KEY is set. Whole clip, ~4-5s.',
-      },
-      {
-        model: 'google-tts-neural2',
-        role: 'fallback',
-        when: 'Practice only: R2 or the selected provider key is missing, the practice rollout excludes the learner, or the provider refuses. Exam mode does not fall back to Neural2.',
       },
     ],
     notes:

@@ -56,16 +56,22 @@ describe('speaking quota reservation lifecycle', () => {
     }
   );
 
-  it.each([
-    'transcribeAudio',
-    'synthesizeSpeech',
-    'generateDetailedFeedback',
-    'generateStudyRecommendations',
-  ])('settles provider reservations on both success and failure in %s', (functionName) => {
-    const source = readFunction(functionName);
-
-    expect(source).toContain('quotaReservationId = quotaReservation.reservationId');
+  it('settles Gemini TTS quota for streamed and buffered audio', () => {
+    const source = readFunction('synthesizePracticeSpeech');
+    expect(source).toContain('quotaReservationId = quota.reservationId');
     expect(source).toMatch(/await finalizeApiUsage\([\s\S]{0,120}quotaReservationId/);
+    expect(source).toMatch(/finalizeApiUsage\(\s*supabase,\s*reservationId/);
     expect(source).toContain("'failed'");
   });
+
+  it.each(['transcribeAudio', 'generateDetailedFeedback', 'generateStudyRecommendations'])(
+    'settles provider reservations on both success and failure in %s',
+    (functionName) => {
+      const source = readFunction(functionName);
+
+      expect(source).toContain('quotaReservationId = quotaReservation.reservationId');
+      expect(source).toMatch(/await finalizeApiUsage\([\s\S]{0,120}quotaReservationId/);
+      expect(source).toContain("'failed'");
+    }
+  );
 });

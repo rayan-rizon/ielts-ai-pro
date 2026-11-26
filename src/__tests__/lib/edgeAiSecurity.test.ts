@@ -138,17 +138,13 @@ describe('AI edge security controls', () => {
     expect(apiSource).not.toContain('error.status === 401 || error.status === 403');
   });
 
-  it('does not expose an anonymous TTS warm-up path', () => {
+  it('retires the old TTS endpoint without a provider call or a warm-up path', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'supabase/functions/synthesizeSpeech/index.ts'),
       'utf8'
     );
-    const ping = source.indexOf('if (isWarmupPing)');
-    const auth = source.indexOf('if (authError || !user)');
-    const burst = source.indexOf('if (!burstCheck.allowed)');
-
-    expect(ping).toBeGreaterThan(auth);
-    expect(ping).toBeGreaterThan(burst);
+    expect(source).toContain('status: 410');
+    expect(source).not.toMatch(/fetch\(|reserveDatabaseQuota\(|isWarmupPing/);
   });
 
   it('warms the legacy speaking worker only after auth and burst controls', () => {

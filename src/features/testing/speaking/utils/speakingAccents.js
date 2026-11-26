@@ -6,7 +6,6 @@ export const EXAMINER_VOICE_COLORS = {
 };
 
 // Exam voices use region-specific Gemini 3.8 Flash-Lite Voice Library IDs.
-// Neural2 IDs remain only for the separate practice fallback path.
 export const SPEAKING_EXAMINER_VOICES = [
   {
     id: 'british-female',
@@ -15,7 +14,6 @@ export const SPEAKING_EXAMINER_VOICES = [
     region: 'United Kingdom',
     language: 'en-GB',
     gender: 'Female',
-    voice: 'en-GB-Neural2-C',
     geminiVoice: 'Sulafat',
     color: '#5a63df',
   },
@@ -26,7 +24,6 @@ export const SPEAKING_EXAMINER_VOICES = [
     region: 'United Kingdom',
     language: 'en-GB',
     gender: 'Male',
-    voice: 'en-GB-Neural2-D',
     geminiVoice: 'en-gb-tutor-14',
     color: '#0284c7',
   },
@@ -37,7 +34,6 @@ export const SPEAKING_EXAMINER_VOICES = [
     region: 'Australia',
     language: 'en-AU',
     gender: 'Male',
-    voice: 'en-AU-Neural2-B',
     geminiVoice: 'en-au-tutor-5',
     color: '#0d9488',
   },
@@ -48,7 +44,6 @@ export const SPEAKING_EXAMINER_VOICES = [
     region: 'United States',
     language: 'en-US',
     gender: 'Female',
-    voice: 'en-US-Neural2-C',
     geminiVoice: 'despina',
     color: '#e11d48',
   },
