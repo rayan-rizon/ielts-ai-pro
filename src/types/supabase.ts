@@ -1873,7 +1873,7 @@ export type Database = {
         Returns: Json;
       };
       update_user_last_active: {
-        Args: { user_auth_id: string };
+        Args: { user_auth_id: string; p_platform?: string };
         Returns: undefined;
       };
       upsert_user_profile: {

@@ -124,6 +124,7 @@ export const User = {
         async () => {
           const { error } = await supabase.rpc('update_user_last_active', {
             user_auth_id: session.user.id,
+            p_platform: 'web',
           });
           if (error) {
             console.warn('Failed to record user activity:', error.message);

@@ -1276,6 +1276,83 @@ const MarketSnapshotPanel = ({ markets, marketMap, summary, displayDays }) => {
   );
 };
 
+const PlatformRow = ({ label, value, max, tone }) => (
+  <div className="grid grid-cols-[4.5rem_1fr_2.5rem] items-center gap-2 py-1.5 text-[11px]">
+    <span className="font-extrabold text-stone-900 dark:text-stone-50">{label}</span>
+    <div className="h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-white/[0.06]">
+      <div
+        className="h-full rounded-full"
+        style={{
+          width: `${max > 0 ? Math.max(3, Math.round((100 * value) / max)) : 0}%`,
+          background: tone,
+        }}
+      />
+    </div>
+    <span className={cn(NUM, 'text-right font-bold text-stone-900 dark:text-stone-50')}>
+      {Number(value || 0).toLocaleString()}
+    </span>
+  </div>
+);
+
+const PlatformUsagePanel = ({ usage, displayDays }) => {
+  if (!usage) return null;
+  const web = usage.web ?? 0;
+  const app = usage.app ?? 0;
+  const ios = usage.ios ?? 0;
+  const android = usage.android ?? 0;
+  const max = Math.max(web, app);
+  const startedOn = usage.trackingStartedOn
+    ? new Date(`${usage.trackingStartedOn}T00:00:00+06:00`).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'Asia/Dhaka',
+      })
+    : null;
+
+  return (
+    <m.div variants={itemVariants} className="col-span-12">
+      <div className={cn(PANEL, 'p-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center')}>
+        <div className="flex items-baseline justify-between mb-3 sm:col-span-3 sm:mb-0">
+          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+            App vs web · last {displayDays}d
+          </h3>
+          <InfoTip>
+            Unique learners who opened each client in the current Bangladesh calendar window. A
+            learner who used both, or both iOS and Android, counts once under each. Counting started
+            {startedOn ? ` on ${startedOn}` : ''}; earlier activity and older app builds are shown
+            as not attributed, never guessed.
+          </InfoTip>
+        </div>
+        <div>
+          <PlatformRow label="Mobile app" value={app} max={max} tone="#5a63df" />
+          <PlatformRow label="· iOS" value={ios} max={max} tone="#5a63df" />
+          <PlatformRow label="· Android" value={android} max={max} tone="#5a63df" />
+          <PlatformRow label="Web" value={web} max={max} tone="var(--signal-ok)" />
+        </div>
+        <div className="grid grid-cols-3 gap-4 sm:col-span-2 sm:justify-self-end">
+          {[
+            ['Both', usage.both],
+            ['App today', usage.todayApp],
+            ['Web today', usage.todayWeb],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <div className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
+                {Number(value || 0).toLocaleString()}
+              </div>
+              <div className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>{label}</div>
+            </div>
+          ))}
+        </div>
+        {(usage.unattributed ?? 0) > 0 && (
+          <p className={cn(MICRO, 'text-stone-400 dark:text-stone-500 sm:col-span-3')}>
+            {Number(usage.unattributed).toLocaleString()} active learners not attributed yet
+          </p>
+        )}
+      </div>
+    </m.div>
+  );
+};
+
 const objectOrEmpty = (value) => value || {};
 const arrayOrEmpty = (value) => value || [];
 const windowOrFallback = (value, fallback) => value ?? fallback;
@@ -1314,6 +1391,7 @@ export const AdminOverviewSections = ({
       </m.div>
       <OverviewKpis kpis={kpis} displayDays={displayDays} />
       <div className="grid grid-cols-12 gap-3">
+        <PlatformUsagePanel usage={data.platformUsage} displayDays={displayDays} />
         <ActionQueue actions={arrayOrEmpty(data.actions)} />
         <FunnelPanel steps={arrayOrEmpty(data.funnel)} />
         <TrendPanel

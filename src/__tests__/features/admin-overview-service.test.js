@@ -40,6 +40,7 @@ describe('AnalyticsService.getOverview', () => {
       ...overview,
       kpis: { ...overview.kpis, active: activeUsers },
       actions,
+      platformUsage: null,
     });
 
     expect(mocks.rpc).toHaveBeenNthCalledWith(
@@ -71,6 +72,7 @@ describe('AnalyticsService.getOverview', () => {
       ...overview,
       kpis: { ...overview.kpis, active: activeUsers },
       actions,
+      platformUsage: null,
     });
     // The successful action-queue read is retained; only the failed overview
     // read is retried.
@@ -95,6 +97,7 @@ describe('AnalyticsService.getOverview', () => {
         },
       },
       actions,
+      platformUsage: null,
     });
   });
 

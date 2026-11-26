@@ -1,18 +1,22 @@
 import { supabase } from '@/lib/supabase';
 import { readAdminRpc } from './adminReadRpc';
 
+const getActiveUsers = async (days) => {
+  try {
+    return await readAdminRpc(supabase, 'get_admin_active_users', { p_days: days });
+  } catch (error) {
+    // Keep mixed-version local/preview environments usable while the migration rolls out.
+    if (error?.code === 'PGRST202') return null;
+    throw error;
+  }
+};
+
 const getOverviewSnapshot = async (days) => {
   // Mark these reads as GET requests. Besides documenting their idempotency,
   // this enables Supabase's built-in retry support for transient fetch errors.
   const [overviewResult, activeUsersResult, actionResult] = await Promise.all([
     readAdminRpc(supabase, 'get_admin_overview_with_signup_sources', { p_days: days }),
-    readAdminRpc(supabase, 'get_admin_active_users', { p_days: days }).catch((error) => {
-      // Keep mixed-version local/preview environments usable while the new
-      // migration rolls out. The UI deliberately hides legacy sub-metrics and
-      // comparisons rather than relabeling rolling data as calendar data.
-      if (error?.code === 'PGRST202') return null;
-      throw error;
-    }),
+    getActiveUsers(days),
     readAdminRpc(supabase, 'get_admin_overview_actions'),
   ]);
 
@@ -29,6 +33,7 @@ const getOverviewSnapshot = async (days) => {
       active: activeUsers,
     },
     actions: actionResult || [],
+    platformUsage: activeUsersResult?.platform || null,
   };
 };
 
