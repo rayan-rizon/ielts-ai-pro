@@ -86,8 +86,14 @@ describe('StudyPlanPaywall and LearningPath gating', () => {
 
     expect(screen.getByText(/How your plan bridges to Band/i)).toBeInTheDocument();
     expect(screen.getByText('68%')).toBeInTheDocument();
-    expect(screen.getByText('Try your full Study Plan for 7 days risk-free')).toBeInTheDocument();
-    expect(screen.getByText('Balanced · 45 min/day')).toBeInTheDocument();
+    expect(screen.getByText('4-Skill target bridge')).toBeInTheDocument();
+    expect(screen.getByText('Roadmap phases')).toBeInTheDocument();
+    expect(screen.getByText('Unlock your Study Plan')).toBeInTheDocument();
+    expect(screen.getAllByText('Balanced · 45 min/day').length).toBeGreaterThanOrEqual(1);
+
+    // Clicking a day slot updates the session detail bar
+    fireEvent.click(screen.getByRole('button', { name: /TUE/i }));
+    expect(screen.getByText(/TUE: Writing Task 2 Coherence Drill/i)).toBeInTheDocument();
 
     // Simulate skipping Wednesday and confirm rebalancing updates Thu & Fri
     const simBtn = screen.getByRole('button', { name: /Simulate: Skip Wed/i });
@@ -97,12 +103,12 @@ describe('StudyPlanPaywall and LearningPath gating', () => {
     expect(screen.getByText('Listen + P2')).toBeInTheDocument();
 
     // Pro selected by default, switching to Premium updates CTA & pricing link
-    const ctaLink = screen.getByRole('link', { name: /Unlock My Band 7\.5 Plan · ৳499\/mo/i });
+    const ctaLink = screen.getByRole('link', { name: /Continue with Pro · ৳499\/mo/i });
     expect(ctaLink).toHaveAttribute('href', expect.stringContaining('/pricing?plan=pro'));
 
-    fireEvent.click(screen.getByRole('radio', { name: /Premium Plan/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /Premium/i }));
     const premLink = screen.getByRole('link', {
-      name: /Unlock Premium Auto-Adjust Plan · ৳799\/mo/i,
+      name: /Continue with Premium · ৳799\/mo/i,
     });
     expect(premLink).toHaveAttribute('href', expect.stringContaining('/pricing?plan=premium'));
   });
@@ -112,7 +118,7 @@ describe('StudyPlanPaywall and LearningPath gating', () => {
 
     expect(learningPathDataMock).toHaveBeenCalledWith({ enabled: false });
     expect(screen.queryByTestId('study-plan-dashboard')).not.toBeInTheDocument();
-    expect(screen.getByText('Try your full Study Plan for 7 days risk-free')).toBeInTheDocument();
+    expect(screen.getByText('Unlock your Study Plan')).toBeInTheDocument();
   });
 
   it('renders StudyPlanDashboard for paid learners on /learning-path', () => {

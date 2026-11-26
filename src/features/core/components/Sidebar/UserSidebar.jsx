@@ -150,7 +150,7 @@ const NavigationSection = ({ label, items, currentPath, className }) => (
   </SidebarGroup>
 );
 
-const LearnerNavigation = ({ user, currentPath }) => {
+const LearnerNavigation = ({ currentPath }) => {
   const cambridgeTests = {
     title: 'Cambridge Tests',
     url: createPageUrl('CambridgeTests'),
@@ -325,7 +325,7 @@ export const UserSidebar = memo(({ user, location, handleLogout, showUpgradeOffe
   return (
     <>
       <UserSidebarHeader institution={user?.institution_branding} />
-      <LearnerNavigation user={user} currentPath={currentPath} />
+      <LearnerNavigation currentPath={currentPath} />
       <UserSidebarFooter
         user={user}
         handleLogout={handleLogout}

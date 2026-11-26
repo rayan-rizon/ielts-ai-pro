@@ -12,7 +12,7 @@ import { cn } from '@/lib/cn';
 import { MUTED, PANEL } from '@/features/dashboard/components/primitives';
 
 const PAGE_SHELL =
-  'relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5';
+  'relative min-h-full overflow-clip bg-[#f8f8fb] px-3 py-4 pb-10 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5';
 
 const LearningPathError = ({ onRetry }) => (
   <section className={cn(PANEL, 'mx-auto w-full max-w-lg p-6 text-center')}>
