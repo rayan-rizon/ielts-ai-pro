@@ -19,7 +19,7 @@ const TIERS = [
     originalPrice: null,
     summary: 'Start practising IELTS and see how you are improving.',
     features: [
-      'Reading and Listening practice tests',
+      'A limited number of free Reading and Listening tests',
       '5 AI Reading Assistant requests per day',
       'Grammar Units 1-3 and 5 practice questions per day',
       'Basic 30-day progress analytics',

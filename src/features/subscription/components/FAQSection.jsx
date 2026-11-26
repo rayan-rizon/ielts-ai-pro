@@ -7,36 +7,10 @@ import {
 } from '@/components/ui/accordion';
 import { PANEL } from '@/features/dashboard/components/primitives';
 import { cn } from '@/lib/cn';
-import { EXAM_PASS_DISCOUNT_PERCENT, EXAM_PASS_MONTHS } from '@/lib/pricingUtils';
+import { pricingFaqs } from '../config/pricingFaqs';
 
-const faqs = [
-  {
-    question: `What is the ${EXAM_PASS_MONTHS}-Month Exam Pass?`,
-    answer: `One payment covers ${EXAM_PASS_MONTHS} months of Pro or Premium at ${EXAM_PASS_DISCOUNT_PERCENT}% less than paying monthly. It never renews — your access simply ends after ${EXAM_PASS_MONTHS} months, so there is nothing to cancel.`,
-  },
-  {
-    question: 'Can I cancel my subscription anytime?',
-    answer:
-      'Yes, absolutely. You can cancel your subscription at any time from your account settings. You will continue to have access to your plan until the end of your current billing period.',
-  },
-  {
-    question: 'How accurate is the AI grading?',
-    answer:
-      'The score is an AI-assisted practice estimate based on the public IELTS assessment criteria. It provides feedback on task achievement or response, coherence and cohesion, lexical resource, and grammatical range and accuracy. It is not an official IELTS result or a replacement for a qualified examiner.',
-  },
-  {
-    question: 'Are the Cambridge IELTS tests free?',
-    answer:
-      'Yes! All Cambridge IELTS Reading and Listening practice tests are now completely free for all users.',
-  },
-  {
-    question: 'Do I need a subscription for AI feedback?',
-    answer:
-      'While the tests are free, a Pro or Premium subscription is required for deep AI evaluations of your Writing and Speaking sessions.',
-  },
-];
-
-export default function FAQSection() {
+export default function FAQSection({ plans }) {
+  const faqs = pricingFaqs(plans);
   return (
     <section className="mx-auto max-w-3xl pt-8">
       <h2 className="mb-4 text-center text-2xl font-extrabold tracking-[-0.02em] text-slate-900 dark:text-white">

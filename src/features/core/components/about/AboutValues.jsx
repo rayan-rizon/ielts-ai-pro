@@ -35,9 +35,9 @@ const VALUES = [
   },
   {
     icon: Globe,
-    title: 'Preparation not rationed by budget',
+    title: 'Try it before you pay',
     badge: 'Access',
-    body: 'Cambridge Reading and Listening stay unlimited on the free plan. Paid tiers add AI volume, not the exam itself.',
+    body: 'A free account starts with a set number of Cambridge Reading and Listening tests. Paid plans make them unlimited and add more AI feedback.',
   },
 ];
 

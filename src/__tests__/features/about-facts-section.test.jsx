@@ -60,7 +60,7 @@ describe('AboutFacts section redesign', () => {
 
     expect(screen.getByText(/The free plan includes/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/unlimited Cambridge Reading and Listening practice/i)
+      screen.getByText(/a limited number of Cambridge Reading and Listening tests/i)
     ).toBeInTheDocument();
   });
 

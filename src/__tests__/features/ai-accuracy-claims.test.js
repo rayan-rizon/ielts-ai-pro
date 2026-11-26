@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 const claimFiles = [
   '../../features/subscription/components/FAQSection.jsx',
+  '../../features/subscription/config/pricingFaqs.js',
   '../../features/core/pages/About.jsx',
   '../../features/core/components/about/AboutHero.jsx',
   '../../features/core/components/contact/ContactCTA.jsx',

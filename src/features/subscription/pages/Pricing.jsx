@@ -823,7 +823,7 @@ export default function Pricing() {
             handleOpenPortal={handleOpenPortal}
           />
 
-          <FAQSection />
+          <FAQSection plans={plans} />
         </m.div>
 
         <AnimatePresence>

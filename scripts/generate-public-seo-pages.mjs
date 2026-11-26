@@ -158,7 +158,7 @@ const publicPages = [
         ],
         [
           'Do I need to pay to use IELTS Ai Pro?',
-          'A free account covers Reading and Listening practice, a monthly allowance of Writing evaluation, vocabulary tools, and basic progress analytics. Paid plans raise the monthly Writing and Speaking evaluation limits and add features such as advanced analytics and an adaptive study plan. Current limits are always shown before you start a task.',
+          'A free account covers a limited number of Reading and Listening tests, a monthly allowance of Writing evaluation, vocabulary tools, and basic progress analytics. Paid plans give unlimited Reading and Listening tests, raise the monthly Writing and Speaking evaluation limits and add features such as advanced analytics and an adaptive study plan. Current limits are always shown before you start a task.',
         ],
         [
           'Which IELTS test does the platform target?',

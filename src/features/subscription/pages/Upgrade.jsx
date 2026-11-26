@@ -1,4 +1,5 @@
 import React from 'react';
+import { generateFeatureStrings } from '@/lib/tierLimitsUtils';
 import { Link, useLocation } from 'react-router-dom';
 import { m } from 'framer-motion';
 import {
@@ -473,6 +474,7 @@ function TrustMetricsSection() {
 
 function FreePlanComparison({ pricingConfig }) {
   const free = pricingConfig?.tierLimits?.free;
+  const tests = free && generateFeatureStrings('free', free);
   return (
     <m.section
       variants={ITEM_VARIANTS}
@@ -482,7 +484,10 @@ function FreePlanComparison({ pricingConfig }) {
       <p className={cn(MICRO, MUTED)}>YOUR STARTING POINT</p>
       <h2 className={cn(TITLE, 'mt-1')}>Try the feedback. Subscribe for a regular routine.</h2>
       <p className={cn(MUTED, 'mt-2 text-xs leading-relaxed')}>
-        Free includes Reading &amp; Listening practice
+        Free includes{' '}
+        {tests
+          ? `${tests.readingFeature}, ${tests.listeningFeature}`
+          : 'a limited number of Reading and Listening tests'}
         {free &&
           `, ${free.writing_monthly_limit === -1 ? 'unlimited' : free.writing_monthly_limit} Writing evaluations and ${free.speaking_monthly_limit === -1 ? 'unlimited' : free.speaking_monthly_limit} Speaking sessions per month`}
         . Pro adds more AI evaluations, advanced analytics and an adaptive Learning Path. Your saved

@@ -212,7 +212,7 @@ export default function AboutFacts() {
               <p className={MUTED}>
                 The free plan includes{' '}
                 <strong className={cn('font-bold', INK)}>
-                  unlimited Cambridge Reading and Listening practice
+                  a limited number of Cambridge Reading and Listening tests
                 </strong>{' '}
                 — no card required to start.
               </p>

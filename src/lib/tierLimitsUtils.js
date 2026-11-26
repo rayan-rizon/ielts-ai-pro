@@ -25,8 +25,9 @@ const DEFAULT_LIMITS = {
     speaking_monthly_limit: 0,
     writing_daily_limit: 1,
     speaking_daily_limit: 0,
-    reading_test_limit: -1,
-    listening_test_limit: -1,
+    // Matches the live Free setting, so a failed read never promises unlimited.
+    reading_test_limit: 6,
+    listening_test_limit: 6,
   },
   pro: {
     writing_monthly_limit: 100,

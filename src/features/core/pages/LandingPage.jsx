@@ -33,11 +33,11 @@ const viewport = { once: true, amount: 0.12 };
 const faqs = [
   {
     q: 'What can I practice for free?',
-    a: 'The Free plan includes Cambridge IELTS Reading and Listening practice tests, 2 Practice Lab sets per day, 1 AI Writing evaluation per month, vocabulary tools, and basic progress analytics.',
+    a: 'The Free plan includes a limited number of Cambridge IELTS Reading and Listening tests, 5 Practice Lab sets per day, 1 AI Writing evaluation per month, vocabulary tools, and basic progress analytics. Paid plans give unlimited Reading and Listening tests.',
   },
   {
     q: 'How many Practice Lab sets can I do?',
-    a: 'Free accounts can start 2 Practice Lab sets per day. The daily allowance resets at 00:00 UTC. Pro and Premium include unlimited Practice Lab sets. All learners can return to saved sets at any time.',
+    a: 'Free accounts can start 5 Practice Lab sets per day. The daily allowance resets at 00:00 UTC. Pro and Premium include unlimited Practice Lab sets. All learners can return to saved sets at any time.',
   },
   {
     q: 'How does the IELTS Writing feedback work?',
