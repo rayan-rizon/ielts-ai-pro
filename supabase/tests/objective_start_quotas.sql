@@ -75,11 +75,14 @@ end $$;
 reset role;
 
 -- The allowance is for the life of the account: an old start still counts.
-set local role service_role;
-update objective_private.test_start_ledger
-set started_at = now() - interval '400 days'
-where user_id = '42000000-0000-4000-8000-000000000001';
-reset role;
+-- Backdate the fixture as the test runner because the ledger is private.
+do $$ begin
+  update objective_private.test_start_ledger
+  set started_at = now() - interval '400 days'
+  where user_id = '42000000-0000-4000-8000-000000000001'
+    and request_id = '44000000-0000-4000-8000-000000000001';
+  assert found, 'Expected a ledger entry for the first Reading start';
+end $$;
 select set_config('request.jwt.claims', '{"sub":"41000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
 do $$ begin
