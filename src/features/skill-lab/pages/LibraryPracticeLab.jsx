@@ -1,5 +1,10 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import PracticeHome from '../components/PracticeHome';
+import { RetryBar, RetryPanel } from '../components/RetryMistake';
+import { retryQuestions, retryRows } from '../retryModel';
+import PassageHighlighter from '../components/PassageHighlighter';
+import PracticeTranscript from '../components/PracticeTranscript';
+import { withTestNumbers } from '../practiceNumbering';
 import SessionProgressBar from '../components/SessionProgressBar';
 import { questionSlots } from '../practiceHomeModel';
 import { ResultSummary, ReviewList } from '../components/PracticeResults';
@@ -15,7 +20,7 @@ import { formatLibraryText } from '../libraryText';
 import { getSupabaseFunctionHeaders } from '@/lib/csrf';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import { PANEL, WELL, MICRO, MUTED, TITLE } from '@/features/dashboard/components/primitives.jsx';
+import { PANEL, WELL, MUTED, TITLE } from '@/features/dashboard/components/primitives.jsx';
 import MatchingRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/MatchingRenderer';
 import MultipleChoiceRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/MultipleChoiceRenderer';
 import TrueFalseRenderer from '@/features/testing/reading/components/ReadingTest/components/QuestionRenderers/TrueFalseRenderer';
@@ -270,8 +275,9 @@ function AudioNote({ source, questionRange }) {
     </p>
   );
 }
-function Source({ source }) {
+function Source({ source, highlightKey }) {
   const [audioError, setAudioError] = useState(false);
+  const audioRef = useRef(null);
   const passageTitle = sourcePassageTitle(source);
   return (
     <section
@@ -287,12 +293,14 @@ function Source({ source }) {
       {source.audio_url && (
         <>
           <audio
+            ref={audioRef}
             controls
             preload="metadata"
             src={source.audio_url}
             onError={() => setAudioError(true)}
             className="w-full"
           />
+          <PracticeTranscript source={source} audioRef={audioRef} />
           {audioError && (
             <p role="alert">
               Audio could not load. Your answers are saved when you choose Save and exit. Reload to
@@ -302,10 +310,13 @@ function Source({ source }) {
         </>
       )}
       {!source.audio_url && (
-        <div
-          className="flex-1 whitespace-pre-wrap break-words text-sm leading-7 text-slate-800 dark:text-slate-200 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
-          dangerouslySetInnerHTML={{ __html: formatLibraryText(source.content) }}
-        />
+        <PassageHighlighter storageKey={highlightKey}>
+          <div
+            data-passage-body
+            className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-800 dark:text-slate-200 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
+            dangerouslySetInnerHTML={{ __html: formatLibraryText(source.content) }}
+          />
+        </PassageHighlighter>
       )}
     </section>
   );
@@ -327,6 +338,8 @@ export default function LibraryPracticeLab() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [saveState, setSaveState] = useState('idle');
+  // The retry is for learning only: never saved, submitted or scored.
+  const [retry, setRetry] = useState({ answers: {}, revealed: false });
   const [completedResult, setCompletedResult] = useState(null);
   const shouldReduceMotion = useReducedMotion();
   const startId = useRef(null);
@@ -360,6 +373,7 @@ export default function LibraryPracticeLab() {
       }
       hydratedSession.current = sessionId;
       setSaveState('idle');
+      setRetry({ answers: {}, revealed: false });
       answersRef.current = restored;
       setAnswers(restored);
       setChosenStep(null);
@@ -527,12 +541,13 @@ export default function LibraryPracticeLab() {
   );
   if (sessionId) {
     const gradedResult = data.result || completedResult;
-    const hasMistake = Boolean(data.mistake);
+    const retryList = retryQuestions(data.mistake, data.questions);
+    const hasMistake = retryList.length > 0;
     // Old sessions saved stage 1 ("approach") and 2 (questions); both now mean practising.
     const step =
       chosenStep || (gradedResult ? 'results' : hasMistake && !data.stage ? 'review' : 'practise');
     const steps = [
-      hasMistake && { id: 'review', label: 'See your mistake' },
+      hasMistake && { id: 'review', label: 'Retry your mistake' },
       { id: 'practise', label: 'Try the questions' },
       { id: 'results', label: 'Check answers' },
     ].filter(Boolean);
@@ -541,16 +556,19 @@ export default function LibraryPracticeLab() {
     const module = data.focus.split(':')[0];
     const isListening = module === 'listening';
     const source = reviewing ? data.mistake : data.source;
-    const reviewQuestions = reviewing ? data.mistake.questions : data.questions;
+    const reviewQuestions = reviewing ? retryList : data.questions;
     const reviewRows =
-      reviewing || step === 'results'
+      step === 'results'
         ? buildReviewRows({
-            questions: reviewQuestions,
-            result: reviewing ? data.mistake.result : gradedResult,
-            answers: reviewing ? data.mistake.answers : answers,
-            explanations: reviewing ? data.mistake.explanations : data.explanations,
+            questions: data.questions,
+            result: gradedResult,
+            answers,
+            explanations: data.explanations,
           })
         : [];
+    const retried = reviewing ? retryRows(data.mistake, retryList, retry.answers) : [];
+    const changeRetry = (id, value) =>
+      setRetry((current) => ({ ...current, answers: { ...current.answers, [id]: value } }));
     const jumpToAnswer = (number) => {
       setReviewFilter('all');
       setTab('questions');
@@ -602,47 +620,39 @@ export default function LibraryPracticeLab() {
         );
       });
     return (
-      <main className="mx-auto max-w-7xl space-y-2.5 px-3 py-2 pb-16 md:px-5 md:py-3 md:pb-16">
-        <header className="space-y-2 border-b border-[#e4e2f0] pb-2.5 dark:border-white/[0.07]">
-          {/* Row 1: Navigation and actions */}
-          <div className="flex items-center justify-between gap-2">
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={save}
-              className="h-7 shrink-0 gap-1.5 px-2.5 text-xs shadow-none hover:translate-y-0 hover:shadow-none sm:px-3"
-              aria-label="Save and exit"
-            >
-              <ArrowLeft size={14} />
-              Save and exit
-            </Button>
-            {data.source_session_id && (
-              <Link
-                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#5a63df] transition-colors hover:border-[#5a63df]/40 hover:bg-[#f7f6fd] dark:border-white/[0.09] dark:bg-white/[0.03] dark:text-[#afb5ff] dark:hover:bg-white/[0.07]"
-                to={`/${module}-test/${data.source_session_id}?view-results=true`}
-              >
-                View test result
-                <ArrowRight size={12} aria-hidden="true" />
-              </Link>
-            )}
-          </div>
-
-          {/* Row 2: Title and session progress */}
-          <div className="min-w-0">
-            <p className={MICRO}>Practice Lab · {title(data.category || data.focus)}</p>
-            <h1
-              className="max-w-[42rem] break-words text-lg font-semibold leading-tight sm:text-xl"
-              tabIndex={-1}
-            >
+      <main className="mx-auto max-w-7xl space-y-2 px-3 py-2 pb-16 md:px-5 md:pb-16">
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={save}
+            className="h-7 shrink-0 gap-1.5 px-2.5 text-xs shadow-none hover:translate-y-0 hover:shadow-none sm:px-3"
+            aria-label="Save and exit"
+          >
+            <ArrowLeft size={14} />
+            Save and exit
+          </Button>
+          <div className="min-w-0 flex-1">
+            <p className={`truncate text-[11px] font-semibold leading-tight ${MUTED}`}>
+              {title(data.category || data.focus)}
+            </p>
+            <h1 className="truncate text-[15px] font-bold leading-tight" tabIndex={-1}>
               {data.source.title}
             </h1>
-            <p className={`mt-0.5 text-[11px] ${MUTED}`}>
-              Step {stepIndex + 1} of {steps.length} · {steps[stepIndex].label}
-            </p>
           </div>
+          {/* The old result page shows answers, so it waits until this set is graded. */}
+          {step === 'results' && data.source_session_id && (
+            <Link
+              className="order-2 ml-auto inline-flex shrink-0 items-center gap-1 rounded-md border border-[#e4e2f0] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#5a63df] transition-colors hover:border-[#5a63df]/40 hover:bg-[#f7f6fd] dark:border-white/[0.09] dark:bg-white/[0.03] dark:text-[#afb5ff] dark:hover:bg-white/[0.07]"
+              to={`/${module}-test/${data.source_session_id}?view-results=true`}
+            >
+              View test result
+              <ArrowRight size={12} aria-hidden="true" />
+            </Link>
+          )}
         </header>
         <ol
-          className={`${WELL} grid gap-1.5 rounded-xl p-1.5 ${steps.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
+          className={`${WELL} grid gap-1 rounded-lg p-1 ${steps.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
           aria-label="Practice workflow stages"
         >
           {steps.map((entry, index) => {
@@ -652,7 +662,7 @@ export default function LibraryPracticeLab() {
               <li
                 key={entry.id}
                 aria-current={isCurrent ? 'step' : undefined}
-                className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-all duration-150 ${
+                className={`flex min-w-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-xs transition-all duration-150 ${
                   isCurrent
                     ? 'bg-white font-bold text-[#5a63df] shadow-xs dark:bg-white/[0.10] dark:text-[#afb5ff]'
                     : isCompleted
@@ -677,6 +687,11 @@ export default function LibraryPracticeLab() {
           })}
         </ol>
         {alert}
+        {data.familiarity === 'repeated' && step !== 'results' && (
+          <p className={`${WELL} rounded-lg p-2.5 text-xs font-semibold`}>
+            Revision: you have answered these questions before.
+          </p>
+        )}
         {step === 'results' && gradedResult && (
           <ResultSummary
             result={gradedResult}
@@ -690,7 +705,11 @@ export default function LibraryPracticeLab() {
           <>
             <AudioNote source={source} questionRange={questionRangeLabel(reviewQuestions)} />
             <div data-testid="sticky-audio" className="sticky top-0 z-20">
-              <Source key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`} source={source} />
+              <Source
+                key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
+                source={source}
+                highlightKey={`practice-highlights:${user?.id}:${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
+              />
             </div>
           </>
         )}
@@ -702,7 +721,11 @@ export default function LibraryPracticeLab() {
           >
             {[
               { id: 'passage', label: 'Passage / audio' },
-              { id: 'questions', label: reviewing || step === 'results' ? 'Answers' : 'Questions' },
+              {
+                id: 'questions',
+                label:
+                  step === 'results' || (reviewing && retry.revealed) ? 'Answers' : 'Questions',
+              },
             ].map((entry) => (
               <button
                 key={entry.id}
@@ -736,29 +759,36 @@ export default function LibraryPracticeLab() {
             <div
               className={`${tab !== 'passage' ? 'hidden md:flex md:flex-col' : 'flex flex-col'} min-w-0 md:sticky md:top-4 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto h-full`}
             >
-              <Source key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`} source={source} />
+              <Source
+                key={`${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
+                source={source}
+                highlightKey={`practice-highlights:${user?.id}:${sessionId}:${reviewing ? 'mistake' : 'practice'}`}
+              />
             </div>
           )}
           <div
             className={`${tab !== 'questions' && !isListening ? 'hidden md:flex md:flex-col' : 'flex flex-col'} ${PANEL} min-w-0 p-3.5 sm:p-4 h-full`}
           >
-            {reviewing || step === 'results' ? (
-              <>
-                {reviewing && (
-                  <p className={`mb-2.5 text-xs leading-relaxed ${MUTED}`}>
-                    Your earlier answers on this question type. Read the feedback, then practise a
-                    fresh set.
-                  </p>
-                )}
-                <ReviewList
-                  rows={reviewRows}
-                  filter={reviewFilter}
-                  onFilterChange={setReviewFilter}
+            {reviewing && (
+              <RetryPanel revealed={retry.revealed} rows={retried} isListening={isListening}>
+                <Questions
+                  questions={withTestNumbers(retryList)}
+                  module={module}
+                  answers={retry.answers}
+                  onChange={changeRetry}
                 />
-              </>
-            ) : (
+              </RetryPanel>
+            )}
+            {step === 'results' && (
+              <ReviewList
+                rows={reviewRows}
+                filter={reviewFilter}
+                onFilterChange={setReviewFilter}
+              />
+            )}
+            {step === 'practise' && (
               <Questions
-                questions={data.questions}
+                questions={withTestNumbers(data.questions)}
                 module={module}
                 answers={answers}
                 onChange={changeAnswer}
@@ -767,17 +797,13 @@ export default function LibraryPracticeLab() {
           </div>
         </div>
         {step === 'review' && (
-          <div
-            className={`${PANEL} flex flex-wrap items-center justify-between gap-3 p-2.5 sm:p-3`}
-          >
-            <p className={`text-xs ${MUTED}`}>
-              Review the question and answer, then practise a fresh set.
-            </p>
-            <Button disabled={busy} className="ml-auto shrink-0 gap-1.5" onClick={startPractising}>
-              Start practising
-              <ArrowRight size={14} />
-            </Button>
-          </div>
+          <RetryBar
+            revealed={retry.revealed}
+            canReveal={retried.some((row) => row.nowText)}
+            busy={busy}
+            onReveal={() => setRetry((current) => ({ ...current, revealed: true }))}
+            onContinue={startPractising}
+          />
         )}
         {step === 'practise' && (
           <SessionProgressBar

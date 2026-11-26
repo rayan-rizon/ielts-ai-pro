@@ -21,7 +21,9 @@ import {
 } from '@/features/dashboard/components/primitives.jsx';
 import { focusLabel, groupCategory } from '../../practiceLabels';
 import { typeStatus } from '../../practiceHomeModel';
-import { date, focusRing, subject } from './SourceSetPicker';
+import { resultRows } from '../../practiceResultRows';
+import ResultList from './ResultList';
+import { focusRing, subject } from './SourceSetPicker';
 
 const GROUPS = [
   ['needs_work', 'Needs work'],
@@ -104,13 +106,7 @@ function TypeCard({ type, tip, need, sets, open, onToggle }) {
 
 function History({ needs }) {
   const rows = needs
-    .flatMap((need) =>
-      (need.history || []).map((entry, index) => ({
-        ...entry,
-        focus: need.focus,
-        title: need.sources?.[index]?.title || entry.kind,
-      }))
-    )
+    .flatMap(resultRows)
     .sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)))
     .slice(0, HISTORY_ROWS);
   if (!rows.length) {
@@ -125,31 +121,7 @@ function History({ needs }) {
       </p>
     );
   }
-  return (
-    <ul className="mt-3 space-y-2">
-      {rows.map((row, index) => (
-        <li
-          key={`${row.focus}-${index}`}
-          className={cn(
-            WELL,
-            'flex items-center justify-between gap-2 rounded-lg border border-[#e4e2f0] px-3 py-2 dark:border-white/[0.07]'
-          )}
-        >
-          <span className="min-w-0">
-            <span className="block truncate text-xs font-semibold text-slate-800 dark:text-slate-100">
-              {row.title}
-            </span>
-            <span className={`block text-[11px] ${MUTED}`}>
-              {subject(row.focus)} · {focusLabel(row.focus)} · {row.kind} · {date(row.completedAt)}
-            </span>
-          </span>
-          <strong className={cn(NUM, 'shrink-0 text-xs text-slate-900 dark:text-slate-100')}>
-            {row.correct} of {row.total}
-          </strong>
-        </li>
-      ))}
-    </ul>
-  );
+  return <ResultList rows={rows} label="Past results" className="mt-3" />;
 }
 
 /** Splits the ordered types into status groups, keeping the open card visible. */

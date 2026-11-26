@@ -53,7 +53,7 @@ describe('pricing plan configuration', () => {
       'Advanced Weakness & Readiness Analytics'
     );
     const practiceLabels = [
-      '2 Practice Lab Sets/Day',
+      '5 Practice Lab Sets/Day',
       'Unlimited Practice Lab Sets',
       'Unlimited Practice Lab Sets',
     ];

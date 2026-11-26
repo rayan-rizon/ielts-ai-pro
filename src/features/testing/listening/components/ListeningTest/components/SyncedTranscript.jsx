@@ -24,6 +24,24 @@ function removeLeadingText(parts, leadingText) {
 }
 
 /**
+ * Keeps the spoken line centred. With a scroll box only that box moves, so a
+ * transcript inside a scrolling page never drags the page along.
+ */
+function followLine(line, box) {
+  if (!line) return;
+  try {
+    if (!box) {
+      line.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      return;
+    }
+    const offset = line.getBoundingClientRect().top - box.getBoundingClientRect().top;
+    box.scrollTo({ top: box.scrollTop + offset - box.clientHeight / 2, behavior: 'smooth' });
+  } catch {
+    // Following the audio is a convenience; the transcript still reads without it.
+  }
+}
+
+/**
  * Synchronized Transcript Component
  * Displays audio transcript with highlighting synced to current playback position.
  *
@@ -40,6 +58,7 @@ const SyncedTranscript = memo(function SyncedTranscript({
   showAnswerHighlights = false,
   onSegmentClick,
   currentTime = 0,
+  scrollBoxRef,
 }) {
   // 1. Parse Segments (memoized — only re-parses when srtContent changes)
   const segments = useMemo(() => parseSrt(srtContent || ''), [srtContent]);
@@ -106,18 +125,8 @@ const SyncedTranscript = memo(function SyncedTranscript({
 
   // Auto-scroll to active segment
   useEffect(() => {
-    if (activeRef.current) {
-      try {
-        activeRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest',
-        });
-      } catch {
-        // Error handled silently
-      }
-    }
-  }, [activeIndex]);
+    followLine(activeRef.current, scrollBoxRef?.current);
+  }, [activeIndex, scrollBoxRef]);
 
   if (!presentationSegments.length) {
     return (

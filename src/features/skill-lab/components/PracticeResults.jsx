@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, ChevronDown, CircleX, Minus } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -205,26 +206,52 @@ function Explanation({ text, defaultOpen }) {
   );
 }
 
-function FilterTab({ active, onClick, children }) {
+function FilterTab({ active, onClick, count, badgeTone, reducedMotion, children }) {
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors',
+        'relative z-10 inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.97]',
         active
-          ? 'bg-white text-[#5a63df] dark:bg-white/10 dark:text-[#afb5ff]'
-          : cn(MUTED, 'hover:text-slate-900 dark:hover:text-slate-100')
+          ? 'text-white'
+          : 'text-slate-600 hover:bg-white/75 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.07] dark:hover:text-white'
       )}
     >
-      {children}
+      {active && (
+        <motion.span
+          layoutId="practice-results-filter-tab"
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { type: 'spring', stiffness: 520, damping: 36, mass: 0.7 }
+          }
+          className="absolute inset-0 -z-10 rounded-md bg-[#5a63df]"
+          aria-hidden="true"
+        />
+      )}
+      <span>{children}</span>
+      <span
+        className={cn(
+          NUM,
+          'rounded px-1.5 py-0.5 text-[10px] font-extrabold leading-none',
+          active
+            ? 'bg-white/20 text-white'
+            : badgeTone === 'fault'
+              ? 'bg-[rgb(var(--signal-fault)/0.1)] text-[rgb(var(--signal-fault))] dark:bg-[rgb(var(--signal-fault)/0.16)]'
+              : 'border border-[#e4e2f0] bg-white text-slate-600 dark:border-white/10 dark:bg-white/[0.08] dark:text-slate-300'
+        )}
+      >
+        {count}
+      </span>
     </button>
   );
 }
 
 /** Answer-by-answer feedback. `filter` and `onFilterChange` are owned by the page so the summary can jump. */
 export function ReviewList({ rows, filter, onFilterChange }) {
+  const reducedMotion = useReducedMotion();
   const wrong = rows.filter((row) => !row.isCorrect);
   const visible = filter === 'wrong' && wrong.length > 0 ? wrong : rows;
   if (rows.length === 0) {
@@ -238,15 +265,26 @@ export function ReviewList({ rows, filter, onFilterChange }) {
     <div className="space-y-2.5">
       {wrong.length > 0 && wrong.length < rows.length && (
         <div
-          className={cn(WELL, 'inline-flex gap-0.5 rounded-lg p-0.5')}
+          className="inline-flex items-center gap-0.5 rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/[0.07] dark:bg-white/[0.04]"
           role="group"
           aria-label="Filter answers"
         >
-          <FilterTab active={filter === 'all'} onClick={() => onFilterChange('all')}>
-            All {rows.length}
+          <FilterTab
+            active={filter === 'all'}
+            count={rows.length}
+            reducedMotion={reducedMotion}
+            onClick={() => onFilterChange('all')}
+          >
+            All
           </FilterTab>
-          <FilterTab active={filter === 'wrong'} onClick={() => onFilterChange('wrong')}>
-            To review {wrong.length}
+          <FilterTab
+            active={filter === 'wrong'}
+            count={wrong.length}
+            badgeTone="fault"
+            reducedMotion={reducedMotion}
+            onClick={() => onFilterChange('wrong')}
+          >
+            To review
           </FilterTab>
         </div>
       )}

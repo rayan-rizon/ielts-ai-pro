@@ -1,6 +1,7 @@
 import { calculateTestResults } from '../objective-scoring/reading.js';
 import { calculateListeningTestResults } from '../objective-scoring/listening.js';
 import { computeQuestionNumbers } from '../objective-scoring/questionProcessing.js';
+import { PRACTICE_LISTENING_KEEP, withoutSolutions } from '../objective-scoring/paired.js';
 
 const SUPPORTED_MODULES = new Set(['reading', 'listening']);
 
@@ -426,6 +427,19 @@ function resolveReadingContent(passage, content) {
   return publicPracticeContent(content).replace(/\\n/g, '\n');
 }
 
+/**
+ * The audioscript of one Listening part, as practice mode on the test page shows
+ * it: answer marks are stripped and answer evidence is never included. It stays
+ * out of the stored snapshot, whose hash decides whether a set is new.
+ */
+export function libraryListeningScript(passage, sectionNumber) {
+  const { section } = parseSectionContent(passage.content, Number(sectionNumber || 1));
+  return withoutSolutions(
+    { srt_content: section?.srt_content || '', transcript: section?.transcript || '' },
+    PRACTICE_LISTENING_KEEP
+  );
+}
+
 // Keep only the original section needed by this group. Never serialize embedded
 // question groups (which contain answer keys) as passage text.
 export function libraryGroupSource(passage, questions) {
@@ -635,24 +649,51 @@ function isValidAttempt(a) {
   return Boolean(a.focus && a.sessionId && a.groupId);
 }
 
-function isIndependentAttempt(row) {
-  return !row.assisted && !row.repeated && !row.familiar;
-}
-
 function isValidResponse(r) {
   return Boolean(r.questionId && typeof r.isCorrect === 'boolean');
 }
 
-function hasValidResponses(row) {
-  return (row.responses || []).some(isValidResponse);
+const BLANK_ANSWERS = new Set(['', '(not selected)']);
+
+// A test score rightly marks a blank as wrong. Practice advice must not: the
+// learner never tried it, so it says nothing about what they find hard.
+function isAnswered(response) {
+  if (response.isCorrect === true || !('userAnswer' in response)) return true;
+  return !BLANK_ANSWERS.has(String(response.userAnswer ?? '').trim());
 }
 
+const answeredResponses = (row) => (row.responses || []).filter(isAnswered);
+
+const questionKey = (row, response) => `${row.sourceId}:${response.questionId}`;
+
+/** Marks what each practice attempt had already shown the learner before it. */
+function markPriorExposure(attempts) {
+  const answeredBefore = new Set();
+  const finishedSets = new Set();
+  return [...attempts]
+    .sort((a, b) => Date.parse(a.completedAt) - Date.parse(b.completedAt))
+    .map((row) => {
+      // A finished set reveals every answer, including those left blank.
+      const wholeSet = Boolean(row.practice) && finishedSets.has(row.groupId);
+      const given = answeredResponses(row);
+      const repeats = row.practice
+        ? given.filter((r) => wholeSet || answeredBefore.has(questionKey(row, r)))
+        : [];
+      given.forEach((r) => answeredBefore.add(questionKey(row, r)));
+      if (row.practice) finishedSets.add(row.groupId);
+      return { ...row, seen: new Set(repeats.map((r) => r.questionId)) };
+    });
+}
+
+const countableResponses = (row) =>
+  answeredResponses(row).filter((r) => isValidResponse(r) && !row.seen.has(r.questionId));
+
 function processAttemptResponses(row, seen, state) {
-  for (const answer of row.responses || []) {
-    if (!isValidResponse(answer)) continue;
-    const key = `${row.sourceId}:${answer.questionId}`;
+  for (const answer of countableResponses(row)) {
+    const key = questionKey(row, answer);
     if (seen.has(key)) continue;
     seen.add(key);
+    state.counted.add(row);
     state.total++;
     if (answer.isCorrect) {
       state.correct++;
@@ -672,14 +713,7 @@ function processAttemptResponses(row, seen, state) {
 }
 
 function filterEligibleAttemptRows(rows) {
-  const eligible = [];
-  for (const row of rows) {
-    if (!isIndependentAttempt(row)) continue;
-    if (!hasValidResponses(row)) continue;
-    eligible.push(row);
-    if (eligible.length >= 5) break;
-  }
-  return eligible;
+  return rows.filter((row) => !row.assisted && countableResponses(row).length > 0).slice(0, 5);
 }
 
 function isRepeatedDifficulty(state, accuracy) {
@@ -699,6 +733,7 @@ function aggregateFocusPerformance(rows) {
     errorGroups: new Set(),
     errorSessions: new Set(),
     mistakes: [],
+    counted: new Set(),
   };
 
   const eligibleRows = filterEligibleAttemptRows(rows);
@@ -715,7 +750,52 @@ function aggregateFocusPerformance(rows) {
     accuracy,
     mistakes: state.mistakes,
     repeatedDifficulty,
+    counted: state.counted,
   };
+}
+
+/** Why a result is or is not behind the suggestion. */
+function resolveRowStatus(row, counted) {
+  if (counted.has(row)) return 'counted';
+  if (!answeredResponses(row).length) return 'blank';
+  if (row.assisted) return 'assisted';
+  if (row.seen.size && !countableResponses(row).length) return 'repeat';
+  return 'older';
+}
+
+function summariseRow(row, counted) {
+  const responses = row.responses || [];
+  const total = row.total ?? responses.length;
+  return {
+    row,
+    total,
+    correct: row.correct ?? responses.filter((r) => r.isCorrect === true).length,
+    answered: Math.min(answeredResponses(row).length, total),
+    status: resolveRowStatus(row, counted),
+  };
+}
+
+/** One entry per sitting: a full test often holds several sets of the same type. */
+function recentSittings(rows, counted) {
+  const sittings = new Map();
+  for (const part of rows.map((row) => summariseRow(row, counted))) {
+    const sitting = sittings.get(part.row.sessionId);
+    if (!sitting) {
+      sittings.set(part.row.sessionId, part);
+      continue;
+    }
+    sitting.total += part.total;
+    sitting.correct += part.correct;
+    sitting.answered += part.answered;
+    if (part.status === 'counted') sitting.status = 'counted';
+  }
+  return [...sittings.values()].slice(0, 5);
+}
+
+// Only the latest real attempt decides: practising again is the review.
+function isDueForReview(rows, nowTime) {
+  const latest = rows.find((row) => answeredResponses(row).length);
+  return Boolean(latest?.nextReviewAt) && Date.parse(latest.nextReviewAt) <= nowTime;
 }
 
 function resolveAttemptKind(a) {
@@ -771,15 +851,27 @@ function groupAttemptsByFocus(attempts, cutoff, nowTime) {
   return byFocus;
 }
 
+/** The mistake to revisit. Never one whose passage or audio is about to be practised. */
+export function pickPracticeMistake(mistakes, sourceId, sessionId) {
+  return mistakes?.find(
+    (mistake) => mistake.sourceId !== sourceId && (!sessionId || mistake.sessionId === sessionId)
+  );
+}
+
 export function rankPracticeNeeds(attempts, now = new Date()) {
   const nowTime = now.getTime();
   const cutoff = nowTime - 90 * 86400000;
-  const byFocus = groupAttemptsByFocus(attempts, cutoff, nowTime);
+  // A test group nobody answered is not something the learner did.
+  const tried = markPriorExposure(attempts).filter(
+    (row) => row.practice || answeredResponses(row).length
+  );
+  const byFocus = groupAttemptsByFocus(tried, cutoff, nowTime);
 
   return [...byFocus.entries()]
     .map(([focus, rows]) => {
       const stats = aggregateFocusPerformance(rows);
-      const due = rows.some((a) => a.nextReviewAt && Date.parse(a.nextReviewAt) <= nowTime);
+      const due = isDueForReview(rows, nowTime);
+      const sittings = recentSittings(rows, stats.counted);
       const label = resolveNeedLabel(stats.repeatedDifficulty, stats.mistakes.length);
       const priority = resolveNeedPriority(stats.repeatedDifficulty, due, stats.mistakes.length);
 
@@ -794,18 +886,20 @@ export function rankPracticeNeeds(attempts, now = new Date()) {
         label,
         priority,
         latestAt: rows[0].completedAt,
-        sources: rows.slice(0, 5).map((a) => ({
-          sessionId: a.sessionId,
-          sourceId: a.sourceId,
-          title: a.title,
-          completedAt: a.completedAt,
-          practice: Boolean(a.practice),
+        sources: sittings.map(({ row }) => ({
+          sessionId: row.sessionId,
+          sourceId: row.sourceId,
+          title: row.title,
+          completedAt: row.completedAt,
+          practice: Boolean(row.practice),
         })),
-        history: rows.slice(0, 5).map((a) => ({
-          correct: a.correct,
-          total: a.total,
-          completedAt: a.completedAt,
-          kind: resolveAttemptKind(a),
+        history: sittings.map(({ row, correct, total, answered, status }) => ({
+          correct,
+          total,
+          answered,
+          status,
+          completedAt: row.completedAt,
+          kind: resolveAttemptKind(row),
         })),
       };
     })

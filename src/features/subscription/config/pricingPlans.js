@@ -7,7 +7,7 @@ export const DEFAULT_PRICING_PLANS = [
     features: [
       'Reading & Listening practice tests',
       '5 AI Reading Assistant requests/day',
-      ...(SKILL_LAB_ENABLED ? ['2 Practice Lab Sets/Day'] : []),
+      ...(SKILL_LAB_ENABLED ? ['5 Practice Lab Sets/Day'] : []),
       '0 AI Speaking Sessions/month',
       '1 AI Writing Evaluation/month',
       'Grammar Units 1–3 + 5 Questions/Day',

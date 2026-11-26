@@ -279,38 +279,76 @@ describe('library practice page', () => {
       )
     );
   });
-  it('opens an earlier mistake first, then goes straight to practising', async () => {
-    const mistake = {
-      ...session.source,
-      questions: session.questions,
-      answers: { q: 'B' },
-      explanations: [{ id: 'q', text: 'The passage says Sunday.' }],
-      result: {
-        correct: 0,
-        total: 1,
-        answers: {
-          q: { questionNumber: 1, userAnswer: 'B', correctAnswer: 'A', isCorrect: false },
-        },
+  const earlierMistake = (id) => ({
+    ...session.source,
+    questions: [{ ...session.questions[0], id }],
+    answers: { [id]: 'B' },
+    explanations: [{ id, text: 'Because of the weekly rota.' }],
+    result: {
+      correct: 0,
+      total: 1,
+      answers: {
+        [id]: { questionNumber: 1, userAnswer: 'B', correctAnswer: 'A', isCorrect: false },
       },
-    };
+    },
+  });
+  const mockMistake = (mistake, extra = {}) =>
     invoke.mockImplementation(async (_, { body }) => ({
-      data:
-        body.action === 'save'
-          ? { ...session, mistake, stage: body.stage }
-          : { ...session, mistake },
+      data: { ...session, ...extra, mistake, ...(body.stage ? { stage: body.stage } : {}) },
     }));
+  const stages = () => screen.getByRole('list', { name: 'Practice workflow stages' });
+
+  it('asks for a retry before showing any answer, then moves to new questions', async () => {
+    mockMistake(earlierMistake('old'), { source_session_id: 'test-1' });
     mount('/practice-lab/session/session?library=1');
-    expect(await screen.findByLabelText('Question 1 feedback')).toBeInTheDocument();
-    expect(screen.getByRole('list', { name: 'Practice workflow stages' })).toHaveTextContent(
-      /^1See your mistake2Try the questions3Check answers$/
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'Start practising' }));
+    const show = await screen.findByRole('button', { name: 'Show answer' });
+    expect(show).toBeDisabled();
+    expect(stages()).toHaveTextContent(/^1Retry your mistake2Try the questions3Check answers$/);
+    expect(screen.queryByText(/weekly rota/)).toBeNull();
+    expect(screen.queryByText('Correct answer')).toBeNull();
+    expect(screen.queryByRole('link', { name: /View test result/ })).toBeNull();
+    const guide = screen.getByRole('region', { name: 'Retry guide' });
+    expect(guide).toHaveTextContent('Practice only, not scored');
+    expect(guide).toHaveTextContent('Question 1');
+    expect(screen.getByText('Answer at least one to see why')).toBeInTheDocument();
+    expect(screen.getByText(/Select text to highlight/)).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('radio')[0]);
+    fireEvent.click(show);
+    expect(screen.getByText(/weekly rota/)).toBeInTheDocument();
+    expect(screen.getByText('Correct answer')).toBeInTheDocument();
+    expect(invoke.mock.calls.some(([, o]) => o.body.action === 'save')).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Try new questions' }));
     await screen.findByRole('button', { name: 'Check my answers' });
+    expect(screen.getByText('0 of 1 answered')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /View test result/ })).toBeNull();
+    expect(invoke.mock.calls.some(([, o]) => o.body.action === 'save' && o.body.stage === 2)).toBe(
+      true
+    );
+    // The new questions are not answers, whatever the retry showed.
+    const tabs = within(screen.getByRole('group', { name: 'Content view' }));
+    expect(tabs.getByRole('button', { name: 'Questions' })).toBeInTheDocument();
+    expect(tabs.queryByRole('button', { name: 'Answers' })).toBeNull();
+  });
+  it('skips to new questions without revealing anything', async () => {
+    mockMistake(earlierMistake('old'));
+    mount('/practice-lab/session/session?library=1');
+    fireEvent.click(await screen.findByRole('button', { name: 'Skip to new questions' }));
+    await screen.findByRole('button', { name: 'Check my answers' });
+    expect(screen.queryByText(/weekly rota/)).toBeNull();
+  });
+  it('never reveals a question that is about to be practised', async () => {
+    mockMistake(earlierMistake('q'));
+    mount('/practice-lab/session/session?library=1');
+    await screen.findByRole('button', { name: 'Check my answers' });
+    expect(screen.queryByRole('button', { name: 'Show answer' })).toBeNull();
+    expect(stages()).toHaveTextContent(/^1Try the questions2Check answers$/);
+  });
+  it('labels a repeated set as revision', async () => {
+    invoke.mockResolvedValue({ data: { ...session, stage: 2, familiarity: 'repeated' } });
+    mount('/practice-lab/session/session');
     expect(
-      invoke.mock.calls.some(
-        ([, options]) => options.body.action === 'save' && options.body.stage === 2
-      )
-    ).toBe(true);
+      await screen.findByText('Revision: you have answered these questions before.')
+    ).toBeInTheDocument();
   });
   it('opens a session saved at the removed approach step on the questions', async () => {
     invoke.mockResolvedValue({ data: { ...session, stage: 1 } });
@@ -644,6 +682,51 @@ describe('library practice page', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Start practice' }));
     await screen.findByRole('button', { name: 'Check my answers' });
     expect(screen.queryByText(/Not saved yet/)).toBeNull();
+  });
+  it('explains the suggestion with results the learner can open', async () => {
+    invoke.mockResolvedValue({
+      data: {
+        enabled: true,
+        remaining: 5,
+        limit: 5,
+        groups: [group],
+        recommendations: [
+          {
+            focus: group.focus,
+            correct: 1,
+            total: 4,
+            mistakes: [],
+            sources: [
+              {
+                sessionId: 'p1',
+                practice: true,
+                title: 'Practised test',
+                completedAt: '2026-09-18',
+              },
+              { sessionId: 't1', practice: false, title: 'Sat test', completedAt: '2026-09-10' },
+            ],
+            history: [
+              { correct: 2, total: 3, answered: 3, status: 'repeat', completedAt: '2026-09-18' },
+              { correct: 1, total: 6, answered: 4, status: 'counted', completedAt: '2026-09-10' },
+            ],
+          },
+        ],
+      },
+    });
+    mount();
+    const card = await screen.findByRole('region', { name: 'Your next step' });
+    expect(card).toHaveTextContent('You got 1 of 4 answered questions correct');
+    expect(within(card).getByRole('link', { name: /Sat test/ })).toHaveTextContent(
+      '2 not answered'
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'History' }));
+    const history = screen.getByRole('list', { name: 'Past results' });
+    const [practised, sat] = within(history).getAllByRole('link');
+    expect(practised).toHaveAttribute('href', '/practice-lab/session/p1?library=1');
+    expect(practised).toHaveTextContent('Practised test');
+    expect(practised).toHaveTextContent('Not counted: you had answered these before');
+    expect(sat).toHaveAttribute('href', '/reading-test/t1?view-results=true');
+    expect(sat).toHaveTextContent('1 of 6 correct');
   });
   it('does not create placeholder rows when a matching set has no question data', async () => {
     invoke.mockImplementation(async (_, { body }) => {

@@ -106,11 +106,15 @@ export const calculateTotalTestQuestions = (testData) => {
  * @param {string|number} blankNum - Optional blank number
  * @returns {number} Global question number
  */
+// Practice Lab shows part of a test, so it supplies the source test's number.
+const startNumberFor = (question, counted) => question._practiceStartNumber || counted;
+
 export const calculateGlobalQuestionNumber = (allQuestions, targetQuestionId, blankNum = null) => {
   let globalQuestionNumber = 1;
 
   for (const q of allQuestions) {
     if (q.id === targetQuestionId) {
+      globalQuestionNumber = startNumberFor(q, globalQuestionNumber);
       // Found the question, now find the blank offset if applicable
       if (blankNum) {
         // Logic depends on question type

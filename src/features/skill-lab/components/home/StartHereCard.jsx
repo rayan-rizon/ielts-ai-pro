@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   MICRO,
@@ -11,33 +11,19 @@ import {
   WELL,
 } from '@/features/dashboard/components/primitives.jsx';
 import { focusLabel } from '../../practiceLabels';
-import SourceSetPicker, { date, focusRing, subject } from './SourceSetPicker';
+import SourceSetPicker, { focusRing, subject } from './SourceSetPicker';
 import { LINK, SetNote, StartButton } from './shared';
+import { resultRows } from '../../practiceResultRows';
+import ResultList from './ResultList';
 
-function ResultSources({ focus, sources }) {
+function ResultSources({ need }) {
   return (
     <details className="group mt-1 text-xs">
       <summary className={cn(LINK, focusRing, 'inline-flex cursor-pointer items-center gap-1')}>
         See those results
         <ChevronDown size={13} className="transition-transform group-open:rotate-180" />
       </summary>
-      <ul className="mt-2 space-y-1.5">
-        {sources.map((source, index) => (
-          <li key={`${source.sessionId}-${index}`}>
-            <Link
-              className={cn(LINK, 'inline-flex items-center gap-1')}
-              to={
-                source.practice
-                  ? `/practice-lab/session/${source.sessionId}?library=1`
-                  : `/${subject(focus).toLowerCase()}-test/${source.sessionId}?view-results=true`
-              }
-            >
-              {source.title || 'View saved result'} · {date(source.completedAt)}
-              <ArrowRight size={11} aria-hidden="true" />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <ResultList rows={resultRows(need)} label="Results behind this suggestion" className="mt-2" />
     </details>
   );
 }
@@ -57,14 +43,14 @@ function NeedSummary({ need }) {
       <strong className={`${NUM} text-slate-900 dark:text-slate-100`}>
         {need.correct} of {need.total}
       </strong>{' '}
-      correct in recent tests.
+      answered questions correct recently.
     </p>
   );
 }
 
 function Steps({ hasMistake }) {
   const steps = [
-    hasMistake && ['See your mistake', 'One old answer, explained'],
+    hasMistake && ['Retry your mistake', 'Then see why'],
     ['Try the questions', 'No time limit'],
     ['Check answers', 'See what to do next'],
   ].filter(Boolean);
@@ -164,7 +150,7 @@ function Suggestion({ focus, need, sets, set, onSetChange, ...action }) {
         {focusLabel(focus)}
       </h3>
       <NeedSummary need={need} />
-      {need?.sources?.length > 0 && <ResultSources focus={focus} sources={need.sources} />}
+      {need?.sources?.length > 0 && <ResultSources need={need} />}
       <Steps hasMistake={Boolean(need?.mistakes?.length)} />
       <ChosenSet set={set} sets={sets} onSetChange={onSetChange} action={action} />
       {action.blockedReason && (

@@ -209,6 +209,7 @@ export function buildReviewRows({ questions, result, answers, explanations = [] 
           prompt: index > 0 && item.prompt === items[index - 1].prompt ? null : item.prompt,
           userText,
           correctText: reviewAnswerText(question, answer.correctAnswer),
+          correctAnswer: answer.correctAnswer,
           isCorrect: Boolean(answer.isCorrect),
           answered: userText !== NOT_ANSWERED,
           why: explanationFor(explanation, item, index, items.length),

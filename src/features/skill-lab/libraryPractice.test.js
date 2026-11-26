@@ -10,6 +10,7 @@ import {
   publicPracticeContent,
   buildLibraryGroups,
   buildLibraryTutorContext,
+  pickPracticeMistake,
 } from '../../../supabase/functions/_shared/skill-lab/libraryPractice.js';
 
 const now = new Date('2026-09-07T12:00:00Z');
@@ -191,11 +192,9 @@ describe('library-backed personal practice', () => {
       rankPracticeNeeds([attempt('a'), attempt('b', { groupId: 'a' })], now)[0].repeatedDifficulty
     ).toBe(false);
   });
-  it('does not count helped, repeated or familiar practice as new performance', () => {
-    for (const flag of ['assisted', 'repeated', 'familiar'])
-      expect(rankPracticeNeeds([attempt('a'), attempt('b', { [flag]: true })], now)[0].total).toBe(
-        3
-      );
+  it('does not count helped practice as new performance', () => {
+    const helped = attempt('b', { assisted: true });
+    expect(rankPracticeNeeds([attempt('a'), helped], now)[0].total).toBe(3);
   });
   it('ignores old or future attempts and deduplicates questions across sessions', () => {
     expect(rankPracticeNeeds([attempt('a', { completedAt: '2026-01-01' })], now)).toEqual([]);
@@ -447,5 +446,21 @@ describe('library-backed personal practice', () => {
     });
     expect(JSON.stringify(context)).not.toContain('x'.repeat(100));
     expect(JSON.stringify(context).length).toBeLessThan(12000);
+  });
+});
+
+describe('pickPracticeMistake', () => {
+  const mistakes = [
+    { sessionId: 'a', sourceId: 'same' },
+    { sessionId: 'b', sourceId: 'other' },
+  ];
+  it('never shows a mistake from the source about to be practised', () => {
+    expect(pickPracticeMistake(mistakes, 'same')).toBe(mistakes[1]);
+    expect(pickPracticeMistake([mistakes[0]], 'same')).toBeUndefined();
+    expect(pickPracticeMistake(undefined, 'same')).toBeUndefined();
+  });
+  it('stays within a requested earlier session', () => {
+    expect(pickPracticeMistake(mistakes, 'new', 'b')).toBe(mistakes[1]);
+    expect(pickPracticeMistake(mistakes, 'same', 'a')).toBeUndefined();
   });
 });
