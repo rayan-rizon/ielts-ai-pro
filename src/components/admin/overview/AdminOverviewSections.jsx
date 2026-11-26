@@ -1283,7 +1283,7 @@ const PlatformRow = ({ label, value, max, tone }) => (
       <div
         className="h-full rounded-full"
         style={{
-          width: `${max > 0 ? Math.max(3, Math.round((100 * value) / max)) : 0}%`,
+          width: `${max > 0 ? Math.max(value > 0 ? 3 : 0, Math.round((100 * value) / max)) : 0}%`,
           background: tone,
         }}
       />
@@ -1391,7 +1391,6 @@ export const AdminOverviewSections = ({
       </m.div>
       <OverviewKpis kpis={kpis} displayDays={displayDays} />
       <div className="grid grid-cols-12 gap-3">
-        <PlatformUsagePanel usage={data.platformUsage} displayDays={displayDays} />
         <ActionQueue actions={arrayOrEmpty(data.actions)} />
         <FunnelPanel steps={arrayOrEmpty(data.funnel)} />
         <TrendPanel
@@ -1414,6 +1413,7 @@ export const AdminOverviewSections = ({
           summary={objectOrEmpty(data.geoSummary)}
           displayDays={displayDays}
         />
+        <PlatformUsagePanel usage={data.platformUsage} displayDays={displayDays} />
       </div>
     </m.div>
   );
