@@ -121,7 +121,7 @@ function PlanPicker({ selectedTier, onSelect, plans }) {
 
   return (
     <div
-      className="space-y-2.5"
+      className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1"
       role="radiogroup"
       aria-label="Choose a subscription plan"
       onKeyDown={handleKeyDown}
@@ -144,7 +144,11 @@ function PlanPicker({ selectedTier, onSelect, plans }) {
 
 function PricingSkeleton() {
   return (
-    <div className="space-y-2.5" role="status" aria-label="Loading regional pricing">
+    <div
+      className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1"
+      role="status"
+      aria-label="Loading regional pricing"
+    >
       {TIERS.map((tier) => (
         <div key={tier} className="h-[68px] animate-pulse rounded-xl bg-white/70 dark:bg-white/5" />
       ))}
@@ -157,7 +161,7 @@ function CheckoutButton({ to, label }) {
     <Link
       to={to}
       className={cn(
-        'paywall-cta group relative inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-[#5a63df] to-[#6c5fd9] px-4 py-2.5 text-center text-[13px] font-extrabold text-white transition-[transform,filter] duration-150 ease-smooth-out hover:brightness-95 active:scale-[0.97]',
+        'paywall-cta group relative inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-[#5a63df] to-[#6c5fd9] px-3.5 py-2.5 text-center text-xs font-extrabold text-white transition-[transform,filter] duration-150 ease-smooth-out hover:brightness-95 active:scale-[0.97] sm:px-4 sm:text-[13px]',
         FOCUS_RING
       )}
     >
@@ -197,51 +201,51 @@ export default function PaywallOfferRail({
     : `Continue with ${planName} · ${selectedData.symbol}${selectedData.price}/mo`;
 
   return (
-    // Sticks beside the preview instead of stretching to its height, so the
-    // price and button stay together and in view while the learner scrolls.
     <m.aside
       variants={FADE_UP}
-      className="lg:sticky lg:top-3 lg:self-start"
+      className="order-1 flex h-full min-w-0 flex-col lg:order-2"
       aria-label="Unlock study plan"
     >
-      {/* Same animated hairline card as the dashboard's NextUpPanel. */}
-      <div className="dashboard-ai-card">
+      {/* Same animated hairline card as the dashboard's NextUpPanel, stretched to match left column height on desktop. */}
+      <div className="dashboard-ai-card flex h-full min-w-0 flex-1 flex-col">
         <div className="dashboard-ai-card__beam" aria-hidden="true" />
 
-        <div className="dashboard-ai-card__inner paywall-surface p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <span
-                className="h-3.5 w-[3px] shrink-0 rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
-                aria-hidden="true"
-              />
-              <h2 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Unlock your Study Plan
-              </h2>
-              <Sparkles
-                className="h-4 w-4 shrink-0 text-[#5a63df] dark:text-[#8f97ff]"
-                aria-hidden="true"
-              />
+        <div className="dashboard-ai-card__inner paywall-surface flex min-w-0 flex-1 flex-col justify-between p-4 sm:p-5">
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className="h-3.5 w-[3px] shrink-0 rounded-full bg-[#5a63df] dark:bg-[#8f97ff]"
+                  aria-hidden="true"
+                />
+                <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-lg">
+                  Unlock your Study Plan
+                </h2>
+                <Sparkles
+                  className="h-4 w-4 shrink-0 text-[#5a63df] dark:text-[#8f97ff]"
+                  aria-hidden="true"
+                />
+              </div>
+              <TierBadge tier={selectedTier} />
             </div>
-            <TierBadge tier={selectedTier} />
+            <p className={cn('mt-1.5 text-xs leading-relaxed', READABLE_MUTED)}>
+              A daily schedule calibrated to your exam date.
+            </p>
           </div>
-          <p className={cn('mt-1.5 text-xs leading-relaxed', READABLE_MUTED)}>
-            A daily schedule calibrated to your exam date.
-          </p>
 
-          <div className="mt-5">
+          <div className="my-auto space-y-5 py-4">
             <PaywallJourney examDateLabel={examDateLabel} />
+
+            <div>
+              {isLoading ? (
+                <PricingSkeleton />
+              ) : (
+                <PlanPicker selectedTier={selectedTier} onSelect={onSelectTier} plans={plans} />
+              )}
+            </div>
           </div>
 
-          <div className="mt-5">
-            {isLoading ? (
-              <PricingSkeleton />
-            ) : (
-              <PlanPicker selectedTier={selectedTier} onSelect={onSelectTier} plans={plans} />
-            )}
-          </div>
-
-          <div className="mt-4 border-t border-[#5a63df]/15 pt-4 dark:border-white/[0.07]">
+          <div className="border-t border-[#5a63df]/15 pt-4 dark:border-white/[0.07]">
             <CheckoutButton to={pricingDestination(search, selectedTier)} label={ctaLabel} />
 
             <div

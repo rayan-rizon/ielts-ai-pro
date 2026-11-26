@@ -1,12 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { m, useReducedMotion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import {
   AiBadge,
   FADE_UP,
   MUTED,
-  PANEL_LINK,
   STAGGER_CONTAINER,
 } from '@/features/dashboard/components/primitives';
 import { DEFAULT_PRICING_PLANS } from '@/features/subscription/config/pricingPlans';
@@ -16,7 +15,6 @@ import {
   resolvePlanConfig,
 } from '@/features/subscription/utils/upgradePricing';
 import { cn } from '@/lib/cn';
-import { createPageUrl } from '@/utils';
 import {
   LiveRescheduleCard,
   PaywallStatsStrip,
@@ -72,7 +70,10 @@ export default function StudyPlanPaywall({ user }) {
       className="space-y-3"
     >
       {/* Page Header matching StudyPlanDashboard */}
-      <m.header variants={FADE_UP} className="flex flex-wrap items-end justify-between gap-3">
+      <m.header
+        variants={FADE_UP}
+        className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"
+      >
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
@@ -86,33 +87,25 @@ export default function StudyPlanPaywall({ user }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {exam.dateLabel && (
-            <span
-              className={cn(
-                'hidden items-center gap-1.5 text-xs font-semibold sm:inline-flex',
-                MUTED
-              )}
-            >
+        {exam.dateLabel && (
+          <div className="flex items-center gap-3">
+            <span className={cn('inline-flex items-center gap-1.5 text-xs font-semibold', MUTED)}>
               <Calendar
                 className="h-3.5 w-3.5 text-[#5a63df] dark:text-[#afb5ff]"
                 aria-hidden="true"
               />
               {exam.dateLabel} ({exam.daysLeft}d)
             </span>
-          )}
-          <Link to={createPageUrl('Pricing')} className={cn(PANEL_LINK, 'text-xs font-bold')}>
-            Compare plans →
-          </Link>
-        </div>
+          </div>
+        )}
       </m.header>
 
       {/* Top KPI Strip */}
       <PaywallStatsStrip exam={exam} skipWed={skipWed} />
 
       {/* Main 12-Column Instrument Grid matching StudyPlanDashboard */}
-      <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-3">
+      <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
           <LiveRescheduleCard
             exam={exam}
             skipWed={skipWed}

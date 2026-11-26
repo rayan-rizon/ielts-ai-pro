@@ -235,7 +235,7 @@ export function PaywallStatsStrip({ exam, skipWed }) {
           key={item.label}
           className={cn(
             TILE,
-            'flex min-w-0 flex-col justify-between bg-linear-to-b from-white to-[#faf9ff] px-3.5 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/30 dark:from-[#141319] dark:to-[#100f15] dark:hover:border-white/15'
+            'flex min-w-0 flex-col justify-between bg-linear-to-b from-white to-[#faf9ff] px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#5a63df]/30 dark:from-[#141319] dark:to-[#100f15] dark:hover:border-white/15 sm:px-3.5 sm:py-2.5'
           )}
         >
           <div>
@@ -248,13 +248,13 @@ export function PaywallStatsStrip({ exam, skipWed }) {
             <p
               className={cn(
                 NUM,
-                'mt-1.5 text-xl font-extrabold leading-tight text-slate-900 dark:text-slate-50 sm:text-[22px]'
+                'mt-1 text-lg font-extrabold leading-tight text-slate-900 dark:text-slate-50 sm:mt-1.5 sm:text-[22px]'
               )}
             >
               <AnimatedNumber value={item.value} decimals={item.decimals} suffix={item.suffix} />
             </p>
           </div>
-          <p className="mt-1.5 truncate border-t border-[#eceafa] pt-1.5 text-[11px] font-medium text-slate-600 dark:border-white/[0.07] dark:text-slate-300">
+          <p className="mt-1.5 hidden truncate border-t border-[#eceafa] pt-1.5 text-[11px] font-medium text-slate-600 dark:border-white/[0.07] dark:text-slate-300 sm:block">
             {item.footer}
           </p>
         </div>
@@ -309,7 +309,7 @@ function ScheduleSlot({ slot, selected, onSelect }) {
       onClick={() => onSelect(slot.id)}
       aria-pressed={selected}
       className={cn(
-        'rounded-lg border p-2 text-center transition-[border-color,background-color,transform] duration-150 ease-smooth-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+        'rounded-lg border p-1.5 text-center transition-[border-color,background-color,transform] duration-150 ease-smooth-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] sm:p-2',
         tone.box
       )}
     >
@@ -347,7 +347,7 @@ function RescheduleBanner({ exam, skipWed, onToggleSkipWed }) {
         <div className="min-w-0">
           <p className={cn(MICRO, MUTED)}>LIVE AUTO-RESCHEDULE DEMO</p>
           <ExamHeadline exam={exam} />
-          <p className={cn('mt-0.5 text-[11px]', MUTED)}>
+          <p className={cn('mt-0.5 hidden text-[11px] sm:block', MUTED)}>
             Miss a study day? Click to see your week rebalance without losing momentum.
           </p>
         </div>
@@ -358,7 +358,7 @@ function RescheduleBanner({ exam, skipWed, onToggleSkipWed }) {
         aria-pressed={skipWed}
         onClick={onToggleSkipWed}
         className={cn(
-          'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-[transform,background-color,border-color,color] duration-150 ease-smooth-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+          'inline-flex h-8 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-[transform,background-color,border-color,color] duration-150 ease-smooth-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] sm:w-auto',
           skipWed
             ? 'border-[#5a63df] bg-[#5a63df] text-white'
             : 'border-[#e4e2f0] bg-white text-slate-700 hover:border-[#5a63df]/45 hover:text-[#5a63df] dark:border-white/12 dark:bg-white/5 dark:text-slate-200 dark:hover:text-[#b8bdff]'
@@ -437,10 +437,7 @@ export function LiveRescheduleCard({ exam, skipWed, onToggleSkipWed }) {
   return (
     <m.div variants={FADE_UP}>
       <PlanCard aria-label="Adaptive 7-day schedule preview">
-        <CardHeader
-          title="Adaptive 7-day schedule"
-          aside={skipWed ? 'Rebalanced · Auto-shifted' : 'Balanced · 45 min/day'}
-        >
+        <CardHeader title="Adaptive 7-day schedule">
           <Pill tone="accent">
             <Lock className="h-2.5 w-2.5" aria-hidden="true" />
             Sample Preview
@@ -450,8 +447,8 @@ export function LiveRescheduleCard({ exam, skipWed, onToggleSkipWed }) {
         {/* Readiness Ring + Live Auto-Reschedule Simulation */}
         <RescheduleBanner exam={exam} skipWed={skipWed} onToggleSkipWed={onToggleSkipWed} />
 
-        {/* 7-Day Interactive Strip */}
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 md:grid-cols-7">
+        {/* 7-Day Interactive Strip — 4-col (2 compact rows) on mobile, 7-across on md+ */}
+        <div className="grid grid-cols-4 gap-1.5 max-sm:[&>*:last-child]:col-span-2 md:grid-cols-7">
           {schedule.map((slot) => (
             <ScheduleSlot
               key={slot.id}
@@ -523,7 +520,7 @@ function SkillBridgeRow({ item, index: idx }) {
 
 function SkillBridgeCard() {
   return (
-    <PlanCard aria-label="Module band bridge preview">
+    <PlanCard aria-label="Module band bridge preview" className="min-w-0">
       <CardHeader title="4-Skill target bridge" aside="Target tick shown" />
       <div className="grid gap-3">
         {SKILL_BRIDGES.map((item, idx) => (
@@ -557,7 +554,7 @@ function PhaseItem({ phase, isLast }) {
       </span>
       <div
         className={cn(
-          'rounded-lg',
+          'min-w-0 rounded-lg',
           isCurrent && '-mt-1 bg-[#5a63df]/[0.06] px-2.5 py-1.5 dark:bg-[#8f97ff]/[0.09]'
         )}
       >
@@ -585,7 +582,7 @@ function PhaseItem({ phase, isLast }) {
 function ConsistencyTracker() {
   return (
     <div className="border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className={cn('flex items-center gap-1.5', MICRO, MUTED)}>
           <Flame className="h-3 w-3 text-[#5a63df] dark:text-[#afb5ff]" aria-hidden="true" />
           5-WEEK CONSISTENCY TRACKER
@@ -609,7 +606,7 @@ function ConsistencyTracker() {
 
 function RoadmapCard() {
   return (
-    <PlanCard aria-label="Study phases and consistency preview" className="justify-between">
+    <PlanCard aria-label="Study phases and consistency preview" className="min-w-0 justify-between">
       <div>
         <CardHeader title="Roadmap phases" aside="4-week cycle" />
         <ol className="mt-3 space-y-0">
@@ -627,7 +624,10 @@ function RoadmapCard() {
 
 export function SkillBridgeAndPhasesRow() {
   return (
-    <m.div variants={FADE_UP} className="grid grid-cols-1 gap-3 md:grid-cols-2">
+    <m.div
+      variants={FADE_UP}
+      className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
+    >
       {/* 4-Skill Target Bridge — restrained monochrome-indigo palette matching instrument panel */}
       <SkillBridgeCard />
       {/* Study Phases + Consistency Heatmap */}

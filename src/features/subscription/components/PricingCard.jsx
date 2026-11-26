@@ -183,12 +183,14 @@ function ActionButton({ plan, isActive, isSubscribed, isLoading, isPricingLoadin
       onClick={() => onUpgrade(plan.tier)}
       disabled={isLoading || isPricingLoading || isActive}
       className={cn(
-        'flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl px-3 text-sm font-bold tracking-tight transition-[color,background-color,transform] duration-150 ease-smooth-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] disabled:cursor-not-allowed disabled:opacity-60',
+        'relative flex h-11 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-xl px-3 text-sm font-bold tracking-tight transition-[color,background-color,filter,transform] duration-150 ease-smooth-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] disabled:cursor-not-allowed disabled:opacity-60',
         isActive
-          ? 'border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500 cursor-default'
+          ? 'cursor-default border border-[#e2e5f2] bg-[#f4f3fb] text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500'
           : isPro
-            ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.97]'
-            : 'cursor-pointer bg-[#eeedfb] text-[#4f57cd] hover:bg-[#e4e2f8] active:scale-[0.97] dark:bg-[#5a63df]/15 dark:text-[#b5baff] dark:hover:bg-[#5a63df]/25'
+            ? 'paywall-cta cursor-pointer bg-linear-to-r from-[#5a63df] to-[#6c5fd9] text-white hover:brightness-95 active:scale-[0.97]'
+            : plan.tier === 'premium'
+              ? 'cursor-pointer bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.97]'
+              : 'cursor-pointer bg-[#eeedfb] text-[#4f57cd] hover:bg-[#e4e2f8] active:scale-[0.97] dark:bg-[#5a63df]/15 dark:text-[#b5baff] dark:hover:bg-[#5a63df]/25'
       )}
     >
       {isActive ? 'Current plan' : buttonLabel}
@@ -216,70 +218,82 @@ export default function PricingCard({
 }) {
   const isPro = plan.tier === 'pro';
 
-  return (
-    <m.div variants={PRICING_CARD_VARIANTS} className="h-full">
-      <div
-        className={cn(
-          PANEL,
-          'relative flex h-full w-full flex-col overflow-hidden rounded-2xl transition-colors duration-200 ease-smooth-out',
-          isPro
-            ? 'border-[#5a63df] from-[#f7f6ff] to-white ring-1 ring-[#5a63df] dark:border-[#5a63df]/70 dark:from-[#17162a] dark:to-[#100f15] dark:ring-[#5a63df]/40'
-            : 'hover:border-[#cfd0f5] dark:hover:border-white/15'
-        )}
-      >
-        {offer && (
-          <OfferStrip
-            code={offer.code}
-            percent={offer.percent}
-            expiresAt={offer.expiresAt}
-            onExpire={onOfferExpired}
-          />
-        )}
+  const cardBody = (
+    <div
+      className={cn(
+        isPro
+          ? 'dashboard-ai-card__inner paywall-surface flex h-full flex-col overflow-hidden rounded-[15px]'
+          : cn(
+              PANEL,
+              'relative flex h-full w-full flex-col overflow-hidden rounded-2xl transition-colors duration-200 ease-smooth-out hover:border-[#cfd0f5] dark:hover:border-white/15'
+            )
+      )}
+    >
+      {offer && (
+        <OfferStrip
+          code={offer.code}
+          percent={offer.percent}
+          expiresAt={offer.expiresAt}
+          onExpire={onOfferExpired}
+        />
+      )}
 
-        <div className="@container p-5 pb-4">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              {plan.name}
-            </h3>
-            <CardHeaderBadge isPro={isPro} />
-          </div>
-          <p className="mt-1 text-[13px] font-medium leading-snug text-slate-500 dark:text-slate-400 md:min-h-[2.25rem]">
-            {plan.description}
-          </p>
-
-          {/* Price and action share a row once the card is wide enough. */}
-          <div className="mt-4 flex flex-col gap-3 @[22rem]:flex-row @[22rem]:items-start @[22rem]:gap-4">
-            <PriceDisplay
-              plan={plan}
-              displayPrice={displayPrice}
-              priceNote={priceNote}
-              isPricingLoading={isPricingLoading}
-            />
-            <div className="@[22rem]:min-w-[9.5rem] @[22rem]:flex-1">
-              <ActionButton
-                plan={plan}
-                isActive={isActive}
-                isSubscribed={isSubscribed}
-                isLoading={isLoading}
-                isPricingLoading={isPricingLoading}
-                onUpgrade={onUpgrade}
-              />
-            </div>
-          </div>
+      <div className="@container p-5 pb-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            {plan.name}
+          </h3>
+          <CardHeaderBadge isPro={isPro} />
         </div>
+        <p className="mt-1 text-[13px] font-medium leading-snug text-slate-600 dark:text-slate-300 md:min-h-[2.25rem]">
+          {plan.description}
+        </p>
 
-        {/* The spec sheet: an inset well, one hairline row per entitlement. */}
-        <div
-          className={cn(
-            'flex-1 border-t px-5 pb-3 pt-1',
-            isPro
-              ? 'border-[#dcdcf7] bg-[#f3f2fd] dark:border-[#5a63df]/25 dark:bg-[#5a63df]/[0.06]'
-              : 'border-[#ebeaf5] bg-[#f8f8fc] dark:border-white/[0.06] dark:bg-white/[0.02]'
-          )}
-        >
-          <FeatureList plan={plan} isPricingLoading={isPricingLoading} />
+        {/* Price and action share a row once the card is wide enough. */}
+        <div className="mt-4 flex flex-col gap-3 @[22rem]:flex-row @[22rem]:items-start @[22rem]:gap-4">
+          <PriceDisplay
+            plan={plan}
+            displayPrice={displayPrice}
+            priceNote={priceNote}
+            isPricingLoading={isPricingLoading}
+          />
+          <div className="@[22rem]:min-w-[9.5rem] @[22rem]:flex-1">
+            <ActionButton
+              plan={plan}
+              isActive={isActive}
+              isSubscribed={isSubscribed}
+              isLoading={isLoading}
+              isPricingLoading={isPricingLoading}
+              onUpgrade={onUpgrade}
+            />
+          </div>
         </div>
       </div>
+
+      {/* The spec sheet: an inset well, one hairline row per entitlement. */}
+      <div
+        className={cn(
+          'flex-1 border-t px-5 pb-3 pt-1',
+          isPro
+            ? 'border-[#5a63df]/15 bg-white/45 dark:border-white/[0.07] dark:bg-white/[0.03]'
+            : 'border-[#ebeaf5] bg-[#f8f8fc] dark:border-white/[0.06] dark:bg-white/[0.02]'
+        )}
+      >
+        <FeatureList plan={plan} isPricingLoading={isPricingLoading} />
+      </div>
+    </div>
+  );
+
+  return (
+    <m.div variants={PRICING_CARD_VARIANTS} className="h-full">
+      {isPro ? (
+        <div className="dashboard-ai-card h-full rounded-2xl">
+          <div className="dashboard-ai-card__beam" aria-hidden="true" />
+          {cardBody}
+        </div>
+      ) : (
+        cardBody
+      )}
     </m.div>
   );
 }
