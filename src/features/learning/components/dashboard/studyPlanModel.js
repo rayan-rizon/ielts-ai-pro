@@ -374,3 +374,26 @@ export function buildMonthGrid({ monthKey, days, historyDays, todayKey }) {
   while (cells.length % 7) cells.push({ dateKey: null });
   return Array.from({ length: cells.length / 7 }, (_, row) => cells.slice(row * 7, row * 7 + 7));
 }
+
+const MIN_BOOKABLE_MINUTES = 20;
+const MOVE_WINDOW_DAYS = 30;
+
+/**
+ * Why a task cannot move to `dateKey`, or null when it can. Mirrors the checks
+ * the reschedule function makes on the server, so the picker can grey a day
+ * out instead of letting the learner hit an error.
+ */
+export function getMoveBlock({ task, dateKey, days = [], availability, todayKey }) {
+  if (dateKey < todayKey || dateKey > shiftDateKey(todayKey, MOVE_WINDOW_DAYS)) {
+    return 'Outside the next 30 days';
+  }
+  const planned = days.find((day) => day.dateKey === dateKey);
+  if (planned?.isExamDay) return 'Exam day';
+  const capacity = weekdayCapacity(availability, dateKey);
+  if (capacity < MIN_BOOKABLE_MINUTES) return 'Rest day';
+  const minutesOf = (item) => Number(item?.estimated_minutes || item?.estimated_time || 0);
+  const used = (planned?.tasks || [])
+    .filter((other) => other.id !== task.id && !other.is_completed)
+    .reduce((total, other) => total + minutesOf(other), 0);
+  return used + minutesOf(task) > capacity ? 'Day is full' : null;
+}

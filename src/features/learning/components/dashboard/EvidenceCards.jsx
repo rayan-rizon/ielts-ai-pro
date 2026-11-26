@@ -20,7 +20,6 @@ const FAULT_TEXT = 'text-[rgb(var(--signal-fault))]';
 const FAULT_FILL = 'bg-[rgb(var(--signal-fault))]';
 
 const ACCENT_FILL = 'bg-[#5a63df] dark:bg-[#8f97ff]';
-const BODY_TEXT = 'text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-300';
 const FOOTNOTE = cn('text-[11px] leading-relaxed', SECONDARY_TEXT);
 
 const SMALL_BUTTON =
@@ -34,7 +33,7 @@ function SkillRow({ skill, onStart }) {
   const name = formatSkill(skill.skill_code);
 
   return (
-    <li className={cn('flex items-center gap-3 py-3', ROW_RULE)}>
+    <li className={cn('flex flex-1 items-center gap-3 py-3', ROW_RULE)}>
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 text-[13px] font-medium">
           <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
@@ -91,7 +90,7 @@ export function FocusSkillsCard({ evidence, onStart }) {
           message="Complete scored practice and your weakest skills appear here."
         />
       ) : (
-        <ul>
+        <ul className="flex flex-1 flex-col">
           {priorities.map((skill) => (
             <SkillRow key={`${skill.module}-${skill.skill_code}`} skill={skill} onStart={onStart} />
           ))}
@@ -173,7 +172,7 @@ export function ScoresCard({ readiness, targetBand, moduleTrends = {} }) {
         title="Where you stand"
         aside={`Target ${target.toFixed(1)}${range ? ` · Overall ${range[0]}–${range[1]}` : ''}`}
       />
-      <div className="grid gap-4">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-x-8">
         {MODULES.map((module) => (
           <ScoreRow
             key={module}
@@ -284,17 +283,28 @@ function PathOverview({ phases, percent, cleared }) {
           of the way · {cleared} of {phases.length} stages cleared
         </span>
       </div>
-      <div className="mt-3 grid grid-flow-col auto-cols-fr gap-1" aria-hidden="true">
-        {phases.map((phase) => (
-          <div key={phase.key} className={cn('h-1.5 overflow-hidden rounded-full', INSET)}>
-            <div
-              className={cn(
-                'h-full rounded-full transition-[width] duration-500 ease-out',
-                Number(phase.progressPercent) >= 100 ? 'bg-[rgb(var(--signal-ok))]' : ACCENT_FILL
-              )}
-              style={{ width: `${Math.min(100, Math.round(phase.progressPercent || 0))}%` }}
-            />
-          </div>
+      <div
+        className={cn('relative mt-3 h-2 overflow-hidden rounded-full', INSET)}
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        aria-label="Progress to exam day"
+      >
+        <div
+          className={cn(
+            'h-full rounded-full transition-[width] duration-500 ease-out',
+            ACCENT_FILL
+          )}
+          style={{ width: `${Math.min(100, percent)}%` }}
+        />
+        {phases.slice(1).map((phase, index) => (
+          <span
+            key={phase.key}
+            className="absolute inset-y-0 w-0.5 bg-white dark:bg-[#141319]"
+            style={{ left: `${((index + 1) / phases.length) * 100}%` }}
+            aria-hidden="true"
+          />
         ))}
       </div>
     </div>
@@ -302,13 +312,37 @@ function PathOverview({ phases, percent, cleared }) {
 }
 
 /** Four stages, each measured from verified practice. */
-export function PathCard({ phases, pathProgress }) {
+export function PathCard({
+  phases,
+  pathProgress,
+  daysLeft,
+  examDatePassed,
+  weeklyCapacity,
+  days,
+  readiness,
+  targetBand,
+}) {
   const percent = Math.round(Number(pathProgress?.overallPercent) || 0);
   const cleared = Number(pathProgress?.stagesDone) || 0;
+  const runway = useMemo(
+    () => computeRunway({ daysLeft, weeklyCapacity, days, readiness, targetBand }),
+    [daysLeft, weeklyCapacity, days, readiness, targetBand]
+  );
+  const available = daysLeft > 0 && !examDatePassed;
   return (
     <PlanCard aria-label="Path to exam day" className="gap-5">
-      <CardHeader title="Path to exam day" />
+      <CardHeader title="Path to exam day" aside={available ? `${daysLeft} days to exam` : null} />
       <PathOverview phases={phases} percent={percent} cleared={cleared} />
+      {available && (
+        <p className={cn(NUM, 'text-xs font-semibold')}>
+          <FigureValue value={runway.weeks} />
+          <span className={cn('font-sans font-normal', SECONDARY_TEXT)}> weeks · </span>
+          <FigureValue value={runway.sessions} />
+          <span className={cn('font-sans font-normal', SECONDARY_TEXT)}> sessions · </span>
+          <FigureValue value={formatMinutes(runway.minutes)} />
+          <span className={cn('font-sans font-normal', SECONDARY_TEXT)}> study time left</span>
+        </p>
+      )}
       <ol>
         {phases.map((phase, index) => (
           <PathStage
@@ -341,166 +375,4 @@ function FigureValue({ value }) {
         </span>
       )
     );
-}
-
-function RunwayFigure({ value, label }) {
-  return (
-    <div className="min-w-0 rounded-xl border border-[#ebeaf7] bg-[#fbfbfe] px-3 py-2.5 dark:border-white/[0.07] dark:bg-white/[0.03]">
-      <p className={cn(NUM, 'truncate text-xl font-semibold leading-none')}>
-        <FigureValue value={value} />
-      </p>
-      <p className={cn('mt-1.5 truncate text-[11px]', SECONDARY_TEXT)}>{label}</p>
-    </div>
-  );
-}
-
-function GapRow({ item }) {
-  const style = getModuleStyle(item.module);
-  const Icon = style.icon;
-  const far = item.scored && item.gap > 2;
-  return (
-    <li className={cn('flex min-h-10 flex-1 items-center gap-2.5 py-2', ROW_RULE)}>
-      <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{style.label}</span>
-      {item.scored ? (
-        <span className={cn(NUM, 'text-xs font-semibold', far && FAULT_TEXT)}>
-          −{item.gap.toFixed(1)} bands
-        </span>
-      ) : (
-        <span className={cn('text-[11px]', SECONDARY_TEXT)}>No score yet</span>
-      )}
-    </li>
-  );
-}
-
-/**
- * The runway to exam day in units a learner can spend, and the gaps that time
- * has to close. Plain arithmetic on the study time they saved — never a
- * forecast of their score.
- */
-export function TimeLeftCard({
-  daysLeft,
-  examDatePassed,
-  weeklyCapacity,
-  days,
-  readiness,
-  targetBand,
-}) {
-  const runway = useMemo(
-    () => computeRunway({ daysLeft, weeklyCapacity, days, readiness, targetBand }),
-    [daysLeft, weeklyCapacity, days, readiness, targetBand]
-  );
-  const available = daysLeft > 0 && !examDatePassed;
-
-  return (
-    <PlanCard aria-label="Time left" className="gap-4">
-      <CardHeader title="Time left" aside={available ? `${daysLeft} days to exam` : null} />
-      {!available ? (
-        <p className={BODY_TEXT}>
-          {examDatePassed
-            ? 'Your exam date has passed. Set a new one to see your runway.'
-            : 'Set an exam date to see how much study time is left.'}
-        </p>
-      ) : (
-        <>
-          <div className="grid grid-cols-3 gap-2">
-            <RunwayFigure value={runway.weeks} label="weeks left" />
-            <RunwayFigure value={runway.sessions} label="sessions" />
-            <RunwayFigure value={formatMinutes(runway.minutes)} label="study time" />
-          </div>
-          <div className="flex flex-1 flex-col">
-            <p className={cn('text-xs font-semibold', 'text-slate-900 dark:text-white')}>
-              {runway.below.length === 0
-                ? `Every subject is at band ${Number(targetBand).toFixed(1)} or above`
-                : `To close before exam day · target ${Number(targetBand).toFixed(1)}`}
-            </p>
-            {runway.below.length > 0 && (
-              <ul className="mt-1 flex flex-1 flex-col">
-                {runway.below.map((item) => (
-                  <GapRow key={item.module} item={item} />
-                ))}
-              </ul>
-            )}
-          </div>
-          <p className={cn(FOOTNOTE, 'border-t border-[#eceafa] pt-3 dark:border-white/[0.07]')}>
-            Sessions and study time follow the weekly availability you set.
-          </p>
-        </>
-      )}
-    </PlanCard>
-  );
-}
-
-const formatExamLabel = (examDate) =>
-  new Date(`${String(examDate).slice(0, 10)}T12:00:00`).toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-function TimelineItem({ title, detail, trailing, current, last }) {
-  return (
-    <li className="relative flex min-h-14 flex-1 items-center gap-3 py-2.5">
-      {!last && (
-        <span
-          aria-hidden="true"
-          className="absolute left-[6px] top-[calc(50%+7px)] h-[calc(100%-14px)] w-px bg-[#e4e2f0] dark:bg-white/10"
-        />
-      )}
-      <span
-        aria-hidden="true"
-        className={cn(
-          'relative h-3.5 w-3.5 shrink-0 rounded-full border-2 bg-white dark:bg-white/10',
-          current
-            ? 'border-[#5a63df] dark:border-[#8f97ff]'
-            : 'border-slate-300 dark:border-white/25'
-        )}
-      />
-      <div className="min-w-0 flex-1">
-        <p className={cn('truncate text-[13px]', current ? 'font-semibold' : 'font-medium')}>
-          {title}
-        </p>
-        <p className={cn('text-[11px]', SECONDARY_TEXT)}>{detail}</p>
-      </div>
-      <p className={cn(NUM, 'text-right text-xs font-semibold')}>{trailing}</p>
-    </li>
-  );
-}
-
-/** What is next on the road to exam day, in the order the dates fall. */
-export function ComingUpCard({ phases, examDate, daysLeft, examDatePassed }) {
-  const upcoming = phases.filter((phase) => Number(phase.progressPercent) < 100 && phase.dateRange);
-  const hasExam = Boolean(examDate) && !examDatePassed;
-  const total = upcoming.length + (hasExam ? 1 : 0);
-
-  return (
-    <PlanCard aria-label="Coming up" className="gap-4">
-      <CardHeader title="Coming up" aside={total ? `${total} milestones` : null} />
-      {total === 0 ? (
-        <p className={BODY_TEXT}>No dated milestones yet. Set an exam date to plan toward it.</p>
-      ) : (
-        <ol className="flex flex-1 flex-col">
-          {upcoming.map((phase, index) => (
-            <TimelineItem
-              key={phase.key}
-              title={phase.shortName}
-              detail={phase.status}
-              trailing={phase.dateRange}
-              current={index === 0}
-              last={!hasExam && index === upcoming.length - 1}
-            />
-          ))}
-          {hasExam && (
-            <TimelineItem
-              title="IELTS exam"
-              detail={formatExamLabel(examDate)}
-              trailing={`${daysLeft} days`}
-              last
-            />
-          )}
-        </ol>
-      )}
-    </PlanCard>
-  );
 }

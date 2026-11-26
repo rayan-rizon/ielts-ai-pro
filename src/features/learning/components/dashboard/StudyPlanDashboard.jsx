@@ -7,8 +7,8 @@ import FirstTestPanel from './FirstTestPanel';
 import PlanAlert from './PlanAlert';
 import PlanCalendar from './PlanCalendar';
 import PlanStats from './PlanStats';
-import { ConsistencyCard, RecentPracticeCard, StudyTimeCard } from './PracticeCards';
-import { ComingUpCard, FocusSkillsCard, PathCard, ScoresCard, TimeLeftCard } from './EvidenceCards';
+import { ConsistencyCard, StudyTimeCard } from './PracticeCards';
+import { FocusSkillsCard, PathCard, ScoresCard } from './EvidenceCards';
 import TaskPanel from './TaskPanel';
 import { buildPracticeHistory, getPlanAttention, summarizeWeek, taskKey } from './studyPlanModel';
 import { useLearningPathDashboard } from './useLearningPathDashboard';
@@ -25,8 +25,9 @@ function StudyPlanLoadingView() {
         <div className="space-y-3">
           <div className={`h-[340px] ${SKELETON_BLOCK}`} />
           <div className="grid gap-3 md:grid-cols-2">
-            {[0, 1, 2, 3].map((index) => (
-              <div key={index} className={`h-[260px] ${SKELETON_BLOCK}`} />
+            <div className={`h-[300px] md:col-span-2 ${SKELETON_BLOCK}`} />
+            {[0, 1].map((index) => (
+              <div key={index} className={`h-[220px] ${SKELETON_BLOCK}`} />
             ))}
           </div>
         </div>
@@ -66,7 +67,7 @@ function PageHeader({ refreshing, planUpdateAvailable, onRefresh, onCustomize })
   );
 }
 
-function StudyPlanView({ dashboard, history, stats, sessions, timezone, todayKey }) {
+function StudyPlanView({ dashboard, history, stats, todayKey }) {
   const [dismissed, setDismissed] = useState(false);
   const [selectedKey, setSelectedKey] = useState(null);
   const {
@@ -86,6 +87,7 @@ function StudyPlanView({ dashboard, history, stats, sessions, timezone, todayKey
     daysLeft,
     examDatePassed,
     weeklyCapacity,
+    availability,
     planDays,
     sevenDays,
     phases,
@@ -151,6 +153,7 @@ function StudyPlanView({ dashboard, history, stats, sessions, timezone, todayKey
             day={selectedDay}
             days={planDays}
             todayKey={todayKey}
+            availability={availability}
             canReschedule={canReschedule}
             onStart={startTask}
             onToggle={toggleTask}
@@ -158,7 +161,7 @@ function StudyPlanView({ dashboard, history, stats, sessions, timezone, todayKey
           />
         </div>
 
-        <div className="order-2 min-w-0 space-y-3 lg:col-start-1 lg:row-span-2 lg:row-start-1">
+        <div className="order-2 flex min-w-0 flex-col gap-3 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-stretch">
           <PlanCalendar
             days={planDays}
             historyDays={history.historyDays}
@@ -169,39 +172,40 @@ function StudyPlanView({ dashboard, history, stats, sessions, timezone, todayKey
             onReschedule={rescheduleTask}
           />
 
-          <div className="grid min-w-0 items-stretch gap-3 md:grid-cols-2">
+          <div className="grid min-w-0 gap-3 md:grid-cols-2 md:grid-rows-2">
+            <div className="min-w-0 md:row-span-2 [&>section]:h-full">
+              <PathCard
+                phases={phases}
+                pathProgress={pathProgress}
+                daysLeft={daysLeft}
+                examDatePassed={examDatePassed}
+                weeklyCapacity={weeklyCapacity}
+                days={sevenDays}
+                readiness={readiness}
+                targetBand={targetBand}
+              />
+            </div>
             <ConsistencyCard
               heatmap={history.heatmap}
               streak={history.streak}
               daysSincePractice={history.daysSincePractice}
             />
             <StudyTimeCard weeks={history.weeks} weeklyCapacity={weeklyCapacity} />
-            <PathCard phases={phases} pathProgress={pathProgress} />
-            <TimeLeftCard
-              daysLeft={daysLeft}
-              examDatePassed={examDatePassed}
-              weeklyCapacity={weeklyCapacity}
-              days={sevenDays}
+          </div>
+
+          <div className="min-w-0 flex-1 [&>section]:h-full">
+            <ScoresCard
               readiness={readiness}
               targetBand={targetBand}
-            />
-            <RecentPracticeCard sessions={sessions} timezone={timezone} targetBand={targetBand} />
-            <ComingUpCard
-              phases={phases}
-              examDate={examDate}
-              daysLeft={daysLeft}
-              examDatePassed={examDatePassed}
+              moduleTrends={stats?.moduleTrends}
             />
           </div>
         </div>
 
-        <div className="order-3 min-w-0 space-y-3 lg:col-start-2 lg:row-start-2">
-          <FocusSkillsCard evidence={evidence} onStart={startTask} />
-          <ScoresCard
-            readiness={readiness}
-            targetBand={targetBand}
-            moduleTrends={stats?.moduleTrends}
-          />
+        <div className="order-3 flex min-w-0 flex-col gap-3 lg:col-start-2 lg:row-start-2 lg:self-stretch">
+          <div className="min-w-0 flex-1 [&>section]:h-full">
+            <FocusSkillsCard evidence={evidence} onStart={startTask} />
+          </div>
         </div>
       </div>
 
@@ -256,8 +260,6 @@ export default function StudyPlanDashboard(props) {
       dashboard={{ ...dashboard, user: props.user }}
       history={history}
       stats={stats}
-      sessions={sessions}
-      timezone={timezone}
       todayKey={todayKey}
     />
   );

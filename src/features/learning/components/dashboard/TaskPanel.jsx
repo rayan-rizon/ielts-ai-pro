@@ -10,7 +10,8 @@ import {
   getModuleStyle,
   getTaskModeLabel,
 } from './dashboardUtils';
-import { buildSessionChecklist } from './studyPlanModel';
+import MoveCalendar from './MoveCalendar';
+import { buildSessionChecklist, getMoveBlock } from './studyPlanModel';
 
 const dayName = (date) =>
   date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
@@ -29,8 +30,7 @@ const SECONDARY_BUTTON =
 
 const MOVE_CHIPS = 7;
 
-function MoveRow({ task, days, todayKey, onReschedule }) {
-  const lastDay = days.at(-1);
+function MoveRow({ task, days, availability, todayKey, onReschedule }) {
   const chips = days.filter((day) => !day.isExamDay).slice(0, MOVE_CHIPS);
   const bookable = days.filter((day) => !day.isExamDay);
 
@@ -39,35 +39,39 @@ function MoveRow({ task, days, todayKey, onReschedule }) {
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">Move to</p>
         {bookable.length > MOVE_CHIPS && (
-          <label className={cn('flex items-center gap-1.5 text-[11px]', SECONDARY_TEXT)}>
-            Another day
-            <input
-              type="date"
-              aria-label="Move to another day in your plan"
-              min={days[0].dateKey}
-              max={(bookable.at(-1) || lastDay).dateKey}
-              value=""
-              onChange={(event) => event.target.value && onReschedule(task, event.target.value)}
-              className="h-7 rounded-md border border-[#e4e2f0] bg-white px-1.5 text-[11px] text-slate-700 transition-colors focus:border-[#5a63df] focus:ring-1 focus:ring-[#5a63df]/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
-            />
-          </label>
+          <MoveCalendar
+            task={task}
+            days={days}
+            availability={availability}
+            todayKey={todayKey}
+            onPick={(dateKey) => onReschedule(task, dateKey)}
+          />
         )}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {chips.map((day) => {
           const current = day.dateKey === task.scheduled_date;
+          const reason = current
+            ? null
+            : getMoveBlock({ task, dateKey: day.dateKey, days, availability, todayKey });
           return (
             <button
               key={day.dateKey}
               type="button"
               aria-pressed={current}
-              aria-label={`Move to ${dayName(day.date)}`}
-              onClick={() => !current && onReschedule(task, day.dateKey)}
+              aria-disabled={Boolean(reason)}
+              title={reason || undefined}
+              aria-label={`Move to ${dayName(day.date)}${reason ? ` (${reason})` : ''}`}
+              onClick={() => !current && !reason && onReschedule(task, day.dateKey)}
               className={cn(
                 'flex h-9 flex-col items-center justify-center rounded-lg border text-[10px] font-bold uppercase leading-tight transition-[transform,background-color,border-color,color] duration-150 active:scale-[0.95]',
                 current
                   ? 'border-[#5a63df] bg-[#5a63df] text-white shadow-xs'
-                  : 'border-[#e4e2f0] bg-white text-slate-600 hover:border-[#5a63df] hover:text-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
+                  : reason
+                    ? reason === 'Day is full'
+                      ? 'cursor-not-allowed border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.1)] text-[rgb(var(--signal-warn))]'
+                      : 'cursor-not-allowed border-[#eeedf6] bg-[#f6f5fb] text-slate-300 dark:border-white/5 dark:bg-white/[0.02] dark:text-slate-600'
+                    : 'border-[#e4e2f0] bg-white text-slate-600 hover:border-[#5a63df] hover:text-[#5a63df] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:border-white/20 dark:hover:text-slate-200'
               )}
             >
               {day.dateKey === todayKey
@@ -201,6 +205,7 @@ export default function TaskPanel({
   day,
   days,
   todayKey,
+  availability,
   canReschedule,
   onStart,
   onToggle,
@@ -286,7 +291,13 @@ export default function TaskPanel({
 
         {canReschedule && task.id && !task.is_completed && (
           <div className="border-t border-[#eceafa] pt-4 dark:border-white/[0.07]">
-            <MoveRow task={task} days={days} todayKey={todayKey} onReschedule={onReschedule} />
+            <MoveRow
+              task={task}
+              days={days}
+              availability={availability}
+              todayKey={todayKey}
+              onReschedule={onReschedule}
+            />
           </div>
         )}
       </div>

@@ -1,10 +1,8 @@
 import React from 'react';
-import { Activity } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { Empty, NUM } from '@/features/dashboard/components/primitives';
-import { CardHeader, INSET, PlanCard, ROW_RULE, SECONDARY_TEXT } from './PlanCard';
-import { formatMinutes, getModuleStyle } from './dashboardUtils';
-import { isFarBelow } from './studyPlanModel';
+import { NUM } from '@/features/dashboard/components/primitives';
+import { CardHeader, INSET, PlanCard, SECONDARY_TEXT } from './PlanCard';
+import { formatMinutes } from './dashboardUtils';
 
 const shortDate = (dateKey) =>
   new Date(`${dateKey}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -115,100 +113,6 @@ export function StudyTimeCard({ weeks, weeklyCapacity }) {
           : 'No scored test time in the last 7 days.'}{' '}
         Solid bars reached your weekly goal.
       </p>
-    </PlanCard>
-  );
-}
-
-const MODE_LABEL = { exam: 'Exam Mode', practice: 'Practice', diagnostic: 'Level check' };
-const sessionDetail = (session) => {
-  const mode = MODE_LABEL[String(session.test_mode || '').toLowerCase()];
-  const minutes = Math.round(Number(session.actual_duration_seconds || 0) / 60);
-  return [mode, minutes > 0 ? `${minutes} min` : null].filter(Boolean).join(' · ');
-};
-
-function RecentRow({ session, dateText, targetBand }) {
-  const style = getModuleStyle(session.test_type);
-  const Icon = style.icon;
-  const score = Number(session.score);
-  const low = isFarBelow(score, targetBand);
-  const detail = sessionDetail(session);
-
-  return (
-    <li className={cn('flex items-center gap-3 py-2.5', ROW_RULE)}>
-      <span
-        className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#ebeaf7] bg-[#f4f3fb] text-slate-500 dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-slate-400'
-        )}
-      >
-        <Icon className="h-4 w-4" aria-hidden="true" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-medium">{style.label}</p>
-        <p className={cn('truncate text-[11px]', SECONDARY_TEXT)}>
-          <span className={NUM}>{dateText}</span>
-          {detail ? ` · ${detail}` : ''}
-        </p>
-      </div>
-      <div className="flex w-16 shrink-0 flex-col items-end gap-1">
-        <span
-          className={cn(
-            NUM,
-            'text-[15px] font-semibold leading-none',
-            low && 'text-[rgb(var(--signal-fault))]'
-          )}
-        >
-          {score.toFixed(1)}
-        </span>
-        <span className={cn('h-1 w-full overflow-hidden rounded-full', INSET)} aria-hidden="true">
-          <span
-            className={cn(
-              'block h-full rounded-full',
-              low ? 'bg-[rgb(var(--signal-fault))]' : 'bg-slate-400 dark:bg-slate-500'
-            )}
-            style={{ width: `${Math.min(100, (score / 9) * 100)}%` }}
-          />
-        </span>
-      </div>
-    </li>
-  );
-}
-
-/** The last few scored results, newest first. */
-export function RecentPracticeCard({ sessions, timezone, targetBand }) {
-  const recent = sessions
-    .filter(
-      (session) => session?.is_completed && session.score !== null && session.score !== undefined
-    )
-    .sort((a, b) => Date.parse(b.completed_at) - Date.parse(a.completed_at))
-    .slice(0, 5);
-  const format = new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    timeZone: timezone || undefined,
-  });
-  const target = Number(targetBand) || 7;
-
-  return (
-    <PlanCard aria-label="Recent practice" className="gap-1">
-      <CardHeader title="Recent practice" aside="Latest scored" />
-      {recent.length === 0 ? (
-        <Empty
-          icon={Activity}
-          title="No scored practice yet"
-          message="Finish a test to see it here."
-        />
-      ) : (
-        <ul>
-          {recent.map((session) => (
-            <RecentRow
-              key={session.id || session.completed_at}
-              session={session}
-              dateText={format.format(new Date(session.completed_at))}
-              targetBand={target}
-            />
-          ))}
-        </ul>
-      )}
     </PlanCard>
   );
 }
