@@ -56,7 +56,7 @@ describe('speakingCaptureUtils', () => {
 
     expect(countdown).toMatchObject({
       startedAt: 10000,
-      seconds: 1,
+      seconds: 2,
       shouldFinish: false,
     });
   });

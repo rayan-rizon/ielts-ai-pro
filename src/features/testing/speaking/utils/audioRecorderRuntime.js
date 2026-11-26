@@ -48,11 +48,6 @@ function getCaptureAudioContext() {
   return sharedCaptureContext;
 }
 
-/** The same gesture-unlocked context, for other microphone analysers (barge-in). */
-export function getSharedCaptureAudioContext() {
-  return getCaptureAudioContext();
-}
-
 /** Call synchronously from a user gesture so hands-free captures can analyse. */
 export function unlockCaptureAudioContext() {
   const audioContext = getCaptureAudioContext();
@@ -170,6 +165,24 @@ function shouldFinishAfterSilence(runtime, now, elapsedMs) {
   return countdown.shouldFinish;
 }
 
+function updateVoiceActivity(runtime, rms, now) {
+  const { refs } = runtime;
+  const voiceFrames = getNextVoiceFrameCount(
+    rms,
+    refs.noiseFloor.current,
+    refs.voiceFrames.current
+  );
+  refs.voiceFrames.current = voiceFrames;
+  // Protect words that begin just before the countdown expires. The first
+  // above-background frame cancels the countdown without confirming speech.
+  if (voiceFrames > 0 && refs.graceStartedAt.current) {
+    refs.lastVoiceAt.current = now;
+    refs.graceStartedAt.current = null;
+    runtime.actions.setAutoFinishCountdown(null);
+  }
+  if (voiceFrames >= REQUIRED_CONSECUTIVE_VOICE_FRAMES) markVoiceDetected(runtime, now);
+}
+
 function createAnalysisLoop(runtime, samples) {
   return () => {
     const { refs } = runtime;
@@ -181,10 +194,9 @@ function createAnalysisLoop(runtime, samples) {
     const rms = calculateRms(samples);
     refs.peakRms.current = Math.max(refs.peakRms.current, rms);
 
-    // A context that never leaves `suspended` yields perfectly flat frames.
-    // Treat the analyser as usable only once it delivers real signal, so the
-    // silence monitor knows whether it can trust the absence of voice.
-    if (!refs.analyserReady.current && rms > 0) refs.analyserReady.current = true;
+    if (!refs.analyserReady.current && refs.audioContext.current?.state === 'running') {
+      refs.analyserReady.current = true;
+    }
 
     updateNoiseFloor(refs, rms);
 
@@ -193,14 +205,7 @@ function createAnalysisLoop(runtime, samples) {
       return;
     }
 
-    refs.voiceFrames.current = getNextVoiceFrameCount(
-      rms,
-      refs.noiseFloor.current,
-      refs.voiceFrames.current
-    );
-    if (refs.voiceFrames.current >= REQUIRED_CONSECUTIVE_VOICE_FRAMES) {
-      markVoiceDetected(runtime, now);
-    }
+    updateVoiceActivity(runtime, rms, now);
   };
 }
 
@@ -498,24 +503,24 @@ export function cancelRecorderCapture(runtime) {
   stopRecorderCapture(runtime, 'cancelled');
 }
 
-export function resetRecorderCapture(runtime) {
+function resetRecorderCapture(runtime) {
   const { refs, actions } = runtime;
-  if (refs.liveTranscript) refs.liveTranscript.current = '';
-  if (refs.recognitionBaseTranscript) refs.recognitionBaseTranscript.current = '';
-  if (refs.recognitionSessionFinal) refs.recognitionSessionFinal.current = '';
-  if (refs.speechConfidence) refs.speechConfidence.current = [];
-  if (refs.speechDetected) refs.speechDetected.current = false;
-  if (refs.analyserReady) refs.analyserReady.current = false;
-  if (refs.peakRms) refs.peakRms.current = 0;
-  if (refs.voiceFrames) refs.voiceFrames.current = 0;
-  if (refs.lastVoiceAt) refs.lastVoiceAt.current = 0;
-  if (refs.graceStartedAt) refs.graceStartedAt.current = null;
-  if (refs.autoSubmitPaused) refs.autoSubmitPaused.current = false;
-  if (refs.pausedAt) refs.pausedAt.current = null;
-  if (refs.totalPausedMs) refs.totalPausedMs.current = 0;
-  if (refs.noSpeechSince) refs.noSpeechSince.current = 0;
-  if (refs.noiseFloor) refs.noiseFloor.current = MIN_VOICE_THRESHOLD / 2;
-  if (refs.noiseWindow) refs.noiseWindow.current = [];
+  refs.liveTranscript.current = '';
+  refs.recognitionBaseTranscript.current = '';
+  refs.recognitionSessionFinal.current = '';
+  refs.speechConfidence.current = [];
+  refs.speechDetected.current = false;
+  refs.analyserReady.current = false;
+  refs.peakRms.current = 0;
+  refs.voiceFrames.current = 0;
+  refs.lastVoiceAt.current = 0;
+  refs.graceStartedAt.current = null;
+  refs.autoSubmitPaused.current = false;
+  refs.pausedAt.current = null;
+  refs.totalPausedMs.current = 0;
+  refs.noSpeechSince.current = 0;
+  refs.noiseFloor.current = MIN_VOICE_THRESHOLD / 2;
+  refs.noiseWindow.current = [];
   actions.setLiveTranscript('');
   actions.setRecordingStartedAt(null);
   actions.setAutoFinishCountdown(null);
@@ -533,13 +538,23 @@ function getRecorderMimeType() {
 function resolveSpeechDetected(refs) {
   if (refs.speechDetected.current) return true;
 
-  // A suspended/unavailable AudioContext cannot prove silence. Likewise, quiet
-  // or noise-like audio is ambiguous: send it to the provider and let the
-  // server-side VAD/transcriber decide. Only a working analyser that stayed at
-  // an effectively flat digital signal may short-circuit as confirmed silence.
-  // Browser captions can hallucinate, so they cannot override that signal.
+  // Preserve ambiguous recordings, particularly manually submitted soft speech.
   if (!refs.analyserReady.current) return null;
-  return refs.peakRms.current <= CONFIRMED_SILENCE_PEAK_RMS ? false : null;
+  if (refs.peakRms.current <= CONFIRMED_SILENCE_PEAK_RMS) return false;
+  return isSteadyBackgroundTimeout(refs) ? false : null;
+}
+
+function isSteadyBackgroundTimeout(refs) {
+  // An unattended timeout with a stable noise floor and no speech evidence
+  // (for example a running fan) does not need a trip to transcription.
+  const floor = refs.noiseFloor.current;
+  return (
+    refs.stopReason.current === 'no-speech-timeout' &&
+    !refs.liveTranscript.current &&
+    refs.noiseWindow.current.length === NOISE_WINDOW_FRAMES &&
+    floor >= MIN_VOICE_THRESHOLD / 2 &&
+    refs.peakRms.current <= floor * 1.15
+  );
 }
 
 function buildRecordingMetadata(runtime, duration) {

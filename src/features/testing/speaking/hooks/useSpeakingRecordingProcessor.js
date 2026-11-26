@@ -18,15 +18,7 @@ import {
 } from '../utils/audioProcessing';
 import { prefetchSpeakingTts } from '../utils/speakingTtsPrefetch';
 
-const NO_AUDIO_MESSAGE =
-  "I couldn't capture that answer. The microphone is still open—please try once more.";
 const MIN_USABLE_AUDIO_BYTES = 1024;
-
-export function replacePendingWithAudioRecovery(conversation) {
-  const settled = conversation.filter((entry) => !entry.isLoading);
-  if (settled.at(-1)?.code === 'audio-capture-recovery') return settled;
-  return [...settled, { speaker: 'ai', text: NO_AUDIO_MESSAGE, code: 'audio-capture-recovery' }];
-}
 
 export async function recoverSpeakingV2Conflict({ error, sessionId }) {
   if (error?.status !== 409 || !sessionId) return null;
@@ -89,7 +81,6 @@ export default function useSpeakingRecordingProcessor({
   setSpeakingV2State,
   speakingV2State,
   speakAiMessageFromLoadingState,
-  speakText,
   testId,
   timerExpiredRef,
   isMountedRef,
@@ -97,10 +88,6 @@ export default function useSpeakingRecordingProcessor({
 }) {
   const pronunciationAttemptedPartsRef = useRef(new Set());
   const processingRequestIdRef = useRef(0);
-  // Consecutive answers that were not heard (silence, noise, transcription
-  // failure). Hands-free stops re-opening the mic after a few in a row, so a
-  // learner who stepped away does not trigger an endless retry loop.
-  const unheardStreakRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -113,17 +100,6 @@ export default function useSpeakingRecordingProcessor({
       const requestId = ++processingRequestIdRef.current;
       const isCurrentRequest = () =>
         processingRequestIdRef.current === requestId && isMountedRef?.current !== false;
-      const restartAfterTurn = (unheard) => {
-        unheardStreakRef.current = unheard ? unheardStreakRef.current + 1 : 0;
-        if (unheardStreakRef.current >= MAX_UNHEARD_AUTO_RESTARTS) {
-          toast.info("We couldn't hear an answer", {
-            description: 'Press Start now when you are ready to answer.',
-            duration: 5000,
-          });
-          return;
-        }
-        requestAutoStart?.();
-      };
       if (metadata.error === 'too_short') {
         toast.warning('Recording too short', {
           description: 'Please speak for at least a few seconds.',
@@ -132,18 +108,13 @@ export default function useSpeakingRecordingProcessor({
         return;
       }
 
-      if (!audioBlob || audioBlob.size < MIN_USABLE_AUDIO_BYTES) {
-        setConversation(replacePendingWithAudioRecovery);
-        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => restartAfterTurn(true));
+      // A silent/noise-only recording can still be a large, valid media blob.
+      if (isSilentSpeechMetadata(metadata)) {
+        showUnheardAnswer(setConversation, 'No speech detected');
         return;
       }
-
-      // A silent/noise-only recording can still be a large, valid media blob.
-      // Stop before upload so a transcription provider cannot hallucinate an
-      // answer. The Edge Function enforces the same rule as a backstop.
-      if (isSilentSpeechMetadata(metadata)) {
-        setConversation(replacePendingWithAudioRecovery);
-        Promise.resolve(speakText(NO_AUDIO_MESSAGE)).finally(() => restartAfterTurn(true));
+      if (!audioBlob || audioBlob.size < MIN_USABLE_AUDIO_BYTES) {
+        showUnheardAnswer(setConversation, 'No audio captured');
         return;
       }
 
@@ -222,8 +193,12 @@ export default function useSpeakingRecordingProcessor({
           return;
         }
 
-        setConversation((prev) => replaceLoadingUserTranscript(prev, response.userTranscript));
         if (response.state) setSpeakingV2State?.(response.state);
+        if (response.transcriptStatus === 'inaudible' || response.transcriptStatus === 'failed') {
+          showUnheardAnswer(setConversation, 'No clear speech detected');
+          return;
+        }
+        setConversation((prev) => replaceLoadingUserTranscript(prev, response.userTranscript));
         await handleSpeakingResponse(response, {
           acousticMetricsRef,
           allParts,
@@ -231,10 +206,7 @@ export default function useSpeakingRecordingProcessor({
           currentPartNumber,
           pendingTimersRef,
           questionIndexRef,
-          requestAutoStart: () =>
-            restartAfterTurn(
-              Boolean(response.transcriptStatus) && response.transcriptStatus !== 'ready'
-            ),
+          requestAutoStart,
           saveSessionProgress,
           session,
           setAllPartsAcousticMetrics,
@@ -268,13 +240,10 @@ export default function useSpeakingRecordingProcessor({
           restartAfterConflict(error, requestAutoStart);
           return;
         }
-        const shouldRestart = await handleProcessingError(error, {
-          pendingTimersRef,
+        handleProcessingError(error, {
           setConversation,
-          speakAiMessageFromLoadingState,
           setShowUpgradeDialog,
         });
-        if (shouldRestart) restartAfterTurn(true);
       } finally {
         if (isCurrentRequest()) {
           setIsProcessing(false);
@@ -304,7 +273,6 @@ export default function useSpeakingRecordingProcessor({
       setSpeakingV2State,
       speakingV2State,
       speakAiMessageFromLoadingState,
-      speakText,
       testId,
       timerExpiredRef,
       isMountedRef,
@@ -485,8 +453,6 @@ function replaceLoadingUserTranscript(conversation, transcript) {
   return updated;
 }
 
-const MAX_UNHEARD_AUTO_RESTARTS = 2;
-
 async function handleSpeakingResponse(response, context) {
   if (!response) {
     context.setConversation((prev) => prev.filter((entry) => !entry.isLoading));
@@ -627,22 +593,26 @@ function isAccessOrRateLimitError(error) {
   return error.status === 429 || error.status === 403 || error.name === 'RateLimitError';
 }
 
-async function handleProcessingError(error, context) {
-  const { setConversation, speakAiMessageFromLoadingState } = context;
+function showUnheardAnswer(setConversation, title) {
+  setConversation((prev) => prev.filter((entry) => !entry.isLoading));
+  toast.info(title, { description: 'Start recording when you’re ready to answer.' });
+}
+
+function handleProcessingError(error, context) {
+  const { setConversation } = context;
 
   console.error('Error processing recording:', error);
+  setConversation((prev) => prev.filter((entry) => !entry.isLoading));
 
   if (error.operationId) {
-    setConversation((prev) => prev.filter((entry) => !entry.isLoading));
     toast.error('Answer could not be saved', {
       description: `${error.userMessage || error.message} Reference: ${error.operationId}`,
       duration: 6000,
     });
-    return false;
+    return;
   }
 
   if (isAccessOrRateLimitError(error)) {
-    setConversation((prev) => prev.filter((entry) => !entry.isLoading));
     if (error.rateLimitType === 'speaking_turn') {
       toast.info('This test attempt is complete', {
         description:
@@ -658,34 +628,10 @@ async function handleProcessingError(error, context) {
         duration: 4000,
       });
     }
-    return false;
+    return;
   }
 
-  setConversation((prev) => {
-    const updated = [...prev];
-    const loadingIndex = updated.findLastIndex(
-      (entry) => entry.isLoading && entry.speaker === 'user'
-    );
-    if (loadingIndex !== -1) {
-      updated[loadingIndex] = {
-        speaker: 'user',
-        text: '(Failed to transcribe)',
-        isLoading: false,
-        error: true,
-      };
-    } else {
-      updated.push({
-        speaker: 'user',
-        text: '(Failed to transcribe)',
-        isLoading: false,
-        error: true,
-      });
-    }
-    return updated;
+  toast.error('Could not process your answer', {
+    description: 'Try recording this answer again.',
   });
-
-  const recoveryMessage =
-    "I'm sorry, I didn't quite catch that. Could you please repeat your answer?";
-  await Promise.resolve(speakAiMessageFromLoadingState(recoveryMessage));
-  return true;
 }

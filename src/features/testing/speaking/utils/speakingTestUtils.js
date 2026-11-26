@@ -242,7 +242,7 @@ export function isTranscriptError(transcript) {
  * that blob to a speech model: Whisper may turn silence into a fluent answer.
  */
 export function isSilentSpeechMetadata(metadata = {}) {
-  return metadata?.speechDetected === false && !String(metadata?.liveTranscript || '').trim();
+  return metadata?.speechDetected === false;
 }
 
 export function buildPartContexts(allParts = {}) {

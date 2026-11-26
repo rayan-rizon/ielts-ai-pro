@@ -336,7 +336,7 @@ describe('speakingTestUtils', () => {
   it('recognizes silent recording metadata before uploading audio', () => {
     expect(isSilentSpeechMetadata({ speechDetected: false })).toBe(true);
     expect(isSilentSpeechMetadata({ speechDetected: false, liveTranscript: 'hello there' })).toBe(
-      false
+      true
     );
     expect(isSilentSpeechMetadata({ speechDetected: true })).toBe(false);
     expect(isSilentSpeechMetadata({ speechDetected: null })).toBe(false);

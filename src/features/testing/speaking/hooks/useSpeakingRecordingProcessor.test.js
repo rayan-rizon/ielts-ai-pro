@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { toast } from 'sonner';
 
-import {
+import useSpeakingRecordingProcessor, {
   getAverageBrowserSpeechConfidence,
   recoverSpeakingV2Conflict,
-  replacePendingWithAudioRecovery,
   submitSpeakingV2TurnWithConflictRecovery,
 } from './useSpeakingRecordingProcessor';
 
@@ -12,6 +13,8 @@ vi.mock('@/utils/api', () => ({
   callEdgeFunctionMultipart: vi.fn(),
 }));
 
+vi.mock('sonner', () => ({ toast: { info: vi.fn(), error: vi.fn() } }));
+
 import { callEdgeFunction, callEdgeFunctionMultipart } from '@/utils/api';
 
 describe('speaking audio recovery message', () => {
@@ -19,18 +22,59 @@ describe('speaking audio recovery message', () => {
     vi.clearAllMocks();
   });
 
-  it('replaces a pending transcript without stacking duplicate examiner warnings', () => {
-    const first = replacePendingWithAudioRecovery([
-      { speaker: 'ai', text: 'When do you usually read?' },
-      { speaker: 'user', text: '', isLoading: true },
-    ]);
-    const second = replacePendingWithAudioRecovery([
-      ...first,
-      { speaker: 'user', text: '', isLoading: true },
-    ]);
+  it('keeps the current question and skips upload when only background noise was captured', async () => {
+    const setConversation = vi.fn();
+    const requestAutoStart = vi.fn();
+    const { result } = renderHook(() =>
+      useSpeakingRecordingProcessor({ setConversation, requestAutoStart })
+    );
+    await result.current(new Blob([new Uint8Array(4096)]), {
+      duration: 12000,
+      speechDetected: false,
+      liveTranscript: 'Thank you.',
+      stopReason: 'no-speech-timeout',
+    });
+    const question = { speaker: 'ai', text: 'When do you usually read?' };
+    expect(
+      setConversation.mock.calls[0][0]([question, { speaker: 'user', text: '', isLoading: true }])
+    ).toEqual([question]);
+    expect(toast.info).toHaveBeenCalledWith('No speech detected', expect.any(Object));
+    expect(callEdgeFunctionMultipart).not.toHaveBeenCalled();
+    expect(requestAutoStart).not.toHaveBeenCalled();
+  });
 
-    expect(second).toEqual(first);
-    expect(second.filter((entry) => entry.code === 'audio-capture-recovery')).toHaveLength(1);
+  it('keeps a service failure distinct from an unheard answer', async () => {
+    const requestAutoStart = vi.fn();
+    const speakAiMessageFromLoadingState = vi.fn();
+    const { result } = renderHook(() =>
+      useSpeakingRecordingProcessor({
+        allParts: {},
+        acousticMetricsRef: { current: {} },
+        questionIndexRef: { current: 0 },
+        currentPartNumber: 1,
+        session: { id: 'session-1' },
+        speakingV2State: { revision: 1, status: 'active' },
+        setConversation: vi.fn(),
+        setIsProcessing: vi.fn(),
+        setProcessingStatus: vi.fn(),
+        requestAutoStart,
+        speakAiMessageFromLoadingState,
+        useSpeakingV2: true,
+      })
+    );
+    callEdgeFunctionMultipart.mockRejectedValueOnce(
+      Object.assign(new Error('Service unavailable'), { status: 503 })
+    );
+    await result.current(new Blob([new Uint8Array(4096)], { type: 'audio/webm' }), {
+      duration: 2000,
+      speechDetected: true,
+    });
+
+    expect(callEdgeFunctionMultipart).toHaveBeenCalledOnce();
+    expect(toast.error).toHaveBeenCalledWith('Could not process your answer', expect.any(Object));
+    expect(toast.info).not.toHaveBeenCalled();
+    expect(speakAiMessageFromLoadingState).not.toHaveBeenCalled();
+    expect(requestAutoStart).not.toHaveBeenCalled();
   });
 
   it('reconciles a stale turn with the authoritative speaking state', async () => {

@@ -8,7 +8,6 @@ import {
   shouldSpeakPracticeCoach,
 } from '../../../supabase/functions/_shared/practiceCoach.ts';
 import { MODELS } from '../../../supabase/functions/_shared/aiModelRegistry.ts';
-import { createBargeInDetector } from '@/features/testing/speaking/utils/bargeInDetector';
 
 const transcript =
   'my hometown is dhaka it is very big city and there is many peoples living there';
@@ -170,57 +169,5 @@ describe('practice coach spoken reply', () => {
     ).toBe(
       'You said I am enjoy it; say I enjoy it. Please answer the question directly: When do you eat bread?'
     );
-  });
-});
-
-describe('barge-in detector', () => {
-  const run = (
-    detector: ReturnType<typeof createBargeInDetector>,
-    levels: number[],
-    clock: { now: number }
-  ) => {
-    let fired = false;
-    for (const rms of levels) {
-      clock.now += 50;
-      fired = detector.push(rms, clock.now) || fired;
-    }
-    return fired;
-  };
-
-  it('ignores the coach echo and a cough, then detects real speech', () => {
-    const detector = createBargeInDetector();
-    const clock = { now: 0 };
-    expect(run(detector, Array(14).fill(0.03), clock)).toBe(false); // learn the echo
-    expect(run(detector, Array(20).fill(0.05), clock)).toBe(false); // echo < 2.6x
-    expect(run(detector, [0.2, 0.2, 0.2, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01], clock)).toBe(
-      false
-    ); // a cough
-    // Real speech: loud syllables with quiet gaps between them.
-    expect(run(detector, [0.2, 0.01, 0.2, 0.2, 0.01, 0.2, 0.2, 0.2, 0.01, 0.2], clock)).toBe(true);
-  });
-
-  it('fires on the measured loudness of a real spoken answer', () => {
-    const detector = createBargeInDetector();
-    const clock = { now: 0 };
-    const measured = [
-      0, 0, 0, 0, 0.005, 0.005, 0.005, 0.03, 0.063, 0.005, 0.053, 0.049, 0.038, 0.006, 0.033, 0.02,
-      0.007, 0.007, 0.065, 0.016,
-    ];
-    // Each value stands for four frames in the recording it was sampled from.
-    expect(
-      run(
-        detector,
-        measured.flatMap((value) => [value, value, value, value]),
-        clock
-      )
-    ).toBe(true);
-  });
-
-  it('keeps an absolute floor in a silent room', () => {
-    const detector = createBargeInDetector();
-    const clock = { now: 0 };
-    run(detector, Array(14).fill(0), clock);
-    run(detector, Array(10).fill(0.02), clock);
-    expect(detector.threshold).toBeGreaterThanOrEqual(0.025);
   });
 });

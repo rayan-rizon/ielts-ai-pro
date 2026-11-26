@@ -23,7 +23,6 @@ import useSpeakingPracticeClock from '../hooks/useSpeakingPracticeClock';
 import useExaminerVoiceSelection from '../hooks/useExaminerVoiceSelection';
 import useStartPartTwoSpeaking from '../hooks/useStartPartTwoSpeaking';
 import useStartSpeakingTest from '../hooks/useStartSpeakingTest';
-import usePracticeBargeIn from '../hooks/usePracticeBargeIn';
 import { shouldAutomaticallyFinalizeSpeaking } from '../utils/autoFinalEvaluation';
 import { canAutoStartSpeakingAnswer } from '../utils/speakingCaptureUtils';
 import { createSpeakingPartTransitionGuard } from '../utils/speakingPartTransitionGuard';
@@ -380,7 +379,6 @@ export default function SpeakingTest() {
     setSpeakingV2State,
     speakingV2State,
     speakAiMessageFromLoadingState,
-    speakText,
     testId,
     timerExpiredRef,
     isMountedRef,
@@ -468,12 +466,13 @@ export default function SpeakingTest() {
     }
   }, [cancelCurrentAudio, cancelListening, isTestComplete]);
 
-  // Practice barge-in: when the learner starts talking over the coach, the
-  // coach stops mid-sentence and the answer recorder takes over the mic.
+  // Interrupt only on explicit learner input. Room noise and speaker echo
+  // cannot reliably be distinguished from speech while the coach is playing.
   const handleInterruptSpeech = useCallback(() => {
     interruptCurrentAudio();
-    requestAutoStart();
-  }, [interruptCurrentAudio, requestAutoStart]);
+    if (isHandsFree) requestAutoStart();
+    else startListening();
+  }, [interruptCurrentAudio, isHandsFree, requestAutoStart, startListening]);
   const canInterruptSpeech =
     speakingMode === 'practice' &&
     testStarted &&
@@ -483,12 +482,6 @@ export default function SpeakingTest() {
     !isPart2Intro &&
     !isPart2Prep &&
     !isTestComplete;
-  usePracticeBargeIn({
-    enabled: canInterruptSpeech,
-    isPlaybackActive,
-    onBargeIn: handleInterruptSpeech,
-  });
-
   const handleHandsFreeChange = useCallback(
     (enabled) => {
       setHandsFreeEnabled(enabled);

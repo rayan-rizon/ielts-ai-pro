@@ -73,7 +73,7 @@ const RecordingControls = React.memo(function RecordingControls({
 }) {
   const prefersReducedMotion = useReducedMotion();
   // Practice mode: while the coach talks, the main button interrupts it and
-  // starts the answer (the same thing speaking over the coach does).
+  // starts the answer.
   const canInterrupt =
     Boolean(onInterruptSpeech) &&
     !isProcessing &&
@@ -124,11 +124,6 @@ const RecordingControls = React.memo(function RecordingControls({
           {!isListening && (
             <div className="flex min-h-5 items-center justify-center">
               <ExaminerStatus isProcessing={isProcessing} processingStatus={processingStatus} />
-              {canInterrupt && (
-                <p className={cn(MICRO, MUTED, 'tracking-[0.14em]')}>
-                  Start talking any time to interrupt
-                </p>
-              )}
               {!micError && !isProcessing && !isTTSLoading && !isSpeaking && !isPlaybackActive && (
                 <p className={cn(MICRO, MUTED, 'tracking-[0.14em]')}>
                   {handsFreeEnabled ? 'Microphone ready' : 'Ready for your answer'}

@@ -1,14 +1,14 @@
 const DEFAULT_CAPTURE_CONFIG = {
   minimumAnswerMs: 2500,
   silenceBeforeGraceMs: 1600,
-  gracePeriodMs: 1400,
+  gracePeriodMs: 2400,
   noSpeechTimeoutMs: 12000,
 };
 
 const PART_TWO_CAPTURE_CONFIG = {
   minimumAnswerMs: 10000,
   silenceBeforeGraceMs: 3500,
-  gracePeriodMs: 2000,
+  gracePeriodMs: 2500,
   noSpeechTimeoutMs: 20000,
 };
 

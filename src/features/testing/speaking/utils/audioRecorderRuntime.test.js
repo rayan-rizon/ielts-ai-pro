@@ -167,7 +167,8 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
       ],
     });
 
-    await vi.advanceTimersByTimeAsync(4200);
+    const { minimumAnswerMs, gracePeriodMs } = runtime.refs.captureConfig.current;
+    await vi.advanceTimersByTimeAsync(minimumAnswerMs + gracePeriodMs + 200);
 
     expect(processRecording).toHaveBeenCalledOnce();
     expect(processRecording.mock.calls[0][1]).toMatchObject({
@@ -312,6 +313,43 @@ describe('audioRecorderRuntime hands-free silence detection', () => {
       speechDetected: null,
       stopReason: 'no-speech-timeout',
     });
+  });
+
+  it('identifies a fan-only timeout without discarding a manual recording', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+    await startRecorderCapture(runtime);
+    runtime.refs.analyserReady.current = true;
+    runtime.refs.peakRms.current = 0.034;
+    runtime.refs.noiseWindow.current = Array.from(
+      { length: 60 },
+      (_, index) => 0.029 + (index % 6) * 0.001
+    );
+    runtime.refs.noiseFloor.current = __testing.measureNoiseFloor(runtime.refs.noiseWindow.current);
+    expect(__testing.resolveSpeechDetected(runtime.refs)).toBeNull();
+    await vi.advanceTimersByTimeAsync(runtime.refs.captureConfig.current.noSpeechTimeoutMs + 200);
+    expect(processRecording.mock.calls[0][1]).toMatchObject({
+      speechDetected: false,
+      stopReason: 'no-speech-timeout',
+    });
+  });
+
+  it('keeps a short answer open through a three-second thinking pause', async () => {
+    const processRecording = vi.fn().mockResolvedValue(undefined);
+    const runtime = buildRuntime(processRecording);
+    await startRecorderCapture(runtime);
+    const hear = (transcript) =>
+      recognition.onresult({
+        results: [{ 0: { transcript, confidence: 0.93 }, isFinal: true, length: 1 }],
+      });
+
+    await vi.advanceTimersByTimeAsync(5000);
+    hear('I grew up in a small town.');
+    await vi.advanceTimersByTimeAsync(3200);
+    expect(processRecording).not.toHaveBeenCalled();
+    hear('I grew up in a small town. It was beside a river.');
+    stopRecorderCapture(runtime, 'manual');
+    expect(processRecording.mock.calls[0][1].liveTranscript).toContain('beside a river');
   });
 
   it('marks only analyser-confirmed digital silence as silent', () => {
