@@ -152,7 +152,6 @@ export default function Analytics() {
             <EmptyAnalyticsView
               headerProps={headerProps}
               stats={data.stats}
-              user={data.user}
               progressToTarget={getProgressToTarget(data.stats)}
             />
           </m.div>

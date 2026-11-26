@@ -1,15 +1,16 @@
 import React from 'react';
-import { m } from 'framer-motion';
+import { m, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Award, BarChart3, Brain, ChevronRight, TrendingUp } from 'lucide-react';
+import { BookOpen, ChevronRight, Headphones, LineChart, Mic, PenLine } from 'lucide-react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/cn';
 import { CONTAINER_VARIANTS, ITEM_VARIANTS } from '../constants';
 import { formatBand } from '../utils';
 import {
+  Empty,
+  FAINT,
   IconChip,
   MICRO,
-  MUTED,
   NUM,
   PANEL,
   PANEL_LINK,
@@ -17,81 +18,21 @@ import {
   PanelTitle,
   Pill,
   ROW_CHEVRON,
-  ROW_HOVER,
-  TILE,
   WELL,
 } from '@/features/dashboard/components/primitives';
 import AnalyticsHeader from './AnalyticsHeader';
 import StatCards from './StatCards';
+import EmptyReportCards from './EmptyReportCards';
 
-const STARTER_PAPERS = [
-  {
-    id: 'starter-reading',
-    module: 'reading',
-    title: 'Academic Reading · Diagnostic Set',
-    minutes: 15,
-    tag: 'Quick Start',
-    href: '/reading-test',
-    detail: '1 passage · 13 questions · instant band score',
-  },
-  {
-    id: 'starter-listening',
-    module: 'listening',
-    title: 'Listening Section 1 · Everyday Social',
-    minutes: 10,
-    tag: 'Audio',
-    href: '/listening-test',
-    detail: '1 audio track · 10 questions · note strategy',
-  },
-  {
-    id: 'starter-writing',
-    module: 'writing',
-    title: 'Writing Task 2 · Essay Prompt',
-    minutes: 40,
-    tag: 'AI Feedback',
-    href: '/writing-task',
-    detail: 'Detailed band 9 scoring across all 4 criteria',
-  },
-  {
-    id: 'starter-speaking',
-    module: 'speaking',
-    title: 'Speaking Part 1 · Interview Flow',
-    minutes: 5,
-    tag: 'Fluency',
-    href: '/speaking-test',
-    detail: 'AI speech coach · pronunciation & speed check',
-  },
+const MODULES = [
+  { key: 'reading', label: 'Reading', icon: BookOpen, href: '/reading-test' },
+  { key: 'listening', label: 'Listening', icon: Headphones, href: '/listening-test' },
+  { key: 'writing', label: 'Writing', icon: PenLine, href: '/writing-task' },
+  { key: 'speaking', label: 'Speaking', icon: Mic, href: '/speaking-test' },
 ];
 
-const ANALYTICS_PREVIEWS = [
-  {
-    icon: TrendingUp,
-    tone: 'accent',
-    title: 'Band trajectory engine',
-    desc: 'Longitudinal progression per module with confidence bounds and target gap analysis.',
-  },
-  {
-    icon: Award,
-    tone: 'emerald',
-    title: 'Examiner criteria rubric',
-    desc: 'Criterion-by-criterion breakdown across Task Achievement, Coherence, Lexical Resource, and Grammar.',
-  },
-  {
-    icon: Brain,
-    tone: 'sky',
-    title: 'Weak-spot diagnostic radar',
-    desc: 'Pinpoints exact question formats (T/F/NG, Headings, Matching) costing you marks.',
-  },
-];
-
-function formatTestDate(testDate) {
-  if (!testDate) return null;
-  return new Date(testDate).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+const CHART_CEILING = 9;
+const CHART_FLOOR = 4;
 
 function parseTargetScore(stats) {
   if (!stats?.targetScore) return null;
@@ -99,260 +40,153 @@ function parseTargetScore(stats) {
   return Number.isNaN(num) ? null : num;
 }
 
-function AnalyticsPreviewsGrid() {
+/** Bands shown on the empty chart, widened downwards for unusually low targets. */
+function chartBands(targetScore) {
+  const floor = Math.min(CHART_FLOOR, Math.floor(targetScore ?? CHART_FLOOR));
+  return Array.from({ length: CHART_CEILING - floor + 1 }, (_, i) => CHART_CEILING - i);
+}
+
+/** The one real value on an empty chart: the learner's own goal. */
+function TargetLine({ targetScore, floor }) {
+  const reduceMotion = useReducedMotion();
+  const top = ((CHART_CEILING - targetScore) / (CHART_CEILING - floor)) * 100;
+
   return (
-    <div className="mt-3.5 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-      {ANALYTICS_PREVIEWS.map((item) => (
-        <div key={item.title} className={cn(TILE, 'flex flex-col gap-2 p-3')}>
-          <div className="flex items-center gap-2">
-            <IconChip icon={item.icon} tone={item.tone} size="sm" />
-            <span className="truncate text-[12px] font-extrabold text-slate-800 dark:text-slate-100">
-              {item.title}
-            </span>
-          </div>
-          <p className={cn(MICRO, MUTED, 'normal-case leading-snug tracking-normal')}>
-            {item.desc}
-          </p>
-        </div>
-      ))}
-    </div>
+    <m.div
+      className="absolute inset-x-0 flex -translate-y-1/2 items-center gap-2"
+      style={{ top: `${top}%` }}
+      initial={reduceMotion ? false : { clipPath: 'inset(0 100% 0 0)' }}
+      animate={{ clipPath: 'inset(0 0% 0 0)' }}
+      transition={{ duration: 0.6, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+    >
+      <span className="flex-1 border-t border-dashed border-[#5a63df]/70 dark:border-[#8f97ff]/70" />
+      <Pill tone="accent">Target {formatBand(targetScore)}</Pill>
+    </m.div>
   );
 }
 
-function StarterPapersGrid() {
-  return (
-    <div className="mt-4 border-t border-[#eeedf7] pt-3 dark:border-white/[0.07]">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className={cn(MICRO, MUTED)}>RECOMMENDED STARTER PAPERS</span>
-        <span className={cn(MICRO, MUTED)}>DIRECT DIAGNOSTIC</span>
-      </div>
+function ChartScaffold({ targetScore }) {
+  const bands = chartBands(targetScore);
+  // The empty-state note takes whichever half the target line leaves free.
+  const targetIsLow = targetScore != null && targetScore < 7;
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {STARTER_PAPERS.map((starter) => (
-          <Link
-            key={starter.id}
-            to={starter.href}
-            className={cn(
-              TILE,
-              ROW_HOVER,
-              'group flex items-center gap-3 p-2.5 transition-all duration-150'
-            )}
+  return (
+    <div className="relative min-h-[280px] flex-1">
+      <div className="absolute inset-x-0 inset-y-2">
+        {bands.map((band, i) => (
+          <div
+            key={band}
+            aria-hidden="true"
+            className="absolute inset-x-0 flex -translate-y-1/2 items-center gap-2"
+            style={{ top: `${(i / (bands.length - 1)) * 100}%` }}
           >
-            <div
-              className={cn(
-                WELL,
-                'flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-md border border-[#e4e2f0] dark:border-white/10'
-              )}
-            >
-              <span
-                className={cn(
-                  NUM,
-                  'text-xs font-bold leading-none text-slate-900 dark:text-slate-50'
-                )}
-              >
-                {starter.minutes}
-              </span>
-              <span
-                className={cn(MICRO, 'text-[8px] leading-none text-[#5a63df] dark:text-[#afb5ff]')}
-              >
-                min
-              </span>
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-extrabold leading-tight text-slate-800 transition-colors group-hover:text-[#5a63df] dark:text-slate-100 dark:group-hover:text-[#afb5ff]">
-                {starter.title}
-              </p>
-              <p className={cn(MICRO, MUTED, 'mt-0.5 truncate')}>{starter.detail}</p>
-            </div>
-
-            <div className="flex items-center gap-1 text-[11px] font-bold text-[#5a63df] opacity-80 group-hover:opacity-100 dark:text-[#afb5ff]">
-              <span className="hidden xs:inline">Start</span>
-              <ChevronRight className={cn('h-3.5 w-3.5 shrink-0', ROW_CHEVRON)} />
-            </div>
-          </Link>
+            <span className={cn(NUM, FAINT, 'w-3 text-right text-[10px] font-bold')}>{band}</span>
+            <span className="flex-1 border-t border-[#eeedf7] dark:border-white/[0.06]" />
+          </div>
         ))}
-      </div>
-    </div>
-  );
-}
 
-function PerformancePipelinePanel() {
-  return (
-    <div className="col-span-12 lg:col-span-8">
-      <m.section variants={ITEM_VARIANTS} className={cn(PANEL, 'flex h-full flex-col p-4 sm:p-5')}>
-        <PanelTitle
-          label="Performance analytics pipeline"
-          accent
-          action={<Pill tone="accent">Awaiting baseline test</Pill>}
-          tip="Automated analytics, diagnostic insights, and score trajectories activate once you complete any scored practice test."
+        {targetScore != null && (
+          <div className="absolute inset-y-0 left-5 right-0">
+            <TargetLine targetScore={targetScore} floor={bands.at(-1)} />
+          </div>
+        )}
+      </div>
+
+      <div
+        className={cn(
+          'absolute inset-0 flex justify-center py-4 pl-5',
+          targetIsLow ? 'items-start' : 'items-end'
+        )}
+      >
+        <Empty
+          icon={LineChart}
+          title="No scores yet"
+          message="Your first scored test starts this line."
+          className="rounded-xl bg-white py-3 dark:bg-[#121117]"
         />
-
-        {/* Hero Callout */}
-        <div
-          className={cn(
-            TILE,
-            'flex flex-col sm:flex-row items-start sm:items-center gap-3.5 p-3.5 sm:p-4'
-          )}
-        >
-          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/18 dark:text-[#afb5ff]">
-            <BarChart3 className="h-5 w-5" strokeWidth={2.25} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50">
-              Unlock your IELTS performance intelligence
-            </h3>
-            <p className={cn(MICRO, MUTED, 'mt-1 normal-case leading-relaxed tracking-normal')}>
-              Complete your first scored practice test to activate automated band estimation, IELTS
-              examiner criteria breakdown, and question-type error pattern diagnostics.
-            </p>
-          </div>
-        </div>
-
-        {/* 3 Analytics Previews */}
-        <AnalyticsPreviewsGrid />
-
-        {/* Recommended Starter Tests */}
-        <StarterPapersGrid />
-
-        <PanelFootnote className="mt-auto pt-3">
-          All four modules (Reading, Listening, Writing, Speaking) are required to generate your
-          official IELTS-rounded overall band estimate.
-        </PanelFootnote>
-      </m.section>
+      </div>
     </div>
   );
 }
 
-function ReadinessBenchmarksCard({ targetScore }) {
-  const targetProximityText = targetScore ? `Band ${formatBand(targetScore)}` : 'Awaiting score';
-
+function TrajectoryPreview({ targetScore }) {
   return (
-    <m.section variants={ITEM_VARIANTS} className={cn(PANEL, 'flex flex-col p-4 sm:p-5')}>
+    <m.section
+      variants={ITEM_VARIANTS}
+      className={cn(PANEL, 'col-span-12 flex flex-col p-4 xl:col-span-5')}
+    >
       <PanelTitle
-        label="Readiness benchmarks"
-        action={<Pill tone="neutral">0 of 3 active</Pill>}
-        tip="Examiner readiness requires evidence across 4-module coverage, score consistency, and target proximity."
+        label="Band progress"
+        accent
+        action={
+          <Link to="/onboarding" className={cn(PANEL_LINK, MICRO)}>
+            {targetScore == null ? 'Set target' : 'Adjust target'}
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        }
       />
-
-      <p className={cn(MICRO, MUTED, 'mb-3')}>
-        IELTS test readiness requires verified evidence across three core benchmarks:
-      </p>
-
-      <div className="space-y-2">
-        <div className={cn(TILE, 'p-3')}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100">
-              4-Module Baseline
-            </span>
-            <Pill tone="warn">Pending</Pill>
-          </div>
-          <p className={cn(MICRO, MUTED, 'mt-1 normal-case leading-snug tracking-normal')}>
-            Complete at least one scored test in Reading, Listening, Writing, and Speaking to unlock
-            holistic band prediction.
-          </p>
-        </div>
-
-        <div className={cn(TILE, 'p-3')}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100">
-              Score Consistency
-            </span>
-            <Pill tone="neutral">0 / 3 tests</Pill>
-          </div>
-          <p className={cn(MICRO, MUTED, 'mt-1 normal-case leading-snug tracking-normal')}>
-            Maintain band score variance within ±0.5 across 3 consecutive practice tests.
-          </p>
-        </div>
-
-        <div className={cn(TILE, 'p-3')}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100">
-              Target Proximity
-            </span>
-            <Pill tone="neutral">{targetProximityText}</Pill>
-          </div>
-          <p className={cn(MICRO, MUTED, 'mt-1 normal-case leading-snug tracking-normal')}>
-            Reach within 0.5 bands of your target score in all 4 test formats.
-          </p>
-        </div>
-      </div>
-
-      <PanelFootnote className="mt-auto">
-        Readiness criteria match British Council & IDP assessment standards.
-      </PanelFootnote>
+      <ChartScaffold targetScore={targetScore} />
     </m.section>
   );
 }
 
-function TargetScheduleCard({ targetScore, formattedTestDate, hasTestDate }) {
-  const targetBandText = targetScore ? formatBand(targetScore) : '—';
-  const targetGoalText = targetScore ? 'Official goal' : 'Not set yet';
-  const examDateStatus = hasTestDate ? 'Scheduled' : 'No date set';
-  const scheduleActionText = targetScore ? 'Update preparation schedule' : 'Set your target score';
-
+function ModuleStartRow({ module }) {
   return (
-    <m.section variants={ITEM_VARIANTS} className={cn(PANEL, 'flex flex-col p-4 sm:p-5')}>
-      <PanelTitle
-        label="Target & schedule"
-        action={
-          <Link to="/onboarding" className={cn(PANEL_LINK, 'text-[11px] font-bold')}>
-            Adjust <ChevronRight className="h-3 w-3" />
-          </Link>
-        }
-      />
-
-      <div className="grid grid-cols-2 gap-2">
-        <div className={cn(TILE, 'p-2.5')}>
-          <p className={cn(MICRO, MUTED)}>Target Band</p>
-          <p className={cn(NUM, 'mt-1 text-xl font-extrabold text-slate-900 dark:text-slate-50')}>
-            {targetBandText}
-          </p>
-          <p className={cn(MICRO, MUTED, 'mt-0.5')}>{targetGoalText}</p>
-        </div>
-
-        <div className={cn(TILE, 'p-2.5')}>
-          <p className={cn(MICRO, MUTED)}>Exam Date</p>
-          <p
-            className={cn(
-              NUM,
-              'mt-1 text-sm font-extrabold text-slate-900 dark:text-slate-50 truncate'
-            )}
-          >
-            {formattedTestDate || '—'}
-          </p>
-          <p className={cn(MICRO, MUTED, 'mt-0.5')}>{examDateStatus}</p>
-        </div>
-      </div>
-
-      <div className="mt-2.5">
-        <Link
-          to="/onboarding"
-          className={cn(
-            TILE,
-            ROW_HOVER,
-            'flex items-center justify-between p-2.5 text-slate-700 dark:text-slate-200'
-          )}
-        >
-          <span className="text-[11px] font-bold">{scheduleActionText}</span>
+    <Link
+      to={module.href}
+      className="group flex flex-1 items-center gap-2.5 rounded-md transition-transform duration-150 ease-out active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#08080a]"
+    >
+      <div
+        className={cn(
+          WELL,
+          'flex h-full min-h-11 flex-1 items-center justify-between gap-2 rounded-md border border-transparent px-2.5 transition-colors duration-150 group-hover:border-[#5a63df]/35 dark:group-hover:border-[#8f97ff]/35'
+        )}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <IconChip icon={module.icon} tone="accent" size="sm" />
+          <span className="truncate text-[12px] font-extrabold text-slate-800 dark:text-slate-100">
+            {module.label}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-0.5 text-[11px] font-bold text-[#5a63df] dark:text-[#afb5ff]">
+          Start
           <ChevronRight className={cn('h-3.5 w-3.5', ROW_CHEVRON)} />
-        </Link>
+        </span>
       </div>
+      <span aria-hidden="true" className={cn(NUM, FAINT, 'w-5 text-right text-sm font-bold')}>
+        —
+      </span>
+    </Link>
+  );
+}
+
+function ModuleBaselineCard() {
+  return (
+    <m.section
+      variants={ITEM_VARIANTS}
+      className={cn(PANEL, 'col-span-12 flex flex-col p-4 md:col-span-7 xl:col-span-4')}
+    >
+      <PanelTitle label="Band by module" accent />
+      <div className="flex flex-1 flex-col gap-2">
+        {MODULES.map((module) => (
+          <ModuleStartRow key={module.key} module={module} />
+        ))}
+      </div>
+      <PanelFootnote>Score all four for an overall band</PanelFootnote>
     </m.section>
   );
 }
 
 /**
- * Empty Analytics View — instrument-panel zero-state for IELTS candidates.
+ * Empty Analytics View: the report's own shapes, waiting for data.
  *
- * Renders the top KPI metrics (average, test count, effort, distance to target),
- * previews the 3 analytical engines that will activate, and provides a direct
- * 4-module starter paper launchpad instead of a dead-end redirect.
+ * Mirrors the dashboard's zero state: real axes, real row labels and empty
+ * tracks instead of paragraphs about what will appear. The only value plotted
+ * is the learner's target. The four module rows are the way in.
  */
-export default function EmptyAnalyticsView({ headerProps, stats, user, progressToTarget = 0 }) {
+export default function EmptyAnalyticsView({ headerProps, stats, progressToTarget = 0 }) {
   const targetScore = parseTargetScore(stats);
-  const testDate = user?.test_date ?? null;
-  const formattedTestDate = formatTestDate(testDate);
+  const isPremium = Boolean(headerProps?.isPremium);
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -363,23 +197,12 @@ export default function EmptyAnalyticsView({ headerProps, stats, user, progressT
         className="relative z-10 mx-auto max-w-[1600px] space-y-3"
       >
         <AnalyticsHeader {...headerProps} />
-
-        {/* Top KPI instrument strip */}
         <StatCards stats={stats} progressToTarget={progressToTarget} />
 
         <div className="grid grid-cols-12 gap-3">
-          {/* Main Pipeline Panel (8 cols) */}
-          <PerformancePipelinePanel />
-
-          {/* Right Rail (4 cols): Readiness Benchmarks & Target Profile */}
-          <div className="col-span-12 flex flex-col gap-3 lg:col-span-4">
-            <ReadinessBenchmarksCard targetScore={targetScore} />
-            <TargetScheduleCard
-              targetScore={targetScore}
-              formattedTestDate={formattedTestDate}
-              hasTestDate={Boolean(testDate)}
-            />
-          </div>
+          <TrajectoryPreview targetScore={targetScore} />
+          <ModuleBaselineCard />
+          <EmptyReportCards isPremium={isPremium} />
         </div>
       </m.div>
     </TooltipProvider>

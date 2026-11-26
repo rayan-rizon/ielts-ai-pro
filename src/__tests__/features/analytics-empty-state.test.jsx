@@ -18,7 +18,7 @@ function renderEmptyAnalytics(props = {}) {
   return render(
     <MemoryRouter>
       <EmptyAnalyticsView
-        headerProps={mockHeaderProps}
+        headerProps={{ ...mockHeaderProps, isPremium: props.isPremium ?? false }}
         stats={{
           totalTests: 0,
           measuredTests: 0,
@@ -52,62 +52,58 @@ describe('EmptyAnalyticsView', () => {
     expect(screen.getByText('0.0h')).toBeInTheDocument();
   });
 
-  it('renders the performance analytics pipeline and 3 analytical preview engines', () => {
+  it('previews the report with the learner target and no invented data', () => {
     renderEmptyAnalytics();
 
-    expect(screen.getByText('Performance analytics pipeline')).toBeInTheDocument();
-    expect(screen.getByText('Awaiting baseline test')).toBeInTheDocument();
-    expect(screen.getByText('Unlock your IELTS performance intelligence')).toBeInTheDocument();
-    expect(screen.getByText('Band trajectory engine')).toBeInTheDocument();
-    expect(screen.getByText('Examiner criteria rubric')).toBeInTheDocument();
-    expect(screen.getByText('Weak-spot diagnostic radar')).toBeInTheDocument();
+    expect(screen.getByText('Band progress')).toBeInTheDocument();
+    expect(screen.getByText('No scores yet')).toBeInTheDocument();
+    expect(screen.getByText('Target 7.0')).toBeInTheDocument();
+    [
+      'Band by module',
+      'Exam readiness',
+      'Question types',
+      'Answer analysis',
+      'Practise next',
+      'Examiner criteria',
+      'Accuracy by position',
+      'Practice log',
+    ].forEach((title) => expect(screen.getByText(title)).toBeInTheDocument());
   });
 
-  it('renders direct 4-module starter paper links instead of a dashboard loop', () => {
+  it('marks the gated previews as Pro for free learners only', () => {
+    const free = renderEmptyAnalytics();
+    expect(free.container.querySelectorAll('.lucide-lock')).toHaveLength(6);
+    free.unmount();
+
+    const premium = renderEmptyAnalytics({ isPremium: true });
+    expect(premium.container.querySelectorAll('.lucide-lock')).toHaveLength(0);
+  });
+
+  it('offers a start link for each of the four modules', () => {
     renderEmptyAnalytics();
 
-    const readingLink = screen.getByRole('link', {
-      name: /academic reading · diagnostic set/i,
+    ['reading', 'listening', 'writing', 'speaking'].forEach((module) => {
+      const href = module === 'writing' ? '/writing-task' : `/${module}-test`;
+      expect(
+        screen.getByRole('link', { name: new RegExp(`${module}.*start`, 'i') })
+      ).toHaveAttribute('href', href);
     });
-    expect(readingLink).toHaveAttribute('href', '/reading-test');
-
-    const listeningLink = screen.getByRole('link', {
-      name: /listening section 1 · everyday social/i,
-    });
-    expect(listeningLink).toHaveAttribute('href', '/listening-test');
-
-    const writingLink = screen.getByRole('link', {
-      name: /writing task 2 · essay prompt/i,
-    });
-    expect(writingLink).toHaveAttribute('href', '/writing-task');
-
-    const speakingLink = screen.getByRole('link', {
-      name: /speaking part 1 · interview flow/i,
-    });
-    expect(speakingLink).toHaveAttribute('href', '/speaking-test');
   });
 
-  it('renders readiness benchmarks and target schedule card with onboarding links', () => {
-    renderEmptyAnalytics({
-      stats: { targetScore: 7.5 },
-      user: { test_date: '2026-12-01T00:00:00.000Z' },
-    });
+  it('lets the learner adjust the target shown on the chart', () => {
+    renderEmptyAnalytics({ stats: { targetScore: 7.5 } });
 
-    expect(screen.getByText('Readiness benchmarks')).toBeInTheDocument();
-    expect(screen.getByText('0 of 3 active')).toBeInTheDocument();
-    expect(screen.getByText('4-Module Baseline')).toBeInTheDocument();
-    expect(screen.getByText('Score Consistency')).toBeInTheDocument();
-    expect(screen.getByText('Target Proximity')).toBeInTheDocument();
+    expect(screen.getByText('Target 7.5')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /adjust target/i })).toHaveAttribute(
+      'href',
+      '/onboarding'
+    );
+  });
 
-    expect(screen.getByText('Target & schedule')).toBeInTheDocument();
-    expect(screen.getAllByText('7.5').length).toBeGreaterThanOrEqual(1);
+  it('draws no target line when no target is set', () => {
+    renderEmptyAnalytics({ stats: { targetScore: null } });
 
-    const adjustLinks = screen.getAllByRole('link', {
-      name: /adjust|update preparation schedule/i,
-    });
-    expect(adjustLinks.length).toBeGreaterThanOrEqual(1);
-    adjustLinks.forEach((link) => {
-      expect(link).toHaveAttribute('href', '/onboarding');
-    });
+    expect(screen.queryByText(/^Target \d/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /set target/i })).toBeInTheDocument();
   });
 });
