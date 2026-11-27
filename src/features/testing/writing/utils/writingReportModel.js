@@ -1,4 +1,8 @@
 import { cleanFeedbackText } from './feedbackFormatting';
+import { reportT } from '../report/reportStrings';
+
+// Callers pass the learner's translator; English is the default everywhere.
+const ENGLISH = reportT('en');
 
 /**
  * Everything the Writing report shows, derived from one saved feedback object.
@@ -15,31 +19,28 @@ export const CRITERIA = [
     keys: ['TaskAchievement', 'TaskResponse'],
     label: { 'Task 1': 'Task Achievement', 'Task 2': 'Task Response' },
     official: { 'Task 1': 'Task Achievement', 'Task 2': 'Task Response' },
-    help: {
-      'Task 1': 'Did you report the key information accurately?',
-      'Task 2': 'Did you answer every part of the question?',
-    },
+    helpKey: { 'Task 1': 'helpTask1', 'Task 2': 'helpTask2' },
   },
   {
     id: 'organisation',
     keys: ['CoherenceAndCohesion'],
     label: 'Coherence and Cohesion',
     official: 'Coherence and Cohesion',
-    help: 'Are your ideas in a clear order and well linked?',
+    helpKey: 'helpOrganisation',
   },
   {
     id: 'vocabulary',
     keys: ['LexicalResource'],
     label: 'Lexical Resource',
     official: 'Lexical Resource',
-    help: 'Do you use the right words, and enough different ones?',
+    helpKey: 'helpVocabulary',
   },
   {
     id: 'grammar',
     keys: ['GrammaticalRangeAndAccuracy'],
     label: 'Grammatical Range and Accuracy',
     official: 'Grammatical Range and Accuracy',
-    help: 'Are your sentences correct and varied?',
+    helpKey: 'helpGrammar',
   },
 ];
 
@@ -56,14 +57,14 @@ function scoreFor(criteriaScores, keys) {
 }
 
 /** The four criteria with plain labels, the marker's reason (when saved) and the lowest flagged. */
-export function buildCriteria(feedback) {
+export function buildCriteria(feedback, t = ENGLISH) {
   const taskType = taskTypeOf(feedback);
   const notes = feedback?.criterionNotes || {};
   const rows = CRITERIA.map((criterion) => ({
     id: criterion.id,
     label: pick(criterion.label, taskType),
     official: pick(criterion.official, taskType),
-    help: pick(criterion.help, taskType),
+    help: t(pick(criterion.helpKey, taskType)),
     note: cleanFeedbackText(criterion.keys.map((key) => notes[key]).find(Boolean) || ''),
     score: scoreFor(feedback?.criteriaScores, criterion.keys),
   })).filter((row) => row.score != null);
@@ -123,7 +124,7 @@ export const minimumWordsFor = (taskType) => (taskType === 'Task 2' ? 250 : 150)
  * caps the task score whatever else is fixed; otherwise it is the marker's
  * top priority.
  */
-export function buildNextStep(feedback, priorities) {
+export function buildNextStep(feedback, priorities, t = ENGLISH) {
   const taskType = taskTypeOf(feedback);
   const taskLabel = pick(CRITERIA[0].label, taskType);
   const minimum = minimumWordsFor(taskType);
@@ -132,11 +133,12 @@ export function buildNextStep(feedback, priorities) {
     return {
       kind: 'length',
       criterion: pick(CRITERIA[0].label, taskType),
-      title: `Write at least ${minimum} words`,
-      body:
-        taskType === 'Task 2'
-          ? `Your essay has ${wordCount} words. Under ${minimum} words you can't fully answer the question, which limits your ${taskLabel} score. Add one more fully explained idea.`
-          : `Your report has ${wordCount} words. Under ${minimum} words you can't cover all the key information, which limits your ${taskLabel} score. Add the main details you left out.`,
+      title: t('lengthTitle', { min: minimum }),
+      body: t(taskType === 'Task 2' ? 'lengthBodyTask2' : 'lengthBodyTask1', {
+        count: wordCount,
+        min: minimum,
+        criterion: taskLabel,
+      }),
       evidenceText: null,
       rest: priorities,
     };
@@ -156,12 +158,12 @@ export function buildNextStep(feedback, priorities) {
 const MISTAKE_GROUPS = [
   {
     id: 'grammar',
-    label: 'Grammar and spelling',
+    labelKey: 'groupGrammar',
     types: ['grammar', 'spelling'],
     skill: 'grammar',
   },
-  { id: 'words', label: 'Word choice', types: ['vocabulary', 'style'], skill: 'vocabulary' },
-  { id: 'clarity', label: 'Clarity and accuracy', types: ['clarity'], skill: null },
+  { id: 'words', labelKey: 'groupWords', types: ['vocabulary', 'style'], skill: 'vocabulary' },
+  { id: 'clarity', labelKey: 'groupClarity', types: ['clarity'], skill: null },
 ];
 
 /**
@@ -169,7 +171,7 @@ const MISTAKE_GROUPS = [
  * "you wrote → change to"; advice without a replacement is shown as advice,
  * never as text to paste in.
  */
-export function buildMistakeGroups(feedback) {
+export function buildMistakeGroups(feedback, t = ENGLISH) {
   const annotations = (Array.isArray(feedback?.annotations) ? feedback.annotations : []).filter(
     (annotation) =>
       annotation &&
@@ -198,6 +200,7 @@ export function buildMistakeGroups(feedback) {
 
   return MISTAKE_GROUPS.map((group) => ({
     ...group,
+    label: t(group.labelKey),
     items: items.filter(
       (item) =>
         group.types.includes(item.type) ||
@@ -227,18 +230,13 @@ export function buildStrengths(feedback) {
 }
 
 /** How the band was decided, in plain words. Silent for reports from before multi-marking. */
-export function describeMarking(agreement) {
+export function describeMarking(agreement, t = ENGLISH) {
   const passes = Number(agreement?.sampleCount);
   if (!Number.isFinite(passes) || passes < 1) return '';
-  if (passes === 1) {
-    return agreement?.confidence === 'high'
-      ? 'Marked once. Every area was a clear fit for its band.'
-      : 'Marked once.';
-  }
+  if (passes === 1) return t(agreement?.confidence === 'high' ? 'markedOnceSecure' : 'markedOnce');
   const spread = Number(agreement?.maxSpread) || 0;
-  if (spread === 0) return `Marked ${passes} times. Every mark agreed.`;
-  if (spread <= 0.5) return `Marked ${passes} times. All marks were within half a band.`;
-  return `Marked ${passes} times. You see the middle mark for each area.`;
+  const key = spread === 0 ? 'markedAgreed' : spread <= 0.5 ? 'markedClose' : 'markedMiddle';
+  return t(key, { count: passes });
 }
 
 export function combinedWritingBand(feedbacks) {
@@ -283,48 +281,57 @@ const visualPhrase = (type) => {
   return `${/^[aeiou]/i.test(type) ? 'an' : 'a'} ${type}`;
 };
 
+const knownVisual = (type) => (type && type !== 'not identifiable' ? type : null);
+
+// Chart names stay in English in every language; only English needs an article.
+const namedVisual = (type, t) => (t.language === 'en' ? visualPhrase(type) : type);
+
+function chartVerdict(analysis, t) {
+  const seen = knownVisual(analysis.visualType);
+  const described = knownVisual(analysis.responseVisualType);
+  if (analysis.visualReadable === false)
+    return { status: 'unknown', message: t('chartUnreadable') };
+  if (analysis.alignment === 'mismatched')
+    return {
+      status: 'fault',
+      message: t('chartMismatch', {
+        visual: namedVisual(seen, t),
+        described: described ? namedVisual(described, t) : t('somethingElse'),
+      }),
+    };
+  if (analysis.alignment === 'partial') return { status: 'warn', message: t('chartPartial') };
+  if (analysis.alignment === 'uncertain')
+    return { status: 'unknown', message: t('chartUncertain') };
+  return {
+    status: 'ok',
+    message: seen ? t('chartOk', { visual: namedVisual(seen, t) }) : t('chartOkUnknown'),
+  };
+}
+
 /**
  * What the marker saw in the Task 1 visual, and whether the answer matched it.
  * Null for Task 2 and for reports saved before chart analysis existed.
  */
-export function buildChartCheck(feedback) {
+export function buildChartCheck(feedback, t = ENGLISH) {
   const analysis = feedback?.taskAnalysis;
   const essayText = cleanFeedbackText(
     String(feedback?.originalSource || '').replace(/<[^>]*>/g, ' ')
   );
   if (taskTypeOf(feedback) !== 'Task 1' || !analysis) return null;
-  const seen =
-    analysis.visualType && analysis.visualType !== 'not identifiable' ? analysis.visualType : null;
-  const described =
-    analysis.responseVisualType && analysis.responseVisualType !== 'not identifiable'
-      ? analysis.responseVisualType
-      : null;
 
-  let status = 'ok';
-  let message = seen
-    ? `The task shows ${visualPhrase(seen)}, and your answer describes it.`
-    : 'Your answer describes the visual in the task.';
-  if (analysis.visualReadable === false) {
-    status = 'unknown';
-    message = 'The image could not be read clearly, so chart details were not checked.';
-  } else if (analysis.alignment === 'mismatched') {
-    status = 'fault';
-    message = `The task shows ${visualPhrase(seen)}, but your answer describes ${described ? visualPhrase(described) : 'something else'}. Describe the visual in the task.`;
-  } else if (analysis.alignment === 'partial') {
-    status = 'warn';
-    message = 'Your answer covers only part of the visual. Add the main features below.';
-  } else if (analysis.alignment === 'uncertain') {
-    status = 'unknown';
-    message = 'The marker could not confirm that your answer matches the visual.';
-  }
-
+  const observed = Array.isArray(analysis.observedFeatures) ? analysis.observedFeatures : [];
   return {
-    status,
-    message,
-    features: (Array.isArray(analysis.observedFeatures) ? analysis.observedFeatures : [])
-      .map((item) => cleanFeedbackText(item))
-      .filter(Boolean)
-      .map((text) => ({ text, covered: featureMentioned(text, essayText) })),
+    ...chartVerdict(analysis, t),
+    features: observed
+      .map((item, index) => ({
+        english: cleanFeedbackText(item),
+        shown: cleanFeedbackText(analysis.displayFeatures?.[index]),
+      }))
+      .filter((feature) => feature.english)
+      .map(({ english, shown }) => ({
+        text: shown || english,
+        covered: featureMentioned(english, essayText),
+      })),
     limitations: cleanFeedbackText(analysis.limitations),
   };
 }

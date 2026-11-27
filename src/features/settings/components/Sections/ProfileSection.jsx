@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 import { BookOpen, Check, Laptop, Mail, Moon, Shield, Sun, User } from 'lucide-react';
 import { IconChip, MUTED, PANEL, PanelTitle } from '@/features/dashboard/components/primitives';
+import { ReportLanguageSetting } from '@/features/testing/writing/report/components/ReportLanguageSetting';
 
 const THEMES = [
   { id: 'light', label: 'Light', icon: Sun },
@@ -21,6 +22,47 @@ const TEST_MODES = [
   },
   { id: 'exam', label: 'Exam mode', desc: 'Timed mock exam under test conditions', icon: Shield },
 ];
+
+function AppearancePanel({ theme, setTheme }) {
+  return (
+    <div className={cn(PANEL, 'p-4 sm:p-5')}>
+      <PanelTitle label="Appearance & theme" accent />
+      <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
+        Choose your preferred visual mode.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2.5">
+        {THEMES.map(({ id, label, icon: Icon }) => {
+          const isSelected = theme === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTheme && setTheme(id)}
+              className={cn(
+                'relative flex h-[72px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+                isSelected
+                  ? 'border-[#5a63df] bg-[#5a63df]/9 text-[#434ac9] dark:border-[#5a63df] dark:bg-[#5a63df]/18 dark:text-[#c3c7ff] shadow-xs'
+                  : 'border-[#e2e5f2] bg-[#fbfbfe] text-slate-600 hover:border-[#c9cdf3] hover:bg-white dark:border-white/10 dark:bg-white/3 dark:text-slate-300 dark:hover:border-white/20'
+              )}
+            >
+              {isSelected && (
+                <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-[#5a63df]" />
+              )}
+              <Icon
+                className={cn(
+                  'h-5 w-5 transition-colors duration-150',
+                  isSelected ? 'text-[#5a63df] dark:text-[#a5adff]' : 'text-slate-400'
+                )}
+              />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function ProfileSection({ formData, setFormData, avatars, theme, setTheme }) {
   return (
@@ -118,42 +160,8 @@ export default function ProfileSection({ formData, setFormData, avatars, theme, 
 
       {/* Right Column: Appearance & Testing Preferences */}
       <div className="space-y-3">
-        <div className={cn(PANEL, 'p-4 sm:p-5')}>
-          <PanelTitle label="Appearance & theme" accent />
-          <p className={cn('-mt-2 mb-4 text-xs font-medium', MUTED)}>
-            Choose your preferred visual mode.
-          </p>
-
-          <div className="grid grid-cols-3 gap-2.5">
-            {THEMES.map(({ id, label, icon: Icon }) => {
-              const isSelected = theme === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setTheme && setTheme(id)}
-                  className={cn(
-                    'relative flex h-[72px] flex-col items-center justify-center gap-2 rounded-xl border text-sm font-bold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
-                    isSelected
-                      ? 'border-[#5a63df] bg-[#5a63df]/9 text-[#434ac9] dark:border-[#5a63df] dark:bg-[#5a63df]/18 dark:text-[#c3c7ff] shadow-xs'
-                      : 'border-[#e2e5f2] bg-[#fbfbfe] text-slate-600 hover:border-[#c9cdf3] hover:bg-white dark:border-white/10 dark:bg-white/3 dark:text-slate-300 dark:hover:border-white/20'
-                  )}
-                >
-                  {isSelected && (
-                    <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-[#5a63df]" />
-                  )}
-                  <Icon
-                    className={cn(
-                      'h-5 w-5 transition-colors duration-150',
-                      isSelected ? 'text-[#5a63df] dark:text-[#a5adff]' : 'text-slate-400'
-                    )}
-                  />
-                  <span>{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <ReportLanguageSetting />
+        <AppearancePanel theme={theme} setTheme={setTheme} />
 
         <div className={cn(PANEL, 'p-4 sm:p-5')}>
           <PanelTitle label="Default test mode" accent />

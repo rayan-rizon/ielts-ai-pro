@@ -6,6 +6,7 @@ import CustomizeGoalsModal from './CustomizeGoalsModal';
 import FirstTestPanel from './FirstTestPanel';
 import PlanAlert from './PlanAlert';
 import PlanCalendar from './PlanCalendar';
+import PlanPracticeCard from './PlanPracticeCard';
 import PlanStats from './PlanStats';
 import { ConsistencyCard, StudyTimeCard } from './PracticeCards';
 import { FocusSkillsCard, PathCard, ScoresCard } from './EvidenceCards';
@@ -15,6 +16,16 @@ import { useLearningPathDashboard } from './useLearningPathDashboard';
 
 const SKELETON_BLOCK =
   'animate-pulse rounded-xl border border-[#e4e2f0] bg-[#f4f3fb] motion-reduce:animate-none dark:border-white/[0.07] dark:bg-white/4';
+
+/** The plan's numbers, then anything the learner added from a Writing report. */
+function StatsAndPractice(props) {
+  return (
+    <>
+      <PlanStats {...props} />
+      <PlanPracticeCard />
+    </>
+  );
+}
 
 /** Mirrors the real layout so nothing reflows when the plan arrives. */
 function StudyPlanLoadingView() {
@@ -132,7 +143,7 @@ function StudyPlanView({ dashboard, history, stats, todayKey }) {
         onDismiss={() => setDismissed(true)}
       />
 
-      <PlanStats
+      <StatsAndPractice
         targetBand={targetBand}
         overallRange={readiness?.overall?.available ? readiness.overall.range : null}
         examDate={examDate}
@@ -245,13 +256,16 @@ export default function StudyPlanDashboard(props) {
   if (isLoading) return <StudyPlanLoadingView />;
   if (!dashboard.hasTestEvidence && !props.previewMode) {
     return (
-      <FirstTestPanel
-        navigate={props.navigate}
-        hasPreviousTests={stats?.totalTests > 0}
-        awaitingScore={sessions.some((session) =>
-          ['pending', 'processing'].includes(session.evaluation_status)
-        )}
-      />
+      <div className="space-y-3">
+        <PlanPracticeCard />
+        <FirstTestPanel
+          navigate={props.navigate}
+          hasPreviousTests={stats?.totalTests > 0}
+          awaitingScore={sessions.some((session) =>
+            ['pending', 'processing'].includes(session.evaluation_status)
+          )}
+        />
+      </div>
     );
   }
 

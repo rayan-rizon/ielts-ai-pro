@@ -21,6 +21,11 @@ import { analyzeWriting } from '../utils/writingCoaching';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useWritingVocabularySave } from '../hooks/useWritingVocabularySave';
+import { useReportLanguage } from '../report/useReportLanguage';
+import { useTranslatedReport } from '../report/useTranslatedReport';
+import { reportT } from '../report/reportStrings';
+import { reportedWords } from '../report/reportViewModel';
+import { SlidingTabs } from '../report/components/SlidingTabs';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
 const MemoizedTaskPanel = React.memo(TaskPanel);
@@ -64,6 +69,7 @@ function WritingFeedbackDrawer({
   coachSession,
   coachTaskType,
   originalHtml,
+  reportSessionId,
   isMobile,
 }) {
   if (!hasFeedbackPane || isMobile) return null;
@@ -89,6 +95,7 @@ function WritingFeedbackDrawer({
           coachSession={coachSession}
           coachTaskType={coachTaskType}
           originalHtml={originalHtml}
+          reportSessionId={reportSessionId}
           onClose={() => {}}
           data-oid="zp34i4j"
         />
@@ -128,37 +135,38 @@ function WritingMobileTabToggle({ activeTab, onTabChange, wordCount, targetLimit
 
   return (
     <div className="flex items-center justify-center w-full px-2 py-1.5 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] md:hidden z-30 shrink-0">
-      <div className="flex items-center w-full max-w-sm rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/[0.07] dark:bg-white/4">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onTabChange(tab.id)}
-              className={cn(
-                'group relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-bold transition-all duration-150',
-                isActive
-                  ? 'text-[#5a63df] dark:text-white'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-              )}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="activeWritingMobileTab"
-                  className="pointer-events-none absolute inset-0 -z-10 rounded-md bg-white shadow-xs dark:bg-indigo-600"
-                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                />
-              )}
+      <SlidingTabs
+        role="tablist"
+        label="Writing view"
+        value={activeTab}
+        onChange={onTabChange}
+        options={tabs.map(({ id, label, icon: Icon }) => ({
+          value: id,
+          label: (
+            <>
               <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="truncate">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+              <span className="truncate">{label}</span>
+            </>
+          ),
+        }))}
+        className="w-full max-w-sm rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/[0.07] dark:bg-white/4"
+        indicatorClassName="rounded-md bg-white shadow-xs dark:bg-indigo-600"
+        tabClassName="min-h-9 min-w-0 flex-1 rounded-md px-2 text-xs font-bold"
+        activeClassName="text-[#5a63df] dark:text-white"
+        idleClassName="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+      />
     </div>
   );
+}
+
+/** What each report layout needs to know about the attempt being read. */
+function attemptProps(testMode, session, activeType) {
+  return {
+    // The coach is practice-only; translation and comparison work in exams too.
+    coachSession: testMode !== 'exam' ? session : null,
+    coachTaskType: activeType,
+    reportSessionId: session?.id,
+  };
 }
 
 function WritingTaskContent() {
@@ -313,8 +321,7 @@ function WritingTaskContent() {
             reviseRequest={reviseRequest}
             handleGetFeedback={handleGetFeedback}
             loadingMessage={loadingMessage}
-            coachSession={testMode !== 'exam' ? logic.session : null}
-            coachTaskType={activeType}
+            {...attemptProps(testMode, logic.session, activeType)}
             onSaveVocabularyWord={vocabularySaver.onSaveVocabularyWord}
             savedVocabularyTerms={vocabularySaver.savedVocabularyTerms}
             savingVocabularyTerms={vocabularySaver.savingVocabularyTerms}
@@ -332,8 +339,7 @@ function WritingTaskContent() {
             loadingMessage={loadingMessage}
             onShowInEssay={handleShowInEssay}
             onRevise={handleRevise}
-            coachSession={testMode !== 'exam' ? logic.session : null}
-            coachTaskType={activeType}
+            {...attemptProps(testMode, logic.session, activeType)}
             originalHtml={
               currentFeedback?.originalSource ||
               useWritingTestStore.getState().drafts[activeType] ||
@@ -381,33 +387,18 @@ function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
   return (
     <div className="sticky top-0 z-40 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 py-1.5 sm:px-4">
       <div className="flex items-center justify-center w-full">
-        <div className="flex items-center rounded-lg sm:rounded-full border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 sm:p-1 shadow-xs dark:border-white/[0.07] dark:bg-white/4 w-full sm:w-auto max-w-md sm:max-w-none">
-          {tabs.map((tab) => {
-            const isActive = viewMode === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setViewMode(tab.id)}
-                className={cn(
-                  'group relative z-10 flex flex-1 items-center justify-center rounded-md sm:rounded-full px-2 py-1 sm:px-4 sm:py-1.5 text-[11px] sm:text-xs font-bold text-center transition-colors duration-200 sm:flex-none',
-                  isActive
-                    ? 'text-[#5a63df] dark:text-white'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-                )}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeWritingTab"
-                    className="pointer-events-none absolute inset-0 -z-10 rounded-md sm:rounded-full border border-[#d2d7f8] bg-white shadow-xs dark:border-indigo-500/30 dark:bg-indigo-600"
-                    transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                  />
-                )}
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SlidingTabs
+          role="tablist"
+          label="Writing view"
+          value={viewMode}
+          onChange={setViewMode}
+          options={tabs.map((tab) => ({ value: tab.id, label: tab.label }))}
+          className="w-full max-w-md items-center rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 shadow-xs dark:border-white/[0.07] dark:bg-white/4 sm:w-auto sm:max-w-none sm:rounded-full sm:p-1"
+          indicatorClassName="rounded-md border border-[#d2d7f8] bg-white shadow-xs dark:border-indigo-500/30 dark:bg-indigo-600 sm:rounded-full"
+          tabClassName="min-h-8 flex-1 whitespace-nowrap rounded-md px-2 text-[11px] font-bold sm:flex-none sm:rounded-full sm:px-4 sm:text-xs"
+          activeClassName="text-[#5a63df] dark:text-white"
+          idleClassName="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+        />
       </div>
     </div>
   );
@@ -421,6 +412,7 @@ function AnnotatedReviewPane({
   onSaveVocabularyWord,
   savedVocabularyTerms,
   savingVocabularyTerms,
+  reportSessionId,
 }) {
   const analysis = React.useMemo(
     () => analyzeWriting(feedback.originalSource || writing, feedback.taskPrompt),
@@ -435,13 +427,22 @@ function AnnotatedReviewPane({
     [feedback, writing, setWriting]
   );
 
+  // Explanations follow the report language; the essay and corrections do not.
+  const { language } = useReportLanguage();
+  const { shown: explained } = useTranslatedReport({
+    feedback,
+    sessionId: reportSessionId,
+    language,
+  });
+
   return (
     <div className="px-1 pb-6 sm:px-2" data-oid="j1tntdm">
       <AnnotatedText
+        t={reportT(language)}
+        reportedVocabulary={reportedWords(feedback.vocabularyEnhancements).map((e) => e.original)}
         text={feedback.originalSource || writing}
-        annotations={feedback.annotations || []}
+        annotations={explained.annotations || []}
         vocabularyEnhancements={feedback.vocabularyEnhancements || []}
-        paragraphNotes={feedback.paragraphNotes || []}
         isVisualTask={feedback.taskType === 'Task 1'}
         chartText={
           feedback.taskType === 'Task 1'
@@ -508,6 +509,7 @@ function WritingPaneBody({
   onSaveVocabularyWord,
   savedVocabularyTerms,
   savingVocabularyTerms,
+  reportSessionId,
 }) {
   const [showRevision, setShowRevision] = useState(false);
   useEffect(() => setShowRevision(false), [activeType, viewMode]);
@@ -550,6 +552,7 @@ function WritingPaneBody({
           coachSession={coachSession}
           coachTaskType={coachTaskType}
           originalHtml={currentFeedback?.originalSource || writing}
+          reportSessionId={reportSessionId}
           onClose={() => {}}
         />
       </div>
@@ -558,6 +561,7 @@ function WritingPaneBody({
     content = (
       <AnnotatedReviewPane
         feedback={currentFeedback}
+        reportSessionId={reportSessionId}
         writing={writing}
         setWriting={setWriting}
         focusAnnotation={focusAnnotation}
@@ -616,18 +620,13 @@ function WritingPaneBody({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col px-1 pt-1.5 pb-4 sm:px-2 sm:pt-2.5 sm:pb-6">
-      <AnimatePresence initial={false} mode="wait">
-        <motion.div
-          key={contentKey}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="flex min-h-0 flex-1 flex-col"
-        >
-          {content}
-        </motion.div>
-      </AnimatePresence>
+      {/* The new pane eases in at once; waiting for the old one to leave left a blank gap. */}
+      <div
+        key={contentKey}
+        className="flex min-h-0 flex-1 flex-col transition-[opacity,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-1.5 starting:opacity-0 motion-reduce:transition-opacity motion-reduce:starting:translate-y-0"
+      >
+        {content}
+      </div>
     </div>
   );
 }
@@ -652,6 +651,7 @@ function WritingEditorPane({
   onSaveVocabularyWord,
   savedVocabularyTerms,
   savingVocabularyTerms,
+  reportSessionId,
 }) {
   const activeType = useWritingTestStore((state) => state.activeType);
   const writing = useWritingTestStore((state) => state.drafts[activeType] || '');
@@ -708,6 +708,7 @@ function WritingEditorPane({
           loadingMessage={loadingMessage}
           coachSession={coachSession}
           coachTaskType={coachTaskType}
+          reportSessionId={reportSessionId}
           onSaveVocabularyWord={onSaveVocabularyWord}
           savedVocabularyTerms={savedVocabularyTerms}
           savingVocabularyTerms={savingVocabularyTerms}

@@ -1,26 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
-  Lightbulb,
-  BookOpen,
-  Check,
-  LoaderCircle,
-  Plus,
-  X,
-  ChevronRight,
-} from 'lucide-react';
+import { CheckCircle2, AlertCircle, AlertTriangle, Lightbulb, BookOpen, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import { PANEL, WELL, NUM } from '@/features/dashboard/components/primitives';
-import {
-  LINKING_RELATIONS,
-  plainWritingText,
-} from '@/features/testing/writing/utils/writingCoaching';
+import { plainWritingText } from '@/features/testing/writing/utils/writingCoaching';
 import { tidyServerCut } from '@/features/testing/writing/utils/feedbackFormatting';
-import { adviceForRepeatedWord } from '@/features/testing/writing/utils/repeatedWordAdvice';
+import { reportT } from '@/features/testing/writing/report/reportStrings';
+import WordsAndLinking from './WordsAndLinking';
+
+const ENGLISH_WORDS = reportT('en');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -657,169 +645,6 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
 
 // ─── Vocabulary Card ──────────────────────────────────────────────────────────
 
-const vocabularyTermKey = (word) =>
-  String(word || '')
-    .trim()
-    .toLocaleLowerCase();
-
-function vocabularySentencePreview(sentence, phrase) {
-  const text = String(sentence || '').trim();
-  const maxLength = 112;
-  if (text.length <= maxLength) return text;
-
-  const phraseIndex = text.toLocaleLowerCase().indexOf(String(phrase || '').toLocaleLowerCase());
-  if (phraseIndex < 0) return `${text.slice(0, maxLength - 1).trimEnd()}…`;
-
-  let start = Math.max(0, phraseIndex - 42);
-  let end = Math.min(text.length, phraseIndex + String(phrase).length + 48);
-  if (start > 0) {
-    const nextSpace = text.indexOf(' ', start);
-    if (nextSpace >= 0) start = nextSpace + 1;
-  }
-  if (end < text.length) {
-    const previousSpace = text.lastIndexOf(' ', end);
-    if (previousSpace > start) end = previousSpace;
-  }
-
-  return `${start > 0 ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`;
-}
-
-const VocabularyCard = ({
-  enhancement,
-  sourceSentence,
-  onSaveVocabularyWord,
-  savedVocabularyTerms,
-  savingVocabularyTerms,
-}) => {
-  const alternatives = Array.isArray(enhancement.alternatives)
-    ? enhancement.alternatives.filter(Boolean).slice(0, 2)
-    : [];
-  const [showFullSentence, setShowFullSentence] = useState(false);
-  const preview = sourceSentence
-    ? vocabularySentencePreview(sourceSentence, enhancement.original)
-    : '';
-  const canExpand = Boolean(sourceSentence) && preview !== sourceSentence;
-
-  return (
-    <div className="min-w-0 rounded-xl border border-[#e4e2f0] bg-white p-3 dark:border-white/10 dark:bg-[#151518]">
-      <p className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">You wrote</p>
-      <p className="mt-0.5 break-words text-[14px] font-bold text-slate-900 dark:text-white">
-        {enhancement.original}
-      </p>
-
-      {sourceSentence && (
-        <div className={cn(WELL, 'mt-2 rounded-lg px-2.5 py-2')}>
-          <p className="font-serif text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-300">
-            “{highlightPhrase(showFullSentence ? sourceSentence : preview, enhancement.original)}”
-          </p>
-          {canExpand && (
-            <button
-              type="button"
-              onClick={() => setShowFullSentence((prev) => !prev)}
-              aria-expanded={showFullSentence}
-              className="mt-1 rounded-sm text-[11.5px] font-semibold text-[#5a63df] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-indigo-300"
-            >
-              {showFullSentence ? 'Show less' : 'Show the whole sentence'}
-            </button>
-          )}
-        </div>
-      )}
-
-      {alternatives.length > 0 && (
-        <div className="mt-3">
-          <p className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
-            Instead, you could write
-          </p>
-          <ul className="mt-1.5 space-y-1.5">
-            {alternatives.map((alternative) => {
-              const termKey = vocabularyTermKey(alternative);
-              const isSaved = savedVocabularyTerms?.has(termKey);
-              const isSaving = savingVocabularyTerms?.has(termKey);
-              return (
-                <li
-                  key={alternative}
-                  className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-[#5a63df]/20 bg-[#5a63df]/[0.05] px-2.5 py-1.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/10"
-                >
-                  <span className="min-w-0 flex-1 break-words text-[13px] font-bold text-slate-900 dark:text-white">
-                    {alternative}
-                  </span>
-                  {onSaveVocabularyWord && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onSaveVocabularyWord({
-                          word: alternative,
-                          original: enhancement.original,
-                          context: enhancement.context,
-                          example: '',
-                        })
-                      }
-                      disabled={isSaved || isSaving}
-                      aria-label={`${isSaved ? 'Saved' : 'Add'} “${alternative}” to your vocabulary list`}
-                      className={cn(
-                        'inline-flex h-7 shrink-0 items-center gap-1 rounded-md border px-2 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
-                        isSaved
-                          ? 'cursor-default border-[rgb(var(--signal-ok)/0.4)] bg-[rgb(var(--signal-ok)/0.1)] text-[rgb(var(--signal-ok))]'
-                          : 'cursor-pointer border-[#d2d7f8] bg-white text-[#5a63df] hover:bg-[#efedff] dark:border-white/10 dark:bg-white/10 dark:text-indigo-200'
-                      )}
-                    >
-                      {isSaving ? (
-                        <LoaderCircle className="h-3 w-3 animate-spin" aria-hidden="true" />
-                      ) : isSaved ? (
-                        <Check className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-                      ) : (
-                        <Plus className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />
-                      )}
-                      <span>{isSaved ? 'Saved' : isSaving ? 'Saving' : 'Save word'}</span>
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {enhancement.context && (
-        <p className="mt-2 text-[12px] leading-snug text-slate-600 dark:text-slate-300">
-          <span className="font-semibold text-slate-800 dark:text-slate-100">
-            Why it is better:{' '}
-          </span>
-          {tidyServerCut(enhancement.context)}
-        </p>
-      )}
-    </div>
-  );
-};
-
-function vocabularySourceSentence(text, phrase) {
-  if (!text || !phrase) return '';
-  const source = plainWritingText(text);
-  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = source.match(new RegExp(`\\b${escaped}\\b`, 'i'));
-  if (!match) return '';
-  const before = source.slice(0, match.index);
-  const after = source.slice(match.index + match[0].length);
-  const start = Math.max(
-    before.lastIndexOf('. '),
-    before.lastIndexOf('! '),
-    before.lastIndexOf('? '),
-    before.lastIndexOf('\n')
-  );
-  const endCandidates = [
-    after.indexOf('. '),
-    after.indexOf('! '),
-    after.indexOf('? '),
-    after.indexOf('\n'),
-  ].filter((index) => index >= 0);
-  const end = endCandidates.length
-    ? Math.min(...endCandidates) + match.index + match[0].length + 1
-    : source.length;
-  return source.slice(start < 0 ? 0 : start + (source[start] === '\n' ? 1 : 2), end).trim();
-}
-
-// ─── Annotation State Hook ────────────────────────────────────────────────────
-
 function useAnnotationState({
   annotations,
   onApplyCorrection,
@@ -1014,200 +839,6 @@ const AnnotatedTextBody = ({
 
 // ─── Coaching & Analysis Sub-components ───────────────────────────────────────
 
-function highlightPhrase(sentence, phrase) {
-  if (!sentence || !phrase) return sentence;
-  try {
-    const escaped = String(phrase)
-      .trim()
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    if (!escaped) return sentence;
-    const splitRegex = new RegExp(`(\\b${escaped}\\b)`, 'gi');
-    const parts = sentence.split(splitRegex);
-    if (parts.length <= 1) return sentence;
-
-    const testRegex = new RegExp(`^${escaped}$`, 'i');
-    return parts.map((part, i) => {
-      if (testRegex.test(part)) {
-        return (
-          <strong
-            key={i}
-            className="font-bold text-[#5661e9] dark:text-indigo-400 underline decoration-[#5661e9]/35 underline-offset-2"
-          >
-            {part}
-          </strong>
-        );
-      }
-      return part;
-    });
-  } catch {
-    return sentence;
-  }
-}
-
-function RepeatedWordCard({ word, count, examples, isVisualTask }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const advice = adviceForRepeatedWord({ word, count });
-
-  return (
-    <li className="min-w-0 rounded-lg border border-[#e4e2f0] bg-white p-3 text-xs dark:border-white/10 dark:bg-white/[0.03]">
-      <div className="flex items-baseline justify-between gap-2">
-        <strong className="break-words text-[14px] font-bold text-slate-900 dark:text-white">
-          {word}
-        </strong>
-        <span
-          className={cn(
-            NUM,
-            'shrink-0 text-[11.5px] font-semibold',
-            advice.severity === 'high'
-              ? 'text-[rgb(var(--signal-warn))]'
-              : 'text-slate-500 dark:text-slate-400'
-          )}
-        >
-          {count} times
-        </span>
-      </div>
-      <p className="mt-1 text-[12px] leading-snug text-slate-600 dark:text-slate-300">
-        {advice.verdict}
-      </p>
-
-      {advice.alternatives.length > 0 && (
-        <div className="mt-2">
-          <p className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
-            You could also say
-          </p>
-          <ul className="mt-1 flex flex-wrap gap-1.5">
-            {advice.alternatives.map((alternative) => (
-              <li
-                key={alternative}
-                className="rounded-md bg-[#5a63df]/10 px-2 py-0.5 text-[12px] font-semibold text-[#4b53c9] dark:bg-[#8f97ff]/15 dark:text-[#c3c7ff]"
-              >
-                {alternative}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <p className="mt-2 text-[11.5px] leading-snug text-slate-500 dark:text-slate-400">
-        {advice.tip}
-        {isVisualTask && ` If “${word}” is a label in the chart, keep it exactly.`}
-      </p>
-
-      {examples?.length > 0 && (
-        <div className="mt-1.5">
-          <button
-            type="button"
-            onClick={() => setIsOpen((prev) => !prev)}
-            aria-expanded={isOpen}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-sm text-[11.5px] font-semibold text-[#5a63df] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-indigo-300"
-          >
-            <ChevronRight
-              className={cn(
-                'h-3 w-3 transition-transform duration-200 ease-out',
-                isOpen && 'rotate-90'
-              )}
-            />
-            {isOpen ? 'Hide' : 'See'} where you used it
-          </button>
-          <AnimatePresence initial={false}>
-            {isOpen && (
-              <motion.ul
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
-                className="mt-1.5 space-y-1 overflow-hidden"
-              >
-                {examples.map((example, index) => (
-                  <li
-                    key={`${word}-${index}`}
-                    className={cn(
-                      WELL,
-                      'rounded-md px-2.5 py-1.5 font-serif text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-200'
-                    )}
-                  >
-                    {highlightPhrase(example, word)}
-                  </li>
-                ))}
-              </motion.ul>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-    </li>
-  );
-}
-
-function ParagraphFlowSection({ writingAnalysis }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  if (!writingAnalysis?.paragraphOpenings?.length) return null;
-
-  return (
-    <div className="border-t border-[#e4e2f0] pt-2 text-xs dark:border-white/[0.07]">
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        aria-expanded={isOpen}
-        className="flex w-full cursor-pointer items-center gap-2 font-bold text-slate-900 dark:text-white outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] rounded-sm transition-opacity hover:opacity-85 active:scale-[0.99]"
-      >
-        <span>Paragraph flow</span>
-        <span
-          className={cn(
-            NUM,
-            'rounded-md bg-[#f1f0fa] px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-white/10 dark:text-slate-300'
-          )}
-        >
-          {writingAnalysis.paragraphCount}{' '}
-          {writingAnalysis.paragraphCount === 1 ? 'paragraph' : 'paragraphs'}
-        </span>
-        <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-          <span>{isOpen ? 'Hide openings' : 'View openings'}</span>
-          <ChevronRight
-            className={cn(
-              'h-3 w-3 transition-transform duration-200 ease-out',
-              isOpen && 'rotate-90'
-            )}
-          />
-        </span>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.2, 0, 0, 1] }}
-            className="overflow-hidden"
-          >
-            <ol className="mt-2 grid gap-1.5 sm:grid-cols-2 pt-0.5">
-              {writingAnalysis.paragraphOpenings.map((opening, index) => (
-                <li
-                  key={index}
-                  className={cn(WELL, 'flex min-w-0 items-start gap-2 rounded-lg p-2 text-xs')}
-                >
-                  <span
-                    className={cn(
-                      NUM,
-                      'flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-slate-800 shadow-2xs dark:bg-white/10 dark:text-slate-200'
-                    )}
-                    aria-label={`Paragraph ${index + 1}`}
-                  >
-                    {index + 1}
-                  </span>
-                  <span className="line-clamp-2 min-w-0 break-words leading-5 text-slate-800 dark:text-slate-200">
-                    {opening}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 export default function AnnotatedText({
   text,
   annotations = [],
@@ -1224,6 +855,8 @@ export default function AnnotatedText({
   focusAnnotation,
   className,
   cardClassName,
+  t = ENGLISH_WORDS,
+  reportedVocabulary = [],
 }) {
   const {
     activeAnnotation,
@@ -1283,6 +916,11 @@ export default function AnnotatedText({
 
   if (!text) return null;
 
+  // Words "Practise next" already shows in the report are not repeated here.
+  const newWords = (vocabularyEnhancements || []).filter(
+    (entry) => !reportedVocabulary.includes(String(entry?.original || '').trim())
+  );
+
   return (
     <div className={cn('space-y-3', className)}>
       <div
@@ -1309,97 +947,17 @@ export default function AnnotatedText({
         />
       </div>
 
-      {(vocabularyEnhancements?.length > 0 || writingAnalysis) && (
-        <section className={cn(PANEL, 'space-y-3 p-3.5 sm:p-4')}>
-          <div>
-            <h3 className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Words and linking
-            </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              Ideas to vary your words. Save the ones you like to your vocabulary list.
-            </p>
-          </div>
-          {vocabularyEnhancements?.length > 0 && (
-            <div>
-              <h4 className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
-                Better words for this essay
-              </h4>
-              <div className="mt-2 grid grid-cols-1 gap-2.5 xl:grid-cols-2">
-                {vocabularyEnhancements.map((enhancement, i) => (
-                  <VocabularyCard
-                    key={i}
-                    enhancement={enhancement}
-                    sourceSentence={vocabularySourceSentence(text, enhancement.original)}
-                    onSaveVocabularyWord={onSaveVocabularyWord}
-                    savedVocabularyTerms={savedVocabularyTerms}
-                    savingVocabularyTerms={savingVocabularyTerms}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          {writingAnalysis && (
-            <div className="space-y-4 border-t border-[#e4e2f0] pt-3 dark:border-white/[0.07]">
-              {repeatedWords.length > 0 && (
-                <div className="min-w-0">
-                  <h4 className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
-                    Words you used a lot
-                  </h4>
-                  <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                    Repeating a word is only a problem when it fills many sentences.{' '}
-                    {isVisualTask
-                      ? 'Words from the question and labels from the chart are left out: keep those exactly as they are.'
-                      : 'Words from the question are left out, because repeating those is expected.'}
-                  </p>
-                  <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-                    {repeatedWords.map((item) => (
-                      <RepeatedWordCard
-                        key={item.word}
-                        isVisualTask={isVisualTask}
-                        word={item.word}
-                        count={item.count}
-                        examples={item.examples}
-                      />
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="min-w-0">
-                <h4 className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
-                  Linking words you used
-                </h4>
-                {writingAnalysis.linking.length > 0 ? (
-                  <dl className="mt-2 grid gap-x-4 gap-y-1.5 text-xs sm:grid-cols-[auto_minmax(0,1fr)]">
-                    {writingAnalysis.linking.map((item) => (
-                      <React.Fragment key={item.category}>
-                        <dt className="text-slate-500 dark:text-slate-400">
-                          {LINKING_RELATIONS[item.category]?.replace(/\.$/, '') || item.category}
-                        </dt>
-                        <dd className="flex flex-wrap gap-1">
-                          {item.phrases.map((phrase) => (
-                            <span
-                              key={phrase}
-                              className="rounded-md border border-[#e4e2f0] bg-white px-1.5 py-0.5 font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
-                            >
-                              {phrase}
-                            </span>
-                          ))}
-                        </dd>
-                      </React.Fragment>
-                    ))}
-                  </dl>
-                ) : (
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    No common linking words found. Words like “however”, “as a result” and “for
-                    example” help the reader follow your ideas.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-          <ParagraphFlowSection writingAnalysis={writingAnalysis} />
-        </section>
-      )}
+      <WordsAndLinking
+        t={t}
+        text={text}
+        newWords={newWords}
+        repeatedWords={repeatedWords}
+        writingAnalysis={writingAnalysis}
+        isVisualTask={isVisualTask}
+        onSaveVocabularyWord={onSaveVocabularyWord}
+        savedVocabularyTerms={savedVocabularyTerms}
+        savingVocabularyTerms={savingVocabularyTerms}
+      />
     </div>
   );
 }

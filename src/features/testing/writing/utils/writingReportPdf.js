@@ -1,5 +1,11 @@
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import {
+  essayParagraphs,
+  segmentModelParagraph,
+} from '../../../../../supabase/functions/_shared/writingBandModels';
+import { reportLanguage } from '../../../../../supabase/functions/_shared/reportLanguages';
+import {
+  CRITERIA,
   buildChartCheck,
   buildCriteria,
   buildMistakeGroups,
@@ -8,21 +14,27 @@ import {
   buildStrengths,
   combinedWritingBand,
   describeMarking,
+  minimumWordsFor,
+  taskTypeOf,
 } from './writingReportModel';
 import { writingSourceForMarking } from './evaluationEvidence';
+import { reportT } from '../report/reportStrings';
+import { loadReportFont, reportFontFamily } from '../report/useReportFonts';
+import {
+  buildEssayMap,
+  buildLadder,
+  buildPractice,
+  markEssay,
+  numberMistakes,
+} from '../report/reportViewModel';
+import { drillText } from '../report/drillText';
+import { paragraphName } from '../report/components/paragraphName';
+import { CONTENT, PAGE, createTextWriter } from './pdfTextWriter';
 
 /**
- * Printable Writing report. Same content and order as the screen (it uses the
- * same report model): band and why, scores with reasons, the next step, the
- * Task 1 chart check, every fix in full, strengths, then the essay itself with
- * each paragraph's note, so a teacher or the learner can mark it up by hand.
- *
- * A missing score is shown as a dash. It is never filled in with a number.
+ * A printable copy of the Writing report: the same facts, in the same order and
+ * the same language as the on-screen report.
  */
-
-const PAGE = { width: 210, margin: 14, bottom: 280 };
-const CONTENT = PAGE.width - PAGE.margin * 2;
-const PT = 0.3528;
 
 const C = {
   ink: [15, 23, 42],
@@ -31,369 +43,579 @@ const C = {
   faint: [148, 163, 184],
   line: [228, 226, 240],
   well: [244, 243, 251],
+  tint: [246, 245, 254],
   accent: [90, 99, 223],
   ok: [22, 150, 108],
   warn: [186, 124, 26],
   fault: [201, 60, 52],
   white: [255, 255, 255],
+  // The result slip, and text that sits on it.
+  slip: [23, 24, 61],
+  slipBox: [39, 40, 78],
+  slipLine: [58, 60, 100],
+  slipSoft: [201, 204, 243],
+  slipFaint: [169, 173, 219],
+  slipAmber: [240, 181, 74],
+  slipGreen: [127, 224, 187],
+  slipRing: [154, 161, 255],
 };
 
 const STATUS_COLOR = { ok: C.ok, warn: C.warn, fault: C.fault, unknown: C.muted };
-
-export const safeText = (value) =>
-  String(value ?? '')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/[–—−]/g, '-')
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/…/g, '...')
-    .replace(/→/g, '->')
-    .replace(/\s+/g, ' ')
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^\x20-\x7E]/g, '')
-    .trim();
+const MODEL_CRITERION = { task: 0, coherence: 1, vocabulary: 2, grammar: 3 };
 
 const formatBand = (value) =>
   Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value).toFixed(1) : '-';
 
-function createWriter(doc) {
-  let y = PAGE.margin;
-  const font = (size, style = 'normal', color = C.ink) => {
-    doc.setFont('helvetica', style);
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-  };
-  const lines = (text, width, size, style = 'normal') => {
-    font(size, style);
-    const clean = safeText(text);
-    return clean ? doc.splitTextToSize(clean, width) : [];
-  };
-  const height = (count, size, lineHeight = 1.35) => count * size * PT * lineHeight;
-  const ensure = (needed) => {
-    if (y + needed <= PAGE.bottom) return;
-    doc.addPage();
-    y = PAGE.margin;
-  };
-  /** Writes wrapped text, breaking across pages line by line. Returns nothing; advances y. */
-  const write = (
-    text,
-    x,
-    width,
-    { size = 9, style = 'normal', color = C.body, lineHeight = 1.35, gap = 0 } = {}
-  ) => {
-    const wrapped = lines(text, width, size, style);
-    const step = size * PT * lineHeight;
-    wrapped.forEach((line) => {
-      ensure(step);
-      font(size, style, color);
-      doc.text(line, x, y + size * PT);
-      y += step;
-    });
-    if (wrapped.length) y += gap;
-  };
-  const heading = (text, size = 11.5) => {
-    ensure(size * PT + 14);
-    doc.setFillColor(...C.accent);
-    doc.rect(PAGE.margin, y + 0.5, 0.9, size * PT + 0.5, 'F');
-    font(size, 'bold', C.ink);
-    doc.text(safeText(text), PAGE.margin + 3.2, y + size * PT);
-    y += size * PT + 3.5;
-  };
-  const rule = () => {
-    doc.setDrawColor(...C.line);
-    doc.setLineWidth(0.3);
-    doc.line(PAGE.margin, y, PAGE.margin + CONTENT, y);
-  };
-  return {
-    doc,
-    font,
-    lines,
-    height,
-    ensure,
-    write,
-    heading,
-    rule,
-    get y() {
-      return y;
-    },
-    set y(value) {
-      y = value;
-    },
-  };
+function heading(w, text, size = 12) {
+  w.ensure(14);
+  w.y += 2;
+  w.write(text, { size, style: 'bold', gap: 2.5 });
 }
 
-function drawScore(w, taskName, feedback, criteria) {
+const body = (w, text, options = {}) => w.write(text, { size: 9.5, color: C.body, ...options });
+
+// ─── Result slip ──────────────────────────────────────────────────────────────
+
+// The same compact card as on screen: the band beside its reason, then one line per score.
+const SLIP_INSET = 5;
+const BAND_BOX = 26;
+const LADDER_LABEL = 70;
+const SCORE_COLUMN = 11;
+const ROW_HEIGHT = 8;
+
+function drawTrack(w, { row, ladder, middle, left, width }) {
   const { doc } = w;
-  w.ensure(40);
-  w.font(15, 'bold', C.ink);
-  doc.text(safeText(taskName), PAGE.margin, w.y + 15 * PT);
-  w.font(26, 'bold', C.ink);
-  doc.text(formatBand(feedback.overallBand), PAGE.margin + CONTENT, w.y + 26 * PT, {
+  const at = (percent) => left + (width * percent) / 100;
+  doc.setDrawColor(...C.slipLine);
+  doc.setLineWidth(0.5);
+  doc.line(left, middle, left + width, middle);
+  doc.setDrawColor(...C.slipAmber);
+  doc.setLineWidth(0.35);
+  doc.setLineDashPattern([0.9, 0.9], 0);
+  doc.line(
+    at(ladder.eightAt),
+    middle - ROW_HEIGHT / 2,
+    at(ladder.eightAt),
+    middle + ROW_HEIGHT / 2
+  );
+  doc.setLineDashPattern([], 0);
+  if (ladder.targetAt !== null) {
+    doc.setDrawColor(...C.slipRing);
+    doc.setLineWidth(0.5);
+    doc.line(at(row.at), middle, at(ladder.targetAt), middle);
+    doc.setFillColor(...C.slip);
+    doc.circle(at(ladder.targetAt), middle, 1.7, 'FD');
+  }
+  doc.setFillColor(...(row.isLowest ? C.slipAmber : row.atTarget ? C.slipGreen : C.white));
+  doc.circle(at(row.at), middle, 1.35, 'F');
+}
+
+const rowTone = (row) => (row.isLowest ? C.slipAmber : row.atTarget ? C.slipGreen : C.white);
+
+function drawLadderRow(w, t, { row, ladder, top }) {
+  const x = PAGE.margin + SLIP_INSET;
+  const status = row.isLowest ? 'lowestArea' : row.atTarget ? 'atTarget' : null;
+  w.place(row.label, top + (status ? 0.6 : 2.2), {
+    x,
+    width: LADDER_LABEL,
+    size: 8.5,
+    style: 'bold',
+    color: C.white,
+    english: true,
+  });
+  if (status)
+    w.place(t(status), top + 4.4, {
+      x,
+      width: LADDER_LABEL,
+      size: 6.5,
+      style: 'bold',
+      color: rowTone(row),
+      // Stays under the English criterion name it describes.
+      align: 'left',
+    });
+  const left = x + LADDER_LABEL + 3;
+  const right = PAGE.margin + CONTENT - SLIP_INSET;
+  drawTrack(w, {
+    row,
+    ladder,
+    middle: top + ROW_HEIGHT / 2,
+    left,
+    width: right - SCORE_COLUMN - 4 - left,
+  });
+  w.place(formatBand(row.score), top + 2, {
+    x: right - SCORE_COLUMN,
+    width: SCORE_COLUMN,
+    size: 9.5,
+    style: 'bold',
+    color: rowTone(row),
+    english: true,
     align: 'right',
   });
-  w.font(8, 'normal', C.muted);
-  doc.text('band', PAGE.margin + CONTENT, w.y + 26 * PT + 4, { align: 'right' });
-  w.y += 12;
-
-  if (feedback.summary) {
-    w.write(`Why you got ${formatBand(feedback.overallBand)}`, PAGE.margin, CONTENT - 30, {
-      size: 9.5,
-      style: 'bold',
-      color: C.ink,
-    });
-    w.write(feedback.summary, PAGE.margin, CONTENT - 30, { size: 9.2, color: C.body, gap: 3 });
-  }
-
-  criteria.forEach((criterion) => {
-    w.ensure(16);
-    w.rule();
-    w.y += 3;
-    w.font(9.5, 'bold', C.ink);
-    doc.text(safeText(criterion.label), PAGE.margin, w.y + 9.5 * PT);
-    doc.text(formatBand(criterion.score), PAGE.margin + CONTENT, w.y + 9.5 * PT, {
-      align: 'right',
-    });
-    w.y += 5;
-    const barWidth = 60;
-    doc.setFillColor(...C.well);
-    doc.roundedRect(PAGE.margin, w.y, barWidth, 1.3, 0.6, 0.6, 'F');
-    doc.setFillColor(...(criterion.isLowest ? C.warn : C.accent));
-    doc.roundedRect(PAGE.margin, w.y, barWidth * (criterion.score / 9), 1.3, 0.6, 0.6, 'F');
-    w.y += 3.5;
-    w.write(criterion.note || criterion.help, PAGE.margin, CONTENT, {
-      size: 8.6,
-      color: criterion.note ? C.body : C.muted,
-      gap: 2,
-    });
-  });
-
-  const marking = describeMarking(feedback.scoreAgreement);
-  if (marking) w.write(marking, PAGE.margin, CONTENT, { size: 7.8, color: C.muted, gap: 2 });
-  w.y += 4;
 }
 
-function drawNextStep(w, step) {
-  const { doc } = w;
-  if (!step) return;
-  w.heading('Your next step');
-  const top = w.y;
-  const startPage = doc.getCurrentPageInfo().pageNumber;
-  const x = PAGE.margin + 4;
-  const width = CONTENT - 4;
-  if (step.criterion)
-    w.write(step.criterion, x, width, { size: 8, style: 'bold', color: C.accent });
-  w.write(step.title, x, width, {
-    size: 11.5,
+/** The lines beside the band, each as [text, style]. */
+function headlineLines(t, feedback) {
+  const taskType = taskTypeOf(feedback);
+  const count = Number(feedback.wordCount);
+  const minimum = minimumWordsFor(taskType);
+  const short = Boolean(feedback.isBelowMinimumWordCount) || count < minimum;
+  const words =
+    count > 0
+      ? `${t('wordsCount', { count })} - ${t(short ? 'wordsUnder' : 'wordsOk', { min: minimum })}`
+      : '';
+  const why = feedback.summary ? t('whyYouGot', { band: formatBand(feedback.overallBand) }) : '';
+  return [
+    [t('resultHeading', { task: taskType }), { size: 11, style: 'bold', color: C.white }],
+    [words, { size: 8, color: short ? C.slipAmber : C.slipGreen }],
+    [why, { size: 8, style: 'bold', color: C.slipSoft }],
+    [feedback.summary || '', { size: 9.5, color: C.white }],
+  ].filter(([text]) => text);
+}
+
+function drawLegend(w, t, ladder, top) {
+  const x = PAGE.margin + SLIP_INSET;
+  const full = CONTENT - SLIP_INSET * 2;
+  const titleWidth = 80;
+  const keyWidth = full - titleWidth - 2;
+  const target =
+    ladder.target === null ? '' : `   ${t('legendTarget')} ${formatBand(ladder.target)}`;
+  // Title on the reading side, key on the other.
+  w.place(t('ladderTitle'), top, {
+    x: w.rtl ? x + keyWidth + 2 : x,
+    width: titleWidth,
+    size: 9,
     style: 'bold',
-    color: C.ink,
-    lineHeight: 1.2,
+    color: C.white,
+  });
+  w.place(`${t('legendBand8')} - - -${target}`, top + 0.4, {
+    x: w.rtl ? x : x + titleWidth + 2,
+    width: keyWidth,
+    size: 7.5,
+    color: C.slipSoft,
+    align: w.rtl ? 'left' : 'right',
+  });
+}
+
+function drawBandBox(w, t, { band, x, top }) {
+  w.doc.setFillColor(...C.slipBox);
+  w.doc.roundedRect(x, top, BAND_BOX, 19, 2.5, 2.5, 'F');
+  const centred = { x, width: BAND_BOX, english: true, align: 'center' };
+  w.place(formatBand(band), top + 2.2, { ...centred, size: 26, style: 'bold', color: C.white });
+  w.place(t('outOf9'), top + 13.6, {
+    x,
+    width: BAND_BOX,
+    size: 7,
+    color: C.slipFaint,
+    align: 'center',
+  });
+}
+
+/** Where everything in the card goes, and how tall it will be. */
+function slipLayout(w, t, { feedback, criteria, targetBand }) {
+  const ladder = buildLadder(criteria, targetBand);
+  const lines = headlineLines(t, feedback);
+  const left = PAGE.margin + SLIP_INSET;
+  // In a right-to-left report the band sits on the right, its reason on the left.
+  const boxX = w.rtl ? PAGE.margin + CONTENT - SLIP_INSET - BAND_BOX : left;
+  const beside = {
+    x: w.rtl ? left : left + BAND_BOX + 4,
+    width: CONTENT - SLIP_INSET * 2 - BAND_BOX - 4,
+  };
+  const textHeight = lines.reduce(
+    (sum, [text, style]) => sum + w.heightOf(text, { ...beside, ...style }) + 0.8,
+    0
+  );
+  const headHeight = Math.max(19, textHeight);
+  const marking = describeMarking(feedback.scoreAgreement, t);
+  const ladderHeight = ladder.rows.length ? 9 + ladder.rows.length * ROW_HEIGHT : 0;
+  const height = SLIP_INSET * 2 + headHeight + ladderHeight + (marking ? 5 : 0);
+  return { ladder, lines, boxX, beside, headHeight, marking, height };
+}
+
+function drawLadder(w, t, ladder, top) {
+  if (!ladder.rows.length) return top;
+  w.doc.setDrawColor(...C.slipLine);
+  w.doc.setLineWidth(0.2);
+  w.doc.line(PAGE.margin + SLIP_INSET, top, PAGE.margin + CONTENT - SLIP_INSET, top);
+  drawLegend(w, t, ladder, top + 1.5);
+  let y = top + 7;
+  for (const row of ladder.rows) {
+    drawLadderRow(w, t, { row, ladder, top: y });
+    y += ROW_HEIGHT;
+  }
+  return y;
+}
+
+function drawSlip(w, t, report) {
+  const layout = slipLayout(w, t, report);
+  const { height, beside } = layout;
+  w.ensure(height);
+  const top = w.y;
+  w.doc.setFillColor(...C.slip);
+  w.doc.roundedRect(PAGE.margin, top, CONTENT, Math.min(height, PAGE.bottom - top), 3, 3, 'F');
+
+  drawBandBox(w, t, {
+    band: report.feedback.overallBand,
+    x: layout.boxX,
+    top: top + SLIP_INSET,
+  });
+  let y = top + SLIP_INSET;
+  for (const [text, style] of layout.lines) y += w.place(text, y, { ...beside, ...style }) + 0.8;
+
+  y = drawLadder(w, t, layout.ladder, top + SLIP_INSET + layout.headHeight + 2);
+  if (layout.marking)
+    w.place(layout.marking, y + 1, {
+      x: PAGE.margin + SLIP_INSET,
+      width: CONTENT - SLIP_INSET * 2,
+      size: 7,
+      color: C.slipFaint,
+    });
+  w.y = top + height + 5;
+}
+
+// ─── Guidance ─────────────────────────────────────────────────────────────────
+
+/** The examiner's reason for each score; the slip itself stays compact. */
+function drawReasons(w, t, criteria) {
+  const explained = criteria.filter((criterion) => criterion.note);
+  if (!explained.length) return;
+  heading(w, t('scoreDetails'));
+  for (const criterion of explained) body(w, `${criterion.label}: ${criterion.note}`, { gap: 1.2 });
+}
+
+function drawNextStep(w, t, step) {
+  if (!step) return;
+  w.ensure(30);
+  w.write([t('nextStep'), step.criterion].filter(Boolean).join(' - '), {
+    size: 9,
+    style: 'bold',
+    color: C.accent,
     gap: 1,
   });
-  if (step.body) w.write(step.body, x, width, { size: 9.2, color: C.body, gap: 1.5 });
+  w.write(step.title, { size: 13.5, style: 'bold', gap: 1.5 });
+  if (step.body) body(w, step.body, { gap: 2 });
   if (step.evidenceText) {
-    w.write('From your essay:', x, width, { size: 8, color: C.muted });
-    w.write(`"${step.evidenceText}"`, x, width, { size: 9, style: 'italic', color: C.ink, gap: 1 });
+    w.write(t('fromEssay'), { size: 8.5, style: 'bold', color: C.muted, gap: 0.5 });
+    w.write(`"${step.evidenceText}"`, { size: 9.5, style: 'italic', english: true, gap: 3 });
   }
-  if (doc.getCurrentPageInfo().pageNumber === startPage && w.y > top) {
-    doc.setFillColor(...C.accent);
-    doc.rect(PAGE.margin, top, 0.9, w.y - top, 'F');
-  }
-  w.y += 5;
 }
 
-function drawChartCheck(w, check) {
-  const { doc } = w;
+function drawChartCheck(w, t, check) {
   if (!check) return;
-  w.heading('What the marker saw in the visual');
-  w.ensure(10);
-  doc.setFillColor(...STATUS_COLOR[check.status]);
-  doc.circle(PAGE.margin + 1.2, w.y + 1.8, 1, 'F');
-  w.write(check.message, PAGE.margin + 4, CONTENT - 4, { size: 9.2, color: C.body, gap: 1.5 });
-  if (check.features.length) {
-    w.write('Main features ([x] = mentioned in your answer):', PAGE.margin, CONTENT, {
-      size: 8.8,
-      style: 'bold',
-      color: C.ink,
-    });
-    check.features.forEach((feature) =>
-      w.write(
-        `${feature.covered ? '[x]' : '[ ]'} ${feature.text}${feature.covered ? '' : '  (not clearly in your answer)'}`,
-        PAGE.margin + 2,
-        CONTENT - 2,
-        { size: 8.8 }
-      )
-    );
+  heading(w, t('chartCheck'));
+  w.write(check.message, { size: 9.5, color: STATUS_COLOR[check.status] || C.body, gap: 2 });
+  if (!check.features.length) return;
+  const covered = check.features.filter((feature) => feature.covered).length;
+  w.write(t('featuresMentioned', { covered, total: check.features.length }), {
+    size: 8.5,
+    style: 'bold',
+    color: C.muted,
+  });
+  for (const feature of check.features) {
+    const mark = feature.covered ? '[x]' : '[ ]';
+    const missing = feature.covered ? '' : ` (${t('featureMissing')})`;
+    body(w, `${mark} ${feature.text}${missing}`, { gap: 0.8 });
   }
-  if (check.limitations)
-    w.write(check.limitations, PAGE.margin, CONTENT, { size: 8, color: C.muted, gap: 1 });
-  w.y += 4;
 }
 
-function drawAlsoWorkOn(w, priorities) {
+function drawAlsoWorkOn(w, t, priorities) {
   if (!priorities.length) return;
-  w.heading('Also work on');
+  heading(w, t('alsoWorkOn'));
   priorities.forEach((priority, index) => {
-    w.write(
-      `${index + 2}. ${priority.issue || priority.action}${priority.criterion ? `  (${priority.criterion})` : ''}`,
-      PAGE.margin,
-      CONTENT,
-      { size: 9.3, style: 'bold', color: C.ink }
-    );
-    if (priority.issue && priority.action) {
-      w.write(priority.action, PAGE.margin + 4, CONTENT - 4, { size: 9, color: C.body, gap: 2 });
-    }
-  });
-  w.y += 3;
-}
-
-function drawFixes(w, groups) {
-  if (!groups.length) return;
-  w.heading('Fix these');
-  groups.forEach((group) => {
-    w.write(group.label, PAGE.margin, CONTENT, {
-      size: 8.5,
+    w.ensure(14);
+    w.write(`${index + 2}. ${priority.issue || priority.action}`, {
+      size: 10,
       style: 'bold',
-      color: C.muted,
-      gap: 1,
+      gap: 0.5,
     });
-    group.items.forEach((item) => {
-      const line = item.replacement
-        ? `"${item.original}"  ->  "${item.replacement}"`
-        : `"${item.original}"${item.advice ? `   Suggestion: ${item.advice}` : ''}`;
-      w.write(line, PAGE.margin + 2, CONTENT - 2, { size: 9, color: C.ink });
-      if (item.explanation)
-        w.write(item.explanation, PAGE.margin + 2, CONTENT - 2, { size: 8.3, color: C.muted });
-      w.y += 2;
-    });
-    w.y += 1;
+    if (priority.issue && priority.action) body(w, priority.action, { gap: 2 });
   });
-  w.y += 2;
 }
 
-function drawStrengths(w, strengths) {
-  if (!strengths.length) return;
-  w.heading("What's already working");
-  strengths.forEach((item) =>
-    w.write(`+ ${item}`, PAGE.margin, CONTENT, { size: 9, color: C.body, gap: 1 })
-  );
-  w.y += 3;
-}
-
-const paragraphKey = (value) =>
-  String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-function drawEssay(w, essay, paragraphNotes) {
-  const paragraphs = writingSourceForMarking(essay).split('\n\n').filter(Boolean);
+function drawEssayMap(w, t, paragraphs) {
   if (!paragraphs.length) return;
-  w.heading('Your essay');
-  paragraphs.forEach((paragraph, index) => {
-    w.write(`Paragraph ${index + 1}`, PAGE.margin, CONTENT, {
-      size: 7.8,
+  heading(w, t('mapTitle'));
+  w.ensure(8);
+  const gap = 1;
+  const usable = CONTENT - gap * (paragraphs.length - 1);
+  let x = PAGE.margin;
+  for (const paragraph of paragraphs) {
+    const width = (usable * paragraph.share) / 100;
+    const tone = paragraph.mistakes === 0 ? C.ok : paragraph.mistakes === 1 ? C.warn : C.fault;
+    w.doc.setFillColor(...tone);
+    w.doc.roundedRect(x, w.y, Math.max(1, width), 2.4, 1.2, 1.2, 'F');
+    x += width + gap;
+  }
+  w.y += 5.5;
+  for (const paragraph of paragraphs) {
+    const status = paragraph.mistakes
+      ? t('mapToFix', { count: paragraph.mistakes })
+      : t('mapClean');
+    w.write(
+      `${paragraphName(t, paragraph)} · ${t('wordsCount', { count: paragraph.words })} · ${status}`,
+      { size: 9, style: 'bold', color: C.body, gap: 0.6 }
+    );
+    if (paragraph.note) body(w, paragraph.note, { size: 8.5, gap: 1.2 });
+  }
+}
+
+function drawFixes(w, t, groups) {
+  if (!groups.length) return;
+  heading(w, t('fixTitle'));
+  for (const group of groups) {
+    w.ensure(18);
+    w.write(group.label, { size: 10, style: 'bold', color: C.body, gap: 1.5 });
+    for (const item of group.items) {
+      w.ensure(14);
+      w.write(`${item.n}. ${item.original}`, { size: 9.5, english: true, gap: 0.3 });
+      if (item.replacement)
+        w.write(`-> ${item.replacement}`, {
+          size: 9.5,
+          style: 'bold',
+          color: C.ok,
+          english: true,
+          gap: 0.3,
+        });
+      else if (item.advice) body(w, `${t('pdfSuggestion')}: ${item.advice}`, { gap: 0.3 });
+      if (item.explanation) body(w, item.explanation, { size: 8.5, color: C.muted, gap: 0.3 });
+      w.y += 2;
+    }
+  }
+}
+
+function drawStrengths(w, t, strengths) {
+  if (!strengths.length) return;
+  heading(w, t('strengthsTitle'));
+  for (const strength of strengths) body(w, `+ ${strength}`, { gap: 1.2 });
+}
+
+// ─── Comparison and essay ─────────────────────────────────────────────────────
+
+const criterionName = (id, taskType) => {
+  const { label } = CRITERIA[MODEL_CRITERION[id]];
+  return typeof label === 'object' ? label[taskType] : label;
+};
+
+const numbered = (segments) =>
+  segments.map((segment) => (segment.n ? `${segment.text} [${segment.n}]` : segment.text)).join('');
+
+function drawComparison(w, t, { taskType, comparison, essayMap }) {
+  heading(w, t('bandVersion', { band: comparison.band }), 11);
+  for (const paragraph of comparison.paragraphs) {
+    w.ensure(30);
+    const name = paragraphName(t, essayMap[paragraph.index]);
+    w.write(`${name} - ${t('yourParagraph')}`, {
+      size: 9,
       style: 'bold',
       color: C.muted,
+      gap: 0.8,
     });
-    w.write(paragraph, PAGE.margin, CONTENT, { size: 9.6, color: C.ink, lineHeight: 1.5, gap: 1 });
-    const key = paragraphKey(paragraph);
-    const note = (paragraphNotes || []).find(
-      (item) => paragraphKey(item.opening).length >= 3 && key.startsWith(paragraphKey(item.opening))
-    )?.note;
-    if (note)
-      w.write(`Note: ${note}`, PAGE.margin + 3, CONTENT - 3, {
-        size: 8.6,
-        style: 'italic',
-        color: C.accent,
+    body(w, paragraph.original, { english: true, gap: 2 });
+    w.write(t('bandVersion', { band: comparison.band }), {
+      size: 9,
+      style: 'bold',
+      color: C.accent,
+      gap: 0.8,
+    });
+    w.write(numbered(segmentModelParagraph(paragraph.model, paragraph.notes)), {
+      size: 9.5,
+      english: true,
+      gap: 2,
+    });
+    for (const note of paragraph.notes)
+      body(w, `${note.n}. ${criterionName(note.criterion, taskType)}: ${note.why}`, {
+        size: 8.5,
+        english: t.language !== 'en' && !comparison.notesTranslated,
+        gap: 0.8,
       });
-    w.y += 3;
+    w.y += 2;
+  }
+}
+
+function drawComparisons(w, t, { taskType, comparisons, essayMap }) {
+  if (!comparisons?.length) return;
+  heading(w, t('compareTitle'));
+  for (const comparison of comparisons) drawComparison(w, t, { taskType, comparison, essayMap });
+  body(w, t('studyPattern'), { size: 8.5, color: C.muted, gap: 2 });
+}
+
+function drawEssay(w, t, { essay, groups, essayMap }) {
+  const marked = markEssay(essay, groups);
+  if (!marked.length) return;
+  heading(w, t('essayTitle'));
+  marked.forEach((segments, index) => {
+    const text = segments
+      .map((segment) => (segment.n ? `${segment.text} [${segment.n}]` : segment.text))
+      .join('');
+    body(w, text, { english: true, gap: 2 });
+    const note = essayMap[index]?.note;
+    if (note)
+      w.write(`${t('pdfNote')}: ${note}`, { size: 8.5, style: 'italic', color: C.accent, gap: 3 });
   });
 }
 
-export const createWritingReportPdf = ({ feedbacks, drafts = {}, generatedAt = new Date() }) => {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-  const reports = Object.entries(feedbacks || {}).filter(
-    ([, feedback]) => feedback && (feedback.overallBand || feedback.summary)
-  );
-  doc.setProperties({ title: 'IELTS Writing report', author: 'IELTS Ai Pro' });
+/** The same drills as on screen; a printed page needs no buttons. */
+function drawPractice(w, t, drills) {
+  if (!drills.length) return;
+  heading(w, t('practiseTitle'));
+  drills.forEach((drill, index) => {
+    const text = drillText(t, drill);
+    w.ensure(14);
+    w.write(`${index + 1}. ${text.title}`, { size: 10, style: 'bold', gap: 0.5 });
+    body(w, text.why, { gap: 1.5 });
+    for (const entry of drill.words || [])
+      body(w, `${entry.original} -> ${entry.alternatives.join(' / ')}`, {
+        english: true,
+        gap: 0.8,
+      });
+  });
+}
 
-  const w = createWriter(doc);
+// ─── Document ─────────────────────────────────────────────────────────────────
+
+function drawTask(w, t, { taskName, feedback, essaySource, targetBand, comparisons }) {
+  const report = { taskType: taskName, ...feedback };
+  const taskType = taskTypeOf(report);
+  const priorities = buildPriorities(report);
+  const step = buildNextStep(report, priorities, t);
+  const fixes = numberMistakes(buildMistakeGroups(report, t));
+  const essay = writingSourceForMarking(essaySource);
+  const paragraphs = essayParagraphs(essaySource);
+  const essayMap = paragraphs.length
+    ? buildEssayMap(essaySource, taskType, fixes, report.paragraphNotes)
+    : [];
+
+  const criteria = buildCriteria(report, t);
+  drawSlip(w, t, { feedback: report, criteria, targetBand });
+  if (t.language !== 'en')
+    body(w, t('languageNote', { language: reportLanguage(t.language).name }), {
+      size: 8.5,
+      color: C.muted,
+      gap: 3,
+    });
+  drawReasons(w, t, criteria);
+  drawNextStep(w, t, step);
+  drawChartCheck(w, t, buildChartCheck(report, t));
+  drawAlsoWorkOn(w, t, step?.rest || []);
+  drawEssayMap(w, t, essayMap);
+  drawFixes(w, t, fixes);
+  drawStrengths(w, t, buildStrengths(report));
+  drawComparisons(w, t, { taskType, comparisons, essayMap });
+  drawEssay(w, t, { essay, groups: fixes, essayMap });
+  drawPractice(
+    w,
+    t,
+    buildPractice({
+      criteria,
+      fixes,
+      essayMap,
+      vocabulary: report.vocabularyEnhancements,
+    })
+  );
+}
+
+/** A wide block on the reading side and a narrow one opposite it. */
+function splitRow(w, narrow) {
+  const wide = CONTENT - narrow - 2;
+  return {
+    start: { x: w.rtl ? PAGE.margin + narrow + 2 : PAGE.margin, width: wide },
+    end: {
+      x: w.rtl ? PAGE.margin : PAGE.margin + wide + 2,
+      width: narrow,
+      align: w.rtl ? 'left' : 'right',
+    },
+  };
+}
+
+function drawHeader(w, t, generatedAt) {
+  const { doc } = w;
   doc.setFillColor(...C.accent);
-  doc.rect(0, 0, PAGE.width, 2.5, 'F');
-  w.font(9, 'normal', C.muted);
-  doc.text('IELTS Writing report', PAGE.margin, 13);
-  doc.text(
+  doc.rect(0, 0, PAGE.width, 3, 'F');
+  const row = splitRow(w, 50);
+  w.place(t('pdfTitle'), 8, { ...row.start, size: 16, style: 'bold' });
+  w.place(
     generatedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-    PAGE.margin + CONTENT,
-    13,
-    { align: 'right' }
+    9.5,
+    { ...row.end, size: 9, color: C.muted, english: true }
   );
   w.y = 20;
+}
 
-  if (!reports.length) {
-    w.write(
-      'No marked writing yet. Finish a writing task to get your report.',
-      PAGE.margin,
-      CONTENT,
-      {
-        size: 11,
-        style: 'bold',
-        color: C.ink,
-      }
-    );
+function drawFooters(w, t) {
+  const { doc } = w;
+  const pages = doc.getNumberOfPages();
+  const row = splitRow(w, 30);
+  for (let page = 1; page <= pages; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(...C.line);
+    doc.setLineWidth(0.2);
+    doc.line(PAGE.margin, 286, PAGE.width - PAGE.margin, 286);
+    w.place(t('pdfFooter'), 287.5, { ...row.start, size: 7.5, color: C.muted });
+    w.place(t('pdfPage', { page, pages }), 287.5, { ...row.end, size: 7.5, color: C.muted });
   }
+}
 
-  const combined = combinedWritingBand(feedbacks);
+export const createWritingReportPdf = ({
+  feedbacks,
+  drafts = {},
+  generatedAt = new Date(),
+  language = 'en',
+  targetBand = null,
+  comparisons = {},
+  rasterizer,
+} = {}) => {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const t = reportT(language);
+  const reports = Object.entries(feedbacks || {}).filter(
+    ([, feedback]) => feedback && (feedback.overallBand != null || feedback.summary)
+  );
+  doc.setProperties({ title: 'IELTS Writing report', author: 'IELTS Ai Pro' });
+  const w = createTextWriter(doc, { rasterizer, rtl: t.rtl, ink: C.ink });
+  drawHeader(w, t, generatedAt);
+
+  const combined = combinedWritingBand(Object.fromEntries(reports));
+  if (!reports.length) body(w, t('pdfEmpty'));
   if (combined) {
-    w.write(`Writing band for both tasks: ${formatBand(combined)}`, PAGE.margin, CONTENT, {
-      size: 11,
+    w.write(`${t('combinedBand')}: ${combined.toFixed(1)}`, {
+      size: 11.5,
       style: 'bold',
-      color: C.ink,
+      gap: 0.5,
     });
-    w.write('Task 2 counts twice as much as Task 1.', PAGE.margin, CONTENT, {
-      size: 8.5,
-      color: C.muted,
-      gap: 4,
-    });
+    body(w, t('combinedHint'), { size: 8.5, color: C.muted, gap: 3 });
   }
-
   reports.forEach(([taskName, feedback], index) => {
     if (index > 0) {
       doc.addPage();
       w.y = PAGE.margin;
     }
-    const priorities = buildPriorities(feedback);
-    const nextStep = buildNextStep(feedback, priorities);
-    drawScore(w, taskName, feedback, buildCriteria(feedback));
-    drawNextStep(w, nextStep);
-    drawChartCheck(w, buildChartCheck(feedback));
-    drawAlsoWorkOn(w, nextStep?.rest || []);
-    drawFixes(w, buildMistakeGroups(feedback));
-    drawStrengths(w, buildStrengths(feedback));
-    drawEssay(w, feedback.originalSource || drafts?.[taskName], feedback.paragraphNotes);
+    drawTask(w, t, {
+      taskName,
+      feedback,
+      essaySource: feedback.originalSource || drafts?.[taskName],
+      targetBand,
+      comparisons: comparisons?.[taskName],
+    });
   });
 
-  const pages = doc.getNumberOfPages();
-  for (let page = 1; page <= pages; page += 1) {
-    doc.setPage(page);
-    doc.setDrawColor(...C.line);
-    doc.line(PAGE.margin, 286, PAGE.margin + CONTENT, 286);
-    w.font(7, 'normal', C.muted);
-    doc.text(
-      'IELTS Ai Pro - practice estimate based on the public IELTS band descriptors, not an official score',
-      PAGE.margin,
-      290.5
-    );
-    doc.text(`Page ${page} of ${pages}`, PAGE.margin + CONTENT, 290.5, { align: 'right' });
-  }
-
+  drawFooters(w, t);
   return { doc, filename: 'writing-report.pdf' };
 };
 
-export const downloadWritingReportPdf = (options) => {
-  const result = createWritingReportPdf(options);
-  result.doc.save(result.filename);
-  return result.filename;
+/** Waits for the script's web font, so text drawn by the browser looks right. */
+async function readyFonts(language) {
+  await loadReportFont(language);
+  const family = reportFontFamily(language);
+  if (!family || !document.fonts?.load) return;
+  const sample = reportT(language)('ladderTitle');
+  await Promise.all(
+    ['400', '700'].map((weight) => document.fonts.load(`${weight} 32px ${family}`, sample))
+  ).catch(() => {
+    // A system font still shapes the script correctly.
+  });
+}
+
+export const downloadWritingReportPdf = async (options) => {
+  await readyFonts(options?.language);
+  const { doc, filename } = createWritingReportPdf(options);
+  doc.save(filename);
 };
