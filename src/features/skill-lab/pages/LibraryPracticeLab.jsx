@@ -521,6 +521,10 @@ export default function LibraryPracticeLab() {
   if (query.error)
     return (
       <main className="relative min-h-full overflow-hidden bg-[#f8f8fb] px-3 py-4 text-slate-950 dark:bg-[#08080a] dark:text-white sm:px-4 md:px-5 md:py-5">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
+        />
         <div className="relative z-10 mx-auto max-w-lg">
           <div className={`${PANEL} p-5 text-center`} role="alert">
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">

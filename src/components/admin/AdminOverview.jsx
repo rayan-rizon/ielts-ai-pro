@@ -36,7 +36,7 @@ const ErrorState = ({ error, onRetry }) => (
       onClick={onRetry}
       className={cn(
         MICRO,
-        'mt-3 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200'
+        'mt-3 rounded-md border border-stone-300 dark:border-white/15 px-2.5 py-1.5 text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 active:scale-[0.97] transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]'
       )}
     >
       Retry

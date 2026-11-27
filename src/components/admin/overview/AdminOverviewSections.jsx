@@ -16,7 +16,9 @@ import {
   ChevronRight,
   Clock,
   Globe2,
+  Monitor,
   ShieldCheck,
+  Smartphone,
 } from 'lucide-react';
 import {
   Select,
@@ -30,7 +32,7 @@ import { createPageUrl } from '@/utils';
 import ServiceStatusStrip from '../ServiceStatusStrip';
 import { SignupSourceMark, channelMeta } from '../shared/signupChannel';
 import { countryName, countryShortLabel } from '../shared/country';
-import { NUM, MICRO, PANEL, Kpi, InfoTip, Tip } from '../ui/primitives';
+import { NUM, MICRO, PANEL, WELL, Kpi, InfoTip, SectionLabel, Tip } from '../ui/primitives';
 
 const SEVERITY = {
   high: 'bg-[rgb(var(--signal-fault))]',
@@ -48,12 +50,12 @@ const WORLD_MAP_CODES = new Set(worldMapRegions.map(({ code }) => code.toLowerCa
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.035, delayChildren: 0.03 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } },
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.24, ease: [0.23, 1, 0.32, 1] } },
 };
 
 const pctChange = (value, previous) => {
@@ -238,8 +240,14 @@ const ActionQueue = ({ actions }) => (
   <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
     <div className={cn(PANEL, 'p-4 h-full')}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Needs you</h3>
-        <span className={cn(NUM, 'text-[11px] font-bold text-stone-500 dark:text-stone-400')}>
+        <SectionLabel accent={actions.length > 0 ? 'warn' : 'idle'}>Needs you</SectionLabel>
+        <span
+          className={cn(
+            NUM,
+            WELL,
+            'rounded-md px-1.5 py-0.5 text-[11px] font-bold text-stone-600 dark:text-stone-300'
+          )}
+        >
           {actions.length}
         </span>
       </div>
@@ -256,7 +264,7 @@ const ActionQueue = ({ actions }) => (
             <Link
               key={action.key}
               to={actionUrl(action)}
-              className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/3 hover:translate-x-0.5 active:scale-[0.99] transition-all duration-150"
+              className="group flex items-start gap-2.5 p-2.5 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-white/[0.04] hover:translate-x-0.5 active:scale-[0.99] transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]"
             >
               <span
                 className={cn(
@@ -277,7 +285,7 @@ const ActionQueue = ({ actions }) => (
                   {action.detail}
                 </p>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-stone-600 dark:group-hover:text-stone-300 shrink-0 mt-1" />
+              <ChevronRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-stone-600 dark:group-hover:text-stone-300 group-hover:translate-x-0.5 transition-[transform,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] shrink-0 mt-1" />
             </Link>
           ))}
         </div>
@@ -320,7 +328,7 @@ const FunnelStep = ({ step, previousUsers, top, isWorst }) => {
           <div className="relative flex-1 h-8 rounded-md bg-stone-100 dark:bg-white/4 overflow-hidden cursor-default">
             <div
               className={cn(
-                'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700',
+                'absolute inset-y-0 left-0 rounded-md transition-[width] duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]',
                 highlight ? 'bg-[rgb(var(--signal-fault)/0.22)]' : 'bg-[rgb(var(--signal-ok)/0.18)]'
               )}
               style={{ width: `${Math.max(share, 3)}%` }}
@@ -380,9 +388,7 @@ const FunnelPanel = ({ steps }) => (
     <div className={cn(PANEL, 'p-4 h-full')}>
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2 mb-4">
         <div className="flex items-center gap-1.5">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Activation funnel · all time
-          </h3>
+          <SectionLabel>Activation funnel · all time</SectionLabel>
           <InfoTip>
             User progress through key product milestones. Red marks the largest drop-off.
           </InfoTip>
@@ -419,18 +425,24 @@ const TrendPanel = ({ trend, usesTestUsers }) => {
   return (
     <m.div variants={itemVariants} className="col-span-12 lg:col-span-8">
       <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
-        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-3">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Signups vs {comparisonLabel.toLowerCase()}
-          </h3>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <SectionLabel>Signups vs {comparisonLabel.toLowerCase()}</SectionLabel>
+          <div className="flex items-center gap-2">
             <span
-              className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}
+              className={cn(
+                MICRO,
+                WELL,
+                'rounded-md px-2 py-1 text-stone-600 dark:text-stone-300 flex items-center gap-1.5'
+              )}
             >
               <span className="w-2 h-0.5 rounded-full bg-[rgb(var(--signal-ok))]" /> Signups
             </span>
             <span
-              className={cn(MICRO, 'text-stone-500 dark:text-stone-400 flex items-center gap-1.5')}
+              className={cn(
+                MICRO,
+                WELL,
+                'rounded-md px-2 py-1 text-stone-600 dark:text-stone-300 flex items-center gap-1.5'
+              )}
             >
               <span className="w-2 h-0.5 rounded-full bg-stone-400" /> {comparisonLabel}
             </span>
@@ -586,8 +598,8 @@ const RecentSignupsPanel = ({ users, offer, displayDays }) => (
   <m.div variants={itemVariants} className="col-span-12 lg:col-span-4">
     <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
       <div>
-        <div className="mb-2 flex items-baseline justify-between gap-2">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Latest signups</h3>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <SectionLabel>Latest signups</SectionLabel>
           <InfoTip>
             The newest accounts, and what each did when the onboarding plan prices appeared on the
             final step.
@@ -600,7 +612,7 @@ const RecentSignupsPanel = ({ users, offer, displayDays }) => (
           {users.slice(0, 5).map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/5 last:border-0 hover:bg-stone-50 dark:hover:bg-white/3 transition-colors"
+              className="flex items-center gap-2.5 py-1.5 px-1.5 -mx-1.5 rounded-md border-b border-stone-100 dark:border-white/5 last:border-0 hover:bg-stone-50 dark:hover:bg-white/[0.04] transition-colors duration-150"
             >
               <div className="w-6 h-6 rounded-md bg-stone-100 dark:bg-white/6 grid place-items-center text-[9px] font-black text-stone-500 dark:text-stone-300 shrink-0">
                 {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
@@ -657,7 +669,7 @@ const RetentionCell = ({ cohort, week }) => {
         }
       >
         <div
-          className="h-7 rounded grid place-items-center transition-transform duration-150 hover:scale-[1.08] cursor-default"
+          className="h-7 rounded grid place-items-center transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.08] cursor-default"
           style={{ backgroundColor }}
         >
           <span
@@ -743,9 +755,7 @@ const RetentionPanel = ({ cohorts }) => (
     <div className={cn(PANEL, 'p-4 h-full')}>
       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2 mb-3">
         <div className="flex items-center gap-1.5">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Weekly retention by signup cohort
-          </h3>
+          <SectionLabel>Weekly retention by signup cohort</SectionLabel>
           <InfoTip>
             Weekly return rate by signup cohort. Darker cells mean more users returned.
           </InfoTip>
@@ -768,7 +778,7 @@ const EngagementBar = ({ label, value, total }) => {
         </span>
         <div className="flex-1 h-1.5 rounded-full bg-stone-100 dark:bg-white/5 overflow-hidden">
           <div
-            className="h-full rounded-full bg-[rgb(var(--signal-ok))] group-hover:brightness-125 transition-all duration-200"
+            className="h-full rounded-full bg-[rgb(var(--signal-ok))] group-hover:brightness-125 transition-[width,filter] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
             style={{ width: `${Math.max(share, 1)}%` }}
           />
         </div>
@@ -795,9 +805,9 @@ const EngagementPanel = ({ engagement, economics, displayDays }) => {
     <m.div variants={itemVariants} className="col-span-12 lg:col-span-5">
       <div className={cn(PANEL, 'p-4 h-full flex flex-col gap-4')}>
         <div>
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Engagement depth</h3>
+              <SectionLabel>Engagement depth</SectionLabel>
               <InfoTip>Share of test takers who returned for 2+ or 5+ tests.</InfoTip>
             </div>
             <span className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
@@ -818,28 +828,43 @@ const EngagementPanel = ({ engagement, economics, displayDays }) => {
             ))}
           </div>
         </div>
-        <div className="pt-3 border-t border-dashed border-stone-200 dark:border-white/[0.07] grid grid-cols-2 gap-4">
-          <div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className={cn(WELL, 'rounded-lg px-3 py-2.5')}>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
               AI cost / completed test · {displayDays}d
             </p>
-            <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
+            <p
+              className={cn(
+                NUM,
+                'text-base sm:text-lg font-bold text-stone-900 dark:text-stone-50 mt-1'
+              )}
+            >
               ${Number(economics.costPerCompletedTest ?? 0).toFixed(4)}
             </p>
           </div>
-          <div>
+          <div className={cn(WELL, 'rounded-lg px-3 py-2.5')}>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
               AI cost / current paying user · {displayDays}d
             </p>
-            <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
+            <p
+              className={cn(
+                NUM,
+                'text-base sm:text-lg font-bold text-stone-900 dark:text-stone-50 mt-1'
+              )}
+            >
               ${Number(economics.costPerPayingUser ?? 0).toFixed(4)}
             </p>
           </div>
-          <div>
+          <div className={cn(WELL, 'rounded-lg px-3 py-2.5')}>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
               Mock / practice · all time
             </p>
-            <p className={cn(NUM, 'text-lg font-bold text-stone-900 dark:text-stone-50 mt-1')}>
+            <p
+              className={cn(
+                NUM,
+                'text-base sm:text-lg font-bold text-stone-900 dark:text-stone-50 mt-1'
+              )}
+            >
               {engagement.mockSessions ?? 0}
               <span className="text-stone-500 dark:text-stone-400">
                 {' '}
@@ -852,12 +877,12 @@ const EngagementPanel = ({ engagement, economics, displayDays }) => {
               </p>
             )}
           </div>
-          <div>
+          <div className={cn(WELL, 'rounded-lg px-3 py-2.5')}>
             <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Cost data coverage</p>
             <p
               className={cn(
                 NUM,
-                'text-lg font-bold mt-1',
+                'text-base sm:text-lg font-bold mt-1',
                 (economics.costCoverage ?? 0) < 80
                   ? 'text-[rgb(var(--signal-warn))]'
                   : 'text-stone-900 dark:text-stone-50'
@@ -882,17 +907,16 @@ const formatHour12 = (hour) => {
 const HourlyActivityPanel = ({ hourly, maxHourly, peakHour }) => (
   <m.div variants={itemVariants} className="col-span-12 xl:col-span-4">
     <div className={cn(PANEL, 'p-4 h-full flex flex-col justify-between')}>
-      <div className="mb-3 grid min-w-0 gap-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-        <div className="flex min-w-0 items-start gap-1.5">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Activity by hour · last 30 days
-          </h3>
+      <div className="mb-3 grid min-w-0 gap-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <SectionLabel>Activity by hour · last 30 days</SectionLabel>
           <InfoTip>Test sessions by hour in Bangladesh time (GMT+6).</InfoTip>
         </div>
         <span
           className={cn(
             MICRO,
-            'whitespace-nowrap text-stone-500 dark:text-stone-400 sm:text-right'
+            WELL,
+            'rounded-md px-2 py-0.5 whitespace-nowrap text-stone-500 dark:text-stone-400 sm:text-right'
           )}
         >
           peak{' '}
@@ -941,8 +965,8 @@ const HourlyActivityPanel = ({ hourly, maxHourly, peakHour }) => (
 const ModuleEngagementPanel = ({ modules }) => (
   <m.div variants={itemVariants} className="col-span-12 xl:col-span-4">
     <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
-      <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-        <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>Module engagement</h3>
+      <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <SectionLabel>Module engagement</SectionLabel>
         <span
           className={cn(MICRO, 'max-w-[18rem] text-stone-500 dark:text-stone-400 sm:text-right')}
         >
@@ -1026,10 +1050,8 @@ const SignupChannelsPanel = ({ channels, displayDays }) => {
   return (
     <m.div variants={itemVariants} className="col-span-12 xl:col-span-4">
       <div className={cn(PANEL, 'p-4 h-full flex flex-col')}>
-        <div className="flex items-baseline justify-between mb-3">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            Signups by channel · last {displayDays}d
-          </h3>
+        <div className="flex items-center justify-between mb-3">
+          <SectionLabel>Signups by channel · last {displayDays}d</SectionLabel>
           <InfoTip>
             First-touch channel from campaign tags and landing referrers, including AI tools. Social
             clicks without paid evidence stay unverified. Missing signals are not guessed.
@@ -1276,23 +1298,80 @@ const MarketSnapshotPanel = ({ markets, marketMap, summary, displayDays }) => {
   );
 };
 
-const PlatformRow = ({ label, value, max, tone }) => (
-  <div className="grid grid-cols-[4.5rem_1fr_2.5rem] items-center gap-2 py-1.5 text-[11px]">
-    <span className="font-extrabold text-stone-900 dark:text-stone-50">{label}</span>
-    <div className="h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-white/[0.06]">
+const PlatformRow = ({
+  icon: Icon,
+  label,
+  value,
+  max,
+  shareBase,
+  tone,
+  sub = false,
+  displayDays,
+}) => {
+  const count = Number(value || 0);
+  const widthPct = max > 0 ? Math.max(count > 0 ? 3 : 0, Math.round((100 * count) / max)) : 0;
+  const sharePct = shareBase > 0 ? Math.round((100 * count) / shareBase) : 0;
+
+  return (
+    <Tip
+      content={`${label.replace(/^·\s*/, '')} — ${count.toLocaleString()} learner${count === 1 ? '' : 's'} (${sharePct}% of client opens) in last ${displayDays}d`}
+    >
       <div
-        className="h-full rounded-full"
-        style={{
-          width: `${max > 0 ? Math.max(value > 0 ? 3 : 0, Math.round((100 * value) / max)) : 0}%`,
-          background: tone,
-        }}
-      />
-    </div>
-    <span className={cn(NUM, 'text-right font-bold text-stone-900 dark:text-stone-50')}>
-      {Number(value || 0).toLocaleString()}
-    </span>
-  </div>
-);
+        className={cn(
+          'group -mx-1.5 grid grid-cols-[minmax(6.75rem,auto)_1fr_3rem_2.5rem] items-center gap-2.5 rounded-md px-1.5 text-[11px] transition-colors duration-150 hover:bg-stone-50 dark:hover:bg-white/[0.035] cursor-default',
+          sub ? 'py-1' : 'py-1.5'
+        )}
+      >
+        <span
+          className={cn(
+            'flex items-center gap-1.5 truncate min-w-0',
+            sub
+              ? 'pl-5 font-semibold text-stone-600 dark:text-stone-300'
+              : 'font-extrabold text-stone-900 dark:text-stone-50'
+          )}
+        >
+          {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-stone-400 dark:text-stone-500" />}
+          <span className="truncate">{label}</span>
+        </span>
+        <div
+          className={cn(
+            'overflow-hidden rounded-full bg-stone-100 dark:bg-white/[0.06]',
+            sub ? 'h-1' : 'h-1.5'
+          )}
+        >
+          <div
+            className="h-full rounded-full transition-[width,filter] duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:brightness-110"
+            style={{
+              width: `${widthPct}%`,
+              backgroundColor: tone,
+            }}
+          />
+        </div>
+        <span
+          className={cn(
+            NUM,
+            'text-right font-bold',
+            count === 0
+              ? 'text-stone-400 dark:text-stone-500'
+              : sub
+                ? 'text-stone-700 dark:text-stone-200'
+                : 'text-stone-900 dark:text-stone-50'
+          )}
+        >
+          {count.toLocaleString()}
+        </span>
+        <span
+          className={cn(
+            NUM,
+            'text-right text-[10px] font-semibold text-stone-400 dark:text-stone-500'
+          )}
+        >
+          {sharePct}%
+        </span>
+      </div>
+    </Tip>
+  );
+};
 
 const PlatformUsagePanel = ({ usage, displayDays }) => {
   if (!usage) return null;
@@ -1301,6 +1380,9 @@ const PlatformUsagePanel = ({ usage, displayDays }) => {
   const ios = usage.ios ?? 0;
   const android = usage.android ?? 0;
   const max = Math.max(web, app);
+  const totalOpens = web + app;
+  const appShare = totalOpens > 0 ? Math.round((100 * app) / totalOpens) : 0;
+  const webShare = totalOpens > 0 ? 100 - appShare : 0;
   const startedOn = usage.trackingStartedOn
     ? new Date(`${usage.trackingStartedOn}T00:00:00+06:00`).toLocaleDateString(undefined, {
         month: 'short',
@@ -1308,45 +1390,108 @@ const PlatformUsagePanel = ({ usage, displayDays }) => {
         timeZone: 'Asia/Dhaka',
       })
     : null;
+  const unattributed = usage.unattributed ?? 0;
 
   return (
     <m.div variants={itemVariants} className="col-span-12">
-      <div className={cn(PANEL, 'p-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center')}>
-        <div className="flex items-baseline justify-between mb-3 sm:col-span-3 sm:mb-0">
-          <h3 className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
-            App vs web · last {displayDays}d
-          </h3>
-          <InfoTip>
-            Unique learners who opened each client in the current Bangladesh calendar window. A
-            learner who used both, or both iOS and Android, counts once under each. Counting started
-            {startedOn ? ` on ${startedOn}` : ''}; earlier activity and older app builds are shown
-            as not attributed, never guessed.
-          </InfoTip>
+      <div className={cn(PANEL, 'overflow-hidden')}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 px-4 py-3 dark:border-white/[0.07]">
+          <div className="flex items-center gap-1.5">
+            <SectionLabel>App vs web · last {displayDays}d</SectionLabel>
+            <InfoTip>
+              Unique learners who opened each client in the current Bangladesh calendar window. A
+              learner who used both, or both iOS and Android, counts once under each. Counting
+              started
+              {startedOn ? ` on ${startedOn}` : ''}; earlier activity and older app builds are shown
+              as not attributed, never guessed.
+            </InfoTip>
+          </div>
+          {totalOpens > 0 && (
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              <span className={cn(NUM, 'text-stone-800 dark:text-stone-100')}>{appShare}%</span> app
+              · <span className={cn(NUM, 'text-stone-800 dark:text-stone-100')}>{webShare}%</span>{' '}
+              web
+            </p>
+          )}
         </div>
-        <div>
-          <PlatformRow label="Mobile app" value={app} max={max} tone="#5a63df" />
-          <PlatformRow label="· iOS" value={ios} max={max} tone="#5a63df" />
-          <PlatformRow label="· Android" value={android} max={max} tone="#5a63df" />
-          <PlatformRow label="Web" value={web} max={max} tone="var(--signal-ok)" />
-        </div>
-        <div className="grid grid-cols-3 gap-4 sm:col-span-2 sm:justify-self-end">
-          {[
-            ['Both', usage.both],
-            ['App today', usage.todayApp],
-            ['Web today', usage.todayWeb],
-          ].map(([label, value]) => (
-            <div key={label}>
-              <div className={cn(NUM, 'text-sm font-bold text-stone-900 dark:text-stone-50')}>
-                {Number(value || 0).toLocaleString()}
+
+        <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,1.5fr)_minmax(17rem,1fr)] md:items-center">
+          <div className="min-w-0">
+            <PlatformRow
+              icon={Smartphone}
+              label="Mobile app"
+              value={app}
+              max={max}
+              shareBase={totalOpens}
+              tone="rgba(90, 99, 223, 0.85)"
+              displayDays={displayDays}
+            />
+            <PlatformRow
+              label="· iOS"
+              value={ios}
+              max={max}
+              shareBase={totalOpens}
+              tone="rgba(90, 99, 223, 0.45)"
+              sub
+              displayDays={displayDays}
+            />
+            <PlatformRow
+              label="· Android"
+              value={android}
+              max={max}
+              shareBase={totalOpens}
+              tone="rgba(90, 99, 223, 0.45)"
+              sub
+              displayDays={displayDays}
+            />
+            <PlatformRow
+              icon={Monitor}
+              label="Web"
+              value={web}
+              max={max}
+              shareBase={totalOpens}
+              tone="rgb(var(--signal-ok) / 0.85)"
+              displayDays={displayDays}
+            />
+          </div>
+
+          <div className={cn(WELL, 'grid grid-cols-3 gap-1 rounded-lg p-1')}>
+            {[
+              ['Both', usage.both],
+              ['App today', usage.todayApp],
+              ['Web today', usage.todayWeb],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-md border border-stone-200/70 bg-white px-2.5 py-2.5 dark:border-white/[0.06] dark:bg-[#131315]"
+              >
+                <div
+                  className={cn(
+                    NUM,
+                    'text-base font-bold leading-none text-stone-900 dark:text-stone-50'
+                  )}
+                >
+                  {Number(value || 0).toLocaleString()}
+                </div>
+                <div className={cn(MICRO, 'mt-1.5 text-stone-500 dark:text-stone-400 truncate')}>
+                  {label}
+                </div>
               </div>
-              <div className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>{label}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-        {(usage.unattributed ?? 0) > 0 && (
-          <p className={cn(MICRO, 'text-stone-400 dark:text-stone-500 sm:col-span-3')}>
-            {Number(usage.unattributed).toLocaleString()} active learners not attributed yet
-          </p>
+
+        {unattributed > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/80 px-4 py-2.5 dark:border-white/[0.07]">
+            <p className={cn(MICRO, 'text-stone-500 dark:text-stone-400')}>
+              {Number(unattributed).toLocaleString()} active learners not attributed yet
+            </p>
+            {startedOn && (
+              <span className={cn(MICRO, 'text-stone-400 dark:text-stone-500')}>
+                Tracking since {startedOn}
+              </span>
+            )}
+          </div>
         )}
       </div>
     </m.div>

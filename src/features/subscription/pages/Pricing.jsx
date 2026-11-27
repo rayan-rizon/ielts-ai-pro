@@ -789,12 +789,16 @@ export default function Pricing() {
         keywords="IELTS pricing, IELTS courses cost, affordable IELTS prep, IELTS plans"
       />
 
-      <div className="relative min-h-screen bg-[#f8f8fb] transition-colors duration-500 dark:bg-[#08080a]">
+      <div className="relative min-h-screen overflow-hidden bg-[#f8f8fb] transition-colors duration-500 dark:bg-[#08080a]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(#5a63df_1.2px,transparent_1.2px)] bg-size-[20px_20px] opacity-[0.08] dark:opacity-[0.12]"
+        />
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative mx-auto max-w-7xl space-y-4 px-4 pb-14 pt-2 md:space-y-5 md:px-8 md:pt-3"
+          className="relative z-10 mx-auto max-w-7xl space-y-4 px-4 pb-14 pt-2 md:space-y-5 md:px-8 md:pt-3"
         >
           <PricingHeaderSection
             billingInterval={billingInterval}
