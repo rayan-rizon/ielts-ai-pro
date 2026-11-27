@@ -3,7 +3,7 @@ export const uz = {
   bandLabel: 'Band',
   outOf9: '9 dan',
   bandOutOf9Aria: '9 dan band {band}',
-  pdf: 'PDF',
+  pdf: 'PDF yuklab olish',
   pdfPreparing: 'Tayyorlanmoqda',
   pdfDone: 'Writing hisoboti yuklab olindi',
   pdfFailed: 'PDF yaratib bo‘lmadi',

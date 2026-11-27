@@ -87,6 +87,6 @@ describe('the writing page’s tabs', () => {
   it('swap panes at once, without waiting for the old one to fade out', () => {
     const body = page.slice(page.indexOf('function WritingPaneBody('));
     expect(body.slice(0, body.indexOf('\nfunction '))).not.toContain('mode="wait"');
-    expect(page).toContain('starting:opacity-0');
+    expect(body).toContain('motion.div');
   });
 });

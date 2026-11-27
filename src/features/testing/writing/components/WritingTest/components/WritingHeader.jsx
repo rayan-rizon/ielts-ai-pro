@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingTestClock from './WritingTestClock';
+import { TAB_THEME } from '@/features/testing/writing/report/components/reportStyles';
 import { Pill } from '@/features/dashboard/components/primitives';
 
 import TestModeHeaderControl from '@/features/testing/shared/components/TestModeHeaderControl';
@@ -147,25 +148,27 @@ export function WritingHeader({
         {/* Center: Task Switcher (Desktop — md and above) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="hidden items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/12 dark:bg-white/[0.07] md:flex shrink-0"
+            className={cn(
+              'hidden items-center gap-0.5 rounded-full p-0.5 md:flex shrink-0',
+              TAB_THEME.track
+            )}
             data-oid="edt:rn9"
           >
             {Object.keys(compositeTasks).map((type) => (
               <button
                 key={type}
                 onClick={() => handleSwitchTask(type)}
-                className={`relative z-10 inline-flex h-7 items-center justify-center rounded-full px-2.5 sm:px-3 text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-200 lg:h-8 lg:px-3.5 lg:text-sm ${
-                  activeType === type
-                    ? 'text-white dark:text-[#17182a]'
-                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/8 dark:hover:text-[#e3e5ff]'
-                }`}
+                className={cn(
+                  'relative z-10 inline-flex h-7 items-center justify-center rounded-full px-2.5 sm:px-3 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors duration-150 lg:h-8 lg:px-3.5 lg:text-sm',
+                  activeType === type ? TAB_THEME.active : TAB_THEME.idle
+                )}
                 data-oid="yghl_mz"
               >
                 {activeType === type && (
                   <motion.div
                     layoutId="activeTaskTab"
-                    className="absolute inset-0 -z-10 rounded-full bg-[#6366d9] dark:bg-[#8f97ff]"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                    className={cn('absolute inset-0 -z-10 rounded-full', TAB_THEME.indicator)}
+                    transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
                     data-oid="y6gfvnb"
                   />
                 )}
@@ -178,25 +181,27 @@ export function WritingHeader({
         {/* Center: Task Switcher (Mobile — below md) */}
         {compositeTasks && Object.keys(compositeTasks).length > 1 && (
           <div
-            className="flex shrink-0 items-center gap-0.5 rounded-full border border-[#d8d9f0] bg-[#f1f1fb] p-0.5 dark:border-white/12 dark:bg-white/[0.07] md:hidden"
+            className={cn(
+              'flex shrink-0 items-center gap-0.5 rounded-full p-0.5 md:hidden',
+              TAB_THEME.track
+            )}
             data-oid="mobile-task-switcher"
           >
             {Object.keys(compositeTasks).map((type) => (
               <button
                 key={type}
                 onClick={() => handleSwitchTask(type)}
-                className={`relative z-10 inline-flex h-6.5 items-center justify-center rounded-full px-2 text-[11px] font-semibold transition-all duration-200 min-[400px]:h-7 min-[400px]:px-2.5 min-[400px]:text-xs ${
-                  activeType === type
-                    ? 'text-white dark:text-[#17182a]'
-                    : 'text-[#606a83] hover:bg-white/70 hover:text-[#4f58c8] dark:text-[#aeb7ce] dark:hover:bg-white/8 dark:hover:text-[#e3e5ff]'
-                }`}
+                className={cn(
+                  'relative z-10 inline-flex h-6.5 items-center justify-center rounded-full px-2 text-[11px] font-semibold transition-colors duration-150 min-[400px]:h-7 min-[400px]:px-2.5 min-[400px]:text-xs',
+                  activeType === type ? TAB_THEME.active : TAB_THEME.idle
+                )}
                 data-oid="mobile-task-tab"
               >
                 {activeType === type && (
                   <motion.div
                     layoutId="activeTaskTabMobile"
-                    className="absolute inset-0 -z-10 rounded-full bg-[#6366d9] dark:bg-[#8f97ff]"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                    className={cn('absolute inset-0 -z-10 rounded-full', TAB_THEME.indicator)}
+                    transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
                     data-oid="mobile-active-bg"
                   />
                 )}

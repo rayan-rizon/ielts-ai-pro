@@ -1,5 +1,7 @@
 import React from 'react';
 import { Check } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { TAB_THEME } from './reportStyles';
 import { SlidingTabs } from './SlidingTabs';
 
 /** The report's segmented choice, drawn with the sliding indicator. */
@@ -10,11 +12,14 @@ export function Segmented({ label, options, value, onChange }) {
       options={options}
       value={value}
       onChange={onChange}
-      className="inline-flex max-w-full flex-wrap gap-0.5 rounded-[10px] bg-[#efeef8] p-[3px] dark:bg-white/[0.07]"
-      indicatorClassName="rounded-lg bg-white ring-1 ring-[#dcdaea] dark:bg-[#2a2940] dark:ring-white/10"
-      tabClassName="min-h-9 rounded-lg px-3.5 text-[12.5px] font-bold"
-      activeClassName="text-[#4b53c9] dark:text-[#c3c7ff]"
-      idleClassName="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+      className={cn(
+        'inline-flex max-w-full flex-wrap gap-0.5 rounded-[10px] p-[3px]',
+        TAB_THEME.track
+      )}
+      indicatorClassName={cn('rounded-lg', TAB_THEME.indicator)}
+      tabClassName="min-h-8 rounded-lg px-3 text-[12.5px] font-bold"
+      activeClassName={TAB_THEME.active}
+      idleClassName={TAB_THEME.idle}
     />
   );
 }

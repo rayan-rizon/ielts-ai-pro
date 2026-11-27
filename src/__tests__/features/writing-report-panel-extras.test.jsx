@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView ??= () => {};
+  Element.prototype.hasPointerCapture ??= () => false;
+}
+
 let profile = null;
 vi.mock('@/features/auth/context/AuthContext', () => ({
   useAuth: () => ({ userProfile: profile }),
@@ -209,9 +214,8 @@ describe('Writing report language and comparison', () => {
   it('lets the learner change the language from the report', async () => {
     renderPanel();
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Report language' }), {
-      target: { value: 'bn' },
-    });
+    fireEvent.keyDown(screen.getByRole('combobox', { name: 'Report language' }), { key: 'Enter' });
+    fireEvent.click(await screen.findByRole('option', { name: 'বাংলা' }));
 
     expect(saveLanguage).toHaveBeenCalledWith('bn');
     expect(await screen.findByText('আপনার অবস্থান স্পষ্ট।')).toBeInTheDocument();
@@ -220,9 +224,8 @@ describe('Writing report language and comparison', () => {
   it('says so when the new language could not be saved', async () => {
     saveLanguage.mockRejectedValue(new Error('denied'));
     renderPanel();
-    fireEvent.change(screen.getByRole('combobox', { name: 'Report language' }), {
-      target: { value: 'hi' },
-    });
+    fireEvent.keyDown(screen.getByRole('combobox', { name: 'Report language' }), { key: 'Enter' });
+    fireEvent.click(await screen.findByRole('option', { name: 'हिन्दी' }));
     expect(await screen.findByText(/आपकी भाषा सेव नहीं हुई/)).toBeInTheDocument();
   });
 
@@ -236,6 +239,26 @@ describe('Writing report language and comparison', () => {
     expect(screen.getByText('Lowest area')).toBeInTheDocument();
     expect(screen.getByText('At your target')).toBeInTheDocument();
     expect(screen.getByText('Your target')).toBeInTheDocument();
+  });
+
+  it('shows a tooltip when hovering a chart band point and expands score details', async () => {
+    renderPanel();
+    const track = screen.getByRole('img', {
+      name: 'Grammatical Range and Accuracy: band 5.5, your target is 7.0',
+    });
+    const point = track.querySelector('[tabindex="0"]');
+    fireEvent.mouseEnter(point);
+    expect(within(track).getByText('5.5')).toBeInTheDocument();
+    expect(within(track).getByText('7.0')).toBeInTheDocument();
+
+    fireEvent.mouseLeave(point);
+    await waitFor(() => expect(within(track).queryByText('5.5')).not.toBeInTheDocument());
+
+    const summary = screen.getByText('About these four scores');
+    const details = summary.closest('details');
+    expect(details).not.toHaveAttribute('open');
+    fireEvent.click(summary);
+    expect(details).toHaveAttribute('open');
   });
 
   it('keeps the top card short: one line per score, details folded away', () => {

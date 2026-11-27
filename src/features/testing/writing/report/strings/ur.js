@@ -3,7 +3,7 @@ export const ur = {
   bandLabel: 'بینڈ',
   outOf9: '9 میں سے',
   bandOutOf9Aria: '9 میں سے بینڈ {band}',
-  pdf: 'PDF',
+  pdf: 'PDF ڈاؤن لوڈ کریں',
   pdfPreparing: 'تیار ہو رہا ہے',
   pdfDone: 'Writing رپورٹ ڈاؤن لوڈ ہو گئی',
   pdfFailed: 'PDF نہیں بن سکی',

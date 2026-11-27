@@ -3,7 +3,7 @@ export const id = {
   bandLabel: 'Band',
   outOf9: 'dari 9',
   bandOutOf9Aria: 'Band {band} dari 9',
-  pdf: 'PDF',
+  pdf: 'Unduh PDF',
   pdfPreparing: 'Menyiapkan',
   pdfDone: 'Laporan Writing sudah diunduh',
   pdfFailed: 'PDF tidak dapat dibuat',

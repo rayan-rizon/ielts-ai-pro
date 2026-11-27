@@ -3,7 +3,7 @@ export const bn = {
   bandLabel: 'ব্যান্ড',
   outOf9: '৯-এর মধ্যে',
   bandOutOf9Aria: '৯-এর মধ্যে ব্যান্ড {band}',
-  pdf: 'PDF',
+  pdf: 'PDF ডাউনলোড করুন',
   pdfPreparing: 'তৈরি হচ্ছে',
   pdfDone: 'Writing রিপোর্ট ডাউনলোড হয়েছে',
   pdfFailed: 'PDF তৈরি করা যায়নি',

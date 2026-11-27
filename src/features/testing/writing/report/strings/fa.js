@@ -3,7 +3,7 @@ export const fa = {
   bandLabel: 'نمره',
   outOf9: 'از ۹',
   bandOutOf9Aria: 'نمره {band} از ۹',
-  pdf: 'PDF',
+  pdf: 'دانلود PDF',
   pdfPreparing: 'در حال آماده‌سازی',
   pdfDone: 'گزارش Writing دانلود شد',
   pdfFailed: 'ساخت PDF ممکن نشد',

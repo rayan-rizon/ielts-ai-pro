@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Loader2, PenLine, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PANEL } from '@/features/dashboard/components/primitives.jsx';
@@ -203,12 +204,29 @@ const rewrittenFor = (entry, paragraph) =>
   entry?.data?.paragraphs.find((item) => item.index === paragraph.index);
 
 /** One paragraph at one band: the learner's text beside the stronger version. */
-function Pair({ t, taskType, paragraph, segments, band, models, onRevise }) {
+function Pair({
+  t,
+  taskType,
+  paragraph,
+  segments,
+  band,
+  models,
+  onRevise,
+  direction,
+  reducedMotion,
+}) {
   const entry = models.entry(band);
   const rewritten = rewrittenFor(entry, paragraph);
   return (
-    // A new paragraph or band eases in; nothing waits for the old one.
-    <div className="space-y-3 transition-[opacity,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-1 starting:opacity-0 motion-reduce:transition-opacity motion-reduce:starting:translate-y-0">
+    // A new paragraph or band eases in directionally; nothing waits for the old one.
+    <motion.div
+      initial={
+        reducedMotion ? false : { opacity: 0, x: direction * 14, y: direction === 0 ? 4 : 0 }
+      }
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      transition={{ duration: reducedMotion ? 0 : 0.22, ease: [0.23, 1, 0.32, 1] }}
+      className="space-y-3"
+    >
       <div className={cn('grid gap-3', rewritten && '@2xl:grid-cols-2')}>
         <Column t={t} title={t('yourParagraph')} words={countWords(paragraph.text)}>
           <MarkedText segments={segments} className="mt-2 text-[15px]" />
@@ -235,7 +253,7 @@ function Pair({ t, taskType, paragraph, segments, band, models, onRevise }) {
       ) : (
         <Request t={t} band={band} entry={entry} onLoad={models.load} />
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -246,6 +264,19 @@ export function CompareSection({ t, paragraphs, bands, position, ...rest }) {
   const [band, setBand] = useState(bands[0]);
   const chosen = Math.min(position, paragraphs.length - 1);
   const selected = paragraphs[chosen];
+  const reducedMotion = Boolean(useReducedMotion());
+  const [nav, setNav] = useState({ pos: chosen, band, dir: 0 });
+  if (nav.pos !== chosen || nav.band !== band) {
+    const dir =
+      nav.pos !== chosen
+        ? chosen > nav.pos
+          ? 1
+          : -1
+        : bands.indexOf(band) > bands.indexOf(nav.band)
+          ? 1
+          : -1;
+    setNav({ pos: chosen, band, dir });
+  }
 
   return (
     <section
@@ -279,6 +310,8 @@ export function CompareSection({ t, paragraphs, bands, position, ...rest }) {
             band={band}
             models={rest.models}
             onRevise={rest.onRevise}
+            direction={nav.dir}
+            reducedMotion={reducedMotion}
           />
         </>
       )}

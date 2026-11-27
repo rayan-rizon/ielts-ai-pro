@@ -3,7 +3,7 @@ export const ru = {
   bandLabel: 'Балл',
   outOf9: 'из 9',
   bandOutOf9Aria: 'Балл {band} из 9',
-  pdf: 'PDF',
+  pdf: 'Скачать PDF',
   pdfPreparing: 'Подготовка',
   pdfDone: 'Отчёт по Writing скачан',
   pdfFailed: 'Не удалось создать PDF',

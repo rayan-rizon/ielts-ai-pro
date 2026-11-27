@@ -36,7 +36,10 @@ function SaveButton({ t, userId, incoming }) {
         disabled={!plan.items || plan.busy}
         onClick={() => plan.change((list) => addPlanItems(list, incoming), { optimistic: false })}
       >
-        <Icon className={plan.busy ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} aria-hidden="true" />
+        <Icon
+          className={plan.busy ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'}
+          aria-hidden="true"
+        />
         {t('planAdd')}
       </button>
       {plan.failed && (
@@ -58,7 +61,7 @@ export function AddToPlan({ t, drills, sessionId, taskType }) {
   if (!hasPaidAccess(userProfile) && !isAdmin)
     return (
       <Link to="/learning-path" className={QUIET_BUTTON}>
-        <Lock className="h-4 w-4" aria-hidden="true" />
+        <Lock className="h-3.5 w-3.5" aria-hidden="true" />
         {t('planPro')}
       </Link>
     );

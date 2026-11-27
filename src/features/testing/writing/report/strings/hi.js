@@ -3,7 +3,7 @@ export const hi = {
   bandLabel: 'बैंड',
   outOf9: '9 में से',
   bandOutOf9Aria: '9 में से बैंड {band}',
-  pdf: 'PDF',
+  pdf: 'PDF डाउनलोड करें',
   pdfPreparing: 'तैयार हो रहा है',
   pdfDone: 'Writing रिपोर्ट डाउनलोड हो गई',
   pdfFailed: 'PDF नहीं बन सका',

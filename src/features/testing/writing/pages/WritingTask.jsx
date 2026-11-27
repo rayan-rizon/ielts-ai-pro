@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { BookOpen, PenLine } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
@@ -25,6 +25,7 @@ import { useReportLanguage } from '../report/useReportLanguage';
 import { useTranslatedReport } from '../report/useTranslatedReport';
 import { reportT } from '../report/reportStrings';
 import { reportedWords } from '../report/reportViewModel';
+import { TAB_THEME } from '../report/components/reportStyles';
 import { SlidingTabs } from '../report/components/SlidingTabs';
 
 const MemoizedWritingHeader = React.memo(WritingHeader);
@@ -149,11 +150,11 @@ function WritingMobileTabToggle({ activeTab, onTabChange, wordCount, targetLimit
             </>
           ),
         }))}
-        className="w-full max-w-sm rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 dark:border-white/[0.07] dark:bg-white/4"
-        indicatorClassName="rounded-md bg-white shadow-xs dark:bg-indigo-600"
+        className={cn('w-full max-w-sm rounded-lg p-0.5', TAB_THEME.track)}
+        indicatorClassName={cn('rounded-md', TAB_THEME.indicator)}
         tabClassName="min-h-9 min-w-0 flex-1 rounded-md px-2 text-xs font-bold"
-        activeClassName="text-[#5a63df] dark:text-white"
-        idleClassName="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+        activeClassName={TAB_THEME.active}
+        idleClassName={TAB_THEME.idle}
       />
     </div>
   );
@@ -393,11 +394,14 @@ function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
           value={viewMode}
           onChange={setViewMode}
           options={tabs.map((tab) => ({ value: tab.id, label: tab.label }))}
-          className="w-full max-w-md items-center rounded-lg border border-[#e4e2f0] bg-[#f4f3fb] p-0.5 shadow-xs dark:border-white/[0.07] dark:bg-white/4 sm:w-auto sm:max-w-none sm:rounded-full sm:p-1"
-          indicatorClassName="rounded-md border border-[#d2d7f8] bg-white shadow-xs dark:border-indigo-500/30 dark:bg-indigo-600 sm:rounded-full"
+          className={cn(
+            'w-full max-w-md items-center rounded-lg p-0.5 sm:w-auto sm:max-w-none sm:rounded-full sm:p-1',
+            TAB_THEME.track
+          )}
+          indicatorClassName={cn('rounded-md sm:rounded-full', TAB_THEME.indicator)}
           tabClassName="min-h-8 flex-1 whitespace-nowrap rounded-md px-2 text-[11px] font-bold sm:flex-none sm:rounded-full sm:px-4 sm:text-xs"
-          activeClassName="text-[#5a63df] dark:text-white"
-          idleClassName="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          activeClassName={TAB_THEME.active}
+          idleClassName={TAB_THEME.idle}
         />
       </div>
     </div>
@@ -527,6 +531,9 @@ function WritingPaneBody({
     viewMode === 'edit' &&
     showRevision &&
     Boolean(currentFeedback && coachSession?.id && coachTaskType);
+  const VIEW_TAB_ORDER = ['feedback', 'review', 'question', 'editor', 'revision'];
+  const TAB_EASE = [0.23, 1, 0.32, 1];
+
   const contentKey = isFeedbackMode
     ? 'feedback'
     : isReviewMode
@@ -536,6 +543,15 @@ function WritingPaneBody({
         : isRevisionMode
           ? 'revision'
           : 'editor';
+
+  const reducedMotion = Boolean(useReducedMotion());
+  const [tabNav, setTabNav] = useState({ key: contentKey, dir: 0 });
+  if (tabNav.key !== contentKey) {
+    const prevIdx = VIEW_TAB_ORDER.indexOf(tabNav.key);
+    const nextIdx = VIEW_TAB_ORDER.indexOf(contentKey);
+    const dir = prevIdx >= 0 && nextIdx >= 0 ? (nextIdx > prevIdx ? 1 : -1) : 0;
+    setTabNav({ key: contentKey, dir });
+  }
 
   let content;
   if (isFeedbackMode) {
@@ -619,14 +635,19 @@ function WritingPaneBody({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-1 pt-1.5 pb-4 sm:px-2 sm:pt-2.5 sm:pb-6">
-      {/* The new pane eases in at once; waiting for the old one to leave left a blank gap. */}
-      <div
+    <div className="relative flex min-h-0 flex-1 flex-col px-1 pt-1.5 pb-4 sm:px-2 sm:pt-2.5 sm:pb-6">
+      {/* The new pane eases in directionally at once; waiting for the old one to leave left a blank gap. */}
+      <motion.div
         key={contentKey}
-        className="flex min-h-0 flex-1 flex-col transition-[opacity,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-1.5 starting:opacity-0 motion-reduce:transition-opacity motion-reduce:starting:translate-y-0"
+        initial={
+          reducedMotion ? false : { opacity: 0, x: tabNav.dir * 16, y: tabNav.dir === 0 ? 6 : 0 }
+        }
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        transition={{ duration: reducedMotion ? 0 : 0.22, ease: TAB_EASE }}
+        className="flex min-h-0 flex-1 flex-col"
       >
         {content}
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { PANEL } from '@/features/dashboard/components/primitives.jsx';
@@ -72,6 +73,7 @@ function ParagraphRow({ t, paragraph }) {
  */
 export function EssayCard({ t, essayMap, marked }) {
   const [open, setOpen] = useState(false);
+  const reducedMotion = Boolean(useReducedMotion());
   if (!essayMap.length) return null;
   return (
     <section className={cn(PANEL, 'p-4')} aria-labelledby="writing-essay-title">
@@ -81,7 +83,10 @@ export function EssayCard({ t, essayMap, marked }) {
         </h2>
         <button
           type="button"
-          className={QUIET_BUTTON}
+          className={cn(
+            QUIET_BUTTON,
+            'min-h-0 h-8 rounded-lg border-[#e4e2f0] px-3 py-1 text-[12.5px] font-semibold active:scale-[0.98] dark:border-white/[0.07]'
+          )}
           aria-expanded={open}
           aria-controls="writing-marked-body"
           onClick={() => setOpen((value) => !value)}
@@ -110,20 +115,25 @@ export function EssayCard({ t, essayMap, marked }) {
           <ParagraphRow key={paragraph.index} t={t} paragraph={paragraph} />
         ))}
       </ol>
-      {open && (
-        <div
-          id="writing-marked-body"
-          className={cn(
-            'space-y-3 border-t pt-3 transition-[opacity,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:-translate-y-1 starting:opacity-0 motion-reduce:transition-opacity motion-reduce:starting:translate-y-0',
-            HAIRLINE
-          )}
-        >
-          <Key t={t} />
-          {marked.map((segments, index) => (
-            <MarkedText key={index} segments={segments} className="text-[15px]" />
-          ))}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id="writing-marked-body"
+            initial={reducedMotion ? false : { height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={reducedMotion ? undefined : { height: 0, opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.24, ease: [0.23, 1, 0.32, 1] }}
+            className="overflow-hidden"
+          >
+            <div className={cn('mt-3 space-y-3 border-t pt-3', HAIRLINE)}>
+              <Key t={t} />
+              {marked.map((segments, index) => (
+                <MarkedText key={index} segments={segments} className="text-[15px]" />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
