@@ -27,6 +27,47 @@ const SECTIONS = [
   { id: 'contact', title: 'Contact' },
 ];
 
+function AccountDeletionSection() {
+  return (
+    <LegalSection id="account-deletion" title="Account deletion and data wiping">
+      <p>
+        To delete your account from outside the app,{' '}
+        <a
+          className="text-primary underline hover:no-underline"
+          href="mailto:mail@ieltsai.pro?subject=IELTS%20Ai%20Pro%20account%20deletion%20request"
+        >
+          request account deletion
+        </a>{' '}
+        using the email address associated with your IELTS Ai Pro account. We may ask you to verify
+        ownership before deleting the account.
+      </p>
+      <p>When you delete your account, the following data is permanently removed:</p>
+      <LegalList
+        items={[
+          'Your user profile and authentication credentials',
+          'All test sessions, scores, and performance history',
+          'AI feedback and writing/speaking submissions',
+          'Vocabulary lists and learning progress',
+          'Achievement records and gamification data',
+          'Consent history and preference records',
+        ]}
+      />
+      <LegalNote title="Account deletion is permanent and irreversible">
+        <p>
+          All data is deleted within 30 days, though some anonymized usage statistics may be
+          retained for service improvement. Backup copies are purged within 90 days per our
+          retention schedule.
+        </p>
+      </LegalNote>
+      <p>
+        Payment, refund, and dispute records are the exception: they are detached from the deleted
+        account but kept until six months after the payment, so that refunds, chargebacks, and fraud
+        checks can still be handled. They are then deleted.
+      </p>
+    </LegalSection>
+  );
+}
+
 export default function PrivacyPolicy() {
   return (
     <>
@@ -195,31 +236,7 @@ export default function PrivacyPolicy() {
           />
         </LegalSection>
 
-        <LegalSection id="account-deletion" title="Account deletion and data wiping">
-          <p>When you delete your account, the following data is permanently removed:</p>
-          <LegalList
-            items={[
-              'Your user profile and authentication credentials',
-              'All test sessions, scores, and performance history',
-              'AI feedback and writing/speaking submissions',
-              'Vocabulary lists and learning progress',
-              'Achievement records and gamification data',
-              'Consent history and preference records',
-            ]}
-          />
-          <LegalNote title="Account deletion is permanent and irreversible">
-            <p>
-              All data is deleted within 30 days, though some anonymized usage statistics may be
-              retained for service improvement. Backup copies are purged within 90 days per our
-              retention schedule.
-            </p>
-          </LegalNote>
-          <p>
-            Payment, refund, and dispute records are the exception: they are detached from the
-            deleted account but kept until six months after the payment, so that refunds,
-            chargebacks, and fraud checks can still be handled. They are then deleted.
-          </p>
-        </LegalSection>
+        <AccountDeletionSection />
 
         <LegalSection id="breach-notification" title="Data breach notification policy">
           <p>
