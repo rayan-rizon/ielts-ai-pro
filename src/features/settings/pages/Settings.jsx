@@ -161,7 +161,8 @@ export default function Settings() {
         study_hours_goal: legacyWeeklyHours,
         study_availability: studyAvailability,
         test_date: formData.test_date || null,
-        settings: mergeDefaultTestMode(user?.settings, formData.default_test_mode),
+        // Only this key: other settings are merged from the stored value.
+        settings: mergeDefaultTestMode(null, formData.default_test_mode),
       });
       if (['pro', 'premium'].includes(String(user?.subscription_tier).toLowerCase())) {
         await generateAdaptiveLearningPath({ trigger: 'goal_changed' });

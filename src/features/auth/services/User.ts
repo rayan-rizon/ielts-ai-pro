@@ -7,6 +7,7 @@ import { trackSignupCompleted, pushUserIdentity } from '@/lib/tracking';
 import { getMissingSignupProfileFields, getSignupAttribution } from '@/lib/attribution';
 import { resolveSignupCountry } from '@/lib/geo';
 import { recordActivityHeartbeat } from './activityHeartbeat';
+import { mergeOwnSettings } from './userSettings';
 import { completeRecentSignup, syncNewProfileCountry } from './signupProfile';
 
 // Signup and session listeners can create the profile concurrently.
@@ -482,7 +483,17 @@ export const User = {
     return networkErrors.some((error) => message.includes(error));
   },
 
+  /**
+   * `settings` holds only the keys being changed. The profile RPC ignores the
+   * column, so those keys are merged into the stored value afterwards.
+   */
   async updateMyUserData(data: Partial<UserProfile>): Promise<UserProfile> {
+    const { settings, ...fields } = data;
+    const profile = await this.saveProfileFields(fields);
+    return settings ? ((await mergeOwnSettings(settings)) as UserProfile) : profile;
+  },
+
+  async saveProfileFields(data: Partial<UserProfile>): Promise<UserProfile> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
