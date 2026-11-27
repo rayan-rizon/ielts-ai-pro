@@ -827,7 +827,7 @@ function fallbackReason(error: unknown) {
   return `${prefix}_${error.code}${status}`;
 }
 
-function isRepairableJsonError(error: unknown) {
+export function isRepairableJsonError(error: unknown) {
   return (
     error instanceof TextAiProviderError &&
     (error.code === 'malformed_json' || error.code === 'invalid_schema')

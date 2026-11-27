@@ -308,6 +308,32 @@ export const AI_ROUTES: AiRoute[] = [
       'One generation per session part. Server budget reservation is $0.005 and shared daily cap is $3.',
   },
   {
+    id: 'writing-report-assist',
+    surface: 'Writing report: translated explanations and Band 7/8 paragraph comparison',
+    file: 'supabase/functions/writing-report-assist/index.ts',
+    maxOutputTokens: 7000,
+    timeoutMs: 30000,
+    steps: [
+      {
+        model: WRITING_PRIMARY_MODEL,
+        role: 'primary',
+        when: 'Whenever OPENROUTER_API_KEY is set: one call per uncached translation or band version.',
+      },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'fallback',
+        when: 'Luna fails or its reply fails the translation or model-paragraph checks; one attempt.',
+      },
+      {
+        model: 'gemini-2.5-flash-lite',
+        role: 'repair',
+        when: 'One retry at temperature 0 when the fallback returned unusable JSON.',
+      },
+    ],
+    notes:
+      'Not used for English reports unless the learner asks for a Band 7 or 8 version (up to 3000 output tokens). Results are cached 180 days in ai_feedback_cache under wra: hashes with model and cost in feedback_json.meta; nothing is written to ai_api_usage, so no learner quota is touched. New generations are limited to 30 per learner and 150 overall per hour.',
+  },
+  {
     id: 'speaking-evaluation',
     surface: 'Speaking: band scoring',
     file: 'supabase/functions/evaluateSpeakingTest/index.ts',

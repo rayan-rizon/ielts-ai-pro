@@ -20,6 +20,7 @@ import {
 // @ts-ignore
 declare const Deno: any;
 const MODEL = WRITING_PRIMARY_MODEL;
+const MAX_REVISION_CHECKS = 1;
 const MAX_WORDS = 600;
 const MAX_SENTENCES = 30;
 const MAX_PROMPT = 1500;
@@ -107,9 +108,9 @@ const handleRequest = async (req: Request) => {
   if (operation === 'status') return respond({ data: existing || null }, 200, headers);
   if (operation === 'recheck') {
     if (!existing) return errorResponse('Start your revision first', 400, headers);
-    if ((existing.revision_history?.length || 0) >= 5)
+    if ((existing.revision_history?.length || 0) >= MAX_REVISION_CHECKS)
       return errorResponse(
-        'This answer has reached five checked revisions. Try a new question to practise independently.',
+        'You have used the one revision check for this answer. Try a new question to practise again.',
         429,
         headers
       );
