@@ -208,13 +208,18 @@ const RevenueKpi = ({ kpis, displayDays }) => (
   />
 );
 
+const reportHelpNote = (aiCost) =>
+  aiCost?.reportHelpCalls
+    ? ` · $${aiCost.reportHelpUsd.toFixed(3)} report help (${aiCost.reportHelpCalls})`
+    : '';
+
 const AiSpendKpi = ({ kpis, displayDays }) => (
   <Kpi
     label={`AI spend · ${displayDays}d`}
     value={`$${Number(kpis.aiCost?.usd ?? 0).toFixed(2)}`}
     delta={<Delta value={kpis.aiCost?.usd} previous={kpis.aiCost?.prevUsd} invert />}
-    sub={`$${Number(kpis.aiCost?.perActiveUser ?? 0).toFixed(3)} per active · ${kpis.aiCost?.pricedCalls ?? 0}/${kpis.aiCost?.totalCalls ?? 0} calls priced`}
-    tip="Reported AI provider cost. Unpriced calls are excluded."
+    sub={`$${Number(kpis.aiCost?.perActiveUser ?? 0).toFixed(3)} per active · ${kpis.aiCost?.pricedCalls ?? 0}/${kpis.aiCost?.totalCalls ?? 0} calls priced${reportHelpNote(kpis.aiCost)}`}
+    tip="Reported AI provider cost, including Writing report translations and Band 7/8 versions. Unpriced calls are excluded."
   />
 );
 

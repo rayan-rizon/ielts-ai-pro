@@ -112,3 +112,35 @@ describe('AnalyticsService.getOverview', () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(3);
   });
 });
+
+describe('report help costs in AI spend', () => {
+  const priced = { kpis: { aiCost: { usd: 1.5, prevUsd: 1, perActiveUser: 0.01 }, active: {} } };
+  const answer = (costReply) =>
+    mocks.rpc.mockImplementation(async (name) => {
+      if (name === 'get_report_assist_cost') return costReply;
+      if (name === 'get_admin_overview_with_signup_sources') return { data: priced, error: null };
+      if (name === 'get_admin_active_users') return { data: activeUsers, error: null };
+      return { data: actions, error: null };
+    });
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it('adds translation and band comparison costs for both periods', async () => {
+    answer({ data: { usd: 0.25, prevUsd: 0.1, calls: 40 }, error: null });
+    const { kpis } = await AnalyticsService.getOverview(30);
+    expect(kpis.aiCost).toEqual({
+      usd: 1.75,
+      prevUsd: 1.1,
+      perActiveUser: 0.01,
+      reportHelpUsd: 0.25,
+      reportHelpCalls: 40,
+    });
+    expect(mocks.rpc).toHaveBeenCalledWith('get_report_assist_cost', { p_days: 30 }, { get: true });
+  });
+
+  it('shows the usual figure if the cost function is not there yet', async () => {
+    answer({ data: null, error: { code: 'PGRST202', message: 'not found' } });
+    const { kpis } = await AnalyticsService.getOverview(30);
+    expect(kpis.aiCost).toEqual(priced.kpis.aiCost);
+  });
+});

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { readAdminRpc } from './adminReadRpc';
+import { withReportHelpCost } from './reportHelpCost';
 
 const getActiveUsers = async (days) => {
   try {
@@ -26,10 +27,12 @@ const getOverviewSnapshot = async (days) => {
     comparisonBasis: 'legacy_latest_only',
   };
 
+  const kpis = await withReportHelpCost(overviewResult?.kpis, days);
+
   return {
     ...overviewResult,
     kpis: {
-      ...overviewResult?.kpis,
+      ...kpis,
       active: activeUsers,
     },
     actions: actionResult || [],
