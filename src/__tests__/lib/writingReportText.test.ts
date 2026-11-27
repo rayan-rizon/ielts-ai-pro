@@ -121,7 +121,9 @@ describe('applying translated text to a report', () => {
 
   it('keeps chart features in English for matching and adds the translation for display', () => {
     expect(translated.taskAnalysis.observedFeatures).toEqual(['Car use rose sharply']);
-    expect(translated.taskAnalysis.displayFeatures).toEqual(['গাড়ির ব্যবহার বেড়েছে']);
+    expect((translated.taskAnalysis as { displayFeatures?: string[] }).displayFeatures).toEqual([
+      'গাড়ির ব্যবহার বেড়েছে',
+    ]);
   });
 
   it('never changes the saved report it was given', () => {

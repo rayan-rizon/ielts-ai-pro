@@ -121,7 +121,10 @@ const bandModel = (request: any) => ({
   })),
 });
 
-function setup(options: Parameters<typeof fakeDb>[0] = {}, replies = [translation]) {
+function setup(
+  options: Parameters<typeof fakeDb>[0] = {},
+  replies: Array<(request: any) => unknown> = [translation]
+) {
   const db = fakeDb(options);
   let call = 0;
   const generate = vi.fn(async (request: any) => {
@@ -136,7 +139,7 @@ function setup(options: Parameters<typeof fakeDb>[0] = {}, replies = [translatio
   });
   const deps = { db, allow: vi.fn(async () => true), generate, credits: fakeCredits(db) };
   const ask = (body: Record<string, unknown>, authId = 'auth-1') =>
-    handleReportAssist(body, { id: authId }, deps);
+    handleReportAssist(body, { id: authId }, deps as any);
   return { db, deps, ask };
 }
 
@@ -557,7 +560,7 @@ describe('Band 7 and Band 8 instructions', () => {
     await handleReportAssist(
       { sessionId: SESSION, taskType: 'Task 2', operation: 'model', band },
       { id: 'auth-1' },
-      { db: fakeDb(), allow: async () => true, generate }
+      { db: fakeDb(), allow: async () => true, generate } as any
     );
     return String(generate.mock.calls[0][0].systemPrompt);
   };
@@ -710,7 +713,7 @@ describe('only bands above the learner’s score', () => {
       {
         db,
         allow: async () => true,
-        generate: answering(bandModel),
+        generate: answering(bandModel) as any,
         credits: fakeCredits(db as any),
       }
     );
