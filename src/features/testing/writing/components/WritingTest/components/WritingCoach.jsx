@@ -1,17 +1,19 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { callEdgeFunction } from '@/utils/api';
-import { PANEL, WELL, NUM } from '@/features/dashboard/components/primitives';
+import { MUTED, NUM, PANEL, Pill, WELL } from '@/features/dashboard/components/primitives';
+import { QUIET_BUTTON } from '@/features/testing/writing/report/components/reportStyles';
+import { revisionSummary } from '@/features/testing/writing/revision/revisionChecks';
+import {
+  RevisionChanges,
+  RevisionResult,
+} from '@/features/testing/writing/revision/RevisionResult';
+import { RevisionSubmit } from '@/features/testing/writing/revision/RevisionSubmit';
 import {
   plainWritingText,
   sourceForFeedback,
 } from '@/features/testing/writing/utils/writingCoaching';
-
-const buttonClass =
-  'rounded-lg border border-[#d5d5ea] bg-white px-3 py-2 text-xs font-bold text-slate-800 hover:border-[#5a63df] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5a63df] dark:border-white/15 dark:bg-[#191820] dark:text-slate-100';
-const primaryClass =
-  'rounded-lg bg-[#5a63df] px-3 py-2 text-xs font-bold text-white hover:bg-[#4953cf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5a63df] disabled:opacity-50';
 
 /** Each answer gets one checked revision; the server enforces the same limit. */
 const revisionUsed = (record) => (record?.revision_history?.length || 0) >= 1;
@@ -102,26 +104,108 @@ function useCoachingRecord(sessionId, taskType, feedback, originalHtml) {
   return { record, setRecord, loading, error, setError, unavailable, setUnavailable, ensureRecord };
 }
 
-function RevisionStudio({
-  record,
-  ensureRecord,
-  session,
-  taskType,
-  original,
-  feedback,
-  setRecord,
-}) {
+/** Practice estimates compare only when the same marking version made both. */
+function checkedFeedback(record, feedback) {
+  const checked = record?.revision_feedback;
+  const comparable =
+    Number(checked?.overallBand) > 0 &&
+    Boolean(feedback.evaluationVersion) &&
+    feedback.evaluationVersion === checked.evaluationVersion;
+  return comparable ? checked : null;
+}
+
+function Priorities({ items }) {
+  if (!items.length) return null;
+  return (
+    <div className={`${WELL} p-3`}>
+      <h3 className="text-[12.5px] font-extrabold">Work on these in your draft</h3>
+      <ol className="mt-2 space-y-2">
+        {items.map((item, index) => (
+          <li key={index} className="flex gap-2.5 text-[13px] leading-snug">
+            <span
+              className={`${NUM} grid h-5 w-5 shrink-0 place-items-center rounded-md bg-[#5a63df]/10 text-[11px] font-bold text-[#4b53c9] dark:text-[#afb5ff]`}
+              aria-hidden="true"
+            >
+              {index + 1}
+            </span>
+            <span>
+              {item.action}
+              {item.criterion && (
+                <span className={`block text-[11.5px] ${MUTED}`}>{item.criterion}</span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/** Older answers could be checked more than once; one check needs no history. */
+function EarlierChecks({ history = [] }) {
+  if (history.length < 2) return null;
+  return (
+    <details className={`${PANEL} p-4 text-xs`}>
+      <summary className="cursor-pointer text-[13px] font-extrabold">Earlier checks</summary>
+      <ul className="mt-2 space-y-2">
+        {history.map((entry) => (
+          <li key={entry.version} className={`${WELL} p-2.5`}>
+            <p className="font-bold">
+              Revision {entry.version}: estimated Band{' '}
+              <span className={NUM}>{entry.feedback?.overallBand || '-'}</span>
+            </p>
+            <p className="mt-1.5 whitespace-pre-wrap font-serif leading-6">
+              {plainWritingText(entry.text)}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+/** After the one check: the result first, then the words that earned it. */
+function CheckedRevision({ record, original, feedback }) {
+  const checked = checkedFeedback(record, feedback);
+  return (
+    <>
+      {checked ? (
+        <RevisionResult feedback={feedback} checked={checked} />
+      ) : (
+        <p className={`${PANEL} p-4 text-[13px] ${MUTED}`}>
+          This revision was checked with a different marking version, so the two estimates cannot be
+          compared.
+        </p>
+      )}
+      <RevisionChanges
+        original={original}
+        draft={plainWritingText(record.revision_scored_text || record.revision_text)}
+      />
+      <EarlierChecks history={record.revision_history} />
+    </>
+  );
+}
+
+const CHECK_TIMEOUT_MS = 5 * 60 * 1000;
+
+const isChecking = (record) =>
+  record?.revision_status === 'checking' &&
+  Date.now() - Date.parse(record?.revision_check_started_at || '') < CHECK_TIMEOUT_MS;
+
+/** The draft: what changed, saving it as it is typed, and spending the check. */
+function useRevisionDraft({ record, ensureRecord, session, taskType, original, setRecord }) {
   const [text, setText] = useState(plainWritingText(record?.revision_text || original));
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
   const [revisionError, setRevisionError] = useState('');
   const saveQueue = useRef(Promise.resolve());
   const originalPlain = plainWritingText(original);
-  const changed = plainWritingText(text) !== originalPlain;
-  const checkingActive =
-    record?.revision_status === 'checking' &&
-    Date.now() - Date.parse(record?.revision_check_started_at || '') < 5 * 60 * 1000;
-  const priorities = (feedback?.priorities || []).slice(0, 3);
+  const summary = useMemo(
+    () => revisionSummary(originalPlain, plainWritingText(text), taskType),
+    [originalPlain, text, taskType]
+  );
+  const { changed } = summary;
+  const used = revisionUsed(record);
+  const checkingActive = isChecking(record);
   const save = useCallback(
     (nextText) => {
       saveQueue.current = saveQueue.current
@@ -155,16 +239,8 @@ function RevisionStudio({
     return () => clearTimeout(timeout);
   }, [text, changed, record?.revision_text, session?.id, save]);
   const recheck = async () => {
-    if (
-      !changed ||
-      busy ||
-      checkingActive ||
-      record?.revision_scored_text === text ||
-      revisionUsed(record)
-    )
-      return;
+    if ([!changed, summary.unfinished, busy, checkingActive, used].some(Boolean)) return;
     setBusy(true);
-    setMessage('');
     setRevisionError('');
     try {
       await save(text);
@@ -174,148 +250,78 @@ function RevisionStudio({
         taskType,
       });
       setRecord(result.data);
-      setMessage('Revision checked. Your original score is unchanged.');
     } catch (error) {
-      setRevisionError(error.message || 'Could not recheck this revision.');
+      setRevisionError(error.message || 'Could not check this revision.');
     } finally {
       setBusy(false);
     }
   };
-  const revisionBand = Number(record?.revision_feedback?.overallBand || 0);
-  const comparableVersions = Boolean(
-    feedback.evaluationVersion &&
-    record?.revision_feedback?.evaluationVersion &&
-    feedback.evaluationVersion === record.revision_feedback.evaluationVersion
-  );
+
+  return {
+    text,
+    setText,
+    busy,
+    revisionError,
+    originalPlain,
+    summary,
+    used,
+    checkingActive,
+    recheck,
+  };
+}
+
+function RevisionStudio({ feedback, ...draftProps }) {
+  const { record } = draftProps;
+  const draft = useRevisionDraft(draftProps);
+  const { text, setText, busy, revisionError, originalPlain, summary, used } = draft;
+  const { checkingActive, recheck } = draft;
+
   return (
-    <section id="writing-revise" className={`${PANEL} space-y-3 p-4`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-base font-bold">Revise your answer</h2>
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-            Make a new draft from your feedback. Your original score stays the same.
-          </p>
+    <div id="writing-revise" className="space-y-3">
+      <section className={`${PANEL} space-y-3 p-4`} aria-labelledby="revision-title">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 id="revision-title" className="text-base font-extrabold">
+              Revise your answer
+            </h2>
+            <p className={`mt-0.5 text-[12.5px] ${MUTED}`}>
+              {used
+                ? 'You have used the one check for this answer. Try a new question to practise again.'
+                : 'Write a better draft from your feedback. Your original score stays the same.'}
+            </p>
+          </div>
+          <Pill tone="accent">
+            <span className={NUM}>Original Band {feedback.overallBand || '-'}</span>
+          </Pill>
         </div>
-        <span className={`${NUM} shrink-0 text-xs text-slate-500`}>
-          Original estimate: Band {feedback.overallBand || '—'}
-        </span>
-      </div>
-      {priorities.length > 0 && (
-        <div className={`${WELL} p-3 text-xs`}>
-          <h3 className="font-bold">Use these priorities</h3>
-          <ul className="mt-1 list-inside list-disc space-y-1">
-            {priorities.map((item, i) => (
-              <li key={i}>{item.action}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <div className="flex flex-col gap-3">
-        <textarea
-          aria-label="Your revised answer"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          readOnly={revisionUsed(record)}
-          className="min-h-[420px] w-full max-h-[75vh] resize-y rounded-lg border border-[#e4e2f0] bg-white p-3 font-serif text-sm leading-7 text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5a63df] sm:min-h-[520px] lg:min-h-[48vh] dark:border-white/[0.07] dark:bg-[#16151b] dark:text-slate-100"
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={`${NUM} text-xs text-slate-500`}>
-            {plainWritingText(text).match(/\S+/g)?.length || 0} words
-          </span>
-          <button
-            type="button"
-            onClick={recheck}
-            disabled={
-              !changed ||
-              busy ||
-              checkingActive ||
-              record?.revision_scored_text === text ||
-              revisionUsed(record)
-            }
-            className={primaryClass}
-          >
-            {busy ? (
-              <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-1 inline h-3.5 w-3.5" />
-            )}
-            {checkingActive ? 'Checking revision…' : 'Recheck revision'}
-          </button>
-        </div>
-        {message && (
-          <p role="status" className="text-xs text-emerald-700 dark:text-emerald-300">
-            {message}
-          </p>
+        {!used && (
+          <>
+            <Priorities items={(feedback?.priorities || []).slice(0, 3)} />
+            <textarea
+              aria-label="Your revised answer"
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              lang="en"
+              dir="ltr"
+              className="min-h-[360px] w-full max-h-[70vh] resize-y rounded-lg border border-[#e4e2f0] bg-white p-3.5 font-serif text-[15px] leading-8 text-slate-900 transition-[border-color,box-shadow] duration-150 focus-visible:border-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]/30 sm:min-h-[44vh] dark:border-white/[0.07] dark:bg-[#16151b] dark:text-slate-100"
+            />
+            <RevisionSubmit
+              summary={summary}
+              draft={text}
+              busy={busy}
+              checking={checkingActive}
+              onCheck={recheck}
+            />
+          </>
         )}
         {revisionError && (
-          <p role="alert" className="text-xs text-rose-700 dark:text-rose-300">
+          <p role="alert" className="text-[12.5px] text-[rgb(var(--signal-fault))]">
             {revisionError}
           </p>
         )}
-        {revisionUsed(record) && (
-          <p className="text-xs text-slate-500">
-            You have used your one revision check. Try a new question.
-          </p>
-        )}
-        {revisionBand > 0 &&
-          comparableVersions &&
-          plainWritingText(record?.revision_scored_text) === plainWritingText(text) && (
-            <div className={`${WELL} space-y-2 p-3 text-xs`}>
-              <p>
-                AI-estimated original <span className={NUM}>{feedback.overallBand}</span>{' '}
-                <ArrowRight className="mx-1 inline h-3 w-3" /> assisted revision{' '}
-                <span className={NUM}>{revisionBand}</span>. This does not measure independent
-                progress.
-              </p>
-              <ul className="grid gap-1 sm:grid-cols-2">
-                {Object.entries(record.revision_feedback.criteriaScores || {}).map(
-                  ([criterion, score]) => (
-                    <li key={criterion}>
-                      {criterion.replace(/([a-z])([A-Z])/g, '$1 $2')}:{' '}
-                      <span className={NUM}>
-                        {feedback.criteriaScores?.[criterion] ?? '—'} → {score}
-                      </span>
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-          )}
-        {revisionBand > 0 && !comparableVersions && (
-          <p className="text-xs text-slate-500">
-            The marking version changed, so the two band estimates cannot be compared directly. Your
-            checked revision remains saved below.
-          </p>
-        )}
-        {record?.revision_history?.length > 0 && (
-          <div className={`${WELL} p-3 text-xs`}>
-            <h3 className="font-bold">Saved revision checks</h3>
-            <div className="mt-2 space-y-2">
-              {record.revision_history.map((entry) => (
-                <details
-                  key={entry.version}
-                  className="rounded border border-[#e4e2f0] bg-white p-2 dark:border-white/10 dark:bg-[#16151b]"
-                >
-                  <summary className="cursor-pointer font-bold">
-                    Revision {entry.version} · estimated Band{' '}
-                    <span className={NUM}>{entry.feedback?.overallBand || '—'}</span>
-                  </summary>
-                  <p className="mt-2 whitespace-pre-wrap font-serif leading-6">
-                    {plainWritingText(entry.text)}
-                  </p>
-                  <p className="mt-2 text-slate-600 dark:text-slate-300">
-                    {(entry.feedback?.priorities || [])
-                      .slice(0, 2)
-                      .map((item) => item.action)
-                      .join(' · ')}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
+      </section>
+      {used && <CheckedRevision record={record} original={originalPlain} feedback={feedback} />}
+    </div>
   );
 }
 
@@ -329,9 +335,9 @@ export function WritingRevisionEditor({ session, taskType, feedback, originalHtm
   const original = sourceForFeedback(feedback, originalHtml);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-1 pb-2">
-      <button type="button" className={`${buttonClass} w-fit`} onClick={onBack}>
-        <ArrowLeft className="mr-1 inline h-3.5 w-3.5" /> Back to editor
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-1 pb-4">
+      <button type="button" className={`${QUIET_BUTTON} w-fit`} onClick={onBack}>
+        <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to editor
       </button>
       {loading ? (
         <p role="status" className="flex items-center gap-2 p-2 text-xs">

@@ -26,6 +26,8 @@ export function FeedbackPanel({
   coachTaskType,
   originalHtml,
   reportSessionId,
+  essay,
+  toolbarHost,
 }) {
   const reportLanguage = useReportLanguage();
   const showsReport = Boolean(!isAnalyzing && !feedbackError && feedback);
@@ -59,6 +61,8 @@ export function FeedbackPanel({
             coachSession={coachSession}
             coachTaskType={coachTaskType}
             originalHtml={originalHtml}
+            essay={essay}
+            toolbarHost={toolbarHost}
           />
         )}
       </AnimatePresence>

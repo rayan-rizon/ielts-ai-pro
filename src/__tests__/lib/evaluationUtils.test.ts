@@ -13,6 +13,25 @@ import {
 import { generateEvaluationPrompt } from '../../../supabase/functions/_shared/bandDescriptors.ts';
 
 describe('evaluationUtils', () => {
+  it('saves the writing explanation as a whole sentence, not cut for length', () => {
+    const summary =
+      'Varied vocabulary and a firm opinion are let down by a very short answer that has no opening paragraph and leaves one side thinly developed, which makes the comparison the question asks for almost entirely one-sided.';
+    const result = normalizeWritingEvaluation(
+      {
+        summary,
+        criteriaScores: {
+          TaskResponse: 6,
+          CoherenceAndCohesion: 6,
+          LexicalResource: 6,
+          GrammaticalRangeAndAccuracy: 6,
+        },
+      },
+      'Task 2',
+      'Placements help students learn how a workplace runs, although they take time from study.'
+    );
+    expect(result.summary).toBe(summary);
+  });
+
   it('preserves abbreviations and decimal durations in stored speaking feedback', () => {
     const result = normalizeSpeakingEvaluation(
       {

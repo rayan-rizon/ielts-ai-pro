@@ -1,83 +1,12 @@
 import React from 'react';
-import { AlertTriangle, Check, PenLine } from 'lucide-react';
+import { AlertTriangle, Check } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { NUM, PANEL, WELL } from '@/features/dashboard/components/primitives.jsx';
-import { BODY, ENGLISH, HAIRLINE, HEADING, PRIMARY_BUTTON, TEXT_BUTTON } from './reportStyles';
+import { NUM, WELL } from '@/features/dashboard/components/primitives.jsx';
+import { BODY, CARD, ENGLISH, HAIRLINE, HEADING, TEXT_BUTTON } from './reportStyles';
 import { CheckMark } from './reportUi';
-
-function EvidenceQuote({ t, text, onShow }) {
-  if (!text) return null;
-  return (
-    <figure className={cn(WELL, 'mt-3 rounded-lg px-3 py-2')}>
-      <figcaption className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
-        {t('fromEssay')}
-      </figcaption>
-      <blockquote
-        className="mt-0.5 font-serif text-[14px] leading-relaxed text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100"
-        {...ENGLISH}
-      >
-        “{text}”
-      </blockquote>
-      {onShow && (
-        <button type="button" className={TEXT_BUTTON} onClick={onShow}>
-          {t('showInEssay')}
-        </button>
-      )}
-    </figure>
-  );
-}
 
 const showPassage = (onShowInEssay, text) =>
   onShowInEssay && text ? () => onShowInEssay({ originalText: text }) : null;
-
-export function NextStepCard({ t, step, score, onShowInEssay, onRevise }) {
-  if (!step) {
-    return (
-      <section className={cn(PANEL, 'p-4')}>
-        <h2 className={HEADING}>{t('noProblemTitle')}</h2>
-        <p className={cn('mt-1', BODY)}>{t('noProblemBody')}</p>
-      </section>
-    );
-  }
-  return (
-    <section
-      className={cn(PANEL, 'border-[#5a63df]/40 p-4 dark:border-[#8f97ff]/35 @md:p-5')}
-      aria-labelledby="writing-next-step-title"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-[#5a63df] px-2.5 py-0.5 text-[11.5px] font-bold text-white">
-          {t('nextStep')}
-        </span>
-        {step.criterion && (
-          <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300">
-            <bdi {...ENGLISH}>{step.criterion}</bdi>
-            {score != null && <span className={NUM}>{score.toFixed(1)}</span>}
-          </span>
-        )}
-      </div>
-      <h2
-        id="writing-next-step-title"
-        className="mt-2 text-[20px] font-extrabold leading-snug tracking-[-0.015em] text-slate-900 dark:text-white"
-      >
-        {step.title}
-      </h2>
-      {step.body && <p className={cn('mt-1.5 max-w-[66ch] text-[14px]', BODY)}>{step.body}</p>}
-      <EvidenceQuote
-        t={t}
-        text={step.evidenceText}
-        onShow={showPassage(onShowInEssay, step.evidenceText)}
-      />
-      {onRevise && (
-        <div className="mt-4">
-          <button type="button" className={PRIMARY_BUTTON} onClick={onRevise}>
-            <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
-            {t('reviseAnswer')}
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
 
 export function ChartCheckCard({ t, check }) {
   if (!check) return null;
@@ -91,7 +20,10 @@ export function ChartCheckCard({ t, check }) {
   }[signal];
   const Icon = matched ? Check : AlertTriangle;
   return (
-    <section className={cn(PANEL, 'p-4')} aria-labelledby="writing-chart-title">
+    <section
+      className={cn(CARD, 'p-4 @2xl:px-6 @2xl:py-[22px]')}
+      aria-labelledby="writing-chart-title"
+    >
       <div className="flex items-start gap-3">
         <span
           className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full', chip)}
@@ -141,7 +73,10 @@ export function ChartCheckCard({ t, check }) {
 export function AlsoWorkOn({ t, priorities, onShowInEssay }) {
   if (priorities.length === 0) return null;
   return (
-    <section className={cn(PANEL, 'p-4')} aria-labelledby="writing-also-title">
+    <section
+      className={cn(CARD, 'p-4 @2xl:px-6 @2xl:py-[22px]')}
+      aria-labelledby="writing-also-title"
+    >
       <h2 id="writing-also-title" className={HEADING}>
         {t('alsoWorkOn')}
       </h2>
@@ -198,19 +133,26 @@ export function AlsoWorkOn({ t, priorities, onShowInEssay }) {
 export function StrengthsCard({ t, strengths }) {
   if (strengths.length === 0) return null;
   return (
-    <section className={cn(PANEL, 'p-4')} aria-labelledby="writing-strengths-title">
+    <section
+      className={cn(CARD, 'flex h-full flex-col p-4 @2xl:px-6 @2xl:py-[22px]')}
+      aria-labelledby="writing-strengths-title"
+    >
       <h2 id="writing-strengths-title" className={HEADING}>
         {t('strengthsTitle')}
       </h2>
-      <ul className="mt-2.5 space-y-2">
+      <ul className="mt-3 divide-y divide-[#eeedf6] dark:divide-white/[0.07]">
         {strengths.map((strength, index) => (
-          <li key={`${index}-${strength}`} className={cn('flex items-start gap-2', BODY)}>
-            <Check
-              className="mt-1 h-3.5 w-3.5 shrink-0 text-[rgb(var(--signal-ok))]"
-              strokeWidth={3}
+          <li
+            key={`${index}-${strength}`}
+            className={cn('flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0', BODY)}
+          >
+            <span
+              className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[rgb(var(--signal-ok)/0.14)] text-[rgb(var(--signal-ok))]"
               aria-hidden="true"
-            />
-            {strength}
+            >
+              <Check className="h-3 w-3" strokeWidth={3} />
+            </span>
+            <span className="min-w-0 flex-1">{strength}</span>
           </li>
         ))}
       </ul>

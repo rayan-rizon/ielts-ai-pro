@@ -107,3 +107,20 @@ export function adviceForRepeatedWord({ word, count }) {
     : 'Try “it”, “they” or “this” when the meaning is clear, or describe it another way.';
   return { severity, verdict, tip, alternatives };
 }
+
+const bare = (word) => word.toLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+
+/** A few words either side of one use: enough to find it without the whole sentence. */
+export function snippetAround(sentence, word, span = 4) {
+  const words = String(sentence).trim().split(/\s+/);
+  const target = word.toLowerCase();
+  const at = Math.max(
+    0,
+    words.findIndex((item) => bare(item) === target)
+  );
+  const from = Math.max(0, at - span);
+  const to = Math.min(words.length, at + span + 1);
+  const lead = from > 0 ? '…' : '';
+  const tail = to < words.length ? '…' : '';
+  return `${lead}${words.slice(from, to).join(' ')}${tail}`;
+}

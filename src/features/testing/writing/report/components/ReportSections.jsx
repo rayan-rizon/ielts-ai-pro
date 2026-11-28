@@ -2,9 +2,11 @@
 import React, { useRef, useState } from 'react';
 import { buildPractice } from '../reportViewModel';
 import { CompareSection } from './CompareSection';
-import { EssayCard } from './EssaySections';
+import { MarkedEssay, WordsSection } from './EssayReview';
+import { EssayMapCard } from './EssaySections';
+import { FocusCard } from './FocusCard';
 import { FixesCard } from './FixesCard';
-import { AlsoWorkOn, ChartCheckCard, NextStepCard, StrengthsCard } from './GuidanceCards';
+import { AlsoWorkOn, ChartCheckCard, StrengthsCard } from './GuidanceCards';
 import { PracticeNext } from './PracticeNext';
 
 const scoreOf = (criteria, label) => criteria.find((row) => row.label === label)?.score ?? null;
@@ -44,42 +46,50 @@ export function ReportSections({
   revise,
   onShowInEssay,
   coach,
+  explained,
+  essay,
 }) {
   const compare = useCompareSelection(content.comparable);
   const { nextStep, taskType } = content;
   return (
     <>
-      <NextStepCard
+      <FocusCard
         t={t}
+        taskType={taskType}
         step={nextStep}
         score={scoreOf(content.criteria, nextStep?.criterion)}
+        target={user?.target_band_score}
         onShowInEssay={onShowInEssay}
         onRevise={revise}
-      />
-      {content.canCompare && (
-        <div ref={compare.ref}>
-          <CompareSection
-            key={`${sessionId}|${taskType}`}
-            t={t}
-            taskType={taskType}
-            paragraphs={content.comparable}
-            essayMap={content.essayMap}
-            marked={content.marked}
-            models={models}
-            bands={content.bands}
-            position={compare.position}
-            onPositionChange={compare.setPosition}
-            onRevise={revise}
-          />
-        </div>
-      )}
+      >
+        {content.canCompare && (
+          <div ref={compare.ref} className="scroll-mt-3">
+            <CompareSection
+              key={`${sessionId}|${taskType}`}
+              t={t}
+              taskType={taskType}
+              paragraphs={content.comparable}
+              essayMap={content.essayMap}
+              marked={content.marked}
+              models={models}
+              bands={content.bands}
+              overallBand={feedback.overallBand}
+              target={user?.target_band_score}
+              position={compare.position}
+              onPositionChange={compare.setPosition}
+              onRevise={revise}
+            />
+          </div>
+        )}
+      </FocusCard>
       <ChartCheckCard t={t} check={content.chartCheck} />
       <AlsoWorkOn t={t} priorities={nextStep?.rest || []} onShowInEssay={onShowInEssay} />
-      <div className="grid gap-3 @4xl:grid-cols-2 @4xl:items-start">
+      <EssayMapCard t={t} essayMap={content.essayMap} />
+      <div className="grid gap-3.5 @4xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] @4xl:items-stretch">
         <div className="min-w-0">
-          <EssayCard t={t} essayMap={content.essayMap} marked={content.marked} />
+          <MarkedEssay t={t} content={content} explained={explained} essay={essay} />
         </div>
-        <div className="min-w-0">
+        <div className="@container min-w-0">
           <FixesCard
             t={t}
             groups={content.fixes}
@@ -88,7 +98,10 @@ export function ReportSections({
           />
         </div>
       </div>
-      <StrengthsCard t={t} strengths={content.strengths} />
+      <div className="grid gap-3.5 @4xl:grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] @4xl:items-stretch">
+        <WordsSection t={t} content={content} feedback={feedback} essay={essay} />
+        <StrengthsCard t={t} strengths={content.strengths} />
+      </div>
       <PracticeNext
         t={t}
         sessionId={sessionId}

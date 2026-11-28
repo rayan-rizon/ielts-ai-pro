@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { User } from '@/features/auth/services/User';
 import { Passage } from '@/features/testing/shared/services/Passage';
+import { taskToShow } from '@/features/testing/writing/openWritingTask';
 
 function parseWritingUrlParams() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -205,6 +206,17 @@ function hasLocalDraftForSession(sessionId) {
   return sameSession && hasDraft;
 }
 
+/**
+ * Saved answers for tasks this tab holds nothing for. An empty local copy may
+ * simply be older than the answer, and autosave must not write it back.
+ */
+function answersMissingHere(saved) {
+  const { drafts } = useWritingTestStore.getState();
+  return Object.fromEntries(
+    Object.entries(saved).filter(([task, answer]) => answer && !drafts[task])
+  );
+}
+
 function restoreUserResponses(store, existingSession, initialActiveType) {
   if (!existingSession.user_responses?.length) return;
   const item = existingSession.user_responses[0];
@@ -212,19 +224,13 @@ function restoreUserResponses(store, existingSession, initialActiveType) {
 
   if (hasLocalDraftForSession(existingSession.id)) {
     console.info('[Writing] Preserving local drafts from sessionStorage over API data');
+    store.setDraftsBulk(answersMissingHere(restoredDrafts));
   } else if (Object.keys(restoredDrafts).length > 0) {
     store.setDraftsBulk(restoredDrafts);
   }
 }
 
-function restoreFeedbacks(store, feedbacks, initialActiveType) {
-  if (!feedbacks) return;
-  store.setFeedbacksBulk(feedbacks);
-  const saved = feedbacks[initialActiveType] || feedbacks['Task 1'] || feedbacks['Task 2'];
-  if (saved) store.setCurrentFeedback(saved);
-}
-
-function restoreWritingSessionState(store, existingSession, initialActiveType) {
+function restoreWritingSessionState({ store, existingSession, initialActiveType, requested }) {
   store.setSession(existingSession);
 
   const feedbacks = existingSession.content_data?.ai_feedbacks;
@@ -242,24 +248,20 @@ function restoreWritingSessionState(store, existingSession, initialActiveType) {
   const timeRemaining = existingSession.content_data?.time_remaining;
   if (timeRemaining !== undefined) store.setTime(timeRemaining);
 
-  restoreFeedbacks(store, feedbacks, initialActiveType);
+  if (feedbacks) store.setFeedbacksBulk(feedbacks);
 
   // A session can contain a saved response and report for only one task. Keep
   // the learner on that task when their last selected tab points to an empty
   // part, so the essay and its feedback are visible together after recovery.
-  const {
-    activeType,
-    feedbacks: restoredFeedbacks,
-    compositeTasks,
-  } = useWritingTestStore.getState();
-  const otherType = activeType === 'Task 1' ? 'Task 2' : 'Task 1';
-  if (
-    !isValidFeedback(restoredFeedbacks?.[activeType]) &&
-    isValidFeedback(restoredFeedbacks?.[otherType]) &&
-    compositeTasks?.[otherType]
-  ) {
-    store.switchTaskFull(otherType);
-  }
+  const state = useWritingTestStore.getState();
+  const shown = taskToShow({
+    activeType: state.activeType,
+    feedbacks: state.feedbacks,
+    compositeTasks: state.compositeTasks,
+    session: existingSession,
+    requested,
+  });
+  store.showTaskWithReport(shown);
 }
 
 function updateUrlWithSession(navigate, isNewAttempt, sessionId) {
@@ -327,7 +329,12 @@ async function applySessionOrCreate({ store, selectedTask, existingSession, writ
     existingSession ? null : writingTask
   );
   if (existingSession) {
-    restoreWritingSessionState(store, existingSession, initialActiveType);
+    restoreWritingSessionState({
+      store,
+      existingSession,
+      initialActiveType,
+      requested: writingTask,
+    });
   }
 }
 

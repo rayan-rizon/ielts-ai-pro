@@ -234,6 +234,21 @@ export const useWritingTestStore = create(
         },
 
         /**
+         * Puts a task on screen together with its own report, so the selected
+         * tab and the report can never belong to different tasks. A test with a
+         * single task has no tabs, so whichever report it has is shown.
+         */
+        showTaskWithReport: (taskType) => {
+          const { compositeTasks, feedbacks, activeType, switchTaskFull } = get();
+          if (compositeTasks[taskType]) {
+            switchTaskFull(taskType);
+            return;
+          }
+          const report = feedbacks[activeType] || feedbacks['Task 1'] || feedbacks['Task 2'];
+          set({ currentFeedback: report || null });
+        },
+
+        /**
          * Atomic full task switch — updates activeType, task, currentFeedback,
          * and wordCount in a single set() to avoid intermediate inconsistent state.
          */
@@ -261,6 +276,7 @@ export const useWritingTestStore = create(
           set({
             activeType: newType,
             currentFeedback: state.feedbacks[newType] || null,
+            feedbackError: null,
             task: {
               ...taskMetadata,
               ...newTaskData,

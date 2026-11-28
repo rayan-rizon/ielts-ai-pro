@@ -1,139 +1,93 @@
-import React, { useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+/** The essay's shape paragraph by paragraph, and the marked essay itself. */
+import React from 'react';
 import { cn } from '@/lib/cn';
-import { PANEL } from '@/features/dashboard/components/primitives.jsx';
 import { paragraphName } from './paragraphName';
-import { HAIRLINE, HEADING, QUIET_BUTTON } from './reportStyles';
-import { MarkedText } from './MarkedText';
-
-const tone = (mistakes) => (mistakes === 0 ? 'ok' : mistakes === 1 ? 'warn' : 'fault');
+import { CARD, HEADING, MUTED_TEXT } from './reportStyles';
 
 const BAR = {
-  ok: 'bg-[rgb(var(--signal-ok))]',
-  warn: 'bg-[rgb(var(--signal-warn))]',
-  fault: 'bg-[rgb(var(--signal-fault))]',
+  ok: 'bg-[#16966c]',
+  warn: 'bg-[#ba7c1a]',
+  fault: 'bg-[#c93c34]',
 };
 const TEXT = {
-  ok: 'text-[rgb(var(--signal-ok))]',
-  warn: 'text-[rgb(var(--signal-warn))]',
-  fault: 'text-[rgb(var(--signal-fault))]',
+  ok: 'text-[#0b6b4c] dark:text-[#7fe0bb]',
+  warn: 'text-[#7a4f0c] dark:text-[#f5c870]',
+  fault: 'text-[#a3302a] dark:text-[#ff9a92]',
 };
 
-function Key({ t }) {
-  const items = [
-    ['keyMistake', 'bg-[rgb(var(--signal-fault))]'],
-    ['keyBetter', 'bg-[rgb(var(--signal-warn))]'],
-    ['keyGood', 'bg-[rgb(var(--signal-ok))]'],
-  ];
-  return (
-    <ul className="flex flex-wrap gap-x-3.5 gap-y-1 text-[11.5px] font-semibold text-slate-600 dark:text-slate-300">
-      {items.map(([key, color]) => (
-        <li key={key} className="inline-flex items-center gap-1.5">
-          <span className={cn('h-2 w-2 rounded-full', color)} aria-hidden="true" />
-          {t(key)}
-        </li>
-      ))}
-    </ul>
-  );
+/** The paragraph with the most marked mistakes, or null when none has any. */
+export function weakestIndex(essayMap) {
+  const worst = [...essayMap].sort((a, b) => b.mistakes - a.mistakes)[0];
+  return worst?.mistakes ? worst.index : null;
 }
 
-/** One paragraph in the map: its size, what needs fixing and the examiner's note. */
-function ParagraphRow({ t, paragraph }) {
-  const color = tone(paragraph.mistakes);
-  return (
-    <li
-      className={cn(
-        'grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-2.5 border-t py-2',
-        HAIRLINE
-      )}
-    >
-      <span className={cn('h-2 w-2 self-center rounded-full', BAR[color])} aria-hidden="true" />
-      <span className="min-w-0 text-[13px] font-bold text-slate-900 dark:text-white">
-        {paragraphName(t, paragraph)}
-        <span className="ms-2 text-[11.5px] font-medium text-slate-500 dark:text-slate-400">
-          {t('wordsCount', { count: paragraph.words })}
-        </span>
-      </span>
-      <span className={cn('text-end text-[12px] font-bold', TEXT[color])}>
-        {paragraph.mistakes ? t('mapToFix', { count: paragraph.mistakes }) : t('mapClean')}
-      </span>
-      {paragraph.note && (
-        <span className="col-start-2 col-end-4 text-[12.5px] leading-snug text-slate-600 dark:text-slate-300">
-          {paragraph.note}
-        </span>
-      )}
-    </li>
-  );
+const toneOf = (paragraph, weakest) => {
+  if (!paragraph.mistakes) return 'ok';
+  return paragraph.index === weakest ? 'fault' : 'warn';
+};
+
+function statusOf(t, paragraph, tone) {
+  if (tone === 'ok') return t('mapClean');
+  const count = t('mapToFix', { count: paragraph.mistakes });
+  return tone === 'fault' ? `${t('fixFirst')} · ${count}` : count;
 }
 
-/**
- * The learner's essay in one card: its shape paragraph by paragraph, and the
- * text itself with numbered marks when opened.
- */
-export function EssayCard({ t, essayMap, marked }) {
-  const [open, setOpen] = useState(false);
-  const reducedMotion = Boolean(useReducedMotion());
+export function EssayMapCard({ t, essayMap }) {
   if (!essayMap.length) return null;
+  const weakest = weakestIndex(essayMap);
   return (
-    <section className={cn(PANEL, 'p-4')} aria-labelledby="writing-essay-title">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="writing-essay-title" className={HEADING}>
-          {t('mapTitle')}
-        </h2>
-        <button
-          type="button"
-          className={cn(
-            QUIET_BUTTON,
-            'min-h-0 h-8 rounded-lg border-[#e4e2f0] px-3 py-1 text-[12.5px] font-semibold active:scale-[0.98] dark:border-white/[0.07]'
-          )}
-          aria-expanded={open}
-          aria-controls="writing-marked-body"
-          onClick={() => setOpen((value) => !value)}
-        >
-          {t(open ? 'essayHide' : 'essayShow')}
-          <ChevronDown
-            className={cn(
-              'h-3.5 w-3.5 transition-[rotate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none',
-              open && 'rotate-180'
-            )}
-            aria-hidden="true"
-          />
-        </button>
-      </div>
-      <div className="mt-3 flex h-2 gap-1" aria-hidden="true" dir="ltr">
-        {essayMap.map((paragraph) => (
-          <span
-            key={paragraph.index}
-            className={cn('min-w-1.5 rounded-full', BAR[tone(paragraph.mistakes)])}
-            style={{ flex: `${paragraph.share} 1 0%` }}
-          />
-        ))}
-      </div>
-      <ol className="mt-2">
-        {essayMap.map((paragraph) => (
-          <ParagraphRow key={paragraph.index} t={t} paragraph={paragraph} />
-        ))}
+    <section
+      className={cn(CARD, 'space-y-3.5 p-4 @2xl:px-6 @2xl:py-[22px]')}
+      aria-labelledby="writing-map-title"
+    >
+      <h2 id="writing-map-title" className={HEADING}>
+        {t('mapTitle')}
+      </h2>
+      <ol className="flex flex-wrap gap-x-1.5 gap-y-4">
+        {essayMap.map((paragraph) => {
+          const tone = toneOf(paragraph, weakest);
+          return (
+            // Longer paragraphs take more of the row, so the shape reads at a glance.
+            <li
+              key={paragraph.index}
+              className="flex min-w-0 flex-col gap-1.5"
+              style={{ flex: `${paragraph.share} 1 13rem` }}
+            >
+              <span className={cn('h-1.5 rounded-full', BAR[tone])} aria-hidden="true" />
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="text-[13.5px] font-extrabold text-[#12142b] dark:text-white">
+                  {paragraphName(t, paragraph)}
+                </span>
+                <span className={cn('font-mono text-[11.5px]', MUTED_TEXT)}>
+                  {t('wordsCount', { count: paragraph.words })}
+                </span>
+              </span>
+              <span className={cn('text-[12.5px] font-bold', TEXT[tone])}>
+                {statusOf(t, paragraph, tone)}
+              </span>
+              {paragraph.note && (
+                <span className="text-[13px] leading-normal text-[#2a2f47] dark:text-slate-300">
+                  {paragraph.note}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            id="writing-marked-body"
-            initial={reducedMotion ? false : { height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={reducedMotion ? undefined : { height: 0, opacity: 0 }}
-            transition={{ duration: reducedMotion ? 0 : 0.24, ease: [0.23, 1, 0.32, 1] }}
-            className="overflow-hidden"
-          >
-            <div className={cn('mt-3 space-y-3 border-t pt-3', HAIRLINE)}>
-              <Key t={t} />
-              {marked.map((segments, index) => (
-                <MarkedText key={index} segments={segments} className="text-[15px]" />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    </section>
+  );
+}
+
+export function MarkedEssayCard({ t, children }) {
+  return (
+    <section
+      className={cn(CARD, 'flex h-full flex-col space-y-3 p-4 @2xl:px-7 @2xl:py-6')}
+      aria-labelledby="writing-essay-title"
+    >
+      <h2 id="writing-essay-title" className={HEADING}>
+        {t('markedTitle')}
+      </h2>
+      <div>{children}</div>
     </section>
   );
 }

@@ -50,5 +50,5 @@ export function useReportContent({ feedback, shown, originalHtml, sessionId, t }
   // Comparison reads the saved attempt, so it needs one, and an essay to read.
   const bands = bandsAbove(feedback.overallBand);
   const canCompare = [sessionId, bands.length, essayParagraphs(essay).length].every(Boolean);
-  return { ...report, taskType, comparable, bands, canCompare };
+  return { ...report, essayText: essay, taskType, comparable, bands, canCompare };
 }

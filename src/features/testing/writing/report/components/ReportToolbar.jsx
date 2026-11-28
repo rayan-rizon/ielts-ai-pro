@@ -16,12 +16,16 @@ import { QUIET_BUTTON, TEXT_BUTTON } from './reportStyles';
 
 export function ReportToolbar({ t, onLanguageChange, onDownloadPdf, isDownloadingPdf }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2">
+    <div
+      lang={t.language}
+      dir={t.rtl ? 'rtl' : 'ltr'}
+      className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end"
+    >
       <div className="flex min-w-0 items-center gap-2">
         <label
           id="writing-report-language-label"
           htmlFor="writing-report-language"
-          className="text-[12.5px] font-medium text-slate-500 dark:text-slate-400"
+          className="sr-only min-[400px]:not-sr-only text-[12.5px] font-medium text-slate-500 dark:text-slate-400"
         >
           {t('reportLanguage')}
         </label>

@@ -16,6 +16,7 @@ import {
   resultValidationError,
   sentences,
 } from '../_shared/writingCoachValidation.ts';
+import { markingParagraphs, revisionProblem } from '../_shared/writingRevisionText.ts';
 
 // @ts-ignore
 declare const Deno: any;
@@ -115,18 +116,8 @@ const handleRequest = async (req: Request) => {
         headers
       );
     const revision = String(existing.revision_text || '').trim();
-    const revisionWords = revision.match(/\S+/g)?.length || 0;
-    if (
-      revision === source ||
-      revisionWords < (taskType === 'Task 1' ? 50 : 100) ||
-      revision.length > (taskType === 'Task 1' ? 5000 : 8000)
-    ) {
-      return errorResponse(
-        'Revise your answer before requesting a check, and keep it within the writing limits.',
-        400,
-        headers
-      );
-    }
+    const problem = revisionProblem({ revision, source, taskType });
+    if (problem) return errorResponse(problem, 400, headers);
     if (existing.revision_scored_text === existing.revision_text && existing.revision_feedback) {
       return respond({ data: existing }, 200, headers);
     }
@@ -147,7 +138,7 @@ const handleRequest = async (req: Request) => {
           'X-CSRF-Token': req.headers.get('X-CSRF-Token') || '',
         },
         body: JSON.stringify({
-          writingText: revision,
+          writingText: markingParagraphs(revision),
           taskPrompt: feedback.taskPrompt,
           taskType,
           imageUrl: taskType === 'Task 1' ? feedback.imageUrl : null,

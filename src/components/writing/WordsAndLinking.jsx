@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { PANEL, WELL, NUM } from '@/features/dashboard/components/primitives';
+import { WELL, NUM } from '@/features/dashboard/components/primitives';
 import {
   LINKING_RELATIONS,
   plainWritingText,
 } from '@/features/testing/writing/utils/writingCoaching';
-import { adviceForRepeatedWord } from '@/features/testing/writing/utils/repeatedWordAdvice';
+import {
+  adviceForRepeatedWord,
+  snippetAround,
+} from '@/features/testing/writing/utils/repeatedWordAdvice';
 import { VocabularyCard, highlightPhrase } from './VocabularyCard';
-import { ParagraphFlowSection } from './ParagraphFlow';
 
 function AlsoSay({ t, words }) {
   if (!words.length) return null;
@@ -69,7 +71,7 @@ function WordUses({ t, word, examples }) {
                   'rounded-md px-2.5 py-1.5 font-serif text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-200'
                 )}
               >
-                {highlightPhrase(example, word)}
+                {highlightPhrase(snippetAround(example, word), word)}
               </li>
             ))}
           </motion.ul>
@@ -105,7 +107,7 @@ function vocabularySourceSentence(text, phrase) {
   return source.slice(start < 0 ? 0 : start + (source[start] === '\n' ? 1 : 2), end).trim();
 }
 
-function RepeatedWordCard({ t, word, count, examples, isVisualTask }) {
+function RepeatedWordCard({ t, word, count, examples }) {
   const advice = adviceForRepeatedWord({ word, count });
 
   return (
@@ -126,17 +128,7 @@ function RepeatedWordCard({ t, word, count, examples, isVisualTask }) {
           {t('wlTimes', { count })}
         </span>
       </div>
-      <p className="mt-1 text-[12px] leading-snug text-slate-600 dark:text-slate-300">
-        {t(advice.severity === 'high' ? 'wlVerdictHigh' : 'wlVerdictSome', { word, count })}
-      </p>
-
       <AlsoSay t={t} words={advice.alternatives} />
-      <p className="mt-2 text-[11.5px] leading-snug text-slate-500 dark:text-slate-400">
-        {t(advice.alternatives.length ? 'wlTipSwap' : 'wlTipRephrase')}
-        {isVisualTask &&
-          t.language === 'en' &&
-          ` If “${word}” is a label in the chart, keep it exactly.`}
-      </p>
 
       <WordUses t={t} word={word} examples={examples} />
     </li>
@@ -178,7 +170,6 @@ function RepeatedWords({ t, words, isVisualTask }) {
           <RepeatedWordCard
             t={t}
             key={item.word}
-            isVisualTask={isVisualTask}
             word={item.word}
             count={item.count}
             examples={item.examples}
@@ -197,24 +188,27 @@ function LinkingWords({ t, linking }) {
     <div className="min-w-0">
       <h4 className={SUBHEADING}>{t('wlLinkingTitle')}</h4>
       {linking.length > 0 ? (
-        <dl className="mt-2 grid gap-x-4 gap-y-1.5 text-xs sm:grid-cols-[auto_minmax(0,1fr)]">
+        <dl className="mt-2.5 divide-y divide-[#eeedf6] text-xs dark:divide-white/[0.07]">
           {linking.map((item) => (
-            <React.Fragment key={item.category}>
-              <dt className="text-slate-500 dark:text-slate-400">
+            <div
+              key={item.category}
+              className="grid items-center gap-x-4 gap-y-1.5 py-2 first:pt-0 last:pb-0 sm:grid-cols-[minmax(8.5rem,auto)_minmax(0,1fr)]"
+            >
+              <dt className="text-[12.5px] font-medium text-slate-500 dark:text-slate-400">
                 {relationLabel(t, item.category)}
               </dt>
-              <dd className="flex flex-wrap gap-1">
+              <dd className="flex flex-wrap gap-1.5">
                 {item.phrases.map((phrase) => (
                   <span
                     key={phrase}
                     dir="ltr"
-                    className="rounded-md border border-[#e4e2f0] bg-white px-1.5 py-0.5 font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                    className="rounded-md border border-[#e4e2f0] bg-[#f7f6fd] px-2.5 py-0.5 text-[12px] font-semibold text-slate-800 dark:border-white/[0.09] dark:bg-white/[0.05] dark:text-slate-100"
                   >
                     {phrase}
                   </span>
                 ))}
               </dd>
-            </React.Fragment>
+            </div>
           ))}
         </dl>
       ) : (
@@ -240,26 +234,31 @@ export default function WordsAndLinking({
   if (!newWords.length && !writingAnalysis) return null;
   return (
     <section
-      className={cn(PANEL, 'space-y-3 p-3.5 sm:p-4')}
+      className="flex h-full flex-col space-y-3.5 rounded-2xl border border-[#e4e2f0] bg-white p-4 @2xl:px-6 @2xl:py-[22px] dark:border-white/[0.07] dark:bg-[#141319]"
       lang={t.language}
       dir={t.rtl ? 'rtl' : 'ltr'}
+      aria-labelledby="writing-words-title"
     >
       <div>
-        <h3 className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
+        <h3
+          id="writing-words-title"
+          className="text-[17px] @2xl:text-[19px] font-extrabold leading-tight tracking-[-0.02em] text-[#12142b] dark:text-white"
+        >
           {t('wlTitle')}
         </h3>
-        {newWords.length > 0 && (
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t('wlIntro')}</p>
-        )}
       </div>
       <BetterWords t={t} text={text} words={newWords} {...saving} />
       {writingAnalysis && (
-        <div className="space-y-4 border-t border-[#e4e2f0] pt-3 dark:border-white/[0.07]">
+        <div
+          className={cn(
+            'space-y-4',
+            newWords.length > 0 && 'border-t border-[#eeedf6] pt-3.5 dark:border-white/[0.07]'
+          )}
+        >
           <RepeatedWords t={t} words={repeatedWords} isVisualTask={isVisualTask} />
           <LinkingWords t={t} linking={writingAnalysis.linking} />
         </div>
       )}
-      <ParagraphFlowSection t={t} writingAnalysis={writingAnalysis} />
     </section>
   );
 }

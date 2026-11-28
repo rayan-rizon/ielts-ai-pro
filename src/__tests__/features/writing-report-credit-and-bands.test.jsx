@@ -15,7 +15,7 @@ import { bandsAbove } from '@/features/testing/writing/report/useReportContent';
 import { reportedWords } from '@/features/testing/writing/report/reportViewModel';
 import { LanguageNotice } from '@/features/testing/writing/report/components/ReportToolbar';
 import { reportT } from '@/features/testing/writing/report/reportStrings';
-import AnnotatedText from '@/components/writing/AnnotatedText';
+import EssayWords from '@/components/writing/EssayWords';
 
 const feedback = { taskType: 'Task 2', summary: 'Your position is clear.', generatedAt: 'g1' };
 const refuse = (code) => Object.assign(new Error(code), { code });
@@ -91,7 +91,7 @@ describe('the words and linking section beside the report', () => {
   };
   const show = (language, words = vocabulary) =>
     render(
-      <AnnotatedText
+      <EssayWords
         t={reportT(language)}
         text="It is good. However, it is big, bad and many."
         vocabularyEnhancements={words}

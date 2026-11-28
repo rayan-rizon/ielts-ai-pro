@@ -1,6 +1,6 @@
 import { MemoryRouter } from 'react-router-dom';
 import React from 'react';
-import { fireEvent, render as renderComponent, screen } from '@testing-library/react';
+import { fireEvent, render as renderComponent, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackPanel } from '@/features/testing/writing/components/WritingTest/components/FeedbackPanel';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
@@ -73,7 +73,7 @@ describe('Writing feedback panel', () => {
   it('leads with the band, the reason for it, the scores and one next step', () => {
     render(<FeedbackPanel feedback={feedback} />);
 
-    expect(screen.getByRole('heading', { name: 'Task 2 result' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your writing result' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band 6.0 out of 9' })).toBeInTheDocument();
     expect(screen.getAllByText('6.0').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /PDF/ })).toBeInTheDocument();
@@ -86,12 +86,14 @@ describe('Writing feedback panel', () => {
     expect(screen.getAllByText('Coherence and Cohesion').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Lexical Resource').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Grammatical Range and Accuracy').length).toBeGreaterThan(0);
-    expect(screen.getByText('Lowest area')).toBeInTheDocument();
+    expect(screen.getByText('Holding you back')).toBeInTheDocument();
     expect(screen.queryByText('TR/TA')).not.toBeInTheDocument();
-    // The first priority is the next step, in full; the rest follow.
-    expect(
-      screen.getByRole('heading', { name: 'Agreement errors recur in key sentences.' })
-    ).toBeInTheDocument();
+    // The first priority leads in full: what to do heads it, the problem is "now".
+    const focus = screen.getByText('What you do now').closest('section');
+    expect(within(focus).getByText('Agreement errors recur in key sentences.')).toBeInTheDocument();
+    expect(within(focus).getByRole('heading', { level: 2 })).toHaveTextContent(
+      feedback.priorities[0].action
+    );
     expect(screen.getByText('Also work on')).toBeInTheDocument();
     expect(screen.getByText('The second idea needs fuller support.')).toBeInTheDocument();
     expect(screen.queryByText('Solid Task 2 response')).not.toBeInTheDocument();
@@ -109,7 +111,7 @@ describe('Writing feedback panel', () => {
   it('shows every fix in full with the reason for it', () => {
     render(<FeedbackPanel feedback={feedback} />);
 
-    expect(screen.getByText('Fix these')).toBeInTheDocument();
+    expect(screen.getByText('Fix these in your draft')).toBeInTheDocument();
     expect(screen.getByText('Grammar and spelling')).toBeInTheDocument();
     expect(screen.getByText('A plural subject needs a plural verb.')).toBeInTheDocument();
   });
@@ -242,7 +244,7 @@ describe('Writing feedback panel', () => {
   it('says plainly when no sentence needed a fix', () => {
     render(<FeedbackPanel feedback={{ ...feedback, corrections: [], annotations: [] }} />);
 
-    expect(screen.getByText('Fix these')).toBeInTheDocument();
+    expect(screen.getByText('Fix these in your draft')).toBeInTheDocument();
     expect(screen.getByText(/No sentence needed a correction/)).toBeInTheDocument();
   });
 
@@ -266,9 +268,9 @@ describe('Writing feedback panel', () => {
 
     expect(container.textContent).not.toContain('**');
     expect(container.textContent).toContain('accurately reporting every minor feature');
-    expect(
-      screen.getByRole('heading', { name: /presenting the entire detailed description/ })
-    ).toBeInTheDocument();
+    expect(screen.getByText('What you do now').closest('section')).toHaveTextContent(
+      /presenting the entire detailed description/
+    );
   });
 
   it('never cuts long feedback short', () => {

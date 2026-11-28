@@ -11,7 +11,16 @@ import {
 import { drillText } from '../drillText';
 import { DRILL_MINUTES } from '../planAdditions';
 import { AddToPlan } from './AddToPlan';
-import { BODY, ENGLISH, HEADING, PRIMARY_BUTTON, QUIET_BUTTON } from './reportStyles';
+import {
+  BODY,
+  CARD,
+  ENGLISH,
+  HAIRLINE,
+  HEADING,
+  MUTED_TEXT,
+  PRIMARY_BUTTON,
+  QUIET_BUTTON,
+} from './reportStyles';
 
 /** The marker's stronger words, each one saveable to the learner's list. */
 function WordSwaps({ t, words, source, saver }) {
@@ -27,15 +36,22 @@ function WordSwaps({ t, words, source, saver }) {
           <li
             key={entry.original}
             // The phrase gets the full width on phones; Save sits under it.
-            className="grid items-center gap-x-3 rounded-lg bg-[#f7f6fd] py-1.5 pe-1.5 ps-3 @md:grid-cols-[minmax(0,1fr)_auto] dark:bg-white/[0.04]"
+            className="grid items-center gap-x-3 rounded-lg border border-[#eeedf6] bg-[#faf9ff] py-1.5 pe-1.5 ps-3 @md:grid-cols-[minmax(0,1fr)_auto] dark:border-white/[0.06] dark:bg-white/[0.03]"
           >
             <span
               className="min-w-0 font-serif text-[13.5px] leading-snug text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100"
               {...ENGLISH}
             >
-              <span className="text-slate-500 dark:text-slate-400">{entry.original}</span>
-              {' → '}
-              <span className="font-semibold">{entry.alternatives.join(' / ')}</span>
+              <span className="text-slate-600 dark:text-slate-300">{entry.original}</span>
+              <span
+                className="px-1.5 font-sans text-[#5a63df] dark:text-[#afb5ff]"
+                aria-hidden="true"
+              >
+                →
+              </span>
+              <span className="font-semibold text-slate-900 dark:text-white">
+                {entry.alternatives.join(' / ')}
+              </span>
             </span>
             <button
               type="button"
@@ -103,96 +119,103 @@ export function PracticeNext({
 }) {
   const saver = useWritingVocabularySave(user);
   return (
-    <section
-      className="@container rounded-xl border border-[#d8d9f7] bg-[#f3f2fd] p-4 dark:border-[#8f97ff]/20 dark:bg-[#8f97ff]/[0.06]"
-      aria-labelledby="writing-practise-title"
-    >
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-        <div>
-          <h2 id="writing-practise-title" className={HEADING}>
-            {t('practiseTitle')}
-          </h2>
-          {drills.length > 0 && <p className={cn('mt-0.5', BODY)}>{t('practiseSub')}</p>}
+    <>
+      <section
+        className={cn(CARD, '@container p-4 @2xl:px-6 @2xl:py-[22px]')}
+        aria-labelledby="writing-practise-title"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+          <div>
+            <h2 id="writing-practise-title" className={HEADING}>
+              {t('practiseTitle')}
+            </h2>
+            {drills.length > 0 && <p className={cn('mt-0.5', BODY)}>{t('practiseSub')}</p>}
+          </div>
+          <AddToPlan t={t} drills={drills} sessionId={sessionId} taskType={taskType} />
         </div>
-        <AddToPlan t={t} drills={drills} sessionId={sessionId} taskType={taskType} />
-      </div>
-      {drills.length > 0 && (
-        <>
-          <ol className="mt-3 space-y-2">
-            {drills.map((drill, index) => {
-              const text = drillText(t, drill);
-              return (
-                <li
-                  key={drill.id}
-                  className="rounded-lg bg-white p-3 ring-1 ring-[#e4e2f0] dark:bg-[#141319] dark:ring-white/[0.07]"
-                >
-                  <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 @lg:grid-cols-[auto_minmax(0,1fr)_auto] @lg:items-center">
-                    <span
-                      className={cn(
-                        NUM,
-                        'grid h-7 w-7 place-items-center rounded-lg text-[13px] font-extrabold',
-                        index === 0
-                          ? 'bg-[#5a63df] text-white'
-                          : 'bg-[#efeef8] text-slate-700 dark:bg-white/10 dark:text-slate-200'
-                      )}
-                      aria-hidden="true"
-                    >
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[14px] font-extrabold leading-snug text-slate-900 dark:text-white">
-                        {text.title}
-                      </p>
-                      <p className="mt-0.5 text-[12.5px] leading-snug text-slate-600 dark:text-slate-300">
-                        {text.why}
-                      </p>
-                      <p className={cn(NUM, 'mt-1 text-[11px] text-slate-500 dark:text-slate-400')}>
-                        {t('aboutMinutes', { n: DRILL_MINUTES[drill.id] })}
-                      </p>
+        {drills.length > 0 && (
+          <>
+            <ol className="mt-3">
+              {drills.map((drill, index) => {
+                const text = drillText(t, drill);
+                return (
+                  <li key={drill.id} className={cn('border-t py-3.5 last:pb-0', HAIRLINE)}>
+                    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-4 gap-y-2 @2xl:grid-cols-[auto_minmax(0,1fr)_auto_auto] @2xl:items-center">
+                      <span
+                        className={cn(
+                          NUM,
+                          'grid h-7 w-7 place-items-center rounded-lg text-[13px] font-extrabold',
+                          index === 0
+                            ? 'bg-[#5a63df] text-white'
+                            : 'bg-[#efeef8] text-slate-700 dark:bg-white/10 dark:text-slate-200'
+                        )}
+                        aria-hidden="true"
+                      >
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-extrabold leading-snug text-[#12142b] dark:text-white">
+                          {text.title}
+                        </p>
+                        <p className={cn('mt-0.5 text-[13.5px] leading-normal', MUTED_TEXT)}>
+                          {text.why}
+                        </p>
+                      </div>
+                      <div className="col-start-2 flex flex-wrap items-center justify-between gap-2 @2xl:contents">
+                        <p className={cn(NUM, 'text-[12px] @2xl:col-start-3', MUTED_TEXT)}>
+                          {t('aboutMinutes', { n: DRILL_MINUTES[drill.id] })}
+                        </p>
+                        <div className="@2xl:col-start-4">
+                          <DrillAction
+                            t={t}
+                            drill={drill}
+                            text={text}
+                            onRevise={onRevise}
+                            onCompare={onCompare}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="col-start-2 @lg:col-start-3">
-                      <DrillAction
-                        t={t}
-                        drill={drill}
-                        text={text}
-                        onRevise={onRevise}
-                        onCompare={onCompare}
-                      />
-                    </div>
-                  </div>
-                  {drill.words && (
-                    <div className="@lg:ps-10">
-                      <WordSwaps
-                        t={t}
-                        words={drill.words}
-                        source={vocabularySource}
-                        saver={saver}
-                      />
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </>
-      )}
-      <div className="mt-3 flex flex-col-reverse gap-2 @md:flex-row @md:items-center @md:justify-end">
+                    {drill.words && (
+                      <div className="@2xl:ps-11">
+                        <WordSwaps
+                          t={t}
+                          words={drill.words}
+                          source={vocabularySource}
+                          saver={saver}
+                        />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </>
+        )}
+      </section>
+      <nav
+        aria-label={t('whatNow')}
+        className="flex flex-col-reverse gap-2 pt-1 @md:flex-row @md:flex-wrap @md:items-center @md:justify-end"
+      >
         {coachSession?.id && (
-          <span {...(t.language === 'en' ? {} : { dir: t.rtl ? 'rtl' : 'ltr' })}>
+          <span
+            className="w-full @md:w-auto"
+            {...(t.language === 'en' ? {} : { dir: t.rtl ? 'rtl' : 'ltr' })}
+          >
             <AskAiCoachButton
               compact
               showAvatar
               label={t('askAva')}
               draft="Explain my Writing feedback and the one change that would raise my band most."
               sourceReference={{ type: 'test_session', id: coachSession.id }}
-              className="h-10 w-full @md:w-auto"
+              className="h-[42px] w-full @md:w-auto"
             />
           </span>
         )}
-        <Link to="/writing" className={PRIMARY_BUTTON}>
+        <Link to="/writing" className={cn(PRIMARY_BUTTON, 'w-full @md:w-auto')}>
           {t('writeAnother')}
         </Link>
-      </div>
-    </section>
+      </nav>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { BookOpen, PenLine } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
@@ -16,15 +16,11 @@ import { WritingDialogs } from '../components/WritingTest/components/WritingDial
 import { WritingTestProvider } from '../components/WritingTest/context/WritingTestContext';
 import { useWritingTaskLogic } from '../components/WritingTest/hooks/useWritingTaskLogic';
 import { useWritingTestStore } from '../store/useWritingTestStore';
-import AnnotatedText from '@/components/writing/AnnotatedText';
-import { analyzeWriting } from '../utils/writingCoaching';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useWritingVocabularySave } from '../hooks/useWritingVocabularySave';
-import { useReportLanguage } from '../report/useReportLanguage';
-import { useTranslatedReport } from '../report/useTranslatedReport';
-import { reportT } from '../report/reportStrings';
-import { reportedWords } from '../report/reportViewModel';
+import { useOpenWritingTask, useTaskLocked } from '@/features/testing/writing/useOpenWritingTask';
+import { OpenTaskNote } from '../components/WritingTest/components/OpenTaskNote';
 import { TAB_THEME } from '../report/components/reportStyles';
 import { SlidingTabs } from '../report/components/SlidingTabs';
 
@@ -58,53 +54,6 @@ function WritingErrorScreen({ error }) {
   );
 }
 
-function WritingFeedbackDrawer({
-  hasFeedbackPane,
-  currentFeedback,
-  isAnalyzing,
-  feedbackError,
-  handleGetFeedback,
-  loadingMessage,
-  onShowInEssay,
-  onRevise,
-  coachSession,
-  coachTaskType,
-  originalHtml,
-  reportSessionId,
-  isMobile,
-}) {
-  if (!hasFeedbackPane || isMobile) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="relative flex h-full min-h-0 min-w-0 w-full flex-col border-l border-[#e4e2f0] bg-white dark:border-white/[0.07] dark:bg-[#08080a]"
-      data-oid="zsyqr7w"
-    >
-      <div className="min-h-0 flex-1" data-oid="178ww4r">
-        <MemoizedFeedbackPanel
-          feedback={currentFeedback}
-          isAnalyzing={isAnalyzing}
-          feedbackError={feedbackError}
-          handleGetFeedback={handleGetFeedback}
-          loadingMessage={loadingMessage}
-          onShowInEssay={onShowInEssay}
-          onRevise={onRevise}
-          coachSession={coachSession}
-          coachTaskType={coachTaskType}
-          originalHtml={originalHtml}
-          reportSessionId={reportSessionId}
-          onClose={() => {}}
-          data-oid="zp34i4j"
-        />
-      </div>
-    </motion.div>
-  );
-}
-
 function useWritingInitialTaskPanelState(hasFeedbackPane) {
   const [showTask, setShowTask] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -135,7 +84,7 @@ function WritingMobileTabToggle({ activeTab, onTabChange, wordCount, targetLimit
   ];
 
   return (
-    <div className="flex items-center justify-center w-full px-2 py-1.5 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] md:hidden z-30 shrink-0">
+    <div className="flex items-center justify-center w-full px-3 py-1.5 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] md:hidden z-30 shrink-0">
       <SlidingTabs
         role="tablist"
         label="Writing view"
@@ -150,7 +99,7 @@ function WritingMobileTabToggle({ activeTab, onTabChange, wordCount, targetLimit
             </>
           ),
         }))}
-        className={cn('w-full max-w-sm rounded-lg p-0.5', TAB_THEME.track)}
+        className={cn('w-full rounded-lg p-0.5', TAB_THEME.track)}
         indicatorClassName={cn('rounded-md', TAB_THEME.indicator)}
         tabClassName="min-h-9 min-w-0 flex-1 rounded-md px-2 text-xs font-bold"
         activeClassName={TAB_THEME.active}
@@ -214,14 +163,24 @@ function WritingTaskContent() {
 
   const [showTask] = useWritingInitialTaskPanelState(hasFeedbackPane);
   const [mobileTab, setMobileTab] = useState('question');
-  const [viewMode, setViewMode] = useState(() => (isMobile ? 'feedback' : 'review'));
+  const [viewMode, setViewMode] = useState('report');
   const [focusAnnotation, setFocusAnnotation] = useState(null);
   const showTaskPanel = showTask && !hasFeedbackPane;
 
   const handleShowInEssay = useCallback((annotation) => {
-    setViewMode('review');
+    setViewMode('report');
     setFocusAnnotation({ ...annotation, requestId: Date.now() });
   }, []);
+  // Leaving a view or a task forgets the passage, so it does not jump back to it.
+  const chooseView = useCallback((mode) => {
+    setFocusAnnotation(null);
+    setViewMode(mode);
+  }, []);
+  useEffect(() => setFocusAnnotation(null), [activeType]);
+  const showResults = useCallback(() => {
+    showReportedTask();
+    chooseView('report');
+  }, [chooseView]);
   const [reviseRequest, setReviseRequest] = useState(0);
   const handleRevise = useCallback(() => {
     setViewMode('edit');
@@ -229,12 +188,8 @@ function WritingTaskContent() {
   }, []);
 
   useEffect(() => {
-    if (hasFeedbackPane && isMobile) {
-      setViewMode('feedback');
-    } else if (hasFeedbackPane && !isMobile) {
-      setViewMode('review');
-    }
-  }, [hasFeedbackPane, isMobile]);
+    if (hasFeedbackPane) setViewMode('report');
+  }, [hasFeedbackPane]);
 
   useEffect(() => {
     initialize();
@@ -259,6 +214,7 @@ function WritingTaskContent() {
         handleSwitchTask={handleSwitchTask}
         testMode={testMode}
         onSubmit={() => setShowSubmitDialog(true)}
+        onViewResults={showResults}
         isAwaitingStart={isAwaitingStart}
         selectedMode={selectedMode}
         onModeChange={setSelectedMode}
@@ -281,7 +237,7 @@ function WritingTaskContent() {
       <div
         className={cn(
           'relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col overflow-hidden transition-all duration-300',
-          hasFeedbackPane ? 'md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]' : 'md:flex-row',
+          hasFeedbackPane ? 'md:flex-col' : 'md:flex-row',
           isAwaitingStart && 'pointer-events-none select-none blur-[3px] opacity-75'
         )}
         aria-disabled={isAwaitingStart || undefined}
@@ -312,11 +268,10 @@ function WritingTaskContent() {
             testMode={testMode}
             hasFeedback={hasFeedbackPane}
             viewMode={viewMode}
-            setViewMode={setViewMode}
+            setViewMode={chooseView}
             focusAnnotation={focusAnnotation}
             showSample={showSample}
             setShowSample={setShowSample}
-            isMobile={isMobile}
             handleShowInEssay={handleShowInEssay}
             handleRevise={handleRevise}
             reviseRequest={reviseRequest}
@@ -329,26 +284,6 @@ function WritingTaskContent() {
             data-oid="xaa39j6"
           />
         )}
-
-        <AnimatePresence initial={false} data-oid="i3plaxk">
-          <WritingFeedbackDrawer
-            hasFeedbackPane={hasFeedbackPane}
-            currentFeedback={currentFeedback}
-            isAnalyzing={isAnalyzing}
-            feedbackError={feedbackError}
-            handleGetFeedback={handleGetFeedback}
-            loadingMessage={loadingMessage}
-            onShowInEssay={handleShowInEssay}
-            onRevise={handleRevise}
-            {...attemptProps(testMode, logic.session, activeType)}
-            originalHtml={
-              currentFeedback?.originalSource ||
-              useWritingTestStore.getState().drafts[activeType] ||
-              ''
-            }
-            isMobile={isMobile}
-          />
-        </AnimatePresence>
       </div>
 
       <WritingDialogs logic={logic} data-oid=":-fg:99" />
@@ -371,31 +306,32 @@ function WritingTaskContent() {
   );
 }
 
-function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
-  const tabs = isMobile
-    ? [
-        { id: 'feedback', label: 'Report' },
-        { id: 'review', label: 'My essay' },
-        { id: 'question', label: 'Question' },
-        { id: 'edit', label: 'Edit' },
-      ]
-    : [
-        { id: 'review', label: 'My essay' },
-        { id: 'question', label: 'Question' },
-        { id: 'edit', label: 'Edit' },
-      ];
+const VIEW_TABS = [
+  { value: 'report', label: 'Report' },
+  { value: 'question', label: 'Question' },
+  { value: 'edit', label: 'Edit' },
+];
 
+function WritingViewModeToggle({ viewMode, setViewMode, toolbarHostRef, hasReportToolbar }) {
   return (
-    <div className="sticky top-0 z-40 bg-white dark:bg-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07] px-2 py-1.5 sm:px-4">
-      <div className="flex items-center justify-center w-full">
+    <div className="sticky top-0 z-40 border-b border-[#e4e2f0] bg-white px-3 py-1.5 dark:border-white/[0.07] dark:bg-[#131315] sm:px-4">
+      <div
+        className={cn(
+          'mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-2',
+          hasReportToolbar
+            ? 'justify-center sm:justify-between lg:grid lg:grid-cols-[1fr_auto_1fr]'
+            : 'justify-center'
+        )}
+      >
         <SlidingTabs
           role="tablist"
           label="Writing view"
           value={viewMode}
           onChange={setViewMode}
-          options={tabs.map((tab) => ({ value: tab.id, label: tab.label }))}
+          options={VIEW_TABS}
           className={cn(
-            'w-full max-w-md items-center rounded-lg p-0.5 sm:w-auto sm:max-w-none sm:rounded-full sm:p-1',
+            'w-full items-center rounded-lg p-0.5 sm:w-auto sm:max-w-none sm:rounded-full sm:p-1',
+            hasReportToolbar && 'lg:col-start-2 lg:justify-self-center',
             TAB_THEME.track
           )}
           indicatorClassName={cn('rounded-md sm:rounded-full', TAB_THEME.indicator)}
@@ -403,74 +339,48 @@ function WritingViewModeToggle({ viewMode, setViewMode, isMobile }) {
           activeClassName={TAB_THEME.active}
           idleClassName={TAB_THEME.idle}
         />
+        <div
+          ref={toolbarHostRef}
+          className={cn(
+            'flex items-center empty:hidden',
+            hasReportToolbar && 'w-full sm:w-auto lg:col-start-3 lg:justify-self-end'
+          )}
+        />
       </div>
     </div>
   );
 }
 
-function AnnotatedReviewPane({
-  feedback,
-  writing,
-  setWriting,
-  focusAnnotation,
-  onSaveVocabularyWord,
-  savedVocabularyTerms,
-  savingVocabularyTerms,
-  reportSessionId,
-}) {
-  const analysis = React.useMemo(
-    () => analyzeWriting(feedback.originalSource || writing, feedback.taskPrompt),
-    [feedback.originalSource, feedback.taskPrompt, writing]
-  );
-  const applyCorrection = useCallback(
+/** The reviewed task, when the one on screen has no report to show. */
+function showReportedTask() {
+  const { currentFeedback, feedbacks, switchTaskFull } = useWritingTestStore.getState();
+  if (currentFeedback) return;
+  const reported = Object.keys(feedbacks).find((type) => feedbacks[type]);
+  if (reported) switchTaskFull(reported);
+}
+
+/** What the report's essay can do: jump to a passage, apply a fix, save a word. */
+function useEssayActions({ writing, setWriting, feedback, focusAnnotation, ...saving }) {
+  const { onSaveVocabularyWord, savedVocabularyTerms, savingVocabularyTerms } = saving;
+  const onApplyCorrection = useCallback(
     (annotation) => {
-      const source = writing || feedback.originalSource;
+      const source = writing || feedback?.originalSource;
       if (!annotation.replacementText || !source?.includes(annotation.originalText)) return;
       setWriting(source.replace(annotation.originalText, annotation.replacementText));
     },
     [feedback, writing, setWriting]
   );
-
-  // Explanations follow the report language; the essay and corrections do not.
-  const { language } = useReportLanguage();
-  const { shown: explained } = useTranslatedReport({
-    feedback,
-    sessionId: reportSessionId,
-    language,
-  });
-
-  return (
-    <div className="px-1 pb-6 sm:px-2" data-oid="j1tntdm">
-      <AnnotatedText
-        t={reportT(language)}
-        reportedVocabulary={reportedWords(feedback.vocabularyEnhancements).map((e) => e.original)}
-        text={feedback.originalSource || writing}
-        annotations={explained.annotations || []}
-        vocabularyEnhancements={feedback.vocabularyEnhancements || []}
-        isVisualTask={feedback.taskType === 'Task 1'}
-        chartText={
-          feedback.taskType === 'Task 1'
-            ? [
-                feedback.taskAnalysis?.visualType,
-                ...(feedback.taskAnalysis?.observedFeatures || []),
-                feedback.taskAnalysis?.limitations,
-              ]
-                .filter(Boolean)
-                .join(' ')
-            : ''
-        }
-        writingAnalysis={analysis}
-        onSaveVocabularyWord={onSaveVocabularyWord}
-        savedVocabularyTerms={savedVocabularyTerms}
-        savingVocabularyTerms={savingVocabularyTerms}
-        onApplyCorrection={applyCorrection}
-        focusAnnotation={focusAnnotation}
-        cardClassName="min-h-[500px]"
-        data-oid="wg_1:8b"
-      />
-    </div>
-  );
+  return {
+    focusAnnotation,
+    onApplyCorrection,
+    onSaveVocabularyWord,
+    savedVocabularyTerms,
+    savingVocabularyTerms,
+  };
 }
+
+/** Reading and writing views keep a comfortable line length in the single panel. */
+const COLUMN = 'mx-auto flex min-h-0 w-full max-w-[960px] flex-1 flex-col';
 
 function QuestionViewPane({ task, showSample, setShowSample }) {
   return (
@@ -493,6 +403,7 @@ function WritingPaneBody({
   feedbackError,
   writing,
   setWriting,
+  essay,
   task,
   showSample,
   setShowSample,
@@ -501,8 +412,6 @@ function WritingPaneBody({
   isCompleted,
   isAnalyzing,
   testMode,
-  focusAnnotation,
-  isMobile,
   handleShowInEssay,
   handleRevise,
   reviseRequest,
@@ -510,11 +419,10 @@ function WritingPaneBody({
   loadingMessage,
   coachSession,
   coachTaskType,
-  onSaveVocabularyWord,
-  savedVocabularyTerms,
-  savingVocabularyTerms,
   reportSessionId,
+  toolbarHost,
 }) {
+  const openTask = useOpenWritingTask();
   const [showRevision, setShowRevision] = useState(false);
   useEffect(() => setShowRevision(false), [activeType, viewMode]);
   // Declared after the reset above so a "Revise" request from the report wins
@@ -523,26 +431,22 @@ function WritingPaneBody({
     if (reviseRequest) setShowRevision(true);
   }, [reviseRequest]);
 
-  const isFeedbackMode = isMobile && hasFeedback && viewMode === 'feedback';
-  const isReviewMode = hasFeedback && viewMode === 'review' && Boolean(currentFeedback);
+  const isReportMode = hasFeedback && viewMode === 'report';
   const isQuestionMode = hasFeedback && viewMode === 'question';
   const isRevisionMode =
     hasFeedback &&
     viewMode === 'edit' &&
     showRevision &&
     Boolean(currentFeedback && coachSession?.id && coachTaskType);
-  const VIEW_TAB_ORDER = ['feedback', 'review', 'question', 'editor', 'revision'];
-  const TAB_EASE = [0.23, 1, 0.32, 1];
+  const VIEW_TAB_ORDER = ['report', 'question', 'editor', 'revision'];
 
-  const contentKey = isFeedbackMode
-    ? 'feedback'
-    : isReviewMode
-      ? 'review'
-      : isQuestionMode
-        ? 'question'
-        : isRevisionMode
-          ? 'revision'
-          : 'editor';
+  const contentKey = isReportMode
+    ? 'report'
+    : isQuestionMode
+      ? 'question'
+      : isRevisionMode
+        ? 'revision'
+        : 'editor';
 
   const reducedMotion = Boolean(useReducedMotion());
   const [tabNav, setTabNav] = useState({ key: contentKey, dir: 0 });
@@ -554,55 +458,46 @@ function WritingPaneBody({
   }
 
   let content;
-  if (isFeedbackMode) {
+  if (isReportMode) {
     content = (
-      <div className="flex-1 overflow-y-auto">
-        <MemoizedFeedbackPanel
-          feedback={currentFeedback}
-          isAnalyzing={isAnalyzing}
-          feedbackError={feedbackError}
-          handleGetFeedback={handleGetFeedback}
-          loadingMessage={loadingMessage}
-          onShowInEssay={handleShowInEssay}
-          onRevise={handleRevise}
-          coachSession={coachSession}
-          coachTaskType={coachTaskType}
-          originalHtml={currentFeedback?.originalSource || writing}
-          reportSessionId={reportSessionId}
-          onClose={() => {}}
-        />
-      </div>
-    );
-  } else if (isReviewMode) {
-    content = (
-      <AnnotatedReviewPane
+      <MemoizedFeedbackPanel
         feedback={currentFeedback}
+        isAnalyzing={isAnalyzing}
+        feedbackError={feedbackError}
+        handleGetFeedback={handleGetFeedback}
+        loadingMessage={loadingMessage}
+        onShowInEssay={handleShowInEssay}
+        onRevise={handleRevise}
+        coachSession={coachSession}
+        coachTaskType={coachTaskType}
+        originalHtml={currentFeedback?.originalSource || writing}
         reportSessionId={reportSessionId}
-        writing={writing}
-        setWriting={setWriting}
-        focusAnnotation={focusAnnotation}
-        onSaveVocabularyWord={onSaveVocabularyWord}
-        savedVocabularyTerms={savedVocabularyTerms}
-        savingVocabularyTerms={savingVocabularyTerms}
+        essay={essay}
+        toolbarHost={toolbarHost}
       />
     );
   } else if (isQuestionMode) {
     content = (
-      <QuestionViewPane task={task} showSample={showSample} setShowSample={setShowSample} />
+      <div className={COLUMN}>
+        <QuestionViewPane task={task} showSample={showSample} setShowSample={setShowSample} />
+      </div>
     );
   } else if (isRevisionMode) {
     content = (
-      <WritingRevisionEditor
-        session={coachSession}
-        taskType={coachTaskType}
-        feedback={currentFeedback}
-        originalHtml={currentFeedback?.originalSource || writing}
-        onBack={() => setShowRevision(false)}
-      />
+      <div className={COLUMN}>
+        <WritingRevisionEditor
+          session={coachSession}
+          taskType={coachTaskType}
+          feedback={currentFeedback}
+          originalHtml={currentFeedback?.originalSource || writing}
+          onBack={() => setShowRevision(false)}
+        />
+      </div>
     );
   } else {
     content = (
-      <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className={cn(hasFeedback ? COLUMN : 'flex min-h-0 flex-1 flex-col', 'gap-2')}>
+        {openTask === activeType && !hasFeedback && <OpenTaskNote task={activeType} />}
         {hasFeedback && currentFeedback && coachSession?.id && coachTaskType && (
           <div className="flex justify-end px-1">
             <button
@@ -635,15 +530,27 @@ function WritingPaneBody({
   }
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col px-1 pt-1.5 pb-4 sm:px-2 sm:pt-2.5 sm:pb-6">
+    <div
+      className={cn(
+        'relative flex min-h-0 flex-1 flex-col',
+        !isReportMode && 'px-3 pt-2.5 pb-5 sm:px-4 sm:pt-3 sm:pb-6'
+      )}
+    >
       {/* The new pane eases in directionally at once; waiting for the old one to leave left a blank gap. */}
       <motion.div
         key={contentKey}
         initial={
-          reducedMotion ? false : { opacity: 0, x: tabNav.dir * 16, y: tabNav.dir === 0 ? 6 : 0 }
+          reducedMotion
+            ? false
+            : {
+                opacity: 0,
+                x: tabNav.dir * 12,
+                y: tabNav.dir === 0 ? 4 : 0,
+                filter: 'blur(1.5px)',
+              }
         }
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ duration: reducedMotion ? 0 : 0.22, ease: TAB_EASE }}
+        animate={{ opacity: 1, x: 0, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: reducedMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
         className="flex min-h-0 flex-1 flex-col"
       >
         {content}
@@ -661,7 +568,6 @@ function WritingEditorPane({
   focusAnnotation,
   showSample,
   setShowSample,
-  isMobile,
   handleShowInEssay,
   handleRevise,
   reviseRequest,
@@ -677,7 +583,7 @@ function WritingEditorPane({
   const activeType = useWritingTestStore((state) => state.activeType);
   const writing = useWritingTestStore((state) => state.drafts[activeType] || '');
   const wordCount = useWritingTestStore((state) => state.wordCount);
-  const isCompleted = useWritingTestStore((state) => state.isCompleted);
+  const isCompleted = useTaskLocked();
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const feedbackError = useWritingTestStore((state) => state.feedbackError);
@@ -687,23 +593,40 @@ function WritingEditorPane({
     (content) => setDraft(activeType, content),
     [activeType, setDraft]
   );
+  const [toolbarHost, setToolbarHost] = useState(null);
+  const hasReportToolbar =
+    viewMode === 'report' && !isAnalyzing && !feedbackError && Boolean(currentFeedback);
+  const essay = useEssayActions({
+    writing,
+    setWriting,
+    feedback: currentFeedback,
+    focusAnnotation,
+    onSaveVocabularyWord,
+    savedVocabularyTerms,
+    savingVocabularyTerms,
+  });
 
   return (
     <div
       className={cn(
         'relative z-10 flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#fcfcfc] dark:bg-[#08080a]',
-        hasFeedback
-          ? 'w-full h-full md:min-w-0 md:border-r border-[#e4e2f0] dark:border-white/[0.07]'
-          : 'w-full md:w-1/2 md:basis-1/2 md:flex-1 h-full'
+        hasFeedback ? 'w-full h-full md:min-w-0' : 'w-full md:w-1/2 md:basis-1/2 md:flex-1 h-full'
       )}
       data-oid="ctlrd56"
     >
       {hasFeedback && (
-        <WritingViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isMobile={isMobile} />
+        <WritingViewModeToggle
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          toolbarHostRef={setToolbarHost}
+          hasReportToolbar={hasReportToolbar}
+        />
       )}
       <div
-        className="flex flex-1 min-h-0 flex-col overflow-y-auto"
-        style={{ scrollbarGutter: 'stable' }}
+        className={cn(
+          'flex flex-1 min-h-0 flex-col',
+          hasFeedback && viewMode === 'report' ? 'overflow-hidden' : 'overflow-y-auto'
+        )}
       >
         <WritingPaneBody
           hasFeedback={hasFeedback}
@@ -712,6 +635,7 @@ function WritingEditorPane({
           feedbackError={feedbackError}
           writing={writing}
           setWriting={setWriting}
+          essay={essay}
           task={task}
           showSample={showSample}
           setShowSample={setShowSample}
@@ -720,8 +644,6 @@ function WritingEditorPane({
           isCompleted={isCompleted}
           isAnalyzing={isAnalyzing}
           testMode={testMode}
-          focusAnnotation={focusAnnotation}
-          isMobile={isMobile}
           handleShowInEssay={handleShowInEssay}
           handleRevise={handleRevise}
           reviseRequest={reviseRequest}
@@ -730,9 +652,7 @@ function WritingEditorPane({
           coachSession={coachSession}
           coachTaskType={coachTaskType}
           reportSessionId={reportSessionId}
-          onSaveVocabularyWord={onSaveVocabularyWord}
-          savedVocabularyTerms={savedVocabularyTerms}
-          savingVocabularyTerms={savingVocabularyTerms}
+          toolbarHost={toolbarHost}
         />
       </div>
     </div>

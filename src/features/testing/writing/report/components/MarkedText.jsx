@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/cn';
-import { ENGLISH } from './reportStyles';
+import { ENGLISH, ESSAY_FONT } from './reportStyles';
 
 const MARKS = {
   error:
@@ -15,7 +15,8 @@ export function MarkedText({ segments, className }) {
   return (
     <p
       className={cn(
-        'font-serif leading-[1.9] text-slate-900 [overflow-wrap:anywhere] dark:text-slate-100',
+        ESSAY_FONT,
+        'leading-[1.9] text-[#1d2138] [overflow-wrap:anywhere] dark:text-slate-100',
         className
       )}
       {...ENGLISH}

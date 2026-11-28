@@ -6,6 +6,8 @@ import {
   Play,
   RotateCcw,
   CheckCircle2,
+  CircleDashed,
+  PenLine,
   Users,
   Target,
   Lock,
@@ -14,9 +16,10 @@ import {
 import { cn } from '@/lib/cn';
 import ObjectiveUpgradeLink from '../shared/components/ObjectiveUpgradeLink';
 import { withLearningActivity } from '@/features/testing/shared/activityContext';
+import { writingTaskProgress } from './openWritingTask';
 import { Bar, MICRO, MUTED, NUM, Pill, TILE } from '@/features/dashboard/components/primitives';
 
-export function WritingStatusBadge({ test, isLocked, isResuming, isCompleted }) {
+export function WritingStatusBadge({ test, isLocked, isResuming, isCompleted, taskProgress }) {
   if (isLocked) {
     return (
       <Pill tone="warn">
@@ -35,6 +38,13 @@ export function WritingStatusBadge({ test, isLocked, isResuming, isCompleted }) 
       </Pill>
     );
   }
+  if (taskProgress) {
+    return (
+      <Pill tone="accent">
+        <CircleDashed className="h-3 w-3" /> 1 of 2 tasks
+      </Pill>
+    );
+  }
   if (isCompleted) {
     return (
       <Pill tone="ok">
@@ -43,6 +53,18 @@ export function WritingStatusBadge({ test, isLocked, isResuming, isCompleted }) 
     );
   }
   return <Pill tone="neutral">New Task</Pill>;
+}
+
+/** Which half of a one-task attempt is still missing. */
+function MissingTaskLine({ taskProgress }) {
+  if (!taskProgress) return null;
+  const { missing, canWrite } = taskProgress;
+  return (
+    <p className={cn('mt-1 flex items-center gap-1.5 text-[11.5px] font-semibold', MUTED)}>
+      <CircleDashed className="h-3 w-3" aria-hidden="true" />
+      {canWrite ? `${missing} not written yet` : `${missing} was not written`}
+    </p>
+  );
 }
 
 function MetaTakenPill({ takenCount }) {
@@ -63,6 +85,7 @@ export function WritingMetaBar({
   isCompleted,
   displayScore,
   progress,
+  taskProgress,
 }) {
   const displayDuration = duration || 60;
   const displayWordLimit = wordLimit || 400;
@@ -101,7 +124,9 @@ export function WritingMetaBar({
       {hasScore && (
         <div className="border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
           <div className="flex items-center justify-between">
-            <span className={cn(MICRO, MUTED)}>Your score</span>
+            <span className={cn(MICRO, MUTED)}>
+              {taskProgress ? `${taskProgress.done} score` : 'Your score'}
+            </span>
             <div className="flex items-baseline gap-1.5">
               <span className={cn(NUM, 'text-xl font-extrabold text-slate-900 dark:text-slate-50')}>
                 {typeof displayScore === 'number' ? displayScore.toFixed(1) : displayScore}
@@ -109,6 +134,7 @@ export function WritingMetaBar({
               <span className={cn(MICRO, MUTED)}>/ 9.0</span>
             </div>
           </div>
+          <MissingTaskLine taskProgress={taskProgress} />
         </div>
       )}
     </div>
@@ -136,6 +162,28 @@ function WritingAllowanceActions({ test, compact = false }) {
   );
 }
 
+const writeTaskPath = (sessionId, task) =>
+  `/writing-task?sessionId=${sessionId}&writingTask=${encodeURIComponent(task)}`;
+
+/** Opens the unwritten task inside the same attempt. */
+function WriteMissingTask({ sessionId, task, compact }) {
+  return (
+    <Link
+      to={writeTaskPath(sessionId, task)}
+      aria-label={`Write ${task}`}
+      title={`Write ${task}`}
+      className={cn(
+        compact
+          ? ROW_ICON_BTN
+          : cn(PRIMARY_BTN, 'w-full flex-none bg-[#5a63df] text-white hover:bg-[#484FB2]')
+      )}
+    >
+      <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
+      {!compact && `Write ${task}`}
+    </Link>
+  );
+}
+
 const ROW_DRAFT_LINK =
   'flex h-8 items-center text-xs font-bold text-slate-600 hover:text-[#5a63df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] rounded-md dark:text-slate-300';
 
@@ -156,7 +204,7 @@ export function BookProgressBadge({ tests, sessions }) {
   tests.forEach((t) => {
     const s = sessions.find((session) => session.passage_id === t.id);
     if (s) {
-      if (s.is_completed) {
+      if (s.is_completed && !writingTaskProgress(s)) {
         completed++;
       } else {
         inProgress++;
@@ -183,9 +231,26 @@ export function BookProgressBadge({ tests, sessions }) {
   return <Pill tone="neutral">0/{tests.length} Completed</Pill>;
 }
 
-export function TestRowBadge({ isLocked, isCompleted, isResuming, score, feedbackReady = true }) {
+export function TestRowBadge({
+  isLocked,
+  isCompleted,
+  isResuming,
+  score,
+  feedbackReady = true,
+  taskProgress,
+}) {
   if (isLocked) {
     return <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />;
+  }
+  if (taskProgress) {
+    return (
+      <span
+        className="shrink-0 rounded bg-[#5a63df]/8 px-1.5 py-0.5 text-[10px] font-black text-[#5a63df] dark:text-[#a9afff]"
+        title={`${taskProgress.done} reviewed, ${taskProgress.missing} not written`}
+      >
+        1/2 tasks
+      </span>
+    );
   }
   if (isCompleted) {
     return (
@@ -250,7 +315,22 @@ function savedWritingLabel(isResuming, feedbackReady, compact) {
   return compact ? 'Analyze' : 'Analyze Response';
 }
 
-function SavedWritingActions({ test, sessionId, isResuming, feedbackReady, compact }) {
+/** Adds "Write Task N" to a card's buttons while that task is still open. */
+function WithMissingTask({ taskProgress, sessionId, compact, children }) {
+  if (!taskProgress?.canWrite) return children;
+  const button = (
+    <WriteMissingTask sessionId={sessionId} task={taskProgress.missing} compact={compact} />
+  );
+  return (
+    <div className={compact ? 'flex items-center gap-1.5' : 'grid gap-2'}>
+      {button}
+      {children}
+    </div>
+  );
+}
+
+function SavedWritingActions(props) {
+  const { test, sessionId, isResuming, feedbackReady, compact } = props;
   const label = savedWritingLabel(isResuming, feedbackReady, compact);
   const actionClass = cn(
     compact ? ROW_PRIMARY_BTN : PRIMARY_BTN,
@@ -260,7 +340,7 @@ function SavedWritingActions({ test, sessionId, isResuming, feedbackReady, compa
   );
   const Icon = isResuming ? Play : ArrowRight;
 
-  return (
+  const row = (
     <div className="flex items-center gap-2">
       <Link
         to={`/writing-task?sessionId=${sessionId}${isResuming ? '' : '&view=true'}`}
@@ -281,6 +361,7 @@ function SavedWritingActions({ test, sessionId, isResuming, feedbackReady, compa
       </Link>
     </div>
   );
+  return <WithMissingTask {...props}>{row}</WithMissingTask>;
 }
 
 function WritingButtons({
@@ -291,11 +372,13 @@ function WritingButtons({
   isCompleted,
   feedbackReady = true,
   compact,
+  taskProgress,
 }) {
   if (isLocked) return <ObjectiveUpgradeLink test={test} compact={compact} />;
   if (isResuming || isCompleted) {
     return (
       <SavedWritingActions
+        taskProgress={taskProgress}
         test={test}
         sessionId={sessionId}
         isResuming={isResuming}

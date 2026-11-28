@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/cn';
-import { PANEL, WELL } from '@/features/dashboard/components/primitives.jsx';
-import { BODY, ENGLISH, FOCUS_RING, HEADING, TEXT_BUTTON } from './reportStyles';
-import { CheckMark } from './reportUi';
+import { Check } from 'lucide-react';
+import {
+  BODY,
+  CARD,
+  ENGLISH,
+  FOCUS_RING,
+  HEADING,
+  HAIRLINE,
+  MUTED_TEXT,
+  TEXT_BUTTON,
+} from './reportStyles';
 
 function useFixedItems(reportKey) {
   const storageKey = reportKey ? `writing-fixed:${reportKey}` : null;
@@ -38,32 +46,48 @@ const PRACTICE_LINKS = {
 /** "wrote → change to" on one line when there is a replacement; advice stays advice. */
 function Correction({ t, item }) {
   return (
-    <p className="font-serif text-[14.5px] leading-snug [overflow-wrap:anywhere]" {...ENGLISH}>
+    <span className="text-[14px] leading-normal [overflow-wrap:anywhere]" {...ENGLISH}>
       <span
         className={cn(
-          'text-slate-900 dark:text-slate-100',
+          'text-[#12142b] dark:text-slate-100',
           item.replacement &&
-            'text-slate-500 line-through decoration-[rgb(var(--signal-fault))] decoration-2 dark:text-slate-400'
+            'text-[#6b7186] line-through decoration-[#c93c34] decoration-2 dark:text-slate-400'
         )}
       >
         {item.original}
       </span>
       {item.replacement && (
         <>
-          <span aria-hidden="true" className="px-1.5 text-slate-400">
+          <span aria-hidden="true" className="px-1.5">
             →
           </span>
           <span className="sr-only">{t('changeTo')}: </span>
-          <span className="font-semibold text-[rgb(var(--signal-ok))]">{item.replacement}</span>
+          <b className="text-[#12142b] dark:text-white">{item.replacement}</b>
         </>
       )}
-    </p>
+    </span>
+  );
+}
+
+function Tick({ done }) {
+  return (
+    <span
+      className={cn(
+        'grid h-5 w-5 place-items-center rounded-[5px] border-2 transition-colors duration-150',
+        done
+          ? 'border-[#16966c] bg-[#16966c] text-white'
+          : 'border-[#c9c6e6] bg-white dark:border-white/25 dark:bg-transparent'
+      )}
+      aria-hidden="true"
+    >
+      {done && <Check className="h-3.5 w-3.5" strokeWidth={3.5} />}
+    </span>
   );
 }
 
 function FixRow({ t, item, done, onToggle, onShowInEssay }) {
   return (
-    <li className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
+    <li className={cn('flex items-start gap-2.5 border-t py-[11px]', HAIRLINE)}>
       <button
         type="button"
         role="checkbox"
@@ -71,17 +95,19 @@ function FixRow({ t, item, done, onToggle, onShowInEssay }) {
         aria-label={t(done ? 'fixedAria' : 'markFixedAria', { original: item.original })}
         onClick={onToggle}
         className={cn(
-          '-m-2 shrink-0 rounded-full p-2 cursor-pointer transition-[scale] duration-150 ease-out active:scale-90 motion-reduce:active:scale-100',
+          '-m-2 shrink-0 rounded-lg p-2 cursor-pointer transition-[scale] duration-150 ease-out active:scale-90 motion-reduce:active:scale-100',
           FOCUS_RING
         )}
       >
-        <CheckMark done={done} />
+        <Tick done={done} />
       </button>
-      <span className="mt-px w-4 shrink-0 text-center font-mono text-[11.5px] font-bold text-slate-500 dark:text-slate-400">
-        {item.n}
-      </span>
       <div className={cn('min-w-0 flex-1 transition-opacity duration-150', done && 'opacity-55')}>
-        <Correction t={t} item={item} />
+        <p>
+          <span className="me-1.5 font-mono text-[10.5px] font-bold text-[#a3302a] dark:text-[#ff9a92]">
+            {item.n}
+          </span>
+          <Correction t={t} item={item} />
+        </p>
         {!item.replacement && item.advice && (
           <p
             className="mt-0.5 text-[13px] leading-snug text-slate-800 dark:text-slate-100"
@@ -119,29 +145,40 @@ export function FixesCard({ t, groups, onShowInEssay, reportKey }) {
   const total = keys.length;
   const doneCount = keys.filter((key) => fixed.includes(key)).length;
   return (
-    <section className={cn(PANEL, 'p-4')} aria-labelledby="writing-fixes-title">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="writing-fixes-title" className={HEADING}>
+    <section
+      className={cn(CARD, 'flex h-full flex-col p-4 @2xl:p-[22px]')}
+      aria-labelledby="writing-fixes-title"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="writing-fixes-title" className={cn(HEADING, 'text-[16px]')}>
           {t('fixTitle')}
         </h2>
-        {total > 0 && (
+        {total > 0 ? (
           <span
             className={cn(
-              'text-[12px] font-semibold',
-              doneCount === total
-                ? 'text-[rgb(var(--signal-ok))]'
-                : 'text-slate-500 dark:text-slate-400'
+              'text-[12.5px] font-bold',
+              doneCount === total ? 'text-[#0b6b4c] dark:text-[#7fe0bb]' : MUTED_TEXT
             )}
           >
             {t('fixedCount', { done: doneCount, total })}
           </span>
+        ) : (
+          <span
+            className="grid h-6 w-6 place-items-center rounded-full bg-[rgb(var(--signal-ok)/0.14)] text-[rgb(var(--signal-ok))]"
+            aria-hidden="true"
+          >
+            <Check className="h-3.5 w-3.5" strokeWidth={3} />
+          </span>
         )}
       </div>
       {total > 0 && (
-        <div className={cn('mt-2 h-1.5 overflow-hidden rounded-full', WELL)} aria-hidden="true">
+        <div
+          className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f4f3fb] dark:bg-white/[0.06]"
+          aria-hidden="true"
+        >
           {/* Scaled, not resized, so ticking never triggers layout. */}
           <div
-            className="h-full w-full rounded-full bg-[rgb(var(--signal-ok))] transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+            className="h-full w-full rounded-full bg-[#16966c] transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
             style={{
               transform: `scaleX(${doneCount / total})`,
               transformOrigin: t.rtl ? 'right' : 'left',
@@ -150,7 +187,17 @@ export function FixesCard({ t, groups, onShowInEssay, reportKey }) {
         </div>
       )}
       {total === 0 ? (
-        <p className={cn('mt-1', BODY)}>{t('fixNone')}</p>
+        <div className="mt-3 flex flex-1 flex-col justify-center rounded-xl border border-[rgb(var(--signal-ok)/0.2)] bg-[rgb(var(--signal-ok)/0.05)] p-4 dark:border-[rgb(var(--signal-ok)/0.18)] dark:bg-[rgb(var(--signal-ok)/0.06)]">
+          <div className="flex items-start gap-2.5">
+            <span
+              className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[rgb(var(--signal-ok)/0.16)] text-[rgb(var(--signal-ok))]"
+              aria-hidden="true"
+            >
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+            </span>
+            <p className={cn('min-w-0 flex-1', BODY)}>{t('fixNone')}</p>
+          </div>
+        </div>
       ) : (
         <>
           <p className="mt-2 text-[12px] text-slate-500 dark:text-slate-400">{t('fixHint')}</p>
@@ -160,7 +207,14 @@ export function FixesCard({ t, groups, onShowInEssay, reportKey }) {
               return (
                 <div key={group.id}>
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-100">
+                    <h3
+                      className={cn(
+                        'text-[12.5px] font-extrabold',
+                        group.items.some((item) => item.annotation?.severity !== 'suggestion')
+                          ? 'text-[#a3302a] dark:text-[#ff9a92]'
+                          : 'text-[#7a4f0c] dark:text-[#f5c870]'
+                      )}
+                    >
                       {group.label}
                     </h3>
                     {practice && (
@@ -169,7 +223,7 @@ export function FixesCard({ t, groups, onShowInEssay, reportKey }) {
                       </Link>
                     )}
                   </div>
-                  <ul className="mt-2 divide-y divide-[#eceafa] dark:divide-white/[0.07]">
+                  <ul className="mt-2">
                     {group.items.map((item, index) => {
                       const key = `${group.id}:${item.original}`;
                       return (

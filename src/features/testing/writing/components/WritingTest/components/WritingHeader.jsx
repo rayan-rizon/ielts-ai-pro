@@ -13,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import WritingTestClock from './WritingTestClock';
+import { useOpenWritingTask, useTaskLocked } from '@/features/testing/writing/useOpenWritingTask';
+import { writingHeaderAction } from '@/features/testing/writing/writingHeaderAction';
 import { TAB_THEME } from '@/features/testing/writing/report/components/reportStyles';
 import { Pill } from '@/features/dashboard/components/primitives';
 
@@ -23,6 +25,115 @@ import {
   TEST_HEADER_META,
   TEST_HEADER_SHELL,
 } from '@/features/testing/shared/components/testHeaderStyles';
+
+/** Each button state: the spoken name, then the wide and narrow labels. */
+const ACTION_LOOKS = {
+  view: {
+    aria: 'View results',
+    icon: CheckCircle,
+    labels: [
+      ['hidden md:inline', 'VIEW RESULTS'],
+      ['md:hidden', 'RESULTS'],
+    ],
+  },
+  analyze: {
+    aria: 'Analyze response',
+    icon: Sparkles,
+    labels: [
+      ['hidden sm:inline', 'ANALYZE RESPONSE'],
+      ['sm:hidden', 'ANALYZE'],
+    ],
+  },
+  next: {
+    aria: 'Proceed to Next Task',
+    icon: ArrowRight,
+    trailing: true,
+    labels: [
+      ['hidden md:inline', 'NEXT TASK'],
+      ['md:hidden', 'NEXT'],
+    ],
+  },
+  submit: {
+    aria: 'Submit test',
+    icon: CheckCircle,
+    labels: [
+      ['hidden sm:inline', 'SUBMIT TEST'],
+      ['sm:hidden', 'SUBMIT'],
+    ],
+  },
+  redo: {
+    aria: 'Redo analysis',
+    icon: RefreshCw,
+    labels: [
+      ['hidden lg:inline', 'REDO ANALYSIS'],
+      ['hidden sm:inline lg:hidden', 'Redo'],
+      ['sm:hidden', 'Redo'],
+    ],
+  },
+  feedback: {
+    aria: 'Get AI feedback',
+    icon: Sparkles,
+    labels: [
+      ['hidden lg:inline', 'GET AI FEEDBACK'],
+      ['hidden sm:inline lg:hidden', 'AI Feedback'],
+      ['sm:hidden', 'AI'],
+    ],
+  },
+};
+const ANALYZING_LOOK = {
+  icon: Loader2,
+  spin: true,
+  labels: [
+    ['hidden sm:inline', 'Analyzing...'],
+    ['sm:hidden', '...'],
+  ],
+};
+
+function HeaderActionLabel({ look }) {
+  const icon = <look.icon className={cn('w-3.5 h-3.5', look.spin && 'animate-spin')} />;
+  return (
+    <>
+      {!look.trailing && icon}
+      {look.labels.map(([className, text]) => (
+        <span key={className} className={className}>
+          {text}
+        </span>
+      ))}
+      {look.trailing && icon}
+    </>
+  );
+}
+
+/** The main button's state and what pressing it does. */
+function useHeaderAction({
+  testMode,
+  handleGetFeedback,
+  handleSwitchTask,
+  onSubmit,
+  onViewResults,
+}) {
+  const activeType = useWritingTestStore((state) => state.activeType);
+  const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
+  const hasFeedback = useWritingTestStore((state) => Boolean(state.currentFeedback));
+  const reviewed = useWritingTestStore((state) => state.session?.evaluation_status === 'complete');
+  const locked = useTaskLocked();
+  const openHere = useOpenWritingTask() === activeType;
+  const action = writingHeaderAction({
+    locked,
+    hasFeedback,
+    openHere,
+    reviewed,
+    activeType,
+    hasTask2: Boolean(compositeTasks?.['Task 2']),
+    testMode,
+  });
+  const handlers = {
+    view: () => onViewResults?.(),
+    next: () => handleSwitchTask('Task 2'),
+    submit: () => onSubmit(),
+  };
+  return { look: ACTION_LOOKS[action], openHere, runAction: handlers[action] || handleGetFeedback };
+}
 
 /**
  * WritingHeader
@@ -35,6 +146,7 @@ export function WritingHeader({
   handleSwitchTask,
   testMode = 'practice',
   onSubmit,
+  onViewResults,
   isAwaitingStart = false,
   selectedMode = 'practice',
   onModeChange,
@@ -45,18 +157,24 @@ export function WritingHeader({
   const activeType = useWritingTestStore((state) => state.activeType);
   const compositeTasks = useWritingTestStore((state) => state.compositeTasks);
   const isAnalyzing = useWritingTestStore((state) => state.isAnalyzing);
-  const isCompleted = useWritingTestStore((state) => state.isCompleted);
+  const { look, openHere, runAction } = useHeaderAction({
+    testMode,
+    handleGetFeedback,
+    handleSwitchTask,
+    onSubmit,
+    onViewResults,
+  });
   const currentFeedback = useWritingTestStore((state) => state.currentFeedback);
   const isSaving = useWritingTestStore((state) => state.isSaving);
   const lastSaved = useWritingTestStore((state) => state.lastSaved);
   const setShowExitDialog = useWritingTestStore((state) => state.setShowExitDialog);
 
   return (
-    <div className="sticky top-0 z-50 w-full px-2 py-0.5 sm:px-3 sm:py-1" data-oid=":8ypqdh">
+    <div className="sticky top-0 z-50 w-full px-3 py-1 sm:px-4" data-oid=":8ypqdh">
       <div
         className={cn(
           TEST_HEADER_SHELL,
-          'flex items-center justify-between gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5'
+          'mx-auto flex max-w-[1240px] items-center justify-between gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5'
         )}
         data-oid="djy-d0b"
       >
@@ -253,108 +371,18 @@ export function WritingHeader({
                 data-oid="15qptnk"
               />
 
-              <WritingTestClock data-oid="rbk722v" />
+              {!openHere && <WritingTestClock data-oid="rbk722v" />}
 
               <Button
-                onClick={() => {
-                  if (currentFeedback && isCompleted) {
-                    const element = document.getElementById('feedback-section');
-                    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  } else if (isCompleted) {
-                    handleGetFeedback();
-                  } else if (
-                    activeType === 'Task 1' &&
-                    compositeTasks &&
-                    compositeTasks['Task 2']
-                  ) {
-                    handleSwitchTask('Task 2');
-                  } else if (testMode === 'exam' && !isCompleted) {
-                    onSubmit();
-                  } else {
-                    handleGetFeedback();
-                  }
-                }}
+                onClick={runAction}
                 disabled={isAnalyzing}
-                aria-label={
-                  isAnalyzing
-                    ? 'Analyzing response'
-                    : currentFeedback && isCompleted
-                      ? 'View results'
-                      : isCompleted
-                        ? 'Analyze response'
-                        : activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2']
-                          ? 'Proceed to Next Task'
-                          : testMode === 'exam' && !isCompleted
-                            ? 'Submit test'
-                            : currentFeedback
-                              ? 'Redo analysis'
-                              : 'Get AI feedback'
-                }
+                aria-label={isAnalyzing ? 'Analyzing response' : look.aria}
                 className={cn(
                   'flex items-center gap-1 sm:gap-1.5 font-bold px-2.5 sm:px-4 h-7.5 sm:h-8.5 rounded-lg sm:rounded-full bg-[#5a63df] hover:bg-[#4d55c7] text-white border-0 shadow-xs transition-all duration-200 active:scale-[0.98] disabled:opacity-75 disabled:hover:scale-100 text-[10px] sm:text-xs uppercase tracking-wide'
                 )}
                 data-oid="ua-kwyv"
               >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" data-oid="m0-obo4" />
-                    <span className="hidden sm:inline" data-oid="p5ycut7">
-                      Analyzing...
-                    </span>
-                    <span className="sm:hidden" data-oid="p5ycut7-mob">
-                      ...
-                    </span>
-                  </>
-                ) : currentFeedback && isCompleted ? (
-                  <>
-                    <CheckCircle className="w-3.5 h-3.5" data-oid="49as5pg" />
-                    <span className="hidden md:inline" data-oid="xdavx2-">
-                      VIEW RESULTS
-                    </span>
-                    <span className="md:hidden" data-oid="xdavx2-mob">
-                      RESULTS
-                    </span>
-                  </>
-                ) : isCompleted ? (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">ANALYZE RESPONSE</span>
-                    <span className="sm:hidden">ANALYZE</span>
-                  </>
-                ) : activeType === 'Task 1' && compositeTasks && compositeTasks['Task 2'] ? (
-                  <>
-                    <span className="hidden md:inline" data-oid="x._jh2f">
-                      NEXT TASK
-                    </span>
-                    <span className="md:hidden" data-oid="x._jh2f-mob">
-                      NEXT
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5" data-oid="_w3w20d" />
-                  </>
-                ) : testMode === 'exam' && !isCompleted ? (
-                  <>
-                    <CheckCircle className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">SUBMIT TEST</span>
-                    <span className="sm:hidden">SUBMIT</span>
-                  </>
-                ) : (
-                  <>
-                    {currentFeedback ? (
-                      <RefreshCw className="w-3.5 h-3.5" data-oid="gzq5nvq" />
-                    ) : (
-                      <Sparkles className="w-3.5 h-3.5" data-oid="_k24264" />
-                    )}
-                    <span className="hidden lg:inline" data-oid="d-j6l5n">
-                      {currentFeedback ? 'REDO ANALYSIS' : 'GET AI FEEDBACK'}
-                    </span>
-                    <span className="hidden sm:inline lg:hidden" data-oid="d-j6l5n-md">
-                      {currentFeedback ? 'Redo' : 'AI Feedback'}
-                    </span>
-                    <span className="sm:hidden" data-oid="d-j6l5n-sm">
-                      {currentFeedback ? 'Redo' : 'AI'}
-                    </span>
-                  </>
-                )}
+                <HeaderActionLabel look={isAnalyzing ? ANALYZING_LOOK : look} />
               </Button>
             </>
           )}

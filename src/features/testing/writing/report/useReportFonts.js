@@ -8,15 +8,17 @@ const FONTS = {
   fa: { family: 'Vazirmatn', query: 'Vazirmatn:wght@400;500;600;700' },
 };
 
+const ESSAY_FONT = {
+  family: 'Source Serif 4',
+  query: 'Source+Serif+4:wght@400;600;700',
+};
+
 export const reportFontFamily = (language) =>
   FONTS[language]
     ? `'Plus Jakarta Sans', '${FONTS[language].family}', system-ui, sans-serif`
     : undefined;
 
-export function loadReportFont(language) {
-  const font = FONTS[language];
-  if (!font || typeof document === 'undefined') return Promise.resolve();
-  const id = `report-font-${language}`;
+function addStylesheet(id, font) {
   let link = document.getElementById(id);
   if (!link) {
     link = document.createElement('link');
@@ -35,8 +37,15 @@ export function loadReportFont(language) {
   });
 }
 
+export function loadReportFont(language) {
+  const font = FONTS[language];
+  if (!font || typeof document === 'undefined') return Promise.resolve();
+  return addStylesheet(`report-font-${language}`, font);
+}
+
 export function useReportFonts(language) {
   useEffect(() => {
+    addStylesheet('report-font-essay', ESSAY_FONT);
     loadReportFont(language);
   }, [language]);
 }

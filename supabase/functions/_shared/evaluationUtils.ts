@@ -620,7 +620,8 @@ export function normalizeWritingEvaluation(
     ]),
     criteriaScores,
     annotations,
-    summary: compactFeedbackText(raw.summary, 1, 220),
+    // The result card shows this in full, so only a runaway reply is cut.
+    summary: compactFeedbackText(raw.summary, 1, 500),
     criterionNotes: normalizeWritingCriterionNotes(raw.criterionNotes, taskCriterionKey),
     paragraphNotes: normalizeWritingParagraphNotes(raw.paragraphNotes, sourceText),
     strengths: compactFeedbackList(raw.strengths, 3, 170),

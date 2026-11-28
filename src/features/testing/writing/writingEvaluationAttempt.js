@@ -51,15 +51,18 @@ async function savePendingWritingAttempt({ session, latest, payload }, client) {
   return data ? { ...session, ...payload, ...data } : null;
 }
 
-/** Preserve partial feedback and record failure only for the owning attempt. */
+/**
+ * Preserve partial feedback and record failure only for the owning attempt.
+ * `keepComplete` is for an extra task on a finished test: it stays finished.
+ */
 export async function recordWritingEvaluationFailure(
-  { session, error, attemptedTasks, feedbacks = {} },
+  { session, error, attemptedTasks, feedbacks = {}, keepComplete = false },
   client = supabase
 ) {
   const latest = await readPendingWritingAttempt(session, client);
   if (!latest) return null;
   const payload = {
-    evaluation_status: 'failed',
+    evaluation_status: keepComplete ? 'complete' : 'failed',
     content_data: {
       ...latest.content_data,
       ai_feedbacks: {

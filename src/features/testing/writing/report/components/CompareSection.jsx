@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Loader2, PenLine, Sparkles } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { Loader2, PenLine } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { PANEL } from '@/features/dashboard/components/primitives.jsx';
 import {
   countWords,
   segmentModelParagraph,
 } from '../../../../../../supabase/functions/_shared/writingBandModels';
 import { CRITERIA } from '../../utils/writingReportModel';
+import { bandGoal } from '../bandGoals';
 import { paragraphName } from './paragraphName';
 import {
   BODY,
   ENGLISH,
+  ESSAY_FONT,
   HAIRLINE,
   HEADING,
+  MUTED_TEXT,
   PRIMARY_BUTTON,
   QUIET_BUTTON,
-  TEXT_BUTTON,
 } from './reportStyles';
 import { Segmented } from './reportUi';
 import { MarkedText } from './MarkedText';
@@ -35,15 +36,24 @@ function Column({ title, words, t, children, tone }) {
     <figure
       className={cn(
         // The learner's side is a quiet well; only the stronger version is outlined.
-        'min-w-0 rounded-xl p-3 @md:p-4',
+        'min-w-0 rounded-xl p-4 @2xl:p-5',
         tone === 'model'
-          ? 'border border-[#5a63df]/30 bg-[#f6f5fe] dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/[0.07]'
-          : 'bg-[#f6f5fb] dark:bg-white/[0.04]'
+          ? 'border-[1.5px] border-[#c9ccf3] bg-white dark:border-[#8f97ff]/35 dark:bg-transparent'
+          : 'bg-[#f4f3fb] dark:bg-white/[0.04]'
       )}
     >
       <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-[13px] font-extrabold text-slate-900 dark:text-white">{title}</span>
-        <span className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
+        <span
+          className={cn(
+            'text-[13px] font-extrabold',
+            tone === 'model'
+              ? 'text-[#4b53c9] dark:text-[#c3c7ff]'
+              : 'text-[#12142b] dark:text-white'
+          )}
+        >
+          {title}
+        </span>
+        <span className={cn('font-mono text-[12px]', MUTED_TEXT)}>
           {t('wordsCount', { count: words })}
         </span>
       </figcaption>
@@ -55,14 +65,17 @@ function Column({ title, words, t, children, tone }) {
 function ModelText({ paragraph }) {
   return (
     <p
-      className="mt-2 font-serif text-[15px] leading-[1.85] text-slate-900 dark:text-slate-100"
+      className={cn(
+        ESSAY_FONT,
+        'mt-2.5 text-[16px] leading-[1.9] text-[#1d2138] @2xl:text-[17px] dark:text-slate-100'
+      )}
       {...ENGLISH}
     >
       {segmentModelParagraph(paragraph.model, paragraph.notes).map((segment, index) =>
         segment.n ? (
           <mark
             key={index}
-            className="rounded bg-[#5a63df]/[0.14] box-decoration-clone px-0.5 text-inherit"
+            className="rounded bg-[#5a63df]/[0.13] box-decoration-clone px-0.5 py-px text-inherit dark:bg-[#8f97ff]/20"
           >
             {segment.text}
             <sup className="ms-0.5 font-mono text-[10px] font-bold text-[#4b53c9] dark:text-[#c3c7ff]">
@@ -77,33 +90,30 @@ function ModelText({ paragraph }) {
   );
 }
 
-function Notes({ t, notes, taskType, translated }) {
+function Notes({ t, band, notes, taskType, translated }) {
   return (
     <div>
-      <h4 className="text-[13.5px] font-extrabold text-slate-900 dark:text-white">
-        {t('whyHigher')}
+      <h4 className="text-[14px] font-extrabold text-[#3a41ad] dark:text-[#c3c7ff]">
+        {t('whatMakes', { band })}
       </h4>
       {t.language !== 'en' && !translated && (
         <p className="mt-1 text-[12px] text-[rgb(var(--signal-warn))]">{t('notesEnglish')}</p>
       )}
-      <ol className="mt-2 grid gap-2 @2xl:grid-cols-2">
+      <ol className="mt-2.5 grid gap-x-6 gap-y-3 @xl:grid-cols-2 @4xl:grid-cols-4">
         {notes.map((note) => (
-          <li
-            key={note.n}
-            className="flex gap-2.5 rounded-lg bg-[#f4f3fb] p-3 dark:bg-white/[0.06]"
-          >
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#5a63df] font-mono text-[11px] font-bold text-white">
+          <li key={note.n} className="flex items-baseline gap-2.5">
+            <span className="w-3 shrink-0 font-mono text-[11px] font-bold text-[#4b53c9] dark:text-[#c3c7ff]">
               {note.n}
             </span>
             <span className="min-w-0">
               <bdi
-                className="block text-[12.5px] font-bold text-slate-900 dark:text-white"
+                className="block text-[12.5px] font-extrabold text-[#1d2138] dark:text-white"
                 {...ENGLISH}
               >
                 {criterionName(note.criterion, taskType)}
               </bdi>
               <span
-                className="block text-[13px] leading-snug text-slate-700 dark:text-slate-200"
+                className="block text-[14px] leading-[1.55] text-[#2a2f47] dark:text-slate-200"
                 {...(translated || t.language === 'en' ? {} : ENGLISH)}
               >
                 {note.why}
@@ -116,35 +126,68 @@ function Notes({ t, notes, taskType, translated }) {
   );
 }
 
-function Request({ t, band, entry, onLoad }) {
-  if (entry?.status === 'loading')
-    return (
-      <p
-        className="flex items-center gap-2 text-[13px] text-slate-600 dark:text-slate-300"
-        role="status"
-      >
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-        {t('writingBand', { band })}
-      </p>
-    );
+/** Line lengths of the paragraph that is on its way. */
+const WAITING_LINES = ['w-full', 'w-[94%]', 'w-full', 'w-[88%]', 'w-[97%]', 'w-[62%]'];
+
+/** The stronger version's place while it is written, or why it could not be. */
+function Pending({ t, band, entry, onRetry }) {
   if (entry?.status === 'failed')
     return (
       <div
         role="alert"
-        className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-800 dark:text-slate-100"
+        className="flex flex-wrap content-center items-center justify-center gap-x-3 gap-y-1 rounded-xl border-[1.5px] border-[#c9ccf3] p-5 text-center text-[13px] text-slate-800 dark:border-[#8f97ff]/35 dark:text-slate-100"
       >
         <span>{t(ERROR_TEXT[entry.code] || 'compareFailed')}</span>
-        <button type="button" className={QUIET_BUTTON} onClick={() => onLoad(band)}>
+        <button type="button" className={QUIET_BUTTON} onClick={() => onRetry(band)}>
           {t('tryAgain')}
         </button>
       </div>
     );
   return (
-    <button type="button" className={PRIMARY_BUTTON} onClick={() => onLoad(band)}>
-      <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-      {t('showBand', { band })}
-    </button>
+    <div className="rounded-xl border-[1.5px] border-[#c9ccf3] p-4 dark:border-[#8f97ff]/35">
+      <p
+        className="flex items-center gap-2 text-[13px] font-semibold text-[#3a41ad] dark:text-[#c3c7ff]"
+        role="status"
+      >
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+        {t('writingBand', { band })}
+      </p>
+      <div className="mt-4 space-y-3.5" aria-hidden="true">
+        {WAITING_LINES.map((width, line) => (
+          <div
+            key={line}
+            className={cn(
+              'h-2.5 animate-pulse rounded-full bg-[#ecedf9] motion-reduce:animate-none dark:bg-white/[0.07]',
+              width
+            )}
+          />
+        ))}
+      </div>
+    </div>
   );
+}
+
+/** The learner's own target is named as theirs; otherwise the one to aim at next. */
+function bandLabel(t, band, goal, target) {
+  if (band === Number(target)) return t('bandYourTarget', { band });
+  return band === goal ? t('bandTarget', { band }) : `Band ${band}`;
+}
+
+/**
+ * The band on show: the learner's choice, else the one they are aiming at. Its
+ * paragraph is fetched as soon as it is on show; a failure waits for a tap.
+ */
+function useShownBand({ bands, overallBand, target, paragraph, models }) {
+  const [chosen, setChosen] = useState(null);
+  const aim = bandGoal(overallBand, target);
+  const goal = bands.includes(aim) ? aim : bands[0];
+  const band = chosen ?? goal;
+  const { load } = models;
+  const missing = Boolean(paragraph) && !models.entry(band);
+  useEffect(() => {
+    if (missing) load(band);
+  }, [missing, band, load]);
+  return { band, goal, setBand: setChosen };
 }
 
 function Controls({
@@ -155,10 +198,12 @@ function Controls({
   onPositionChange,
   bands,
   band,
+  goal,
+  target,
   onBandChange,
 }) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-2 border-t pt-3', HAIRLINE)}>
+    <div className="flex flex-wrap items-center gap-2">
       {paragraphs.length > 1 && (
         <Segmented
           label={t('yourParagraph')}
@@ -175,28 +220,34 @@ function Controls({
           label={t('compareWith')}
           value={band}
           onChange={onBandChange}
-          options={bands.map((value) => ({ value, label: `Band ${value}` }))}
+          options={bands.map((value) => ({
+            value,
+            label: bandLabel(t, value, goal, target),
+          }))}
         />
       )}
     </div>
   );
 }
 
-/** The reasons, the warning against copying and a way back to the draft. */
-function Reasons({ t, rewritten, taskType, translated, onRevise }) {
+/** The reasons, then the way back to the draft and the warning against copying. */
+function Reasons({ t, band, rewritten, taskType, translated }) {
   return (
-    <>
-      <Notes t={t} notes={rewritten.notes} taskType={taskType} translated={translated} />
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        {onRevise && (
-          <button type="button" className={TEXT_BUTTON} onClick={onRevise}>
-            <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
-            {t('reviseAnswer')}
-          </button>
-        )}
-        <p className="text-[12.5px] text-slate-600 dark:text-slate-300">{t('studyPattern')}</p>
-      </div>
-    </>
+    <Notes t={t} band={band} notes={rewritten.notes} taskType={taskType} translated={translated} />
+  );
+}
+
+function RewriteFooter({ t, onRevise }) {
+  return (
+    <div className={cn('flex flex-wrap items-center gap-x-4 gap-y-3 border-t pt-[18px]', HAIRLINE)}>
+      {onRevise && (
+        <button type="button" className={PRIMARY_BUTTON} onClick={onRevise}>
+          <PenLine className="h-4 w-4" aria-hidden="true" />
+          {t('rewriteSelf')}
+        </button>
+      )}
+      <p className={cn('min-w-0 flex-[1_1_16rem] text-[13px]', MUTED_TEXT)}>{t('studyPattern')}</p>
+    </div>
   );
 }
 
@@ -204,33 +255,45 @@ const rewrittenFor = (entry, paragraph) =>
   entry?.data?.paragraphs.find((item) => item.index === paragraph.index);
 
 /** One paragraph at one band: the learner's text beside the stronger version. */
-function Pair({
-  t,
-  taskType,
-  paragraph,
-  segments,
-  band,
-  models,
-  onRevise,
-  direction,
-  reducedMotion,
-}) {
+const Pair = React.forwardRef(function Pair(
+  { t, taskType, paragraph, segments, band, models, direction, reducedMotion },
+  ref
+) {
   const entry = models.entry(band);
   const rewritten = rewrittenFor(entry, paragraph);
   return (
     // A new paragraph or band eases in directionally; nothing waits for the old one.
     <motion.div
+      ref={ref}
       initial={
-        reducedMotion ? false : { opacity: 0, x: direction * 14, y: direction === 0 ? 4 : 0 }
+        reducedMotion
+          ? false
+          : {
+              opacity: 0,
+              x: direction * 12,
+              y: direction === 0 ? 4 : 0,
+              filter: 'blur(1.5px)',
+            }
       }
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{ duration: reducedMotion ? 0 : 0.22, ease: [0.23, 1, 0.32, 1] }}
-      className="space-y-3"
+      animate={{ opacity: 1, x: 0, y: 0, filter: 'blur(0px)' }}
+      exit={
+        reducedMotion
+          ? undefined
+          : {
+              opacity: 0,
+              x: -direction * 8,
+              filter: 'blur(1px)',
+              transition: { duration: 0.14, ease: [0.22, 1, 0.36, 1] },
+            }
+      }
+      transition={{ duration: reducedMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
+      className="space-y-4"
     >
-      <div className={cn('grid gap-3', rewritten && '@2xl:grid-cols-2')}>
+      <div className="grid gap-3 @2xl:grid-cols-2">
         <Column t={t} title={t('yourParagraph')} words={countWords(paragraph.text)}>
-          <MarkedText segments={segments} className="mt-2 text-[15px]" />
+          <MarkedText segments={segments} className="mt-2.5 text-[16px] @2xl:text-[17px]" />
         </Column>
+        {!rewritten && <Pending t={t} band={band} entry={entry} onRetry={models.retry} />}
         {rewritten && (
           <Column
             t={t}
@@ -242,28 +305,32 @@ function Pair({
           </Column>
         )}
       </div>
-      {rewritten ? (
+      {rewritten && (
         <Reasons
           t={t}
+          band={band}
           rewritten={rewritten}
           taskType={taskType}
           translated={entry.data.notesTranslated}
-          onRevise={onRevise}
         />
-      ) : (
-        <Request t={t} band={band} entry={entry} onLoad={models.load} />
       )}
     </motion.div>
   );
-}
+});
 
 const markedPieces = (marked, paragraph) =>
   marked[paragraph.index] || [{ text: paragraph.text, kind: null }];
 
 export function CompareSection({ t, paragraphs, bands, position, ...rest }) {
-  const [band, setBand] = useState(bands[0]);
   const chosen = Math.min(position, paragraphs.length - 1);
   const selected = paragraphs[chosen];
+  const { band, goal, setBand } = useShownBand({
+    bands,
+    overallBand: rest.overallBand,
+    target: rest.target,
+    paragraph: selected,
+    models: rest.models,
+  });
   const reducedMotion = Boolean(useReducedMotion());
   const [nav, setNav] = useState({ pos: chosen, band, dir: 0 });
   if (nav.pos !== chosen || nav.band !== band) {
@@ -279,18 +346,12 @@ export function CompareSection({ t, paragraphs, bands, position, ...rest }) {
   }
 
   return (
-    <section
-      className={cn(PANEL, '@container scroll-mt-3 space-y-3 p-4')}
-      aria-labelledby="writing-compare-title"
-    >
-      <div>
-        <h2 id="writing-compare-title" className={HEADING}>
+    <section className="scroll-mt-3 space-y-3.5" aria-labelledby="writing-compare-title">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
+        <h3 id="writing-compare-title" className={cn(HEADING, 'min-w-0 flex-[1_1_17rem]')}>
           {t('compareTitle')}
-        </h2>
-        <p className={cn('mt-0.5', BODY)}>{t(selected ? 'compareIntro' : 'needParagraphs')}</p>
-      </div>
-      {selected && (
-        <>
+        </h3>
+        {selected && (
           <Controls
             t={t}
             paragraphs={paragraphs}
@@ -299,22 +360,31 @@ export function CompareSection({ t, paragraphs, bands, position, ...rest }) {
             onPositionChange={rest.onPositionChange}
             bands={bands}
             band={band}
+            goal={goal}
+            target={rest.target}
             onBandChange={setBand}
           />
-          <Pair
-            key={`${selected.index}-${band}`}
-            t={t}
-            taskType={rest.taskType}
-            paragraph={selected}
-            segments={markedPieces(rest.marked, selected)}
-            band={band}
-            models={rest.models}
-            onRevise={rest.onRevise}
-            direction={nav.dir}
-            reducedMotion={reducedMotion}
-          />
-        </>
+        )}
+      </div>
+      {!selected && <p className={BODY}>{t('needParagraphs')}</p>}
+      {selected && (
+        <div className="relative">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <Pair
+              key={`${selected.index}-${band}`}
+              t={t}
+              taskType={rest.taskType}
+              paragraph={selected}
+              segments={markedPieces(rest.marked, selected)}
+              band={band}
+              models={rest.models}
+              direction={nav.dir}
+              reducedMotion={reducedMotion}
+            />
+          </AnimatePresence>
+        </div>
       )}
+      <RewriteFooter t={t} onRevise={rest.onRevise} />
     </section>
   );
 }

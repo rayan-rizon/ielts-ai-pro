@@ -25,6 +25,7 @@ export default function WritingCardView(props) {
     session,
     completedSessionId,
     feedbackReady,
+    taskProgress,
   } = props;
 
   return (
@@ -43,6 +44,7 @@ export default function WritingCardView(props) {
             isLocked={isLocked}
             isResuming={isResuming}
             isCompleted={isCompleted}
+            taskProgress={taskProgress}
           />
         </div>
 
@@ -71,6 +73,7 @@ export default function WritingCardView(props) {
             isCompleted={isCompleted}
             displayScore={displayScore}
             progress={progress}
+            taskProgress={taskProgress}
           />
         </div>
       </div>
@@ -84,6 +87,7 @@ export default function WritingCardView(props) {
           session={session}
           completedSessionId={completedSessionId}
           feedbackReady={feedbackReady}
+          taskProgress={taskProgress}
         />
       </div>
     </div>

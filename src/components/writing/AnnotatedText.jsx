@@ -6,7 +6,6 @@ import { cn } from '@/lib/cn';
 import { plainWritingText } from '@/features/testing/writing/utils/writingCoaching';
 import { tidyServerCut } from '@/features/testing/writing/utils/feedbackFormatting';
 import { reportT } from '@/features/testing/writing/report/reportStrings';
-import WordsAndLinking from './WordsAndLinking';
 
 const ENGLISH_WORDS = reportT('en');
 
@@ -475,30 +474,22 @@ const AnnotationTooltip = ({
 
 const FILTER_PILL_CONFIG = {
   error: {
-    active:
-      'bg-[rgb(var(--signal-fault)/0.1)] border-[rgb(var(--signal-fault)/0.35)] text-[rgb(var(--signal-fault))]',
-    dot: 'bg-[rgb(var(--signal-fault))]',
+    active: 'border-transparent bg-[#c93c34]/[0.09] text-[#a3302a] dark:text-[#ff9a92]',
   },
   warning: {
-    active:
-      'bg-[rgb(var(--signal-warn)/0.1)] border-[rgb(var(--signal-warn)/0.35)] text-[rgb(var(--signal-warn))]',
-    dot: 'bg-[rgb(var(--signal-warn))]',
+    active: 'border-transparent bg-[#ba7c1a]/[0.11] text-[#7a4f0c] dark:text-[#f5c870]',
   },
   suggestion: {
     active:
       'bg-[#efedff] border-[#d2d7f8] text-[#5661e9] dark:bg-indigo-500/20 dark:border-indigo-500/40 dark:text-indigo-200',
-    dot: 'bg-[#5661e9] dark:bg-indigo-400',
   },
   positive: {
-    active:
-      'bg-[rgb(var(--signal-ok)/0.1)] border-[rgb(var(--signal-ok)/0.35)] text-[rgb(var(--signal-ok))]',
-    dot: 'bg-[rgb(var(--signal-ok))]',
+    active: 'border-transparent bg-[#16966c]/[0.1] text-[#0b6b4c] dark:text-[#7fe0bb]',
   },
 };
 
 const INACTIVE_PILL =
   'bg-slate-100/70 border-slate-200/60 text-slate-700 dark:bg-white/5 dark:border-white/10 dark:text-slate-300';
-const INACTIVE_DOT = 'bg-slate-400 dark:bg-slate-500';
 
 const FilterPill = ({ type, count, isActive, onToggle, label }) => {
   const cfg = FILTER_PILL_CONFIG[type];
@@ -508,12 +499,12 @@ const FilterPill = ({ type, count, isActive, onToggle, label }) => {
       aria-pressed={isActive}
       onClick={() => onToggle(type)}
       className={cn(
-        'flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
+        'flex min-h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11.5px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df]',
         isActive ? cfg.active : INACTIVE_PILL
       )}
     >
-      <div className={cn('w-1.5 h-1.5 rounded-full', isActive ? cfg.dot : INACTIVE_DOT)} />
-      {count} {label}
+      {label}
+      <span className="font-mono tabular-nums">{count}</span>
     </button>
   );
 };
@@ -521,13 +512,13 @@ const FilterPill = ({ type, count, isActive, onToggle, label }) => {
 // ─── Summary Bar ──────────────────────────────────────────────────────────────
 
 const LEGEND = [
-  { type: 'error', label: 'Mistakes' },
-  { type: 'warning', label: 'Worth fixing' },
-  { type: 'suggestion', label: 'Ideas' },
-  { type: 'positive', label: 'Good' },
+  { type: 'error', label: 'filterMistakes' },
+  { type: 'warning', label: 'filterWorthFixing' },
+  { type: 'suggestion', label: 'filterIdeas' },
+  { type: 'positive', label: 'filterGood' },
 ];
 
-const AnnotationSummary = ({ annotations, filters, onFilterToggle, onSelectAll }) => {
+const AnnotationSummary = ({ t, annotations, filters, onFilterToggle, onSelectAll }) => {
   const counts = useMemo(() => {
     const c = { error: 0, warning: 0, suggestion: 0, positive: 0 };
     annotations.forEach((a) => {
@@ -538,21 +529,17 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle, onSelectAll }
   }, [annotations]);
 
   const allTypes = LEGEND.map((item) => item.type);
-  const isAllActive = allTypes.every((t) => filters.includes(t));
+  const isAllActive = allTypes.every((type) => filters.includes(type));
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-1.5"
-      role="group"
-      aria-label="Show or hide highlights"
-    >
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('filterGroup')}>
       {LEGEND.map(({ type, label }) =>
         counts[type] > 0 ? (
           <FilterPill
             key={type}
             type={type}
             count={counts[type]}
-            label={label}
+            label={t(label)}
             isActive={filters.includes(type)}
             onToggle={onFilterToggle}
           />
@@ -563,7 +550,7 @@ const AnnotationSummary = ({ annotations, filters, onFilterToggle, onSelectAll }
         onClick={onSelectAll}
         className="rounded-sm px-1 text-[11px] font-semibold text-[#5a63df] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-[#afb5ff]"
       >
-        {isAllActive ? 'Hide all' : 'Show all'}
+        {t(isAllActive ? 'filterHideAll' : 'filterShowAll')}
       </button>
     </div>
   );
@@ -603,7 +590,7 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
   }, [isActive]);
 
   return (
-    <span className="relative inline">
+    <span className="relative inline" data-fix-number={segment.annotation.n || undefined}>
       <motion.span
         ref={annotationRef}
         onClick={(e) => {
@@ -623,6 +610,11 @@ const AnnotatedSegment = ({ segment, isActive, onActivate, onApply, onIgnore, co
           {segment.text}
         </span>
       </motion.span>
+      {segment.annotation.n && (
+        <sup className="ms-0.5 font-mono text-[10px] font-bold text-slate-600 dark:text-slate-300">
+          {segment.annotation.n}
+        </sup>
+      )}
 
       <AnimatePresence>
         {isActive && (
@@ -750,28 +742,21 @@ function useAnnotationState({
 
 // ─── Header Sub-component ─────────────────────────────────────────────────────
 
-const AnnotatedTextHeader = ({ annotations, filters, onFilterToggle, onSelectAll }) => (
-  <div className="mb-3 flex flex-wrap items-start justify-between gap-2.5 border-b border-[#eceafa] pb-2.5 dark:border-white/[0.07]">
-    <div>
-      <h3 className="text-[15px] font-extrabold tracking-tight text-slate-900 dark:text-white">
-        Your essay
-      </h3>
-      {annotations.length > 0 && (
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-          Tap an underlined phrase to see the fix.
-        </p>
-      )}
-    </div>
-    {annotations.length > 0 && (
+const AnnotatedTextHeader = ({ t, annotations, filters, onFilterToggle, onSelectAll }) => {
+  if (!annotations.length) return null;
+  return (
+    <div className="mb-3 space-y-2">
       <AnnotationSummary
+        t={t}
         annotations={annotations}
         filters={filters}
         onFilterToggle={onFilterToggle}
         onSelectAll={onSelectAll}
       />
-    )}
-  </div>
-);
+      <p className="text-xs text-slate-500 dark:text-slate-400">{t('essayTapHint')}</p>
+    </div>
+  );
+};
 
 // ─── Body Sub-component ───────────────────────────────────────────────────────
 
@@ -788,6 +773,24 @@ function ParagraphNote({ note }) {
   );
 }
 
+/** One paragraph; the one to fix first is tinted and says why. */
+function ParagraphFrame({ highlight, children }) {
+  if (!highlight) return <div>{children}</div>;
+  return (
+    <div
+      data-weakest="true"
+      className="-mx-3.5 rounded-xl bg-[#fdf8ee] px-3.5 py-3 dark:bg-[#f0b54a]/[0.07]"
+    >
+      {children}
+      {highlight.note && (
+        <p className="mt-2 text-[13px] font-semibold leading-snug text-[#7a4f0c] dark:text-[#f5c870]">
+          {highlight.note}
+        </p>
+      )}
+    </div>
+  );
+}
+
 const AnnotatedTextBody = ({
   paragraphs,
   activeAnnotation,
@@ -796,13 +799,17 @@ const AnnotatedTextBody = ({
   onIgnore,
   onActivate,
   focusRequestId,
+  highlight,
 }) => {
   return (
     <div>
       <div className="space-y-4">
         {paragraphs.map((paragraph) => (
-          <div key={paragraph.index}>
-            <p className="whitespace-pre-wrap font-serif text-[15px] leading-8 text-slate-700 dark:text-slate-200">
+          <ParagraphFrame
+            key={paragraph.index}
+            highlight={highlight?.index === paragraph.index ? highlight : null}
+          >
+            <p className="whitespace-pre-wrap font-['Source_Serif_4',Georgia,serif] text-[17px] leading-[1.85] text-[#1d2138] dark:text-slate-200">
               {paragraph.segments.map((segment, i) => {
                 if (!segment.annotation) return <span key={i}>{segment.text}</span>;
                 if (segment.annotation.isFocus) {
@@ -830,33 +837,26 @@ const AnnotatedTextBody = ({
               })}
             </p>
             <ParagraphNote note={paragraph.note} />
-          </div>
+          </ParagraphFrame>
         ))}
       </div>
     </div>
   );
 };
 
-// ─── Coaching & Analysis Sub-components ───────────────────────────────────────
+// ─── Essay ────────────────────────────────────────────────────────────────────
 
+/** The learner's essay with the marker's notes underlined in place. */
 export default function AnnotatedText({
   text,
   annotations = [],
-  vocabularyEnhancements = [],
   paragraphNotes = [],
-  chartText = '',
-  isVisualTask = false,
-  writingAnalysis,
-  onSaveVocabularyWord,
-  savedVocabularyTerms = new Set(),
-  savingVocabularyTerms = new Set(),
   onApplyCorrection,
   onIgnoreAnnotation,
   focusAnnotation,
+  highlight,
   className,
-  cardClassName,
   t = ENGLISH_WORDS,
-  reportedVocabulary = [],
 }) {
   const {
     activeAnnotation,
@@ -890,53 +890,20 @@ export default function AnnotatedText({
     paragraphNotes
   );
 
-  // Words from the question and labels from the chart must be repeated
-  // exactly ("Very satisfied" can't become "happy"), and words the vocabulary
-  // ideas already cover would say the same thing twice. Chart labels come from
-  // the marker's own description of the visual, matched on the first five
-  // letters so "satisfied" also catches "satisfaction".
-  const repeatedWords = useMemo(() => {
-    const covered = (vocabularyEnhancements || []).map((item) =>
-      String(item.original || '').toLowerCase()
-    );
-    const chartStems = new Set(
-      (
-        String(chartText)
-          .toLowerCase()
-          .match(/[a-z]{3,}/g) || []
-      ).map((word) => word.slice(0, 5))
-    );
-    return (writingAnalysis?.repeated || []).filter(
-      (item) =>
-        !item.inPrompt &&
-        !chartStems.has(item.word.toLowerCase().slice(0, 5)) &&
-        !covered.some((phrase) => phrase.includes(item.word.toLowerCase()))
-    );
-  }, [writingAnalysis, vocabularyEnhancements, chartText]);
-
   if (!text) return null;
 
-  // Words "Practise next" already shows in the report are not repeated here.
-  const newWords = (vocabularyEnhancements || []).filter(
-    (entry) => !reportedVocabulary.includes(String(entry?.original || '').trim())
-  );
-
   return (
-    <div className={cn('space-y-3', className)}>
-      <div
-        ref={containerRef}
-        className={cn(
-          'relative p-3.5 sm:p-5 bg-white dark:bg-[#131315] rounded-2xl border border-[#e4e2f0] dark:border-white/[0.07] shadow-sm overflow-visible',
-          cardClassName
-        )}
-      >
-        <AnnotatedTextHeader
-          annotations={annotations}
-          filters={filters}
-          onFilterToggle={handleFilterToggle}
-          onSelectAll={handleSelectAll}
-        />
+    <div ref={containerRef} className={cn('relative overflow-visible', className)}>
+      <AnnotatedTextHeader
+        t={t}
+        annotations={annotations}
+        filters={filters}
+        onFilterToggle={handleFilterToggle}
+        onSelectAll={handleSelectAll}
+      />
+      <div lang="en" dir="ltr" className="max-w-[68ch]">
         <AnnotatedTextBody
+          highlight={highlight}
           paragraphs={paragraphs}
           focusRequestId={focusAnnotation?.requestId}
           activeAnnotation={activeAnnotation}
@@ -946,18 +913,6 @@ export default function AnnotatedText({
           onActivate={handleActivate}
         />
       </div>
-
-      <WordsAndLinking
-        t={t}
-        text={text}
-        newWords={newWords}
-        repeatedWords={repeatedWords}
-        writingAnalysis={writingAnalysis}
-        isVisualTask={isVisualTask}
-        onSaveVocabularyWord={onSaveVocabularyWord}
-        savedVocabularyTerms={savedVocabularyTerms}
-        savingVocabularyTerms={savingVocabularyTerms}
-      />
     </div>
   );
 }

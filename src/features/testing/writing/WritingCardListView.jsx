@@ -4,14 +4,8 @@ import { Award } from 'lucide-react';
 import { computeWritingAccessLock, resolveWritingLinkConfig } from './writingCardHelpers';
 import { BookProgressBadge, TestRowBadge, TestRowAction } from './WritingCardComponents';
 import { hasValidAiFeedback } from './writingFeedbackHelpers';
-import {
-  IconChip,
-  MUTED,
-  PANEL,
-  TILE,
-  TITLE,
-  WELL,
-} from '@/features/dashboard/components/primitives';
+import { writingTaskProgress } from './openWritingTask';
+import { MUTED, PANEL, TILE, TITLE, WELL } from '@/features/dashboard/components/primitives';
 
 function getTestName(test) {
   const num = test.cambridge_test_number || test.title.match(/Test\s*(\d+)/i)?.[1] || '1';
@@ -27,16 +21,13 @@ function resolveTestState(test, sessions, userData, isAdmin) {
     testSession?.evaluation_status === 'legacy' ||
     testSession?.evaluation_status === 'complete' ||
     hasValidAiFeedback(testSession?.content_data);
-  return { testSession, isLocked, isCompleted, isResuming, feedbackReady };
+  const taskProgress = isCompleted ? writingTaskProgress(testSession) : null;
+  return { testSession, isLocked, isCompleted, isResuming, feedbackReady, taskProgress };
 }
 
 function BookTestRow({ test, sessions, userData, isAdmin }) {
-  const { testSession, isLocked, isCompleted, isResuming, feedbackReady } = resolveTestState(
-    test,
-    sessions,
-    userData,
-    isAdmin
-  );
+  const state = resolveTestState(test, sessions, userData, isAdmin);
+  const { testSession, isLocked, isCompleted, isResuming, feedbackReady, taskProgress } = state;
   const testName = getTestName(test);
 
   const { ContainerLink, linkProps } = resolveWritingLinkConfig(isLocked, test);
@@ -61,6 +52,7 @@ function BookTestRow({ test, sessions, userData, isAdmin }) {
           isResuming={isResuming}
           score={testSession?.score}
           feedbackReady={feedbackReady}
+          taskProgress={taskProgress}
         />
       </div>
 
@@ -72,13 +64,14 @@ function BookTestRow({ test, sessions, userData, isAdmin }) {
           testSession={testSession}
           test={test}
           feedbackReady={feedbackReady}
+          taskProgress={taskProgress}
         />
       </div>
     </div>
   );
 }
 
-export default function WritingCardListView({ group, sessions, userData, isAdmin, hasMounted }) {
+export default function WritingCardListView({ group, sessions, userData, isAdmin }) {
   return (
     <div
       className={cn(

@@ -1,43 +1,52 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { requestReportAssist } from './reportAssistClient';
 
-export const modelKey = (band, language) => `${band}:${language}`;
+const modelKey = (band, language) => `${band}:${language}`;
 
-/**
- * Band 7/8 paragraphs the learner asked for, kept per band and language.
- * Nothing is generated until asked; after that, a language change brings the
- * notes over in the new language.
- */
-export function useBandModels({ sessionId, taskType, language }) {
-  const [entries, setEntries] = useState({});
-  const asked = useRef(new Set());
-  const scope = `${sessionId}|${taskType}`;
-  const scopeRef = useRef(scope);
+// Kept outside the report: switching tabs rebuilds it, and that must neither
+// send a second request nor repeat one that failed.
+let entries = new Map();
+const listeners = new Set();
+const subscribe = (listener) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+const snapshot = () => entries;
 
-  const load = useCallback(
-    (band) => {
-      const key = `${scopeRef.current}|${modelKey(band, language)}`;
-      asked.current.add(`${scopeRef.current}|${band}`);
-      setEntries((current) => ({ ...current, [key]: { status: 'loading' } }));
-      requestReportAssist({ sessionId, taskType, operation: 'model', band, language })
-        .then((data) => setEntries((current) => ({ ...current, [key]: { status: 'ready', data } })))
-        .catch((error) =>
-          setEntries((current) => ({ ...current, [key]: { status: 'failed', code: error.code } }))
-        );
-    },
-    [sessionId, taskType, language]
+function keep(key, entry) {
+  entries = new Map(entries).set(key, entry);
+  listeners.forEach((listener) => listener());
+}
+
+/** Sends once: nothing while an answer is coming or here, and a failure only on retry. */
+function fetchModel(key, request, { retry = false } = {}) {
+  const status = entries.get(key)?.status;
+  const open = retry ? [undefined, 'failed'] : [undefined];
+  if (!open.includes(status)) return;
+  keep(key, { status: 'loading' });
+  requestReportAssist(request)
+    .then((data) => keep(key, { status: 'ready', data }))
+    .catch((error) => keep(key, { status: 'failed', code: error.code }));
+}
+
+export function resetBandModelsForTests() {
+  entries = new Map();
+}
+
+/** Band 7/8 paragraphs for one marked answer, kept per band and language. */
+export function useBandModels({ sessionId, taskType, language, markedAt }) {
+  const all = useSyncExternalStore(subscribe, snapshot);
+  const scope = `${sessionId}|${taskType}|${markedAt || ''}`;
+  const keyOf = useCallback((band) => `${scope}|${modelKey(band, language)}`, [scope, language]);
+
+  const entry = useCallback((band) => all.get(keyOf(band)) || null, [all, keyOf]);
+  const send = useCallback(
+    (band, options) =>
+      fetchModel(keyOf(band), { sessionId, taskType, operation: 'model', band, language }, options),
+    [keyOf, sessionId, taskType, language]
   );
-
-  scopeRef.current = scope;
-  const entry = useCallback(
-    (band) => entries[`${scope}|${modelKey(band, language)}`] || null,
-    [entries, scope, language]
-  );
-
-  useEffect(() => {
-    for (const band of [7, 8])
-      if (asked.current.has(`${scope}|${band}`) && !entry(band)) load(band);
-  }, [scope, entry, load]);
+  const load = useCallback((band) => send(band), [send]);
+  const retry = useCallback((band) => send(band, { retry: true }), [send]);
 
   /** The comparisons already on screen, for the PDF. */
   const loaded = () =>
@@ -46,5 +55,5 @@ export function useBandModels({ sessionId, taskType, language }) {
       return ready?.status === 'ready' ? [{ band, ...ready.data }] : [];
     });
 
-  return { entry, load, loaded };
+  return { entry, load, retry, loaded };
 }

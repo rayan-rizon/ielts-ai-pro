@@ -1,8 +1,10 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useWritingTestStore } from '@/features/testing/writing/store/useWritingTestStore';
 import { combinedWritingBand } from '../../utils/writingReportModel';
+import { useAttemptFacts } from '../useAttemptFacts';
 import { useBandModels } from '../useBandModels';
 import { useReportContent } from '../useReportContent';
 import { useReportDownload } from '../useReportDownload';
@@ -15,8 +17,11 @@ import { ResultSlip } from './ResultSlip';
 const reviseAction = ({ onRevise, coach }) =>
   [onRevise, coach.coachSession?.id, coach.coachTaskType].every(Boolean) ? onRevise : null;
 
-export function WritingReportBody({ t, feedback, sessionId, ...props }) {
-  const { saveFailed, onLanguageChange, onShowInEssay, coachSession, coachTaskType } = props;
+const NO_ESSAY_ACTIONS = {};
+
+export function WritingReportBody({ t, feedback, sessionId, essay = NO_ESSAY_ACTIONS, ...props }) {
+  const { saveFailed, onLanguageChange, onShowInEssay, coachSession, coachTaskType, toolbarHost } =
+    props;
   const { userProfile } = useAuth();
   const targetBand = userProfile?.target_band_score;
   const allFeedbacks = useWritingTestStore((state) => state.feedbacks);
@@ -28,7 +33,17 @@ export function WritingReportBody({ t, feedback, sessionId, ...props }) {
     sessionId,
     t,
   });
-  const models = useBandModels({ sessionId, taskType: content.taskType, language: t.language });
+  const models = useBandModels({
+    sessionId,
+    taskType: content.taskType,
+    language: t.language,
+    markedAt: feedback.generatedAt,
+  });
+  const attempt = useAttemptFacts({
+    sessionId,
+    markedAt: feedback.generatedAt,
+    taskType: content.taskType,
+  });
   const download = useReportDownload({
     t,
     sessionId,
@@ -36,6 +51,15 @@ export function WritingReportBody({ t, feedback, sessionId, ...props }) {
     comparisons: () => ({ [content.taskType]: models.loaded() }),
   });
   const coach = { coachSession, coachTaskType };
+
+  const toolbar = (
+    <ReportToolbar
+      t={t}
+      onLanguageChange={onLanguageChange}
+      onDownloadPdf={download.handleDownloadPdf}
+      isDownloadingPdf={download.isDownloadingPdf}
+    />
+  );
 
   return (
     <motion.div
@@ -45,21 +69,25 @@ export function WritingReportBody({ t, feedback, sessionId, ...props }) {
       transition={{ duration: 0.2 }}
       className="@container min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
     >
-      <div className="@container space-y-3 p-3 sm:p-4">
-        <ReportToolbar
-          t={t}
-          onLanguageChange={onLanguageChange}
-          onDownloadPdf={download.handleDownloadPdf}
-          isDownloadingPdf={download.isDownloadingPdf}
-        />
+      {toolbarHost && createPortal(toolbar, toolbarHost)}
+      <div
+        className={
+          toolbarHost
+            ? '@container mx-auto w-full max-w-[1240px] space-y-3.5 px-3 pb-6 pt-2.5 sm:px-4 sm:pt-3'
+            : '@container mx-auto w-full max-w-[1240px] space-y-3.5 px-3 pb-6 pt-3 sm:p-4'
+        }
+      >
+        {!toolbarHost && toolbar}
         <ResultSlip
           t={t}
           feedback={translation.shown}
+          original={feedback}
           taskType={content.taskType}
           criteria={content.criteria}
           targetBand={targetBand}
           marking={content.marking}
           combinedBand={combinedWritingBand(allFeedbacks)}
+          attempt={attempt}
         />
         <LanguageNotice
           t={t}
@@ -78,6 +106,8 @@ export function WritingReportBody({ t, feedback, sessionId, ...props }) {
           revise={reviseAction({ onRevise: props.onRevise, coach })}
           onShowInEssay={onShowInEssay}
           coach={coach}
+          explained={translation.shown}
+          essay={essay}
         />
         <p className="px-1 pb-1 text-[11.5px] leading-4 text-slate-500 dark:text-slate-400">
           {t('disclaimer')}

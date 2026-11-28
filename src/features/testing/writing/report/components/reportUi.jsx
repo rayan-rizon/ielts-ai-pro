@@ -13,7 +13,7 @@ export function Segmented({ label, options, value, onChange }) {
       value={value}
       onChange={onChange}
       className={cn(
-        'inline-flex max-w-full flex-wrap gap-0.5 rounded-[10px] p-[3px]',
+        'inline-flex max-w-full flex-wrap gap-0.5 rounded-[11px] p-[3px]',
         TAB_THEME.track
       )}
       indicatorClassName={cn('rounded-lg', TAB_THEME.indicator)}

@@ -77,14 +77,14 @@ describe('the Writing report PDF', () => {
     expect(rasterizer.drawn).toHaveLength(0);
     const text = vectorText(doc);
     expect(text).toContain('Why you got 6.0');
-    expect(text).toContain('Your four scores');
+    expect(text).toContain('Where you stand');
     expect(text).toContain('give more people [1]');
     expect(text).toContain('gives more people');
   });
 
   it('keeps the result card compact: the reason beside the band, one line per score', () => {
     const text = vectorText(build().doc);
-    expect(text.indexOf('Why you got 6.0')).toBeLessThan(text.indexOf('Your four scores'));
+    expect(text.indexOf('Why you got 6.0')).toBeLessThan(text.indexOf('Where you stand'));
     expect(text).not.toContain('Did you answer every part of the question?');
     // The card ends high enough for the next step to start in the top half of page 1.
     const placed = streamOf(build().doc).match(/([\d.]+) Td\n\(Your next step/);
@@ -133,7 +133,7 @@ describe('the Writing report PDF', () => {
   it('keeps Uzbek and Indonesian as selectable text', () => {
     const { doc, rasterizer } = build({ language: 'uz' });
     expect(rasterizer.drawn).toHaveLength(0);
-    expect(vectorText(doc)).toContain("To'rtta balingiz");
+    expect(vectorText(doc)).toContain('Hozir qayerdasiz');
   });
 
   it('does not delete a non-Latin word the learner typed in an English report', () => {

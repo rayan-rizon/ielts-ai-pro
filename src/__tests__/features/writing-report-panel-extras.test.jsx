@@ -1,4 +1,5 @@
 import React from 'react';
+import { CURRENT_EVALUATION_VERSION } from '@/features/testing/shared/evaluationVersion';
 import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -105,6 +106,8 @@ const bangla = {
   'priorities.0.issue': 'ক্রিয়ার ভুল বারবার হচ্ছে।',
 };
 
+const { resetBandModelsForTests } = await import('@/features/testing/writing/report/useBandModels');
+
 const renderPanel = (props = {}) => {
   useWritingTestStore.setState({
     feedbacks: { 'Task 1': null, 'Task 2': feedback },
@@ -116,6 +119,9 @@ const renderPanel = (props = {}) => {
     </MemoryRouter>
   );
 };
+
+const translations = () =>
+  assist.mock.calls.filter(([request]) => request.operation === 'translate');
 
 describe('Writing report language and comparison', () => {
   beforeEach(() => {
@@ -131,6 +137,7 @@ describe('Writing report language and comparison', () => {
           : modelAnswer(request.band, request.language)
       );
     resetReportLanguageForTests();
+    resetBandModelsForTests();
     window.localStorage.clear();
   });
 
@@ -138,7 +145,7 @@ describe('Writing report language and comparison', () => {
     renderPanel();
     expect(screen.getByText(feedback.summary)).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(assist).not.toHaveBeenCalled();
+    expect(translations()).toEqual([]);
   });
 
   it('asks on the first report, saves the answer and translates the explanations', async () => {
@@ -170,16 +177,14 @@ describe('Writing report language and comparison', () => {
 
     expect(saveLanguage).toHaveBeenCalledWith('en');
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(assist).not.toHaveBeenCalled();
+    expect(translations()).toEqual([]);
   });
 
   it('translates headings and explanations but leaves the learner’s English alone', async () => {
     profile = { id: 'u1', settings: { report_language: 'bn' } };
     const { container } = renderPanel();
 
-    expect(
-      await screen.findByRole('heading', { name: 'ক্রিয়ার ভুল বারবার হচ্ছে।' })
-    ).toBeInTheDocument();
+    expect(await screen.findByText('ক্রিয়ার ভুল বারবার হচ্ছে।')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'কেন আপনি 6.0 পেলেন' })).toBeInTheDocument();
     expect(screen.getByText('“free education give”')).toHaveAttribute('lang', 'en');
     expect(screen.getByText('gives more people')).toBeInTheDocument();
@@ -200,8 +205,15 @@ describe('Writing report language and comparison', () => {
 
   it('shows English with a retry when translation is unavailable', async () => {
     profile = { id: 'u1', settings: { report_language: 'id' } };
-    assist.mockRejectedValueOnce(Object.assign(new Error('x'), { code: 'unavailable' }));
-    assist.mockResolvedValueOnce({ translations: { summary: 'Posisi Anda jelas.' } });
+    const replies = [
+      () => Promise.reject(Object.assign(new Error('x'), { code: 'unavailable' })),
+      () => Promise.resolve({ translations: { summary: 'Posisi Anda jelas.' } }),
+    ];
+    assist.mockImplementation((request) =>
+      request.operation === 'translate'
+        ? replies.shift()()
+        : Promise.resolve(modelAnswer(request.band, request.language))
+    );
     renderPanel();
 
     expect(await screen.findByText(/belum bisa diterjemahkan/)).toBeInTheDocument();
@@ -236,7 +248,7 @@ describe('Writing report language and comparison', () => {
         name: 'Grammatical Range and Accuracy: band 5.5, your target is 7.0',
       })
     ).toBeInTheDocument();
-    expect(screen.getByText('Lowest area')).toBeInTheDocument();
+    expect(screen.getByText('Holding you back')).toBeInTheDocument();
     expect(screen.getByText('At your target')).toBeInTheDocument();
     expect(screen.getByText('Your target')).toBeInTheDocument();
   });
@@ -273,7 +285,7 @@ describe('Writing report language and comparison', () => {
         <FeedbackPanel feedback={marked} reportSessionId="s-1" />
       </MemoryRouter>
     );
-    const card = screen.getByRole('region', { name: 'Task 2 result' });
+    const card = screen.getByRole('region', { name: 'Your writing result' });
     const details = within(card).getByText('About these four scores').closest('details');
 
     // Folded, but still on the page for anyone who opens it.
@@ -301,7 +313,7 @@ describe('Writing report language and comparison', () => {
     profile = { id: 'u1', settings: { report_language: 'bn' } };
     renderPanel();
     const note = await screen.findByText(/ব্যাখ্যাগুলো বাংলা ভাষায়/);
-    const card = screen.getByRole('region', { name: 'Task 2 ফলাফল' });
+    const card = screen.getByRole('region', { name: 'আপনার রাইটিং ফলাফল' });
     expect(card.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
@@ -314,14 +326,14 @@ describe('Writing report language and comparison', () => {
     ).toBeInTheDocument();
   });
 
-  it('writes a stronger paragraph only when asked, then compares Band 7 and 8', async () => {
+  const comparison = () =>
+    screen.getByRole('region', { name: 'Your paragraph next to a stronger one' });
+  const askedFor = () => assist.mock.calls.map(([request]) => request.band);
+
+  it('shows the target band paragraph without a click, once', async () => {
     renderPanel();
-    const section = screen.getByRole('region', { name: 'Your paragraph next to a stronger one' });
-    expect(assist).not.toHaveBeenCalled();
-
-    fireEvent.click(within(section).getByRole('button', { name: 'Show the Band 7 version' }));
-
-    expect(await within(section).findByText('Reason 7.')).toBeInTheDocument();
+    expect(await within(comparison()).findByText('Reason 7.')).toBeInTheDocument();
+    expect(assist).toHaveBeenCalledTimes(1);
     expect(assist).toHaveBeenLastCalledWith({
       sessionId: 's-1',
       taskType: 'Task 2',
@@ -329,26 +341,55 @@ describe('Writing report language and comparison', () => {
       band: 7,
       language: 'en',
     });
-    expect(within(section).getByText(/Band 7 paragraph 1:/)).toBeInTheDocument();
+    expect(within(comparison()).queryByRole('button', { name: /Show the Band/ })).toBeNull();
+    expect(within(comparison()).getByRole('radio', { name: 'Band 7 · your target' })).toBeChecked();
 
-    fireEvent.click(within(section).getByRole('radio', { name: 'Body 2' }));
-    expect(within(section).getByText(/Band 7 paragraph 2:/)).toBeInTheDocument();
+    fireEvent.click(within(comparison()).getByRole('radio', { name: 'Body 2' }));
+    expect(within(comparison()).getByText(/Band 7 paragraph 2:/)).toBeInTheDocument();
 
-    fireEvent.click(within(section).getByRole('radio', { name: 'Band 8' }));
-    fireEvent.click(within(section).getByRole('button', { name: 'Show the Band 8 version' }));
-    expect(await within(section).findByText('Reason 8.')).toBeInTheDocument();
+    fireEvent.click(within(comparison()).getByRole('radio', { name: 'Band 8' }));
+    expect(await within(comparison()).findByText('Reason 8.')).toBeInTheDocument();
+    expect(askedFor()).toEqual([7, 8]);
   });
 
-  it('explains a failed comparison and lets the learner try again', async () => {
-    assist.mockRejectedValueOnce(Object.assign(new Error('x'), { code: 'rate_limited' }));
+  it('opens on a higher target the learner has set', async () => {
+    profile = { id: 'u1', target_band_score: 8, settings: { report_language: 'en' } };
     renderPanel();
-    const section = screen.getByRole('region', { name: 'Your paragraph next to a stronger one' });
+    expect(await within(comparison()).findByText('Reason 8.')).toBeInTheDocument();
+    expect(askedFor()).toEqual([8]);
+    expect(within(comparison()).getByRole('radio', { name: 'Band 8 · your target' })).toBeChecked();
+    expect(screen.getByText('What band 8 looks like')).toBeInTheDocument();
+  });
 
-    fireEvent.click(within(section).getByRole('button', { name: 'Show the Band 7 version' }));
-    expect(await within(section).findByRole('alert')).toHaveTextContent(/lot of requests/);
+  it('moves to the next step once the target is met', async () => {
+    profile = { id: 'u1', target_band_score: 6, settings: { report_language: 'en' } };
+    renderPanel();
+    expect(await within(comparison()).findByText('Reason 7.')).toBeInTheDocument();
+    expect(
+      within(comparison()).getByRole('radio', { name: 'Band 7 · your next step' })
+    ).toBeChecked();
+  });
 
-    fireEvent.click(within(section).getByRole('button', { name: 'Try again' }));
-    expect(await within(section).findByText('Reason 7.')).toBeInTheDocument();
+  it('does not ask again when the report is opened again', async () => {
+    const first = renderPanel();
+    first.unmount();
+    renderPanel();
+    expect(await within(comparison()).findByText('Reason 7.')).toBeInTheDocument();
+    expect(assist).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains a failed comparison and waits for the learner to try again', async () => {
+    assist.mockRejectedValueOnce(Object.assign(new Error('x'), { code: 'rate_limited' }));
+    const first = renderPanel();
+    expect(await within(comparison()).findByRole('alert')).toHaveTextContent(/lot of requests/);
+
+    first.unmount();
+    renderPanel();
+    expect(within(comparison()).getByRole('alert')).toBeInTheDocument();
+    expect(assist).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(within(comparison()).getByRole('button', { name: 'Try again' }));
+    expect(await within(comparison()).findByText('Reason 7.')).toBeInTheDocument();
   });
 
   it('offers no translation or comparison for a report without a saved session', () => {
@@ -359,18 +400,43 @@ describe('Writing report language and comparison', () => {
     expect(screen.getByText(feedback.summary)).toBeInTheDocument();
   });
 
-  it('maps the essay paragraph by paragraph and can show it with numbered marks', () => {
+  it('maps the paragraphs, then shows the marked essay with numbered fixes', () => {
     renderPanel();
     const map = screen.getByRole('region', { name: 'Your essay at a glance' });
     for (const name of ['Introduction', 'Body 1', 'Body 2', 'Conclusion'])
       expect(within(map).getByText(name)).toBeInTheDocument();
-    expect(within(map).getByText('1 to fix')).toBeInTheDocument();
+    expect(within(map).getByText('Fix first · 1 to fix')).toBeInTheDocument();
 
-    // One card holds the map and the marked essay.
-    expect(screen.queryByRole('region', { name: 'Your essay with marks' })).not.toBeInTheDocument();
-    expect(within(map).queryByText('give more people')).not.toBeInTheDocument();
-    fireEvent.click(within(map).getByRole('button', { name: 'Show my essay' }));
-    expect(within(map).getByText('give more people')).toBeInTheDocument();
+    const essay = screen.getByRole('region', { name: 'Your essay, marked' });
+    const mistake = within(essay).getByText('give more people');
+    expect(mistake.closest('[data-fix-number]')).toHaveAttribute('data-fix-number', '1');
+    expect(within(essay).getByText('Tap an underlined phrase to see the fix.')).toBeInTheDocument();
+    // The paragraph to fix first is set apart in the essay itself.
+    expect(essay.querySelector('[data-weakest]')).toHaveTextContent('give more people');
+    expect(map.compareDocumentPosition(essay) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps words and linking inside the report', () => {
+    renderPanel();
+    expect(screen.getByRole('region', { name: 'Words and linking' })).toBeInTheDocument();
+  });
+
+  it('adds no card about the unwritten task; its tab and library card lead there', () => {
+    useWritingTestStore.setState({
+      session: {
+        id: 's-1',
+        is_completed: true,
+        score: 6.5,
+        evaluation_status: 'complete',
+        evaluation_version: CURRENT_EVALUATION_VERSION,
+        test_mode: 'practice',
+      },
+      compositeTasks: { 'Task 1': { prompt: 'a' }, 'Task 2': { prompt: 'b' } },
+      activeType: 'Task 2',
+    });
+    renderPanel();
+    expect(screen.queryByRole('region', { name: /isn’t written yet/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Write Task 1' })).not.toBeInTheDocument();
   });
 
   it('puts the fixes before the praise, and ends with what to practise', () => {
@@ -401,7 +467,8 @@ describe('Writing report language and comparison', () => {
       'href',
       '/grammar'
     );
-    expect(within(next).getByRole('link', { name: /Write another essay/ })).toHaveAttribute(
+    const onward = screen.getByRole('navigation', { name: 'What to do next' });
+    expect(within(onward).getByRole('link', { name: /Write another essay/ })).toHaveAttribute(
       'href',
       '/writing'
     );
@@ -462,7 +529,7 @@ describe('Writing report language and comparison', () => {
         <FeedbackPanel feedback={legacy} reportSessionId="s-2" />
       </MemoryRouter>
     );
-    expect(screen.getByRole('heading', { name: 'Linking is repetitive.' })).toBeInTheDocument();
+    expect(screen.getByText('Linking is repetitive.')).toBeInTheDocument();
     expect(
       screen.queryByRole('region', { name: 'Your essay at a glance' })
     ).not.toBeInTheDocument();

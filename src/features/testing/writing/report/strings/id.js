@@ -14,11 +14,52 @@ export const id = {
   wordsUnder: 'di bawah minimum {min} kata',
   combinedBand: 'Band Writing untuk kedua task',
   combinedHint: 'Bobot Task 2 dua kali Task 1.',
-  ladderTitle: 'Empat nilai Anda',
+  ladderTitle: 'Posisi Anda sekarang',
+  resultTitle: 'Hasil Writing Anda',
+  kindEssay: 'Esai',
+  kindReport: 'Laporan',
+  taskBand: 'Band {task}',
+  ladderOverall: 'Keseluruhan',
+  statWords: 'Kata',
+  statOver: 'di atas {min}',
+  statUnder: 'di bawah {min}',
+  statTime: 'Waktu dipakai',
+  statBoth: 'Kedua tugas',
+  sameAsLast: 'Sama dengan {task} terakhir Anda ({band}, {date})',
+  upFromLast: 'Naik {delta} dari {task} terakhir Anda ({band}, {date})',
+  downFromLast: 'Turun {delta} dari {task} terakhir Anda ({band}, {date})',
+  nowLabel: 'Yang Anda lakukan sekarang',
+  goalLabel: 'Seperti apa band {band}',
+  whatMakes: 'Yang membuatnya band {band}',
+  rewriteSelf: 'Tulis ulang paragraf ini sendiri',
+  bandYourTarget: 'Band {band} · target Anda',
+  bandTarget: 'Band {band} · langkah berikutnya',
+  fixFirst: 'Perbaiki dulu',
+  markedTitle: 'Esai Anda dengan tanda',
+  whatNow: 'Langkah selanjutnya',
+  goalTask7:
+    'Setiap bagian pertanyaan dijawab. Pendapat Anda tetap jelas, dan tiap ide utama dijelaskan serta didukung.',
+  goalTask8:
+    'Seluruh pertanyaan dibahas dengan baik, dan ide dikembangkan serta didukung rincian yang relevan.',
+  goalReport7:
+    'Ringkasan jelas tentang tren atau tahap utama, dengan fitur penting yang didukung rincian akurat.',
+  goalReport8:
+    'Fitur utama ditonjolkan dan diuraikan dengan jelas dan akurat, dengan ringkasan yang dipilih baik.',
+  goalCoherence7:
+    'Ide bergerak berurutan secara logis. Tiap paragraf punya satu fokus, dan kata penghubung dipakai luwes.',
+  goalCoherence8:
+    'Informasi mengalir lancar. Paragraf dan penghubung dikelola begitu baik sehingga nyaris tak terasa.',
+  goalVocabulary7:
+    'Kosakata cukup luas untuk tepat, dengan beberapa frasa kurang umum dan sesekali saja keliru.',
+  goalVocabulary8:
+    'Kosakata luas dipakai alami dan tepat, termasuk frasa kurang umum, dengan kesalahan yang jarang.',
+  goalGrammar7:
+    'Beragam kalimat kompleks, banyak yang tanpa kesalahan, dengan tata bahasa dan tanda baca terkendali.',
+  goalGrammar8: 'Struktur kalimat sangat beragam, dan sebagian besar kalimat tanpa kesalahan.',
   legendYou: 'Anda',
   legendTarget: 'Target Anda',
   legendBand8: 'Band 8',
-  lowestArea: 'Aspek terlemah',
+  lowestArea: 'Menahan skor Anda',
   atTarget: 'Sudah sesuai target',
   ladderAria: '{criterion}: band {score}',
   ladderAriaTarget: '{criterion}: band {score}, target Anda {target}',
@@ -58,7 +99,7 @@ export const id = {
   mainFeatures: 'Fitur utama',
   featuresMentioned: '{covered} dari {total} disebutkan',
   featureMissing: 'Belum jelas dalam jawaban Anda. Tambahkan.',
-  fixTitle: 'Perbaiki ini',
+  fixTitle: 'Perbaiki ini di draf Anda',
   fixedCount: '{done} dari {total} diperbaiki',
   fixNone:
     'Tidak ada kalimat yang perlu dikoreksi. Pakai langkah berikutnya di atas untuk draf selanjutnya.',
@@ -68,7 +109,6 @@ export const id = {
   groupClarity: 'Kejelasan dan ketepatan',
   practiseGrammar: 'Latih tata bahasa',
   practiseVocabulary: 'Latih kosakata',
-  youWrote: 'Anda menulis',
   changeTo: 'Ubah menjadi',
   whatToDo: 'Yang perlu dilakukan',
   fixedAria: 'Sudah diperbaiki: {original}',
@@ -92,16 +132,12 @@ export const id = {
   settingsLanguageHelp:
     'Dipakai untuk menjelaskan laporan Writing Anda. Esai, contoh, dan koreksi tetap bahasa Inggris.',
   compareTitle: 'Paragraf Anda di samping versi yang lebih kuat',
-  compareIntro:
-    'Lihat bagaimana paragraf Anda sendiri bisa ditulis pada band lebih tinggi, dan alasannya.',
   compareWith: 'Bandingkan dengan',
   bandVersion: 'Versi Band {band}',
-  showBand: 'Tampilkan versi Band {band}',
   writingBand: 'Menulis versi Band {band}…',
   yourParagraph: 'Paragraf Anda',
-  whyHigher: 'Mengapa versi ini bernilai lebih tinggi',
   studyPattern:
-    'Pelajari polanya, lalu tulis ulang dengan kata-kata Anda sendiri. Menyalinnya tidak akan menaikkan band.',
+    'Contoh ini untuk dipelajari. Menyalinnya kata demi kata tidak menaikkan band. Mempelajari polanya akan.',
   needParagraphs:
     'Bagi jawaban Anda menjadi paragraf agar bisa dibandingkan dengan versi lebih kuat.',
   compareFailed: 'Versi yang lebih kuat belum tersedia. Silakan coba lagi.',
@@ -115,11 +151,14 @@ export const id = {
   mapToFix: '{count} perlu diperbaiki',
   mapClean: 'Tidak ada kesalahan ditandai',
   essayTitle: 'Esai Anda dengan tanda',
-  essayShow: 'Tampilkan esai saya',
-  essayHide: 'Sembunyikan esai saya',
-  keyMistake: 'Kesalahan',
-  keyBetter: 'Pilihan lebih baik',
-  keyGood: 'Frasa bagus',
+  essayTapHint: 'Ketuk frasa bergaris bawah untuk melihat perbaikannya.',
+  filterGroup: 'Tampilkan atau sembunyikan sorotan',
+  filterMistakes: 'Kesalahan',
+  filterWorthFixing: 'Sebaiknya diperbaiki',
+  filterIdeas: 'Saran',
+  filterHideAll: 'Sembunyikan semua',
+  filterShowAll: 'Tampilkan semua',
+  filterGood: 'Bagus',
   practiseTitle: 'Latihan berikutnya',
   practiseSub: 'Dipilih dari esai ini.',
   drillRewrite: 'Tulis ulang {paragraph}',
@@ -149,13 +188,10 @@ export const id = {
   creditPrompt:
     'Menerjemahkan penjelasan laporan memakai 1 ulasan tugas Writing. Bahasa Inggris gratis.',
   wlTitle: 'Kata dan penghubung',
-  wlIntro: 'Ide untuk memvariasikan kata. Simpan yang Anda suka ke daftar kosakata.',
   wlBetterWords: 'Kata yang lebih baik untuk esai ini',
   wlUsedALot: 'Kata yang sering Anda pakai',
-  wlRepeatNote:
-    'Pengulangan kata baru menjadi masalah jika muncul di banyak kalimat. Kata dari soal tidak dihitung karena wajar diulang.',
-  wlRepeatNoteChart:
-    'Pengulangan kata baru menjadi masalah jika muncul di banyak kalimat. Kata dari soal dan label grafik tidak dihitung: tulis persis seperti aslinya.',
+  wlRepeatNote: 'Ganti beberapa saja, jangan semua.',
+  wlRepeatNoteChart: 'Ganti beberapa saja. Pertahankan label grafik.',
   wlLinkingTitle: 'Kata penghubung yang Anda pakai',
   wlNoLinking:
     'Tidak ditemukan kata penghubung umum. Kata seperti “however”, “as a result”, dan “for example” membantu pembaca mengikuti ide Anda.',
@@ -171,18 +207,7 @@ export const id = {
   wlTimes: '{count} kali',
   wlAlsoSay: 'Anda juga bisa menulis',
   wlShowUses: 'Lihat di mana Anda memakainya',
-  wlHideUses: 'Sembunyikan kalimat',
-  wlVerdictHigh:
-    'Memakai “{word}” {count} kali itu banyak. Penguji memperhatikannya, dan skor Lexical Resource Anda bisa turun.',
-  wlVerdictSome:
-    'Anda memakai “{word}” {count} kali. Itu tidak apa-apa, tetapi menggantinya sekali dua kali menunjukkan kosakata yang lebih luas.',
-  wlTipSwap: 'Ganti di sebagian kalimat saja. Pertahankan jika kata itu yang paling jelas.',
-  wlTipRephrase:
-    'Gunakan “it”, “they”, atau “this” jika maknanya jelas, atau gambarkan dengan cara lain.',
-  wlFlow: 'Alur paragraf',
-  wlFlowCount: 'Paragraf: {count}',
-  wlFlowShow: 'Lihat kalimat pembuka',
-  wlFlowHide: 'Sembunyikan kalimat pembuka',
+  wlHideUses: 'Sembunyikan',
   wlYouWrote: 'Anda menulis',
   wlInstead: 'Sebagai gantinya, Anda bisa menulis',
   wlWhyBetter: 'Mengapa lebih baik',
@@ -198,7 +223,6 @@ export const id = {
     'IELTS Ai Pro: perkiraan latihan berdasarkan deskriptor band IELTS publik, bukan nilai resmi',
   pdfPage: 'Halaman {page} dari {pages}',
   pdfEmpty: 'Belum ada laporan Writing yang dinilai.',
-  pdfEssay: 'Esai Anda',
   pdfSuggestion: 'Saran',
   pdfNote: 'Catatan',
 };

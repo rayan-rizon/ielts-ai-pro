@@ -16,6 +16,7 @@ import {
 } from './writingFeedbackHelpers';
 import { pickLatestSessionForTest } from './writingSessionHelpers';
 import { computeWritingProgressFull } from './writingProgressHelpers';
+import { writingTaskProgress } from './openWritingTask';
 import WritingCardListView from './WritingCardListView';
 import { cn } from '@/lib/cn';
 import { Empty, PANEL } from '@/features/dashboard/components/primitives';
@@ -76,6 +77,7 @@ function buildWritingCardProps({
     session: activeSession,
     completedSessionId,
     feedbackReady,
+    taskProgress: writingTaskProgress(completedRecord),
   };
 }
 
@@ -172,6 +174,13 @@ function getGroupInfo(t) {
   };
 }
 
+/** Official volumes, newest first; general practice always last. */
+function newestVolumeFirst(a, b) {
+  if (a.id === 'general') return 1;
+  if (b.id === 'general') return -1;
+  return b.volumeNumber - a.volumeNumber;
+}
+
 function groupTestsByVolume(tests) {
   const groups = {};
   tests.forEach((t) => {
@@ -194,11 +203,7 @@ function groupTestsByVolume(tests) {
     g.tests.sort((a, b) => getTestNumber(a) - getTestNumber(b));
   });
 
-  return Object.values(groups).sort((a, b) => {
-    if (a.id === 'general') return 1;
-    if (b.id === 'general') return -1;
-    return b.volumeNumber - a.volumeNumber;
-  });
+  return Object.values(groups).sort(newestVolumeFirst);
 }
 
 export function WritingTestsGrid(props) {
@@ -237,7 +242,6 @@ export function WritingTestsGrid(props) {
               sessions={sessions}
               userData={userData}
               isAdmin={isAdmin}
-              hasMounted={hasMounted}
             />
           ))}
           {filteredTests.length === 0 && <WritingEmptyState searchQuery={searchQuery} />}
@@ -273,8 +277,4 @@ export function WritingTestsGrid(props) {
       )}
     </AnimatePresence>
   );
-}
-
-function WritingGridOnly(props) {
-  return <WritingTestsGrid {...props} viewMode="grid" />;
 }

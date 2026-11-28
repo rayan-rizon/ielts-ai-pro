@@ -28,10 +28,21 @@ import {
   completeWritingEvaluation,
   recordWritingEvaluationFailure,
 } from '@/features/testing/writing/writingEvaluationAttempt';
+import {
+  openWritingTask,
+  planWritingMarking,
+  taskToShow,
+} from '@/features/testing/writing/openWritingTask';
 
 function isActiveWritingEvaluation(expected) {
   const current = useWritingTestStore.getState().session;
   return expected ? isSameWritingEvaluation(expected, current) : !current;
+}
+
+/** After a review: stay on this task, or move to the one that has the report. */
+function showReviewedTask(feedbacks) {
+  const state = useWritingTestStore.getState();
+  state.showTaskWithReport(taskToShow({ ...state, feedbacks, session: null }));
 }
 
 function restoreSavedFeedback(store, session) {
@@ -39,17 +50,18 @@ function restoreSavedFeedback(store, session) {
   const feedbacks = getWritingFeedbacks(session?.content_data);
   if (!feedbacks) return false;
 
-  const currentFeedback =
-    feedbacks[store.activeType] || feedbacks['Task 1'] || feedbacks['Task 2'] || null;
-  if (!isValidFeedback(currentFeedback)) return false;
+  if (![feedbacks['Task 1'], feedbacks['Task 2']].some(isValidFeedback)) return false;
 
   store.setSession(session);
   store.setFeedbacksBulk(feedbacks);
-  store.setCurrentFeedback(currentFeedback);
+  showReviewedTask(feedbacks);
   store.setCompleted(true);
   store.setFeedbackError(null);
   return true;
 }
+
+/** A report that is already saved is carried over exactly as it is. */
+const reusedReview = (store, type) => ({ type, cached: true, feedback: store.feedbacks[type] });
 
 /**
  * useWritingFeedback
@@ -74,6 +86,10 @@ export function useWritingFeedback(awardXP) {
   const claimEvaluation = useCallback(async (store) => {
     if (!isActiveWritingEvaluation(store.session)) return false;
     if (!store.session) return true;
+    // A finished practice test with one task left is claimed from "complete".
+    const claimable = openWritingTask(store)
+      ? ['not_requested', 'failed', 'complete']
+      : ['not_requested', 'failed'];
 
     const claim = async () => {
       const requestedAt = new Date().toISOString();
@@ -89,7 +105,7 @@ export function useWritingFeedback(awardXP) {
           content_data: contentData,
         })
         .eq('id', store.session.id)
-        .in('evaluation_status', ['not_requested', 'failed'])
+        .in('evaluation_status', claimable)
         .select('id, evaluation_status, content_data, updated_at')
         .maybeSingle();
       if (error) throw error;
@@ -157,7 +173,9 @@ export function useWritingFeedback(awardXP) {
       );
       return;
     }
+    const addingTask = openWritingTask(store);
     if (
+      !addingTask &&
       store.session?.evaluation_status === 'complete' &&
       store.session?.evaluation_version === CURRENT_EVALUATION_VERSION
     ) {
@@ -185,13 +203,17 @@ export function useWritingFeedback(awardXP) {
         .split(/\s+/)
         .filter(Boolean).length || 0;
 
-    if (task1Words >= 50) tasksToAnalyze.push('Task 1');
-    if (store.compositeTasks['Task 2'] && task2Words >= 100) tasksToAnalyze.push('Task 2');
+    const marking = planWritingMarking(store);
+    tasksToAnalyze.push(...marking.tasks);
 
-    if (tasksToAnalyze.length === 0) {
+    // Nothing to review: no task is long enough, apart from reports already saved.
+    const hasNewWork = tasksToAnalyze.some((type) => !(addingTask && marking.reuse.includes(type)));
+    if (!hasNewWork) {
+      const asked = (type) => !(addingTask && marking.reuse.includes(type));
       const errors = [];
-      if (task1Words < 50) errors.push(`Task 1 needs ${50 - task1Words} more words (minimum 50)`);
-      if (store.compositeTasks['Task 2'] && task2Words < 100)
+      if (asked('Task 1') && task1Words < 50)
+        errors.push(`Task 1 needs ${50 - task1Words} more words (minimum 50)`);
+      if (asked('Task 2') && store.compositeTasks['Task 2'] && task2Words < 100)
         errors.push(`Task 2 needs ${100 - task2Words} more words (minimum 100)`);
       store.setFeedbackError(errors.join('. ') || 'Please write enough content to get feedback.');
       return;
@@ -201,7 +223,7 @@ export function useWritingFeedback(awardXP) {
     // Task 1 and Task 2, so do not start either provider request unless the
     // learner has enough part-review capacity for every uncached task. The
     // server maps any two part reviews to one admin-configured evaluation.
-    const analysisPlan = tasksToAnalyze.map((type) => {
+    const planReview = (type) => {
       const currentTextRaw = normalizeWritingSource(store.drafts[type]);
       const wordCount = type === 'Task 1' ? task1Words : task2Words;
       const isBelowMinimum = type === 'Task 1' ? wordCount < 150 : wordCount < 250;
@@ -228,7 +250,10 @@ export function useWritingFeedback(awardXP) {
         };
       }
       return { type, cached: false, text: currentTextRaw, isBelowMinimum, prompt, imageUrl };
-    });
+    };
+    const analysisPlan = tasksToAnalyze.map((type) =>
+      marking.reuse.includes(type) ? reusedReview(store, type) : planReview(type)
+    );
     const requiredPartReviews = analysisPlan.filter((item) => !item.cached).length;
     const isRetryingFailedEvaluation = store.session?.evaluation_status === 'failed';
     const isRecoveringPendingEvaluation = store.session?.evaluation_status === 'pending';
@@ -295,7 +320,9 @@ export function useWritingFeedback(awardXP) {
 
     let evaluationSession = store.session;
     const collectedFeedbacks = {};
-    const evaluationDrafts = { ...store.drafts };
+    const evaluationDrafts = marking.drafts;
+    // A failed extra task must leave the finished report exactly as it was.
+    const finishedBefore = addingTask ? store.session : null;
     const isCurrentPendingEvaluation = () =>
       isActiveWritingEvaluation(evaluationSession) &&
       useWritingTestStore.getState().session?.evaluation_status === 'pending';
@@ -421,7 +448,7 @@ export function useWritingFeedback(awardXP) {
       if (evaluationSession && !isCurrentPendingEvaluation()) return;
       if (!evaluationSession) {
         store.setFeedbacksBulk(newFeedbacks);
-        store.setCurrentFeedback(newFeedbacks[store.activeType] || newFeedbacks[tasksToAnalyze[0]]);
+        showReviewedTask(newFeedbacks);
         return;
       }
       const completedSession = await completeWritingEvaluation({
@@ -440,7 +467,7 @@ export function useWritingFeedback(awardXP) {
       }
       store.setSession(completedSession);
       store.setFeedbacksBulk(newFeedbacks);
-      store.setCurrentFeedback(newFeedbacks[store.activeType] || newFeedbacks[tasksToAnalyze[0]]);
+      showReviewedTask(newFeedbacks);
       store.setCompleted(true);
       const overallScore = completedSession.score;
 
@@ -495,6 +522,7 @@ export function useWritingFeedback(awardXP) {
             error: err,
             attemptedTasks: tasksToAnalyze,
             feedbacks: collectedFeedbacks,
+            keepComplete: Boolean(finishedBefore),
           });
           if (failedSession && isCurrentPendingEvaluation()) {
             store.setSession(failedSession);
@@ -507,7 +535,7 @@ export function useWritingFeedback(awardXP) {
       const currentSession = useWritingTestStore.getState().session;
       if (
         !isActiveWritingEvaluation(evaluationSession) ||
-        currentSession?.evaluation_status === 'complete'
+        (!finishedBefore && currentSession?.evaluation_status === 'complete')
       )
         return;
 

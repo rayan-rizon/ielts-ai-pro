@@ -15,6 +15,7 @@ import { useWritingTestStore } from '@/features/testing/writing/store/useWriting
 import { useAutosave } from '@/hooks/useAutosave';
 import { getSessionTestMode } from '@/features/testing/shared/testMode';
 import { flushPendingWritingDrafts } from '@/features/testing/writing/writingDraftFlush';
+import { useOpenTaskAutosave } from '@/features/testing/writing/useOpenWritingTask';
 
 // ============ ACTIONS CONSTANT (for dispatch compatibility) ============
 const ACTIONS = {
@@ -161,10 +162,11 @@ export function WritingTestProvider({ children }) {
     onSaveSuccess,
     onSaveError,
   });
-  const flushAndSaveNow = useCallback(() => {
+  const saveOpenTask = useOpenTaskAutosave(); // Shared autosave stops at a finished test.
+  const flushAndSaveNow = useCallback(async () => {
     flushPendingWritingDrafts();
-    return saveNow();
-  }, [saveNow]);
+    return (await Promise.all([saveNow(), saveOpenTask()])).some(Boolean);
+  }, [saveNow, saveOpenTask]);
 
   // Sync internal autosave state to store
   useEffect(() => {

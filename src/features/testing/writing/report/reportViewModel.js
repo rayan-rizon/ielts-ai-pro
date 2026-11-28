@@ -31,6 +31,33 @@ export function buildLadder(criteria, targetBand) {
   };
 }
 
+// The marker's server shortens long text and ends it "..."; the rest is not saved.
+const isCut = (text) => String(text || '').length >= 80 && /(?:\.\.\.|…)\s*$/.test(text);
+const unpaired = (text) => text.split('“').length !== text.split('”').length;
+const isWhole = (text) => Boolean(text) && !isCut(text) && !unpaired(String(text));
+
+/** The first complete item of a saved list, in the words being shown. */
+function wholePoint(saved, shown, list) {
+  const index = (saved[list] || []).findIndex(isWhole);
+  return index < 0 ? '' : String(shown[list]?.[index] || '').trim();
+}
+
+const ended = (point) => (/[.!?।۔”"]$/.test(point) ? point : `${point}.`);
+
+/**
+ * Why the learner got this band, never stopping mid-sentence: the marker's
+ * summary, or when that was cut, one complete strength and one complete weakness.
+ * `saved` is the English report, `shown` its copy in the report language.
+ */
+export function bandReason(saved, shown = saved) {
+  if (!isCut(saved?.summary)) return String(shown?.summary || '');
+  return ['strengths', 'weaknesses']
+    .map((list) => wholePoint(saved, shown, list))
+    .filter(Boolean)
+    .map(ended)
+    .join(' ');
+}
+
 /** One number per fix, in list order, so the essay and the list agree. */
 export function numberMistakes(groups) {
   let n = 0;

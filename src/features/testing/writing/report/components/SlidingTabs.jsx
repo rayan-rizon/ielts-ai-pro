@@ -44,7 +44,7 @@ function Indicator({ box, glide, className }) {
       className={cn(
         'pointer-events-none absolute left-0 top-0',
         glide &&
-          'transition-[transform,width,height] duration-[260ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none',
+          'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
         className
       )}
       style={{
@@ -104,7 +104,7 @@ export function SlidingTabs({ label, options, value, onChange, role = 'radiogrou
             onClick={() => choose(option.value, true)}
             onKeyDown={(event) => onKeyDown(event, index)}
             className={cn(
-              'relative z-10 flex items-center justify-center gap-1.5 cursor-pointer transition-[color,scale] duration-150 ease-out active:scale-[0.97] motion-reduce:active:scale-100',
+              'relative z-10 flex items-center justify-center gap-1.5 cursor-pointer transition-[color,scale] duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100',
               styles.tabClassName,
               active ? styles.activeClassName : styles.idleClassName,
               FOCUS_RING

@@ -655,3 +655,134 @@ describe('main Writing pending recovery', () => {
     expect(recovery.evaluate).not.toHaveBeenCalled();
   });
 });
+
+describe('adding the second task to a finished practice test', () => {
+  const marked = {
+    overallBand: 6.5,
+    evaluationVersion: CURRENT_EVALUATION_VERSION,
+    writingCalibrationRevision: 'an-older-revision',
+    originalSource: '<p>the essay as it was marked</p>',
+    criteriaScores: { TaskResponse: 5.5, CoherenceAndCohesion: 6 },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    recovery.writes = [];
+    recovery.failureWriteError = null;
+    recovery.rejectFailureWrite = false;
+    recovery.onFailureWrite = null;
+    recovery.completionWriteError = null;
+    recovery.onCompletionWrite = null;
+    recovery.onClaimWrite = null;
+    recovery.quotaAllowed = true;
+    recovery.session = {
+      id: 'half-session',
+      test_type: 'writing',
+      test_mode: 'practice',
+      is_completed: true,
+      score: 6.5,
+      completed_at: '2026-10-30T00:00:00.000Z',
+      evaluated_at: '2026-10-30T00:00:00.000Z',
+      evaluation_status: 'complete',
+      evaluation_version: CURRENT_EVALUATION_VERSION,
+      updated_at: '2026-10-30T00:00:00.000Z',
+      user_responses: [{ task2_response: '<p>the essay as it was marked</p>' }],
+      content_data: { ai_feedbacks: { 'Task 2': marked } },
+    };
+    useWritingTestStore.getState().fullReset();
+    useWritingTestStore.setState({
+      session: recovery.session,
+      isCompleted: true,
+      drafts: { 'Task 1': 'report '.repeat(160), 'Task 2': 'edited later '.repeat(80) },
+      compositeTasks: {
+        'Task 1': { prompt: 'Chart prompt' },
+        'Task 2': { prompt: 'Essay prompt' },
+      },
+      activeType: 'Task 1',
+      feedbacks: { 'Task 1': null, 'Task 2': marked },
+    });
+    recovery.evaluate.mockImplementation(async () => ({
+      success: true,
+      data: {
+        overallBand: 8,
+        evaluationVersion: CURRENT_EVALUATION_VERSION,
+        criteriaScores: { TaskAchievement: 8, CoherenceAndCohesion: 8 },
+      },
+    }));
+  });
+
+  it('reviews only the new task and combines both scores', async () => {
+    const { result } = renderHook(() => useWritingFeedback(vi.fn()));
+    await act(async () => result.current.handleGetFeedback());
+
+    expect(recovery.evaluate).toHaveBeenCalledTimes(1);
+    expect(recovery.evaluate.mock.calls[0][0]).toMatchObject({ taskType: 'Task 1' });
+    expect(recovery.session).toMatchObject({
+      evaluation_status: 'complete',
+      score: 7,
+      completed_at: '2026-10-30T00:00:00.000Z',
+      content_data: { task1Band: 8, task2Band: 6.5 },
+    });
+    expect(recovery.session.content_data.ai_feedbacks['Task 2']).toMatchObject({
+      overallBand: 6.5,
+      originalSource: '<p>the essay as it was marked</p>',
+    });
+    expect(recovery.session.user_responses[0].task2_response).toBe(
+      '<p>the essay as it was marked</p>'
+    );
+    expect(useWritingTestStore.getState().currentFeedback).toMatchObject({ overallBand: 8 });
+  });
+
+  it('shows the report under its own tab when only the other task was written', async () => {
+    recovery.session = { ...recovery.session, is_completed: false, score: null };
+    recovery.session.evaluation_status = 'not_requested';
+    recovery.session.content_data = {};
+    useWritingTestStore.setState({
+      session: recovery.session,
+      isCompleted: false,
+      feedbacks: { 'Task 1': null, 'Task 2': null },
+      drafts: { 'Task 1': 'report '.repeat(160), 'Task 2': '' },
+      activeType: 'Task 2',
+    });
+    const { result } = renderHook(() => useWritingFeedback(vi.fn()));
+    await act(async () => result.current.handleGetFeedback());
+
+    expect(useWritingTestStore.getState()).toMatchObject({
+      activeType: 'Task 1',
+      currentFeedback: { overallBand: 8 },
+    });
+  });
+
+  it('keeps the finished report when the new review fails', async () => {
+    recovery.evaluate.mockRejectedValue(
+      Object.assign(new Error('Provider temporarily unavailable'), { status: 503 })
+    );
+    const { result } = renderHook(() => useWritingFeedback(vi.fn()));
+    await act(async () => result.current.handleGetFeedback());
+
+    expect(recovery.session).toMatchObject({
+      evaluation_status: 'complete',
+      score: 6.5,
+      evaluated_at: '2026-10-30T00:00:00.000Z',
+      content_data: { ai_feedbacks: { 'Task 2': { overallBand: 6.5 } } },
+    });
+    expect(useWritingTestStore.getState()).toMatchObject({
+      isCompleted: true,
+      session: { evaluation_status: 'complete' },
+      feedbackError: 'Provider temporarily unavailable',
+      isAnalyzing: false,
+    });
+  });
+
+  it('does nothing while the new task is still too short', async () => {
+    useWritingTestStore.setState({
+      drafts: { 'Task 1': 'report '.repeat(20), 'Task 2': 'edited later '.repeat(80) },
+    });
+    const { result } = renderHook(() => useWritingFeedback(vi.fn()));
+    await act(async () => result.current.handleGetFeedback());
+
+    expect(recovery.evaluate).not.toHaveBeenCalled();
+    expect(recovery.writes).toHaveLength(0);
+    expect(useWritingTestStore.getState().feedbackError).toMatch(/Task 1 needs 30 more words/);
+  });
+});

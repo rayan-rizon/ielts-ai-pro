@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AnnotatedText from '@/components/writing/AnnotatedText';
+import EssayWords from '@/components/writing/EssayWords';
 
 describe('AnnotatedText focus', () => {
   const originalScrollIntoView = Element.prototype.scrollIntoView;
@@ -69,7 +70,7 @@ describe('AnnotatedText focus', () => {
   it('groups vocabulary suggestions with word and linking patterns in the annotation panel', () => {
     const onSaveVocabularyWord = vi.fn().mockResolvedValue({ success: true });
     render(
-      <AnnotatedText
+      <EssayWords
         text="Rural jobs are important. Rural jobs support families. Rural jobs change."
         vocabularyEnhancements={[
           {
@@ -124,8 +125,8 @@ describe('AnnotatedText focus', () => {
     expect(screen.getByText('Linking words you used')).toBeInTheDocument();
     expect(screen.getByText('Adds a point')).toBeInTheDocument();
     expect(screen.getByText('also')).toBeInTheDocument();
-    expect(screen.getByText('Paragraph flow')).toBeInTheDocument();
-    expect(screen.getByText('1 paragraph')).toBeInTheDocument();
+    // The paragraph map above the essay already shows the paragraphs.
+    expect(screen.queryByText('Paragraph flow')).not.toBeInTheDocument();
     expect(screen.getByText('Why it is better:', { exact: false })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Add “essential” to your vocabulary list' })
@@ -140,8 +141,6 @@ describe('AnnotatedText focus', () => {
       context: 'Shows significance without exaggeration.',
       example: '',
     });
-    fireEvent.click(screen.getByText('Paragraph flow'));
-    expect(screen.getByLabelText('Paragraph 1')).toBeInTheDocument();
   });
 
   it("keeps the learner's paragraphs instead of joining the essay into one block", () => {
@@ -160,7 +159,7 @@ describe('AnnotatedText focus', () => {
         ]}
       />
     );
-    const paragraphs = container.querySelectorAll('p.font-serif');
+    const paragraphs = container.querySelectorAll('p[class*="Source_Serif"]');
     expect(paragraphs).toHaveLength(2);
     expect(paragraphs[0].textContent).toBe('First paragraph about transport.');
     expect(paragraphs[1].textContent).toBe('Second paragraph with people is wrong.');
@@ -228,7 +227,7 @@ describe('AnnotatedText focus', () => {
 
   it('leaves chart labels out of overused words in Task 1', () => {
     render(
-      <AnnotatedText
+      <EssayWords
         text="Users were very satisfied with staff. People praised staff and people stayed."
         annotations={[]}
         isVisualTask
@@ -249,6 +248,6 @@ describe('AnnotatedText focus', () => {
     expect(screen.queryByText('staff')).not.toBeInTheDocument();
     expect(screen.getByText('people')).toBeInTheDocument();
     expect(screen.getByText('individuals')).toBeInTheDocument();
-    expect(screen.getByText(/labels from the chart are left out/)).toBeInTheDocument();
+    expect(screen.getByText(/Keep chart labels/)).toBeInTheDocument();
   });
 });
