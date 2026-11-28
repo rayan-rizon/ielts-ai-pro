@@ -28,25 +28,26 @@ const TONE_RING = {
 };
 
 /** One behaviour count with the thing it actually cost underneath. */
-function HabitTile({ icon, tone = 'accent', label, value, unit, detail }) {
+function HabitTile({ icon, tone = 'accent', label, value, valueTone, unit, detail }) {
   return (
     <div className={cn(TILE, 'p-2.5')}>
       <div className="flex items-center gap-1.5">
         <IconChip icon={icon} tone={tone} size="sm" />
         <p className={cn(MICRO, MUTED, 'truncate')}>{label}</p>
       </div>
-      <p className="mt-1.5 flex items-baseline gap-1">
+      <p className="mt-1 flex items-baseline gap-1">
         <span
           className={cn(
             NUM,
-            'text-lg font-extrabold leading-none text-slate-900 dark:text-slate-50'
+            'text-lg font-extrabold leading-none',
+            valueTone || 'text-slate-900 dark:text-slate-50'
           )}
         >
           {value}
         </span>
         {unit && <span className={cn(MICRO, MUTED)}>{unit}</span>}
       </p>
-      <p className={cn(MICRO, MUTED, 'mt-1.5 normal-case tracking-normal')}>{detail}</p>
+      <p className={cn(MICRO, MUTED, 'mt-1 normal-case tracking-normal')}>{detail}</p>
     </div>
   );
 }
@@ -92,16 +93,15 @@ export function ExamBehaviourCard({ testResults, errorBuckets }) {
     <section className={cn(PANEL, 'flex flex-col p-4')} aria-labelledby="behaviour-title">
       <PanelTitle label="How you worked" />
       <p id="behaviour-title" className={cn('text-[11px] font-medium leading-relaxed', MUTED)}>
-        The habits behind the score. These never change your band — they show where technique, not
-        knowledge, cost you marks.
+        Technique habits behind this attempt.
       </p>
 
       {confidence && (
-        <div className={cn(TILE, 'mt-3 flex items-center gap-3.5 p-3')}>
+        <div className={cn(TILE, 'mt-2.5 flex items-center gap-3 p-2.5')}>
           <Ring
             value={behaviour.confidence}
-            size={58}
-            stroke={6}
+            size={52}
+            stroke={5}
             label={`${behaviour.confidence}`}
             tone={TONE_RING[confidence.tone]}
           />
@@ -154,9 +154,12 @@ export function ExamBehaviourCard({ testResults, errorBuckets }) {
       <div className="mt-2.5 grid grid-cols-2 gap-2">
         <HabitTile
           icon={Undo2}
-          tone={behaviour.changedAndLost ? 'amber' : 'accent'}
+          tone={
+            !behaviour.hasChangeData ? 'neutral' : behaviour.changedAndLost ? 'amber' : 'accent'
+          }
           label="Answers changed"
           value={behaviour.hasChangeData ? behaviour.questionsChanged : '—'}
+          valueTone={!behaviour.hasChangeData ? MUTED : undefined}
           unit={
             behaviour.hasChangeData && behaviour.totalChanges > behaviour.questionsChanged
               ? `${behaviour.totalChanges} edits`
@@ -164,51 +167,52 @@ export function ExamBehaviourCard({ testResults, errorBuckets }) {
           }
           detail={
             !behaviour.hasChangeData
-              ? 'Not recorded for this attempt'
+              ? 'Not recorded'
               : behaviour.changedAndLost === null
-                ? 'Questions you went back and edited'
+                ? 'Edited before submit'
                 : behaviour.changedAndLost > 0
-                  ? `${behaviour.changedAndLost} of them ended up wrong`
-                  : 'None of them ended up wrong'
+                  ? `${behaviour.changedAndLost} ended wrong`
+                  : '0 ended wrong'
           }
         />
 
         <HabitTile
           icon={SpellCheck2}
-          tone={behaviour.nearMiss > 0 ? 'amber' : 'emerald'}
+          tone={behaviour.nearMiss > 0 ? 'amber' : 'neutral'}
           label="Near misses"
           value={behaviour.nearMiss}
-          detail={
-            behaviour.nearMiss > 0
-              ? 'Spelling or form — the meaning was right'
-              : 'No answer failed on spelling alone'
-          }
+          valueTone={behaviour.nearMiss > 0 ? TONE_TEXT.warn : MUTED}
+          detail={behaviour.nearMiss > 0 ? 'Spelling or form slip' : 'No spelling slips'}
         />
 
         <HabitTile
           icon={Flag}
-          tone={behaviour.flaggedLost > 0 ? 'rose' : 'sky'}
+          tone={!behaviour.hasFlagData ? 'neutral' : behaviour.flaggedLost > 0 ? 'rose' : 'sky'}
           label="Flagged for review"
           value={behaviour.hasFlagData ? behaviour.flaggedCount : '—'}
+          valueTone={!behaviour.hasFlagData ? MUTED : undefined}
           detail={
             !behaviour.hasFlagData
-              ? 'Not recorded for this attempt'
+              ? 'Not recorded'
               : behaviour.flaggedCount === 0
-                ? 'You flagged nothing during the test'
-                : `${behaviour.flaggedLost} of them were still wrong`
+                ? 'None flagged'
+                : `${behaviour.flaggedLost} missed`
           }
         />
 
         <HabitTile
           icon={Repeat2}
-          tone={behaviour.skipped > 0 ? 'rose' : 'emerald'}
+          tone={behaviour.skipped > 0 ? 'amber' : 'emerald'}
           label="Left blank"
           value={behaviour.skipped}
-          detail={
-            behaviour.skipped > 0
-              ? 'A guess costs nothing in IELTS'
-              : 'Every question got an answer'
+          valueTone={
+            behaviour.skipped > 5
+              ? TONE_TEXT.fault
+              : behaviour.skipped > 0
+                ? TONE_TEXT.warn
+                : TONE_TEXT.ok
           }
+          detail={behaviour.skipped > 0 ? 'No penalty for guessing' : 'All answered'}
         />
       </div>
     </section>

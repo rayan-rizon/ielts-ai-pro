@@ -100,13 +100,19 @@ function DropOffChart({ sections, noun }) {
   if (sections.length < 2) return null;
 
   return (
-    <div className="mt-3">
+    <div className="mt-2.5">
       <div className="flex items-end gap-1.5">
         {sections.map((section) => {
           const tone = accuracyTone(section.accuracy);
           return (
             <div key={section.index} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-              <span className={cn(NUM, 'text-[10px] font-bold', TONE_TEXT[tone])}>
+              <span
+                className={cn(
+                  NUM,
+                  'text-[10px] font-bold',
+                  section.accuracy > 0 ? TONE_TEXT[tone] : 'text-slate-400 dark:text-slate-500'
+                )}
+              >
                 {section.accuracy}%
               </span>
               <Tip
@@ -114,7 +120,7 @@ function DropOffChart({ sections, noun }) {
               >
                 <div
                   className={cn(
-                    'flex h-16 w-full flex-col justify-end overflow-hidden rounded-md cursor-pointer',
+                    'flex h-12 w-full flex-col justify-end overflow-hidden rounded-md border border-[#e4e2f0]/70 cursor-pointer dark:border-white/[0.06]',
                     WELL
                   )}
                 >
@@ -205,24 +211,22 @@ export function SectionFlowCard({
       />
 
       <p id="flow-title" className={cn('text-[11px] font-medium leading-relaxed', MUTED)}>
-        {isReading
-          ? 'Where the clock went, and whether the accuracy came back with it.'
-          : `Accuracy across the four parts, in the order you heard them.`}
+        {isReading ? 'Accuracy and pacing across passages.' : 'Accuracy across all four parts.'}
       </p>
 
       <DropOffChart sections={flow.scored} noun={noun} />
 
       {dropOff && !hasAnyMarks && (
-        <div className={cn(TILE, 'mt-3 p-3')}>
+        <div className={cn(TILE, 'mt-2.5 p-2.5')}>
           <p className={cn(MICRO, MUTED)}>Nothing scored</p>
           <p className="mt-0.5 text-[11.5px] font-bold leading-snug text-slate-800 dark:text-slate-100">
-            No marks were recorded in any {noun.toLowerCase()}, so there is no shape to read yet.
+            No marks recorded in any {noun.toLowerCase()}.
           </p>
         </div>
       )}
 
       {dropOff && hasAnyMarks && (
-        <div className={cn(TILE, 'mt-3 flex items-start gap-2.5 p-3')}>
+        <div className={cn(TILE, 'mt-2.5 flex items-start gap-2.5 p-2.5')}>
           <span
             className={cn(
               'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
@@ -252,19 +256,16 @@ export function SectionFlowCard({
               <span className={NUM}>{dropOff.best.accuracy}%</span>
               {dropOff.best.index !== dropOff.weakest.index && (
                 <>
-                  , {dropOff.weakest.shortLabel} your weakest at{' '}
+                  , {dropOff.weakest.shortLabel} weakest at{' '}
                   <span className={NUM}>{dropOff.weakest.accuracy}%</span>
                 </>
               )}
               .
             </p>
             {dropOff.fatigue > 0 && (
-              <p className={cn('mt-1 text-[11px] font-medium leading-relaxed', MUTED)}>
-                You finished <span className={cn(NUM, 'font-bold')}>{dropOff.fatigue}</span> points
-                below your best {noun.toLowerCase()} —{' '}
-                {fading
-                  ? 'stamina is costing you marks late in the paper.'
-                  : 'a normal amount of variation.'}
+              <p className={cn('mt-0.5 text-[11px] font-medium leading-relaxed', MUTED)}>
+                <span className={cn(NUM, 'font-bold')}>{dropOff.fatigue}</span> pts below best —{' '}
+                {fading ? 'stamina cost marks late.' : 'normal variation.'}
               </p>
             )}
           </div>
@@ -313,7 +314,7 @@ export function SectionFlowCard({
       )}
 
       {isReading && (
-        <div className="mt-auto pt-3">
+        <div className="mt-auto pt-2.5">
           <div className="flex items-center justify-between gap-2">
             <span className={cn(MICRO, MUTED, 'flex items-center gap-1.5')}>
               <Clock3 className="h-3 w-3" /> Time per {noun.toLowerCase()}
@@ -359,7 +360,7 @@ export function SectionFlowCard({
             </div>
           ) : (
             <p className={cn(MICRO, MUTED, 'mt-2 normal-case tracking-normal')}>
-              Per-passage timing was not recorded for this attempt.
+              Timing not recorded for this attempt.
             </p>
           )}
         </div>

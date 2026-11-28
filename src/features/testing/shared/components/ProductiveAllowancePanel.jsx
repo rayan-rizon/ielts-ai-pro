@@ -20,9 +20,9 @@ export default function ProductiveAllowancePanel({ skill, allowance }) {
   const upgrade = canUpgrade && (
     <Link
       to="/pricing?plan=pro"
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-1 py-2 text-xs font-bold text-[#5a63df] hover:text-[#4a52c9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-[#afb5ff]"
+      className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1 py-1 text-[11px] font-bold text-[#5a63df] hover:text-[#4a52c9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5a63df] dark:text-[#afb5ff]"
     >
-      Unlock with Pro <ArrowRight className="h-3.5 w-3.5" />
+      Unlock with Pro <ArrowRight className="h-3 w-3" />
     </Link>
   );
 
@@ -34,11 +34,20 @@ export default function ProductiveAllowancePanel({ skill, allowance }) {
       blocked={usage.blocked}
       action={upgrade}
     >
-      <div className="flex items-center justify-end gap-2.5">
+      <div className="flex items-center justify-end gap-1.5 @[560px]:gap-2">
         {usage.limit !== null && (
           <Bar value={(usage.used / usage.limit) * 100} className="min-w-0 flex-1" />
         )}
-        <span className={cn(MICRO, MUTED, NUM)}>{usedLabel}</span>
+        <span
+          className={cn(
+            MICRO,
+            MUTED,
+            NUM,
+            'shrink-0 whitespace-nowrap tracking-wider @[560px]:tracking-[0.14em]'
+          )}
+        >
+          {usedLabel}
+        </span>
       </div>
     </LibraryUsagePanel>
   );

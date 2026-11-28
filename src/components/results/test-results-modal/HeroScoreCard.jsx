@@ -77,16 +77,16 @@ export function HeroScoreCard({ testResults }) {
       transition={{ duration: 0.25 }}
       className={cn(
         PANEL,
-        'grid h-full grid-cols-1 items-center gap-3 p-3.5 md:grid-cols-[minmax(210px,1fr)_1px_minmax(210px,1fr)]'
+        'grid h-full grid-cols-1 items-center gap-4 p-4 sm:p-5 md:grid-cols-[minmax(220px,1fr)_1px_minmax(220px,1fr)]'
       )}
     >
       <div className="flex min-w-0 justify-center">
         <ArchScoreGauge score={score} />
       </div>
 
-      <div className="hidden h-[154px] w-px bg-[#e4e2f0] dark:bg-white/[0.07] md:block" />
+      <div className="hidden h-[156px] w-px bg-[#e4e2f0] dark:bg-white/[0.07] md:block" />
 
-      <div className="min-w-0 space-y-2.5">
+      <div className="min-w-0 space-y-3">
         <div className="flex items-baseline justify-between gap-2">
           <span className={cn(MICRO, MUTED)}>Answer breakdown</span>
           <span className={cn(NUM, 'text-xs font-bold text-slate-700 dark:text-slate-200')}>
@@ -103,7 +103,7 @@ export function HeroScoreCard({ testResults }) {
                 <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', seg.dot)} />
                 <span className={cn(MICRO, MUTED, 'truncate')}>{seg.label}</span>
               </div>
-              <p className={cn(NUM, 'mt-1 text-lg font-extrabold leading-none', seg.text)}>
+              <p className={cn(NUM, 'mt-1 text-xl font-extrabold leading-none', seg.text)}>
                 {stats[seg.key]}
               </p>
             </div>

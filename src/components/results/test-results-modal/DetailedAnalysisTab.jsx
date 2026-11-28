@@ -58,9 +58,9 @@ function formatBand(value) {
   return Number(value || 0).toFixed(1);
 }
 
-function SectionHeading({ icon: Icon, eyebrow, title, action }) {
+function SectionHeading({ icon: Icon, eyebrow, title, action, className }) {
   return (
-    <div className="mb-3 flex items-start justify-between gap-3">
+    <div className={cn('mb-3 flex items-start justify-between gap-3', className)}>
       <div className="flex min-w-0 items-center gap-2.5">
         <IconChip icon={Icon} tone="accent" size="md" />
         <div className="min-w-0">
@@ -103,7 +103,7 @@ function TargetGapStrip({ analysis, testResults, currentBand, selectedTarget }) 
     <section className={`${CARD} p-4`}>
       <SectionHeading
         icon={BarChart3}
-        eyebrow="What this paper needed to reach the next band."
+        eyebrow="Raw marks needed for your target."
         title="Your gap to target"
         action={
           <span className={cn(NUM, 'shrink-0 text-sm font-extrabold', OUTCOME.incorrect.text)}>
@@ -166,27 +166,50 @@ function TargetGapStrip({ analysis, testResults, currentBand, selectedTarget }) 
   );
 }
 
+const BUCKET_TONE = {
+  nearMiss: {
+    chip: 'border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.1)] text-[rgb(var(--signal-warn))]',
+    pill: 'border-[rgb(var(--signal-warn)/0.3)] bg-[rgb(var(--signal-warn)/0.1)] text-[rgb(var(--signal-warn))]',
+  },
+  changedWrong: {
+    chip: 'border-[#5a63df]/25 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/16 dark:text-[#a9afff]',
+    pill: 'border-[#5a63df]/25 bg-[#5a63df]/10 text-[#5a63df] dark:border-[#8f97ff]/30 dark:bg-[#8f97ff]/16 dark:text-[#a9afff]',
+  },
+  skipped: {
+    chip: 'border-slate-300/70 bg-slate-100 text-slate-600 dark:border-white/12 dark:bg-white/[0.06] dark:text-slate-300',
+    pill: 'border-slate-300/70 bg-slate-100/80 text-slate-600 dark:border-white/12 dark:bg-white/[0.05] dark:text-slate-300',
+  },
+  otherWrong: {
+    chip: 'border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.1)] text-[rgb(var(--signal-fault))]',
+    pill: 'border-[rgb(var(--signal-fault)/0.3)] bg-[rgb(var(--signal-fault)/0.1)] text-[rgb(var(--signal-fault))]',
+  },
+};
+
 function MistakeQueue({ analysis, onReviewQuestion, testType, sessionId }) {
+  const totalMissed = analysis.errorBuckets.total || analysis.mistakeQueue.length;
+  const shownCount = analysis.mistakeQueue.length;
+
   return (
-    <section className={`${CARD} flex h-full flex-col p-3.5 sm:p-4 space-y-3`}>
+    <section className={`${CARD} flex h-full flex-col p-4`}>
       <SectionHeading
         icon={BookOpenCheck}
-        eyebrow="Start with the answers most likely to improve your score."
+        eyebrow="Highest-impact answers to reopen."
         title="Review these answers first"
       />
       {!analysis.dataAvailability.hasReliableBuckets ? (
-        <div className="flex gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 dark:border-amber-900/50 dark:bg-amber-950/20">
-          <TriangleAlert className="h-4.5 w-4.5 shrink-0 text-amber-600" />
-          <p className="text-xs leading-relaxed font-medium text-amber-800 dark:text-amber-200">
-            This older result does not contain enough question-level detail for trustworthy cause
-            labels. The score map remains available.
-          </p>
+        <div className="flex flex-1 items-center">
+          <div className="flex w-full gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 dark:border-amber-900/50 dark:bg-amber-950/20">
+            <TriangleAlert className="h-4.5 w-4.5 shrink-0 text-amber-600" />
+            <p className="text-xs leading-relaxed font-medium text-amber-800 dark:text-amber-200">
+              Question-level detail is missing for this older result.
+            </p>
+          </div>
         </div>
-      ) : analysis.mistakeQueue.length ? (
+      ) : shownCount ? (
         <>
-          <div className="rounded-xl border border-[#ebeaf7] bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+          <div className={cn(TILE, 'p-3')}>
             <div
-              className="flex h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-white/6"
+              className="flex h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/6"
               aria-label={`${analysis.errorBuckets.nearMiss} near misses, ${analysis.errorBuckets.changedWrong} changed wrong, ${analysis.errorBuckets.skipped} skipped, and ${analysis.errorBuckets.otherWrong} other wrong answers`}
             >
               {[
@@ -209,7 +232,7 @@ function MistakeQueue({ analysis, onReviewQuestion, testType, sessionId }) {
                     <span
                       className={cn(
                         color,
-                        'h-full cursor-pointer transition-opacity hover:opacity-85'
+                        'h-full cursor-pointer transition-opacity duration-150 hover:opacity-85'
                       )}
                       style={{
                         width: `${analysis.errorBuckets.total ? (value / analysis.errorBuckets.total) * 100 : 0}%`,
@@ -219,7 +242,7 @@ function MistakeQueue({ analysis, onReviewQuestion, testType, sessionId }) {
                 );
               })}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
+            <div className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-4">
               {[
                 [
                   'Near miss',
@@ -246,37 +269,53 @@ function MistakeQueue({ analysis, onReviewQuestion, testType, sessionId }) {
                   'bg-[rgb(var(--signal-fault))]',
                 ],
               ].map(([label, value, color, dot]) => (
-                <div key={label} className="flex items-center gap-2">
+                <div key={label} className={cn('flex items-center gap-2', !value && 'opacity-45')}>
                   <span className={`h-2 w-2 rounded-full ${dot}`} />
                   <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    {label} <strong className={color}>{value}</strong>
+                    {label} <strong className={cn(NUM, color)}>{value}</strong>
                   </p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="space-y-2">
+
+          <div className="mt-2.5 flex flex-1 flex-col gap-2">
             {analysis.mistakeQueue.map((item) => {
               const formattedType = item.type
                 ?.replace(/_/g, ' ')
                 .replace(/\b\w/g, (char) => char.toUpperCase());
+              const tone = BUCKET_TONE[item.bucket] || BUCKET_TONE.changedWrong;
               return (
                 <div
                   key={`${item.questionId}-${item.questionNumber}`}
-                  className="p-3 rounded-xl border border-[#ebeaf7] bg-white/90 dark:border-white/10 dark:bg-white/5 transition-all hover:border-[#5a63df]/60 shadow-2xs group flex items-center justify-between gap-3"
+                  className={cn(
+                    TILE,
+                    'group flex flex-col gap-2.5 p-2.5 transition-[border-color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] sm:flex-row sm:items-center sm:justify-between sm:gap-3 hover:border-[#5a63df]/45'
+                  )}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#5a63df]/10 text-xs font-extrabold text-[#5a63df] border border-[#5a63df]/20 dark:bg-[#8f97ff]/16 dark:text-[#a9afff] dark:border-[#8f97ff]/30 shadow-2xs shrink-0">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span
+                      className={cn(
+                        NUM,
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-xs font-extrabold',
+                        tone.chip
+                      )}
+                    >
                       Q{item.questionNumber}
                     </span>
                     <Tooltip delayDuration={200}>
                       <TooltipTrigger asChild>
                         <div className="min-w-0 cursor-default">
-                          <p className="truncate text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white">
+                          <p className="truncate text-xs sm:text-[13px] font-extrabold text-slate-950 dark:text-white">
                             {item.reason}
                           </p>
-                          <div className="flex items-center gap-2 mt-1 min-w-0">
-                            <span className="inline-block rounded-md bg-[#5a63df]/10 text-[#5a63df] dark:bg-[#8f97ff]/16 dark:text-[#a9afff] border border-[#5a63df]/20 dark:border-[#8f97ff]/30 px-2 py-0.5 text-[10px] font-extrabold shrink-0">
+                          <div className="mt-0.5 flex items-center gap-2 min-w-0">
+                            <span
+                              className={cn(
+                                'inline-block shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-extrabold',
+                                tone.pill
+                              )}
+                            >
                               {item.label}
                             </span>
                             <span className="truncate text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -298,22 +337,41 @@ function MistakeQueue({ analysis, onReviewQuestion, testType, sessionId }) {
                       </TooltipContent>
                     </Tooltip>
                   </div>
-                  <PracticeSkillLink module={testType} skill={item.type} sourceId={sessionId} />
-                  <Button
-                    onClick={() => onReviewQuestion(item)}
-                    className="h-8.5 px-3.5 rounded-xl bg-[#5a63df] hover:bg-[#4a52c9] text-white font-extrabold text-xs shadow-2xs hover:shadow-xs hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1 shrink-0"
-                  >
-                    Review <ChevronRight className="h-3.5 w-3.5 stroke-[2.5]" />
-                  </Button>
+                  <div className="flex shrink-0 items-center justify-end gap-2">
+                    <PracticeSkillLink module={testType} skill={item.type} sourceId={sessionId} />
+                    <Button
+                      onClick={() => onReviewQuestion(item)}
+                      className="flex h-8 shrink-0 items-center gap-1 rounded-lg bg-[#5a63df] px-3 text-xs font-extrabold text-white transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#4a52c9] active:scale-[0.97]"
+                    >
+                      Review <ChevronRight className="h-3.5 w-3.5 stroke-[2.5]" />
+                    </Button>
+                  </div>
                 </div>
               );
             })}
           </div>
+
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+            <p className={cn(MICRO, MUTED, 'normal-case tracking-normal')}>
+              {totalMissed > shownCount ? (
+                <>
+                  Top <span className={NUM}>{shownCount}</span> of{' '}
+                  <span className={NUM}>{totalMissed}</span> missed · by recovery impact
+                </>
+              ) : (
+                <>
+                  All <span className={NUM}>{shownCount}</span> missed · by recovery impact
+                </>
+              )}
+            </p>
+          </div>
         </>
       ) : (
-        <p className="rounded-xl bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/50">
-          No recoverable mistakes remain in this result.
-        </p>
+        <div className="flex flex-1 items-center">
+          <p className="w-full rounded-xl border border-emerald-200/60 bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+            No recoverable mistakes remain.
+          </p>
+        </div>
       )}
     </section>
   );
@@ -499,11 +557,11 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
     // `flex-1`). `h-full` on the first item claims the whole stretched row for
     // itself and pushes the row's total height well past what either card
     // actually needs — the bug behind the oversized card in review.
-    <section className={`${CARD} flex flex-col p-4 sm:p-5`}>
+    <section className={`${CARD} flex flex-col p-4`}>
       <div className="flex items-start justify-between gap-3">
         <SectionHeading
           icon={History}
-          eyebrow="Your latest results in this test type."
+          eyebrow="Recent bands in this module."
           title="Your score trend"
         />
         {!loading && !failed && analysis.history.scores.length > 0 && (
@@ -515,10 +573,10 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
       </div>
 
       {loading ? (
-        <div className="h-48 flex-1 animate-pulse rounded-xl bg-slate-100 dark:bg-white/4" />
+        <div className="h-44 flex-1 animate-pulse rounded-xl bg-slate-100 dark:bg-white/4" />
       ) : failed ? (
         <p className="rounded-xl border border-amber-200/60 bg-amber-50 p-3 text-xs font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-          History could not be loaded. Current-result analysis is unaffected.
+          History unavailable. Current analysis is unaffected.
         </p>
       ) : !analysis.history.scores.length ? (
         <div className="flex flex-1 items-center gap-3 rounded-xl border border-dashed border-[#5a63df]/20 bg-[#5a63df]/6 p-3.5 dark:border-[#8f97ff]/25 dark:bg-[#8f97ff]/8">
@@ -533,7 +591,7 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
           <div className="min-w-0">
             <p className="text-xs font-bold text-slate-900 dark:text-white">Baseline recorded</p>
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
-              Your next same-module result will start the trend line.
+              Next result in this module starts the trend line.
             </p>
           </div>
         </div>
@@ -566,15 +624,15 @@ function RecentPatterns({ analysis, loading, failed, currentBand }) {
           <div
             className={cn(
               WELL,
-              'mt-3 flex flex-1 flex-col justify-center rounded-xl border border-slate-200/70 p-3 dark:border-white/8'
+              'mt-2.5 flex flex-1 flex-col justify-center rounded-xl border border-slate-200/70 p-2.5 dark:border-white/8'
             )}
           >
             <ScoreTrendChart scores={scores} />
           </div>
 
-          <p className={cn(MICRO, MUTED, 'mt-2.5 normal-case tracking-normal')}>
+          <p className={cn(MICRO, MUTED, 'mt-2 normal-case tracking-normal')}>
             <span className={NUM}>{scores.length}</span> scored attempt
-            {scores.length === 1 ? '' : 's'} in this module · hover any point for its band.
+            {scores.length === 1 ? '' : 's'} · hover points for band
           </p>
         </>
       )}
@@ -587,24 +645,25 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
   const visiblePlan = showAllDays ? analysis.plan : analysis.plan.slice(0, 3);
 
   return (
-    <section className={`${CARD} flex h-full flex-col p-4 space-y-3`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className={`${CARD} flex h-full flex-col p-4`}>
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <SectionHeading
           icon={CalendarCheck2}
-          eyebrow="One focused practice action per day."
+          eyebrow="One focused action per day."
           title="Your 7-day practice plan"
+          className="mb-0"
         />
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           {analysis.plan.length > 3 && (
             <button
               type="button"
               onClick={() => setShowAllDays((visible) => !visible)}
-              className="flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-[#5a63df] hover:bg-[#5a63df]/10 dark:text-[#a9afff] dark:hover:bg-white/5"
+              className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold text-[#5a63df] transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#5a63df]/10 active:scale-[0.97] dark:text-[#a9afff] dark:hover:bg-white/5"
               aria-expanded={showAllDays}
             >
               {showAllDays ? 'Show first 3 days' : 'Show all 7 days'}
               <ChevronDown
-                className={`h-3.5 w-3.5 transition-transform ${showAllDays ? 'rotate-180' : ''}`}
+                className={`h-3.5 w-3.5 transition-transform duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] ${showAllDays ? 'rotate-180' : ''}`}
               />
             </button>
           )}
@@ -612,7 +671,7 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
             <Button
               variant="outline"
               onClick={onViewPlan}
-              className="h-9 rounded-xl px-4 text-xs font-bold border-slate-200 dark:border-white/[0.07] shadow-2xs hover:bg-[#5a63df]/10 dark:hover:bg-[#8f97ff]/10"
+              className="h-8 rounded-lg border-slate-200 px-3 text-xs font-bold transition-[transform,background-color,border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#5a63df]/10 active:scale-[0.97] dark:border-white/[0.07] dark:hover:bg-[#8f97ff]/10"
             >
               View saved plan <ArrowRight className="ml-1.5 h-3.5 w-3.5 text-[#5a63df]" />
             </Button>
@@ -620,7 +679,7 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
             <Button
               onClick={onSave}
               disabled={!canSave || saving}
-              className="h-9 rounded-xl bg-[#5a63df] px-4 text-xs font-extrabold text-white shadow-xs hover:bg-[#4a52c9] active:scale-[0.98] disabled:opacity-55"
+              className="h-8 rounded-lg bg-[#5a63df] px-3.5 text-xs font-extrabold text-white transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#4a52c9] active:scale-[0.97] disabled:opacity-55"
             >
               <Save className="mr-1.5 h-3.5 w-3.5" />
               {saving ? 'Saving…' : 'Save plan'}
@@ -638,12 +697,12 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
         3 collapsed, three rows (3/3/1) expanded, every card wide enough to
         read.
       */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-3 grid flex-1 content-start grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {visiblePlan.map((item) => (
           <Tooltip key={item.day} delayDuration={200}>
             <TooltipTrigger asChild>
-              <div className="flex min-w-0 cursor-default items-center gap-2.5 rounded-xl border border-slate-200/80 bg-white/80 p-2.5 dark:border-white/[0.07] dark:bg-white/5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#5a63df] text-[10px] font-extrabold text-white">
+              <div className={cn(TILE, 'flex min-w-0 cursor-default items-center gap-2.5 p-2.5')}>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#5a63df] text-[10px] font-extrabold text-white">
                   D{item.day}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -654,7 +713,12 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
                     {item.skill}
                   </p>
                 </div>
-                <span className="shrink-0 text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]">
+                <span
+                  className={cn(
+                    NUM,
+                    'shrink-0 text-[10px] font-extrabold text-[#5a63df] dark:text-[#a9afff]'
+                  )}
+                >
                   {item.minutes}m
                 </span>
               </div>
@@ -671,11 +735,15 @@ function RecoveryPlan({ analysis, canSave, saving, savedPathId, onSave, onViewPl
           </Tooltip>
         ))}
       </div>
-      {!canSave && (
-        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 sm:text-right">
-          This older result can show the plan, but it cannot be saved.
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+        <p className={cn(MICRO, MUTED, 'normal-case tracking-normal')}>
+          {!canSave
+            ? 'This older result can show the plan, but it cannot be saved.'
+            : showAllDays
+              ? 'Full 7-day sequence.'
+              : 'Days 1–3 of 7 shown.'}
         </p>
-      )}
+      </div>
     </section>
   );
 }
@@ -784,7 +852,6 @@ export function DetailedAnalysisTab({
         attempts.
       */}
       <div className="mx-auto max-w-[1400px] space-y-3">
-        <PracticeSkillLink module={testType} sourceId={sessionId} />
         <TargetGapStrip
           analysis={analysis}
           testResults={testResults}

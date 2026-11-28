@@ -48,7 +48,7 @@ function PaperMap({ sections, testType }) {
         </span>
       </div>
 
-      <div className="mt-1.5 flex gap-1">
+      <div className="mt-1.5 flex gap-2.5">
         {sections.map((section, idx) => {
           const tone = accuracyTone(section.accuracy);
           const share = Math.max(8, Math.round((section.total / totalQuestions) * 100));
@@ -72,20 +72,28 @@ function PaperMap({ sections, testType }) {
               <div className="min-w-0 cursor-default" style={{ width: `${share}%` }}>
                 <div
                   className={cn(
-                    'flex h-6 w-full flex-col justify-end overflow-hidden rounded-md',
+                    'flex h-5 w-full flex-col justify-end overflow-hidden rounded-md border border-[#e4e2f0]/70 dark:border-white/[0.06]',
                     WELL
                   )}
                 >
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: `${section.accuracy}%` }}
-                    transition={{ duration: 0.6, delay: 0.15 + idx * 0.05, ease: 'easeOut' }}
-                    className={cn('w-full rounded-md', BAR_FILL[tone])}
-                  />
+                  {section.accuracy > 0 && (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${section.accuracy}%` }}
+                      transition={{ duration: 0.6, delay: 0.15 + idx * 0.05, ease: 'easeOut' }}
+                      className={cn('w-full rounded-sm', BAR_FILL[tone])}
+                    />
+                  )}
                 </div>
-                <div className="mt-1 flex items-baseline justify-between gap-1">
+                <div className="mt-1 flex items-baseline justify-between gap-2">
                   <span className={cn(MICRO, MUTED, 'truncate')}>{section.shortLabel}</span>
-                  <span className={cn(NUM, 'text-[10px] font-bold', SIGNAL_TEXT[tone])}>
+                  <span
+                    className={cn(
+                      NUM,
+                      'shrink-0 text-[10px] font-bold',
+                      section.accuracy > 0 ? SIGNAL_TEXT[tone] : MUTED
+                    )}
+                  >
                     {section.accuracy}%
                   </span>
                 </div>
@@ -153,12 +161,13 @@ export function MarkLossCard({ testResults, testType = 'reading', onReviewAnswer
     <motion.section
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.15 }}
-      className={cn(PANEL, 'p-3.5')}
+      transition={{ duration: 0.25, delay: 0.1 }}
+      className={cn(PANEL, 'flex h-full flex-col p-4 sm:p-5')}
       aria-labelledby="mark-loss-title"
     >
       <PanelTitle
         label="Where your marks went"
+        className="mb-2.5"
         action={
           loss.totalLost > 0 ? (
             <span className={cn(MICRO, SIGNAL_TEXT.fault)}>
@@ -176,7 +185,7 @@ export function MarkLossCard({ testResults, testType = 'reading', onReviewAnswer
       {loss.types.length === 0 ? (
         <Empty>No question-type breakdown was recorded for this attempt.</Empty>
       ) : (
-        <div className={cn(loss.sections.length > 0 && 'mt-3')}>
+        <div className={cn('flex flex-1 flex-col', loss.sections.length > 0 && 'mt-3.5')}>
           <div className="flex items-center justify-between gap-2">
             <span id="mark-loss-title" className={cn(MICRO, MUTED)}>
               By question type
@@ -188,7 +197,7 @@ export function MarkLossCard({ testResults, testType = 'reading', onReviewAnswer
             )}
           </div>
 
-          <div className="mt-2 grid grid-cols-1 gap-1 lg:grid-cols-2">
+          <div className="mt-2 grid flex-1 content-start grid-cols-1 gap-2 lg:grid-cols-2">
             {lostTypes.length === 0 ? (
               <p className={cn(MICRO, SIGNAL_TEXT.ok, 'py-2')}>
                 Every question type was answered correctly.
@@ -222,8 +231,8 @@ export function MarkLossCard({ testResults, testType = 'reading', onReviewAnswer
                       onClick={onReviewAnswers}
                       className={cn(
                         TILE,
-                        'flex w-full items-center gap-2.5 px-2.5 py-1.5 text-left transition-all duration-150',
-                        'hover:border-[#c9cdf3] active:scale-[0.995] dark:hover:border-white/18'
+                        'flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+                        'hover:border-[#c9cdf3] active:scale-[0.985] dark:hover:border-white/18'
                       )}
                     >
                       <span

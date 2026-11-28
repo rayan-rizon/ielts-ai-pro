@@ -74,7 +74,7 @@ function TrendRow({ entry }) {
   const Icon = meta.icon;
 
   return (
-    <div className={cn(TILE, 'p-2.5')}>
+    <div className={cn(TILE, 'px-2.5 py-2')}>
       <div className="flex items-baseline justify-between gap-2">
         <Tip content={entry.label}>
           <span className="min-w-0 cursor-default truncate text-[11px] font-extrabold text-slate-800 dark:text-slate-100">
@@ -94,7 +94,7 @@ function TrendRow({ entry }) {
         being clipped at the very edge — a learner stuck at zero on both sides
         would otherwise see an apparently empty row.
       */}
-      <div className="relative mt-2 h-4 px-1.5">
+      <div className="relative mt-1.5 h-3.5 px-1.5">
         <div className="relative h-full w-full">
           <span className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#e4e2f0] dark:bg-white/12" />
           {width > 0 && (
@@ -121,7 +121,7 @@ function TrendRow({ entry }) {
         </div>
       </div>
 
-      <div className="mt-1.5 flex items-center justify-between gap-2">
+      <div className="mt-1 flex items-center justify-between gap-2">
         <span className={cn(MICRO, MUTED, 'truncate normal-case tracking-normal')}>
           <span className={NUM}>{from}%</span> before → <span className={NUM}>{to}%</span> now
           <span className="text-slate-400 dark:text-slate-500">
@@ -194,16 +194,18 @@ export function SkillTrendCard({ analysis }) {
         }
       />
       <p id="skill-trend-title" className={cn('text-[11px] font-medium leading-relaxed', MUTED)}>
-        A single result cannot tell you whether a weakness is new or permanent. This one can.
+        This attempt vs. your last five.
       </p>
 
       {tracked.length === 0 ? (
-        <Empty icon={AlertTriangle}>
-          Not enough history yet. Two more attempts in this module will start comparing your
-          question types.
-        </Empty>
+        <div className="mt-3 flex flex-1 flex-col justify-center">
+          <Empty icon={AlertTriangle}>
+            Not enough history yet. Two more attempts in this module will start comparing your
+            question types.
+          </Empty>
+        </div>
       ) : (
-        <div className="mt-3 grid grid-cols-1 gap-1.5">
+        <div className="mt-2.5 grid flex-1 content-start grid-cols-1 gap-1.5">
           {tracked.map((entry) => (
             <TrendRow key={entry.type} entry={entry} />
           ))}
@@ -219,7 +221,7 @@ export function SkillTrendCard({ analysis }) {
           )}
         >
           <span className={NUM}>{untracked.length}</span> more type
-          {untracked.length === 1 ? '' : 's'} in this paper without enough history to compare yet.
+          {untracked.length === 1 ? '' : 's'} need more attempts to compare.
         </p>
       )}
     </section>

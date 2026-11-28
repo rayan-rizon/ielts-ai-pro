@@ -30,14 +30,14 @@ export const OverviewTab = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}
-      className="p-2.5 sm:p-3 max-w-[1400px] mx-auto space-y-2.5"
+      className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-3 p-3 sm:p-4"
     >
       {/* Standing: the score, and what it would take to move it. */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-stretch">
-        <div className="lg:col-span-7 flex flex-col">
+      <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-12">
+        <div className="flex flex-col lg:col-span-7">
           <HeroScoreCard testResults={testResults} />
         </div>
-        <div className="lg:col-span-5 flex flex-col">
+        <div className="flex flex-col lg:col-span-5">
           <TargetMilestoneCard
             testResults={testResults}
             onReviewAnswers={onReviewAnswers}
@@ -46,19 +46,23 @@ export const OverviewTab = ({
         </div>
       </div>
 
-      {/* Attribution: every lost mark, by type and by section, in one place. */}
-      <MarkLossCard
-        testResults={testResults}
-        testType={testType}
-        onReviewAnswers={onReviewAnswers}
-      />
-
-      {/* Detail: the questions themselves. */}
-      <AnswerKeySection
-        testResults={testResults}
-        onNavigateToQuestion={onNavigateToQuestion}
-        onReviewAnswers={onReviewAnswers}
-      />
+      {/* Attribution & Detail: marks lost and answer map side by side. */}
+      <div className="grid flex-1 grid-cols-1 items-stretch gap-3 lg:grid-cols-12">
+        <div className="flex flex-col lg:col-span-6">
+          <MarkLossCard
+            testResults={testResults}
+            testType={testType}
+            onReviewAnswers={onReviewAnswers}
+          />
+        </div>
+        <div className="flex flex-col lg:col-span-6">
+          <AnswerKeySection
+            testResults={testResults}
+            onNavigateToQuestion={onNavigateToQuestion}
+            onReviewAnswers={onReviewAnswers}
+          />
+        </div>
+      </div>
     </motion.div>
   );
 };

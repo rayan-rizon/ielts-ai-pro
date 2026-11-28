@@ -53,11 +53,12 @@ export const AnswerKeySection = React.memo(
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.25 }}
-        className={cn(PANEL, 'flex h-full flex-col p-4')}
+        transition={{ duration: 0.25, delay: 0.15 }}
+        className={cn(PANEL, 'flex h-full flex-col p-4 sm:p-5')}
       >
         <PanelTitle
           label="Answer map"
+          className="mb-3"
           action={
             <div
               className={cn(
@@ -73,7 +74,7 @@ export const AnswerKeySection = React.memo(
                     type="button"
                     onClick={() => setFilter(t.id)}
                     className={cn(
-                      'relative z-10 rounded-md px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide transition-colors',
+                      'relative z-10 rounded-md px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide transition-colors duration-150',
                       isActive
                         ? 'text-white'
                         : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
@@ -101,7 +102,7 @@ export const AnswerKeySection = React.memo(
               Nothing in this filter — good news.
             </p>
           ) : (
-            <div className="grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-10 xl:grid-cols-12">
+            <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-10 xl:grid-cols-12">
               {visible.map(({ qNum, status }) => (
                 <Tip key={qNum} content={`Question ${qNum} — ${status}`}>
                   <button
@@ -111,8 +112,8 @@ export const AnswerKeySection = React.memo(
                     }
                     className={cn(
                       NUM,
-                      'flex h-7 items-center justify-center rounded border text-[11px] font-bold transition-all w-full',
-                      'hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-1 focus:ring-[#5a63df]/50',
+                      'flex h-9 w-full items-center justify-center rounded-md border text-xs font-bold transition-[transform,background-color,border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+                      'hover:-translate-y-0.5 active:scale-[0.95] focus:outline-none focus:ring-1 focus:ring-[#5a63df]/50',
                       CELL_STYLE[status]
                     )}
                   >
@@ -124,7 +125,7 @@ export const AnswerKeySection = React.memo(
           )}
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-4 border-t border-[#eceafa] pt-2.5 dark:border-white/[0.07]">
+        <div className="mt-auto flex flex-wrap items-center justify-center gap-4 border-t border-[#eceafa] pt-3 dark:border-white/[0.07]">
           {LEGEND.map((l) => (
             <span key={l.status} className="flex items-center gap-1.5">
               <span className={cn('h-1.5 w-1.5 rounded-full', l.dot)} />

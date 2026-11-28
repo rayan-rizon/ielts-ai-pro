@@ -177,66 +177,58 @@ function CoachPulse({ compact = false }) {
   );
 }
 
-function CoachLoadingSkeleton() {
+const COACH_BOOTSTRAP_CACHE_PREFIX = 'ielts-ai-coach-bootstrap-v1:';
+
+function readCachedCoachBootstrap(userId) {
+  if (!userId || typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(`${COACH_BOOTSTRAP_CACHE_PREFIX}${userId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.conversations) || !parsed.status) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedCoachBootstrap(userId, payload) {
+  if (!userId || typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(
+      `${COACH_BOOTSTRAP_CACHE_PREFIX}${userId}`,
+      JSON.stringify({
+        status: payload.status,
+        conversations: payload.conversations,
+        preferredLanguage: payload.preferredLanguage,
+      })
+    );
+  } catch {
+    // Ignore storage quota or private-mode restrictions.
+  }
+}
+
+function SidebarHistoryPlaceholder() {
   return (
-    <main
-      className="ai-coach-canvas min-h-full p-2 text-slate-900 sm:p-3 min-[900px]:p-5 dark:text-white"
-      aria-busy="true"
-      aria-label="Loading Ava coach"
-    >
-      <div className="ai-coach-layout mx-auto grid w-full max-w-[1680px] grid-cols-12 items-stretch gap-3">
-        <aside className={cn(PANEL, 'hidden min-w-0 flex-col p-3 min-[900px]:flex')}>
-          <div className="h-11 w-full animate-pulse rounded-xl bg-[#5a63df]/20" />
-          <div className="mt-5 flex items-center justify-between">
-            <div className="h-4 w-36 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
-            <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-200 dark:bg-white/10" />
-          </div>
-          <div className="mt-4 space-y-2">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="flex h-16 items-center gap-2.5 rounded-xl p-2">
-                <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-100 dark:bg-white/[0.06]" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 w-4/5 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
-                  <div className="h-2.5 w-3/5 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
-                </div>
+    <div className="mt-2 min-h-0 flex-1 space-y-4 overflow-hidden pr-1" aria-busy="true">
+      <div>
+        <div className="mb-2 px-2">
+          <div className="h-2.5 w-24 rounded bg-slate-200/70 dark:bg-white/[0.06]" />
+        </div>
+        <div className="space-y-1">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="flex items-start gap-2.5 rounded-xl px-2.5 py-3">
+              <div className="h-8 w-8 shrink-0 rounded-lg border border-[#e4e2f0]/70 bg-slate-100/80 dark:border-white/[0.06] dark:bg-white/[0.04]" />
+              <div className="min-w-0 flex-1 space-y-2 pt-0.5">
+                <div className="h-3 w-4/5 rounded bg-slate-200/65 dark:bg-white/[0.06]" />
+                <div className="h-2.5 w-3/5 rounded bg-slate-100/90 dark:bg-white/[0.04]" />
               </div>
-            ))}
-          </div>
-          <div className={cn(TILE, 'mt-auto h-24 animate-pulse')} />
-        </aside>
-        <section
-          className={cn(
-            PANEL,
-            'relative order-2 col-span-12 flex h-[calc(100dvh-4rem)] flex-col overflow-hidden sm:h-[calc(100dvh-4.5rem)]'
-          )}
-        >
-          <div className="flex items-center justify-between border-b border-[#e4e2f0] px-3 py-3 dark:border-white/[0.07] sm:px-5">
-            <div className="flex items-center gap-3">
-              <CoachAvatar size="sm" decorative />
-              <div className="space-y-1.5">
-                <div className="h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-white/10" />
-                <div className="h-3 w-32 animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
-              </div>
+              <div className="mt-0.5 h-2.5 w-9 shrink-0 rounded bg-slate-100/90 dark:bg-white/[0.04]" />
             </div>
-            <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100 dark:bg-white/[0.06]" />
-          </div>
-          <div className="flex flex-1 items-center justify-center p-6">
-            <div className="flex w-full max-w-xl flex-col items-center gap-4">
-              <div className="relative grid h-40 w-40 place-items-center">
-                <CoachPulse compact />
-                <CoachAvatar size="lg" decorative />
-              </div>
-              <div className="h-3 w-28 animate-pulse rounded-full bg-slate-100 dark:bg-white/[0.06]" />
-              <div className="h-8 w-64 animate-pulse rounded-lg bg-slate-200 dark:bg-white/10" />
-              <div className="h-4 w-80 max-w-full animate-pulse rounded bg-slate-100 dark:bg-white/[0.06]" />
-            </div>
-          </div>
-          <div className="border-t border-[#e4e2f0] p-3 dark:border-white/[0.07] sm:p-4">
-            <div className="h-20 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/[0.06]" />
-          </div>
-        </section>
+          ))}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -698,13 +690,24 @@ export default function AiCoach() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const reduceMotion = useReducedMotion();
-  const [state, setState] = useState({
-    loading: true,
-    error: null,
-    status: null,
-    conversations: [],
-    preferredLanguage: 'en',
-  });
+  const cachedBootstrap = React.useMemo(() => readCachedCoachBootstrap(user?.id), [user?.id]);
+  const [state, setState] = useState(() =>
+    cachedBootstrap
+      ? {
+          loading: false,
+          error: null,
+          status: cachedBootstrap.status,
+          conversations: cachedBootstrap.conversations,
+          preferredLanguage: cachedBootstrap.preferredLanguage || 'en',
+        }
+      : {
+          loading: true,
+          error: null,
+          status: null,
+          conversations: [],
+          preferredLanguage: 'en',
+        }
+  );
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [nextBefore, setNextBefore] = useState(null);
@@ -744,13 +747,15 @@ export default function AiCoach() {
     bootstrapCoach()
       .then((data) => {
         if (!active) return;
-        setState({
+        const nextState = {
           loading: false,
           error: null,
           status: data.status,
           conversations: data.conversations,
           preferredLanguage: data.preferredLanguage,
-        });
+        };
+        setState(nextState);
+        writeCachedCoachBootstrap(user?.id, nextState);
         const savedDraft = takeCoachDraft();
         if (savedDraft) {
           setDraft(savedDraft.message || '');
@@ -765,7 +770,7 @@ export default function AiCoach() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     const scrollToLatest = () => {
@@ -939,24 +944,28 @@ export default function AiCoach() {
         });
         return nextMessages;
       });
-      setState((current) => ({
-        ...current,
-        status: {
-          ...current.status,
-          remainingDailyReplies: result.remainingDailyReplies,
-          quotaResetsAt: result.quotaResetsAt || current.status?.quotaResetsAt,
-        },
-        conversations: current.conversations.some((item) => item.id === nextConversationId)
-          ? current.conversations
-          : [
-              {
-                id: nextConversationId,
-                title: text.slice(0, 80),
-                last_message_at: new Date().toISOString(),
-              },
-              ...current.conversations,
-            ],
-      }));
+      setState((current) => {
+        const nextState = {
+          ...current,
+          status: {
+            ...current.status,
+            remainingDailyReplies: result.remainingDailyReplies,
+            quotaResetsAt: result.quotaResetsAt || current.status?.quotaResetsAt,
+          },
+          conversations: current.conversations.some((item) => item.id === nextConversationId)
+            ? current.conversations
+            : [
+                {
+                  id: nextConversationId,
+                  title: text.slice(0, 80),
+                  last_message_at: new Date().toISOString(),
+                },
+                ...current.conversations,
+              ],
+        };
+        writeCachedCoachBootstrap(user?.id, nextState);
+        return nextState;
+      });
     } catch (error) {
       setMessages((current) => current.filter((message) => message.id !== optimisticId));
       recoveryRef.current = error.requestOutcomeUnknown ? { requestId, text } : null;
@@ -1008,10 +1017,14 @@ export default function AiCoach() {
     try {
       await deleteCoachConversation(id);
       conversationCacheRef.current.delete(id);
-      setState((current) => ({
-        ...current,
-        conversations: current.conversations.filter((item) => item.id !== id),
-      }));
+      setState((current) => {
+        const nextState = {
+          ...current,
+          conversations: current.conversations.filter((item) => item.id !== id),
+        };
+        writeCachedCoachBootstrap(user?.id, nextState);
+        return nextState;
+      });
       if (conversationId === id) {
         historyRequestRef.current += 1;
         setConversationId(null);
@@ -1042,17 +1055,15 @@ export default function AiCoach() {
     requestAnimationFrame(() => composerRef.current?.focus());
   };
 
-  if (state.loading) return <CoachLoadingSkeleton />;
-
   const historyContents = (
     <>
       <button
         type="button"
         onClick={startConversation}
-        disabled={sending}
+        disabled={sending || state.loading}
         className={cn(
           FOCUS_RING,
-          'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5a63df] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#4d56d4] active:scale-[0.99]'
+          'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5a63df] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#4d56d4] active:scale-[0.99] disabled:opacity-60'
         )}
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
@@ -1067,21 +1078,23 @@ export default function AiCoach() {
         >
           Saved conversations
         </h2>
-        <button
-          type="button"
-          onClick={() => {
-            setShowHistorySearch((current) => !current);
-            setHistorySearch('');
-          }}
-          aria-label={showHistorySearch ? 'Close conversation search' : 'Search conversations'}
-          aria-expanded={showHistorySearch}
-          className={cn(
-            FOCUS_RING,
-            'grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/[0.07]'
-          )}
-        >
-          {showHistorySearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-        </button>
+        {!state.loading ? (
+          <button
+            type="button"
+            onClick={() => {
+              setShowHistorySearch((current) => !current);
+              setHistorySearch('');
+            }}
+            aria-label={showHistorySearch ? 'Close conversation search' : 'Search conversations'}
+            aria-expanded={showHistorySearch}
+            className={cn(
+              FOCUS_RING,
+              'grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-[#f4f3fb] hover:text-[#5a63df] dark:text-slate-400 dark:hover:bg-white/[0.07]'
+            )}
+          >
+            {showHistorySearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+          </button>
+        ) : null}
       </div>
       {showHistorySearch ? (
         <input
@@ -1097,83 +1110,87 @@ export default function AiCoach() {
           )}
         />
       ) : null}
-      <div className="mt-2 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-        {conversationGroups.length ? (
-          conversationGroups.map((group) => (
-            <div key={group.label}>
-              <h3 className={cn(MICRO, 'mb-2 px-2 text-slate-400 dark:text-slate-500')}>
-                {group.label}
-              </h3>
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const topic = CONVERSATION_TOPICS[coachTopic(item.title)];
-                  const Icon = topic.icon;
-                  return (
-                    <div
-                      key={item.id}
-                      className={cn(
-                        'group flex min-w-0 items-start gap-1 rounded-xl border transition-colors',
-                        conversationId === item.id
-                          ? 'border-[#5a63df]/20 bg-[#5a63df]/[0.07] dark:bg-[#5a63df]/[0.14]'
-                          : 'border-transparent hover:border-[#e4e2f0] hover:bg-[#f7f6fc] dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => selectConversation(item.id)}
-                        aria-label={`Open ${item.title || 'untitled conversation'}`}
-                        aria-current={conversationId === item.id ? 'page' : undefined}
+      {state.loading ? (
+        <SidebarHistoryPlaceholder />
+      ) : (
+        <div className="mt-2 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          {conversationGroups.length ? (
+            conversationGroups.map((group) => (
+              <div key={group.label}>
+                <h3 className={cn(MICRO, 'mb-2 px-2 text-slate-400 dark:text-slate-500')}>
+                  {group.label}
+                </h3>
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const topic = CONVERSATION_TOPICS[coachTopic(item.title)];
+                    const Icon = topic.icon;
+                    return (
+                      <div
+                        key={item.id}
                         className={cn(
-                          FOCUS_RING,
-                          'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl px-2.5 py-3 text-left'
+                          'group flex min-w-0 items-start gap-1 rounded-xl border transition-colors',
+                          conversationId === item.id
+                            ? 'border-[#5a63df]/20 bg-[#5a63df]/[0.07] dark:bg-[#5a63df]/[0.14]'
+                            : 'border-transparent hover:border-[#e4e2f0] hover:bg-[#f7f6fc] dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
                         )}
                       >
-                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/10 dark:bg-white/[0.06]">
-                          <Icon className="h-4 w-4" aria-hidden="true" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span
-                            className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100"
-                            title={item.title}
-                          >
-                            {item.title || 'Untitled conversation'}
-                          </span>
-                          <span className="mt-1 block truncate text-[11px] text-slate-500 dark:text-slate-400">
-                            {topic.description}
-                          </span>
-                        </span>
-                        <time
-                          className={cn(NUM, 'shrink-0 text-[10px] text-slate-400')}
-                          dateTime={item.last_message_at}
+                        <button
+                          type="button"
+                          onClick={() => selectConversation(item.id)}
+                          aria-label={`Open ${item.title || 'untitled conversation'}`}
+                          aria-current={conversationId === item.id ? 'page' : undefined}
+                          className={cn(
+                            FOCUS_RING,
+                            'flex min-w-0 flex-1 items-start gap-2.5 rounded-xl px-2.5 py-3 text-left'
+                          )}
                         >
-                          {conversationTime(item.last_message_at, group.label === 'Today')}
-                        </time>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeConversation(item.id)}
-                        className={cn(
-                          FOCUS_RING,
-                          'mr-1 mt-3 grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 opacity-0 hover:text-rose-500 group-hover:opacity-100 focus:opacity-100'
-                        )}
-                        aria-label={`Delete ${item.title || 'conversation'}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  );
-                })}
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#e4e2f0] bg-white text-[#5a63df] dark:border-white/10 dark:bg-white/[0.06]">
+                            <Icon className="h-4 w-4" aria-hidden="true" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100"
+                              title={item.title}
+                            >
+                              {item.title || 'Untitled conversation'}
+                            </span>
+                            <span className="mt-1 block truncate text-[11px] text-slate-500 dark:text-slate-400">
+                              {topic.description}
+                            </span>
+                          </span>
+                          <time
+                            className={cn(NUM, 'shrink-0 text-[10px] text-slate-400')}
+                            dateTime={item.last_message_at}
+                          >
+                            {conversationTime(item.last_message_at, group.label === 'Today')}
+                          </time>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeConversation(item.id)}
+                          className={cn(
+                            FOCUS_RING,
+                            'mr-1 mt-3 grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 opacity-0 hover:text-rose-500 group-hover:opacity-100 focus:opacity-100'
+                          )}
+                          aria-label={`Delete ${item.title || 'conversation'}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="px-2 py-4 text-xs text-slate-500">
-            {historySearch
-              ? 'No recent conversations match your search.'
-              : 'Your saved conversations will appear here.'}
-          </p>
-        )}
-      </div>
+            ))
+          ) : (
+            <p className="px-2 py-4 text-xs text-slate-500">
+              {historySearch
+                ? 'No recent conversations match your search.'
+                : 'Your saved conversations will appear here.'}
+            </p>
+          )}
+        </div>
+      )}
     </>
   );
 
@@ -1233,7 +1250,7 @@ export default function AiCoach() {
                   Chats
                 </Dialog.Trigger>
                 <Dialog.Portal>
-                  <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/40" />
+                  <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
                   <Dialog.Content
                     aria-describedby={undefined}
                     className={cn(
@@ -1256,7 +1273,9 @@ export default function AiCoach() {
                   </Dialog.Content>
                 </Dialog.Portal>
               </Dialog.Root>
-              {state.status?.enabled ? (
+              {state.loading ? (
+                <div className="h-6 w-24 rounded-full bg-slate-100 dark:bg-white/[0.06]" />
+              ) : state.status?.enabled ? (
                 <ReplyAllowance remaining={remaining} resetAt={state.status.quotaResetsAt} />
               ) : (
                 <Pill tone="amber" className="shrink-0">
@@ -1278,7 +1297,21 @@ export default function AiCoach() {
             )}
           >
             <AnimatePresence mode="wait" initial={false}>
-              {state.error ? (
+              {state.loading ? (
+                <div
+                  key="coach-loading"
+                  className="flex min-h-full items-center justify-center p-6"
+                  aria-busy="true"
+                  aria-label="Loading Ava coach"
+                >
+                  <div className="flex w-full max-w-xl flex-col items-center gap-4">
+                    <div className="relative grid h-40 w-40 place-items-center">
+                      <CoachPulse compact />
+                      <CoachAvatar size="lg" decorative />
+                    </div>
+                  </div>
+                </div>
+              ) : state.error ? (
                 <motion.div
                   key="coach-error"
                   initial={{ opacity: 0, y: 8 }}
@@ -1405,218 +1438,224 @@ export default function AiCoach() {
               </div>
             ) : null}
           </div>
-          <form
-            onSubmit={submit}
-            className="border-t border-[#e4e2f0] bg-white p-2.5 dark:border-white/[0.07] dark:bg-[#121116] sm:p-3"
-          >
-            {sourceReference && preview ? (
-              <div className={cn(TILE, 'mb-2 p-3')} aria-label="Attached result summary">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
-                    <span className={cn(MICRO, 'flex items-center gap-1.5 text-[#5a63df]')}>
-                      <BookOpenCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                      {preview.title}
-                    </span>
-                    {preview.facts.map((fact) => (
-                      <span
-                        key={fact.label}
-                        className="text-[11px] text-slate-500 dark:text-slate-400"
-                      >
-                        <span className="font-semibold">{fact.label}</span>{' '}
-                        <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
-                          {fact.value}
-                        </span>
+          {state.loading ? (
+            <div className="border-t border-[#e4e2f0] p-3 dark:border-white/[0.07] sm:p-4">
+              <div className="h-20 rounded-2xl bg-slate-100/70 dark:bg-white/[0.04]" />
+            </div>
+          ) : (
+            <form
+              onSubmit={submit}
+              className="border-t border-[#e4e2f0] bg-white p-2.5 dark:border-white/[0.07] dark:bg-[#121116] sm:p-3"
+            >
+              {sourceReference && preview ? (
+                <div className={cn(TILE, 'mb-2 p-3')} aria-label="Attached result summary">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
+                      <span className={cn(MICRO, 'flex items-center gap-1.5 text-[#5a63df]')}>
+                        <BookOpenCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                        {preview.title}
                       </span>
-                    ))}
+                      {preview.facts.map((fact) => (
+                        <span
+                          key={fact.label}
+                          className="text-[11px] text-slate-500 dark:text-slate-400"
+                        >
+                          <span className="font-semibold">{fact.label}</span>{' '}
+                          <span className={cn(NUM, 'font-bold text-slate-700 dark:text-slate-200')}>
+                            {fact.value}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSourceReference(null)}
+                      aria-label="Remove result"
+                      className={cn(
+                        FOCUS_RING,
+                        'shrink-0 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                      )}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
+                  {preview.suggestions.length ? (
+                    <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+                      {preview.suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.message}
+                          type="button"
+                          onClick={() =>
+                            sendMessage(suggestion.message, {
+                              canned: true,
+                              questionNumber: suggestion.questionNumber ?? null,
+                            })
+                          }
+                          disabled={!canSend || sending || switchingConversation}
+                          className={cn(
+                            FOCUS_RING,
+                            'shrink-0 whitespace-nowrap rounded-full border border-[#dedcec] bg-white px-3 py-1.5 text-left text-[11px] font-bold text-[#4a52c9] transition-colors hover:border-[#5a63df]/45 hover:bg-[#f3f2ff] disabled:cursor-not-allowed disabled:opacity-45 sm:whitespace-normal dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-[#c3c7ff]'
+                          )}
+                        >
+                          {suggestion.message}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : sourceReference ? (
+                <div className="mb-2 flex items-center gap-2 rounded-lg bg-[#5a63df]/[0.07] px-2.5 py-2 text-xs font-semibold text-[#4a52c9] dark:text-[#c3c7ff]">
+                  <BookOpenCheck className="h-4 w-4" />
+                  <span className="flex-1">A completed result is attached for context.</span>
                   <button
                     type="button"
                     onClick={() => setSourceReference(null)}
                     aria-label="Remove result"
-                    className={cn(
-                      FOCUS_RING,
-                      'shrink-0 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                    )}
+                    className={cn(FOCUS_RING, 'rounded-md text-[#4a52c9] dark:text-[#c3c7ff]')}
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                {preview.suggestions.length ? (
-                  <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
-                    {preview.suggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.message}
+              ) : null}
+              <div className="ava-composer rounded-2xl border border-[#d9d7e7] bg-[#faf9ff] p-2.5 dark:border-white/10 dark:bg-white/[0.04]">
+                <div className="flex items-center justify-between gap-3 px-1 pb-1.5">
+                  <label
+                    htmlFor="ava-coach-message"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#4a52c9] dark:text-[#b9bdff]"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+                    Ask Ava
+                  </label>
+                </div>
+                <div className="flex items-end gap-2 rounded-xl bg-white px-2 py-1.5 dark:bg-[#151419]">
+                  <textarea
+                    ref={composerRef}
+                    id="ava-coach-message"
+                    value={draft}
+                    onChange={(event) => {
+                      cannedDraftRef.current = null;
+                      setDraft(event.target.value.slice(0, 2000));
+                    }}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === 'Enter' &&
+                        !event.shiftKey &&
+                        !event.nativeEvent.isComposing
+                      ) {
+                        event.preventDefault();
+                        submit();
+                      }
+                    }}
+                    dir="auto"
+                    rows={1}
+                    maxLength={2000}
+                    disabled={!canSend || sending || switchingConversation}
+                    aria-describedby="ava-language-note"
+                    placeholder={
+                      !state.status?.enabled
+                        ? 'Ava will be available when the coach is enabled'
+                        : canSend
+                          ? 'Ask an IELTS question…'
+                          : state.status?.budgetAvailable === false
+                            ? 'AI replies are temporarily unavailable'
+                            : 'Daily replies are unavailable'
+                    }
+                    className="max-h-36 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-1.5 py-2.5 text-base leading-6 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed sm:text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!draft.trim() || !canSend || sending || switchingConversation}
+                    className={cn(
+                      FOCUS_RING,
+                      'ava-send-button grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#5a63df] text-white active:scale-95 disabled:opacity-40'
+                    )}
+                    aria-label="Send message"
+                  >
+                    {sending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 translate-x-px" strokeWidth={2.2} />
+                    )}
+                  </button>
+                </div>
+                <div
+                  id="ava-language-note"
+                  className="flex items-center justify-between gap-2 px-1 pt-1.5 text-[10px] font-medium text-slate-400"
+                >
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="shrink-0">Reply language</span>
+                    <Popover.Root open={languageMenuOpen} onOpenChange={setLanguageMenuOpen}>
+                      <Popover.Trigger
                         type="button"
-                        onClick={() =>
-                          sendMessage(suggestion.message, {
-                            canned: true,
-                            questionNumber: suggestion.questionNumber ?? null,
-                          })
-                        }
-                        disabled={!canSend || sending || switchingConversation}
+                        aria-label={`Reply language: ${replyLanguage === 'auto' ? 'Auto' : AI_COACH_LANGUAGES.find((item) => item.code === replyLanguage)?.label || replyLanguage}`}
                         className={cn(
                           FOCUS_RING,
-                          'shrink-0 whitespace-nowrap rounded-full border border-[#dedcec] bg-white px-3 py-1.5 text-left text-[11px] font-bold text-[#4a52c9] transition-colors hover:border-[#5a63df]/45 hover:bg-[#f3f2ff] disabled:cursor-not-allowed disabled:opacity-45 sm:whitespace-normal dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-[#c3c7ff]'
+                          'inline-flex h-7 items-center gap-1 rounded-lg border border-[#e4e2f0] bg-white px-2 text-[11px] font-bold text-slate-700 transition-colors hover:border-[#5a63df]/40 hover:text-[#4a52c9] active:scale-[0.98] dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-200'
                         )}
                       >
-                        {suggestion.message}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : sourceReference ? (
-              <div className="mb-2 flex items-center gap-2 rounded-lg bg-[#5a63df]/[0.07] px-2.5 py-2 text-xs font-semibold text-[#4a52c9] dark:text-[#c3c7ff]">
-                <BookOpenCheck className="h-4 w-4" />
-                <span className="flex-1">A completed result is attached for context.</span>
-                <button
-                  type="button"
-                  onClick={() => setSourceReference(null)}
-                  aria-label="Remove result"
-                  className={cn(FOCUS_RING, 'rounded-md text-[#4a52c9] dark:text-[#c3c7ff]')}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : null}
-            <div className="ava-composer rounded-2xl border border-[#d9d7e7] bg-[#faf9ff] p-2.5 dark:border-white/10 dark:bg-white/[0.04]">
-              <div className="flex items-center justify-between gap-3 px-1 pb-1.5">
-                <label
-                  htmlFor="ava-coach-message"
-                  className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-[#4a52c9] dark:text-[#b9bdff]"
-                >
-                  <Sparkles className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
-                  Ask Ava
-                </label>
-              </div>
-              <div className="flex items-end gap-2 rounded-xl bg-white px-2 py-1.5 dark:bg-[#151419]">
-                <textarea
-                  ref={composerRef}
-                  id="ava-coach-message"
-                  value={draft}
-                  onChange={(event) => {
-                    cannedDraftRef.current = null;
-                    setDraft(event.target.value.slice(0, 2000));
-                  }}
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === 'Enter' &&
-                      !event.shiftKey &&
-                      !event.nativeEvent.isComposing
-                    ) {
-                      event.preventDefault();
-                      submit();
-                    }
-                  }}
-                  dir="auto"
-                  rows={1}
-                  maxLength={2000}
-                  disabled={!canSend || sending || switchingConversation}
-                  aria-describedby="ava-language-note"
-                  placeholder={
-                    !state.status?.enabled
-                      ? 'Ava will be available when the coach is enabled'
-                      : canSend
-                        ? 'Ask an IELTS question…'
-                        : state.status?.budgetAvailable === false
-                          ? 'AI replies are temporarily unavailable'
-                          : 'Daily replies are unavailable'
-                  }
-                  className="max-h-36 min-h-11 min-w-0 flex-1 resize-none bg-transparent px-1.5 py-2.5 text-base leading-6 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed sm:text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={!draft.trim() || !canSend || sending || switchingConversation}
-                  className={cn(
-                    FOCUS_RING,
-                    'ava-send-button grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#5a63df] text-white active:scale-95 disabled:opacity-40'
-                  )}
-                  aria-label="Send message"
-                >
-                  {sending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4 translate-x-px" strokeWidth={2.2} />
-                  )}
-                </button>
-              </div>
-              <div
-                id="ava-language-note"
-                className="flex items-center justify-between gap-2 px-1 pt-1.5 text-[10px] font-medium text-slate-400"
-              >
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <span className="shrink-0">Reply language</span>
-                  <Popover.Root open={languageMenuOpen} onOpenChange={setLanguageMenuOpen}>
-                    <Popover.Trigger
-                      type="button"
-                      aria-label={`Reply language: ${replyLanguage === 'auto' ? 'Auto' : AI_COACH_LANGUAGES.find((item) => item.code === replyLanguage)?.label || replyLanguage}`}
-                      className={cn(
-                        FOCUS_RING,
-                        'inline-flex h-7 items-center gap-1 rounded-lg border border-[#e4e2f0] bg-white px-2 text-[11px] font-bold text-slate-700 transition-colors hover:border-[#5a63df]/40 hover:text-[#4a52c9] active:scale-[0.98] dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-slate-200'
-                      )}
-                    >
-                      <Languages className="size-3.5 text-[#5a63df]" aria-hidden="true" />
-                      {replyLanguage === 'auto'
-                        ? 'Auto'
-                        : AI_COACH_LANGUAGES.find((item) => item.code === replyLanguage)?.label ||
-                          replyLanguage}
-                      <ChevronRight className="size-3 rotate-90 opacity-60" aria-hidden="true" />
-                    </Popover.Trigger>
-                    <Popover.Portal>
-                      <Popover.Content
-                        aria-label="Choose reply language"
-                        align="start"
-                        side="top"
-                        sideOffset={6}
-                        className="ava-language-popover z-50 max-h-64 w-52 overflow-y-auto rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/[0.1] dark:bg-[#17161d]"
-                      >
-                        <div role="listbox" aria-label="Reply language options">
-                          <button
-                            type="button"
-                            role="option"
-                            aria-selected={replyLanguage === 'auto'}
-                            onClick={() => {
-                              setReplyLanguage('auto');
-                              setLanguageMenuOpen(false);
-                            }}
-                            className="flex min-h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/[0.06]"
-                          >
-                            Auto-detect
-                            {replyLanguage === 'auto' ? (
-                              <Check className="size-3.5 text-[#5a63df]" aria-hidden="true" />
-                            ) : null}
-                          </button>
-                          {AI_COACH_LANGUAGES.map((language) => (
+                        <Languages className="size-3.5 text-[#5a63df]" aria-hidden="true" />
+                        {replyLanguage === 'auto'
+                          ? 'Auto'
+                          : AI_COACH_LANGUAGES.find((item) => item.code === replyLanguage)?.label ||
+                            replyLanguage}
+                        <ChevronRight className="size-3 rotate-90 opacity-60" aria-hidden="true" />
+                      </Popover.Trigger>
+                      <Popover.Portal>
+                        <Popover.Content
+                          aria-label="Choose reply language"
+                          align="start"
+                          side="top"
+                          sideOffset={6}
+                          className="ava-language-popover z-50 max-h-64 w-52 overflow-y-auto rounded-xl border border-[#e4e2f0] bg-white p-1 dark:border-white/[0.1] dark:bg-[#17161d]"
+                        >
+                          <div role="listbox" aria-label="Reply language options">
                             <button
-                              key={language.code}
                               type="button"
                               role="option"
-                              aria-selected={replyLanguage === language.code}
+                              aria-selected={replyLanguage === 'auto'}
                               onClick={() => {
-                                setReplyLanguage(language.code);
+                                setReplyLanguage('auto');
                                 setLanguageMenuOpen(false);
                               }}
                               className="flex min-h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/[0.06]"
                             >
-                              {language.label}
-                              {replyLanguage === language.code ? (
+                              Auto-detect
+                              {replyLanguage === 'auto' ? (
                                 <Check className="size-3.5 text-[#5a63df]" aria-hidden="true" />
                               ) : null}
                             </button>
-                          ))}
-                        </div>
-                      </Popover.Content>
-                    </Popover.Portal>
-                  </Popover.Root>
+                            {AI_COACH_LANGUAGES.map((language) => (
+                              <button
+                                key={language.code}
+                                type="button"
+                                role="option"
+                                aria-selected={replyLanguage === language.code}
+                                onClick={() => {
+                                  setReplyLanguage(language.code);
+                                  setLanguageMenuOpen(false);
+                                }}
+                                className="flex min-h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-[#f4f3fb] dark:text-slate-200 dark:hover:bg-white/[0.06]"
+                              >
+                                {language.label}
+                                {replyLanguage === language.code ? (
+                                  <Check className="size-3.5 text-[#5a63df]" aria-hidden="true" />
+                                ) : null}
+                              </button>
+                            ))}
+                          </div>
+                        </Popover.Content>
+                      </Popover.Portal>
+                    </Popover.Root>
+                  </div>
+                  <span className={cn(NUM, 'shrink-0')}>{draft.length}/2000</span>
                 </div>
-                <span className={cn(NUM, 'shrink-0')}>{draft.length}/2000</span>
               </div>
-            </div>
-            <p className="mt-2 text-center text-[10px] font-medium text-slate-500 dark:text-slate-400">
-              Chat practice does not change official IELTS scores. Check important decisions against
-              your test instructions.
-            </p>
-          </form>
+              <p className="mt-2 text-center text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                Chat practice does not change official IELTS scores. Check important decisions
+                against your test instructions.
+              </p>
+            </form>
+          )}
           <ActionConfirmation
             action={pendingAction}
             onCancel={() => setPendingAction(null)}

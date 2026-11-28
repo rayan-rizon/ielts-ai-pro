@@ -6,7 +6,6 @@ import { bandDescriptor } from './resultStats';
 
 export function ArchScoreGauge({ score }) {
   const gradientId = React.useId();
-  const glowId = React.useId();
   const scoreNum = parseFloat(score) || 0;
   const bandText = scoreNum.toFixed(1);
   const descriptor = bandDescriptor(scoreNum);
@@ -17,10 +16,10 @@ export function ArchScoreGauge({ score }) {
   const cx = 160;
   const cy = 154;
   const radius = 112;
-  const strokeWidth = 28;
+  const strokeWidth = 26;
 
   // Arc length for 180 degrees (semi-circle)
-  const arcLength = Math.PI * radius; // ~270.18
+  const arcLength = Math.PI * radius; // ~351.86
   const clampedScore = Math.min(9.0, Math.max(0, scoreNum));
   const percentage = clampedScore / 9.0;
   const strokeDashoffset = arcLength * (1 - percentage);
@@ -28,7 +27,7 @@ export function ArchScoreGauge({ score }) {
   // Band ticks 1 to 9
   const bandTicks = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((band) => {
     const angle = Math.PI - ((band - 1) / 8) * Math.PI;
-    const tickRadius = radius + 29;
+    const tickRadius = radius + 28;
     const x = cx + tickRadius * Math.cos(angle);
     const y = cy - tickRadius * Math.sin(angle);
     return { band, x, y };
@@ -40,7 +39,7 @@ export function ArchScoreGauge({ score }) {
 
   return (
     <div className="relative flex flex-col items-center justify-center select-none group">
-      <div className="relative w-[225px] h-[134px] xl:w-[260px] xl:h-[154px]">
+      <div className="relative h-[138px] w-[232px] xl:h-[158px] xl:w-[266px]">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
           <defs>
             <linearGradient
@@ -55,13 +54,16 @@ export function ArchScoreGauge({ score }) {
               <stop offset="55%" stopColor="#4a52c9" />
               <stop offset="100%" stopColor="#3d44a8" />
             </linearGradient>
-            {/* Kept as a no-op-ish soft edge; the panel system avoids glows,
-                so the blur radius is minimal rather than a halo. */}
-            <filter id={glowId} x="-10%" y="-10%" width="120%" height="120%">
-              <feGaussianBlur stdDeviation="0.4" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
+
+          {/* Track arc so low scores remain anchored against the full 1-9 scale */}
+          <path
+            d={`M ${cx - radius},${cy} A ${radius},${radius} 0 0,1 ${cx + radius},${cy}`}
+            fill="none"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            className="stroke-[#eceaf7] dark:stroke-white/[0.06]"
+          />
 
           {/* Animated Active Arc Stroke */}
           <motion.path
@@ -73,8 +75,7 @@ export function ArchScoreGauge({ score }) {
             strokeDasharray={arcLength}
             initial={{ strokeDashoffset: arcLength }}
             animate={{ strokeDashoffset }}
-            transition={{ duration: 1.35, ease: [0.16, 1, 0.3, 1] }}
-            filter={`url(#${glowId})`}
+            transition={{ duration: 1.15, ease: [0.16, 1, 0.3, 1] }}
           />
 
           <motion.circle
@@ -124,7 +125,7 @@ export function ArchScoreGauge({ score }) {
           <span
             className={cn(
               NUM,
-              'mb-1.5 text-[38px] font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50 xl:text-[45px]'
+              'mb-1.5 text-[40px] font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-50 xl:text-[46px]'
             )}
           >
             {bandText}

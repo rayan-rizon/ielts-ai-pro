@@ -93,13 +93,22 @@ export function ObjectiveQuotaStrip({ testType, starterSetsAvailable = true }) {
       action={<StripAction exhausted={quota.exhausted} onOpen={() => openPaywall(testType)} />}
     >
       {quota.limit > 0 && (
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 @[560px]:gap-2.5">
           <AllowanceGauge
             quota={quota}
             tone={tone}
             className="min-w-0 flex-1 [&>span]:min-w-0 [&>span]:flex-1"
           />
-          <span className={cn(MICRO, NUM, MUTED, 'shrink-0')}>{describeUsage(quota)} used</span>
+          <span
+            className={cn(
+              MICRO,
+              NUM,
+              MUTED,
+              'shrink-0 whitespace-nowrap tracking-wider @[560px]:tracking-[0.14em]'
+            )}
+          >
+            {describeUsage(quota)} used
+          </span>
         </div>
       )}
     </LibraryUsagePanel>

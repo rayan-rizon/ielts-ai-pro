@@ -19,20 +19,73 @@ function SpeakingControls({
     <div
       className={cn(
         TILE,
-        'flex flex-col gap-2.5 p-2.5 lg:flex-row lg:items-center lg:justify-between'
+        'flex flex-col gap-2 p-2 sm:p-2.5 lg:flex-row lg:items-center lg:justify-between'
       )}
     >
-      <div className="group relative w-full lg:max-w-xs">
-        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#5a63df]" />
-        <Input
-          placeholder="Find a speaking practice..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131315]"
-        />
+      <div className="flex items-center gap-2 lg:contents">
+        <div className="group relative min-w-0 flex-1 lg:max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#5a63df]" />
+          <Input
+            placeholder="Find a speaking practice..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="h-9 rounded-lg border-[#e2e5f2] bg-white pl-9 text-xs font-semibold dark:border-white/10 dark:bg-[#131315]"
+          />
+        </div>
+
+        <div
+          role="tablist"
+          aria-label="View mode"
+          className="flex shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:order-3"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'grid'}
+            onClick={() => onViewModeChange('grid')}
+            className={cn(
+              'relative z-10 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+              viewMode === 'grid'
+                ? 'text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            )}
+          >
+            {viewMode === 'grid' && (
+              <m.div
+                layoutId="speakingViewToggleIndicator"
+                className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
+                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+              />
+            )}
+            <LayoutGrid className="relative z-10 h-3.5 w-3.5 shrink-0" />
+            <span className="sr-only sm:not-sr-only relative z-10">Grid</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'volumes'}
+            onClick={() => onViewModeChange('volumes')}
+            className={cn(
+              'relative z-10 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+              viewMode === 'volumes'
+                ? 'text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            )}
+          >
+            {viewMode === 'volumes' && (
+              <m.div
+                layoutId="speakingViewToggleIndicator"
+                className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
+                transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+              />
+            )}
+            <List className="relative z-10 h-3.5 w-3.5 shrink-0" />
+            <span className="sr-only sm:not-sr-only relative z-10">Volumes</span>
+          </button>
+        </div>
       </div>
 
-      <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex-none">
+      <div className="no-scrollbar flex w-full items-center gap-1 overflow-x-auto rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:order-2 lg:w-auto lg:flex-none">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -42,7 +95,7 @@ function SpeakingControls({
               whileTap={{ scale: 0.96 }}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                'relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
+                'relative z-10 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200 sm:flex-initial',
                 isActive
                   ? 'text-white'
                   : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white'
@@ -61,57 +114,6 @@ function SpeakingControls({
           );
         })}
       </div>
-
-      <div
-        role="tablist"
-        aria-label="View mode"
-        className="hidden shrink-0 items-center gap-0.5 rounded-lg border border-[#e2e5f2] bg-white p-0.5 dark:border-white/10 dark:bg-white/4 lg:flex"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={viewMode === 'grid'}
-          onClick={() => onViewModeChange('grid')}
-          className={cn(
-            'relative z-10 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
-            viewMode === 'grid'
-              ? 'text-white'
-              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-          )}
-        >
-          {viewMode === 'grid' && (
-            <m.div
-              layoutId="speakingViewToggleIndicator"
-              className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
-              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-            />
-          )}
-          <LayoutGrid className="relative z-10 h-3.5 w-3.5 shrink-0" />
-          <span className="relative z-10">Grid</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={viewMode === 'volumes'}
-          onClick={() => onViewModeChange('volumes')}
-          className={cn(
-            'relative z-10 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200',
-            viewMode === 'volumes'
-              ? 'text-white'
-              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-          )}
-        >
-          {viewMode === 'volumes' && (
-            <m.div
-              layoutId="speakingViewToggleIndicator"
-              className="absolute inset-0 -z-10 rounded-md bg-[#5a63df] shadow-sm"
-              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
-            />
-          )}
-          <List className="relative z-10 h-3.5 w-3.5 shrink-0" />
-          <span className="relative z-10">Volumes</span>
-        </button>
-      </div>
     </div>
   );
 }
@@ -127,24 +129,28 @@ export default function SpeakingHeader({
   onViewModeChange,
 }) {
   return (
-    <header className="mb-1 flex flex-col gap-3 border-b border-[#eeedf7] pb-4 dark:border-white/[0.07]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+    <header className="mb-1 flex flex-col gap-3 border-b border-[#eeedf7] pb-3 sm:pb-4 dark:border-white/[0.07]">
+      <div className="@container grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-2 @[560px]:gap-x-4">
         <div className="min-w-0 max-w-2xl">
           <Pill tone="accent">
             <Sparkles className="h-3 w-3" />
             Interaction hub
           </Pill>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          <h1 className="mt-1.5 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:mt-2 sm:text-2xl md:text-3xl">
             Speaking Library
           </h1>
-          <p className={cn('mt-1 text-sm font-medium', MUTED)}>
+        </div>
+        <div className="@[560px]:row-span-2">
+          <ProductiveAllowancePanel skill="speaking" allowance={allowance} />
+        </div>
+        <div className="col-span-2 min-w-0 max-w-2xl @[560px]:col-span-1">
+          <p className={cn('text-xs font-medium sm:text-sm', MUTED)}>
             Build speaking confidence with real-world scenarios and instant AI-driven feedback.
           </p>
-          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:mt-2.5">
             <Pill tone="sky">Official Cambridge content</Pill>
           </div>
         </div>
-        <ProductiveAllowancePanel skill="speaking" allowance={allowance} />
       </div>
 
       {tabs && (

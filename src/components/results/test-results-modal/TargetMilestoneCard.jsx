@@ -115,9 +115,9 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className={cn(PANEL, 'flex h-full flex-col gap-2.5 p-3.5')}
+      className={cn(PANEL, 'flex h-full flex-col gap-3 p-4 sm:p-5')}
     >
-      <PanelTitle label="Next milestone" accent />
+      <PanelTitle label="Next milestone" accent className="mb-1" />
 
       {milestone.atCeiling ? (
         <div className="flex items-center gap-2.5">
@@ -183,7 +183,7 @@ export function TargetMilestoneCard({ testResults, onReviewAnswers, testType = '
       <button
         type="button"
         onClick={onReviewAnswers}
-        className="group mt-auto flex items-center gap-3 rounded-lg bg-[#5a63df] p-3 text-left text-white transition-all hover:bg-[#4a52c9] active:scale-[0.99]"
+        className="group mt-auto flex items-center gap-3 rounded-xl bg-[#5a63df] p-3.5 text-left text-white transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#4a52c9] active:scale-[0.97]"
       >
         <div className="min-w-0 flex-1">
           <p className={cn(MICRO, 'text-white/70')}>Best place to start</p>

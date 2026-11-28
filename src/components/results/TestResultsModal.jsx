@@ -138,7 +138,7 @@ const ModalFooter = ({
   sessionId,
   testType,
 }) => (
-  <div className="px-4 sm:px-5 py-2.5 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
+  <div className="px-4 sm:px-5 py-3 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#100f15] border-t border-[#e4e2f0] dark:border-white/[0.07] flex flex-col sm:flex-row items-center justify-between gap-2.5 z-50">
     <div className="flex items-center gap-3">
       <FooterStatus isPremium={isPremium} earnedXP={earnedXP} handleUpgrade={handleUpgrade} />
     </div>
@@ -154,7 +154,7 @@ const ModalFooter = ({
         variant="outline"
         onClick={onDownloadPdf}
         disabled={isDownloadingPdf}
-        className="flex-1 sm:flex-none h-9 rounded-xl font-bold text-xs border-[#e4e2f0] dark:border-white/[0.07] bg-white/90 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-white transition-all shadow-2xs"
+        className="flex-1 sm:flex-none h-9 rounded-xl font-bold text-xs border-[#e4e2f0] dark:border-white/[0.09] bg-white dark:bg-white/[0.06] text-slate-900 dark:text-white hover:bg-[#f4f3fb] dark:hover:bg-white/[0.11] transition-[transform,background-color,border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]"
       >
         {isDownloadingPdf ? (
           <LoaderCircle className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -165,14 +165,14 @@ const ModalFooter = ({
       </Button>
       <Button
         onClick={onReviewAnswers}
-        className="flex-1 sm:min-w-[180px] h-9 rounded-xl font-bold text-xs bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.98] transition-all shadow-xs"
+        className="flex-1 sm:min-w-[180px] h-9 rounded-xl font-bold text-xs bg-[#5a63df] text-white hover:bg-[#4a52c9] active:scale-[0.97] transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]"
       >
         Review Mistakes
       </Button>
       <Button
         variant="outline"
         onClick={onClose}
-        className="flex-1 sm:min-w-[130px] h-9 rounded-xl font-bold text-xs border-[#e4e2f0] dark:border-white/[0.07] bg-white/90 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-white transition-all shadow-2xs"
+        className="flex-1 sm:min-w-[120px] h-9 rounded-xl font-bold text-xs border-[#e4e2f0] dark:border-white/[0.09] bg-white dark:bg-white/[0.06] text-slate-900 dark:text-white hover:bg-[#f4f3fb] dark:hover:bg-white/[0.11] transition-[transform,background-color,border-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]"
       >
         Close
       </Button>
@@ -181,9 +181,9 @@ const ModalFooter = ({
 );
 
 const ModalHeader = ({ testType, testMode, children }) => (
-  <header className="px-4 sm:px-5 pr-14 py-1.5 min-h-[52px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#131315] border-b border-[#e4e2f0] dark:border-white/[0.07]">
+  <header className="px-4 sm:px-5 pr-14 py-2 min-h-[56px] flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center gap-2 shrink-0 z-10 bg-linear-to-b/srgb from-white to-[#faf9ff] dark:from-[#131315] dark:to-[#100f15] border-b border-[#e4e2f0] dark:border-white/[0.07]">
     <div className="flex items-center gap-2.5 min-w-0">
-      <div className="w-8 h-8 rounded-xl bg-[#5a63df]/10 border border-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:border-[#5a63df]/30 text-[#5a63df] dark:text-[#a9afff] flex items-center justify-center shrink-0 shadow-2xs">
+      <div className="w-8 h-8 rounded-xl bg-[#5a63df]/10 border border-[#5a63df]/20 dark:bg-[#5a63df]/20 dark:border-[#5a63df]/30 text-[#5a63df] dark:text-[#a9afff] flex items-center justify-center shrink-0">
         <BookOpen className="w-4 h-4" />
       </div>
       <div className="min-w-0">
@@ -302,18 +302,18 @@ const ModalContent = React.memo(
     // tooltips for their metric explainers and throw without it.
     <TooltipProvider delayDuration={150}>
       <motion.div
-        initial={{ scale: 0.96, opacity: 0, y: 20 }}
+        initial={{ scale: 0.96, opacity: 0, y: 16 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.96, opacity: 0, y: 20 }}
-        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-        className="relative bg-white dark:bg-slate-950 border border-[#e4e2f0] dark:border-white/[0.07] rounded-[22px] shadow-lg w-full max-w-[1480px] h-[96vh] flex flex-col overflow-hidden"
+        exit={{ scale: 0.96, opacity: 0, y: 16 }}
+        transition={{ type: 'spring', stiffness: 360, damping: 32 }}
+        className="relative bg-white dark:bg-[#08080a] border border-[#e4e2f0] dark:border-white/[0.08] rounded-[20px] shadow-2xl w-full max-w-[1440px] h-[94vh] flex flex-col overflow-hidden"
       >
         <Button
           variant="ghost"
           size="icon"
           aria-label="Close test results"
           onClick={onClose}
-          className="absolute right-3 top-1.5 z-50 h-11 w-11 rounded-xl border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+          className="absolute right-3.5 top-2.5 z-50 h-9 w-9 rounded-xl border border-[#e4e2f0] bg-white text-slate-500 transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#f4f3fb] hover:text-slate-950 active:scale-[0.95] dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.11] dark:hover:text-white"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -334,7 +334,7 @@ const ModalContent = React.memo(
                   <TabsContent
                     value="overview"
                     forceMount
-                    className="m-0 focus-visible:outline-none"
+                    className="m-0 min-h-full flex flex-col focus-visible:outline-none"
                   >
                     <OverviewTab
                       testResults={testResults}
@@ -464,7 +464,7 @@ export default function TestResultsModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-100 flex items-center justify-center p-2 sm:p-3 md:p-4 overflow-y-auto"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-100 flex items-center justify-center p-2 sm:p-3 md:p-4 overflow-y-auto"
       >
         <ConfettiCelebration
           show={showCelebration}
